@@ -222,17 +222,17 @@ function ItemEditorDialog({
     try {
       if (item) {
         const { error } = await supabase.from("master_items").update({
-          label: label.trim(), code: code.trim(), metadata: parsedMeta,
+          label: label.trim(), code: code.trim(), metadata: parsedMeta as never,
         }).eq("id", item.id);
         if (error) throw error;
         await logActivity("master.updated", "master", item.id, { list: listKey, label });
       } else {
         const { data: { user } } = await supabase.auth.getUser();
-        const { data, error } = await supabase.from("master_items").insert({
+        const { data, error } = await supabase.from("master_items").insert([{
           list_key: listKey, label: label.trim(), code: code.trim(),
-          metadata: parsedMeta, sort_order: nextSortOrder,
+          metadata: parsedMeta as never, sort_order: nextSortOrder,
           created_by: user?.id ?? null,
-        }).select().single();
+        }]).select().single();
         if (error) throw error;
         await logActivity("master.created", "master", data.id, { list: listKey, label });
       }
