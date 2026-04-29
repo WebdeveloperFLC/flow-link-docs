@@ -15,7 +15,7 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
     const bytes = await file.arrayBuffer();
     const pdf = await PDFDocument.load(bytes);
     const out = await pdf.save({ useObjectStreams: true });
-    return new File([out], `${baseName}.pdf`, { type: "application/pdf" });
+    return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
   }
 
   if (file.type.startsWith("image/")) {
@@ -38,7 +38,7 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
     const page = pdf.addPage([embedded.width, embedded.height]);
     page.drawImage(embedded, { x: 0, y: 0, width: embedded.width, height: embedded.height });
     const out = await pdf.save();
-    return new File([out], `${baseName}.pdf`, { type: "application/pdf" });
+    return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
   }
 
   // Unknown type → wrap text-ish notice
@@ -48,7 +48,7 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
   page.drawText(`Original file: ${file.name}`, { x: 50, y: 800, size: 12, font });
   page.drawText("(File type not auto-converted; original retained server-side.)", { x: 50, y: 780, size: 10, font });
   const out = await pdf.save();
-  return new File([out], `${baseName}.pdf`, { type: "application/pdf" });
+  return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
 }
 
 export function isOverLimit(file: File) { return file.size > MAX_BYTES; }
