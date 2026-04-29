@@ -156,16 +156,20 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
   try {
-    // Auth: require a logged-in user (any signed-in counselor/admin)
+    // Auth: require a logged-in user OR service-role (used by odoo-cron)
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
-    const sb = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: userData, error: userErr } = await sb.auth.getUser();
-    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+    const token = authHeader.slice("Bearer ".length);
+    const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    if (token !== SERVICE_ROLE) {
+      const sb = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: userData, error: userErr } = await sb.auth.getUser();
+      if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+    }
 
     const ODOO_URL = Deno.env.get("ODOO_URL");
     const ODOO_DB = Deno.env.get("ODOO_DB");
