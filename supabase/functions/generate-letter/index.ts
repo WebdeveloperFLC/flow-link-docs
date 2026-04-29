@@ -146,6 +146,7 @@ ${logoPng && logoPng.byteLength > 0 ? '<Default Extension="png" ContentType="ima
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
+${logoPng && logoPng.byteLength > 0 ? '<Relationship Id="rId10" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/firm-logo.png"/>' : ""}
 </Relationships>`;
 
   const core = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
