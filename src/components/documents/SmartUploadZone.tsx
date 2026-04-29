@@ -67,6 +67,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   const applicant = useMemo(() => people.find((p) => p.role === "applicant"), [people]);
   const isMulti = people.length >= 2;

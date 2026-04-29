@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import type { PersonRole, CasePerson } from "@/lib/casePeople";
 import { logActivity } from "@/lib/activity";
+import { useMasterLabels } from "@/lib/masters";
 
 interface Props {
   open: boolean;
@@ -18,17 +19,6 @@ interface Props {
   roster?: CasePerson[];
 }
 
-const RELATIONSHIP_PRESETS = [
-  "Spouse",
-  "Son",
-  "Daughter",
-  "Father",
-  "Mother",
-  "Brother",
-  "Sister",
-  "Partner",
-  "Guardian",
-] as const;
 const OTHER = "__other__";
 
 const defaultRelForRole = (role: PersonRole) =>
@@ -36,6 +26,7 @@ const defaultRelForRole = (role: PersonRole) =>
 
 export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster = [] }: Props) => {
   const hasApplicant = roster.some((p) => p.role === "applicant" && !p.is_archived);
+  const RELATIONSHIP_PRESETS = useMasterLabels("relationships");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<PersonRole>(hasApplicant ? "co_applicant" : "applicant");
