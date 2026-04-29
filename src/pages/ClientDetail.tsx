@@ -156,18 +156,42 @@ const ClientDetail = () => {
     setSyncingOdoo(true);
     try {
       const { data, error } = await supabase.functions.invoke("odoo-sync", {
-        body: { action: "upsert_client", client_id: client.id },
+        body: { action: "sync_one", client_id: client.id },
       });
       if (error) throw error;
       if (!data?.ok) throw new Error(data?.error || "Sync failed");
-      await logActivity("odoo.client_synced", "client", client.id, { partner_id: data.partner_id });
-      toast.success(`Synced to Odoo · partner #${data.partner_id}`);
+      if (data.skipped) { toast.message(`Odoo sync skipped: ${data.skipped}`); return; }
+      await logActivity("odoo.client_synced", "client", client.id, data);
+      toast.success(`Synced to Odoo${data.lead_id ? ` · lead #${data.lead_id}` : ""}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Odoo sync failed");
     } finally {
       setSyncingOdoo(false);
     }
   };
+
+  // Auto-sync on client open when integration_settings.auto_on_open is enabled
+  useEffect(() => {
+    if (!client?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data: settings } = await supabase
+        .from("integration_settings")
+        .select("enabled, auto_on_open, mode")
+        .eq("key", "odoo")
+        .maybeSingle();
+      if (cancelled) return;
+      if (!settings?.enabled || !settings.auto_on_open || settings.mode === "off") return;
+      // Fire and forget — non-blocking
+      supabase.functions.invoke("odoo-sync", {
+        body: { action: "sync_one", client_id: client.id },
+      }).then(({ data, error }) => {
+        if (error || !data?.ok) return;
+        if (data.pulled) toast.message("Updated from Odoo");
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [client?.id]);
 
   const onView = async (d: Doc) => {
     try {
