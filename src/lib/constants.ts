@@ -58,7 +58,7 @@ export function sanitizeName(name: string) {
 }
 
 export function buildDocumentName(docType: string, clientName: string, version: number, ext: string) {
-  const cleanType = docType.replace(/\s+/g, "");
+  const cleanType = sanitizeName(docType);
   const cleanClient = sanitizeName(clientName);
   const v = version > 1 ? `_v${version}` : "";
   return `${cleanType}_${cleanClient}${v}.${ext}`;
@@ -75,8 +75,8 @@ export function buildPersonDocumentName(
   version: number,
   ext: string,
 ) {
-  const cleanType = docType.replace(/\s+/g, "");
-  const cleanRole = roleLabel.replace(/\s+/g, "");
+  const cleanType = sanitizeName(docType);
+  const cleanRole = sanitizeName(roleLabel);
   const cleanPerson = sanitizeName(personName);
   const v = version > 1 ? `_v${version}` : "";
   const tail = cleanPerson ? `_${cleanPerson}` : "";
