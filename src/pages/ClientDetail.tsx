@@ -17,7 +17,7 @@ import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
 import { LetterCard } from "@/components/letters/LetterCard";
-import { extractFirstPageText } from "@/lib/extractFirstPageText";
+import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
 import type { CasePerson } from "@/lib/casePeople";
@@ -130,11 +130,12 @@ const ClientDetail = () => {
           const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
           if (!blob) { errs++; continue; }
           const file = new File([blob], d.file_name, { type: d.mime_type || "application/pdf" });
-          const snippet = await extractFirstPageText(file, 6000);
-          if (!snippet) continue;
+          const snippet = await extractFirstPageText(file, 12000, 3);
+          const imageDataUrls = await renderPdfPagesToJpegDataUrls(file, 3);
+          if (!snippet && imageDataUrls.length === 0) continue;
           const effectiveType = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
           const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: { document_type: effectiveType, file_name: d.file_name, snippet },
+            body: { document_type: effectiveType, file_name: d.file_name, snippet, image_data_urls: imageDataUrls },
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {

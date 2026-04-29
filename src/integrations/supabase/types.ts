@@ -243,6 +243,60 @@ export type Database = {
           },
         ]
       }
+      client_education: {
+        Row: {
+          city: string | null
+          client_id: string
+          country: string | null
+          created_at: string
+          degree: string | null
+          end_year: number | null
+          field_of_study: string | null
+          gpa_or_percentage: string | null
+          id: string
+          institution: string | null
+          level: string | null
+          source_document_id: string | null
+          source_file_name: string | null
+          start_year: number | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          client_id: string
+          country?: string | null
+          created_at?: string
+          degree?: string | null
+          end_year?: number | null
+          field_of_study?: string | null
+          gpa_or_percentage?: string | null
+          id?: string
+          institution?: string | null
+          level?: string | null
+          source_document_id?: string | null
+          source_file_name?: string | null
+          start_year?: number | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          client_id?: string
+          country?: string | null
+          created_at?: string
+          degree?: string | null
+          end_year?: number | null
+          field_of_study?: string | null
+          gpa_or_percentage?: string | null
+          id?: string
+          institution?: string | null
+          level?: string | null
+          source_document_id?: string | null
+          source_file_name?: string | null
+          start_year?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_profile: {
         Row: {
           account_balance: number | null
