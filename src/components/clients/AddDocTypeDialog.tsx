@@ -31,6 +31,7 @@ export const AddDocTypeDialog = ({
   const [mandatory, setMandatory] = useState(false);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   const reset = () => {
     setType(""); setMandatory(false); setNotes("");
