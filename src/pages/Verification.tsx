@@ -175,7 +175,7 @@ const Verification = () => {
       setHistory(h);
       setActive(h[0] ?? null);
       setReviewerNote(h[0]?.reviewer_note ?? "");
-      logActivity({ action: "document_verified", entityType: "document", entityId: selectedDoc.id, details: { risk_level: (data as { risk_level?: string })?.risk_level } });
+      logActivity("document_verified", "document", selectedDoc.id, { risk_level: (data as { risk_level?: string })?.risk_level });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Verification failed");
     } finally {
