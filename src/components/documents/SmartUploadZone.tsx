@@ -7,6 +7,8 @@ import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRigh
 import { DOCUMENT_TYPES, buildDocumentName, sanitizeName } from "@/lib/constants";
 import { processToPdf } from "@/lib/processFile";
 import { classifyDocument, matchPersonName } from "@/lib/classifyDocument";
+import { extractFirstPageText } from "@/lib/extractFirstPageText";
+import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 
@@ -135,6 +137,39 @@ export const SmartUploadZone = ({
         owner_match_score: item.matchScore ?? null,
       });
       patch(idx, { status: "done" });
+
+      // Fire-and-forget: extract structured CRM fields and merge them.
+      // We never block the user on this — failures are silently logged.
+      try {
+        const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
+        const snippet = isPdf ? await extractFirstPageText(item.file, 6000) : "";
+        if (snippet) {
+          const { data } = await supabase.functions.invoke("extract-document-data", {
+            body: {
+              document_type: effectiveType,
+              file_name: processed.name,
+              snippet,
+            },
+          });
+          const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
+          if (fields && Object.keys(fields).length > 0) {
+            const { written, conflicts } = await mergeExtractedFields(
+              targetClient.id,
+              ins.id,
+              processed.name,
+              fields,
+            );
+            if (written.length > 0) {
+              toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} from ${processed.name}`);
+            }
+            if (conflicts.length > 0) {
+              toast.message(`${conflicts.length} field conflict${conflicts.length === 1 ? "" : "s"} flagged on profile`);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("extract-document-data failed:", e);
+      }
     } catch (e) {
       patch(idx, { status: "error", error: e instanceof Error ? e.message : "Upload failed" });
     }

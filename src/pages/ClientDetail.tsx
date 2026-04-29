@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X } from "lucide-react";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
@@ -14,11 +14,16 @@ import { toast } from "sonner";
 import type { Template, TemplateItem } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
+import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
+import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
+import { extractFirstPageText } from "@/lib/extractFirstPageText";
+import { mergeExtractedFields } from "@/lib/extractedFields";
 import JSZip from "jszip";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
   application_type: string; template_id: string | null; status: string;
+  extra_items?: ExtraItem[] | null;
 }
 
 interface Doc {
@@ -43,11 +48,15 @@ const ClientDetail = () => {
   const [optimizing, setOptimizing] = useState<string | null>(null);
   const [optimizingAll, setOptimizingAll] = useState(false);
   const [binders, setBinders] = useState<BinderRow[]>([]);
+  const [addDocOpen, setAddDocOpen] = useState(false);
+  const [reExtracting, setReExtracting] = useState(false);
+  const [syncingOdoo, setSyncingOdoo] = useState(false);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
 
   const load = useCallback(async () => {
     if (!id) return;
     const { data: c } = await supabase.from("clients").select("*").eq("id", id).single();
-    setClient(c as Client | null);
+    setClient(c as unknown as Client | null);
     if (c?.template_id) {
       const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
       setTemplate(t as unknown as Template | null);
@@ -65,7 +74,11 @@ const ClientDetail = () => {
     return matches.sort((a, b) => b.version - a.version)[0];
   };
 
-  const checklistItems: TemplateItem[] = template?.items ?? [];
+  const extraItems: ExtraItem[] = (client?.extra_items as ExtraItem[] | null | undefined) ?? [];
+  const checklistItems: TemplateItem[] = [
+    ...(template?.items ?? []),
+    ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
+  ];
   const completed = checklistItems.filter((it) => docByType(it.name)).length;
   const requiredMissing = checklistItems.filter((it) => it.mandatory && !docByType(it.name));
 
@@ -75,6 +88,81 @@ const ClientDetail = () => {
     await supabase.from("client_documents").delete().eq("id", d.id);
     await logActivity("document.deleted", "document", d.id, { file_name: d.file_name });
     load();
+  };
+
+  const onAddExtraItem = async (item: ExtraItem) => {
+    if (!client) return;
+    const next = [...extraItems, item];
+    const { error } = await supabase
+      .from("clients")
+      .update({ extra_items: next as never })
+      .eq("id", client.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("client.extra_item_added", "client", client.id, { type: item.name, mandatory: item.mandatory });
+    toast.success(`Added "${item.name}"`);
+    load();
+  };
+
+  const onRemoveExtraItem = async (itemId: string) => {
+    if (!client) return;
+    const next = extraItems.filter((e) => e.id !== itemId);
+    const { error } = await supabase
+      .from("clients")
+      .update({ extra_items: next as never })
+      .eq("id", client.id);
+    if (error) { toast.error(error.message); return; }
+    load();
+  };
+
+  const onReExtract = async () => {
+    if (!client) return;
+    setReExtracting(true);
+    let ok = 0, errs = 0, totalWritten = 0;
+    try {
+      // Only PDFs can be text-extracted client side
+      const pdfs = docs.filter((d) => (d.mime_type ?? "").includes("pdf") || d.file_name.toLowerCase().endsWith(".pdf"));
+      for (const d of pdfs) {
+        try {
+          const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
+          if (!blob) { errs++; continue; }
+          const file = new File([blob], d.file_name, { type: d.mime_type || "application/pdf" });
+          const snippet = await extractFirstPageText(file, 6000);
+          if (!snippet) continue;
+          const effectiveType = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
+          const { data } = await supabase.functions.invoke("extract-document-data", {
+            body: { document_type: effectiveType, file_name: d.file_name, snippet },
+          });
+          const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
+          if (fields && Object.keys(fields).length > 0) {
+            const { written } = await mergeExtractedFields(client.id, d.id, d.file_name, fields);
+            totalWritten += written.length;
+          }
+          ok++;
+        } catch { errs++; }
+      }
+      toast.success(`Re-extracted ${ok}/${pdfs.length} · ${totalWritten} new fields`);
+      setProfileRefreshKey((k) => k + 1);
+    } finally {
+      setReExtracting(false);
+    }
+  };
+
+  const onSyncOdoo = async () => {
+    if (!client) return;
+    setSyncingOdoo(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("odoo-sync", {
+        body: { action: "upsert_client", client_id: client.id },
+      });
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || "Sync failed");
+      await logActivity("odoo.client_synced", "client", client.id, { partner_id: data.partner_id });
+      toast.success(`Synced to Odoo · partner #${data.partner_id}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Odoo sync failed");
+    } finally {
+      setSyncingOdoo(false);
+    }
   };
 
   const onView = async (d: Doc) => {
@@ -292,11 +380,18 @@ const ClientDetail = () => {
                   {template ? `${template.name} · ${completed}/${checklistItems.length} ready` : "No template assigned"}
                 </div>
               </div>
-              {requiredMissing.length > 0 && (
-                <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
-                  <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {requiredMissing.length > 0 && (
+                  <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
+                    <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
+                  </div>
+                )}
+                {canUpload && (
+                  <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
+                    <Plus className="size-3.5 mr-1" /> Add document
+                  </Button>
+                )}
+              </div>
             </div>
             {!template && (
               <div className="px-6 py-10 text-center text-sm text-muted-foreground">
@@ -306,6 +401,7 @@ const ClientDetail = () => {
             <div className="divide-y">
               {checklistItems.map((it, i) => {
                 const d = docByType(it.name);
+                const isExtra = extraItems.some((e) => e.id === it.id);
                 return (
                   <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
                     <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
@@ -313,6 +409,7 @@ const ClientDetail = () => {
                       <div className="font-medium text-sm flex items-center gap-1.5">
                         {it.name}
                         {it.mandatory && <span className="text-secondary text-[10px]">REQUIRED</span>}
+                        {isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
                       </div>
                       {it.notes && <div className="text-xs text-muted-foreground">{it.notes}</div>}
                       {d && <div className="text-xs text-muted-foreground mt-0.5">{d.file_name}{d.version>1?` · v${d.version}`:""}</div>}
@@ -324,11 +421,27 @@ const ClientDetail = () => {
                         {it.mandatory ? "Pending" : "Optional"}
                       </span>
                     )}
+                    {isExtra && canUpload && !d && (
+                      <Button size="icon" variant="ghost" className="size-7 text-muted-foreground" title="Remove this requirement"
+                        onClick={() => onRemoveExtraItem(it.id)}>
+                        <X className="size-3.5" />
+                      </Button>
+                    )}
                   </div>
                 );
               })}
             </div>
           </Card>
+
+          <ClientProfileCard
+            clientId={client.id}
+            canEdit={canUpload}
+            onReExtract={onReExtract}
+            reExtracting={reExtracting}
+            onSyncOdoo={onSyncOdoo}
+            syncingOdoo={syncingOdoo}
+            refreshKey={profileRefreshKey}
+          />
 
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
@@ -429,7 +542,7 @@ const ClientDetail = () => {
           {canUpload ? (
             <SmartUploadZone
               client={client}
-              templateTypes={template?.items.map((it) => it.name)}
+              templateTypes={checklistItems.map((it) => it.name)}
               onUploaded={load}
             />
           ) : (
@@ -438,6 +551,12 @@ const ClientDetail = () => {
         </div>
       </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
+      <AddDocTypeDialog
+        open={addDocOpen}
+        onOpenChange={setAddDocOpen}
+        existingTypes={checklistItems.map((it) => it.name)}
+        onAdd={onAddExtraItem}
+      />
     </AppLayout>
   );
 };
