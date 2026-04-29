@@ -36,6 +36,9 @@ interface QueueItem {
   error?: string;
   ownerName?: string | null;
   ownerConfidence?: number;
+  ownerEvidence?: string | null;
+  ownerSource?: "document_text" | "document_image" | null;
+  verificationIssue?: "owner_not_on_case" | "owner_not_readable";
   matchScore?: number;
   // Multi-person:
   ownerId?: string | null;     // case_people.id, or SHARED_ID, or null until chosen
@@ -104,19 +107,38 @@ export const SmartUploadZone = ({
           source: c.source,
           ownerName: c.ownerName ?? null,
           ownerConfidence: c.ownerConfidence ?? 0,
+          ownerEvidence: c.ownerEvidence ?? null,
+          ownerSource: c.ownerSource ?? null,
           matchScore: match.score,
           alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
         };
 
-        // HARD BLOCK: AI confidently read a person name, but nobody on the
-        // roster is a credible match → document doesn't belong to this case.
+        // HARD BLOCK: owner must be verified from document content/image, never filename.
         const detectedName = c.ownerName?.trim() ?? "";
         const ownerConf = c.ownerConfidence ?? 0;
+        const ownerVerifiedFromContent =
+          !!detectedName &&
+          ownerConf >= 0.65 &&
+          !!c.ownerEvidence?.trim() &&
+          (c.ownerSource === "document_text" || c.ownerSource === "document_image");
+
+        if (!ownerVerifiedFromContent) {
+          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_readable" });
+          await logActivity("document.owner_not_verified", "client", client.id, {
+            file_name: item.file.name,
+            detected_owner: detectedName || null,
+            owner_confidence: ownerConf,
+            owner_source: c.ownerSource ?? null,
+            owner_evidence: c.ownerEvidence ?? null,
+          });
+          return null;
+        }
+
         const noRosterMatch =
-          !!detectedName && ownerConf >= 0.5 && !match.best && match.score < 0.6;
+          !match.best && match.score < 0.6;
 
         if (noRosterMatch) {
-          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null });
+          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_on_case" });
           await logActivity("document.owner_not_on_case", "client", client.id, {
             file_name: item.file.name,
             detected_owner: detectedName,
