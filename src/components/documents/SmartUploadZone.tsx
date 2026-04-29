@@ -8,7 +8,7 @@ import { DOCUMENT_TYPES, sanitizeName, buildPersonDocumentName, buildDocumentNam
 import { processToPdf } from "@/lib/processFile";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
-import { extractFirstPageText } from "@/lib/extractFirstPageText";
+import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { ROLE_SHORT, type CasePerson } from "@/lib/casePeople";
@@ -256,10 +256,16 @@ export const SmartUploadZone = ({
       // Background field extraction (per-person where possible)
       try {
         const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
-        const snippet = isPdf ? await extractFirstPageText(item.file, 6000) : "";
-        if (snippet) {
+        const isImage = item.file.type.startsWith("image/");
+        const snippet = isPdf ? await extractFirstPageText(item.file, 12000, 3) : "";
+        const imageDataUrls: string[] = isPdf
+          ? await renderPdfPagesToJpegDataUrls(item.file, 3)
+          : isImage
+            ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
+            : [];
+        if (snippet || imageDataUrls.length > 0) {
           const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: { document_type: effectiveType, file_name: processed.name, snippet },
+            body: { document_type: effectiveType, file_name: processed.name, snippet, image_data_urls: imageDataUrls },
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
