@@ -1,95 +1,75 @@
+## Your three concerns, addressed
 
-# Smart Upload + Multi-Binder Plan
+### 1. "Documents uploaded under Krishaa are actually for Manav — how will the system detect this?"
 
-Three connected upgrades to the Client Detail page:
+Right now, every file dropped on a client page is **silently attached to that client**. The classifier only detects the *document type* (Passport, IELTS, etc.), not *whose* document it is. We'll add a name-aware safety net.
 
-1. Drop any pile of files → the system identifies each (Passport, IELTS, Transcripts, etc.), renames to `Type_ClientName.pdf`, and compresses to IRCC limits.
-2. One-click **Generate full binder** (current behavior, hardened).
-3. New **Grouped binders** — generate separate PDFs per category (Financial, Academic, Identity, Forms, Supporting), matching IRCC's "upload these together" slots.
+**What we'll build:**
+- During classification, the AI/edge function already extracts first-page text. We'll also ask it to extract any **person name** found on the document (passport name, transcript holder, bank account holder, etc.).
+- Before saving, compare the extracted name to the current client's `full_name` using a fuzzy match (normalize case/spaces, token overlap, Levenshtein on first+last name).
+- If the names **don't match**, the upload row turns amber with a warning: *"This document looks like it belongs to **Manav Yogesh Patel**, not Krishaa Ramrakhiani."* and offers three actions:
+  - **Reassign** — searches existing clients and moves the upload to the matching one.
+  - **Upload anyway** — proceeds (e.g. spouse/parent docs) and tags the doc with `owner_name_detected` for the audit log.
+  - **Skip** — discards the file from the queue.
+- All decisions are written to `activity_logs` so admins can audit.
 
----
+### 2. "View document doesn't open, but Download works"
 
-## 1. Auto-classification on upload
+The current `onView` opens the Supabase signed URL in a new tab. Browsers often **download instead of preview** PDFs served from a cross-origin storage host, especially when `Content-Disposition` is `attachment`.
 
-**New component:** `SmartUploadZone.tsx` (replaces the type picker in `UploadZone.tsx`; old one kept as "manual mode" toggle).
+**Fix:** Replace `onView` with a blob-based viewer:
+- Download the file as a Blob via the Supabase SDK.
+- Create an object URL with the correct `application/pdf` MIME type.
+- Open it via `window.open(blobUrl, "_blank")` so the browser's native PDF viewer renders it inline.
+- Revoke the URL after a delay.
 
-Flow per dropped file:
-1. Show file in queue as **"Identifying…"**.
-2. Run a fast **filename heuristic** first (regex on common patterns: `passport`, `ielts|trf`, `transcript|marksheet`, `gic`, `sop|statement`, `offer|loa`, `bank|statement|itr|sal`, `medical|imm1017`, `photo|jpg`, `imm\d{4}`, etc.). If confidence high → use it.
-3. Otherwise call new edge function **`classify-document`** with:
-   - filename
-   - first-page text (extracted client-side via `pdfjs-dist` for PDFs) or OCR-free image bytes (downscaled to ~1024px) for images
-   - The list of known `DOCUMENT_TYPES` + the active client's template items as candidate labels
-4. Function uses **Lovable AI** (`google/gemini-2.5-flash`, structured JSON output `{type, confidence, reason}`) — no API key needed.
-5. UI shows the predicted type with a small dropdown so the user can override before the row finishes uploading. Auto-accepts after 3s if confidence ≥ 0.85.
+For images we'll do the same; for unknown types we fall back to download.
 
-**Naming:** existing `buildDocumentName()` already produces `Passport_JohnDoe.pdf` — reused as-is, with version suffix on duplicates.
+### 3. "Do I need to click each document to optimize, or is it automatic?"
 
-## 2. IRCC-grade compression
+**It is already automatic** — every file goes through `processToPdf` on upload, which:
+- Converts images → PDF
+- Compresses progressively (quality 0.88 → 0.55 for images; 150→110 DPI rasterization for PDFs)
+- Targets **≤ 3.8 MB** (under IRCC's 4 MB cap)
 
-Current `processToPdf` targets ~2 MB but only compresses images, not PDFs. Upgrade:
+The little ✨ "Optimize" button you see only appears for files **already in storage that are still > 1.5 MB** (e.g. uploaded before the new pipeline). It's a manual re-run for legacy files — not something you need to click for new uploads.
 
-- **Images:** keep `browser-image-compression`, but target **≤ 4 MB** (IRCC per-file limit) with progressive quality steps (0.85 → 0.7 → 0.55) until under limit; never go below 150 DPI equivalent.
-- **PDFs:** if a PDF is > 4 MB after `pdf-lib` re-save, automatically call existing **`process-large-file`** edge function. If still > 4 MB, render each page to JPEG (via `pdfjs-dist`) at 150 DPI quality 0.75 and rebuild the PDF — guaranteed under limit while staying readable.
-- **Hard cap displayed in UI:** "IRCC max 4 MB per file" badge on the upload zone.
-
-## 3. Grouped (multi-) binders
-
-**Schema additions** (one migration):
-
-- Add `category text` column to `workflow_templates.items` JSON entries — already free-form, no DB change. We add a new top-level constant `BINDER_GROUPS` and let each template item declare a group.
-- Add `group_label text NULL` to `binders` table so we can store "Financial", "Academic", etc.
-- Add `groups jsonb NULL DEFAULT NULL` to `workflow_templates` (optional override list of `{key,label,types[]}`).
-
-**Default groups** (used when template doesn't define its own):
-
-| Key | Label | Includes |
-|---|---|---|
-| identity | Identity & Personal | Passport, Birth Certificate, Photograph |
-| academic | Academic | Transcripts, Offer Letter, IELTS / Language Test |
-| financial | Financial | GIC Certificate, Tuition Fee Receipt, Financial Documents |
-| forms | Visa Forms | Visa Forms, SOP, Resume |
-| supporting | Supporting | Medical Report, Other |
-
-**TemplateEditorDialog:** add a "Group" select per row (defaults from the table above based on type name).
-
-**ClientDetail UI:**
-- Existing **Generate binder** button → renamed **Generate full binder**.
-- New button **Generate grouped binders** → loops over groups, calls `generateBinder()` once per non-empty group with filtered `items` + `documents`, uploads each to storage, inserts a row in `binders` with `group_label`. Shows per-group progress.
-- Binders list groups by `group_label` with a "Download all (zip)" action using `jszip`.
-
-## 4. Error hardening (carry-over)
-
-- Wrap every Supabase call in the new flows with try/catch + `toast.error(err.message)`.
-- Edge function returns 200 with `{type:"Other", confidence:0}` on any failure so upload never blocks.
-- Concurrency limit of 3 parallel classifications to keep the AI gateway responsive.
+**What we'll improve so this is clear:**
+- Show a small "**Auto-optimized · 1.2 MB · IRCC ✓**" badge under each new upload.
+- Add a **"Re-optimize all"** button on the client page that batches the edge function across every doc > 1.5 MB.
+- Hide the per-file ✨ icon when size is already compliant.
 
 ---
 
 ## Technical details
 
-**New files**
-- `src/components/documents/SmartUploadZone.tsx` — drag zone, queue with per-row predicted type override
-- `src/lib/classifyDocument.ts` — heuristic + edge-function caller, returns `{type, customType?, confidence}`
-- `src/lib/extractFirstPageText.ts` — uses `pdfjs-dist` (already a transitive dep candidate, will add) to pull ~2 KB of text
-- `src/lib/binderGroups.ts` — `BINDER_GROUPS` defaults + `groupForType()`
-- `supabase/functions/classify-document/index.ts` — Lovable AI call, JSON-mode, validates against allowed labels
+**New / modified files**
+- `supabase/functions/classify-document/index.ts` — also return `owner_name` from first-page text via Gemini.
+- `src/lib/classifyDocument.ts` — extend return type with `ownerName` and a `nameMatch` helper (normalize + token Jaccard + Levenshtein on first/last name).
+- `src/components/documents/SmartUploadZone.tsx` — new "name mismatch" state per queue item with Reassign / Upload anyway / Skip; reassignment uses a debounced search against `clients.full_name`.
+- `src/pages/ClientDetail.tsx`
+  - Replace `onView` with blob-URL inline viewer.
+  - Add "Re-optimize all" button (loops over docs > 1.5 MB → `process-large-file`).
+  - Show compliance badge on each doc row.
+- `src/lib/activity.ts` — log `document.owner_mismatch_warned`, `document.reassigned`, `document.uploaded_with_override`.
 
-**Edited files**
-- `src/lib/processFile.ts` — multi-step compression + 4 MB hard target, optional pdfjs page-rasterize fallback
-- `src/lib/binder.ts` — accept optional `groupLabel` for cover page subtitle
-- `src/pages/ClientDetail.tsx` — replace UploadZone with SmartUploadZone, add "Generate grouped binders" button + grouped list rendering, download-zip
-- `src/components/templates/TemplateEditorDialog.tsx` — per-item group dropdown
-- `src/pages/Templates.tsx` / `Template` interface — add optional `group?: string` on items
+**No DB schema changes needed.** Owner detection is a runtime check; we only store the result in `activity_logs.details`.
 
-**Dependencies to add**: `pdfjs-dist`, `jszip`
-
-**Migration**
-```sql
-alter table public.binders add column if not exists group_label text;
-alter table public.workflow_templates add column if not exists groups jsonb;
+**Edge function prompt addition** (Gemini structured JSON):
+```json
+{
+  "type": "Passport",
+  "confidence": 0.93,
+  "owner_name": "Manav Yogesh Patel",
+  "owner_confidence": 0.88
+}
 ```
 
-**Edge function config**: `classify-document` deployed with default `verify_jwt = false`; validates JWT in code via `SUPABASE_JWKS`. Uses `LOVABLE_API_KEY` (already set).
+**Name match thresholds**
+- Exact match (normalized) → ✓
+- Token Jaccard ≥ 0.6 OR Levenshtein ratio ≥ 0.85 on full name → ✓
+- Otherwise → mismatch warning
 
-**Out of scope for this round**: server-side OCR for scanned PDFs (current text extract relies on embedded text). If OCR is needed later we can add a Tesseract-WASM step.
+**Out of scope** (call out if needed later)
+- Bulk reassignment of already-uploaded misfiled docs (we'll add a one-time "Move to another client" admin action in a follow-up).
+- OCR for fully scanned PDFs without embedded text — current pipeline relies on `pdfjs-dist` text extraction; if confidence is low we just skip the owner check rather than fail the upload.
