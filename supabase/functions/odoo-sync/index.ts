@@ -121,8 +121,18 @@ function parseValue(xml: string, pos: { i: number }): unknown {
 
 function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false; fault: string } {
   if (xml.includes("<fault>")) {
-    const m = xml.match(/<name>faultString<\/name><value>(?:<string>)?([^<]*)/);
-    return { ok: false, fault: m?.[1] ?? "Odoo fault" };
+    // Try to capture both faultCode and faultString for a more useful error.
+    const code = xml.match(/<name>faultCode<\/name>\s*<value>\s*(?:<int>|<i4>)?\s*([^<]*)/)?.[1]?.trim();
+    // faultString may be wrapped in <string>, may contain entities, and may span newlines.
+    const strMatch = xml.match(/<name>faultString<\/name>\s*<value>\s*(?:<string>)?([\s\S]*?)(?:<\/string>)?\s*<\/value>/);
+    const raw = strMatch?.[1]?.trim() ?? "";
+    const decoded = raw
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+    const fault = decoded
+      ? `Odoo fault${code ? ` (code ${code})` : ""}: ${decoded.slice(0, 400)}`
+      : "Odoo fault (no faultString)";
+    return { ok: false, fault };
   }
   const pos = { i: 0 };
   return { ok: true, value: parseValue(xml, pos) };
@@ -365,6 +375,13 @@ Deno.serve(async (req) => {
 
       const since = settings?.last_sync_at ?? "1970-01-01T00:00:00Z";
       const counts = { pulled: 0, pushed: 0, errors: 0 as number };
+      const errorSamples: string[] = [];
+      const recordErr = (where: string, e: unknown) => {
+        counts.errors++;
+        const msg = e instanceof Error ? e.message : String(e);
+        if (errorSamples.length < 3) errorSamples.push(`${where}: ${msg.slice(0, 240)}`);
+        console.error(where, msg);
+      };
 
       // PULL: leads modified since last sync
       if (mode === "pull" || mode === "two_way") {
@@ -391,8 +408,7 @@ Deno.serve(async (req) => {
             }
           }
         } catch (e) {
-          counts.errors++;
-          console.error("pull error", e);
+          recordErr("pull", e);
         }
       }
 
@@ -407,20 +423,21 @@ Deno.serve(async (req) => {
             .limit(200);
           for (const row of dirty ?? []) {
             try { await pushClientToLead(row.id); counts.pushed++; }
-            catch (e) { counts.errors++; console.error("push error", row.id, e); }
+            catch (e) { recordErr(`push(${row.id})`, e); }
           }
         } catch (e) {
-          counts.errors++;
-          console.error("push scan error", e);
+          recordErr("push-scan", e);
         }
       }
 
       await admin.from("integration_settings").update({
         last_sync_at: new Date().toISOString(),
         last_sync_status: counts.errors === 0 ? "ok" : "partial",
-        last_sync_message: `pulled=${counts.pulled} pushed=${counts.pushed} errors=${counts.errors}`,
+        last_sync_message:
+          `pulled=${counts.pulled} pushed=${counts.pushed} errors=${counts.errors}` +
+          (errorSamples.length ? `\n${errorSamples.join("\n")}` : ""),
       }).eq("key", "odoo");
-      return json({ ok: true, ...counts });
+      return json({ ok: true, ...counts, errors_detail: errorSamples });
     }
 
     return json({ ok: false, error: `unknown action: ${action}` }, 400);

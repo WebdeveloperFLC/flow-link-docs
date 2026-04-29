@@ -149,15 +149,35 @@ export const OdooIntegrationCard = () => {
         {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
       </div>
 
-      <div className="text-xs text-muted-foreground border-t pt-3 flex items-start gap-2">
+      <div className={`text-xs border-t pt-3 flex items-start gap-2 ${
+        s.last_sync_status === "error" || s.last_sync_status === "partial"
+          ? "text-destructive"
+          : "text-muted-foreground"
+      }`}>
         {s.last_sync_status === "ok" ? (
           <CheckCircle2 className="size-3.5 text-success shrink-0 mt-0.5" />
-        ) : s.last_sync_status === "error" ? (
-          <AlertTriangle className="size-3.5 text-destructive shrink-0 mt-0.5" />
+        ) : s.last_sync_status === "error" || s.last_sync_status === "partial" ? (
+          <AlertTriangle className="size-3.5 shrink-0 mt-0.5" />
         ) : null}
-        <div>
-          <div>Last sync: {s.last_sync_at ? new Date(s.last_sync_at).toLocaleString() : "never"}</div>
-          {s.last_sync_message && <div className="font-mono">{s.last_sync_message}</div>}
+        <div className="min-w-0 flex-1">
+          <div>
+            Last sync: {s.last_sync_at ? new Date(s.last_sync_at).toLocaleString() : "never"}
+            {s.last_sync_status && (
+              <span className="ml-2 uppercase font-semibold tracking-wide">
+                · {s.last_sync_status}
+              </span>
+            )}
+          </div>
+          {s.last_sync_message && (
+            <pre className="font-mono whitespace-pre-wrap break-words mt-1 text-[11px] leading-relaxed">
+              {s.last_sync_message}
+            </pre>
+          )}
+          {(s.last_sync_status === "error" || s.last_sync_status === "partial") && (
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              Tip: most failures are caused by the Odoo user behind <code>ODOO_API_KEY</code> not having access to the <code>crm.lead</code> model, or the CRM module not being installed. Open the message above for the exact reason.
+            </div>
+          )}
         </div>
       </div>
     </Card>
