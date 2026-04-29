@@ -519,12 +519,23 @@ export const SmartUploadZone = ({
                     <div className="flex items-start gap-1.5 text-amber-900">
                       <UserX className="size-3.5 mt-0.5 shrink-0" />
                       <div className="text-[11px] leading-snug">
-                        <span className="font-semibold">"{it.ownerName}"</span> isn't on this case.{" "}
-                        People on file:{" "}
-                        <span className="font-semibold">
-                          {people.map((p) => p.full_name).join(", ") || client.full_name}
-                        </span>
-                        . Reassign to another case, skip, or upload anyway.
+                        {it.verificationIssue === "owner_not_readable" ? (
+                          <>
+                            Could not verify the candidate from document content. Filename is not used for candidate matching. Reassign to another case, skip, or upload anyway.
+                          </>
+                        ) : (
+                          <>
+                            <span className="font-semibold">"{it.ownerName}"</span> isn't on this case.{" "}
+                            People on file:{" "}
+                            <span className="font-semibold">
+                              {people.map((p) => p.full_name).join(", ") || client.full_name}
+                            </span>
+                            . Reassign to another case, skip, or upload anyway.
+                          </>
+                        )}
+                        {it.ownerEvidence && (
+                          <span className="block mt-1">Read from document: <span className="font-semibold">{it.ownerEvidence}</span></span>
+                        )}
                       </div>
                     </div>
                     {reassignFor === i ? (
