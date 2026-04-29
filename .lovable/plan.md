@@ -1,93 +1,77 @@
-# Fix: wrong-applicant uploads slip through + filename uses wrong name
+## Plan to stop wrong-candidate uploads
 
-## What actually happened with Manav's IELTS on jayesh's case
+I found why the wrong IELTS still went through: the current classifier receives the filename together with extracted PDF text. In the latest network request, the uploaded file was named `jayesh yogi.pdf`, while the extracted document text did not reliably contain the candidate name. The AI then treated the filename as evidence and returned `owner_name: Jayesh Yogi`. That means it was not truly verifying the applicant from the document content.
 
-Roster on jayesh yogi's case = `[jayesh (applicant), Anjali Sharma (co-applicant)]`. Manav is not on the roster.
+### What I will change
 
-In `SmartUploadZone.classifyAndAssign` for a multi-person case (>=2 people), the AI returned `owner_name = "Manav ..."`. `matchPersonRoster` finds no roster member ≥0.6 → `match.best = undefined`. Code then falls through to:
+1. **Never trust the filename for applicant identity**
+   - Keep using filename as a hint for document type only, e.g. IELTS / Passport / Transcript.
+   - For applicant/candidate ownership, the AI must ignore the filename completely.
+   - The classifier must return a candidate name only if it can read it from the document text or the visual page image.
 
-```ts
-if (match.noNameDetected || !match.best || match.ambiguous) {
-  const suggested = match.best?.id ?? applicant?.id ?? null;  // → applicant
-  patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
-}
-```
+2. **Read document content before any auto-confirm/upload**
+   - Update `classifyDocument` so it does not stop at filename heuristics.
+   - For every upload, it will inspect document content before deciding owner:
+     - PDFs: extract text and also send a rendered first-page image for visual/OCR reading.
+     - Images: send a compressed preview image for visual/OCR reading.
+   - This handles scanned IELTS score sheets where normal PDF text extraction is incomplete or garbled.
 
-So the UI shows a friendly "needs_owner" picker pre-selected to the **applicant**. The user clicks Confirm → it uploads as `IELTS/LanguageTest_Applicant_jayeshyogi.pdf`. There is no warning that the detected name (Manav) is **not on this case at all**. That's the bug.
+3. **Require proof from the document**
+   - Update the `classify-document` backend function to return extra fields:
+     - `owner_name`
+     - `owner_confidence`
+     - `owner_evidence` — the visible text/field that proves the name came from the document, not the filename.
+     - `owner_source` — content/image only, never filename.
+   - If the candidate name is not readable from the document, the function returns `owner_name: null` instead of guessing.
 
-The single-person path already has a `name_mismatch` block screen — multi-person silently degrades to a picker.
+4. **Block uploads when the candidate cannot be verified**
+   - In `SmartUploadZone`, auto-upload will happen only when:
+     - a candidate name was read from document content,
+     - the confidence is high enough,
+     - the name matches a person on the current case roster.
+   - If the document content says `Manav` but the case roster is `jayesh yogi, Anjali Sharma`, upload will stop and show a warning.
+   - If the document content does not show any readable candidate name, upload will also stop with a warning like:
+     - “Could not verify candidate from document content. Filename is not used for candidate matching.”
 
-The filename is also "correct given what was confirmed" (Applicant + jayesh) but wrong in spirit, because the document is actually Manav's. Renaming follows ownership, and ownership was wrong — so fixing the block fixes the rename too.
+5. **Remove silent applicant fallback**
+   - Current behavior can still fall back to the applicant in some cases.
+   - I will remove that for verification failures.
+   - No document will be auto-assigned to Jayesh just because Jayesh is the applicant or because the filename says Jayesh.
 
-## Fix
+6. **Keep explicit override, but make it deliberate**
+   - The user can still choose “Upload anyway” only from the warning state.
+   - That override will be logged as an override, not a normal upload.
+   - Normal “Confirm & upload” will be reserved for documents where the owner is actually verified or deliberately selected after a non-mismatch ambiguity.
 
-### 1. Hard-block when detected name has no plausible match on the roster (multi-person)
+7. **Fix filename sanitizing and candidate-based rename**
+   - Ensure final filenames are based on the confirmed/verified person, for example:
+     - `IELTSLanguageTest_Applicant_jayeshyogi.pdf`
+     - `Passport_CoApplicant_anjalisharma.pdf`
+   - Also sanitize document types so slashes like `IELTS / Language Test` do not create messy filenames or storage paths.
 
-In `src/components/documents/SmartUploadZone.tsx → classifyAndAssign`, before the existing `needs_owner` branch, add:
+### Files to update
 
-```ts
-// AI clearly read a person name, decent confidence, but nobody on the
-// roster is a credible match → this document doesn't belong to this case.
-const detected = c.ownerName?.trim();
-const ownerConf = c.ownerConfidence ?? 0;
-const NO_ROSTER_MATCH = !!detected && ownerConf >= 0.5 && match.score < 0.6;
+- `src/lib/classifyDocument.ts`
+  - Always classify owner from content, not filename-only heuristics.
+  - Send extracted text plus a first-page/image preview to the backend function.
+  - Return owner evidence/source fields.
 
-if (NO_ROSTER_MATCH) {
-  patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null });
-  await logActivity("document.owner_not_on_case", "client", client.id, {
-    file_name: item.file.name,
-    detected_owner: detected,
-    case_people: people.map(p => p.full_name),
-    score: match.score,
-  });
-  return null;
-}
-```
+- `src/lib/extractFirstPageText.ts`
+  - Add a helper to render only the first PDF page as a compact JPEG preview for visual reading.
 
-This reuses the existing amber `name_mismatch` row. No upload happens until the user picks one of:
-- **Re-assign to another case** (existing search dialog)
-- **Skip**
-- **Upload anyway** (explicit override, already logged as `document.uploaded_with_override`)
+- `supabase/functions/classify-document/index.ts`
+  - Update the AI prompt and response schema.
+  - Use multimodal input when a page image is provided.
+  - Forbid using filename as candidate-name evidence.
 
-Also tighten the single-person branch identically so the same rule applies regardless of roster size — remove the `applicant && c.ownerName && ownerConfidence >= 0.5` guard around it; the single condition above handles both.
+- `src/components/documents/SmartUploadZone.tsx`
+  - Require verified content-based owner evidence before auto-upload.
+  - Stop uploads when content owner is missing or mismatched.
+  - Improve warning messages so it is clear whether the issue is “wrong candidate” or “candidate not readable.”
 
-### 2. Filename always uses the confirmed owner's name
+- `src/lib/constants.ts`
+  - Sanitize document type in generated filenames.
 
-`buildPersonDocumentName(type, role, personName, version, ext)` already produces e.g. `IELTSLanguageTest_Applicant_jayeshyogi.pdf`. That is correct **once ownership is right**. With fix #1 in place, the file can only be saved when:
-- The owner is a real roster member → filename = `{Type}_{Role}_{PersonName}_v{n}.pdf`
-- The owner is `Shared` → filename = `{Type}_Shared_v{n}.pdf`
-- The user clicked "Upload anyway" → still uses whatever owner they finally selected
+### Expected result
 
-So no rename code change is needed; correctness comes from blocking the wrong-owner path.
-
-While in the file, two small UX nits:
-- The amber row currently reads "Detected owner doesn't match this client." Make the copy explicit when `match.noNameDetected === false && match.score < 0.6`: 
-  > **"{detected}" isn't on this case.** People on file: jayesh yogi, Anjali Sharma. Reassign to another case, skip, or upload anyway.
-- Disable the "Confirm" button on `needs_owner` rows when the picker is still `null` (currently it would no-op silently).
-
-### 3. Lower the AI false-negative on names (defensive)
-
-`extract-document-data` is invoked **after** upload and could be cross-checked, but the cheaper fix is on the classifier path:
-
-In `supabase/functions/classify-document/index.ts`, add the case roster to the prompt so the model is more conservative:
-
-```ts
-const roster: string[] = Array.isArray(body?.case_people) ? body.case_people.slice(0, 10) : [];
-// ...append to user message:
-//   "People expected on this case: jayesh yogi, Anjali Sharma.
-//    If the document's owner is clearly NOT one of these people,
-//    still return their actual name; do not guess one of the listed names."
-```
-
-And pass it from `classifyDocument(file, candidateTypes, peopleNames)` → `SmartUploadZone` calls with `people.map(p => p.full_name)`. Pure additive; existing callers keep working.
-
-## Files touched
-
-- `src/components/documents/SmartUploadZone.tsx` — hard-block branch in `classifyAndAssign`, sharper amber-row copy, disable Confirm when `ownerId == null`, pass roster names to `classifyDocument`.
-- `src/lib/classifyDocument.ts` — accept optional `peopleNames` arg, forward in edge-function body.
-- `supabase/functions/classify-document/index.ts` — accept `case_people` in body, include in prompt.
-
-## Out of scope
-
-- Re-running classification on already-uploaded documents (Manav's IELTS already saved on jayesh's case stays where it is unless the user deletes/reassigns it).
-- Server-side enforcement (RLS / trigger). The edge function and DB don't know "expected names per case" — keeping this client-side is correct given the AI lives on the client path. Power users with Upload Anyway can still override, which is by design.
+After this change, uploading Manav’s IELTS under Jayesh will not be accepted just because the filename says Jayesh. The system will read the document content/image first. If it reads Manav, it will block the upload on Jayesh’s case. If it cannot read any candidate name from the IELTS sheet, it will stop and ask for manual action instead of silently assigning it to Jayesh.
