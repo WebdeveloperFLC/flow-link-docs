@@ -380,11 +380,18 @@ const ClientDetail = () => {
                   {template ? `${template.name} · ${completed}/${checklistItems.length} ready` : "No template assigned"}
                 </div>
               </div>
-              {requiredMissing.length > 0 && (
-                <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
-                  <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                {requiredMissing.length > 0 && (
+                  <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
+                    <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
+                  </div>
+                )}
+                {canUpload && (
+                  <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
+                    <Plus className="size-3.5 mr-1" /> Add document
+                  </Button>
+                )}
+              </div>
             </div>
             {!template && (
               <div className="px-6 py-10 text-center text-sm text-muted-foreground">
@@ -394,6 +401,7 @@ const ClientDetail = () => {
             <div className="divide-y">
               {checklistItems.map((it, i) => {
                 const d = docByType(it.name);
+                const isExtra = extraItems.some((e) => e.id === it.id);
                 return (
                   <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
                     <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
@@ -401,6 +409,7 @@ const ClientDetail = () => {
                       <div className="font-medium text-sm flex items-center gap-1.5">
                         {it.name}
                         {it.mandatory && <span className="text-secondary text-[10px]">REQUIRED</span>}
+                        {isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
                       </div>
                       {it.notes && <div className="text-xs text-muted-foreground">{it.notes}</div>}
                       {d && <div className="text-xs text-muted-foreground mt-0.5">{d.file_name}{d.version>1?` · v${d.version}`:""}</div>}
@@ -412,11 +421,27 @@ const ClientDetail = () => {
                         {it.mandatory ? "Pending" : "Optional"}
                       </span>
                     )}
+                    {isExtra && canUpload && !d && (
+                      <Button size="icon" variant="ghost" className="size-7 text-muted-foreground" title="Remove this requirement"
+                        onClick={() => onRemoveExtraItem(it.id)}>
+                        <X className="size-3.5" />
+                      </Button>
+                    )}
                   </div>
                 );
               })}
             </div>
           </Card>
+
+          <ClientProfileCard
+            clientId={client.id}
+            canEdit={canUpload}
+            onReExtract={onReExtract}
+            reExtracting={reExtracting}
+            onSyncOdoo={onSyncOdoo}
+            syncingOdoo={syncingOdoo}
+            refreshKey={profileRefreshKey}
+          />
 
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
@@ -526,6 +551,12 @@ const ClientDetail = () => {
         </div>
       </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
+      <AddDocTypeDialog
+        open={addDocOpen}
+        onOpenChange={setAddDocOpen}
+        existingTypes={checklistItems.map((it) => it.name)}
+        onAdd={onAddExtraItem}
+      />
     </AppLayout>
   );
 };
