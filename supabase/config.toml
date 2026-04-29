@@ -1,1 +1,7 @@
 project_id = "auofttkyosgjhxcbhscw"
+
+[functions.share-resolve]
+verify_jwt = false
+
+[functions.odoo-api]
+verify_jwt = false

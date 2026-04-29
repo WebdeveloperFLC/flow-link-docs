@@ -1,20 +1,24 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, FileStack, Workflow, ScrollText, LogOut, Shield, FileText } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
-const nav = [
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean };
+
+const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/clients", icon: Users, label: "Clients" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/activity", icon: ScrollText, label: "Activity" },
+  { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
+  { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, roles, signOut } = useAuth();
+  const { user, roles, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
 
@@ -34,7 +38,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {nav.map((item) => (
+          {nav.filter((i) => !i.adminOnly || isAdmin).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}

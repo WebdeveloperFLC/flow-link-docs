@@ -5,13 +5,14 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles } from "lucide-react";
 import { UploadZone } from "@/components/documents/UploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import type { Template, TemplateItem } from "@/pages/Templates";
+import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -31,6 +32,9 @@ const ClientDetail = () => {
   const [template, setTemplate] = useState<Template | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [shareTarget, setShareTarget] = useState<{ type: "document" | "binder"; id: string; label: string } | null>(null);
+  const [optimizing, setOptimizing] = useState<string | null>(null);
+  const [binders, setBinders] = useState<{ id: string; file_name: string; storage_path: string; generated_at: string }[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -42,6 +46,8 @@ const ClientDetail = () => {
     } else { setTemplate(null); }
     const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
     setDocs((d ?? []) as Doc[]);
+    const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at").eq("client_id", id).order("generated_at", { ascending: false });
+    setBinders((b ?? []) as typeof binders);
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -77,6 +83,24 @@ const ClientDetail = () => {
     const a = document.createElement("a"); a.href = url; a.download = d.file_name; a.click();
     URL.revokeObjectURL(url);
     await logActivity("document.downloaded", "document", d.id);
+  };
+
+  const onOptimize = async (d: Doc) => {
+    setOptimizing(d.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("process-large-file", {
+        body: { document_id: d.id },
+      });
+      if (error) throw error;
+      const saved = (data?.saved as number) ?? 0;
+      if (saved > 0) toast.success(`Optimized · saved ${(saved / 1024).toFixed(0)} KB`);
+      else toast.info("Already optimized");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Optimization failed");
+    } finally {
+      setOptimizing(null);
+    }
   };
 
   const onGenerateBinder = async () => {
@@ -203,6 +227,16 @@ const ClientDetail = () => {
                   </div>
                   <Button size="icon" variant="ghost" className="size-7" onClick={() => onView(d)}><Eye className="size-3.5" /></Button>
                   <Button size="icon" variant="ghost" className="size-7" onClick={() => onDownload(d)}><Download className="size-3.5" /></Button>
+                  <Button size="icon" variant="ghost" className="size-7" title="Create share link"
+                    onClick={() => setShareTarget({ type: "document", id: d.id, label: d.file_name })}>
+                    <Link2 className="size-3.5" />
+                  </Button>
+                  {(d.size_bytes ?? 0) > 1.5 * 1024 * 1024 && (
+                    <Button size="icon" variant="ghost" className="size-7" title="Optimize on server"
+                      onClick={() => onOptimize(d)} disabled={optimizing === d.id}>
+                      {optimizing === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
+                    </Button>
+                  )}
                   {isAdmin && (
                     <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
                   )}
@@ -210,6 +244,30 @@ const ClientDetail = () => {
               ))}
             </div>
           </Card>
+
+          {binders.length > 0 && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b">
+                <div className="font-semibold">Generated binders</div>
+                <div className="text-xs text-muted-foreground">{binders.length} binder{binders.length === 1 ? "" : "s"}</div>
+              </div>
+              <div className="divide-y">
+                {binders.map((b) => (
+                  <div key={b.id} className="px-6 py-3 flex items-center gap-3">
+                    <FileCheck2 className="size-4 text-secondary shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium truncate">{b.file_name}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(b.generated_at).toLocaleString()}</div>
+                    </div>
+                    <Button size="icon" variant="ghost" className="size-7" title="Create share link"
+                      onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.file_name })}>
+                      <Link2 className="size-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Right: upload */}
@@ -221,6 +279,7 @@ const ClientDetail = () => {
           )}
         </div>
       </div>
+      <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
     </AppLayout>
   );
 };

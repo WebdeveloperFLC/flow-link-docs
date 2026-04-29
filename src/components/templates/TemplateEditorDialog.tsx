@@ -58,17 +58,47 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
     if (!name.trim() || !country || !category) { toast.error("Name, country, and category are required"); return; }
     if (items.length === 0) { toast.error("Add at least one document"); return; }
     setBusy(true);
-    const payload = { name: name.trim(), country, category, items: items as never };
-    const op = template
-      ? supabase.from("workflow_templates").update({ ...payload, version: template.version + 1, updated_at: new Date().toISOString() }).eq("id", template.id)
-      : supabase.from("workflow_templates").insert(payload);
-    const { error } = await op;
-    setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    await logActivity(template ? "template.updated" : "template.created", "template", undefined, { name });
-    toast.success(template ? "Template updated" : "Template created");
-    onOpenChange(false);
-    onSaved();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const cleanItems = items.map((it) => ({
+        id: it.id, name: it.name.trim(), mandatory: !!it.mandatory, notes: it.notes?.trim() || "",
+      }));
+      if (template) {
+        const { error } = await supabase
+          .from("workflow_templates")
+          .update({
+            name: name.trim(), country, category,
+            items: cleanItems as never,
+            version: template.version + 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", template.id);
+        if (error) throw error;
+        await logActivity("template.updated", "template", template.id, { name });
+        toast.success("Template updated");
+      } else {
+        const { data, error } = await supabase
+          .from("workflow_templates")
+          .insert({
+            name: name.trim(), country, category,
+            items: cleanItems as never,
+            created_by: user?.id ?? null,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+        await logActivity("template.created", "template", data?.id, { name });
+        toast.success("Template created");
+      }
+      onOpenChange(false);
+      onSaved();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Failed to save template";
+      console.error("Template save failed:", e);
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

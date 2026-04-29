@@ -46,21 +46,30 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
-    const { data, error } = await supabase.from("clients").insert({
-      full_name: parsed.data.full_name,
-      email: parsed.data.email || null,
-      phone: parsed.data.phone || null,
-      country: parsed.data.country,
-      application_type: parsed.data.application_type,
-      template_id: parsed.data.template_id || null,
-    }).select().single();
-    setBusy(false);
-    if (error) { toast.error(error.message); return; }
-    await logActivity("client.created", "client", data.id, { application_id: data.application_id });
-    toast.success(`Created ${data.application_id}`);
-    onOpenChange(false);
-    setCountry(""); setAppType(""); setTemplateId("");
-    onCreated();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase.from("clients").insert({
+        full_name: parsed.data.full_name,
+        email: parsed.data.email || null,
+        phone: parsed.data.phone || null,
+        country: parsed.data.country,
+        application_type: parsed.data.application_type,
+        template_id: parsed.data.template_id || null,
+        created_by: user?.id ?? null,
+      }).select().single();
+      if (error) throw error;
+      await logActivity("client.created", "client", data.id, { application_id: data.application_id });
+      toast.success(`Created ${data.application_id}`);
+      onOpenChange(false);
+      setCountry(""); setAppType(""); setTemplateId("");
+      onCreated();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to create client";
+      console.error("Create client failed:", err);
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
