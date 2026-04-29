@@ -68,13 +68,13 @@ export async function mergeExtractedFields(
     if (existing) {
       const { error } = await supabase
         .from("client_profile")
-        .update(toWrite)
+        .update(toWrite as never)
         .eq("client_id", clientId);
       if (error) throw error;
     } else {
       const { error } = await supabase
         .from("client_profile")
-        .insert({ client_id: clientId, ...toWrite });
+        .insert({ client_id: clientId, ...toWrite } as never);
       if (error) throw error;
     }
     await logActivity("profile.fields_extracted", "client", clientId, {
