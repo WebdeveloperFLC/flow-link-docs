@@ -224,19 +224,41 @@ Deno.serve(async (req) => {
     if (!["cover", "rcic", "statdec"].includes(kind)) return json({ error: "invalid kind" }, 400);
     if (!clientId) return json({ error: "client_id required" }, 400);
 
-    // Active template
-    const { data: tpl } = await admin
-      .from("letter_templates")
-      .select("*")
-      .eq("kind", kind)
-      .eq("is_active", true)
-      .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!tpl?.style_text) return json({ error: `No active ${kind} template uploaded yet` }, 400);
-
     const { data: client } = await admin.from("clients").select("*").eq("id", clientId).maybeSingle();
     if (!client) return json({ error: "client not found" }, 404);
+
+    // Active template — most-specific first, then fall back to global default
+    const clientCountry: string | null = client.country ?? null;
+    const clientCategory: string | null = client.application_type ?? null;
+    const fetchTpl = async (country: string | null, category: string | null) => {
+      let q = admin
+        .from("letter_templates")
+        .select("*")
+        .eq("kind", kind)
+        .eq("is_active", true);
+      q = country === null ? q.is("country", null) : q.eq("country", country);
+      q = category === null ? q.is("category", null) : q.eq("category", category);
+      const { data } = await q.order("version", { ascending: false }).limit(1).maybeSingle();
+      return data;
+    };
+    let tpl: any = null;
+    let tplScope: { country: string | null; category: string | null } = { country: null, category: null };
+    const tries: Array<[string | null, string | null]> = [
+      [clientCountry, clientCategory],
+      [clientCountry, null],
+      [null, clientCategory],
+      [null, null],
+    ];
+    for (const [c, cat] of tries) {
+      tpl = await fetchTpl(c, cat);
+      if (tpl?.style_text) { tplScope = { country: c, category: cat }; break; }
+    }
+    if (!tpl?.style_text) {
+      return json({
+        error: `No ${kind} template uploaded for ${clientCountry ?? "any country"} · ${clientCategory ?? "any category"}, and no global default exists. Please upload a sample in Letter templates.`,
+      }, 400);
+    }
+
     const { data: profile } = await admin.from("client_profile").select("*").eq("client_id", clientId).maybeSingle();
     const { data: firm } = await admin.from("firm_profile").select("*").limit(1).maybeSingle();
     const { data: docs } = await admin
@@ -326,7 +348,7 @@ Deno.serve(async (req) => {
       action: "letter.generated",
       entity_type: "client",
       entity_id: clientId,
-      details: { kind, file_name: fileName, document_id: docRow?.id },
+      details: { kind, file_name: fileName, document_id: docRow?.id, template_scope: tplScope, template_version: tpl.version },
     });
 
     // Signed URL for immediate download
