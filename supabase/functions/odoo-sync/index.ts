@@ -121,8 +121,18 @@ function parseValue(xml: string, pos: { i: number }): unknown {
 
 function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false; fault: string } {
   if (xml.includes("<fault>")) {
-    const m = xml.match(/<name>faultString<\/name><value>(?:<string>)?([^<]*)/);
-    return { ok: false, fault: m?.[1] ?? "Odoo fault" };
+    // Try to capture both faultCode and faultString for a more useful error.
+    const code = xml.match(/<name>faultCode<\/name>\s*<value>\s*(?:<int>|<i4>)?\s*([^<]*)/)?.[1]?.trim();
+    // faultString may be wrapped in <string>, may contain entities, and may span newlines.
+    const strMatch = xml.match(/<name>faultString<\/name>\s*<value>\s*(?:<string>)?([\s\S]*?)(?:<\/string>)?\s*<\/value>/);
+    const raw = strMatch?.[1]?.trim() ?? "";
+    const decoded = raw
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"').replace(/&amp;/g, "&");
+    const fault = decoded
+      ? `Odoo fault${code ? ` (code ${code})` : ""}: ${decoded.slice(0, 400)}`
+      : "Odoo fault (no faultString)";
+    return { ok: false, fault };
   }
   const pos = { i: 0 };
   return { ok: true, value: parseValue(xml, pos) };
