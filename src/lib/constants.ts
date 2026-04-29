@@ -63,3 +63,22 @@ export function buildDocumentName(docType: string, clientName: string, version: 
   const v = version > 1 ? `_v${version}` : "";
   return `${cleanType}_${cleanClient}${v}.${ext}`;
 }
+
+/**
+ * Person-aware filename: `{Type}_{Role}_{PersonName}_v{n}.{ext}`.
+ * For shared documents pass roleLabel="Shared" and personName="" (omitted).
+ */
+export function buildPersonDocumentName(
+  docType: string,
+  roleLabel: string,
+  personName: string,
+  version: number,
+  ext: string,
+) {
+  const cleanType = docType.replace(/\s+/g, "");
+  const cleanRole = roleLabel.replace(/\s+/g, "");
+  const cleanPerson = sanitizeName(personName);
+  const v = version > 1 ? `_v${version}` : "";
+  const tail = cleanPerson ? `_${cleanPerson}` : "";
+  return `${cleanType}_${cleanRole}${tail}${v}.${ext}`;
+}
