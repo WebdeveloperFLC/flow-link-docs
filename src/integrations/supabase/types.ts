@@ -86,6 +86,7 @@ export type Database = {
           file_name: string
           generated_at: string
           generated_by: string | null
+          group_label: string | null
           id: string
           size_bytes: number | null
           storage_path: string
@@ -95,6 +96,7 @@ export type Database = {
           file_name: string
           generated_at?: string
           generated_by?: string | null
+          group_label?: string | null
           id?: string
           size_bytes?: number | null
           storage_path: string
@@ -104,6 +106,7 @@ export type Database = {
           file_name?: string
           generated_at?: string
           generated_by?: string | null
+          group_label?: string | null
           id?: string
           size_bytes?: number | null
           storage_path?: string
@@ -314,6 +317,7 @@ export type Database = {
           country: string
           created_at: string
           created_by: string | null
+          groups: Json | null
           id: string
           items: Json
           name: string
@@ -325,6 +329,7 @@ export type Database = {
           country: string
           created_at?: string
           created_by?: string | null
+          groups?: Json | null
           id?: string
           items?: Json
           name: string
@@ -336,6 +341,7 @@ export type Database = {
           country?: string
           created_at?: string
           created_by?: string | null
+          groups?: Json | null
           id?: string
           items?: Json
           name?: string

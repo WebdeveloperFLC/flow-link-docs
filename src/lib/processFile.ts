@@ -1,36 +1,72 @@
 import imageCompression from "browser-image-compression";
 import { PDFDocument, StandardFonts } from "pdf-lib";
+import { rasterizePdfToJpegs } from "@/lib/extractFirstPageText";
 
-const MAX_BYTES = 2 * 1024 * 1024; // 2MB target
+// IRCC accepts up to 4MB per file. We aim a bit lower for safety.
+export const IRCC_MAX_BYTES = 4 * 1024 * 1024;
+const TARGET_BYTES = 3.8 * 1024 * 1024;
 
 /**
- * Process a file: convert images to PDF, compress PDFs to ≤ 2MB, keep readability.
+ * Process a file: convert images to PDF, compress to ≤ ~4MB (IRCC limit), keep readability.
  * Returns a new File (always .pdf for non-pdfs, original .pdf for pdfs).
  */
 export async function processToPdf(file: File, baseName: string): Promise<File> {
   const ext = (file.name.split(".").pop() || "").toLowerCase();
 
   if (ext === "pdf" || file.type === "application/pdf") {
-    // Re-save through pdf-lib (strips redundancy) and return
+    // 1. Re-save through pdf-lib (strips redundancy)
     const bytes = await file.arrayBuffer();
-    const pdf = await PDFDocument.load(bytes);
-    const out = await pdf.save({ useObjectStreams: true });
+    let pdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
+    let out = await pdf.save({ useObjectStreams: true });
+    if (out.byteLength <= TARGET_BYTES) {
+      return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
+    }
+    // 2. Rasterize each page → JPEG → rebuild PDF (guarantees small size while staying readable)
+    try {
+      const blob = new File([new Uint8Array(bytes)], file.name, { type: "application/pdf" });
+      const qualitySteps: Array<{ dpi: number; q: number }> = [
+        { dpi: 150, q: 0.78 },
+        { dpi: 130, q: 0.7 },
+        { dpi: 110, q: 0.6 },
+      ];
+      for (const step of qualitySteps) {
+        const jpegs = await rasterizePdfToJpegs(blob, step.dpi, step.q);
+        const rebuilt = await PDFDocument.create();
+        for (const j of jpegs) {
+          const img = await rebuilt.embedJpg(new Uint8Array(await j.arrayBuffer()));
+          const pg = rebuilt.addPage([img.width, img.height]);
+          pg.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+        }
+        out = await rebuilt.save({ useObjectStreams: true });
+        if (out.byteLength <= TARGET_BYTES) break;
+      }
+    } catch {
+      // fallback: return un-rasterized re-saved version
+    }
     return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
   }
 
   if (file.type.startsWith("image/")) {
-    // Compress image then embed in PDF
+    // Multi-step image compression to land under TARGET_BYTES
+    const steps = [
+      { maxSizeMB: 3.5, q: 0.88, w: 2400 },
+      { maxSizeMB: 2.5, q: 0.78, w: 2200 },
+      { maxSizeMB: 1.8, q: 0.68, w: 2000 },
+      { maxSizeMB: 1.2, q: 0.55, w: 1800 },
+    ];
     let img: Blob = file;
-    try {
-      img = await imageCompression(file, {
-        maxSizeMB: 1.8,
-        maxWidthOrHeight: 2400,
-        useWebWorker: true,
-        fileType: file.type === "image/png" ? "image/png" : "image/jpeg",
-        initialQuality: 0.9,
-      });
-    } catch { /* fall back to original */ }
-
+    for (const s of steps) {
+      try {
+        img = await imageCompression(file, {
+          maxSizeMB: s.maxSizeMB,
+          maxWidthOrHeight: s.w,
+          useWebWorker: true,
+          fileType: file.type === "image/png" ? "image/png" : "image/jpeg",
+          initialQuality: s.q,
+        });
+        if (img.size <= TARGET_BYTES) break;
+      } catch { /* try next step */ }
+    }
     const buf = await img.arrayBuffer();
     const pdf = await PDFDocument.create();
     const isPng = (img.type || file.type) === "image/png";
@@ -51,4 +87,4 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
   return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
 }
 
-export function isOverLimit(file: File) { return file.size > MAX_BYTES; }
+export function isOverLimit(file: File) { return file.size > IRCC_MAX_BYTES; }
