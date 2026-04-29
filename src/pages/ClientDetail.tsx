@@ -5,14 +5,16 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles } from "lucide-react";
-import { UploadZone } from "@/components/documents/UploadZone";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive } from "lucide-react";
+import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import type { Template, TemplateItem } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
+import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
+import JSZip from "jszip";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -25,6 +27,10 @@ interface Doc {
   size_bytes: number | null; version: number; uploaded_at: string;
 }
 
+interface BinderRow {
+  id: string; file_name: string; storage_path: string; generated_at: string; group_label: string | null;
+}
+
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { canUpload, isAdmin } = useAuth();
@@ -32,9 +38,10 @@ const ClientDetail = () => {
   const [template, setTemplate] = useState<Template | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [generatingGroups, setGeneratingGroups] = useState(false);
   const [shareTarget, setShareTarget] = useState<{ type: "document" | "binder"; id: string; label: string } | null>(null);
   const [optimizing, setOptimizing] = useState<string | null>(null);
-  const [binders, setBinders] = useState<{ id: string; file_name: string; storage_path: string; generated_at: string }[]>([]);
+  const [binders, setBinders] = useState<BinderRow[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -46,8 +53,8 @@ const ClientDetail = () => {
     } else { setTemplate(null); }
     const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
     setDocs((d ?? []) as Doc[]);
-    const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at").eq("client_id", id).order("generated_at", { ascending: false });
-    setBinders((b ?? []) as typeof binders);
+    const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
+    setBinders((b ?? []) as BinderRow[]);
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -137,6 +144,77 @@ const ClientDetail = () => {
     } finally { setGenerating(false); }
   };
 
+  const onGenerateGroupedBinders = async () => {
+    if (!client) return;
+    if (!template) { toast.error("Assign a workflow template first"); return; }
+    setGeneratingGroups(true);
+    const cleanName = client.full_name.replace(/[^a-zA-Z0-9]/g, "");
+    let made = 0;
+    try {
+      for (const group of BINDER_GROUPS) {
+        // Items in this group that have at least one uploaded doc
+        const groupItems = template.items.filter((it) => groupForType(it.name).key === group.key);
+        const groupHasUploads = groupItems.some((it) => docByType(it.name));
+        if (groupItems.length === 0 || !groupHasUploads) continue;
+
+        const bytes = await generateBinder({
+          clientName: client.full_name,
+          applicationId: client.application_id,
+          country: client.country,
+          applicationType: client.application_type,
+          templateName: template.name,
+          items: groupItems,
+          documents: docs,
+          groupLabel: group.label,
+        });
+        const fileName = `${group.label.replace(/[^a-zA-Z0-9]/g, "")}_${cleanName}.pdf`;
+        const path = `${client.id}/binders/${Date.now()}_${fileName}`;
+        const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+        const { error: upErr } = await supabase.storage
+          .from("client-documents")
+          .upload(path, blob, { contentType: "application/pdf" });
+        if (upErr) throw upErr;
+        await supabase.from("binders").insert({
+          client_id: client.id,
+          file_name: fileName,
+          storage_path: path,
+          size_bytes: blob.size,
+          group_label: group.label,
+        });
+        await logActivity("binder.generated", "client", client.id, { file_name: fileName, group: group.label });
+        made += 1;
+      }
+      if (made === 0) toast.info("No grouped binders generated — upload documents first");
+      else toast.success(`Generated ${made} grouped binder${made === 1 ? "" : "s"}`);
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate grouped binders");
+    } finally {
+      setGeneratingGroups(false);
+    }
+  };
+
+  const onDownloadAllBinders = async () => {
+    if (!binders.length) return;
+    try {
+      const zip = new JSZip();
+      for (const b of binders) {
+        const { data, error } = await supabase.storage.from("client-documents").download(b.storage_path);
+        if (error || !data) continue;
+        zip.file(b.file_name, await data.arrayBuffer());
+      }
+      const out = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(out);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${client?.full_name.replace(/[^a-zA-Z0-9]/g, "")}_AllBinders.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to zip binders");
+    }
+  };
+
   if (!client) return <AppLayout><div className="p-12 text-center text-muted-foreground">Loading…</div></AppLayout>;
 
   return (
@@ -148,10 +226,16 @@ const ClientDetail = () => {
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
             {canUpload && (
-              <Button onClick={onGenerateBinder} disabled={generating || !template} className="gradient-accent text-white">
-                {generating ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <FileCheck2 className="size-4 mr-1.5" />}
-                Generate binder
-              </Button>
+              <>
+                <Button onClick={onGenerateGroupedBinders} disabled={generatingGroups || !template} variant="outline" size="sm">
+                  {generatingGroups ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <FolderArchive className="size-4 mr-1.5" />}
+                  Grouped binders
+                </Button>
+                <Button onClick={onGenerateBinder} disabled={generating || !template} className="gradient-accent text-white">
+                  {generating ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <FileCheck2 className="size-4 mr-1.5" />}
+                  Full binder
+                </Button>
+              </>
             )}
           </div>
         }
@@ -247,9 +331,14 @@ const ClientDetail = () => {
 
           {binders.length > 0 && (
             <Card className="overflow-hidden shadow-elev-sm">
-              <div className="px-6 py-4 border-b">
-                <div className="font-semibold">Generated binders</div>
-                <div className="text-xs text-muted-foreground">{binders.length} binder{binders.length === 1 ? "" : "s"}</div>
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <div className="font-semibold">Generated binders</div>
+                  <div className="text-xs text-muted-foreground">{binders.length} binder{binders.length === 1 ? "" : "s"}</div>
+                </div>
+                <Button variant="outline" size="sm" onClick={onDownloadAllBinders}>
+                  <Download className="size-3.5 mr-1.5" /> Download all (.zip)
+                </Button>
               </div>
               <div className="divide-y">
                 {binders.map((b) => (
@@ -257,7 +346,10 @@ const ClientDetail = () => {
                     <FileCheck2 className="size-4 text-secondary shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{b.file_name}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(b.generated_at).toLocaleString()}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {b.group_label ? <span className="font-semibold text-secondary mr-1">{b.group_label}</span> : null}
+                        {new Date(b.generated_at).toLocaleString()}
+                      </div>
                     </div>
                     <Button size="icon" variant="ghost" className="size-7" title="Create share link"
                       onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.file_name })}>
@@ -273,7 +365,11 @@ const ClientDetail = () => {
         {/* Right: upload */}
         <div className="space-y-4">
           {canUpload ? (
-            <UploadZone client={client} onUploaded={load} />
+            <SmartUploadZone
+              client={client}
+              templateTypes={template?.items.map((it) => it.name)}
+              onUploaded={load}
+            />
           ) : (
             <Card className="p-6 text-center text-sm text-muted-foreground">Read-only access.</Card>
           )}
