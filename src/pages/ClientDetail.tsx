@@ -19,6 +19,8 @@ import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
+import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
+import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 
 interface Client {
@@ -53,6 +55,7 @@ const ClientDetail = () => {
   const [reExtracting, setReExtracting] = useState(false);
   const [syncingOdoo, setSyncingOdoo] = useState(false);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
+  const [people, setPeople] = useState<CasePerson[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -542,10 +545,17 @@ const ClientDetail = () => {
 
         {/* Right: upload */}
         <div className="space-y-4">
+          <CasePeopleCard
+            clientId={client.id}
+            canEdit={canUpload}
+            isAdmin={isAdmin}
+            onChange={setPeople}
+          />
           {canUpload ? (
             <SmartUploadZone
               client={client}
               templateTypes={checklistItems.map((it) => it.name)}
+              people={people}
               onUploaded={load}
             />
           ) : (

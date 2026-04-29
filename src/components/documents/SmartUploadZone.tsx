@@ -1,22 +1,29 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft } from "lucide-react";
-import { DOCUMENT_TYPES, buildDocumentName, sanitizeName } from "@/lib/constants";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users } from "lucide-react";
+import { DOCUMENT_TYPES, sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { processToPdf } from "@/lib/processFile";
-import { classifyDocument, matchPersonName } from "@/lib/classifyDocument";
+import { classifyDocument } from "@/lib/classifyDocument";
+import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
+import { ROLE_SHORT, type CasePerson } from "@/lib/casePeople";
 import { toast } from "sonner";
 
 interface Client { id: string; full_name: string; }
 
-type ItemStatus = "queued" | "identifying" | "name_mismatch" | "processing" | "uploading" | "done" | "error" | "skipped";
+type ItemStatus =
+  | "queued" | "identifying" | "needs_owner" | "name_mismatch"
+  | "processing" | "uploading" | "done" | "error" | "skipped";
 
 interface ClientLite { id: string; full_name: string; application_id: string; }
+
+/** Special owner id meaning "shared by everyone on the case". */
+const SHARED_ID = "__shared__";
 
 interface QueueItem {
   file: File;
@@ -30,6 +37,9 @@ interface QueueItem {
   ownerName?: string | null;
   ownerConfidence?: number;
   matchScore?: number;
+  // Multi-person:
+  ownerId?: string | null;     // case_people.id, or SHARED_ID, or null until chosen
+  alternatives?: { person: CasePerson; score: number }[];
 }
 
 const CONCURRENCY = 3;
@@ -37,10 +47,13 @@ const CONCURRENCY = 3;
 export const SmartUploadZone = ({
   client,
   templateTypes,
+  people,
   onUploaded,
 }: {
   client: Client;
   templateTypes?: string[];
+  /** Roster of people on this case. Must include the applicant. */
+  people: CasePerson[];
   onUploaded: () => void;
 }) => {
   const [drag, setDrag] = useState(false);
@@ -51,59 +64,122 @@ export const SmartUploadZone = ({
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
 
+  const applicant = useMemo(() => people.find((p) => p.role === "applicant"), [people]);
+  const isMulti = people.length >= 2;
+
   const patch = (idx: number, p: Partial<QueueItem>) =>
     setQueue((q) => q.map((it, i) => (i === idx ? { ...it, ...p } : it)));
 
-  const runOne = useCallback(
+  const personById = useCallback(
+    (id: string | null | undefined): CasePerson | undefined =>
+      id && id !== SHARED_ID ? people.find((p) => p.id === id) : undefined,
+    [people],
+  );
+
+  const ownerLabel = useCallback(
+    (id: string | null | undefined): string => {
+      if (!id) return "Unassigned";
+      if (id === SHARED_ID) return "Shared (all)";
+      const p = personById(id);
+      return p ? `${p.full_name} · ${p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}` : "Unknown";
+    },
+    [personById],
+  );
+
+  const classifyAndAssign = useCallback(
     async (idx: number, item: QueueItem) => {
       try {
-        // Classify
         patch(idx, { status: "identifying" });
         const c = await classifyDocument(item.file, templateTypes);
-        patch(idx, {
+        const match = matchPersonRoster(c.ownerName ?? null, people);
+
+        const baseUpdate: Partial<QueueItem> = {
           predictedType: c.type,
           customType: c.customType,
           confidence: c.confidence,
           source: c.source,
           ownerName: c.ownerName ?? null,
           ownerConfidence: c.ownerConfidence ?? 0,
-        });
-        return c;
+          matchScore: match.score,
+          alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
+        };
+
+        // Single-person case → always applicant
+        if (!isMulti) {
+          if (applicant && c.ownerName && (c.ownerConfidence ?? 0) >= 0.5) {
+            // Legacy mismatch UX: detected someone else for a solo case
+            const m = match.best;
+            if (!m && match.score < 0.6) {
+              patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: applicant.id });
+              await logActivity("document.owner_mismatch_warned", "client", client.id, {
+                file_name: item.file.name, detected_owner: c.ownerName, expected_client: client.full_name, score: match.score,
+              });
+              return null;
+            }
+          }
+          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
+          return { classification: c, ownerId: applicant?.id ?? null };
+        }
+
+        // Multi-person case → require explicit confirmation when ambiguous / no name
+        if (match.noNameDetected || !match.best || match.ambiguous) {
+          // Default suggestion: best candidate if any, otherwise applicant
+          const suggested = match.best?.id ?? applicant?.id ?? null;
+          patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
+          return null;
+        }
+
+        // High confidence: still show chip for reconfirmation, but proceed
+        patch(idx, { ...baseUpdate, ownerId: match.best.id });
+        return { classification: c, ownerId: match.best.id };
       } catch (e) {
         patch(idx, { status: "error", error: e instanceof Error ? e.message : "Classify failed" });
         return null;
       }
     },
-    [templateTypes]
+    [templateTypes, people, isMulti, applicant, client.id, client.full_name],
   );
 
   const uploadOne = async (
     idx: number,
     item: QueueItem,
     type: string,
-    customType?: string,
+    customType: string | undefined,
+    ownerId: string | null,
     targetClient: { id: string; full_name: string } = client,
     overrideOwner = false,
   ) => {
     try {
       const effectiveType = type === "Other" ? (customType?.trim() || "Other") : type;
+      const isShared = ownerId === SHARED_ID;
+      const ownerPerson = !isShared ? personById(ownerId ?? undefined) : undefined;
 
-      // Get next version for this type
+      // Get next version (scoped to this person + type, or shared + type)
       const { data: existing } = await supabase
         .from("client_documents")
-        .select("version,document_type,custom_type")
+        .select("version,document_type,custom_type,person_id,is_shared")
         .eq("client_id", targetClient.id);
-      const sameType = (existing ?? []).filter(
-        (d) => (d.document_type === "Other" ? d.custom_type : d.document_type) === effectiveType
-      );
-      const nextVersion = (sameType.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
+      const sameSlot = (existing ?? []).filter((d) => {
+        const sameType = (d.document_type === "Other" ? d.custom_type : d.document_type) === effectiveType;
+        if (!sameType) return false;
+        if (isShared) return d.is_shared === true;
+        return d.person_id === (ownerPerson?.id ?? null);
+      });
+      const nextVersion = (sameSlot.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
 
       patch(idx, { status: "processing" });
-      const baseName = buildDocumentName(effectiveType, targetClient.full_name, nextVersion, "pdf").replace(/\.pdf$/, "");
+
+      const baseName = ownerPerson
+        ? buildPersonDocumentName(effectiveType, ROLE_SHORT[ownerPerson.role], ownerPerson.full_name, nextVersion, "pdf").replace(/\.pdf$/, "")
+        : isShared
+        ? buildPersonDocumentName(effectiveType, "Shared", "", nextVersion, "pdf").replace(/\.pdf$/, "")
+        : buildDocumentName(effectiveType, targetClient.full_name, nextVersion, "pdf").replace(/\.pdf$/, "");
+
       const processed = await processToPdf(item.file, baseName);
 
       patch(idx, { status: "uploading", finalName: processed.name });
-      const path = `${targetClient.id}/${sanitizeName(effectiveType)}/${Date.now()}_${processed.name}`;
+      const personFolder = isShared ? "shared" : (ownerPerson?.id ?? "unassigned");
+      const path = `${targetClient.id}/${personFolder}/${sanitizeName(effectiveType)}/${Date.now()}_${processed.name}`;
       const { error: upErr } = await supabase.storage
         .from("client-documents")
         .upload(path, processed, { contentType: "application/pdf" });
@@ -113,6 +189,8 @@ export const SmartUploadZone = ({
         .from("client_documents")
         .insert({
           client_id: targetClient.id,
+          person_id: ownerPerson?.id ?? null,
+          is_shared: isShared,
           document_type: type,
           custom_type: type === "Other" ? customType?.trim() || null : null,
           file_name: processed.name,
@@ -125,6 +203,7 @@ export const SmartUploadZone = ({
         .select()
         .single();
       if (insErr) throw insErr;
+
       await logActivity(overrideOwner ? "document.uploaded_with_override" : "document.uploaded", "document", ins.id, {
         file_name: processed.name,
         type: effectiveType,
@@ -135,29 +214,24 @@ export const SmartUploadZone = ({
         client_id: targetClient.id,
         client_name: targetClient.full_name,
         owner_match_score: item.matchScore ?? null,
+        person_id: ownerPerson?.id ?? null,
+        person_name: ownerPerson?.full_name ?? (isShared ? "Shared" : null),
+        person_role: ownerPerson?.role ?? (isShared ? "shared" : null),
       });
       patch(idx, { status: "done" });
 
-      // Fire-and-forget: extract structured CRM fields and merge them.
-      // We never block the user on this — failures are silently logged.
+      // Background field extraction (per-person where possible)
       try {
         const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
         const snippet = isPdf ? await extractFirstPageText(item.file, 6000) : "";
         if (snippet) {
           const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: {
-              document_type: effectiveType,
-              file_name: processed.name,
-              snippet,
-            },
+            body: { document_type: effectiveType, file_name: processed.name, snippet },
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
             const { written, conflicts } = await mergeExtractedFields(
-              targetClient.id,
-              ins.id,
-              processed.name,
-              fields,
+              targetClient.id, ins.id, processed.name, fields,
             );
             if (written.length > 0) {
               toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} from ${processed.name}`);
@@ -177,6 +251,10 @@ export const SmartUploadZone = ({
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
+      if (!applicant) {
+        toast.error("This case has no applicant on file. Add a person first.");
+        return;
+      }
       const arr = Array.from(files);
       if (!arr.length) return;
       const startIdx = queue.length;
@@ -184,25 +262,11 @@ export const SmartUploadZone = ({
       setQueue((q) => [...q, ...initial]);
       setBusy(true);
 
-      // Classify in parallel batches
       const tasks = initial.map((it, i) => async () => {
         const idx = startIdx + i;
-        const c = await runOne(idx, it);
-        if (!c) return;
-        // Owner name check
-        const m = matchPersonName(c.ownerName, client.full_name);
-        patch(idx, { matchScore: m.score });
-        if (!m.match && c.ownerName && (c.ownerConfidence ?? 0) >= 0.5) {
-          patch(idx, { status: "name_mismatch" });
-          await logActivity("document.owner_mismatch_warned", "client", client.id, {
-            file_name: it.file.name,
-            detected_owner: c.ownerName,
-            expected_client: client.full_name,
-            score: m.score,
-          });
-          return; // wait for user decision
-        }
-        await uploadOne(idx, { ...it, ...c }, c.type, c.customType);
+        const result = await classifyAndAssign(idx, it);
+        if (!result) return; // paused for user input
+        await uploadOne(idx, { ...it } as QueueItem, result.classification.type, result.classification.customType, result.ownerId);
       });
 
       const queues: Array<() => Promise<void>> = [...tasks];
@@ -217,21 +281,32 @@ export const SmartUploadZone = ({
       setBusy(false);
       onUploaded();
     },
-    [queue.length, runOne, onUploaded] // eslint-disable-line react-hooks/exhaustive-deps
+    [queue.length, classifyAndAssign, applicant, onUploaded] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const overrideType = async (idx: number, newType: string) => {
     const item = queue[idx];
-    if (!item || item.status === "done" || item.status === "uploading") return;
+    if (!item || item.status === "uploading" || item.status === "processing") return;
     patch(idx, { predictedType: newType, status: "queued" });
-    await uploadOne(idx, item, newType, item.customType);
+    await uploadOne(idx, item, newType, item.customType, item.ownerId ?? null);
+    onUploaded();
+  };
+
+  const setOwner = (idx: number, ownerId: string) => {
+    patch(idx, { ownerId });
+  };
+
+  const confirmOwner = async (idx: number) => {
+    const item = queue[idx];
+    if (!item || !item.predictedType || !item.ownerId) return;
+    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId);
     onUploaded();
   };
 
   const uploadAnyway = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType) return;
-    await uploadOne(idx, item, item.predictedType, item.customType, client, true);
+    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId ?? applicant?.id ?? null, client, true);
     onUploaded();
   };
 
@@ -272,12 +347,11 @@ export const SmartUploadZone = ({
     setReassignFor(null);
     if (!item || !item.predictedType) return;
     await logActivity("document.reassigned", "client", target.id, {
-      file_name: item.file.name,
-      from_client: client.full_name,
-      to_client: target.full_name,
+      file_name: item.file.name, from_client: client.full_name, to_client: target.full_name,
       detected_owner: item.ownerName,
     });
-    await uploadOne(idx, item, item.predictedType, item.customType, target, false);
+    // When reassigning to a different case, default ownership to that case's applicant (handled by null → caller side fallback)
+    await uploadOne(idx, item, item.predictedType, item.customType, null, target, false);
     toast.success(`Saved to ${target.full_name}`);
     onUploaded();
   };
@@ -294,9 +368,19 @@ export const SmartUploadZone = ({
           IRCC ≤ 4MB
         </span>
       </div>
-      <p className="text-xs text-muted-foreground mb-4">
+      <p className="text-xs text-muted-foreground mb-3">
         Drop any documents — we auto-detect type, rename, convert to PDF, and compress for IRCC submission.
       </p>
+
+      {isMulti && (
+        <div className="mb-3 px-3 py-2 rounded-md bg-primary/5 border border-primary/20 flex items-start gap-2">
+          <Users className="size-3.5 text-primary mt-0.5 shrink-0" />
+          <div className="text-[11px] leading-snug text-primary">
+            <span className="font-semibold">Multi-person case ({people.length} people).</span>{" "}
+            Confirm who each document belongs to. Use <span className="font-semibold">Shared</span> for documents covering multiple people (e.g. marriage certificate).
+          </div>
+        </div>
+      )}
 
       <label
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
@@ -321,12 +405,14 @@ export const SmartUploadZone = ({
 
       {queue.length > 0 && (
         <>
-          <div className="mt-4 space-y-1.5 max-h-72 overflow-auto">
+          <div className="mt-4 space-y-1.5 max-h-96 overflow-auto">
             {queue.map((it, i) => (
               <div
                 key={i}
                 className={`flex flex-col gap-1.5 text-xs p-2 rounded ${
-                  it.status === "name_mismatch" ? "bg-amber-50 border border-amber-300" : "bg-muted/50"
+                  it.status === "name_mismatch" || it.status === "needs_owner"
+                    ? "bg-amber-50 border border-amber-300"
+                    : "bg-muted/50"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -334,28 +420,26 @@ export const SmartUploadZone = ({
                   <div className="flex-1 min-w-0">
                     <div className="truncate font-medium">{it.finalName ?? it.file.name}</div>
                     <div className="text-[10px] text-muted-foreground truncate">
-                    {it.predictedType ? (
-                      <>
-                        Detected: <span className="font-semibold text-foreground">{it.predictedType}</span>
-                        {typeof it.confidence === "number" && (
-                          <span className="ml-1">· {(it.confidence * 100).toFixed(0)}%</span>
-                        )}
-                        {it.source && <span className="ml-1">· {it.source}</span>}
-                      </>
-                    ) : (
-                      <>Awaiting…</>
-                    )}
-                    {it.error && <span className="text-destructive ml-1">· {it.error}</span>}
+                      {it.predictedType ? (
+                        <>
+                          Detected: <span className="font-semibold text-foreground">{it.predictedType}</span>
+                          {typeof it.confidence === "number" && (
+                            <span className="ml-1">· {(it.confidence * 100).toFixed(0)}%</span>
+                          )}
+                          {it.source && <span className="ml-1">· {it.source}</span>}
+                          {isMulti && it.ownerId && it.status !== "needs_owner" && (
+                            <span className="ml-1">· for <span className="font-semibold text-foreground">{ownerLabel(it.ownerId)}</span></span>
+                          )}
+                        </>
+                      ) : (
+                        <>Awaiting…</>
+                      )}
+                      {it.error && <span className="text-destructive ml-1">· {it.error}</span>}
                     </div>
                   </div>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
-                    <Select
-                      value={it.predictedType}
-                      onValueChange={(v) => overrideType(i, v)}
-                    >
-                      <SelectTrigger className="h-7 w-[140px] text-[11px]">
-                        <SelectValue />
-                      </SelectTrigger>
+                    <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
+                      <SelectTrigger className="h-7 w-[140px] text-[11px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {DOCUMENT_TYPES.map((t) => (
                           <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
@@ -364,6 +448,39 @@ export const SmartUploadZone = ({
                     </Select>
                   )}
                 </div>
+
+                {/* Roster picker for multi-person cases needing confirmation */}
+                {it.status === "needs_owner" && (
+                  <div className="ml-5 mt-1 p-2 rounded bg-amber-100/60 border border-amber-300 space-y-2">
+                    <div className="flex items-start gap-1.5 text-amber-900">
+                      <Users className="size-3.5 mt-0.5 shrink-0" />
+                      <div className="text-[11px] leading-snug">
+                        {it.ownerName
+                          ? <>Detected name <span className="font-semibold">{it.ownerName}</span> — please confirm who this is for.</>
+                          : <>No name detected on the document. Choose who this is for.</>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select value={it.ownerId ?? ""} onValueChange={(v) => setOwner(i, v)}>
+                        <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Select person…" /></SelectTrigger>
+                        <SelectContent>
+                          {people.map((p) => (
+                            <SelectItem key={p.id} value={p.id} className="text-xs">
+                              {p.full_name} · {p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}
+                              {p.date_of_birth ? ` (DOB ${p.date_of_birth})` : ""}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId}>
+                        Confirm & upload
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Single-person case mismatch (legacy) */}
                 {it.status === "name_mismatch" && (
                   <div className="ml-5 mt-1 p-2 rounded bg-amber-100/60 border border-amber-300 space-y-1.5">
                     <div className="flex items-start gap-1.5 text-amber-900">
@@ -404,22 +521,20 @@ export const SmartUploadZone = ({
                           ))}
                         </div>
                         <div className="flex justify-end">
-                          <Button size="sm" variant="ghost" className="h-6 text-[11px]"
-                            onClick={() => setReassignFor(null)}>Cancel</Button>
+                          <Button size="sm" variant="ghost" className="h-6 text-[11px]" onClick={() => setReassignFor(null)}>
+                            Cancel
+                          </Button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex flex-wrap gap-1.5">
-                        <Button size="sm" variant="default" className="h-7 text-[11px]"
-                          onClick={() => openReassign(i)}>
+                        <Button size="sm" variant="default" className="h-7 text-[11px]" onClick={() => openReassign(i)}>
                           <ArrowRightLeft className="size-3 mr-1" /> Reassign
                         </Button>
-                        <Button size="sm" variant="outline" className="h-7 text-[11px]"
-                          onClick={() => uploadAnyway(i)}>
+                        <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => uploadAnyway(i)}>
                           Upload anyway
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-7 text-[11px]"
-                          onClick={() => skipItem(i)}>
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => skipItem(i)}>
                           Skip
                         </Button>
                       </div>
@@ -450,6 +565,7 @@ function StatusIcon({ status }: { status: ItemStatus }) {
   if (status === "done") return <CheckCircle2 className="size-3.5 text-success shrink-0" />;
   if (status === "error") return <AlertTriangle className="size-3.5 text-destructive shrink-0" />;
   if (status === "name_mismatch") return <UserX className="size-3.5 text-amber-600 shrink-0" />;
+  if (status === "needs_owner") return <Users className="size-3.5 text-amber-600 shrink-0" />;
   if (status === "skipped") return <div className="size-3.5 rounded-full bg-muted shrink-0" />;
   if (status === "queued") return <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />;
   return <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />;

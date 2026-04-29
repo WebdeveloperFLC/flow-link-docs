@@ -121,6 +121,56 @@ export type Database = {
           },
         ]
       }
+      case_people: {
+        Row: {
+          client_id: string
+          created_at: string
+          date_of_birth: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          is_archived: boolean
+          passport_number: string | null
+          relationship: string | null
+          role: Database["public"]["Enums"]["person_role"]
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          date_of_birth?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          passport_number?: string | null
+          relationship?: string | null
+          role: Database["public"]["Enums"]["person_role"]
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          date_of_birth?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          is_archived?: boolean
+          passport_number?: string | null
+          relationship?: string | null
+          role?: Database["public"]["Enums"]["person_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_people_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_documents: {
         Row: {
           client_id: string
@@ -128,7 +178,9 @@ export type Database = {
           document_type: string
           file_name: string
           id: string
+          is_shared: boolean
           mime_type: string | null
+          person_id: string | null
           size_bytes: number | null
           status: string
           storage_path: string
@@ -142,7 +194,9 @@ export type Database = {
           document_type: string
           file_name: string
           id?: string
+          is_shared?: boolean
           mime_type?: string | null
+          person_id?: string | null
           size_bytes?: number | null
           status?: string
           storage_path: string
@@ -156,7 +210,9 @@ export type Database = {
           document_type?: string
           file_name?: string
           id?: string
+          is_shared?: boolean
           mime_type?: string | null
+          person_id?: string | null
           size_bytes?: number | null
           status?: string
           storage_path?: string
@@ -170,6 +226,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_people"
             referencedColumns: ["id"]
           },
         ]
@@ -213,6 +276,7 @@ export type Database = {
           passport_expiry: string | null
           passport_issue_date: string | null
           passport_number: string | null
+          person_id: string | null
           phone_alt: string | null
           place_of_birth: string | null
           source_documents: Json
@@ -258,6 +322,7 @@ export type Database = {
           passport_expiry?: string | null
           passport_issue_date?: string | null
           passport_number?: string | null
+          person_id?: string | null
           phone_alt?: string | null
           place_of_birth?: string | null
           source_documents?: Json
@@ -303,6 +368,7 @@ export type Database = {
           passport_expiry?: string | null
           passport_issue_date?: string | null
           passport_number?: string | null
+          person_id?: string | null
           phone_alt?: string | null
           place_of_birth?: string | null
           source_documents?: Json
@@ -310,7 +376,15 @@ export type Database = {
           tuition_paid?: number | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "client_profile_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clients: {
         Row: {
@@ -590,6 +664,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "counselor" | "documentation" | "viewer"
+      person_role: "applicant" | "co_applicant" | "dependant"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -718,6 +793,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "counselor", "documentation", "viewer"],
+      person_role: ["applicant", "co_applicant", "dependant"],
     },
   },
 } as const

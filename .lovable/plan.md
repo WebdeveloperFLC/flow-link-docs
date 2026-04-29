@@ -1,61 +1,199 @@
-## Goal
 
-You uploaded the 3 sample letters (Applicant cover, RCIC, Statutory Declaration) and the FutureLink logo. Wire them into the system that's already built, refine the generator using the patterns visible in your samples, and verify with a real generation before declaring done.
+# Multi-applicant cases (then Odoo)
 
-## What I observed in your samples
+Two changes, in order:
 
-- **Applicant letter**: numbered sections (Purpose / Ties / Finances / Sponsor / Compliance / Conclusion), addressed to "The Visa Officer, IRCC", signed by both applicants.
-- **RCIC letter**: From block with RCIC name + R-number, dated, "Summary of Refusal Concerns" section, signed by RCIC.
-- **Statutory Declaration**: Canadian legal format with `CANADA / Province / City` brace block, numbered solemn declarations (1–11), "DECLARED BEFORE ME" + Commissioner of Oaths block.
+1. **Multi-applicant roster + per-person uploads** (this plan)
+2. **Odoo two-way configurable sync** (already approved — built right after)
 
-These are richer than the current prompts assume — the generator needs sample-aware structure, not just a "style reference".
+---
 
-## Plan
+## 1. Multi-applicant roster + per-person uploads
 
-### 1. Seed branding + templates automatically (no manual setup needed)
+### Concept
 
-- Copy `FLC_logo_1_-01-2.png` → `src/assets/flc-logo.png` and upload to `branding` bucket as `firm-logo.png`.
-- Upload the 3 .docx samples to `letter-templates` bucket under `samples/cover.docx`, `samples/rcic.docx`, `samples/statdec.docx`.
-- Insert/upsert a `firm_profile` row pre-filled with: firm name "FutureLink Consultants", tagline "A way to career abroad", RCIC name "Santosh D. Ramrakhiani", RCIC # "R506940", logo URL pointing at the uploaded file. (You can edit any of this later in Settings.)
-- Insert `letter_templates` rows for each of the 3 kinds, with the parsed text body as the `style_reference` (skip the parse edge function call — we already have the parsed content).
+Today a "case" = one client = one person. In reality a case often involves multiple people:
 
-### 2. Tighten the `generate-letter` edge function
+- Visitor visa (family): husband (applicant) + wife (co-applicant) + kids (dependants)
+- Study permit + spouse: student (applicant) + spouse (co-applicant on OWP/visitor) + kids
+- PR: principal applicant + spouse co-applicant + dependant children
 
-- Pass the **full sample text** (not just an extracted style summary) to Gemini as a few-shot example, with instructions to mirror structure/headings/tone but substitute the new client's facts.
-- Add kind-specific scaffolding hints:
-  - `cover` → numbered sections, "Yours sincerely" + applicant name(s).
-  - `rcic` → From/To/Date/Subject block, signed by RCIC from `firm_profile`.
-  - `statdec` → Canadian legal brace header (CANADA / Province / City), numbered "DO SOLEMNLY DECLARE THAT" clauses, "DECLARED BEFORE ME" footer.
-- Pull all available client data from `clients` + `client_profile` + extracted document fields and feed it as structured JSON to the model.
-- Keep `[MISSING: field]` yellow-highlight markers for any unresolved facts.
-- Inject the firm logo (PNG bytes from the `branding` bucket) into the DOCX header for `rcic` letters; signature image as footer if uploaded.
+We keep **one case** (`clients` row, one `application_id`) and add a **roster of people** under it. Documents, profile fields, and letters become person-aware. The main applicant is always the `clients` row itself — co-applicants and dependants are extra people attached to that case.
 
-### 3. Test before handing back (mandatory, in build mode)
+### Roster rules
 
-- Pick the current client (`afa47723-…`) and call `generate-letter` for each of the 3 kinds via `supabase--curl_edge_functions`.
-- Download each generated `.docx`, convert to PDF via LibreOffice, render page 1 as JPG, and visually inspect for:
-  - Logo present (RCIC letter)
-  - Correct salutation / signature block
-  - Statutory declaration legal header intact
-  - No template leakage (e.g. literal "{{token}}" strings)
-  - `[MISSING:]` markers only where data genuinely isn't in the CRM
-- Fix any issues found, re-test, and only then report back with the QA summary.
+- Every case has exactly **1 Applicant** (the existing `clients` row, role auto-assigned).
+- 0+ **Co-applicants** (spouse, partner, sibling, parent — any adult filing alongside).
+- 0+ **Dependants** (typically children).
+- Each person has: full_name, role, relationship, date_of_birth, passport_number, gender.
+- Roster is editable any time. Removing a person archives (not deletes) their docs.
 
-### 4. UI polish
+### Upload behaviour (the core change)
 
-- On `LetterTemplates.tsx`, show a "Seeded from FutureLink samples ✓" badge when the seeded rows exist so you know the defaults are loaded.
-- On the `LetterCard` in ClientDetail, surface the list of `[MISSING]` fields after generation as a clickable list that jumps to the relevant CRM field.
+```text
+User drops 8 mixed files for a multi-person case
+        ↓
+Classifier detects doc type + owner name on each
+        ↓
+matchPersonName runs against the FULL ROSTER, not just main applicant
+        ↓
+For each file:
+  ├─ High confidence single match  →  chip: "Detected: Wife — Anjali Sharma ✓" (one-click change)
+  ├─ Ambiguous / low score          →  inline "Who is this for?" picker (Applicant / each Co-app / each Dependant / Shared)
+  └─ No name detected               →  same picker, no default — user must confirm
+        ↓
+On multi-person cases we ALWAYS show the person chip (even on confident matches)
+so the user reconfirms before save. Single-person cases: unchanged behaviour.
+        ↓
+File renamed per person, stored under person folder, profile fields routed to that person
+```
 
-## Files to touch
+**"Shared" owner** is a special pick for documents that legitimately belong to multiple people (joint bank statement, marriage certificate, family photo, IMM 5645 Family Information). Stored once, listed under each linked person.
 
-- **New**: none (all infra exists).
-- **Edit**: `supabase/functions/generate-letter/index.ts` (sample-aware prompt + logo injection), `src/components/letters/LetterCard.tsx` (missing-fields surfacing), `src/pages/LetterTemplates.tsx` (seeded badge).
-- **Migrations**: one to upsert `firm_profile` defaults + 3 `letter_templates` rows.
-- **Assets**: `src/assets/flc-logo.png`, plus storage uploads to `branding/` and `letter-templates/samples/`.
+### File naming
 
-## What you don't need to do
+Pattern changes from `{Type}_{Client}_v{n}.pdf` to:
 
-- No manual upload in Settings or Letter Templates — I'll seed all of it from the files you just provided.
-- No need to re-upload the logo or samples.
+```
+{Type}_{Role}_{PersonName}_v{n}.pdf
+```
 
-Approve and I'll switch to build mode, seed everything, deploy the updated function, and run the 3-letter test before declaring done.
+Examples:
+- `Passport_Applicant_RahulSharma_v1.pdf`
+- `Passport_CoApplicant_AnjaliSharma_v1.pdf`
+- `BirthCertificate_Dependant_AaravSharma_v1.pdf`
+- `MarriageCertificate_Shared_v1.pdf`
+
+Storage path: `{case_id}/{person_id}/{doctype}/{timestamp}_{filename}` (was `{case_id}/{doctype}/...`). Existing files stay where they are; new uploads use the new path.
+
+### Per-person profile
+
+Profile fields (passport #, DOB, IELTS, etc.) currently live on `client_profile` keyed by `client_id`. They become keyed by `person_id` so the wife's IELTS doesn't overwrite the husband's. A backfill copies every existing `client_profile` row to the new applicant person.
+
+### Visa forms (per-person vs shared)
+
+Workflow templates already define `items`. We add a `scope` flag per item:
+- `per_person` (default for things like Passport, Photo, Police Clearance, IMM 5257)
+- `shared` (Family Info form, marriage cert, joint statement)
+- `applicant_only` (e.g. SOP, LOA for the principal)
+
+Checklist on `ClientDetail` then renders the right rows per person, and "missing" only counts per-person items the people in the roster actually need.
+
+### Letters & binders
+
+Letter generation context gets the full roster. RCIC/cover letters can address all parties. Binders get a roster cover page. Per-person sections in the binder.
+
+### UX additions on `ClientDetail`
+
+- New **"People on this case"** card (top of the page, beside the existing client header).
+  - Shows applicant + co-applicants + dependants with role chips, DOB, passport #.
+  - "Add person" button (modal: name, role, relationship, DOB, passport #).
+  - Inline edit / promote (e.g. dependant turning 22 → co-applicant).
+- Document list groups by person with collapsible sections + "Shared" group at the top.
+- Smart upload zone gets a roster-aware picker (replaces today's single-person mismatch warning).
+- Top of upload zone shows a small reminder when 2+ people on case: *"Multi-person case — confirm who each document belongs to."*
+
+### Edge cases handled
+
+- Adding a co-applicant after some uploads → existing docs stay where they are; can be reassigned later via dropdown on the doc row.
+- Same-name dependants (e.g. Jr.) → picker shows DOB to disambiguate.
+- Single-person case → zero behaviour change. Roster is invisible until "Add person" is clicked.
+- Legacy docs with no `person_id` → automatically attributed to the applicant on first read.
+
+---
+
+## Database changes (one migration)
+
+```sql
+-- people on a case
+create type person_role as enum ('applicant', 'co_applicant', 'dependant');
+
+create table case_people (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references clients(id) on delete cascade,
+  role person_role not null,
+  full_name text not null,
+  relationship text,           -- "spouse", "son", "daughter", "father", etc.
+  date_of_birth date,
+  passport_number text,
+  gender text,
+  is_archived boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index one_applicant_per_case
+  on case_people (client_id) where role = 'applicant' and not is_archived;
+create index case_people_client_idx on case_people (client_id);
+
+-- documents now know the person
+alter table client_documents
+  add column person_id uuid references case_people(id),
+  add column is_shared boolean not null default false;
+create index client_documents_person_idx on client_documents (person_id);
+
+-- profile becomes per-person (rename + repoint)
+alter table client_profile add column person_id uuid references case_people(id);
+create unique index client_profile_person_uniq on client_profile (person_id) where person_id is not null;
+
+-- workflow item scope
+-- (no schema change — items is jsonb; we add `scope` field in JSON, default 'per_person')
+```
+
+**Backfill** (data migration, runs after schema):
+```sql
+-- 1. create an applicant person for every existing client
+insert into case_people (client_id, role, full_name)
+  select id, 'applicant', full_name from clients;
+
+-- 2. point existing documents at it
+update client_documents d
+   set person_id = p.id
+  from case_people p
+ where p.client_id = d.client_id and p.role = 'applicant' and d.person_id is null;
+
+-- 3. point existing profile rows at it
+update client_profile cp
+   set person_id = p.id
+  from case_people p
+ where p.client_id = cp.client_id and p.role = 'applicant' and cp.person_id is null;
+```
+
+**RLS**: `case_people` follows the same pattern as `clients` (read = authenticated; insert/update = admin + counselor; delete = admin).
+
+---
+
+## Code changes
+
+**New files**
+- `src/components/clients/CasePeopleCard.tsx` — roster UI on ClientDetail
+- `src/components/clients/AddPersonDialog.tsx` — add/edit person modal
+- `src/lib/casePeople.ts` — fetch/upsert helpers + role labels
+- `src/lib/matchPersonRoster.ts` — extends `matchPersonName` to take an array, returns best match + score + alternatives
+
+**Modified**
+- `src/lib/constants.ts` — `buildDocumentName` accepts optional `person` + `role`
+- `src/lib/classifyDocument.ts` — `matchPersonName` kept for back-compat; new `matchPersonRoster` exported
+- `src/lib/extractedFields.ts` — `mergeExtractedFields` keyed by `person_id` (back-compat: falls back to applicant if not provided)
+- `src/components/documents/SmartUploadZone.tsx` — accepts `people` prop, replaces single-person mismatch UI with roster picker, always shows confirmation chip on multi-person cases
+- `src/pages/ClientDetail.tsx` — loads roster, mounts `CasePeopleCard`, groups docs by person, passes `people` to `SmartUploadZone`
+- `src/components/clients/ClientProfileCard.tsx` — accepts `personId`, shows per-person fields with a person tab strip when multiple people
+- `src/lib/binder.ts` — roster cover page + per-person sections
+- `supabase/functions/generate-letter/index.ts` — roster in prompt context
+- `src/pages/Templates.tsx` + workflow item type — add optional `scope` field on items
+
+**Out of scope for this plan (do later)**
+- Cross-case people (same person appearing on two cases) — for now each case has its own roster
+- Importing roster from Odoo (covered by the Odoo plan below)
+
+---
+
+## 2. Odoo two-way configurable sync (queued)
+
+Already approved — exact plan as before:
+
+- `odoo_settings.mode` = `off` / `pull` / `push` / `two_way`
+- 15-min cron + on-open auto-pull + on-save auto-push, all gated by `mode`
+- Field discovery + mapping UI, secrets reused
+- Roster sync: when pulling a `crm.lead`, related contacts (`partner_id`, `partner_name`, family-line custom fields) become co-applicants/dependants in our `case_people` table
+
+I'll start on multi-applicant immediately after approval, ship it, then move to Odoo.
