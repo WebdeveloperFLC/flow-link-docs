@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck } from "lucide-react";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
@@ -41,6 +41,7 @@ const ClientDetail = () => {
   const [generatingGroups, setGeneratingGroups] = useState(false);
   const [shareTarget, setShareTarget] = useState<{ type: "document" | "binder"; id: string; label: string } | null>(null);
   const [optimizing, setOptimizing] = useState<string | null>(null);
+  const [optimizingAll, setOptimizingAll] = useState(false);
   const [binders, setBinders] = useState<BinderRow[]>([]);
 
   const load = useCallback(async () => {
@@ -77,10 +78,25 @@ const ClientDetail = () => {
   };
 
   const onView = async (d: Doc) => {
-    const { data, error } = await supabase.storage.from("client-documents").createSignedUrl(d.storage_path, 60 * 5);
-    if (error || !data) { toast.error("Failed to open"); return; }
-    window.open(data.signedUrl, "_blank");
-    await logActivity("document.viewed", "document", d.id);
+    try {
+      const { data, error } = await supabase.storage.from("client-documents").download(d.storage_path);
+      if (error || !data) { toast.error("Failed to open"); return; }
+      // Force the correct PDF mime type so the browser previews inline instead of downloading.
+      const blob = new Blob([await data.arrayBuffer()], { type: d.mime_type || "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, "_blank");
+      if (!win) {
+        // Popup blocked — fall back to a temp link click
+        const a = document.createElement("a");
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      // Revoke after a delay so the new tab has time to load.
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      await logActivity("document.viewed", "document", d.id);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open");
+    }
   };
 
   const onDownload = async (d: Doc) => {
@@ -107,6 +123,30 @@ const ClientDetail = () => {
       toast.error(e instanceof Error ? e.message : "Optimization failed");
     } finally {
       setOptimizing(null);
+    }
+  };
+
+  const LARGE_BYTES = 1.5 * 1024 * 1024;
+  const onOptimizeAll = async () => {
+    const targets = docs.filter((d) => (d.size_bytes ?? 0) > LARGE_BYTES);
+    if (targets.length === 0) { toast.info("All documents already optimized"); return; }
+    setOptimizingAll(true);
+    let totalSaved = 0;
+    let processed = 0;
+    try {
+      for (const d of targets) {
+        try {
+          const { data } = await supabase.functions.invoke("process-large-file", {
+            body: { document_id: d.id },
+          });
+          totalSaved += (data?.saved as number) ?? 0;
+          processed += 1;
+        } catch { /* continue with next */ }
+      }
+      toast.success(`Optimized ${processed}/${targets.length} · saved ${(totalSaved / 1024).toFixed(0)} KB total`);
+      load();
+    } finally {
+      setOptimizingAll(false);
     }
   };
 
@@ -293,8 +333,20 @@ const ClientDetail = () => {
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
             <div className="px-6 py-4 border-b">
-              <div className="font-semibold">All uploaded documents</div>
-              <div className="text-xs text-muted-foreground">{docs.length} file{docs.length===1?"":"s"} · auto-renamed and PDF-converted</div>
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-semibold">All uploaded documents</div>
+                  <div className="text-xs text-muted-foreground">
+                    {docs.length} file{docs.length===1?"":"s"} · auto-renamed, PDF-converted & compressed for IRCC (≤ 4 MB)
+                  </div>
+                </div>
+                {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
+                  <Button variant="outline" size="sm" onClick={onOptimizeAll} disabled={optimizingAll}>
+                    {optimizingAll ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Sparkles className="size-3.5 mr-1.5" />}
+                    Re-optimize all
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="divide-y">
               {docs.length === 0 && (
@@ -305,8 +357,18 @@ const ClientDetail = () => {
                   <FileText className="size-4 text-primary shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">{d.file_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {d.custom_type ?? d.document_type} · {d.size_bytes ? `${(d.size_bytes/1024).toFixed(0)} KB` : ""}
+                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                      <span>{d.custom_type ?? d.document_type}</span>
+                      {d.size_bytes ? <span>· {(d.size_bytes/1024).toFixed(0)} KB</span> : null}
+                      {(d.size_bytes ?? 0) <= LARGE_BYTES ? (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-success/10 text-success text-[10px] font-semibold uppercase tracking-wide">
+                          <ShieldCheck className="size-3" /> IRCC ✓
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-semibold uppercase tracking-wide">
+                          Optimize
+                        </span>
+                      )}
                     </div>
                   </div>
                   <Button size="icon" variant="ghost" className="size-7" onClick={() => onView(d)}><Eye className="size-3.5" /></Button>
@@ -315,7 +377,7 @@ const ClientDetail = () => {
                     onClick={() => setShareTarget({ type: "document", id: d.id, label: d.file_name })}>
                     <Link2 className="size-3.5" />
                   </Button>
-                  {(d.size_bytes ?? 0) > 1.5 * 1024 * 1024 && (
+                  {(d.size_bytes ?? 0) > LARGE_BYTES && (
                     <Button size="icon" variant="ghost" className="size-7" title="Optimize on server"
                       onClick={() => onOptimize(d)} disabled={optimizing === d.id}>
                       {optimizing === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
