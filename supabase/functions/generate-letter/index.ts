@@ -165,6 +165,9 @@ ${logoPng && logoPng.byteLength > 0 ? '<Relationship Id="rId10" Type="http://sch
   word.file("styles.xml", stylesXml);
   word.file("numbering.xml", numberingXml);
   word.folder("_rels")!.file("document.xml.rels", documentRels);
+  if (logoPng && logoPng.byteLength > 0) {
+    word.folder("media")!.file("firm-logo.png", logoPng);
+  }
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }
 
