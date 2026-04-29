@@ -32,6 +32,25 @@ export async function extractFirstPageText(file: File, maxChars = 2000): Promise
   }
 }
 
+export async function renderFirstPdfPageToJpegDataUrl(file: File, dpi = 140, quality = 0.78): Promise<string> {
+  try {
+    const pdfjs = await getPdfjs();
+    const buf = await file.arrayBuffer();
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: dpi / 72 });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+    await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return "";
+  }
+}
+
 export async function rasterizePdfToJpegs(file: File, dpi = 150, quality = 0.75): Promise<Blob[]> {
   const pdfjs = await getPdfjs();
   const buf = await file.arrayBuffer();
