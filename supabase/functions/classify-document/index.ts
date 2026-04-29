@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     if (!apiKey) return json({ type: "Other", confidence: 0, reason: "no_api_key" });
 
     const sys =
-      "You classify uploaded immigration / study-abroad documents into one of the provided category labels. Respond ONLY with strict JSON: {\"type\":<one of allowed>,\"confidence\":0..1,\"suggested_label\":<string or null>,\"reason\":<short>}. If unsure, use \"Other\" with low confidence.";
+      "You classify uploaded immigration / study-abroad documents AND extract the person whose document it is. Respond ONLY with strict JSON: {\"type\":<one of allowed>,\"confidence\":0..1,\"suggested_label\":<string or null>,\"owner_name\":<full name found on the document or null>,\"owner_confidence\":0..1,\"reason\":<short>}. owner_name should be the human individual the document is about (passport holder, transcript student, account holder, applicant). Return null if no person name is clearly visible. If unsure about type, use \"Other\" with low confidence.";
 
     const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename}\nIs image: ${isImage}\nFirst-page text (may be empty for scans):\n"""${snippet}"""\n\nReturn only JSON.`;
 
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     }
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content ?? "{}";
-    let parsed: { type?: string; confidence?: number; suggested_label?: string | null; reason?: string } = {};
+    let parsed: { type?: string; confidence?: number; suggested_label?: string | null; owner_name?: string | null; owner_confidence?: number; reason?: string } = {};
     try { parsed = JSON.parse(content); } catch { /* keep empty */ }
     const type = parsed.type && allowed.includes(parsed.type) ? parsed.type : "Other";
     const confidence = typeof parsed.confidence === "number" ? parsed.confidence : 0.4;
@@ -60,6 +60,8 @@ Deno.serve(async (req) => {
       type,
       confidence,
       suggested_label: parsed.suggested_label ?? null,
+      owner_name: typeof parsed.owner_name === "string" && parsed.owner_name.trim() ? parsed.owner_name.trim() : null,
+      owner_confidence: typeof parsed.owner_confidence === "number" ? parsed.owner_confidence : 0,
       reason: parsed.reason ?? null,
     });
   } catch (e) {
