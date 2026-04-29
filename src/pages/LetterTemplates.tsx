@@ -31,6 +31,8 @@ const LetterTemplatesPage = () => {
   const [rows, setRows] = useState<TemplateRow[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [editingStyle, setEditingStyle] = useState<Record<string, string>>({});
+  const COUNTRIES = useMasterLabels("countries");
+  const APPLICATION_TYPES = useMasterLabels("application_types");
   // pending "Add variant" pickers per kind
   const [pendingScope, setPendingScope] = useState<Record<LetterKind, { country: string; category: string }>>({
     cover: { country: "", category: "" },
