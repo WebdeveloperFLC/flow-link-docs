@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { UploadCloud, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
-import { DOCUMENT_TYPES, buildDocumentName, sanitizeName } from "@/lib/constants";
+import { buildDocumentName, sanitizeName } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
   const [drag, setDrag] = useState(false);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [busy, setBusy] = useState(false);
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   const effectiveType = docType === "Other" ? customType.trim() : docType;
 
