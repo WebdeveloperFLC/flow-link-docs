@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -27,6 +27,8 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   const [appType, setAppType] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("");
   const [templates, setTemplates] = useState<Template[]>([]);
+  const COUNTRIES = useMasterLabels("countries");
+  const APPLICATION_TYPES = useMasterLabels("application_types");
 
   useEffect(() => {
     if (!open) return;

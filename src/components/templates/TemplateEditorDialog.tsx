@@ -24,6 +24,9 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [pickType, setPickType] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const COUNTRIES = useMasterLabels("countries");
+  const APPLICATION_TYPES = useMasterLabels("application_types");
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   useEffect(() => {
     if (open) {

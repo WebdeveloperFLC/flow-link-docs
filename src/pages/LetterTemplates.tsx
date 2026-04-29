@@ -12,7 +12,7 @@ import { Upload, FileText, Loader2, Check, Trash2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { LETTER_KINDS, type LetterKind } from "@/lib/letterKinds";
 import { logActivity } from "@/lib/activity";
-import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 
 interface TemplateRow {
   id: string;
