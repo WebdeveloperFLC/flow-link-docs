@@ -16,35 +16,73 @@ interface Props {
   onAdded: () => void;
 }
 
+const RELATIONSHIP_PRESETS = [
+  "Spouse",
+  "Son",
+  "Daughter",
+  "Father",
+  "Mother",
+  "Brother",
+  "Sister",
+  "Partner",
+  "Guardian",
+] as const;
+const OTHER = "__other__";
+
+const defaultRelForRole = (role: PersonRole) =>
+  role === "co_applicant" ? "Spouse" : role === "dependant" ? "Son" : "";
+
 export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props) => {
-  const [fullName, setFullName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<PersonRole>("co_applicant");
-  const [relationship, setRelationship] = useState("");
+  const [relationshipPreset, setRelationshipPreset] = useState<string>("Spouse");
+  const [relationshipOther, setRelationshipOther] = useState("");
   const [dob, setDob] = useState("");
   const [passport, setPassport] = useState("");
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setFullName(""); setRole("co_applicant"); setRelationship(""); setDob(""); setPassport("");
+    setFirstName(""); setLastName("");
+    setRole("co_applicant");
+    setRelationshipPreset("Spouse"); setRelationshipOther("");
+    setDob(""); setPassport("");
+  };
+
+  const onRoleChange = (v: PersonRole) => {
+    setRole(v);
+    // Auto-suggest relationship default when role changes (only if user hasn't typed a custom one)
+    if (relationshipPreset !== OTHER) {
+      setRelationshipPreset(defaultRelForRole(v) || "Spouse");
+    }
   };
 
   const onSave = async () => {
-    if (!fullName.trim()) { toast.error("Full name is required"); return; }
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    if (!fn || !ln) { toast.error("First and last name are required"); return; }
+    const fullName = `${fn} ${ln}`.trim();
+    const relationship =
+      relationshipPreset === OTHER ? relationshipOther.trim() : relationshipPreset;
+    if (relationshipPreset === OTHER && !relationship) {
+      toast.error("Please specify the relationship");
+      return;
+    }
     setSaving(true);
     try {
       const { data, error } = await supabase.from("case_people").insert({
         client_id: clientId,
         role,
-        full_name: fullName.trim(),
-        relationship: relationship.trim() || null,
+        full_name: fullName,
+        relationship: relationship || null,
         date_of_birth: dob || null,
         passport_number: passport.trim() || null,
       }).select().single();
       if (error) throw error;
       await logActivity("case.person_added", "client", clientId, {
-        person_id: data.id, role, full_name: fullName.trim(),
+        person_id: data.id, role, full_name: fullName,
       });
-      toast.success(`Added ${fullName.trim()}`);
+      toast.success(`Added ${fullName}`);
       reset();
       onAdded();
       onOpenChange(false);
@@ -62,14 +100,20 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
           <DialogTitle>Add person to this case</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Full name *</Label>
-            <Input autoFocus value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="e.g. Anjali Sharma" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>First name *</Label>
+              <Input autoFocus value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Anjali" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Last name *</Label>
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Sharma" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Role</Label>
-              <Select value={role} onValueChange={(v) => setRole(v as PersonRole)}>
+              <Select value={role} onValueChange={(v) => onRoleChange(v as PersonRole)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="co_applicant">Co-applicant</SelectItem>
@@ -79,9 +123,27 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
             </div>
             <div className="space-y-1.5">
               <Label>Relationship</Label>
-              <Input value={relationship} onChange={(e) => setRelationship(e.target.value)} placeholder="spouse, son, daughter…" />
+              <Select value={relationshipPreset} onValueChange={setRelationshipPreset}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {RELATIONSHIP_PRESETS.map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                  <SelectItem value={OTHER}>Other…</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
+          {relationshipPreset === OTHER && (
+            <div className="space-y-1.5">
+              <Label>Specify relationship *</Label>
+              <Input
+                value={relationshipOther}
+                onChange={(e) => setRelationshipOther(e.target.value)}
+                placeholder="e.g. Father-in-law"
+              />
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Date of birth</Label>

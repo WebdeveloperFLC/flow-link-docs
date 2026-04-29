@@ -493,6 +493,51 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_settings: {
+        Row: {
+          auto_on_open: boolean
+          config: Json
+          created_at: string
+          enabled: boolean
+          id: string
+          interval_minutes: number
+          key: string
+          last_sync_at: string | null
+          last_sync_message: string | null
+          last_sync_status: string | null
+          mode: string
+          updated_at: string
+        }
+        Insert: {
+          auto_on_open?: boolean
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_minutes?: number
+          key: string
+          last_sync_at?: string | null
+          last_sync_message?: string | null
+          last_sync_status?: string | null
+          mode?: string
+          updated_at?: string
+        }
+        Update: {
+          auto_on_open?: boolean
+          config?: Json
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interval_minutes?: number
+          key?: string
+          last_sync_at?: string | null
+          last_sync_message?: string | null
+          last_sync_status?: string | null
+          mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       letter_templates: {
         Row: {
           created_at: string
