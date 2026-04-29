@@ -497,9 +497,12 @@ export const SmartUploadZone = ({
                     <div className="flex items-start gap-1.5 text-amber-900">
                       <UserX className="size-3.5 mt-0.5 shrink-0" />
                       <div className="text-[11px] leading-snug">
-                        This document looks like it belongs to{" "}
-                        <span className="font-semibold">{it.ownerName}</span>, not{" "}
-                        <span className="font-semibold">{client.full_name}</span>.
+                        <span className="font-semibold">"{it.ownerName}"</span> isn't on this case.{" "}
+                        People on file:{" "}
+                        <span className="font-semibold">
+                          {people.map((p) => p.full_name).join(", ") || client.full_name}
+                        </span>
+                        . Reassign to another case, skip, or upload anyway.
                       </div>
                     </div>
                     {reassignFor === i ? (
