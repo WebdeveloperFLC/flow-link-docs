@@ -1,75 +1,130 @@
-## Your three concerns, addressed
+## Goals
 
-### 1. "Documents uploaded under Krishaa are actually for Manav — how will the system detect this?"
-
-Right now, every file dropped on a client page is **silently attached to that client**. The classifier only detects the *document type* (Passport, IELTS, etc.), not *whose* document it is. We'll add a name-aware safety net.
-
-**What we'll build:**
-- During classification, the AI/edge function already extracts first-page text. We'll also ask it to extract any **person name** found on the document (passport name, transcript holder, bank account holder, etc.).
-- Before saving, compare the extracted name to the current client's `full_name` using a fuzzy match (normalize case/spaces, token overlap, Levenshtein on first+last name).
-- If the names **don't match**, the upload row turns amber with a warning: *"This document looks like it belongs to **Manav Yogesh Patel**, not Krishaa Ramrakhiani."* and offers three actions:
-  - **Reassign** — searches existing clients and moves the upload to the matching one.
-  - **Upload anyway** — proceeds (e.g. spouse/parent docs) and tags the doc with `owner_name_detected` for the audit log.
-  - **Skip** — discards the file from the queue.
-- All decisions are written to `activity_logs` so admins can audit.
-
-### 2. "View document doesn't open, but Download works"
-
-The current `onView` opens the Supabase signed URL in a new tab. Browsers often **download instead of preview** PDFs served from a cross-origin storage host, especially when `Content-Disposition` is `attachment`.
-
-**Fix:** Replace `onView` with a blob-based viewer:
-- Download the file as a Blob via the Supabase SDK.
-- Create an object URL with the correct `application/pdf` MIME type.
-- Open it via `window.open(blobUrl, "_blank")` so the browser's native PDF viewer renders it inline.
-- Revoke the URL after a delay.
-
-For images we'll do the same; for unknown types we fall back to download.
-
-### 3. "Do I need to click each document to optimize, or is it automatic?"
-
-**It is already automatic** — every file goes through `processToPdf` on upload, which:
-- Converts images → PDF
-- Compresses progressively (quality 0.88 → 0.55 for images; 150→110 DPI rasterization for PDFs)
-- Targets **≤ 3.8 MB** (under IRCC's 4 MB cap)
-
-The little ✨ "Optimize" button you see only appears for files **already in storage that are still > 1.5 MB** (e.g. uploaded before the new pipeline). It's a manual re-run for legacy files — not something you need to click for new uploads.
-
-**What we'll improve so this is clear:**
-- Show a small "**Auto-optimized · 1.2 MB · IRCC ✓**" badge under each new upload.
-- Add a **"Re-optimize all"** button on the client page that batches the edge function across every doc > 1.5 MB.
-- Hide the per-file ✨ icon when size is already compliant.
+1. **"Add more" documents** on every client and on every template category — pick from a dropdown of standard document types (e.g. *Divorce Certificate*) without making them required.
+2. **Auto-extract data** from each uploaded document, map it to client/CRM fields, and save it to the database.
+3. **Optional Odoo CRM sync** so extracted client data flows into Odoo automatically.
+4. Test the full flow before declaring done.
 
 ---
 
-## Technical details
+## 1. "Add more documents" — UX
 
-**New / modified files**
-- `supabase/functions/classify-document/index.ts` — also return `owner_name` from first-page text via Gemini.
-- `src/lib/classifyDocument.ts` — extend return type with `ownerName` and a `nameMatch` helper (normalize + token Jaccard + Levenshtein on first/last name).
-- `src/components/documents/SmartUploadZone.tsx` — new "name mismatch" state per queue item with Reassign / Upload anyway / Skip; reassignment uses a debounced search against `clients.full_name`.
-- `src/pages/ClientDetail.tsx`
-  - Replace `onView` with blob-URL inline viewer.
-  - Add "Re-optimize all" button (loops over docs > 1.5 MB → `process-large-file`).
-  - Show compliance badge on each doc row.
-- `src/lib/activity.ts` — log `document.owner_mismatch_warned`, `document.reassigned`, `document.uploaded_with_override`.
+**On the client page (`ClientDetail.tsx`):**
+- New **"+ Add document type"** button above the checklist. Opens a small dialog with:
+  - Searchable dropdown of `DOCUMENT_TYPES` (plus a few extras we'll add: *Divorce Certificate, Marriage Certificate, Police Clearance, Affidavit of Support, Sponsorship Letter, Property Documents, Employment Letter, Experience Letter, No Objection Certificate*).
+  - "Required for this client" toggle (default off → "Optional").
+  - Optional notes field.
+- The added items are stored on the **client** (new column `extra_items jsonb` on `clients`) so they show up in the checklist alongside the template items but don't mutate the shared template.
+- Each extra item supports the same upload / view / delete actions as template items, and is included in binders.
 
-**No DB schema changes needed.** Owner detection is a runtime check; we only store the result in `activity_logs.details`.
+**In the template editor (`TemplateEditorDialog.tsx`):**
+- The existing "Add document" picker already covers this. We'll add the new document types to the `DOCUMENT_TYPES` constant so they appear everywhere.
 
-**Edge function prompt addition** (Gemini structured JSON):
-```json
-{
-  "type": "Passport",
-  "confidence": 0.93,
-  "owner_name": "Manav Yogesh Patel",
-  "owner_confidence": 0.88
-}
+**Result:** counselors get one shared template per category, plus the freedom to add ad-hoc requirements per client (the divorce certificate scenario).
+
+---
+
+## 2. AI data extraction → CRM fields
+
+**New table `client_profile` (1‑to‑1 with `clients`)** to hold structured CRM data extracted from documents:
 ```
+client_id (pk, fk→clients)
+date_of_birth, gender, nationality, place_of_birth
+passport_number, passport_issue_date, passport_expiry, passport_country
+marital_status, spouse_name
+address_line1, address_city, address_state, address_country, address_postal
+phone_alt, email_alt
+ielts_overall, ielts_listening, ielts_reading, ielts_writing, ielts_speaking, ielts_test_date
+highest_qualification, institution_name, graduation_year, gpa_or_percentage
+employer_name, job_title, annual_income, currency
+bank_name, account_balance, gic_amount, tuition_paid
+emergency_contact_name, emergency_contact_phone
+notes_extracted, last_extracted_at
+```
+All columns nullable. RLS: same pattern as `clients` (read by authenticated, write by counselor/admin).
 
-**Name match thresholds**
-- Exact match (normalized) → ✓
-- Token Jaccard ≥ 0.6 OR Levenshtein ratio ≥ 0.85 on full name → ✓
-- Otherwise → mismatch warning
+**Extraction pipeline:**
+- Extend the existing `classify-document` edge function (or add a sibling `extract-document-data`) so that after classification it also asks Gemini to return a structured JSON of fields relevant to the detected type. We'll use Lovable AI **tool calling** for reliable structured output (one tool schema per document category — passport, IELTS, transcripts, financials, civil status, etc.).
+- Client side, after a successful upload, call `extract-document-data` with the file's first-page text (already extracted via `pdfjs-dist`). For images / scans, send the storage URL to Gemini multimodal so it can OCR.
+- Merge the returned fields into `client_profile` using **field-level rules**:
+  - Empty/null in DB → write extracted value.
+  - Already set + matches → do nothing.
+  - Already set + conflicts → don't overwrite; record the conflict in `activity_logs` and surface a **"Review extracted data"** badge on the client page so the counselor can resolve manually.
+- Every extraction writes an `activity_logs` entry with the source document id and the fields touched (audit trail).
 
-**Out of scope** (call out if needed later)
-- Bulk reassignment of already-uploaded misfiled docs (we'll add a one-time "Move to another client" admin action in a follow-up).
-- OCR for fully scanned PDFs without embedded text — current pipeline relies on `pdfjs-dist` text extraction; if confidence is low we just skip the owner check rather than fail the upload.
+**Field mapping (examples):**
+- Passport → `passport_number, passport_issue_date, passport_expiry, passport_country, date_of_birth, gender, nationality, place_of_birth, full_name (verify only)`.
+- IELTS TRF → `ielts_*`.
+- Academic transcript → `institution_name, highest_qualification, graduation_year, gpa_or_percentage`.
+- Bank statement / GIC → `bank_name, account_balance, gic_amount, currency`.
+- Marriage / divorce certificate → `marital_status, spouse_name`.
+
+**UI:**
+- New **"Profile" card** on `ClientDetail.tsx` showing all extracted fields grouped (Identity, Contact, Education, Finance, Travel). Inline-editable. Each field shows a small "auto-extracted from *Passport_Krishaa.pdf*" hint when filled by AI.
+- "Re-extract from all documents" button to rerun the pipeline on the existing files.
+
+---
+
+## 3. Odoo CRM sync (optional, per-workspace)
+
+**Approach:** push from our backend to Odoo's standard XML-RPC API (`/xmlrpc/2/object`, `res.partner` model). This is the universal Odoo integration path and works for both Odoo Online and self-hosted.
+
+**Settings:** new section in `Settings.tsx` (admin only):
+- Toggle "Enable Odoo sync"
+- Odoo URL, database name, login, API key (stored as Supabase secrets: `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY` — added via `add_secret` after the user confirms).
+- "Test connection" button that calls a new `odoo-sync` edge function with action `ping`.
+
+**Sync edge function `odoo-sync`:**
+- Action `upsert_client`: takes `client_id`, reads `clients` + `client_profile`, maps to `res.partner` fields (`name`, `email`, `phone`, `street`, `city`, `country_id`, plus a few `x_studio_*` custom fields for application_id / country / status / IELTS scores). Creates or updates by external ID (`fovel_client_<uuid>`).
+- Action `ping`: authenticates and returns Odoo version + user id.
+- Triggered automatically (when sync is enabled) after a successful extraction merge, and exposed as a "Sync to Odoo" button per client.
+
+**Failure behavior:** if Odoo is down or credentials invalid, log to `activity_logs` and surface an inline warning — never block the upload flow.
+
+---
+
+## 4. Testing strategy (done before claiming complete)
+
+1. **Edge functions** — deploy `extract-document-data` and `odoo-sync`, then `curl_edge_functions` each:
+   - `extract-document-data` with a sample passport text snippet → verify JSON shape.
+   - `odoo-sync` with `action: "ping"` (using dummy creds first to verify error handling, then real ones once user provides them).
+2. **DB migration** — run in test, verify RLS with `read_query`.
+3. **End-to-end in preview**:
+   - Add a doc type via "Add more" → confirm it appears, isn't required, accepts upload.
+   - Upload a passport → confirm `client_profile` rows populate, audit log written.
+   - Upload a conflicting doc (different DOB) → confirm conflict warning, no overwrite.
+   - Toggle Odoo off → confirm no sync calls. Toggle on with bad creds → confirm graceful error.
+4. **Read console + network logs** to make sure there are no red errors during upload, save template, or add-client (the flows that erroring last time).
+
+---
+
+## Files to change
+
+**Frontend**
+- `src/lib/constants.ts` — extend `DOCUMENT_TYPES`.
+- `src/pages/ClientDetail.tsx` — "+ Add document type" dialog, render extra items in checklist, new Profile card, "Re-extract" button, optional "Sync to Odoo" button.
+- `src/components/clients/AddDocTypeDialog.tsx` (new) — picker dialog.
+- `src/components/clients/ClientProfileCard.tsx` (new) — grouped editable fields with extraction hints.
+- `src/pages/Settings.tsx` — Odoo connection panel + test button.
+- `src/lib/extractedFields.ts` (new) — field merge rules + conflict detection.
+
+**Backend**
+- New migration: `client_profile` table + RLS, `clients.extra_items jsonb` column.
+- New edge function: `supabase/functions/extract-document-data/index.ts` (Lovable AI tool-calling, multimodal for images).
+- New edge function: `supabase/functions/odoo-sync/index.ts` (XML-RPC client; actions `ping` / `upsert_client`).
+- `supabase/config.toml` — register both functions (no `verify_jwt = false`; called by the app with auth).
+- After confirmation, request secrets via `add_secret`: `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY`.
+
+---
+
+## Out of scope (call out if needed later)
+- Pulling data **from** Odoo back into Fovel (one-way push for now).
+- Bulk historical re-extraction across all existing clients (we add a per-client "Re-extract" button; full-tenant batch can come later).
+- Per-field permissioning (everyone with counselor/admin can edit profile fields).
+
+---
+
+## What I need from you before building
+
+1. Do you want me to add the **Odoo secrets** (`ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY`) immediately, or wire the UI first and prompt for secrets only when you click "Enable Odoo sync"? *(Recommendation: wire UI first, prompt on enable — so you can ship/test the rest without Odoo creds handy.)*
+2. Confirm the extra document types I should pre-seed: **Divorce Certificate, Marriage Certificate, Police Clearance, Affidavit of Support, Sponsorship Letter, Property Documents, Employment Letter, Experience Letter, No Objection Certificate**. Add or remove any?

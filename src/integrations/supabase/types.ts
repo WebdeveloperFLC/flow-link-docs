@@ -174,6 +174,144 @@ export type Database = {
           },
         ]
       }
+      client_profile: {
+        Row: {
+          account_balance: number | null
+          address_city: string | null
+          address_country: string | null
+          address_line1: string | null
+          address_postal: string | null
+          address_state: string | null
+          annual_income: number | null
+          bank_name: string | null
+          client_id: string
+          created_at: string
+          currency: string | null
+          date_of_birth: string | null
+          email_alt: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          employer_name: string | null
+          gender: string | null
+          gic_amount: number | null
+          gpa_or_percentage: string | null
+          graduation_year: number | null
+          highest_qualification: string | null
+          ielts_listening: number | null
+          ielts_overall: number | null
+          ielts_reading: number | null
+          ielts_speaking: number | null
+          ielts_test_date: string | null
+          ielts_writing: number | null
+          institution_name: string | null
+          job_title: string | null
+          last_extracted_at: string | null
+          marital_status: string | null
+          nationality: string | null
+          notes_extracted: string | null
+          passport_country: string | null
+          passport_expiry: string | null
+          passport_issue_date: string | null
+          passport_number: string | null
+          phone_alt: string | null
+          place_of_birth: string | null
+          source_documents: Json
+          spouse_name: string | null
+          tuition_paid: number | null
+          updated_at: string
+        }
+        Insert: {
+          account_balance?: number | null
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_postal?: string | null
+          address_state?: string | null
+          annual_income?: number | null
+          bank_name?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string | null
+          date_of_birth?: string | null
+          email_alt?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employer_name?: string | null
+          gender?: string | null
+          gic_amount?: number | null
+          gpa_or_percentage?: string | null
+          graduation_year?: number | null
+          highest_qualification?: string | null
+          ielts_listening?: number | null
+          ielts_overall?: number | null
+          ielts_reading?: number | null
+          ielts_speaking?: number | null
+          ielts_test_date?: string | null
+          ielts_writing?: number | null
+          institution_name?: string | null
+          job_title?: string | null
+          last_extracted_at?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notes_extracted?: string | null
+          passport_country?: string | null
+          passport_expiry?: string | null
+          passport_issue_date?: string | null
+          passport_number?: string | null
+          phone_alt?: string | null
+          place_of_birth?: string | null
+          source_documents?: Json
+          spouse_name?: string | null
+          tuition_paid?: number | null
+          updated_at?: string
+        }
+        Update: {
+          account_balance?: number | null
+          address_city?: string | null
+          address_country?: string | null
+          address_line1?: string | null
+          address_postal?: string | null
+          address_state?: string | null
+          annual_income?: number | null
+          bank_name?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string | null
+          date_of_birth?: string | null
+          email_alt?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          employer_name?: string | null
+          gender?: string | null
+          gic_amount?: number | null
+          gpa_or_percentage?: string | null
+          graduation_year?: number | null
+          highest_qualification?: string | null
+          ielts_listening?: number | null
+          ielts_overall?: number | null
+          ielts_reading?: number | null
+          ielts_speaking?: number | null
+          ielts_test_date?: string | null
+          ielts_writing?: number | null
+          institution_name?: string | null
+          job_title?: string | null
+          last_extracted_at?: string | null
+          marital_status?: string | null
+          nationality?: string | null
+          notes_extracted?: string | null
+          passport_country?: string | null
+          passport_expiry?: string | null
+          passport_issue_date?: string | null
+          passport_number?: string | null
+          phone_alt?: string | null
+          place_of_birth?: string | null
+          source_documents?: Json
+          spouse_name?: string | null
+          tuition_paid?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           application_id: string
@@ -182,6 +320,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string | null
+          extra_items: Json
           full_name: string
           id: string
           notes: string | null
@@ -197,6 +336,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          extra_items?: Json
           full_name: string
           id?: string
           notes?: string | null
@@ -212,6 +352,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          extra_items?: Json
           full_name?: string
           id?: string
           notes?: string | null
