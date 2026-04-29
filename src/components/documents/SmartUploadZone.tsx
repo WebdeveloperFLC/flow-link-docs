@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { UploadCloud, Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2 } from "lucide-react";
 import { DOCUMENT_TYPES, buildDocumentName, sanitizeName } from "@/lib/constants";
 import { processToPdf } from "@/lib/processFile";
 import { classifyDocument } from "@/lib/classifyDocument";
@@ -261,6 +261,3 @@ function StatusIcon({ status }: { status: ItemStatus }) {
 }
 
 export default SmartUploadZone;
-
-// Re-export for parent component to use the icon
-export { UploadCloud, Input };
