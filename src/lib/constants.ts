@@ -27,6 +27,15 @@ export const DOCUMENT_TYPES = [
   "Medical Report",
   "IELTS / Language Test",
   "Photograph",
+  "Marriage Certificate",
+  "Divorce Certificate",
+  "Police Clearance",
+  "Affidavit of Support",
+  "Sponsorship Letter",
+  "Property Documents",
+  "Employment Letter",
+  "Experience Letter",
+  "No Objection Certificate",
   "Other",
 ] as const;
 
