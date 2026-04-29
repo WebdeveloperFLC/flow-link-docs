@@ -1,199 +1,143 @@
 
-# Multi-applicant cases (then Odoo)
+# Plan — Add Person UX polish + Odoo two-way sync
 
-Two changes, in order:
-
-1. **Multi-applicant roster + per-person uploads** (this plan)
-2. **Odoo two-way configurable sync** (already approved — built right after)
+Two things, in order:
 
 ---
 
-## 1. Multi-applicant roster + per-person uploads
+## Part 1 — Add Person dialog UX polish
 
-### Concept
+Small change to `src/components/clients/AddPersonDialog.tsx`. No DB migration needed (we keep storing one `full_name` so nothing else has to change).
 
-Today a "case" = one client = one person. In reality a case often involves multiple people:
+### Changes
 
-- Visitor visa (family): husband (applicant) + wife (co-applicant) + kids (dependants)
-- Study permit + spouse: student (applicant) + spouse (co-applicant on OWP/visitor) + kids
-- PR: principal applicant + spouse co-applicant + dependant children
+1. **Split name into First name + Last name**
+   - Two `Input`s side by side, both required.
+   - On save we combine: `full_name = "${first} ${last}".trim()`.
+   - Keeps DB schema (`case_people.full_name`) untouched, so document matching, file naming, letters, binders all keep working.
 
-We keep **one case** (`clients` row, one `application_id`) and add a **roster of people** under it. Documents, profile fields, and letters become person-aware. The main applicant is always the `clients` row itself — co-applicants and dependants are extra people attached to that case.
+2. **Smart Relationship dropdown** (replaces the free-text input)
+   - Uses our existing `Select` component with these presets:
+     - Spouse
+     - Son
+     - Daughter
+     - Father
+     - Mother
+     - Brother
+     - Sister
+     - Partner
+     - Guardian
+     - Other…
+   - Selecting **Other…** reveals a small free-text input below so users can type any custom relation (e.g. "Father-in-law"). Custom value is saved to `case_people.relationship` as-is.
+   - Default selection auto-fills based on Role:
+     - Role = Co-applicant → defaults to **Spouse**
+     - Role = Dependant → defaults to **Son**
+   - Users can override.
 
-### Roster rules
+3. **Layout**
+   ```text
+   [ First name * ] [ Last name * ]
+   [ Role         ] [ Relationship ▼ ]
+                    [ Other (if selected) ]
+   [ DOB          ] [ Passport #     ]
+   ```
 
-- Every case has exactly **1 Applicant** (the existing `clients` row, role auto-assigned).
-- 0+ **Co-applicants** (spouse, partner, sibling, parent — any adult filing alongside).
-- 0+ **Dependants** (typically children).
-- Each person has: full_name, role, relationship, date_of_birth, passport_number, gender.
-- Roster is editable any time. Removing a person archives (not deletes) their docs.
+4. **Validation**
+   - First and last name both required.
+   - If Relationship = "Other…", custom text is required.
 
-### Upload behaviour (the core change)
-
-```text
-User drops 8 mixed files for a multi-person case
-        ↓
-Classifier detects doc type + owner name on each
-        ↓
-matchPersonName runs against the FULL ROSTER, not just main applicant
-        ↓
-For each file:
-  ├─ High confidence single match  →  chip: "Detected: Wife — Anjali Sharma ✓" (one-click change)
-  ├─ Ambiguous / low score          →  inline "Who is this for?" picker (Applicant / each Co-app / each Dependant / Shared)
-  └─ No name detected               →  same picker, no default — user must confirm
-        ↓
-On multi-person cases we ALWAYS show the person chip (even on confident matches)
-so the user reconfirms before save. Single-person cases: unchanged behaviour.
-        ↓
-File renamed per person, stored under person folder, profile fields routed to that person
-```
-
-**"Shared" owner** is a special pick for documents that legitimately belong to multiple people (joint bank statement, marriage certificate, family photo, IMM 5645 Family Information). Stored once, listed under each linked person.
-
-### File naming
-
-Pattern changes from `{Type}_{Client}_v{n}.pdf` to:
-
-```
-{Type}_{Role}_{PersonName}_v{n}.pdf
-```
-
-Examples:
-- `Passport_Applicant_RahulSharma_v1.pdf`
-- `Passport_CoApplicant_AnjaliSharma_v1.pdf`
-- `BirthCertificate_Dependant_AaravSharma_v1.pdf`
-- `MarriageCertificate_Shared_v1.pdf`
-
-Storage path: `{case_id}/{person_id}/{doctype}/{timestamp}_{filename}` (was `{case_id}/{doctype}/...`). Existing files stay where they are; new uploads use the new path.
-
-### Per-person profile
-
-Profile fields (passport #, DOB, IELTS, etc.) currently live on `client_profile` keyed by `client_id`. They become keyed by `person_id` so the wife's IELTS doesn't overwrite the husband's. A backfill copies every existing `client_profile` row to the new applicant person.
-
-### Visa forms (per-person vs shared)
-
-Workflow templates already define `items`. We add a `scope` flag per item:
-- `per_person` (default for things like Passport, Photo, Police Clearance, IMM 5257)
-- `shared` (Family Info form, marriage cert, joint statement)
-- `applicant_only` (e.g. SOP, LOA for the principal)
-
-Checklist on `ClientDetail` then renders the right rows per person, and "missing" only counts per-person items the people in the roster actually need.
-
-### Letters & binders
-
-Letter generation context gets the full roster. RCIC/cover letters can address all parties. Binders get a roster cover page. Per-person sections in the binder.
-
-### UX additions on `ClientDetail`
-
-- New **"People on this case"** card (top of the page, beside the existing client header).
-  - Shows applicant + co-applicants + dependants with role chips, DOB, passport #.
-  - "Add person" button (modal: name, role, relationship, DOB, passport #).
-  - Inline edit / promote (e.g. dependant turning 22 → co-applicant).
-- Document list groups by person with collapsible sections + "Shared" group at the top.
-- Smart upload zone gets a roster-aware picker (replaces today's single-person mismatch warning).
-- Top of upload zone shows a small reminder when 2+ people on case: *"Multi-person case — confirm who each document belongs to."*
-
-### Edge cases handled
-
-- Adding a co-applicant after some uploads → existing docs stay where they are; can be reassigned later via dropdown on the doc row.
-- Same-name dependants (e.g. Jr.) → picker shows DOB to disambiguate.
-- Single-person case → zero behaviour change. Roster is invisible until "Add person" is clicked.
-- Legacy docs with no `person_id` → automatically attributed to the applicant on first read.
+No other files change for Part 1.
 
 ---
 
-## Database changes (one migration)
+## Part 2 — Odoo two-way configurable sync (CRM Pipeline → clients/case_people)
 
-```sql
--- people on a case
-create type person_role as enum ('applicant', 'co_applicant', 'dependant');
+### Settings page (`/settings/integrations/odoo`)
 
-create table case_people (
-  id uuid primary key default gen_random_uuid(),
-  client_id uuid not null references clients(id) on delete cascade,
-  role person_role not null,
-  full_name text not null,
-  relationship text,           -- "spouse", "son", "daughter", "father", etc.
-  date_of_birth date,
-  passport_number text,
-  gender text,
-  is_archived boolean not null default false,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-create unique index one_applicant_per_case
-  on case_people (client_id) where role = 'applicant' and not is_archived;
-create index case_people_client_idx on case_people (client_id);
+New table `integration_settings` (single row, key = "odoo"):
 
--- documents now know the person
-alter table client_documents
-  add column person_id uuid references case_people(id),
-  add column is_shared boolean not null default false;
-create index client_documents_person_idx on client_documents (person_id);
+| field | purpose |
+|---|---|
+| `enabled` (bool) | master on/off |
+| `mode` (text) | `off` \| `pull` \| `push` \| `two_way` |
+| `auto_on_open` (bool) | trigger sync when a client is opened |
+| `interval_minutes` (int) | background pull cadence (0 = disabled) |
+| `last_sync_at` (timestamptz) | display only |
+| `last_sync_status` (text) | `ok` \| `error` + message |
 
--- profile becomes per-person (rename + repoint)
-alter table client_profile add column person_id uuid references case_people(id);
-create unique index client_profile_person_uniq on client_profile (person_id) where person_id is not null;
+UI on the page:
+- Toggle: Enable Odoo
+- Radio: Off / Pull only / Push only / Two-way
+- Toggle: Auto-sync when opening a client
+- Number: Background interval (minutes)
+- Buttons: **Test connection**, **Sync now**
+- Status block: last sync time + result
 
--- workflow item scope
--- (no schema change — items is jsonb; we add `scope` field in JSON, default 'per_person')
-```
+Admin-only (RLS via `has_role(...,'admin')`). Settings persist until the admin changes them — exactly what you asked for ("automated until we change the settings").
 
-**Backfill** (data migration, runs after schema):
-```sql
--- 1. create an applicant person for every existing client
-insert into case_people (client_id, role, full_name)
-  select id, 'applicant', full_name from clients;
+### Secrets
 
--- 2. point existing documents at it
-update client_documents d
-   set person_id = p.id
-  from case_people p
- where p.client_id = d.client_id and p.role = 'applicant' and d.person_id is null;
+Already provided, will be saved as Lovable Cloud secrets:
+- `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY`
 
--- 3. point existing profile rows at it
-update client_profile cp
-   set person_id = p.id
-  from case_people p
- where p.client_id = cp.client_id and p.role = 'applicant' and cp.person_id is null;
-```
+### Edge functions
 
-**RLS**: `case_people` follows the same pattern as `clients` (read = authenticated; insert/update = admin + counselor; delete = admin).
+1. `odoo-test` — authenticate via XML-RPC (`/xmlrpc/2/common`) and return user id + version.
+2. `odoo-sync` — main worker. Reads `integration_settings`, then based on `mode`:
+   - **pull / two_way**: pulls `crm.lead` records (and linked `res.partner` for family) modified since `last_sync_at`. Upserts into `clients` (matched by `application_id` ⇄ Odoo `x_application_id` if present, else by email). Family members map into `case_people` (spouse/children → co_applicant/dependant).
+   - **push / two_way**: pushes recently-updated `clients` + `case_people` back to Odoo (`crm.lead.write` / `res.partner.create|write`).
+   - **two_way**: runs both, last-write-wins by `updated_at`.
+3. `odoo-cron` — invoked by `pg_cron` every N minutes; calls `odoo-sync` if enabled and `interval_minutes > 0`.
 
----
+### Field mapping (initial)
 
-## Code changes
+| App | Odoo `crm.lead` |
+|---|---|
+| `clients.full_name` | `partner_name` / `contact_name` |
+| `clients.email` | `email_from` |
+| `clients.phone` | `phone` |
+| `clients.country` | `country_id.name` |
+| `clients.application_type` | `x_application_type` (custom field, fallback `tag_ids`) |
+| `clients.status` | `stage_id.name` |
+| `clients.application_id` | `x_application_id` (custom, optional) |
+| `case_people.*` | linked `res.partner` children with relationship tag |
 
-**New files**
-- `src/components/clients/CasePeopleCard.tsx` — roster UI on ClientDetail
-- `src/components/clients/AddPersonDialog.tsx` — add/edit person modal
-- `src/lib/casePeople.ts` — fetch/upsert helpers + role labels
-- `src/lib/matchPersonRoster.ts` — extends `matchPersonName` to take an array, returns best match + score + alternatives
+Unknown custom fields are skipped gracefully so it works even if `x_application_id` isn't on the Odoo side yet.
 
-**Modified**
-- `src/lib/constants.ts` — `buildDocumentName` accepts optional `person` + `role`
-- `src/lib/classifyDocument.ts` — `matchPersonName` kept for back-compat; new `matchPersonRoster` exported
-- `src/lib/extractedFields.ts` — `mergeExtractedFields` keyed by `person_id` (back-compat: falls back to applicant if not provided)
-- `src/components/documents/SmartUploadZone.tsx` — accepts `people` prop, replaces single-person mismatch UI with roster picker, always shows confirmation chip on multi-person cases
-- `src/pages/ClientDetail.tsx` — loads roster, mounts `CasePeopleCard`, groups docs by person, passes `people` to `SmartUploadZone`
-- `src/components/clients/ClientProfileCard.tsx` — accepts `personId`, shows per-person fields with a person tab strip when multiple people
-- `src/lib/binder.ts` — roster cover page + per-person sections
-- `supabase/functions/generate-letter/index.ts` — roster in prompt context
-- `src/pages/Templates.tsx` + workflow item type — add optional `scope` field on items
+### Auto-on-open trigger
 
-**Out of scope for this plan (do later)**
-- Cross-case people (same person appearing on two cases) — for now each case has its own roster
-- Importing roster from Odoo (covered by the Odoo plan below)
+`ClientDetail.tsx` calls `odoo-sync` (single client mode) on mount when `integration_settings.auto_on_open` is true and `enabled` is true. Non-blocking — page renders immediately, sync result toasts in.
+
+### Activity logging
+
+Every sync (manual, on-open, cron) writes to `activity_logs` with `entity_type='integration'`, `action='odoo.sync'`, and a details JSON containing direction, counts, errors.
 
 ---
 
-## 2. Odoo two-way configurable sync (queued)
+## Files
 
-Already approved — exact plan as before:
+**Part 1 (UX polish)**
+- edit `src/components/clients/AddPersonDialog.tsx`
 
-- `odoo_settings.mode` = `off` / `pull` / `push` / `two_way`
-- 15-min cron + on-open auto-pull + on-save auto-push, all gated by `mode`
-- Field discovery + mapping UI, secrets reused
-- Roster sync: when pulling a `crm.lead`, related contacts (`partner_id`, `partner_name`, family-line custom fields) become co-applicants/dependants in our `case_people` table
+**Part 2 (Odoo)**
+- migration: create `integration_settings` table + admin RLS + seed row `{key:'odoo', mode:'two_way', enabled:false}`
+- new `src/pages/settings/OdooIntegration.tsx`
+- new `src/lib/odoo.ts` (client-side helpers: load/save settings, trigger sync)
+- new `supabase/functions/odoo-test/index.ts`
+- new `supabase/functions/odoo-sync/index.ts`
+- new `supabase/functions/odoo-cron/index.ts` (+ pg_cron schedule in same migration)
+- edit `src/pages/ClientDetail.tsx` (auto-on-open hook)
+- edit sidebar/nav to expose Settings → Integrations → Odoo
+- secrets: `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY` (already supplied)
 
-I'll start on multi-applicant immediately after approval, ship it, then move to Odoo.
+---
+
+## Order of execution
+
+1. Ship Part 1 (5-min change, you'll see it immediately on the Add Person dialog).
+2. Run the Odoo migration + create settings page.
+3. Deploy `odoo-test`, wire **Test connection** so you can verify creds before any sync runs.
+4. Deploy `odoo-sync`, wire **Sync now** + auto-on-open.
+5. Deploy `odoo-cron` and enable the schedule.
+
+Reply **approve** and I'll build it in this order.
