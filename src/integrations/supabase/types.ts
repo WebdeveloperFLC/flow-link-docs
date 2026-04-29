@@ -514,6 +514,93 @@ export type Database = {
           },
         ]
       }
+      document_fingerprints: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          document_id: string
+          id: string
+          page_count: number | null
+          phash: string | null
+          sha256: string | null
+          size_bytes: number | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          document_id: string
+          id?: string
+          page_count?: number | null
+          phash?: string | null
+          sha256?: string | null
+          size_bytes?: number | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          document_id?: string
+          id?: string
+          page_count?: number | null
+          phash?: string | null
+          sha256?: string | null
+          size_bytes?: number | null
+        }
+        Relationships: []
+      }
+      document_verifications: {
+        Row: {
+          ai_summary: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          doc_type: string | null
+          document_id: string
+          id: string
+          reviewed_at: string | null
+          reviewer_id: string | null
+          reviewer_note: string | null
+          reviewer_status: string | null
+          risk_level: string
+          risk_score: number
+          signals: Json
+          updated_at: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string | null
+          document_id: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_note?: string | null
+          reviewer_status?: string | null
+          risk_level?: string
+          risk_score?: number
+          signals?: Json
+          updated_at?: string
+        }
+        Update: {
+          ai_summary?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string | null
+          document_id?: string
+          id?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          reviewer_note?: string | null
+          reviewer_status?: string | null
+          risk_level?: string
+          risk_score?: number
+          signals?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       firm_profile: {
         Row: {
           created_at: string
