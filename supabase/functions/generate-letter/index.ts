@@ -270,7 +270,19 @@ Deno.serve(async (req) => {
     const md = await callAI(SYSTEM_FOR[kind], userPrompt);
     if (!md.trim()) return json({ error: "AI returned empty content" }, 500);
 
-    const docxBytes = await buildDocx(`${TITLES[kind]} - ${client.full_name}`, md);
+    // For RCIC letters, embed the firm logo as an inline letterhead at the top
+    let logoBytes: Uint8Array | undefined;
+    if (kind === "rcic" && firm?.logo_path) {
+      try {
+        const { data: logoBlob } = await admin.storage.from("branding").download(firm.logo_path);
+        if (logoBlob) {
+          const ab = await logoBlob.arrayBuffer();
+          logoBytes = new Uint8Array(ab);
+        }
+      } catch (_e) { /* logo optional */ }
+    }
+
+    const docxBytes = await buildDocx(`${TITLES[kind]} - ${client.full_name}`, md, logoBytes);
 
     // Save to client-documents bucket under letters/
     const cleanName = String(client.full_name).replace(/[^a-zA-Z0-9]/g, "");
