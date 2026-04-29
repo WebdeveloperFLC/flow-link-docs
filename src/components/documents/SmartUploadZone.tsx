@@ -90,7 +90,11 @@ export const SmartUploadZone = ({
     async (idx: number, item: QueueItem) => {
       try {
         patch(idx, { status: "identifying" });
-        const c = await classifyDocument(item.file, templateTypes);
+        const c = await classifyDocument(
+          item.file,
+          templateTypes,
+          people.map((p) => p.full_name),
+        );
         const match = matchPersonRoster(c.ownerName ?? null, people);
 
         const baseUpdate: Partial<QueueItem> = {
@@ -104,19 +108,26 @@ export const SmartUploadZone = ({
           alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
         };
 
-        // Single-person case → always applicant
+        // HARD BLOCK: AI confidently read a person name, but nobody on the
+        // roster is a credible match → document doesn't belong to this case.
+        const detectedName = c.ownerName?.trim() ?? "";
+        const ownerConf = c.ownerConfidence ?? 0;
+        const noRosterMatch =
+          !!detectedName && ownerConf >= 0.5 && !match.best && match.score < 0.6;
+
+        if (noRosterMatch) {
+          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null });
+          await logActivity("document.owner_not_on_case", "client", client.id, {
+            file_name: item.file.name,
+            detected_owner: detectedName,
+            case_people: people.map((p) => p.full_name),
+            score: match.score,
+          });
+          return null;
+        }
+
+        // Single-person case (no mismatch) → always applicant
         if (!isMulti) {
-          if (applicant && c.ownerName && (c.ownerConfidence ?? 0) >= 0.5) {
-            // Legacy mismatch UX: detected someone else for a solo case
-            const m = match.best;
-            if (!m && match.score < 0.6) {
-              patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: applicant.id });
-              await logActivity("document.owner_mismatch_warned", "client", client.id, {
-                file_name: item.file.name, detected_owner: c.ownerName, expected_client: client.full_name, score: match.score,
-              });
-              return null;
-            }
-          }
           patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
           return { classification: c, ownerId: applicant?.id ?? null };
         }
