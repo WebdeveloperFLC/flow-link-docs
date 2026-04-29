@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     }
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content ?? "{}";
-    let parsed: { type?: string; confidence?: number; suggested_label?: string | null; owner_name?: string | null; owner_confidence?: number; reason?: string } = {};
+    let parsed: { type?: string; confidence?: number; suggested_label?: string | null; owner_name?: string | null; owner_confidence?: number; owner_evidence?: string | null; owner_source?: string | null; reason?: string } = {};
     try { parsed = JSON.parse(content); } catch { /* keep empty */ }
     const type = parsed.type && allowed.includes(parsed.type) ? parsed.type : "Other";
     const confidence = typeof parsed.confidence === "number" ? parsed.confidence : 0.4;
@@ -78,6 +78,8 @@ Deno.serve(async (req) => {
       suggested_label: parsed.suggested_label ?? null,
       owner_name: typeof parsed.owner_name === "string" && parsed.owner_name.trim() ? parsed.owner_name.trim() : null,
       owner_confidence: typeof parsed.owner_confidence === "number" ? parsed.owner_confidence : 0,
+      owner_evidence: typeof parsed.owner_evidence === "string" && parsed.owner_evidence.trim() ? parsed.owner_evidence.trim().slice(0, 300) : null,
+      owner_source: parsed.owner_source === "document_text" || parsed.owner_source === "document_image" ? parsed.owner_source : null,
       reason: parsed.reason ?? null,
     });
   } catch (e) {
