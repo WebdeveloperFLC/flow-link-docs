@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { DOCUMENT_TYPES } from "@/lib/constants";
-import { extractFirstPageText } from "@/lib/extractFirstPageText";
+import { extractFirstPageText, renderFirstPdfPageToJpegDataUrl } from "@/lib/extractFirstPageText";
 
 export interface Classification {
   type: string;       // one of DOCUMENT_TYPES, or "Other"
@@ -9,6 +9,8 @@ export interface Classification {
   source: "filename" | "ai" | "fallback";
   ownerName?: string | null;
   ownerConfidence?: number;
+  ownerEvidence?: string | null;
+  ownerSource?: "document_text" | "document_image" | null;
 }
 
 const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
@@ -32,6 +34,31 @@ export function classifyByFilename(name: string): Classification | null {
     if (h.rx.test(name)) return { type: h.type, confidence: h.conf, source: "filename" };
   }
   return null;
+}
+
+async function imageFileToJpegDataUrl(file: File, maxSide = 1800, quality = 0.82): Promise<string> {
+  try {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.decoding = "async";
+    const loaded = new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error("image_load_failed"));
+    });
+    img.src = url;
+    await loaded;
+    URL.revokeObjectURL(url);
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL("image/jpeg", quality);
+  } catch {
+    return "";
+  }
 }
 
 export async function classifyDocument(
