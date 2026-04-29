@@ -96,8 +96,15 @@ function markdownToParagraphs(md: string): string[] {
   return paras;
 }
 
-function buildDocx(title: string, markdown: string): Promise<Uint8Array> {
-  const body = markdownToParagraphs(markdown).join("");
+function buildDocx(title: string, markdown: string, logoPng?: Uint8Array): Promise<Uint8Array> {
+  const paragraphs = markdownToParagraphs(markdown);
+  let logoParagraph = "";
+  if (logoPng && logoPng.byteLength > 0) {
+    const cx = 2286000; // 2.5"
+    const cy = 685800;  // ~0.75"
+    logoParagraph = `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="FirmLogo"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="1" name="FirmLogo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId10"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p><w:p/>`;
+  }
+  const body = logoParagraph + paragraphs.join("");
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
