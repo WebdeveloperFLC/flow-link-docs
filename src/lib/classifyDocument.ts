@@ -7,6 +7,8 @@ export interface Classification {
   customType?: string; // when type === "Other"
   confidence: number; // 0..1
   source: "filename" | "ai" | "fallback";
+  ownerName?: string | null;
+  ownerConfidence?: number;
 }
 
 const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
@@ -61,8 +63,85 @@ export async function classifyDocument(file: File, candidateTypes?: string[]): P
       customType: type === "Other" ? (data?.suggested_label as string | undefined) : undefined,
       confidence,
       source: "ai",
+      ownerName: (data?.owner_name as string | null) ?? null,
+      ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
     };
   } catch {
     return fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
   }
+}
+
+// ---- Name matching helpers --------------------------------------------------
+
+function normalizeName(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // strip diacritics
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tokens(s: string): string[] {
+  return normalizeName(s).split(" ").filter((t) => t.length >= 2);
+}
+
+function levenshtein(a: string, b: string): number {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const v0 = new Array(b.length + 1).fill(0).map((_, i) => i);
+  const v1 = new Array(b.length + 1).fill(0);
+  for (let i = 0; i < a.length; i++) {
+    v1[0] = i + 1;
+    for (let j = 0; j < b.length; j++) {
+      const cost = a[i] === b[j] ? 0 : 1;
+      v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+    }
+    for (let j = 0; j <= b.length; j++) v0[j] = v1[j];
+  }
+  return v1[b.length];
+}
+
+export interface NameMatchResult {
+  match: boolean;
+  score: number;       // 0..1 (1 = perfect)
+  reason: string;
+}
+
+/**
+ * Compare a name extracted from a document with the expected client name.
+ * Returns match=true if names look like the same person.
+ */
+export function matchPersonName(detected: string | null | undefined, expected: string): NameMatchResult {
+  if (!detected || !detected.trim()) {
+    return { match: true, score: 0, reason: "no_name_detected" }; // don't block when we couldn't read a name
+  }
+  const a = normalizeName(detected);
+  const b = normalizeName(expected);
+  if (!a || !b) return { match: true, score: 0, reason: "empty_after_normalize" };
+  if (a === b) return { match: true, score: 1, reason: "exact" };
+
+  const aTok = new Set(tokens(detected));
+  const bTok = new Set(tokens(expected));
+  if (aTok.size === 0 || bTok.size === 0) return { match: true, score: 0, reason: "no_tokens" };
+
+  // Token overlap (Jaccard)
+  let intersect = 0;
+  for (const t of aTok) if (bTok.has(t)) intersect++;
+  const jaccard = intersect / new Set([...aTok, ...bTok]).size;
+
+  // Levenshtein ratio on full normalized name
+  const lev = levenshtein(a, b);
+  const ratio = 1 - lev / Math.max(a.length, b.length);
+
+  // First+last token match
+  const aArr = [...aTok];
+  const bArr = [...bTok];
+  const firstLastMatch =
+    (aArr[0] === bArr[0] && aArr[aArr.length - 1] === bArr[bArr.length - 1]);
+
+  const score = Math.max(jaccard, ratio, firstLastMatch ? 0.9 : 0);
+  const match = jaccard >= 0.6 || ratio >= 0.85 || firstLastMatch;
+  return { match, score, reason: `jaccard=${jaccard.toFixed(2)} lev=${ratio.toFixed(2)} fl=${firstLastMatch}` };
 }
