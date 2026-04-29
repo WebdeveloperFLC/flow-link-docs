@@ -1,77 +1,55 @@
-## Plan to stop wrong-candidate uploads
+## Why phone & education aren't being captured
 
-I found why the wrong IELTS still went through: the current classifier receives the filename together with extracted PDF text. In the latest network request, the uploaded file was named `jayesh yogi.pdf`, while the extracted document text did not reliably contain the candidate name. The AI then treated the filename as evidence and returned `owner_name: Jayesh Yogi`. That means it was not truly verifying the applicant from the document content.
+I traced the extraction path used after every upload (`SmartUploadZone` → `extract-document-data`) and inspected your CRM data for jayesh. Four real problems:
 
-### What I will change
+1. **No image OCR for field extraction.** `extract-document-data` only receives the PDF text layer (`extractFirstPageText`). Scanned IELTS sheets, passports and many transcripts have no usable text layer, so the AI sees garbage and returns nothing for phone, GPA, graduation year, etc. (The classifier was already upgraded to multimodal — this function was missed.)
+2. **Only the first 1–2 pages are scanned.** Resumes/transcripts list education and contact details further down. `extractFirstPageText` caps at 2 pages.
+3. **"Complete education" can't fit the schema.** `client_profile` has only one `highest_qualification` / `institution_name` / `graduation_year` / `gpa_or_percentage`. A resume with Bachelor + Master + diplomas collapses into one row, and details like field-of-study, start year and degree level are dropped entirely.
+4. **Primary phone is on `clients.phone`, not on the profile.** Your record actually has `phone = 9428694317` on the `clients` row, but the CRM "Contact & address" card only shows `phone_alt`, which is null. So even when a phone is present, it looks "missing." There is also no code path that writes back to `clients.phone` from extracted data.
 
-1. **Never trust the filename for applicant identity**
-   - Keep using filename as a hint for document type only, e.g. IELTS / Passport / Transcript.
-   - For applicant/candidate ownership, the AI must ignore the filename completely.
-   - The classifier must return a candidate name only if it can read it from the document text or the visual page image.
+## What I'll change
 
-2. **Read document content before any auto-confirm/upload**
-   - Update `classifyDocument` so it does not stop at filename heuristics.
-   - For every upload, it will inspect document content before deciding owner:
-     - PDFs: extract text and also send a rendered first-page image for visual/OCR reading.
-     - Images: send a compressed preview image for visual/OCR reading.
-   - This handles scanned IELTS score sheets where normal PDF text extraction is incomplete or garbled.
+### 1. Multimodal + multi-page extraction (fixes phone, GPA, dates, scanned docs)
+- Update `supabase/functions/extract-document-data/index.ts` to accept either `snippet` (text) or `image_data_urls` (page JPEGs), and switch the model to `google/gemini-3-flash-preview` for vision.
+- Update `src/lib/extractFirstPageText.ts` to add a small `renderPdfPagesToJpegDataUrls(file, maxPages = 3)` helper.
+- In `SmartUploadZone.tsx` and `ClientDetail.tsx` (re-extract), always send:
+  - text snippet from up to **3 pages** (raise from 6000 to ~12000 chars), AND
+  - rendered JPEGs of the first 3 pages so the AI can OCR scanned/image-based docs.
+- Loosen the prompt: "Extract every field clearly visible in the document, including those that appear in headers, footers, signature blocks, contact sections, or as labelled fields. Do not skip phone numbers found anywhere on the page."
 
-3. **Require proof from the document**
-   - Update the `classify-document` backend function to return extra fields:
-     - `owner_name`
-     - `owner_confidence`
-     - `owner_evidence` — the visible text/field that proves the name came from the document, not the filename.
-     - `owner_source` — content/image only, never filename.
-   - If the candidate name is not readable from the document, the function returns `owner_name: null` instead of guessing.
+### 2. Capture complete education history
+- Extend the schema in `extract-document-data` to also return:
+  - `education_history`: array of `{ degree, field_of_study, institution, city, country, start_year, end_year, gpa_or_percentage, level }`
+  - Keep `highest_qualification` etc. as derived "best" values for backwards compatibility.
+- Add a new table `public.client_education` (one row per qualification) with `client_id`, the fields above, `source_document_id`, `source_file_name`, `created_at`. RLS mirrors `client_profile` (read for authenticated; write for admin/counselor/documentation).
+- Update `src/lib/extractedFields.ts`:
+  - Keep current single-field merge behaviour.
+  - When `education_history` is returned, upsert rows into `client_education` (dedupe by lowercase `degree + institution + end_year`).
+  - When `highest_qualification` is null but `education_history` has entries, derive the highest by level/end_year and write it.
+- Update `ClientProfileCard.tsx` "Education & language" section to show a list of all qualifications below the current single-row fields, with edit/remove buttons (admin/counselor/documentation only). Each row: degree, institution, years, GPA, source doc chip.
 
-4. **Block uploads when the candidate cannot be verified**
-   - In `SmartUploadZone`, auto-upload will happen only when:
-     - a candidate name was read from document content,
-     - the confidence is high enough,
-     - the name matches a person on the current case roster.
-   - If the document content says `Manav` but the case roster is `jayesh yogi, Anjali Sharma`, upload will stop and show a warning.
-   - If the document content does not show any readable candidate name, upload will also stop with a warning like:
-     - “Could not verify candidate from document content. Filename is not used for candidate matching.”
+### 3. Phone numbers — capture both, sync primary, show both
+- Extend the schema with `phone_primary` in addition to `phone_alt` (kept for explicit secondary numbers).
+- After merge: if `clients.phone` is empty and we extracted `phone_primary`, write it back to `clients.phone` (logged as `client.phone_extracted`). If `clients.phone` already has a value and the extracted value differs, log a `profile.fields_conflict` and don't overwrite.
+- Update `ClientProfileCard.tsx` "Contact & address" group to also display the primary `phone` (read from `clients.phone`) as the first field, alongside `phone_alt`. Editing the primary phone updates `clients.phone`.
 
-5. **Remove silent applicant fallback**
-   - Current behavior can still fall back to the applicant in some cases.
-   - I will remove that for verification failures.
-   - No document will be auto-assigned to Jayesh just because Jayesh is the applicant or because the filename says Jayesh.
+### 4. Re-extract uses the same upgraded path
+- `onReExtract` in `ClientDetail.tsx` already loops every PDF; switch it to the new multimodal call so users can fix existing records (like jayesh) in one click without re-uploading.
 
-6. **Keep explicit override, but make it deliberate**
-   - The user can still choose “Upload anyway” only from the warning state.
-   - That override will be logged as an override, not a normal upload.
-   - Normal “Confirm & upload” will be reserved for documents where the owner is actually verified or deliberately selected after a non-mismatch ambiguity.
+### 5. Sanity guards
+- If both text snippet and images fail, surface a toast `Could not read content of <file>` instead of silently doing nothing.
+- Log `profile.extraction_empty` activity so admins can see which docs produced nothing.
 
-7. **Fix filename sanitizing and candidate-based rename**
-   - Ensure final filenames are based on the confirmed/verified person, for example:
-     - `IELTSLanguageTest_Applicant_jayeshyogi.pdf`
-     - `Passport_CoApplicant_anjalisharma.pdf`
-   - Also sanitize document types so slashes like `IELTS / Language Test` do not create messy filenames or storage paths.
+## Files to touch
 
-### Files to update
+- `supabase/functions/extract-document-data/index.ts` — multimodal input, expanded schema (`phone_primary`, `education_history[]`), looser prompt.
+- `src/lib/extractFirstPageText.ts` — add `renderPdfPagesToJpegDataUrls`, raise text page cap to 3.
+- `src/components/documents/SmartUploadZone.tsx` — send text + images, handle new fields.
+- `src/pages/ClientDetail.tsx` — same upgrade in `onReExtract`; show new education list.
+- `src/lib/extractedFields.ts` — write `education_history` to `client_education`, sync `phone_primary` → `clients.phone`.
+- `src/components/clients/ClientProfileCard.tsx` — show primary phone, show full education list with edit.
+- New migration: `client_education` table + RLS policies.
 
-- `src/lib/classifyDocument.ts`
-  - Always classify owner from content, not filename-only heuristics.
-  - Send extracted text plus a first-page/image preview to the backend function.
-  - Return owner evidence/source fields.
+## Expected outcome
 
-- `src/lib/extractFirstPageText.ts`
-  - Add a helper to render only the first PDF page as a compact JPEG preview for visual reading.
-
-- `supabase/functions/classify-document/index.ts`
-  - Update the AI prompt and response schema.
-  - Use multimodal input when a page image is provided.
-  - Forbid using filename as candidate-name evidence.
-
-- `src/components/documents/SmartUploadZone.tsx`
-  - Require verified content-based owner evidence before auto-upload.
-  - Stop uploads when content owner is missing or mismatched.
-  - Improve warning messages so it is clear whether the issue is “wrong candidate” or “candidate not readable.”
-
-- `src/lib/constants.ts`
-  - Sanitize document type in generated filenames.
-
-### Expected result
-
-After this change, uploading Manav’s IELTS under Jayesh will not be accepted just because the filename says Jayesh. The system will read the document content/image first. If it reads Manav, it will block the upload on Jayesh’s case. If it cannot read any candidate name from the IELTS sheet, it will stop and ask for manual action instead of silently assigning it to Jayesh.
+- Uploading jayesh's resume/IELTS again (or clicking **Re-extract**) will read scanned content, capture **9428694317** (already present) plus any alt phone, and persist **every** degree on the resume — Bachelor, Master, diplomas — visible in a list under Education on the CRM card. GPA, graduation year, field of study and institution will populate per-degree even when the source is a scanned PDF.
