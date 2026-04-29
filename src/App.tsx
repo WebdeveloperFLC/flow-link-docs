@@ -14,6 +14,7 @@ import LetterTemplates from "./pages/LetterTemplates";
 import Activity from "./pages/Activity";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import Masters from "./pages/Masters";
 import SharedView from "./pages/SharedView";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon, Mail } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon, Mail, Database } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -15,6 +15,7 @@ const nav: NavItem[] = [
   { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
   { to: "/activity", icon: ScrollText, label: "Activity" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
+  { to: "/masters", icon: Database, label: "Masters", adminOnly: true },
   { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
 ];
 

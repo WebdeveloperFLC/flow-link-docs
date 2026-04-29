@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { COUNTRIES, APPLICATION_TYPES, DOCUMENT_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { GripVertical, Plus, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +24,9 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
   const [items, setItems] = useState<TemplateItem[]>([]);
   const [pickType, setPickType] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const COUNTRIES = useMasterLabels("countries");
+  const APPLICATION_TYPES = useMasterLabels("application_types");
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   useEffect(() => {
     if (open) {

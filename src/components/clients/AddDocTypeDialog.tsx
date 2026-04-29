@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DOCUMENT_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 
 export interface ExtraItem {
   id: string;
@@ -31,6 +31,7 @@ export const AddDocTypeDialog = ({
   const [mandatory, setMandatory] = useState(false);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   const reset = () => {
     setType(""); setMandatory(false); setNotes("");

@@ -649,6 +649,74 @@ export type Database = {
         }
         Relationships: []
       }
+      master_items: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          label: string
+          list_key: string
+          metadata: Json
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          list_key: string
+          metadata?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          list_key?: string
+          metadata?: Json
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "master_items_list_key_fkey"
+            columns: ["list_key"]
+            isOneToOne: false
+            referencedRelation: "master_lists"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
+      master_lists: {
+        Row: {
+          created_at: string
+          description: string | null
+          key: string
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          key: string
+          label: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          key?: string
+          label?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

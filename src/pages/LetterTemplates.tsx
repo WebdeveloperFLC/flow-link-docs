@@ -12,7 +12,7 @@ import { Upload, FileText, Loader2, Check, Trash2, Globe } from "lucide-react";
 import { toast } from "sonner";
 import { LETTER_KINDS, type LetterKind } from "@/lib/letterKinds";
 import { logActivity } from "@/lib/activity";
-import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 
 interface TemplateRow {
   id: string;
@@ -31,6 +31,8 @@ const LetterTemplatesPage = () => {
   const [rows, setRows] = useState<TemplateRow[]>([]);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [editingStyle, setEditingStyle] = useState<Record<string, string>>({});
+  const COUNTRIES = useMasterLabels("countries");
+  const APPLICATION_TYPES = useMasterLabels("application_types");
   // pending "Add variant" pickers per kind
   const [pendingScope, setPendingScope] = useState<Record<LetterKind, { country: string; category: string }>>({
     cover: { country: "", category: "" },

@@ -4,7 +4,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users } from "lucide-react";
-import { DOCUMENT_TYPES, sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
+import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
@@ -66,6 +67,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   const applicant = useMemo(() => people.find((p) => p.role === "applicant"), [people]);
   const isMulti = people.length >= 2;
