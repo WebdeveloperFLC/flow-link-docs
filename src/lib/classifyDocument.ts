@@ -66,29 +66,36 @@ export async function classifyDocument(
   candidateTypes?: string[],
   peopleNames?: string[],
 ): Promise<Classification> {
-  // 1) filename heuristic
+  // Filename is only a type hint. Candidate ownership must come from document content.
   const fn = classifyByFilename(file.name);
-  if (fn && fn.confidence >= 0.85) return fn;
 
-  // 2) AI classify (use first-page text for PDFs)
   try {
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    const isImage = file.type.startsWith("image/");
     let snippet = "";
-    if (isPdf) snippet = await extractFirstPageText(file, 1500);
+    let pageImage = "";
+    if (isPdf) {
+      snippet = await extractFirstPageText(file, 3000);
+      pageImage = await renderFirstPdfPageToJpegDataUrl(file);
+    } else if (isImage) {
+      pageImage = await imageFileToJpegDataUrl(file);
+    }
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
     const { data, error } = await supabase.functions.invoke("classify-document", {
       body: {
         filename: file.name,
         snippet,
-        is_image: file.type.startsWith("image/"),
+        is_image: isImage,
+        page_image_data_url: pageImage,
         size_bytes: file.size,
         allowed_types: allowed,
         case_people: (peopleNames ?? []).filter((n) => n && n.trim()).slice(0, 10),
+        filename_type_hint: fn?.type ?? null,
       },
     });
     if (error) throw error;
-    const type = typeof data?.type === "string" && allowed.includes(data.type) ? data.type : "Other";
+    const type = typeof data?.type === "string" && allowed.includes(data.type) ? data.type : (fn?.type ?? "Other");
     const confidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
     return {
       type,
@@ -97,6 +104,8 @@ export async function classifyDocument(
       source: "ai",
       ownerName: (data?.owner_name as string | null) ?? null,
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
+      ownerEvidence: (data?.owner_evidence as string | null) ?? null,
+      ownerSource: data?.owner_source === "document_text" || data?.owner_source === "document_image" ? data.owner_source : null,
     };
   } catch {
     return fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
