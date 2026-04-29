@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import type { PersonRole } from "@/lib/casePeople";
+import type { PersonRole, CasePerson } from "@/lib/casePeople";
 import { logActivity } from "@/lib/activity";
 
 interface Props {
@@ -14,6 +14,8 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   clientId: string;
   onAdded: () => void;
+  /** Current roster — used to decide whether to offer the Applicant role. */
+  roster?: CasePerson[];
 }
 
 const RELATIONSHIP_PRESETS = [
@@ -32,10 +34,11 @@ const OTHER = "__other__";
 const defaultRelForRole = (role: PersonRole) =>
   role === "co_applicant" ? "Spouse" : role === "dependant" ? "Son" : "";
 
-export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props) => {
+export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster = [] }: Props) => {
+  const hasApplicant = roster.some((p) => p.role === "applicant" && !p.is_archived);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState<PersonRole>("co_applicant");
+  const [role, setRole] = useState<PersonRole>(hasApplicant ? "co_applicant" : "applicant");
   const [relationshipPreset, setRelationshipPreset] = useState<string>("Spouse");
   const [relationshipOther, setRelationshipOther] = useState("");
   const [dob, setDob] = useState("");
@@ -44,7 +47,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
 
   const reset = () => {
     setFirstName(""); setLastName("");
-    setRole("co_applicant");
+    setRole(hasApplicant ? "co_applicant" : "applicant");
     setRelationshipPreset("Spouse"); setRelationshipOther("");
     setDob(""); setPassport("");
   };
@@ -52,7 +55,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
   const onRoleChange = (v: PersonRole) => {
     setRole(v);
     // Auto-suggest relationship default when role changes (only if user hasn't typed a custom one)
-    if (relationshipPreset !== OTHER) {
+    if (relationshipPreset !== OTHER && v !== "applicant") {
       setRelationshipPreset(defaultRelForRole(v) || "Spouse");
     }
   };
@@ -62,9 +65,11 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
     const ln = lastName.trim();
     if (!fn || !ln) { toast.error("First and last name are required"); return; }
     const fullName = `${fn} ${ln}`.trim();
-    const relationship =
-      relationshipPreset === OTHER ? relationshipOther.trim() : relationshipPreset;
-    if (relationshipPreset === OTHER && !relationship) {
+    const isApplicant = role === "applicant";
+    const relationship = isApplicant
+      ? null
+      : (relationshipPreset === OTHER ? relationshipOther.trim() : relationshipPreset);
+    if (!isApplicant && relationshipPreset === OTHER && !relationship) {
       toast.error("Please specify the relationship");
       return;
     }
@@ -98,6 +103,11 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add person to this case</DialogTitle>
+          <DialogDescription>
+            {hasApplicant
+              ? "Add a co-applicant or dependant. Documents can be assigned per person."
+              : "This case has no applicant yet. Add the principal applicant first to enable document uploads."}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
@@ -116,25 +126,28 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded }: Props
               <Select value={role} onValueChange={(v) => onRoleChange(v as PersonRole)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  {!hasApplicant && <SelectItem value="applicant">Applicant (principal)</SelectItem>}
                   <SelectItem value="co_applicant">Co-applicant</SelectItem>
                   <SelectItem value="dependant">Dependant</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Relationship</Label>
-              <Select value={relationshipPreset} onValueChange={setRelationshipPreset}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {RELATIONSHIP_PRESETS.map((r) => (
-                    <SelectItem key={r} value={r}>{r}</SelectItem>
-                  ))}
-                  <SelectItem value={OTHER}>Other…</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {role !== "applicant" && (
+              <div className="space-y-1.5">
+                <Label>Relationship</Label>
+                <Select value={relationshipPreset} onValueChange={setRelationshipPreset}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RELATIONSHIP_PRESETS.map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                    <SelectItem value={OTHER}>Other…</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
-          {relationshipPreset === OTHER && (
+          {role !== "applicant" && relationshipPreset === OTHER && (
             <div className="space-y-1.5">
               <Label>Specify relationship *</Label>
               <Input
