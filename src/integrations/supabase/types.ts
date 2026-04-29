@@ -609,6 +609,8 @@ export type Database = {
       }
       letter_templates: {
         Row: {
+          category: string | null
+          country: string | null
           created_at: string
           created_by: string | null
           file_path: string | null
@@ -620,6 +622,8 @@ export type Database = {
           version: number
         }
         Insert: {
+          category?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           file_path?: string | null
@@ -631,6 +635,8 @@ export type Database = {
           version?: number
         }
         Update: {
+          category?: string | null
+          country?: string | null
           created_at?: string
           created_by?: string | null
           file_path?: string | null
