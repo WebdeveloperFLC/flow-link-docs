@@ -24,10 +24,11 @@ interface BinderInput {
   templateName: string;
   items: DocItem[];
   documents: DocRow[];
+  groupLabel?: string;
 }
 
 export async function generateBinder(input: BinderInput): Promise<Uint8Array> {
-  const { clientName, applicationId, country, applicationType, templateName, items, documents } = input;
+  const { clientName, applicationId, country, applicationType, templateName, items, documents, groupLabel } = input;
 
   const finalPdf = await PDFDocument.create();
   const helv = await finalPdf.embedFont(StandardFonts.Helvetica);
@@ -39,7 +40,9 @@ export async function generateBinder(input: BinderInput): Promise<Uint8Array> {
   cover.drawText("FUTURE LINK", { x: 50, y: 800, size: 22, font: helvBold, color: rgb(1,1,1) });
   cover.drawText("Document Management System", { x: 50, y: 775, size: 11, font: helv, color: rgb(0.85,0.90,1) });
 
-  cover.drawText("FINAL DOCUMENT BINDER", { x: 50, y: 680, size: 18, font: helvBold, color: rgb(0.06,0.20,0.55) });
+  cover.drawText(groupLabel ? `${groupLabel.toUpperCase()} BINDER` : "FINAL DOCUMENT BINDER", {
+    x: 50, y: 680, size: 18, font: helvBold, color: rgb(0.06,0.20,0.55),
+  });
   cover.drawLine({ start: {x:50,y:670}, end:{x:545,y:670}, thickness: 2, color: rgb(0.83,0.13,0.18) });
 
   const meta: [string, string][] = [
