@@ -22,11 +22,11 @@ const TITLES: Record<Kind, string> = {
 
 const SYSTEM_FOR: Record<Kind, string> = {
   cover:
-    "You are an immigration consultant drafting an Applicant's Letter of Explanation to IRCC. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Use the client's own voice (first person, signed by the client). Do NOT invent facts that are not present in CLIENT FACTS or DOCUMENT EXTRACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis.",
+    "You are an immigration consultant drafting an Applicant's Letter of Explanation to IRCC. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Use the client's own voice (first person, signed by the client). Do NOT invent facts that are not present in CLIENT FACTS or DOCUMENT EXTRACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis. Always include: addressee block (To: The Visa Officer, IRCC), Subject line, numbered body sections, Conclusion, and a signature line with the applicant name(s).",
   rcic:
-    "You are a Regulated Canadian Immigration Consultant (RCIC) drafting a submission letter to IRCC on behalf of an applicant. Mirror the structure, tone and section headings of the SAMPLE LETTER. Replace the sample's specific facts with the CLIENT FACTS. Sign as the firm's RCIC. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown.",
+    "You are a Regulated Canadian Immigration Consultant (RCIC) drafting a submission letter to IRCC on behalf of an applicant. Mirror the structure, tone and section headings of the SAMPLE LETTER. Replace the sample's specific facts with the CLIENT FACTS. Sign as the firm's RCIC using the firm.rcic_name and firm.rcic_number from CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. Always include: Date, From block (RCIC name + R# from firm), To block (Visa Officer, IRCC), Subject, Applicant block, numbered sections, Conclusion, and 'Yours faithfully,' signature with RCIC name and R#.",
   statdec:
-    "You are drafting a Statutory Declaration in the Canadian legal format. Mirror the layout, oath language and numbered clauses of the SAMPLE. Replace specific facts with CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown.",
+    "You are drafting a Statutory Declaration in the Canadian legal format. Mirror the layout, oath language and numbered clauses of the SAMPLE. Replace specific facts with CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. ALWAYS preserve the legal header in the exact form 'CANADA }', 'Province of <X> }', 'City of <X> }' on separate lines, the 'I, <NAME> ... DO SOLEMNLY DECLARE THAT:' opener, numbered solemn clauses, the 'AND I make this solemn declaration ... Canada Evidence Act' closer, and the 'DECLARED BEFORE ME' / 'Commissioner of Oaths' / declarant signature footer.",
 };
 
 function escXml(s: string): string {
@@ -76,7 +76,13 @@ function plainRun(text: string, opts: { bold?: boolean; highlight?: string }): s
 }
 
 function markdownToParagraphs(md: string): string[] {
-  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  // Strip any stray HTML tags the model may emit (e.g. <br>, <br/>, <p>) — we render plain paragraphs
+  const cleaned = md
+    .replace(/\r\n/g, "\n")
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/<\/?p[^>]*>/gi, "")
+    .replace(/<\/?div[^>]*>/gi, "");
+  const lines = cleaned.split("\n");
   const paras: string[] = [];
   for (const raw of lines) {
     const line = raw.trimEnd();
@@ -96,8 +102,15 @@ function markdownToParagraphs(md: string): string[] {
   return paras;
 }
 
-function buildDocx(title: string, markdown: string): Promise<Uint8Array> {
-  const body = markdownToParagraphs(markdown).join("");
+function buildDocx(title: string, markdown: string, logoPng?: Uint8Array): Promise<Uint8Array> {
+  const paragraphs = markdownToParagraphs(markdown);
+  let logoParagraph = "";
+  if (logoPng && logoPng.byteLength > 0) {
+    const cx = 2286000; // 2.5"
+    const cy = 685800;  // ~0.75"
+    logoParagraph = `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="FirmLogo"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="1" name="FirmLogo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId10"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p><w:p/>`;
+  }
+  const body = logoParagraph + paragraphs.join("");
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
 <w:body>
@@ -122,6 +135,7 @@ ${body}
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
 <Default Extension="xml" ContentType="application/xml"/>
+${logoPng && logoPng.byteLength > 0 ? '<Default Extension="png" ContentType="image/png"/>' : ""}
 <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
 <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
 <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
@@ -138,6 +152,7 @@ ${body}
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
+${logoPng && logoPng.byteLength > 0 ? '<Relationship Id="rId10" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/firm-logo.png"/>' : ""}
 </Relationships>`;
 
   const core = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -156,6 +171,9 @@ ${body}
   word.file("styles.xml", stylesXml);
   word.file("numbering.xml", numberingXml);
   word.folder("_rels")!.file("document.xml.rels", documentRels);
+  if (logoPng && logoPng.byteLength > 0) {
+    word.folder("media")!.file("firm-logo.png", logoPng);
+  }
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }
 
@@ -258,7 +276,19 @@ Deno.serve(async (req) => {
     const md = await callAI(SYSTEM_FOR[kind], userPrompt);
     if (!md.trim()) return json({ error: "AI returned empty content" }, 500);
 
-    const docxBytes = await buildDocx(`${TITLES[kind]} - ${client.full_name}`, md);
+    // For RCIC letters, embed the firm logo as an inline letterhead at the top
+    let logoBytes: Uint8Array | undefined;
+    if (kind === "rcic" && firm?.logo_path) {
+      try {
+        const { data: logoBlob } = await admin.storage.from("branding").download(firm.logo_path);
+        if (logoBlob) {
+          const ab = await logoBlob.arrayBuffer();
+          logoBytes = new Uint8Array(ab);
+        }
+      } catch (_e) { /* logo optional */ }
+    }
+
+    const docxBytes = await buildDocx(`${TITLES[kind]} - ${client.full_name}`, md, logoBytes);
 
     // Save to client-documents bucket under letters/
     const cleanName = String(client.full_name).replace(/[^a-zA-Z0-9]/g, "");

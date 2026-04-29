@@ -1,80 +1,61 @@
-## Letter Generation (Cover Letter, RCIC Letter, Statutory Declaration)
+## Goal
 
-Generate editable .docx letters per client by merging the existing CRM/extracted data into uploaded sample templates. Includes a Templates manager, FutureLink branding for RCIC letters, and `[MISSING: field]` markers for unresolved placeholders.
+You uploaded the 3 sample letters (Applicant cover, RCIC, Statutory Declaration) and the FutureLink logo. Wire them into the system that's already built, refine the generator using the patterns visible in your samples, and verify with a real generation before declaring done.
 
-### 1. Sample upload + Templates manager
+## What I observed in your samples
 
-- New page `src/pages/LetterTemplates.tsx` (linked in sidebar under Templates).
-- Three template slots: **Client Cover Letter**, **RCIC Letter**, **Statutory Declaration**. Each supports:
-  - Upload `.docx` sample
-  - Preview detected placeholders
-  - Mark active version (history kept)
-  - Replace anytime
-- Storage bucket `letter-templates` (private). New table `letter_templates` (id, kind, version, file_path, placeholders jsonb, is_active, created_by, created_at).
-- On upload: parse the .docx server-side (edge function) and auto-detect placeholders. Supports two styles so your samples work as-is:
-  - Curly tokens like `{{client_name}}`, `{{passport_number}}`
-  - Bracketed prompts like `[CLIENT NAME]`, `[PASSPORT NO.]` — auto-mapped to CRM fields via a synonyms table.
-- After upload, user sees a mapping screen to confirm/override which CRM field each placeholder maps to. Mapping is saved on the template.
+- **Applicant letter**: numbered sections (Purpose / Ties / Finances / Sponsor / Compliance / Conclusion), addressed to "The Visa Officer, IRCC", signed by both applicants.
+- **RCIC letter**: From block with RCIC name + R-number, dated, "Summary of Refusal Concerns" section, signed by RCIC.
+- **Statutory Declaration**: Canadian legal format with `CANADA / Province / City` brace block, numbered solemn declarations (1–11), "DECLARED BEFORE ME" + Commissioner of Oaths block.
 
-### 2. Branding & RCIC profile (Settings)
+These are richer than the current prompts assume — the generator needs sample-aware structure, not just a "style reference".
 
-- New section in `src/pages/Settings.tsx` → "Firm & RCIC profile":
-  - Firm name, address, phone, email, website
-  - Logo upload (FutureLink logo) → `branding` bucket
-  - RCIC name, RCIC number, signature image upload, jurisdiction
-- Stored in new `firm_profile` table (singleton row, admin-only RLS).
-- RCIC letter template auto-receives header (logo) and footer (signature block) injected at generate time, regardless of what's in the sample.
+## Plan
 
-### 3. Generation flow
+### 1. Seed branding + templates automatically (no manual setup needed)
 
-On client detail page, new card **"Letters"** with three buttons: Generate Cover Letter / RCIC Letter / Statutory Declaration.
+- Copy `FLC_logo_1_-01-2.png` → `src/assets/flc-logo.png` and upload to `branding` bucket as `firm-logo.png`.
+- Upload the 3 .docx samples to `letter-templates` bucket under `samples/cover.docx`, `samples/rcic.docx`, `samples/statdec.docx`.
+- Insert/upsert a `firm_profile` row pre-filled with: firm name "FutureLink Consultants", tagline "A way to career abroad", RCIC name "Santosh D. Ramrakhiani", RCIC # "R506940", logo URL pointing at the uploaded file. (You can edit any of this later in Settings.)
+- Insert `letter_templates` rows for each of the 3 kinds, with the parsed text body as the `style_reference` (skip the parse edge function call — we already have the parsed content).
 
-Click → edge function `generate-letter`:
-1. Loads active template + mapping + firm profile.
-2. Loads `client_profile` + `clients` row + relevant document metadata for that client.
-3. Builds a value map for every placeholder. For any unresolved placeholder → inserts a yellow-highlighted `[MISSING: field_name]` run.
-4. Performs in-place .docx token replacement (run-merge aware, preserves formatting). For RCIC letter: injects header image + signature.
-5. Saves the resulting .docx to `client-documents/<client_id>/letters/<kind>_<clientName>_<timestamp>.docx` and inserts a row in `documents` table (category = "Letters").
-6. Returns signed URL → browser auto-downloads.
+### 2. Tighten the `generate-letter` edge function
 
-A "Re-generate" action overwrites with a new versioned filename. All generations are logged in `activity_logs`.
+- Pass the **full sample text** (not just an extracted style summary) to Gemini as a few-shot example, with instructions to mirror structure/headings/tone but substitute the new client's facts.
+- Add kind-specific scaffolding hints:
+  - `cover` → numbered sections, "Yours sincerely" + applicant name(s).
+  - `rcic` → From/To/Date/Subject block, signed by RCIC from `firm_profile`.
+  - `statdec` → Canadian legal brace header (CANADA / Province / City), numbered "DO SOLEMNLY DECLARE THAT" clauses, "DECLARED BEFORE ME" footer.
+- Pull all available client data from `clients` + `client_profile` + extracted document fields and feed it as structured JSON to the model.
+- Keep `[MISSING: field]` yellow-highlight markers for any unresolved facts.
+- Inject the firm logo (PNG bytes from the `branding` bucket) into the DOCX header for `rcic` letters; signature image as footer if uploaded.
 
-### 4. Missing-field handling
+### 3. Test before handing back (mandatory, in build mode)
 
-- Template parser stores required vs optional placeholders.
-- Before generation, the UI shows a quick checklist of missing required fields with two options:
-  - "Fill now" → inline form to update CRM, then generate
-  - "Generate anyway" → produces .docx with `[MISSING: ...]` highlighted yellow
-- Missing-field events written to `activity_logs` so you can audit.
+- Pick the current client (`afa47723-…`) and call `generate-letter` for each of the 3 kinds via `supabase--curl_edge_functions`.
+- Download each generated `.docx`, convert to PDF via LibreOffice, render page 1 as JPG, and visually inspect for:
+  - Logo present (RCIC letter)
+  - Correct salutation / signature block
+  - Statutory declaration legal header intact
+  - No template leakage (e.g. literal "{{token}}" strings)
+  - `[MISSING:]` markers only where data genuinely isn't in the CRM
+- Fix any issues found, re-test, and only then report back with the QA summary.
 
-### 5. Technical details
+### 4. UI polish
 
-- **Edge functions**:
-  - `parse-letter-template` — unzips .docx, scans `word/document.xml` for both placeholder styles, returns deduped list + suggested CRM-field mapping (uses Lovable AI Gemini for fuzzy mapping when no synonym match).
-  - `generate-letter` — fetches template, performs run-aware token replacement using `docxtemplater` (works well for `{{token}}`) plus a custom regex pass for `[BRACKETED]` placeholders. Handles image injection for logo/signature via `docxtemplater-image-module-free`.
-- **Libraries**: `docxtemplater`, `pizzip`, `docxtemplater-image-module-free` (all run inside Deno via npm: specifiers).
-- **DB migrations**:
-  - `letter_templates` table + RLS (admin write, authenticated read)
-  - `firm_profile` table + RLS (admin write, authenticated read)
-  - `branding` and `letter-templates` storage buckets + policies
-- **CRM field resolver** (`src/lib/letterFields.ts`): central function that takes a placeholder name and returns the value from `client_profile` / `clients` / `firm_profile`, with synonym fallback (e.g. `dob` → `date_of_birth`).
-- **UI components**:
-  - `src/components/letters/LetterCard.tsx` (on ClientDetail)
-  - `src/components/letters/MissingFieldsDialog.tsx`
-  - `src/pages/LetterTemplates.tsx`
-  - Settings additions in existing `Settings.tsx`
+- On `LetterTemplates.tsx`, show a "Seeded from FutureLink samples ✓" badge when the seeded rows exist so you know the defaults are loaded.
+- On the `LetterCard` in ClientDetail, surface the list of `[MISSING]` fields after generation as a clickable list that jumps to the relevant CRM field.
 
-### 6. Testing before release
+## Files to touch
 
-- Unit tests for `letterFields.ts` resolver (synonym matching, missing → marker).
-- Edge function smoke test that takes a fixture .docx with mixed `{{token}}` + `[BRACKETED]` placeholders and verifies all known fields fill, unknown ones become `[MISSING: ...]`.
-- Manual QA: after deploy I'll generate one letter for the active client (Krishaa), download the .docx, and confirm structure before reporting back.
+- **New**: none (all infra exists).
+- **Edit**: `supabase/functions/generate-letter/index.ts` (sample-aware prompt + logo injection), `src/components/letters/LetterCard.tsx` (missing-fields surfacing), `src/pages/LetterTemplates.tsx` (seeded badge).
+- **Migrations**: one to upsert `firm_profile` defaults + 3 `letter_templates` rows.
+- **Assets**: `src/assets/flc-logo.png`, plus storage uploads to `branding/` and `letter-templates/samples/`.
 
-### Files to create / modify
+## What you don't need to do
 
-- New: `supabase/functions/parse-letter-template/index.ts`, `supabase/functions/generate-letter/index.ts`, `src/pages/LetterTemplates.tsx`, `src/components/letters/LetterCard.tsx`, `src/components/letters/MissingFieldsDialog.tsx`, `src/lib/letterFields.ts`, migration for `letter_templates` + `firm_profile` + buckets.
-- Modified: `src/pages/ClientDetail.tsx` (add LetterCard), `src/pages/Settings.tsx` (firm profile section), `src/App.tsx` (route), sidebar nav.
+- No manual upload in Settings or Letter Templates — I'll seed all of it from the files you just provided.
+- No need to re-upload the logo or samples.
 
-### Next step after approval
-
-Once you approve, I'll switch to build mode and ask you to drop the three sample .docx files (Cover Letter, RCIC Letter, Statutory Declaration) plus the FutureLink logo and your signature image — then wire everything end-to-end and verify by generating one of each for the current client.
+Approve and I'll switch to build mode, seed everything, deploy the updated function, and run the 3-letter test before declaring done.
