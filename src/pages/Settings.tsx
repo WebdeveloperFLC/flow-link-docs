@@ -102,7 +102,26 @@ const Settings = () => {
       />
       <div className="p-8 space-y-6 max-w-4xl">
         <FirmProfileCard />
+
+        <div className="pt-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Outbound integration · Fovel → Odoo
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Fovel pushes and pulls clients with your Odoo CRM Pipeline using the credentials saved on the server.
+          </p>
+        </div>
         <OdooIntegrationCard />
+
+        <div className="pt-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Inbound API access · Odoo (or any system) → Fovel
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Optional. Only needed if Odoo, Zapier, or another tool needs to <em>read</em> data from Fovel.
+            The two-way CRM sync above does <strong>not</strong> require a key here.
+          </p>
+        </div>
         <Card className="p-5 shadow-elev-sm">
           <div className="font-semibold mb-1 flex items-center gap-2"><KeyRound className="size-4 text-primary" />Odoo CRM endpoint</div>
           <p className="text-xs text-muted-foreground mb-3">Send requests with header <code className="text-[11px] bg-muted px-1 py-0.5 rounded">x-api-key: &lt;your key&gt;</code></p>
@@ -115,12 +134,16 @@ const Settings = () => {
 
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="px-6 py-4 border-b">
-            <div className="font-semibold">API keys</div>
-            <div className="text-xs text-muted-foreground">Keys are hashed; the full value is shown only once at creation.</div>
+            <div className="font-semibold">Inbound API keys (optional)</div>
+            <div className="text-xs text-muted-foreground">
+              Generate a key only if an external system needs to call the endpoint above. Keys are hashed; the full value is shown only once at creation.
+            </div>
           </div>
           <div className="divide-y">
             {keys.length === 0 && (
-              <div className="px-6 py-12 text-center text-sm text-muted-foreground">No API keys yet.</div>
+              <div className="px-6 py-12 text-center text-sm text-muted-foreground">
+                No API keys yet. <span className="block text-xs mt-1">This is fine if you only use the two-way CRM sync above.</span>
+              </div>
             )}
             {keys.map((k) => (
               <div key={k.id} className="px-6 py-3 flex items-center gap-3">
