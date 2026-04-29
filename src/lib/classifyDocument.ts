@@ -34,7 +34,11 @@ export function classifyByFilename(name: string): Classification | null {
   return null;
 }
 
-export async function classifyDocument(file: File, candidateTypes?: string[]): Promise<Classification> {
+export async function classifyDocument(
+  file: File,
+  candidateTypes?: string[],
+  peopleNames?: string[],
+): Promise<Classification> {
   // 1) filename heuristic
   const fn = classifyByFilename(file.name);
   if (fn && fn.confidence >= 0.85) return fn;
@@ -53,6 +57,7 @@ export async function classifyDocument(file: File, candidateTypes?: string[]): P
         is_image: file.type.startsWith("image/"),
         size_bytes: file.size,
         allowed_types: allowed,
+        case_people: (peopleNames ?? []).filter((n) => n && n.trim()).slice(0, 10),
       },
     });
     if (error) throw error;
