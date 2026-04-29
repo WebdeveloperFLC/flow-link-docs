@@ -1,74 +1,109 @@
-# Per-country / per-category letter templates
+## Reality check first (important)
 
-Today there is exactly **one** active template per `kind` (cover / rcic / statdec) — same wording is used for every country and visa category. We'll let the admin upload a separate sample for each (country, category, kind) combination, and the generator will pick the most specific one available.
+You asked if we can verify documents "exactly like Synergy Gateway" and catch any fake/manipulated document "fully without any errors."
 
-## Database changes
+Two honest things you need to know before we build:
 
-Extend `letter_templates` to scope each template:
+1. **What Synergy Gateway (SGV Verified) actually does** — based on their own portal, it's a *managed compliance platform* where **human reviewers** check student placement documents (immunizations, CPR, police checks) against school rules. It is **not** a magical AI that proves a PDF is genuine. Most of their "verification" is rule-based + manual review + issuer follow-up.
+2. **No system on earth — including SGV, Onfido, Jumio, or government tools — can guarantee 100% fraud detection with zero errors.** Anyone promising that is lying. What we *can* build is a strong multi-signal verification pipeline that catches the **majority** of common fakes and flags suspicious documents for human review.
 
-- Add `country text NULL` (e.g. "Canada", or NULL = "any country")
-- Add `category text NULL` (e.g. "Student Visa (SDS)", or NULL = "any category")
-- Keep `kind`, `version`, `file_path`, `style_text`, `is_active`, etc.
-- Drop the implicit "one active per kind" rule — replace with **one active per (kind, country, category)**. A partial unique index enforces this:
-  ```sql
-  CREATE UNIQUE INDEX letter_templates_active_scope_uniq
-    ON public.letter_templates (kind, COALESCE(country,''), COALESCE(category,''))
-    WHERE is_active = true;
-  ```
-- Existing rows stay valid as `country=NULL, category=NULL` global defaults.
+So the honest deliverable is: **a Document Verification section that runs automated authenticity checks, returns a risk score with evidence, and routes anything suspicious to a human reviewer.** Not "fully without errors" — that's not achievable by anyone.
 
-No migration needed for `letter_templates` data — old templates become the global fallback automatically.
+---
 
-## Template resolution (fallback chain)
+## What we'll build
 
-When generating a letter for a client (country=`C`, category=`T`, kind=`K`), `generate-letter` will pick the active template in this priority order:
+A new **Verification** section (sidebar entry, admin + counselor access) where you can:
 
-1. Exact match: `kind=K AND country=C AND category=T`
-2. Country-only: `kind=K AND country=C AND category IS NULL`
-3. Category-only: `kind=K AND country IS NULL AND category=T`
-4. Global: `kind=K AND country IS NULL AND category IS NULL`
-5. None → return current "No active template uploaded yet" error, but with a clearer message naming the country + category that's missing.
+- Upload a document (or pick one already uploaded against a client)
+- Run an automated multi-check verification pass
+- See a risk score (Pass / Review / High Risk) with per-check evidence
+- Mark final status manually (Verified / Rejected / Needs reissue) with notes
+- Keep a full audit trail per document
 
-This means one global template still works as today; admins only upload per-scope variants where wording actually differs.
+### Detection signals we can realistically implement
 
-## Admin UI changes (`/letter-templates`)
+| Check | What it catches | Reliability |
+|---|---|---|
+| **PDF metadata & producer analysis** | Edited-in-Word/Photoshop PDFs, mismatched creation/mod dates, suspicious producers (e.g. "iLovePDF", "Smallpdf") | High for lazy fakes |
+| **Incremental-update / revision detection** | PDFs that were re-saved after signing, hidden object streams, multiple `%%EOF` markers | High |
+| **Font & text-layer consistency** | Numbers/names sitting on a different text layer than surrounding text (classic edit signature) | Medium-high |
+| **Image-level forensics on scans** | ELA (Error Level Analysis), copy-move detection, JPEG ghost, resampling artifacts around names/dates/amounts | Medium |
+| **OCR vs. embedded-text mismatch** | Visible text differs from the PDF's text layer (a common manipulation tell) | High |
+| **Field-consistency checks** | Name on passport ≠ name on transcript ≠ name on bank statement; DOB conflicts; mismatched issue/expiry; impossible dates | High |
+| **Template/issuer matching** | IELTS TRF layout, university transcript layouts, GIC certificate format — flag if structure deviates from known good templates | Medium (improves over time) |
+| **AI vision review** | Gemini/GPT-5 reviews the rendered page and explains what looks off (alignment, kerning, seal pixelation, signature pasting) | Medium, great as evidence |
+| **MRZ / passport check digits** | Validates passport machine-readable zone using ICAO 9303 check digits — catches numeric tampering instantly | Very high for passports |
+| **Cross-document corroboration** | Compares this doc against everything else uploaded for the client | High |
+| **Duplicate / reuse detection** | Perceptual hash against all previously uploaded docs across all clients to catch the same fake reused | High |
 
-Rework the page from "3 cards" into a small matrix:
+### What we **cannot** do (be aware)
 
-- For each kind (Cover / RCIC / StatDec):
-  - A **"Global default"** row (country=NULL, category=NULL) — same as today's behaviour.
-  - A **"Scoped variants"** table listing every uploaded (country, category) variant with:
-    - Country, Category, active version, replace button, delete button.
-  - An **"Add variant"** row at the bottom with two dropdowns (Country from `COUNTRIES`, Category from `APPLICATION_TYPES`, both required) and an Upload .docx button.
-- Clicking Replace re-uses the existing `parse-letter-template` flow, bumps version, deactivates the previous active row for that exact (kind, country, category).
-- Style-text editing keeps working per row.
-- Show small badge "Falls back to: Country-only / Global / None" so the admin can see what a missing combo will use.
+- Call the issuing university / bank / IRCC / IELTS to confirm the document is on their system. That requires paid integrations (e.g. **IELTS TRF Verification Service**, **WES**, **DigiLocker**, **Equifax bank-statement verification**, **National Student Clearinghouse**). I can wire any of these in later if you sign up — they're the only way to get a true "this document exists in the issuer's records" answer.
+- Detect a perfect, professionally-made forgery with no digital artifacts. No tool can.
+- Promise zero false positives or zero false negatives.
 
-## Generator changes (`supabase/functions/generate-letter/index.ts`)
+---
 
-- Read `client.country` and `client.application_type` (already loaded).
-- Replace the single `.eq("kind", kind).eq("is_active", true)` query with the 4-step fallback above (one query using `OR` + ordered scoring, or four `maybeSingle` calls fast-fallback). Keep first match.
-- Activity log entry now includes `template_scope: { country, category }` so users can see which template was used.
+## How it will work (user flow)
 
-## Files to touch
+```text
+Verification page
+ ├── Upload doc (or pick from client)
+ ├── Select doc type (Passport / IELTS / Transcript / Bank statement / Offer letter / Other)
+ ├── [Run verification]  ──►  Edge function pipeline
+ │                              1. PDF structural scan (pdf-lib / qpdf-style checks in JS)
+ │                              2. Render pages → image forensics (ELA, hashes)
+ │                              3. OCR + extract text layer → compare
+ │                              4. Type-specific rules (MRZ, IELTS bands sanity, etc.)
+ │                              5. Cross-check vs. client's other docs
+ │                              6. AI vision pass for visual anomalies
+ │                              7. Aggregate → risk score 0–100 + reasons
+ └── Result panel
+       ├── Overall: Pass / Review / High Risk
+       ├── Per-check rows with ✓ / ⚠ / ✗ and evidence snippets
+       ├── Side-by-side: rendered page + highlighted suspicious regions
+       ├── "Mark as Verified / Rejected / Request reissue" with reviewer note
+       └── Full history saved to the doc + activity log
+```
 
-- New migration: add `country`, `category` columns + partial unique index on `letter_templates`.
-- `supabase/functions/generate-letter/index.ts` — fallback resolver.
-- `src/pages/LetterTemplates.tsx` — matrix UI with scoped variants.
-- `src/lib/letterKinds.ts` — no change needed (kind enum stays).
-- (Optional) `src/components/letters/LetterCard.tsx` — show "Using template: Canada · Student Visa (SDS)" hint when generating.
+---
 
-## Out of scope
+## Technical changes
 
-- No change to client-facing letter generation flow — users still click Generate the same way.
-- No change to `letter-templates` storage bucket layout (path already includes timestamp); we'll add country/category to the path prefix for clarity: `${kind}/${country||'_any'}/${category||'_any'}/...`.
+**New DB tables**
+- `document_verifications` — one row per verification run: `document_id`, `risk_score`, `risk_level` (`pass|review|high_risk`), `signals` (jsonb of all check results), `ai_summary`, `reviewer_status`, `reviewer_id`, `reviewer_note`, `created_at`. RLS: read by authenticated, write by admin/counselor/documentation.
+- `document_fingerprints` — `phash`, `sha256`, `document_id`, `client_id` for duplicate-reuse detection across clients.
 
-## Expected outcome
+**New edge function: `verify-document`**
+- Input: `document_id` (or direct upload payload)
+- Loads file from `client-documents` bucket
+- Runs the pipeline above (PDF parsing in Deno, image rendering, calls Lovable AI Gateway with `google/gemini-2.5-pro` for the vision pass)
+- Returns structured signals + score
+- Stores result in `document_verifications`
 
-Admin can upload, e.g.:
-- Cover · Canada · Student Visa (SDS)
-- Cover · Canada · Spousal Sponsorship
-- RCIC · United Kingdom · Work Permit
-- StatDec · *Global* (used everywhere unless a more specific one exists)
+**Frontend**
+- New page `src/pages/Verification.tsx` (sidebar item "Verification", admin/counselor only)
+- New component `VerificationReportCard.tsx` to render signals, evidence, and reviewer actions
+- Hook `useVerification(documentId)` for fetching/triggering runs
+- Add a "Verify" button on each document row in `ClientDetail` that deep-links to the report
 
-When a Canada/SDS client clicks **Generate Cover Letter**, the system uses the Canada+SDS template; if only the Canada one exists, it uses that; if neither, it falls back to the global default.
+**No changes** to existing upload/classification — verification is a separate, opt-in pass.
+
+---
+
+## Out of scope for v1 (we can add later if you want)
+
+- Paid issuer-verification integrations (IELTS, WES, DigiLocker, bank APIs)
+- Liveness / selfie matching for passport photos
+- Bulk re-verification of historical documents
+- Webhook out to your firm's review queue / Odoo
+
+---
+
+## Confirm before I build
+
+Tell me:
+1. **Go ahead with this scope** as v1?
+2. Any specific document types you want prioritized first (passport, IELTS, transcripts, bank statements)?
+3. Do you eventually want me to wire in a paid issuer-verification provider (IELTS TRF, DigiLocker, etc.)? Not now — just so I design the schema to support it.
