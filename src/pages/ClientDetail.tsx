@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch } from "lucide-react";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
@@ -521,6 +521,9 @@ const ClientDetail = () => {
                     onClick={() => setShareTarget({ type: "document", id: d.id, label: d.file_name })}>
                     <Link2 className="size-3.5" />
                   </Button>
+                  <Link to={`/verification?document_id=${d.id}`} title="Verify authenticity">
+                    <Button size="icon" variant="ghost" className="size-7"><FileSearch className="size-3.5" /></Button>
+                  </Link>
                   {(d.size_bytes ?? 0) > LARGE_BYTES && (
                     <Button size="icon" variant="ghost" className="size-7" title="Optimize on server"
                       onClick={() => onOptimize(d)} disabled={optimizing === d.id}>
