@@ -21,6 +21,9 @@ Deno.serve(async (req) => {
     const snippet = String(body?.snippet ?? "").slice(0, 2000);
     const isImage = !!body?.is_image;
     const allowed: string[] = Array.isArray(body?.allowed_types) ? body.allowed_types.slice(0, 50) : [];
+    const casePeople: string[] = Array.isArray(body?.case_people)
+      ? body.case_people.filter((n: unknown) => typeof n === "string" && n.trim()).slice(0, 10)
+      : [];
     if (!filename || allowed.length === 0) return json({ error: "missing fields" }, 400);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -29,7 +32,10 @@ Deno.serve(async (req) => {
     const sys =
       "You classify uploaded immigration / study-abroad documents AND extract the person whose document it is. Respond ONLY with strict JSON: {\"type\":<one of allowed>,\"confidence\":0..1,\"suggested_label\":<string or null>,\"owner_name\":<full name found on the document or null>,\"owner_confidence\":0..1,\"reason\":<short>}. owner_name should be the human individual the document is about (passport holder, transcript student, account holder, applicant). Return null if no person name is clearly visible. If unsure about type, use \"Other\" with low confidence.";
 
-    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename}\nIs image: ${isImage}\nFirst-page text (may be empty for scans):\n"""${snippet}"""\n\nReturn only JSON.`;
+    const rosterLine = casePeople.length
+      ? `\nPeople expected on this case (roster): ${JSON.stringify(casePeople)}. If the document's owner is clearly NOT one of these people, still return the actual name found on the document — do NOT guess one of the listed names. Only return a roster name if the document genuinely matches that person.`
+      : "";
+    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename}\nIs image: ${isImage}${rosterLine}\nFirst-page text (may be empty for scans):\n"""${snippet}"""\n\nReturn only JSON.`;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
