@@ -16,6 +16,7 @@ import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
+import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import JSZip from "jszip";
@@ -442,6 +443,8 @@ const ClientDetail = () => {
             syncingOdoo={syncingOdoo}
             refreshKey={profileRefreshKey}
           />
+
+          <LetterCard clientId={client.id} canGenerate={canUpload} onGenerated={load} />
 
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">

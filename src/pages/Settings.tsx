@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
+import { FirmProfileCard } from "@/components/settings/FirmProfileCard";
 
 interface ApiKey {
   id: string; label: string; prefix: string; revoked: boolean;
@@ -99,6 +100,7 @@ const Settings = () => {
         }
       />
       <div className="p-8 space-y-6 max-w-4xl">
+        <FirmProfileCard />
         <Card className="p-5 shadow-elev-sm">
           <div className="font-semibold mb-1 flex items-center gap-2"><KeyRound className="size-4 text-primary" />Odoo CRM endpoint</div>
           <p className="text-xs text-muted-foreground mb-3">Send requests with header <code className="text-[11px] bg-muted px-1 py-0.5 rounded">x-api-key: &lt;your key&gt;</code></p>
