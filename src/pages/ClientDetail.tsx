@@ -542,7 +542,7 @@ const ClientDetail = () => {
           {canUpload ? (
             <SmartUploadZone
               client={client}
-              templateTypes={template?.items.map((it) => it.name)}
+              templateTypes={checklistItems.map((it) => it.name)}
               onUploaded={load}
             />
           ) : (
