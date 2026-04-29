@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Plus, Trash2, UserCircle2 } from "lucide-react";
+import { Users, Plus, Trash2, UserCircle2, AlertTriangle } from "lucide-react";
 import { fetchCasePeople, sortRoster, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { AddPersonDialog } from "./AddPersonDialog";
 import { toast } from "sonner";
@@ -51,6 +51,7 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
   };
 
   const isMulti = roster.length >= 2;
+  const hasApplicant = roster.some((p) => p.role === "applicant");
 
   return (
     <Card className="overflow-hidden shadow-elev-sm">
@@ -66,11 +67,26 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
           </div>
         </div>
         {canEdit && (
-          <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
+          <Button
+            size="sm"
+            variant={!hasApplicant && !loading ? "default" : "outline"}
+            onClick={() => setAddOpen(true)}
+          >
             <Plus className="size-3.5 mr-1" /> Add person
           </Button>
         )}
       </div>
+      {!loading && !hasApplicant && (
+        <div className="px-6 py-3 bg-destructive/5 border-b border-destructive/20 flex items-start gap-2 text-sm">
+          <AlertTriangle className="size-4 text-destructive mt-0.5 shrink-0" />
+          <div>
+            <div className="font-medium text-destructive">No applicant on file</div>
+            <div className="text-xs text-muted-foreground">
+              Add the principal applicant before uploading documents.
+            </div>
+          </div>
+        </div>
+      )}
       <div className="divide-y">
         {roster.map((p) => (
           <div key={p.id} className="px-6 py-3 flex items-center gap-3">
@@ -103,7 +119,7 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
           <div className="px-6 py-6 text-sm text-muted-foreground text-center">No people on this case yet.</div>
         )}
       </div>
-      <AddPersonDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} onAdded={load} />
+      <AddPersonDialog open={addOpen} onOpenChange={setAddOpen} clientId={clientId} onAdded={load} roster={roster} />
     </Card>
   );
 };

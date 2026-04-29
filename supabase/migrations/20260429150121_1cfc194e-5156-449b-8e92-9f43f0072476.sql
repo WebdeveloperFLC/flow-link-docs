@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.ensure_applicant_for_client() FROM PUBLIC, anon, authenticated;

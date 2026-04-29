@@ -252,7 +252,7 @@ export const SmartUploadZone = ({
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
       if (!applicant) {
-        toast.error("This case has no applicant on file. Add a person first.");
+        toast.error("Add the applicant on the People card before uploading documents.");
         return;
       }
       const arr = Array.from(files);
