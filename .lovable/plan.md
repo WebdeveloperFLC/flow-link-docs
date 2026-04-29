@@ -1,33 +1,51 @@
-## Goal
-Diagnose the `errors=1` from the last Odoo sync, fix it, and clarify the API-keys section in the UI so it's not confusing.
+# Fix: "No applicant on file" blocking uploads
 
-## Step 1 — Diagnose the sync error (read-only)
-- Read recent logs from the `odoo-sync` edge function to capture the exact error message from the last run.
-- Run `Test connection` programmatically against `odoo-sync` with `action: "test"` to confirm whether the failure is at the credential layer (XML-RPC `authenticate`) or later in the data mapping.
-- If credentials fail: confirm with the user which of `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY` needs updating, then update via the secrets tool.
-- If credentials succeed: the error is in `sync_all` mapping (likely a missing field on `crm.lead`, a permission issue on `res.partner`, or an empty result set being treated as an error). Patch `supabase/functions/odoo-sync/index.ts` to:
-  - Treat empty result sets as `ok` (not an error).
-  - Wrap each lead in try/catch so one bad record doesn't fail the batch — record per-record errors in a count and surface them in `last_sync_message`.
-  - Log the failing `lead_id` + Odoo field name in `last_sync_message` so future failures are self-explanatory.
+## What's actually wrong
 
-## Step 2 — Improve sync status UX
-- In `OdooIntegrationCard.tsx`, when `last_sync_status === "error"` and `errors > 0`, render the message in a red-tinted block with a "View details" expander that shows the full `last_sync_message`.
-- Add a small "Last error" timestamp separate from "Last successful sync" so a single bad run doesn't hide that earlier syncs worked.
+For client **jayesh yogi** (and any client created after the `case_people` migration), there is no non-archived `applicant` row. The Add-person dialog only offers **Co-applicant** and **Dependant**, so there's no way to fix it from the UI, and `SmartUploadZone` blocks all uploads with *"This case has no applicant on file."*
 
-## Step 3 — Clarify the "API keys" section so it stops being confusing
-The bottom card today looks like it's part of the Odoo sync, but it's the *inbound* API (Odoo → Fovel). Two changes in `src/pages/Settings.tsx`:
-- Rename the card header from "API keys" to **"Inbound API access (optional)"** with a one-line subtitle: *"Only needed if Odoo, Zapier, or another system needs to read data from Fovel. The two-way CRM sync above does NOT require a key here."*
-- Move the `Odoo CRM endpoint` card to sit *inside* the API keys card (they're the same feature) and visually separate it from the top "Odoo CRM sync" card with a heading divider labeled **"Outbound vs. inbound integrations"**.
+Two distinct gaps:
 
-## Step 4 — Verify
-- Click `Test connection` and `Sync now` from the UI; confirm `errors=0` and a non-zero pull/push count if there are leads in Odoo.
-- Confirm the API keys card now reads clearly as optional/inbound.
+1. **`NewClientDialog`** creates a row in `clients` but never inserts the matching `case_people` applicant row. Every brand-new client is born broken.
+2. **`AddPersonDialog`** hides the "Applicant" role, so once a case is missing one (archived, deleted, or never created) there's no recovery path.
 
-## Files to touch
-- `supabase/functions/odoo-sync/index.ts` — error handling, per-record try/catch, better `last_sync_message`.
-- `src/components/settings/OdooIntegrationCard.tsx` — error display, last-error vs. last-success.
-- `src/pages/Settings.tsx` — rename + reorganize the inbound-API card.
+The current jayesh yogi case ended up with the original applicant archived and one archived co-applicant, leaving zero people.
 
-## What I will *not* do
-- Will not generate an API key for you — that section stays empty unless you explicitly need outside systems to call Fovel.
-- Will not change the sync mode, interval, or auto-on-open settings you've already chosen.
+## The fix
+
+### 1. Database self-healing (migration)
+
+- One-time backfill: re-insert an `applicant` row for any client where no non-archived applicant exists, using `clients.full_name`. This immediately unblocks jayesh yogi and any similar legacy/broken cases.
+- Add a database trigger on `clients` (AFTER INSERT) that creates the matching applicant row in `case_people` automatically. This guarantees every future client starts with an applicant — `NewClientDialog` doesn't need to know about it.
+
+### 2. UI: allow adding/promoting an applicant when missing
+
+In `AddPersonDialog`:
+- Accept the current roster as a prop (or fetch inside).
+- If the case currently has **no** applicant, show "Applicant" as a role option (and default to it). When an applicant already exists, hide the option as today (the unique index enforces one applicant per case anyway).
+- Hide the Relationship field when role = applicant (it's the principal).
+
+In `CasePeopleCard`:
+- When `roster.length === 0` (or no applicant), show a clear amber callout: *"This case has no applicant. Add one to enable uploads."* with the "Add person" button styled as primary.
+- Pass the current roster down to `AddPersonDialog`.
+
+### 3. SmartUploadZone copy
+
+Change the blocking toast from a dead-end error to actionable guidance: *"Add the applicant on the People card before uploading documents."* (Functionality unchanged — still blocks until applicant exists, which is correct.)
+
+### 4. Fix two pre-existing console warnings (cheap wins while in the file)
+
+- `AddPersonDialog`: wrap `DialogFooter` properly (the React ref warning shown in console).
+- Add a `DialogDescription` to silence the `aria-describedby` warning.
+
+## Files touched
+
+- `supabase/migrations/<new>.sql` — backfill + trigger
+- `src/components/clients/AddPersonDialog.tsx` — applicant role when missing, ref/aria fixes, accept roster
+- `src/components/clients/CasePeopleCard.tsx` — empty-state callout, pass roster
+- `src/components/documents/SmartUploadZone.tsx` — friendlier toast wording
+
+## Out of scope
+
+- Un-archiving previously archived people (the existing archived rows for jayesh yogi stay archived; the trigger/backfill creates a fresh applicant row from `clients.full_name`).
+- Bulk re-assignment of documents already linked to archived `person_id`s — none exist for this client.
