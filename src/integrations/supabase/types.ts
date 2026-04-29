@@ -371,6 +371,90 @@ export type Database = {
           },
         ]
       }
+      firm_profile: {
+        Row: {
+          created_at: string
+          firm_address: string | null
+          firm_email: string | null
+          firm_name: string | null
+          firm_phone: string | null
+          firm_website: string | null
+          id: string
+          logo_path: string | null
+          rcic_jurisdiction: string | null
+          rcic_name: string | null
+          rcic_number: string | null
+          signature_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          firm_address?: string | null
+          firm_email?: string | null
+          firm_name?: string | null
+          firm_phone?: string | null
+          firm_website?: string | null
+          id?: string
+          logo_path?: string | null
+          rcic_jurisdiction?: string | null
+          rcic_name?: string | null
+          rcic_number?: string | null
+          signature_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          firm_address?: string | null
+          firm_email?: string | null
+          firm_name?: string | null
+          firm_phone?: string | null
+          firm_website?: string | null
+          id?: string
+          logo_path?: string | null
+          rcic_jurisdiction?: string | null
+          rcic_name?: string | null
+          rcic_number?: string | null
+          signature_path?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      letter_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string | null
+          id: string
+          is_active: boolean
+          kind: string
+          style_text: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean
+          kind: string
+          style_text?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean
+          kind?: string
+          style_text?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
