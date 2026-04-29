@@ -56,7 +56,7 @@ const ClientDetail = () => {
   const load = useCallback(async () => {
     if (!id) return;
     const { data: c } = await supabase.from("clients").select("*").eq("id", id).single();
-    setClient(c as Client | null);
+    setClient(c as unknown as Client | null);
     if (c?.template_id) {
       const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
       setTemplate(t as unknown as Template | null);
