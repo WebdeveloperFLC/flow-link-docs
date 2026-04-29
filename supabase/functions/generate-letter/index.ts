@@ -76,7 +76,13 @@ function plainRun(text: string, opts: { bold?: boolean; highlight?: string }): s
 }
 
 function markdownToParagraphs(md: string): string[] {
-  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  // Strip any stray HTML tags the model may emit (e.g. <br>, <br/>, <p>) — we render plain paragraphs
+  const cleaned = md
+    .replace(/\r\n/g, "\n")
+    .replace(/<br\s*\/?>/gi, "")
+    .replace(/<\/?p[^>]*>/gi, "")
+    .replace(/<\/?div[^>]*>/gi, "");
+  const lines = cleaned.split("\n");
   const paras: string[] = [];
   for (const raw of lines) {
     const line = raw.trimEnd();
