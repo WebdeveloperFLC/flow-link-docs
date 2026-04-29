@@ -130,6 +130,8 @@ export type Database = {
           gender: string | null
           id: string
           is_archived: boolean
+          odoo_partner_id: number | null
+          odoo_synced_at: string | null
           passport_number: string | null
           relationship: string | null
           role: Database["public"]["Enums"]["person_role"]
@@ -143,6 +145,8 @@ export type Database = {
           gender?: string | null
           id?: string
           is_archived?: boolean
+          odoo_partner_id?: number | null
+          odoo_synced_at?: string | null
           passport_number?: string | null
           relationship?: string | null
           role: Database["public"]["Enums"]["person_role"]
@@ -156,6 +160,8 @@ export type Database = {
           gender?: string | null
           id?: string
           is_archived?: boolean
+          odoo_partner_id?: number | null
+          odoo_synced_at?: string | null
           passport_number?: string | null
           relationship?: string | null
           role?: Database["public"]["Enums"]["person_role"]
@@ -398,6 +404,9 @@ export type Database = {
           full_name: string
           id: string
           notes: string | null
+          odoo_lead_id: number | null
+          odoo_partner_id: number | null
+          odoo_synced_at: string | null
           phone: string | null
           status: string
           template_id: string | null
@@ -414,6 +423,9 @@ export type Database = {
           full_name: string
           id?: string
           notes?: string | null
+          odoo_lead_id?: number | null
+          odoo_partner_id?: number | null
+          odoo_synced_at?: string | null
           phone?: string | null
           status?: string
           template_id?: string | null
@@ -430,6 +442,9 @@ export type Database = {
           full_name?: string
           id?: string
           notes?: string | null
+          odoo_lead_id?: number | null
+          odoo_partner_id?: number | null
+          odoo_synced_at?: string | null
           phone?: string | null
           status?: string
           template_id?: string | null
