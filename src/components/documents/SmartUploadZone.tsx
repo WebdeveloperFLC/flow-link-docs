@@ -170,7 +170,7 @@ export const SmartUploadZone = ({
         return null;
       }
     },
-    [templateTypes, people, isMulti, applicant, client.id, client.full_name],
+    [templateTypes, people, isMulti, applicant, client.id],
   );
 
   const uploadOne = async (
