@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2 } from "lucide-react";
 import { DOCUMENT_TYPES, buildDocumentName, sanitizeName } from "@/lib/constants";
 import { processToPdf } from "@/lib/processFile";
