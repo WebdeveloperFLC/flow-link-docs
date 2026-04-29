@@ -30,6 +30,7 @@ const FIELD_SCHEMA = {
     address_state: { type: ["string", "null"] },
     address_country: { type: ["string", "null"] },
     address_postal: { type: ["string", "null"] },
+    phone_primary: { type: ["string", "null"], description: "Primary phone number visible in the document. Include country code if shown." },
     phone_alt: { type: ["string", "null"] },
     email_alt: { type: ["string", "null"] },
     ielts_overall: { type: ["number", "null"] },
@@ -42,6 +43,25 @@ const FIELD_SCHEMA = {
     institution_name: { type: ["string", "null"] },
     graduation_year: { type: ["number", "null"] },
     gpa_or_percentage: { type: ["string", "null"] },
+    education_history: {
+      type: ["array", "null"],
+      description: "Every degree/qualification visible in the document (high school, diploma, bachelor, master, phd, certificate). Include even if partial.",
+      items: {
+        type: "object",
+        properties: {
+          degree: { type: ["string", "null"], description: "e.g. Bachelor of Science, MBA, 12th Grade" },
+          field_of_study: { type: ["string", "null"], description: "e.g. Computer Science, Commerce" },
+          level: { type: ["string", "null"], description: "high_school|diploma|bachelor|master|phd|certificate|other" },
+          institution: { type: ["string", "null"] },
+          city: { type: ["string", "null"] },
+          country: { type: ["string", "null"] },
+          start_year: { type: ["number", "null"] },
+          end_year: { type: ["number", "null"] },
+          gpa_or_percentage: { type: ["string", "null"] },
+        },
+        additionalProperties: false,
+      },
+    },
     employer_name: { type: ["string", "null"] },
     job_title: { type: ["string", "null"] },
     annual_income: { type: ["number", "null"] },
@@ -63,11 +83,14 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const docType = String(body?.document_type ?? "").slice(0, 80);
-    const snippet = String(body?.snippet ?? "").slice(0, 8000);
+    const snippet = String(body?.snippet ?? "").slice(0, 14000);
     const fileName = String(body?.file_name ?? "").slice(0, 200);
+    const imageDataUrls: string[] = Array.isArray(body?.image_data_urls)
+      ? body.image_data_urls.filter((s: unknown) => typeof s === "string" && s.startsWith("data:image")).slice(0, 4)
+      : [];
 
-    if (!snippet) {
-      return json({ fields: {}, reason: "no_snippet" });
+    if (!snippet && imageDataUrls.length === 0) {
+      return json({ fields: {}, reason: "no_input" });
     }
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
@@ -75,21 +98,29 @@ Deno.serve(async (req) => {
 
     const sys =
       "You extract structured CRM fields from immigration / study-abroad documents. " +
-      "Only return fields you can read with high confidence. " +
-      "Return null for anything not clearly present. " +
+      "Read the document content carefully — including text snippet AND any provided page images (use OCR on the images). " +
+      "Extract every field that is clearly visible anywhere on the page: headers, footers, signature blocks, contact sections, labelled fields, sidebars. " +
+      "Pay special attention to phone numbers (main and alternate), email addresses, and full education history. " +
+      "If the document lists multiple degrees (e.g. on a resume), return ALL of them in education_history, not just the highest. " +
+      "Also fill the legacy single-field highest_qualification/institution_name/graduation_year/gpa_or_percentage with the highest-level degree from education_history. " +
+      "Return null for anything not clearly present. Do NOT hallucinate. " +
       "Dates MUST be ISO YYYY-MM-DD. Numbers must be plain numbers, no currency symbols. " +
       "Use the save_fields tool to return the result.";
 
-    const user = `Document type: ${docType || "unknown"}\nFile name: ${fileName}\nDocument text:\n"""${snippet}"""`;
+    const userText = `Document type: ${docType || "unknown"}\nFile name: ${fileName}\nDocument text (may be empty or garbled if scanned):\n"""${snippet}"""`;
+    const userContent: unknown[] = [{ type: "text", text: userText }];
+    for (const url of imageDataUrls) {
+      userContent.push({ type: "image_url", image_url: { url } });
+    }
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: sys },
-          { role: "user", content: user },
+          { role: "user", content: userContent },
         ],
         tools: [
           {
