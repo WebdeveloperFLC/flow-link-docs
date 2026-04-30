@@ -1,149 +1,78 @@
-# Plan: Configurable Letters + Section Document Builder
+# Fix: per-section multi-upload, reorder, and combine
 
-Three changes that work together:
-1. **Letters** — make the 3 hardcoded kinds configurable via Masters so admins can add unlimited letter types.
-2. **Sections** — every section (Identity, Academic, Experience, Financial, Forms, Supporting, plus a new "Additional documents") supports multiple individual files arranged in a sequence (auto or manual drag-drop) and combined into one section binder on demand.
-3. **Multi-page combine** — same primitive lets a single document type (e.g. Passport pages 1 & 2) accept multiple files merged into one PDF.
+## What's happening today
 
----
+The `SectionBuilderCard` already supports multi-file upload, drag-to-reorder, manual/auto ordering, and a Combine button — for every section (Identity, Academic, Experience, Financial, Forms, Supporting, Additional). However the experience falls short of what you described in three ways:
 
-## 1. Configurable letter kinds
+1. **Cards are buried.** The big "All uploaded documents" card sits above the section cards, so on a long client page (Manav has many docs) the section cards aren't the first thing you see. You can miss them entirely.
+2. **No per-file label.** When you drop 10 marksheets into Academic, every row shows the file name plus the generic subtitle "Academic". You can't see which row is "Grade 10", which is "B.Tech Year 2", etc., so reordering by sequence is painful.
+3. **No drag-to-drop zone on the card.** Upload only works through the small "Upload" button. Dragging files directly onto the card body does nothing, which is why it feels like the feature isn't there.
+4. **Experience / Forms / Additional sections look "missing"** in the Build-final-binder panel because that panel filters out sections with 0 docs. Users assume the section itself doesn't exist.
 
-Today `src/lib/letterKinds.ts` hardcodes three kinds (`cover`, `rcic`, `statdec`). The Letter Templates page and Letter generation read from this constant, so adding new types requires code changes.
+## What we'll change
 
-Move letter kinds into the existing **Masters** system as a new list `letter_kinds` (label + description in `metadata`). Admins manage them from `/masters` like every other dropdown.
+### 1. Promote section cards, demote the flat list
 
-- Add `letter_kinds` master list with the 3 existing kinds seeded (cover / rcic / statdec) so nothing breaks.
-- Replace the hardcoded `LETTER_KINDS` constant with a hook `useLetterKinds()` that reads from `master_items`.
-- Update `LetterTemplates.tsx` to iterate from masters (so uploading a 4th type "Invitation Letter" instantly gives it its own card with global default + scoped variants).
-- Update `LetterCard.tsx` and `generate-letter` edge function to accept the dynamic kind code instead of the union type.
-- The kind's `code` (e.g. `invitation`) becomes the storage path prefix and the value stored in `letter_templates.kind`.
+- Move the stack of `SectionBuilderCard`s **above** the "All uploaded documents" card on `ClientDetail`.
+- Collapse the flat "All uploaded documents" card into a closed-by-default accordion ("Show flat list of all files"). Keeps the data accessible without competing for attention.
 
----
+### 2. Drop zone on every section card
 
-## 2. Section-based document builder
+- Wrap each `SectionBuilderCard` body in a drag-and-drop zone using the existing `react-dropzone` pattern. Drop one or many files anywhere on the card → they all upload to that section in one batch (current code already loops a `FileList`).
+- Visual hover state: dashed border + "Drop files into Academic" label.
+- The existing **Upload** button remains for click-to-pick.
 
-The DB schema already supports this (`client_documents.section_id`, `section_order`; `client_section_settings.order_mode`; `binders.section_id`, `scope`, `included_items`, `order_mode`). What's missing is the UI and the per-section binder generator.
+### 3. Per-file label (Title)
 
-### Sections
+- Add a **Title** column / inline-editable field for every row. Defaults to the cleaned file name (`B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`). Stored in `client_documents.custom_type` (we'll repurpose it as the human label inside a section).
+- Click the title → edit-in-place → save on blur. So a row reads:
+  ```text
+  ⋮⋮ 03  Grade 12 Marksheet         class_xii.pdf · 412 KB   👁 ⬇ ✕
+  ```
+- For new uploads done through a section card, set `custom_type = cleaned filename` instead of `custom_type = section.label`. This is the only DB behavior change.
 
-`case_sections` already exists with default sections. We'll seed/ensure these defaults:
-- Identity & Personal
-- Academic
-- Experience / Employment
-- Financial
-- Visa Forms & Statements
-- Supporting documents
-- **Additional documents** (new — free-form bucket where the user uploads anything and combines)
+### 4. Show every section, even when empty
 
-### New UI: Section Builder card per section
+- In `FinalBinderPanel`, stop filtering sections with 0 docs. Empty sections render disabled with "0 docs — upload first" so users know the bucket exists. Checkbox stays disabled until docs are present.
+- Ensure `case_sections` includes **Experience**, **Additional documents**, etc. (already seeded by the previous migration; we'll just verify on load and re-seed any missing keys).
 
-On the client detail page, replace the single flat "All uploaded documents" list with a stack of **Section cards**. Each card shows:
+### 5. Combine button — clearer state
 
-```text
-┌─ Academic ────────────────────────────────  [Auto ▾] [+ Upload] [Combine ▶] ┐
-│ ⋮⋮ 01  transcript_bachelors.pdf       [👁] [⬇] [✕]                          │
-│ ⋮⋮ 02  ielts_trf.pdf                  [👁] [⬇] [✕]                          │
-│ ⋮⋮ 03  offer_letter.pdf               [👁] [⬇] [✕]                          │
-│                                                                              │
-│ Section binder: Academic_Manav.pdf · 3 docs · [Download] [Re-generate]      │
-└──────────────────────────────────────────────────────────────────────────────┘
-```
+- Rename the Combine button label dynamically:
+  - 0 docs → disabled "Combine"
+  - 1 doc → "Use as binder" (single-doc passthrough)
+  - 2+ docs → "Combine N files into binder"
+- On success, scroll the binder strip into view and toast "Academic binder ready · 10 files merged in this order".
 
-Behavior:
-- **Upload**: drops files into this section (writes `client_documents.section_id`).
-- **Auto / Manual** toggle: persists to `client_section_settings.order_mode`. Auto = sort by document_type/upload time; Manual = drag rows to reorder, persisting `section_order`.
-- **Drag handle** (⋮⋮): only active in Manual mode; uses `@dnd-kit/sortable` (already pulled in indirectly via shadcn or to be added).
-- **Combine**: calls a new helper `generateSectionBinder()` that merges every doc in this section in current order into one PDF, uploads to storage, and inserts a `binders` row with `scope='section'`, the `section_id`, and `order_mode` snapshot.
-- **Re-generate**: same action; replaces the previous section binder.
+### 6. Multi-page combine within one row group (passport pages)
 
-### Final binder selector
+This was approved last round but not yet exposed. Add a small **"Merge with…"** action in the row's overflow menu that lets you pick one or more sibling rows in the same section, merges them into one PDF (using the existing `combinePdfsFromStorage` helper), uploads as a new row, and archives the originals as previous versions. Useful for "passport page 1 + page 2".
 
-Above the section list, add a **"Build final binder"** panel with:
-- Checkboxes for each section ("include section binder" or "include individual docs")
-- Option to **Select all** or **Select few** sections
-- Generates one combined binder OR multiple binders (one per selected group), reusing existing `generateBinder()` with the chosen items. Stores with `scope='final'`.
+## Technical details
 
-### Multi-file per checklist item (passport pages, etc.)
+Files to edit:
 
-Same primitive: when the user uploads two files for "Passport" (pages 1 and 2), they appear as two rows under that document type. A small **"Combine into one"** button on rows sharing the same `document_type` merges them in order into a single PDF and replaces the rows with the combined version (keeps originals as previous versions).
+- `src/components/clients/SectionBuilderCard.tsx`
+  - Wrap content in a `<div onDragOver onDrop>` (or `react-dropzone` if already in deps; otherwise plain handlers — no new dep needed).
+  - In `onUpload`, set `custom_type` to the cleaned filename (strip extension, replace `_`/`-` with spaces, title-case).
+  - Add inline-edit `Title` for each row → `update client_documents set custom_type=… where id=…`.
+  - Add row overflow menu with "Merge with…" → opens a small picker of sibling rows in the same section, then calls `combinePdfsFromStorage` and writes the result.
+  - Dynamic Combine button label.
 
----
+- `src/components/clients/FinalBinderPanel.tsx`
+  - Render all `sections` (not only `sectionsWithDocs`); disable checkbox + button when a section has no docs.
 
-## 3. Technical details
+- `src/pages/ClientDetail.tsx`
+  - Reorder right column: `SectionBuilderCard` stack first, then `FinalBinderPanel`, then collapsed "All uploaded documents" inside an `<Accordion>`.
 
-### Database (migration)
+- `src/lib/sections.ts`
+  - Add `ensureDefaultSections()` that re-seeds any of the seven default keys missing on `case_sections` (idempotent; safety net only).
 
-```sql
--- Seed the new letter_kinds master list
-insert into public.master_lists (key, label, description)
-values ('letter_kinds', 'Letter kinds',
-        'Types of letters generated for clients (cover, RCIC, declarations, etc.)')
-on conflict (key) do nothing;
-
-insert into public.master_items (list_key, code, label, sort_order, metadata) values
-  ('letter_kinds', 'cover',   'Applicant Cover Letter', 10,
-     '{"description":"Letter of explanation written in the client''s voice."}'::jsonb),
-  ('letter_kinds', 'rcic',    'RCIC Submission Letter', 20,
-     '{"description":"Submission letter signed by the RCIC on the firm''s letterhead."}'::jsonb),
-  ('letter_kinds', 'statdec', 'Statutory Declaration',  30,
-     '{"description":"Sworn declaration by sponsor / family member."}'::jsonb)
-on conflict do nothing;
-
--- Seed default case_sections if missing (idempotent)
-insert into public.case_sections (key, label, sort_order, is_default) values
-  ('identity',   'Identity & Personal',     10, true),
-  ('academic',   'Academic',                20, true),
-  ('experience', 'Experience / Employment', 30, true),
-  ('financial',  'Financial',               40, true),
-  ('forms',      'Visa Forms & Statements', 50, true),
-  ('supporting', 'Supporting Documents',    60, true),
-  ('additional', 'Additional Documents',    70, true)
-on conflict (key) do nothing;
-```
-
-No schema changes needed — `client_documents.section_id`, `section_order`, `client_section_settings`, and `binders.section_id/scope` already exist.
-
-### New / updated files
-
-- `src/lib/letterKinds.ts` — replace static list with `useLetterKinds()` hook reading `master_items` (keep type alias `LetterKind = string`).
-- `src/pages/LetterTemplates.tsx` — iterate `useLetterKinds()` instead of `LETTER_KINDS`.
-- `src/components/letters/LetterCard.tsx` & `supabase/functions/generate-letter/index.ts` — accept any string kind.
-- `src/lib/sections.ts` (new) — helpers: `loadSections()`, `assignDocToSection()`, `reorderSection()`, `getSectionOrderMode()`, `setSectionOrderMode()`.
-- `src/lib/binder.ts` — add `generateSectionBinder({ section, documents, orderMode })` that produces a per-section PDF (cover + TOC + merged pages).
-- `src/components/clients/SectionBuilderCard.tsx` (new) — one card per section: list, drag-drop reorder, upload, auto/manual toggle, combine button.
-- `src/components/clients/FinalBinderPanel.tsx` (new) — checkbox list of sections, "Select all / few", generate one or many final binders.
-- `src/components/clients/CombinePagesButton.tsx` (new) — small inline action that merges multiple rows of the same document type into one PDF (used for passport pages etc.).
-- `src/pages/ClientDetail.tsx` — replace the single "All uploaded documents" card with a stack of `SectionBuilderCard` (one per `case_sections` row), keep `LetterCard` and `ClientFormsCard` where they are, and put `FinalBinderPanel` at the top of the right column.
-- Add `@dnd-kit/core` + `@dnd-kit/sortable` for drag-drop.
-
-### Section auto-assignment
-
-When a doc is uploaded via `SmartUploadZone`, infer its section from the existing `BINDER_GROUPS` map in `src/lib/binderGroups.ts` (Passport→identity, Transcripts→academic, etc.) and write `section_id`. User can move a doc to a different section from the row's "⋯" menu.
-
-### Combine logic (single shared helper)
-
-```ts
-async function combinePdfs(paths: string[]): Promise<Uint8Array> {
-  const out = await PDFDocument.create();
-  for (const p of paths) {
-    const { data } = await supabase.storage.from("client-documents").download(p);
-    const src = await PDFDocument.load(await data.arrayBuffer(), { ignoreEncryption: true });
-    const pages = await out.copyPages(src, src.getPageIndices());
-    pages.forEach((pg) => out.addPage(pg));
-  }
-  return out.save();
-}
-```
-
-Used by both **section combine** and **multi-page combine**. Non-PDFs are converted via the existing `processFile.ts` pipeline before merging.
-
----
+No new database migration required — the schema (`section_id`, `section_order`, `custom_type`, `client_section_settings`) already supports everything above.
 
 ## What the user gets
 
-- Letter Templates page now lists every kind defined in Masters; admins add a new kind in 30 seconds without code.
-- Each client page shows one card per section; upload many files, drag to reorder (or leave on Auto), click **Combine** to get a single section PDF.
-- An **Additional documents** section captures anything that doesn't fit the standard sections.
-- Multi-page documents (passport, marriage certificate scans) can be uploaded as separate files and merged with one click.
-- A top-level **Build final binder** panel lets you tick sections and produce either one combined final binder or multiple per-section binders.
+- Drop ten marksheets onto the Academic card, see ten rows named "Grade 10 Marksheet", "Grade 12 Marksheet", "B.Tech Year 1", etc. (auto-derived from filenames, editable inline).
+- Drag rows to put them in submission order, click **Combine 10 files into binder**, get one `Academic_Binder.pdf`.
+- Same flow available on Identity, Experience, Financial, Forms, Supporting, and Additional documents — every section card behaves identically.
+- Passport page 1 + page 2 → row menu → "Merge with…" → one combined Passport file replaces them.

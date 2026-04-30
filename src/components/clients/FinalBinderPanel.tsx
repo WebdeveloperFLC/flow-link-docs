@@ -24,10 +24,14 @@ export const FinalBinderPanel = ({ clientId, clientName, sections, docsBySection
   const [busy, setBusy] = useState<"single" | "multi" | null>(null);
 
   const sectionsWithDocs = sections.filter((s) => (docsBySection[s.id]?.length ?? 0) > 0);
+  const hasAnyDocs = sectionsWithDocs.length > 0;
 
-  const toggle = (sid: string) => setSelected((s) => {
-    const n = new Set(s); n.has(sid) ? n.delete(sid) : n.add(sid); return n;
-  });
+  const toggle = (sid: string) => {
+    if ((docsBySection[sid]?.length ?? 0) === 0) return;
+    setSelected((s) => {
+      const n = new Set(s); n.has(sid) ? n.delete(sid) : n.add(sid); return n;
+    });
+  };
   const selectAll = () => setSelected(new Set(sectionsWithDocs.map((s) => s.id)));
   const clear = () => setSelected(new Set());
 
@@ -97,37 +101,35 @@ export const FinalBinderPanel = ({ clientId, clientName, sections, docsBySection
         <div className="text-xs text-muted-foreground">Pick sections and combine — into one binder, or one per section.</div>
       </div>
       <div className="p-4 space-y-2">
-        {sectionsWithDocs.length === 0 ? (
-          <div className="text-xs text-muted-foreground italic">Upload documents to a section first.</div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between text-xs">
-              <button className="text-primary hover:underline" onClick={selectAll}>Select all</button>
-              <button className="text-muted-foreground hover:underline" onClick={clear}>Clear</button>
-            </div>
-            <div className="space-y-1.5">
-              {sectionsWithDocs.map((s) => (
-                <label key={s.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer">
-                  <Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggle(s.id)} />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm">{s.label}</div>
-                    <div className="text-[11px] text-muted-foreground">{docsBySection[s.id]?.length ?? 0} docs</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-            <div className="flex flex-col gap-2 pt-2">
-              <Button size="sm" onClick={onCombineSelected} disabled={!canGenerate || busy !== null || selected.size === 0} className="gradient-accent text-white">
-                {busy === "single" ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FileCheck2 className="size-3.5 mr-1.5" />}
-                Combine into ONE final binder
-              </Button>
-              <Button size="sm" variant="outline" onClick={onCombinePerSection} disabled={!canGenerate || busy !== null || selected.size === 0}>
-                {busy === "multi" ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FolderArchive className="size-3.5 mr-1.5" />}
-                Build separate binder per section
-              </Button>
-            </div>
-          </>
-        )}
+        <div className="flex items-center justify-between text-xs">
+          <button className="text-primary hover:underline disabled:opacity-50" onClick={selectAll} disabled={!hasAnyDocs}>Select all</button>
+          <button className="text-muted-foreground hover:underline" onClick={clear}>Clear</button>
+        </div>
+        <div className="space-y-1.5">
+          {sections.map((s) => {
+            const count = docsBySection[s.id]?.length ?? 0;
+            const empty = count === 0;
+            return (
+              <label key={s.id} className={`flex items-center gap-2.5 px-2 py-1.5 rounded ${empty ? "opacity-50 cursor-not-allowed" : "hover:bg-muted/50 cursor-pointer"}`}>
+                <Checkbox checked={selected.has(s.id)} onCheckedChange={() => toggle(s.id)} disabled={empty} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm">{s.label}</div>
+                  <div className="text-[11px] text-muted-foreground">{empty ? "0 docs — upload to this section first" : `${count} doc${count === 1 ? "" : "s"}`}</div>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+        <div className="flex flex-col gap-2 pt-2">
+          <Button size="sm" onClick={onCombineSelected} disabled={!canGenerate || busy !== null || selected.size === 0} className="gradient-accent text-white">
+            {busy === "single" ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FileCheck2 className="size-3.5 mr-1.5" />}
+            Combine into ONE final binder
+          </Button>
+          <Button size="sm" variant="outline" onClick={onCombinePerSection} disabled={!canGenerate || busy !== null || selected.size === 0}>
+            {busy === "multi" ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FolderArchive className="size-3.5 mr-1.5" />}
+            Build separate binder per section
+          </Button>
+        </div>
       </div>
     </Card>
   );

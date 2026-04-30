@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -16,6 +17,18 @@ import { toast } from "sonner";
 import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
+
+/** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
+function prettyTitle(fileName: string): string {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const cleaned = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleaned) return base;
+  // Title-case words that are all-lowercase; preserve mixed-case tokens like "B.Tech".
+  return cleaned
+    .split(" ")
+    .map((w) => (w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
 
 export interface SectionDoc {
   id: string;
@@ -51,6 +64,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const [combining, setCombining] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [binder, setBinder] = useState<BinderRow | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [mergeMode, setMergeMode] = useState<{ anchorId: string; selected: Set<string> } | null>(null);
+  const [merging, setMerging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -115,10 +131,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         const path = `${clientId}/section/${section.key}/${Date.now()}_${safe}`;
         const { error: upErr } = await supabase.storage.from("client-documents").upload(path, f, { contentType: f.type || "application/octet-stream" });
         if (upErr) { toast.error(upErr.message); continue; }
+        const title = prettyTitle(f.name);
         const { error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: "Other",
-          custom_type: section.label,
+          custom_type: title,
           file_name: f.name,
           storage_path: path,
           mime_type: f.type || null,
@@ -133,6 +150,55 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onChanged();
     } finally {
       setUploading(false);
+    }
+  };
+
+  const onRenameTitle = async (d: SectionDoc, newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed || trimmed === (d.custom_type ?? "")) return;
+    const { error } = await supabase.from("client_documents").update({ custom_type: trimmed }).eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    onChanged();
+  };
+
+  const onMergeRows = async () => {
+    if (!mergeMode) return;
+    const ids = [mergeMode.anchorId, ...Array.from(mergeMode.selected)];
+    const ordered = items.filter((it) => ids.includes(it.id));
+    if (ordered.length < 2) { toast.error("Pick at least one more file to merge"); return; }
+    setMerging(true);
+    try {
+      const bytes = await combinePdfsFromStorage(ordered.map((d) => d.storage_path));
+      if (!bytes.byteLength) { toast.error("Could not merge — no PDF pages"); return; }
+      const anchor = ordered[0];
+      const baseTitle = anchor.custom_type ?? prettyTitle(anchor.file_name);
+      const fileName = `${baseTitle.replace(/[^a-zA-Z0-9]+/g, "_")}_merged.pdf`;
+      const path = `${clientId}/section/${section.key}/${Date.now()}_${fileName}`;
+      const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+      const { error: upErr } = await supabase.storage.from("client-documents").upload(path, blob, { contentType: "application/pdf" });
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("client_documents").insert({
+        client_id: clientId,
+        document_type: anchor.document_type || "Other",
+        custom_type: baseTitle,
+        file_name: fileName,
+        storage_path: path,
+        mime_type: "application/pdf",
+        size_bytes: blob.size,
+        section_id: section.id,
+        section_order: anchor.section_order,
+      });
+      if (insErr) throw insErr;
+      // remove originals (storage + row)
+      await supabase.storage.from("client-documents").remove(ordered.map((d) => d.storage_path));
+      await supabase.from("client_documents").delete().in("id", ordered.map((d) => d.id));
+      toast.success(`Merged ${ordered.length} files into ${baseTitle}`);
+      setMergeMode(null);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Merge failed");
+    } finally {
+      setMerging(false);
     }
   };
 
@@ -208,7 +274,16 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   return (
-    <Card className="overflow-hidden shadow-elev-sm">
+    <Card
+      className={`overflow-hidden shadow-elev-sm transition-colors ${dragActive ? "ring-2 ring-primary bg-primary/5" : ""}`}
+      onDragOver={(e) => { if (!canEdit) return; e.preventDefault(); setDragActive(true); }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragActive(false); }}
+      onDrop={(e) => {
+        if (!canEdit) return;
+        e.preventDefault(); setDragActive(false);
+        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
+      }}
+    >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-primary" />
@@ -235,16 +310,39 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
-                {binder ? "Re-combine" : "Combine"}
+                {items.length === 0
+                  ? "Combine"
+                  : items.length === 1
+                    ? (binder ? "Re-build binder" : "Use as binder")
+                    : (binder ? `Re-combine ${items.length} files` : `Combine ${items.length} files`)}
               </Button>
             </>
           )}
         </div>
       </div>
 
+      {mergeMode && (
+        <div className="px-5 py-2.5 bg-primary/5 border-b flex items-center justify-between gap-3 text-xs">
+          <div>
+            Pick rows to merge into <span className="font-semibold">{items.find((i) => i.id === mergeMode.anchorId)?.custom_type ?? "this row"}</span> · {mergeMode.selected.size} selected
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setMergeMode(null)} disabled={merging}>Cancel</Button>
+            <Button size="sm" onClick={onMergeRows} disabled={merging || mergeMode.selected.size === 0}>
+              {merging ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Combine className="size-3.5 mr-1.5" />}
+              Merge {mergeMode.selected.size + 1} into one
+            </Button>
+          </div>
+        </div>
+      )}
+
       {items.length === 0 ? (
-        <div className="px-5 py-8 text-center text-xs text-muted-foreground">
-          No documents in this section yet. {canEdit && "Click Upload to add files."}
+        <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
+          {dragActive
+            ? `Drop files into ${section.label}`
+            : (canEdit
+                ? `Drop files here or click Upload — multiple files supported. They'll be added to ${section.label}.`
+                : "No documents in this section yet.")}
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -259,6 +357,15 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                   canEdit={canEdit}
                   isAdmin={isAdmin}
                   sections={allSections.filter((s) => s.id !== section.id)}
+                  mergeMode={mergeMode}
+                  onStartMerge={() => setMergeMode({ anchorId: d.id, selected: new Set() })}
+                  onToggleMergePick={() => setMergeMode((m) => {
+                    if (!m || m.anchorId === d.id) return m;
+                    const next = new Set(m.selected);
+                    next.has(d.id) ? next.delete(d.id) : next.add(d.id);
+                    return { ...m, selected: next };
+                  })}
+                  onRenameTitle={(t) => onRenameTitle(d, t)}
                   onView={() => onView(d)}
                   onDownload={() => onDownload(d)}
                   onDelete={() => onDelete(d)}
@@ -289,16 +396,25 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
 };
 
 function SortableRow({
-  doc, index, manual, canEdit, isAdmin, sections, onView, onDownload, onDelete, onMove,
+  doc, index, manual, canEdit, isAdmin, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
 }: {
   doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean;
   sections: CaseSection[];
+  mergeMode: { anchorId: string; selected: Set<string> } | null;
+  onStartMerge: () => void;
+  onToggleMergePick: () => void;
+  onRenameTitle: (title: string) => void;
   onView: () => void; onDownload: () => void; onDelete: () => void; onMove: (sid: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: doc.id, disabled: !manual });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(doc.custom_type ?? "");
+  useEffect(() => { setTitleDraft(doc.custom_type ?? ""); }, [doc.custom_type]);
+  const isAnchor = mergeMode?.anchorId === doc.id;
+  const isPicked = mergeMode?.selected.has(doc.id) ?? false;
   return (
-    <div ref={setNodeRef} style={style} className="px-5 py-2.5 flex items-center gap-2 hover:bg-muted/30">
+    <div ref={setNodeRef} style={style} className={`px-5 py-2.5 flex items-center gap-2 hover:bg-muted/30 ${isAnchor ? "bg-primary/10" : isPicked ? "bg-primary/5" : ""}`}>
       <button
         className={`size-6 flex items-center justify-center rounded ${manual ? "cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground" : "text-muted-foreground/30 cursor-not-allowed"}`}
         title={manual ? "Drag to reorder" : "Switch to Manual to reorder"}
@@ -309,12 +425,48 @@ function SortableRow({
       <div className="text-xs font-mono tabular-nums text-muted-foreground w-6 text-right">{String(index).padStart(2, "0")}</div>
       <FileText className="size-4 text-primary shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-sm truncate">{doc.file_name}</div>
+        {editingTitle ? (
+          <div className="flex items-center gap-1">
+            <Input
+              autoFocus
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { onRenameTitle(titleDraft); setEditingTitle(false); }
+                if (e.key === "Escape") { setTitleDraft(doc.custom_type ?? ""); setEditingTitle(false); }
+              }}
+              onBlur={() => { onRenameTitle(titleDraft); setEditingTitle(false); }}
+              className="h-7 text-sm"
+            />
+            <Button size="icon" variant="ghost" className="size-6" onMouseDown={(e) => e.preventDefault()}>
+              <Check className="size-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 group">
+            <div className="text-sm truncate font-medium">{doc.custom_type || prettyTitle(doc.file_name)}</div>
+            {canEdit && (
+              <button onClick={() => setEditingTitle(true)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" title="Rename">
+                <Pencil className="size-3" />
+              </button>
+            )}
+          </div>
+        )}
         <div className="text-[11px] text-muted-foreground truncate">
-          {doc.custom_type ?? doc.document_type}
+          {doc.file_name}
           {doc.size_bytes ? ` · ${(doc.size_bytes / 1024).toFixed(0)} KB` : ""}
         </div>
       </div>
+      {mergeMode && !isAnchor && (
+        <Button size="sm" variant={isPicked ? "default" : "outline"} className="h-7 px-2 text-xs" onClick={onToggleMergePick}>
+          {isPicked ? "Picked" : "Pick"}
+        </Button>
+      )}
+      {!mergeMode && canEdit && (
+        <Button size="icon" variant="ghost" className="size-7" title="Merge with other rows in this section" onClick={onStartMerge}>
+          <Combine className="size-3.5" />
+        </Button>
+      )}
       <Button size="icon" variant="ghost" className="size-7" onClick={onView}><Eye className="size-3.5" /></Button>
       <Button size="icon" variant="ghost" className="size-7" onClick={onDownload}><Download className="size-3.5" /></Button>
       {canEdit && sections.length > 0 && (
