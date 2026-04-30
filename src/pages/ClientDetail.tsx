@@ -20,6 +20,7 @@ import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
+import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 
@@ -473,6 +474,13 @@ const ClientDetail = () => {
           />
 
           <LetterCard clientId={client.id} canGenerate={canUpload} onGenerated={load} />
+
+          <ClientFormsCard
+            clientId={client.id}
+            country={client.country}
+            category={client.application_type}
+            canEdit={canUpload}
+          />
 
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
