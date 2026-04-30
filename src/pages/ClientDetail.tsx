@@ -88,14 +88,16 @@ const ClientDetail = () => {
     if (orphaned.length === 0) return;
     let cancelled = false;
     (async () => {
-      const updates: Promise<unknown>[] = [];
+      let n = 0;
       for (const d of orphaned) {
         const typeName = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
         const sid = await inferSectionId(typeName);
-        if (sid) updates.push(supabase.from("client_documents").update({ section_id: sid }).eq("id", d.id));
+        if (sid) {
+          await supabase.from("client_documents").update({ section_id: sid }).eq("id", d.id);
+          n++;
+        }
       }
-      await Promise.all(updates);
-      if (!cancelled && updates.length > 0) load();
+      if (!cancelled && n > 0) load();
     })();
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
