@@ -119,10 +119,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         const path = `${clientId}/section/${section.key}/${Date.now()}_${safe}`;
         const { error: upErr } = await supabase.storage.from("client-documents").upload(path, f, { contentType: f.type || "application/octet-stream" });
         if (upErr) { toast.error(upErr.message); continue; }
+        const title = prettyTitle(f.name);
         const { error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: "Other",
-          custom_type: section.label,
+          custom_type: title,
           file_name: f.name,
           storage_path: path,
           mime_type: f.type || null,
@@ -137,6 +138,55 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onChanged();
     } finally {
       setUploading(false);
+    }
+  };
+
+  const onRenameTitle = async (d: SectionDoc, newTitle: string) => {
+    const trimmed = newTitle.trim();
+    if (!trimmed || trimmed === (d.custom_type ?? "")) return;
+    const { error } = await supabase.from("client_documents").update({ custom_type: trimmed }).eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    onChanged();
+  };
+
+  const onMergeRows = async () => {
+    if (!mergeMode) return;
+    const ids = [mergeMode.anchorId, ...Array.from(mergeMode.selected)];
+    const ordered = items.filter((it) => ids.includes(it.id));
+    if (ordered.length < 2) { toast.error("Pick at least one more file to merge"); return; }
+    setMerging(true);
+    try {
+      const bytes = await combinePdfsFromStorage(ordered.map((d) => d.storage_path));
+      if (!bytes.byteLength) { toast.error("Could not merge — no PDF pages"); return; }
+      const anchor = ordered[0];
+      const baseTitle = anchor.custom_type ?? prettyTitle(anchor.file_name);
+      const fileName = `${baseTitle.replace(/[^a-zA-Z0-9]+/g, "_")}_merged.pdf`;
+      const path = `${clientId}/section/${section.key}/${Date.now()}_${fileName}`;
+      const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
+      const { error: upErr } = await supabase.storage.from("client-documents").upload(path, blob, { contentType: "application/pdf" });
+      if (upErr) throw upErr;
+      const { error: insErr } = await supabase.from("client_documents").insert({
+        client_id: clientId,
+        document_type: anchor.document_type || "Other",
+        custom_type: baseTitle,
+        file_name: fileName,
+        storage_path: path,
+        mime_type: "application/pdf",
+        size_bytes: blob.size,
+        section_id: section.id,
+        section_order: anchor.section_order,
+      });
+      if (insErr) throw insErr;
+      // remove originals (storage + row)
+      await supabase.storage.from("client-documents").remove(ordered.map((d) => d.storage_path));
+      await supabase.from("client_documents").delete().in("id", ordered.map((d) => d.id));
+      toast.success(`Merged ${ordered.length} files into ${baseTitle}`);
+      setMergeMode(null);
+      onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Merge failed");
+    } finally {
+      setMerging(false);
     }
   };
 
