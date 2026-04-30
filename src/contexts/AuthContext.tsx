@@ -32,12 +32,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+      setLoading(true);
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadRoles(s.user.id), 0);
+        setTimeout(() => loadRoles(s.user.id).finally(() => setLoading(false)), 0);
       } else {
         setRoles([]);
+        setLoading(false);
       }
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -62,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut: async () => { await supabase.auth.signOut(); },
     hasRole,
     isAdmin: roles.includes("admin"),
-    canEdit: hasRole(["admin", "counselor"]),
+    canEdit: hasRole(["admin", "counselor", "documentation"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
     canCreateClient: hasRole(["admin", "counselor", "documentation"]),
   };
