@@ -396,16 +396,25 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
 };
 
 function SortableRow({
-  doc, index, manual, canEdit, isAdmin, sections, onView, onDownload, onDelete, onMove,
+  doc, index, manual, canEdit, isAdmin, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
 }: {
   doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean;
   sections: CaseSection[];
+  mergeMode: { anchorId: string; selected: Set<string> } | null;
+  onStartMerge: () => void;
+  onToggleMergePick: () => void;
+  onRenameTitle: (title: string) => void;
   onView: () => void; onDownload: () => void; onDelete: () => void; onMove: (sid: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: doc.id, disabled: !manual });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(doc.custom_type ?? "");
+  useEffect(() => { setTitleDraft(doc.custom_type ?? ""); }, [doc.custom_type]);
+  const isAnchor = mergeMode?.anchorId === doc.id;
+  const isPicked = mergeMode?.selected.has(doc.id) ?? false;
   return (
-    <div ref={setNodeRef} style={style} className="px-5 py-2.5 flex items-center gap-2 hover:bg-muted/30">
+    <div ref={setNodeRef} style={style} className={`px-5 py-2.5 flex items-center gap-2 hover:bg-muted/30 ${isAnchor ? "bg-primary/10" : isPicked ? "bg-primary/5" : ""}`}>
       <button
         className={`size-6 flex items-center justify-center rounded ${manual ? "cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground" : "text-muted-foreground/30 cursor-not-allowed"}`}
         title={manual ? "Drag to reorder" : "Switch to Manual to reorder"}
@@ -416,12 +425,48 @@ function SortableRow({
       <div className="text-xs font-mono tabular-nums text-muted-foreground w-6 text-right">{String(index).padStart(2, "0")}</div>
       <FileText className="size-4 text-primary shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="text-sm truncate">{doc.file_name}</div>
+        {editingTitle ? (
+          <div className="flex items-center gap-1">
+            <Input
+              autoFocus
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") { onRenameTitle(titleDraft); setEditingTitle(false); }
+                if (e.key === "Escape") { setTitleDraft(doc.custom_type ?? ""); setEditingTitle(false); }
+              }}
+              onBlur={() => { onRenameTitle(titleDraft); setEditingTitle(false); }}
+              className="h-7 text-sm"
+            />
+            <Button size="icon" variant="ghost" className="size-6" onMouseDown={(e) => e.preventDefault()}>
+              <Check className="size-3.5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 group">
+            <div className="text-sm truncate font-medium">{doc.custom_type || prettyTitle(doc.file_name)}</div>
+            {canEdit && (
+              <button onClick={() => setEditingTitle(true)} className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground" title="Rename">
+                <Pencil className="size-3" />
+              </button>
+            )}
+          </div>
+        )}
         <div className="text-[11px] text-muted-foreground truncate">
-          {doc.custom_type ?? doc.document_type}
+          {doc.file_name}
           {doc.size_bytes ? ` · ${(doc.size_bytes / 1024).toFixed(0)} KB` : ""}
         </div>
       </div>
+      {mergeMode && !isAnchor && (
+        <Button size="sm" variant={isPicked ? "default" : "outline"} className="h-7 px-2 text-xs" onClick={onToggleMergePick}>
+          {isPicked ? "Picked" : "Pick"}
+        </Button>
+      )}
+      {!mergeMode && canEdit && (
+        <Button size="icon" variant="ghost" className="size-7" title="Merge with other rows in this section" onClick={onStartMerge}>
+          <Combine className="size-3.5" />
+        </Button>
+      )}
       <Button size="icon" variant="ghost" className="size-7" onClick={onView}><Eye className="size-3.5" /></Button>
       <Button size="icon" variant="ghost" className="size-7" onClick={onDownload}><Download className="size-3.5" /></Button>
       {canEdit && sections.length > 0 && (
