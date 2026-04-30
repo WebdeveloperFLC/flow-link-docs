@@ -88,6 +88,10 @@ export type Database = {
           generated_by: string | null
           group_label: string | null
           id: string
+          included_items: Json | null
+          order_mode: string
+          scope: string
+          section_id: string | null
           size_bytes: number | null
           storage_path: string
         }
@@ -98,6 +102,10 @@ export type Database = {
           generated_by?: string | null
           group_label?: string | null
           id?: string
+          included_items?: Json | null
+          order_mode?: string
+          scope?: string
+          section_id?: string | null
           size_bytes?: number | null
           storage_path: string
         }
@@ -108,6 +116,10 @@ export type Database = {
           generated_by?: string | null
           group_label?: string | null
           id?: string
+          included_items?: Json | null
+          order_mode?: string
+          scope?: string
+          section_id?: string | null
           size_bytes?: number | null
           storage_path?: string
         }
@@ -117,6 +129,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "binders_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "case_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -177,6 +196,36 @@ export type Database = {
           },
         ]
       }
+      case_sections: {
+        Row: {
+          created_at: string
+          id: string
+          is_archived: boolean
+          is_default: boolean
+          key: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_default?: boolean
+          key: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_archived?: boolean
+          is_default?: boolean
+          key?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       client_documents: {
         Row: {
           client_id: string
@@ -187,6 +236,8 @@ export type Database = {
           is_shared: boolean
           mime_type: string | null
           person_id: string | null
+          section_id: string | null
+          section_order: number
           size_bytes: number | null
           status: string
           storage_path: string
@@ -203,6 +254,8 @@ export type Database = {
           is_shared?: boolean
           mime_type?: string | null
           person_id?: string | null
+          section_id?: string | null
+          section_order?: number
           size_bytes?: number | null
           status?: string
           storage_path: string
@@ -219,6 +272,8 @@ export type Database = {
           is_shared?: boolean
           mime_type?: string | null
           person_id?: string | null
+          section_id?: string | null
+          section_order?: number
           size_bytes?: number | null
           status?: string
           storage_path?: string
@@ -239,6 +294,13 @@ export type Database = {
             columns: ["person_id"]
             isOneToOne: false
             referencedRelation: "case_people"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "case_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -446,6 +508,38 @@ export type Database = {
           },
         ]
       }
+      client_section_settings: {
+        Row: {
+          client_id: string
+          id: string
+          order_mode: string
+          section_id: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          id?: string
+          order_mode?: string
+          section_id: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          id?: string
+          order_mode?: string
+          section_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_section_settings_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "case_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           application_id: string
@@ -600,6 +694,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      filled_forms: {
+        Row: {
+          client_id: string
+          confirmed_at: string | null
+          created_at: string
+          created_by: string | null
+          file_name: string
+          file_path: string
+          form_id: string
+          id: string
+          instance_id: string | null
+          size_bytes: number | null
+          status: string
+          updated_at: string
+          validated_at: string | null
+          validation_report: Json | null
+        }
+        Insert: {
+          client_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name: string
+          file_path: string
+          form_id: string
+          id?: string
+          instance_id?: string | null
+          size_bytes?: number | null
+          status?: string
+          updated_at?: string
+          validated_at?: string | null
+          validation_report?: Json | null
+        }
+        Update: {
+          client_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_name?: string
+          file_path?: string
+          form_id?: string
+          id?: string
+          instance_id?: string | null
+          size_bytes?: number | null
+          status?: string
+          updated_at?: string
+          validated_at?: string | null
+          validation_report?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filled_forms_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "visa_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "filled_forms_instance_id_fkey"
+            columns: ["instance_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_instances"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       firm_profile: {
         Row: {
@@ -825,6 +985,170 @@ export type Database = {
         }
         Relationships: []
       }
+      questionnaire_email_templates: {
+        Row: {
+          body_html: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_default: boolean
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_html: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questionnaire_instances: {
+        Row: {
+          answers: Json
+          client_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          form_id: string | null
+          id: string
+          last_saved_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          schema_id: string
+          share_token: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          form_id?: string | null
+          id?: string
+          last_saved_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          schema_id: string
+          share_token?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          form_id?: string | null
+          id?: string
+          last_saved_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          schema_id?: string
+          share_token?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_instances_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "visa_forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionnaire_instances_schema_id_fkey"
+            columns: ["schema_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_schemas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questionnaire_schemas: {
+        Row: {
+          category: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          form_id: string | null
+          generated_by_ai: boolean
+          id: string
+          is_active: boolean
+          is_draft: boolean
+          mappings: Json
+          name: string
+          sections: Json
+          service_type: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          category?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          form_id?: string | null
+          generated_by_ai?: boolean
+          id?: string
+          is_active?: boolean
+          is_draft?: boolean
+          mappings?: Json
+          name: string
+          sections?: Json
+          service_type?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          category?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          form_id?: string | null
+          generated_by_ai?: boolean
+          id?: string
+          is_active?: boolean
+          is_draft?: boolean
+          mappings?: Json
+          name?: string
+          sections?: Json
+          service_type?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_schemas_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "visa_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       share_links: {
         Row: {
           created_at: string
@@ -884,6 +1208,83 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visa_forms: {
+        Row: {
+          auto_questionnaire: boolean
+          category: string
+          code: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          email_template_id: string | null
+          file_name: string
+          file_path: string
+          id: string
+          is_active: boolean
+          is_archived: boolean
+          name: string
+          notes: string | null
+          parent_form_id: string | null
+          requires_validation: boolean
+          send_mode: string
+          size_bytes: number | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          auto_questionnaire?: boolean
+          category: string
+          code?: string | null
+          country: string
+          created_at?: string
+          created_by?: string | null
+          email_template_id?: string | null
+          file_name: string
+          file_path: string
+          id?: string
+          is_active?: boolean
+          is_archived?: boolean
+          name: string
+          notes?: string | null
+          parent_form_id?: string | null
+          requires_validation?: boolean
+          send_mode?: string
+          size_bytes?: number | null
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          auto_questionnaire?: boolean
+          category?: string
+          code?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          email_template_id?: string | null
+          file_name?: string
+          file_path?: string
+          id?: string
+          is_active?: boolean
+          is_archived?: boolean
+          name?: string
+          notes?: string | null
+          parent_form_id?: string | null
+          requires_validation?: boolean
+          send_mode?: string
+          size_bytes?: number | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_visa_forms_email_template"
+            columns: ["email_template_id"]
+            isOneToOne: false
+            referencedRelation: "questionnaire_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workflow_templates: {
         Row: {

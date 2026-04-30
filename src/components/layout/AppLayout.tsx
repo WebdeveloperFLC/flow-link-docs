@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon, Mail, Database } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon, Mail, Database, FileStack } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -12,6 +12,7 @@ const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/clients", icon: Users, label: "Clients" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
+  { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
   { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
   { to: "/activity", icon: ScrollText, label: "Activity" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
