@@ -89,13 +89,20 @@ function humanize(name: string): string {
     .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function uniqueFieldId(name: string, index: number, seen: Record<string, number>): string {
+  const base = name.replace(/[^a-zA-Z0-9_]/g, "_").replace(/^_+|_+$/g, "") || `field_${index + 1}`;
+  seen[base] = (seen[base] ?? 0) + 1;
+  return seen[base] === 1 ? base : `${base}_${seen[base]}`;
+}
+
 async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
   try {
     const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true, updateMetadata: false });
     const form = pdf.getForm();
     const fields = form.getFields();
     const out: FieldDef[] = [];
-    for (const f of fields) {
+    const seen: Record<string, number> = {};
+    for (const [index, f] of fields.entries()) {
       const name = f.getName();
       const ctor = f.constructor.name;
       let options: string[] | undefined;
@@ -107,7 +114,7 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
       } catch { /* ignore */ }
       const label = humanize(name);
       out.push({
-        id: name.replace(/[^a-zA-Z0-9_]/g, "_"),
+        id: uniqueFieldId(name, index, seen),
         pdf_field: name,
         label,
         type: inferType(name, ctor),
