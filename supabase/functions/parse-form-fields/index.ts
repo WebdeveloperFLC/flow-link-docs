@@ -219,21 +219,21 @@ function xfaFieldType(body: string, attrs: string): FieldDef["type"] {
 }
 
 function xfaCaption(body: string): string {
-  const cap = /<caption\b[^>]*>([\s\S]*?)<\/caption>/.exec(body);
+  const cap = /<caption\b[^>]*>([\s\S]*?)<\/caption\s*>/.exec(body);
   if (cap) {
-    const t = /<text\b[^>]*>([\s\S]*?)<\/text>/.exec(cap[1]);
+    const t = /<text\b[^>]*>([\s\S]*?)<\/text\s*>/.exec(cap[1]);
     if (t) return decodeEntities(t[1]).replace(/\s+/g, " ").replace(/^\*+\s*/, "").trim();
   }
-  const tt = /<toolTip\b[^>]*>([\s\S]*?)<\/toolTip>/.exec(body);
+  const tt = /<toolTip\b[^>]*>([\s\S]*?)<\/toolTip\s*>/.exec(body);
   if (tt) return decodeEntities(tt[1]).replace(/\s+/g, " ").trim();
   return "";
 }
 
 function xfaOptions(body: string): string[] | undefined {
-  const items = /<items\b[^>]*>([\s\S]*?)<\/items>/.exec(body);
+  const items = /<items\b[^>]*>([\s\S]*?)<\/items\s*>/.exec(body);
   if (!items) return undefined;
   const out: string[] = [];
-  const re = /<text\b[^>]*>([\s\S]*?)<\/text>/g;
+  const re = /<text\b[^>]*>([\s\S]*?)<\/text\s*>/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(items[1])) !== null) {
     const v = decodeEntities(m[1]).trim();
