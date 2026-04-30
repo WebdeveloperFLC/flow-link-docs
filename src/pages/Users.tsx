@@ -115,10 +115,10 @@ const Users = () => {
                       <SelectContent>
                         {ALL_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
-                            <div className="flex flex-col py-1">
+                            <span className="flex flex-col py-1">
                               <span>{roleOptionLabel(r)}</span>
                               <span className="text-[10px] text-muted-foreground">{ROLE_HELP[r]}</span>
-                            </div>
+                            </span>
                           </SelectItem>
                         ))}
                       </SelectContent>
