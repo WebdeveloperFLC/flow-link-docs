@@ -82,7 +82,7 @@ function inferType(name: string, raw: string): FieldDef["type"] {
 
 function humanize(name: string): string {
   return name
-    .replace(/[._\-]+/g, " ")
+    .replace(/[._-]+/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/\s+/g, " ")
     .trim()
@@ -108,7 +108,7 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
       let options: string[] | undefined;
       try {
         if (ctor === "PDFDropdown" || ctor === "PDFRadioGroup") {
-          // @ts-ignore - getOptions exists on those subclasses
+          // @ts-expect-error - getOptions exists on those subclasses
           options = f.getOptions?.();
         }
       } catch { /* ignore */ }
