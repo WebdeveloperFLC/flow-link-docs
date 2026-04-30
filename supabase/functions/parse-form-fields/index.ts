@@ -82,11 +82,17 @@ function inferType(name: string, raw: string): FieldDef["type"] {
 
 function humanize(name: string): string {
   return name
-    .replace(/[._\-]+/g, " ")
+    .replace(/[._-]+/g, " ")
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/\s+/g, " ")
     .trim()
     .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function uniqueFieldId(name: string, index: number, seen: Record<string, number>): string {
+  const base = name.replace(/[^a-zA-Z0-9_]/g, "_").replace(/^_+|_+$/g, "") || `field_${index + 1}`;
+  seen[base] = (seen[base] ?? 0) + 1;
+  return seen[base] === 1 ? base : `${base}_${seen[base]}`;
 }
 
 async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
@@ -95,19 +101,20 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
     const form = pdf.getForm();
     const fields = form.getFields();
     const out: FieldDef[] = [];
-    for (const f of fields) {
+    const seen: Record<string, number> = {};
+    for (const [index, f] of fields.entries()) {
       const name = f.getName();
       const ctor = f.constructor.name;
       let options: string[] | undefined;
       try {
         if (ctor === "PDFDropdown" || ctor === "PDFRadioGroup") {
-          // @ts-ignore - getOptions exists on those subclasses
+          // @ts-expect-error - getOptions exists on those subclasses
           options = f.getOptions?.();
         }
       } catch { /* ignore */ }
       const label = humanize(name);
       out.push({
-        id: name.replace(/[^a-zA-Z0-9_]/g, "_"),
+        id: uniqueFieldId(name, index, seen),
         pdf_field: name,
         label,
         type: inferType(name, ctor),

@@ -10,10 +10,16 @@ import { Loader2, CheckCircle2, Save, Send } from "lucide-react";
 import { toast } from "sonner";
 
 type Field = {
-  key: string; label: string; type?: string;
+  key?: string; id?: string; pdf_field?: string; label: string; type?: string;
   required?: boolean; options?: string[]; placeholder?: string;
 };
 type Section = { key: string; label: string; fields: Field[] };
+
+const answerKeyFor = (sectionKey: string, field: Field, index: number) => {
+  const rawKey = field.key ?? field.id ?? field.pdf_field ?? `field_${index}`;
+  const cleanKey = String(rawKey).trim() || `field_${index}`;
+  return `${sectionKey}.${cleanKey}`;
+};
 
 const Questionnaire = () => {
   const { token } = useParams<{ token: string }>();
@@ -110,8 +116,8 @@ const Questionnaire = () => {
               <Card key={sec.key} className="p-6 space-y-4">
                 <div className="font-semibold">{sec.label}</div>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {sec.fields.map((f) => {
-                    const id = `${sec.key}.${f.key}`;
+                  {sec.fields.map((f, index) => {
+                    const id = answerKeyFor(sec.key, f, index);
                     const val = answers[id] ?? "";
                     const type = (f.type ?? "text").toLowerCase();
                     return (
