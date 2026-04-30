@@ -26,6 +26,7 @@ import { FinalBinderPanel } from "@/components/clients/FinalBinderPanel";
 import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
