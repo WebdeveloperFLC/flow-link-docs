@@ -18,6 +18,7 @@ import Masters from "./pages/Masters";
 import Verification from "./pages/Verification";
 import FormsLibrary from "./pages/FormsLibrary";
 import SharedView from "./pages/SharedView";
+import Questionnaire from "./pages/Questionnaire";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/share/:token" element={<SharedView />} />
+            <Route path="/questionnaire/:token" element={<Questionnaire />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
