@@ -274,7 +274,16 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   return (
-    <Card className="overflow-hidden shadow-elev-sm">
+    <Card
+      className={`overflow-hidden shadow-elev-sm transition-colors ${dragActive ? "ring-2 ring-primary bg-primary/5" : ""}`}
+      onDragOver={(e) => { if (!canEdit) return; e.preventDefault(); setDragActive(true); }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setDragActive(false); }}
+      onDrop={(e) => {
+        if (!canEdit) return;
+        e.preventDefault(); setDragActive(false);
+        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
+      }}
+    >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Layers className="size-4 text-primary" />
@@ -301,16 +310,39 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
-                {binder ? "Re-combine" : "Combine"}
+                {items.length === 0
+                  ? "Combine"
+                  : items.length === 1
+                    ? (binder ? "Re-build binder" : "Use as binder")
+                    : (binder ? `Re-combine ${items.length} files` : `Combine ${items.length} files`)}
               </Button>
             </>
           )}
         </div>
       </div>
 
+      {mergeMode && (
+        <div className="px-5 py-2.5 bg-primary/5 border-b flex items-center justify-between gap-3 text-xs">
+          <div>
+            Pick rows to merge into <span className="font-semibold">{items.find((i) => i.id === mergeMode.anchorId)?.custom_type ?? "this row"}</span> · {mergeMode.selected.size} selected
+          </div>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setMergeMode(null)} disabled={merging}>Cancel</Button>
+            <Button size="sm" onClick={onMergeRows} disabled={merging || mergeMode.selected.size === 0}>
+              {merging ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Combine className="size-3.5 mr-1.5" />}
+              Merge {mergeMode.selected.size + 1} into one
+            </Button>
+          </div>
+        </div>
+      )}
+
       {items.length === 0 ? (
-        <div className="px-5 py-8 text-center text-xs text-muted-foreground">
-          No documents in this section yet. {canEdit && "Click Upload to add files."}
+        <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
+          {dragActive
+            ? `Drop files into ${section.label}`
+            : (canEdit
+                ? `Drop files here or click Upload — multiple files supported. They'll be added to ${section.label}.`
+                : "No documents in this section yet.")}
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
@@ -325,6 +357,15 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                   canEdit={canEdit}
                   isAdmin={isAdmin}
                   sections={allSections.filter((s) => s.id !== section.id)}
+                  mergeMode={mergeMode}
+                  onStartMerge={() => setMergeMode({ anchorId: d.id, selected: new Set() })}
+                  onToggleMergePick={() => setMergeMode((m) => {
+                    if (!m || m.anchorId === d.id) return m;
+                    const next = new Set(m.selected);
+                    next.has(d.id) ? next.delete(d.id) : next.add(d.id);
+                    return { ...m, selected: next };
+                  })}
+                  onRenameTitle={(t) => onRenameTitle(d, t)}
                   onView={() => onView(d)}
                   onDownload={() => onDownload(d)}
                   onDelete={() => onDelete(d)}
