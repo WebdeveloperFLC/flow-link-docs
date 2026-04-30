@@ -41,8 +41,8 @@ export const DOCUMENT_TYPES = [
 
 export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrator",
-  counselor: "Edit - Counselor",
-  documentation: "Edit - Documentation",
+  counselor: "Edit",
+  documentation: "Edit",
   viewer: "Viewer",
 };
 
