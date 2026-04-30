@@ -511,6 +511,41 @@ const ClientDetail = () => {
             canEdit={canUpload}
           />
 
+          {/* Section binders — upload many docs per section, drag to order, combine into a section binder. */}
+          {sections.length > 0 && (
+            <div className="space-y-4">
+              {sections.map((sec) => {
+                const sectionDocs: SectionDoc[] = docs
+                  .filter((d) => d.section_id === sec.id)
+                  .map((d) => ({
+                    id: d.id,
+                    document_type: d.document_type,
+                    custom_type: d.custom_type,
+                    file_name: d.file_name,
+                    storage_path: d.storage_path,
+                    mime_type: d.mime_type,
+                    size_bytes: d.size_bytes,
+                    section_id: d.section_id ?? null,
+                    section_order: d.section_order ?? 0,
+                    uploaded_at: d.uploaded_at,
+                    version: d.version,
+                  }));
+                return (
+                  <SectionBuilderCard
+                    key={sec.id}
+                    clientId={client.id}
+                    section={sec}
+                    allSections={sections}
+                    documents={sectionDocs}
+                    canEdit={canUpload}
+                    isAdmin={isAdmin}
+                    onChanged={load}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
             <div className="px-6 py-4 border-b">
