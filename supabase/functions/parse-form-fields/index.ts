@@ -387,12 +387,25 @@ Deno.serve(async (req) => {
     const bytes = new Uint8Array(await file.arrayBuffer());
     const acro = await extractAcroFields(bytes);
 
+    let detectedFields: FieldDef[] = acro;
+    let source: "acroform" | "xfa" | "defaults" = "acroform";
+
+    if (detectedFields.length < 3) {
+      const xml = await extractXfaTemplateXml(bytes);
+      if (xml) {
+        const xfa = extractXfaFields(xml);
+        console.log(`XFA fields detected for ${form.name}: ${xfa.length}`);
+        if (xfa.length >= 3) { detectedFields = xfa; source = "xfa"; }
+      }
+    }
+
     let sections: SectionDef[];
-    if (acro.length >= 3) {
-      sections = buildSchemaFromFields(acro);
+    if (detectedFields.length >= 3) {
+      sections = buildSchemaFromFields(detectedFields);
     } else {
-      console.log(`No AcroForm fields detected for ${form.name}, using defaults.`);
+      console.log(`No form fields detected for ${form.name}, using defaults.`);
       sections = DEFAULT_SECTIONS;
+      source = "defaults";
     }
 
     const mappings: Record<string, { table: string; column: string }> = {};
@@ -435,6 +448,8 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       schema: inserted,
       acro_fields_detected: acro.length,
+      total_fields_detected: detectedFields.length,
+      source,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("parse-form-fields error:", e);
