@@ -21,6 +21,9 @@ import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extrac
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
+import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
+import { FinalBinderPanel } from "@/components/clients/FinalBinderPanel";
+import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 
@@ -34,6 +37,8 @@ interface Doc {
   id: string; client_id: string; document_type: string; custom_type: string | null;
   file_name: string; storage_path: string; mime_type: string | null;
   size_bytes: number | null; version: number; uploaded_at: string;
+  section_id?: string | null;
+  section_order?: number;
 }
 
 interface BinderRow {
@@ -57,6 +62,7 @@ const ClientDetail = () => {
   const [syncingOdoo, setSyncingOdoo] = useState(false);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [people, setPeople] = useState<CasePerson[]>([]);
+  const [sections, setSections] = useState<CaseSection[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -70,6 +76,7 @@ const ClientDetail = () => {
     setDocs((d ?? []) as Doc[]);
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
+    setSections(await loadSections());
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
