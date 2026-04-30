@@ -25,6 +25,12 @@ const ROLE_HELP: Record<AppRole, string> = {
   viewer: "View-only access",
 };
 
+const roleOptionLabel = (role: AppRole) => {
+  if (role === "counselor") return "Edit - Counselor";
+  if (role === "documentation") return "Edit - Documentation";
+  return ROLE_LABELS[role];
+};
+
 const Users = () => {
   const { isAdmin, user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -100,7 +106,7 @@ const Users = () => {
                   <div className="col-span-3">
                     <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primary])}>
                       <Shield className="size-2.5" />
-                      {ROLE_LABELS[primary]}
+                      {roleOptionLabel(primary)}
                     </span>
                   </div>
                   <div className="col-span-4 flex items-center gap-2">
@@ -110,7 +116,7 @@ const Users = () => {
                         {ALL_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
                             <div className="flex flex-col py-1">
-                              <span>{ROLE_LABELS[r]}</span>
+                              <span>{roleOptionLabel(r)}</span>
                               <span className="text-[10px] text-muted-foreground">{ROLE_HELP[r]}</span>
                             </div>
                           </SelectItem>
@@ -126,7 +132,7 @@ const Users = () => {
         </Card>
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
-          <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit - Counselor</b> and <b>Edit - Documentation</b> can add clients, upload documents and fill all details · <b>Viewer</b> is read-only.</p>
+          <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit</b> users can add clients, upload documents and fill all details · <b>Viewer</b> is read-only.</p>
         </div>
       </div>
     </AppLayout>
