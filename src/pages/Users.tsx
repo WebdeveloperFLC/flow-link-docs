@@ -18,6 +18,13 @@ interface RoleRow { user_id: string; role: AppRole; }
 
 const ALL_ROLES: AppRole[] = ["admin", "counselor", "documentation", "viewer"];
 
+const ROLE_HELP: Record<AppRole, string> = {
+  admin: "Full system access, settings and team role management",
+  counselor: "Edit access: add clients, upload documents and fill client details",
+  documentation: "Edit access: add clients, upload documents and fill client details",
+  viewer: "View-only access",
+};
+
 const Users = () => {
   const { isAdmin, user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -73,7 +80,7 @@ const Users = () => {
           <div className="grid grid-cols-12 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
             <div className="col-span-5">User</div>
             <div className="col-span-3">Current role</div>
-            <div className="col-span-4">Change role</div>
+            <div className="col-span-4">Access level</div>
           </div>
           <div className="divide-y">
             {profiles.length === 0 && (
@@ -101,7 +108,12 @@ const Users = () => {
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {ALL_ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                          <SelectItem key={r} value={r}>
+                            <div className="flex flex-col py-1">
+                              <span>{ROLE_LABELS[r]}</span>
+                              <span className="text-[10px] text-muted-foreground">{ROLE_HELP[r]}</span>
+                            </div>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -114,7 +126,7 @@ const Users = () => {
         </Card>
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
-          <p>Roles control access: <b>Admins</b> manage everything · <b>Counselors</b> create/edit clients & upload · <b>Documentation</b> uploads & generates binders · <b>Viewers</b> read-only.</p>
+          <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit - Counselor</b> and <b>Edit - Documentation</b> can add clients, upload documents and fill all details · <b>Viewer</b> is read-only.</p>
         </div>
       </div>
     </AppLayout>
