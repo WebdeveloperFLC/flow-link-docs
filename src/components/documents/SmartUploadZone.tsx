@@ -13,6 +13,7 @@ import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegData
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { ROLE_SHORT, type CasePerson } from "@/lib/casePeople";
+import { inferSectionId } from "@/lib/sections";
 import { toast } from "sonner";
 
 interface Client { id: string; full_name: string; }
@@ -220,6 +221,8 @@ export const SmartUploadZone = ({
         .upload(path, processed, { contentType: "application/pdf" });
       if (upErr) throw upErr;
 
+      const inferredSectionId = await inferSectionId(effectiveType).catch(() => null);
+
       const { data: ins, error: insErr } = await supabase
         .from("client_documents")
         .insert({
@@ -234,6 +237,7 @@ export const SmartUploadZone = ({
           size_bytes: processed.size,
           version: nextVersion,
           status: "processed",
+          section_id: inferredSectionId,
         })
         .select()
         .single();

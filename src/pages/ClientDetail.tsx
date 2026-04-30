@@ -21,6 +21,9 @@ import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extrac
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
+import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
+import { FinalBinderPanel } from "@/components/clients/FinalBinderPanel";
+import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 
@@ -34,6 +37,8 @@ interface Doc {
   id: string; client_id: string; document_type: string; custom_type: string | null;
   file_name: string; storage_path: string; mime_type: string | null;
   size_bytes: number | null; version: number; uploaded_at: string;
+  section_id?: string | null;
+  section_order?: number;
 }
 
 interface BinderRow {
@@ -57,6 +62,7 @@ const ClientDetail = () => {
   const [syncingOdoo, setSyncingOdoo] = useState(false);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [people, setPeople] = useState<CasePerson[]>([]);
+  const [sections, setSections] = useState<CaseSection[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -70,9 +76,32 @@ const ClientDetail = () => {
     setDocs((d ?? []) as Doc[]);
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
+    setSections(await loadSections());
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Backfill: ensure every doc has a section_id so it appears in some section card.
+  useEffect(() => {
+    if (!docs.length || !sections.length) return;
+    const orphaned = docs.filter((d) => !d.section_id);
+    if (orphaned.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      let n = 0;
+      for (const d of orphaned) {
+        const typeName = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
+        const sid = await inferSectionId(typeName);
+        if (sid) {
+          await supabase.from("client_documents").update({ section_id: sid }).eq("id", d.id);
+          n++;
+        }
+      }
+      if (!cancelled && n > 0) load();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, sections]);
 
   const docByType = (typeName: string): Doc | undefined => {
     const matches = docs.filter((d) => (d.document_type === "Other" ? d.custom_type : d.document_type) === typeName);
@@ -482,6 +511,41 @@ const ClientDetail = () => {
             canEdit={canUpload}
           />
 
+          {/* Section binders — upload many docs per section, drag to order, combine into a section binder. */}
+          {sections.length > 0 && (
+            <div className="space-y-4">
+              {sections.map((sec) => {
+                const sectionDocs: SectionDoc[] = docs
+                  .filter((d) => d.section_id === sec.id)
+                  .map((d) => ({
+                    id: d.id,
+                    document_type: d.document_type,
+                    custom_type: d.custom_type,
+                    file_name: d.file_name,
+                    storage_path: d.storage_path,
+                    mime_type: d.mime_type,
+                    size_bytes: d.size_bytes,
+                    section_id: d.section_id ?? null,
+                    section_order: d.section_order ?? 0,
+                    uploaded_at: d.uploaded_at,
+                    version: d.version,
+                  }));
+                return (
+                  <SectionBuilderCard
+                    key={sec.id}
+                    clientId={client.id}
+                    section={sec}
+                    allSections={sections}
+                    documents={sectionDocs}
+                    canEdit={canUpload}
+                    isAdmin={isAdmin}
+                    onChanged={load}
+                  />
+                );
+              })}
+            </div>
+          )}
+
           {/* All documents (incl. ad-hoc) */}
           <Card className="overflow-hidden shadow-elev-sm">
             <div className="px-6 py-4 border-b">
@@ -581,6 +645,22 @@ const ClientDetail = () => {
 
         {/* Right: upload */}
         <div className="space-y-4">
+          <FinalBinderPanel
+            clientId={client.id}
+            clientName={client.full_name}
+            sections={sections}
+            docsBySection={sections.reduce((acc, s) => {
+              acc[s.id] = docs.filter((d) => d.section_id === s.id).map((d) => ({
+                id: d.id, document_type: d.document_type, custom_type: d.custom_type,
+                file_name: d.file_name, storage_path: d.storage_path, mime_type: d.mime_type,
+                size_bytes: d.size_bytes, section_id: d.section_id ?? null,
+                section_order: d.section_order ?? 0, uploaded_at: d.uploaded_at, version: d.version,
+              }));
+              return acc;
+            }, {} as Record<string, SectionDoc[]>)}
+            canGenerate={canUpload}
+            onGenerated={load}
+          />
           <CasePeopleCard
             clientId={client.id}
             canEdit={canUpload}

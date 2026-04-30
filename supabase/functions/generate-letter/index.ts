@@ -12,15 +12,15 @@ const corsHeaders = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-type Kind = "cover" | "rcic" | "statdec";
+type Kind = string;
 
-const TITLES: Record<Kind, string> = {
+const KNOWN_TITLES: Record<string, string> = {
   cover: "Applicant Letter of Explanation",
   rcic: "RCIC Submission Letter",
   statdec: "Statutory Declaration",
 };
 
-const SYSTEM_FOR: Record<Kind, string> = {
+const KNOWN_SYSTEM_FOR: Record<string, string> = {
   cover:
     "You are an immigration consultant drafting an Applicant's Letter of Explanation to IRCC. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Use the client's own voice (first person, signed by the client). Do NOT invent facts that are not present in CLIENT FACTS or DOCUMENT EXTRACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis. Always include: addressee block (To: The Visa Officer, IRCC), Subject line, numbered body sections, Conclusion, and a signature line with the applicant name(s).",
   rcic:
@@ -28,6 +28,8 @@ const SYSTEM_FOR: Record<Kind, string> = {
   statdec:
     "You are drafting a Statutory Declaration in the Canadian legal format. Mirror the layout, oath language and numbered clauses of the SAMPLE. Replace specific facts with CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. ALWAYS preserve the legal header in the exact form 'CANADA }', 'Province of <X> }', 'City of <X> }' on separate lines, the 'I, <NAME> ... DO SOLEMNLY DECLARE THAT:' opener, numbered solemn clauses, the 'AND I make this solemn declaration ... Canada Evidence Act' closer, and the 'DECLARED BEFORE ME' / 'Commissioner of Oaths' / declarant signature footer.",
 };
+
+const GENERIC_SYSTEM = "You are drafting a formal letter for an immigration application. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Do NOT invent facts that are not present in CLIENT FACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis.";
 
 function escXml(s: string): string {
   return s
@@ -218,11 +220,23 @@ Deno.serve(async (req) => {
     if (!userData?.user) return json({ error: "unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
-    const kind = String(body?.kind ?? "") as Kind;
+    const kind = String(body?.kind ?? "").trim();
     const clientId = String(body?.client_id ?? "");
     const extraInstructions = String(body?.extra_instructions ?? "").slice(0, 2000);
-    if (!["cover", "rcic", "statdec"].includes(kind)) return json({ error: "invalid kind" }, 400);
+    if (!kind) return json({ error: "kind required" }, 400);
     if (!clientId) return json({ error: "client_id required" }, 400);
+
+    // Resolve a friendly title from the master list (falls back to known + capitalized code)
+    const { data: kindRow } = await admin
+      .from("master_items")
+      .select("label,metadata")
+      .eq("list_key", "letter_kinds")
+      .eq("code", kind)
+      .maybeSingle();
+    const title = kindRow?.label
+      || KNOWN_TITLES[kind]
+      || kind.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const systemPrompt = KNOWN_SYSTEM_FOR[kind] || GENERIC_SYSTEM;
 
     const { data: client } = await admin.from("clients").select("*").eq("id", clientId).maybeSingle();
     if (!client) return json({ error: "client not found" }, 404);
@@ -285,7 +299,7 @@ Deno.serve(async (req) => {
     };
 
     const userPrompt = [
-      `=== SAMPLE ${TITLES[kind].toUpperCase()} (style and structure to mirror) ===`,
+      `=== SAMPLE ${title.toUpperCase()} (style and structure to mirror) ===`,
       tpl.style_text,
       "",
       "=== CLIENT FACTS (JSON) ===",
@@ -295,7 +309,7 @@ Deno.serve(async (req) => {
       "Now write the letter. Use Markdown only. Where a fact is missing, write [MISSING: <human field name>] verbatim.",
     ].join("\n");
 
-    const md = await callAI(SYSTEM_FOR[kind], userPrompt);
+    const md = await callAI(systemPrompt, userPrompt);
     if (!md.trim()) return json({ error: "AI returned empty content" }, 500);
 
     // For RCIC letters, embed the firm logo as an inline letterhead at the top
@@ -310,11 +324,14 @@ Deno.serve(async (req) => {
       } catch (_e) { /* logo optional */ }
     }
 
-    const docxBytes = await buildDocx(`${TITLES[kind]} - ${client.full_name}`, md, logoBytes);
+    const docxBytes = await buildDocx(`${title} - ${client.full_name}`, md, logoBytes);
 
     // Save to client-documents bucket under letters/
     const cleanName = String(client.full_name).replace(/[^a-zA-Z0-9]/g, "");
-    const fileName = `${kind === "cover" ? "ApplicantLetter" : kind === "rcic" ? "RCICLetter" : "StatutoryDeclaration"}_${cleanName}_${Date.now()}.docx`;
+    const safeKind = kind.replace(/[^a-zA-Z0-9]+/g, "");
+    const knownFile: Record<string, string> = { cover: "ApplicantLetter", rcic: "RCICLetter", statdec: "StatutoryDeclaration" };
+    const baseName = knownFile[kind] ?? `Letter_${safeKind || "Generic"}`;
+    const fileName = `${baseName}_${cleanName}_${Date.now()}.docx`;
     const path = `${clientId}/letters/${fileName}`;
     const { error: upErr } = await admin.storage
       .from("client-documents")
@@ -330,7 +347,7 @@ Deno.serve(async (req) => {
       .insert({
         client_id: clientId,
         document_type: "Other",
-        custom_type: `Letter: ${TITLES[kind]}`,
+        custom_type: `Letter: ${title}`,
         file_name: fileName,
         storage_path: path,
         size_bytes: docxBytes.byteLength,

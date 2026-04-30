@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, FileText, Loader2, Check, Trash2, Globe } from "lucide-react";
 import { toast } from "sonner";
-import { LETTER_KINDS, type LetterKind } from "@/lib/letterKinds";
+import { useLetterKinds, type LetterKind } from "@/lib/letterKinds";
 import { logActivity } from "@/lib/activity";
 import { useMasterLabels } from "@/lib/masters";
 
@@ -33,12 +33,10 @@ const LetterTemplatesPage = () => {
   const [editingStyle, setEditingStyle] = useState<Record<string, string>>({});
   const COUNTRIES = useMasterLabels("countries");
   const APPLICATION_TYPES = useMasterLabels("application_types");
+  const LETTER_KINDS = useLetterKinds();
   // pending "Add variant" pickers per kind
-  const [pendingScope, setPendingScope] = useState<Record<LetterKind, { country: string; category: string }>>({
-    cover: { country: "", category: "" },
-    rcic: { country: "", category: "" },
-    statdec: { country: "", category: "" },
-  });
+  const [pendingScope, setPendingScope] = useState<Record<LetterKind, { country: string; category: string }>>({});
+  const getPending = (k: LetterKind) => pendingScope[k] ?? { country: "", category: "" };
 
   const load = async () => {
     const { data } = await supabase
@@ -158,7 +156,7 @@ const LetterTemplatesPage = () => {
         {LETTER_KINDS.map((lk) => {
           const globalActive = activeFor(lk.kind, null, null);
           const variants = variantsFor(lk.kind);
-          const pending = pendingScope[lk.kind];
+          const pending = getPending(lk.kind);
           return (
             <Card key={lk.kind} className="p-5 shadow-elev-sm space-y-4">
               <div className="flex items-start justify-between gap-3">
