@@ -645,6 +645,22 @@ const ClientDetail = () => {
 
         {/* Right: upload */}
         <div className="space-y-4">
+          <FinalBinderPanel
+            clientId={client.id}
+            clientName={client.full_name}
+            sections={sections}
+            docsBySection={sections.reduce((acc, s) => {
+              acc[s.id] = docs.filter((d) => d.section_id === s.id).map((d) => ({
+                id: d.id, document_type: d.document_type, custom_type: d.custom_type,
+                file_name: d.file_name, storage_path: d.storage_path, mime_type: d.mime_type,
+                size_bytes: d.size_bytes, section_id: d.section_id ?? null,
+                section_order: d.section_order ?? 0, uploaded_at: d.uploaded_at, version: d.version,
+              }));
+              return acc;
+            }, {} as Record<string, SectionDoc[]>)}
+            canGenerate={canUpload}
+            onGenerated={load}
+          />
           <CasePeopleCard
             clientId={client.id}
             canEdit={canUpload}
