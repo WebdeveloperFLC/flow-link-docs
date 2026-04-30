@@ -18,6 +18,18 @@ import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, type CaseSe
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 
+/** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
+function prettyTitle(fileName: string): string {
+  const base = fileName.replace(/\.[^.]+$/, "");
+  const cleaned = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!cleaned) return base;
+  // Title-case words that are all-lowercase; preserve mixed-case tokens like "B.Tech".
+  return cleaned
+    .split(" ")
+    .map((w) => (w === w.toLowerCase() ? w.charAt(0).toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
 export interface SectionDoc {
   id: string;
   document_type: string;
