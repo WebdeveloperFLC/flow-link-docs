@@ -182,10 +182,12 @@ function* iterateXfaFieldBlocks(xml: string): Generator<{ attrs: string; body: s
   while ((m = open.exec(xml)) !== null) {
     const attrs = m[1];
     const startBody = open.lastIndex;
-    const close = xml.indexOf("</field>", startBody);
-    if (close === -1) continue;
-    yield { attrs, body: xml.slice(startBody, close) };
-    open.lastIndex = close + "</field>".length;
+    const closeRe = /<\/field\s*>/g;
+    closeRe.lastIndex = startBody;
+    const cm = closeRe.exec(xml);
+    if (!cm) continue;
+    yield { attrs, body: xml.slice(startBody, cm.index) };
+    open.lastIndex = cm.index + cm[0].length;
   }
 }
 
