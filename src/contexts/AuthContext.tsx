@@ -74,6 +74,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const c = useContext(Ctx);
-  if (!c) throw new Error("useAuth must be used within AuthProvider");
+  if (!c) {
+    // Fallback during HMR or before provider mounts — avoid hard crash.
+    return {
+      user: null,
+      session: null,
+      roles: [],
+      loading: true,
+      signOut: async () => {},
+      hasRole: () => false,
+      canEdit: false,
+      canUpload: false,
+      canCreateClient: false,
+      isAdmin: false,
+    } as AuthCtx;
+  }
   return c;
 };
