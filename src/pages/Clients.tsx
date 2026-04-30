@@ -21,7 +21,7 @@ interface Client {
 }
 
 const Clients = () => {
-  const { canEdit } = useAuth();
+  const { canCreateClient } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
@@ -42,7 +42,7 @@ const Clients = () => {
         title="Clients"
         description="Manage applicant profiles and their document workspaces."
         actions={
-          canEdit && (
+          canCreateClient && (
             <Button onClick={() => setOpen(true)} className="gradient-brand text-primary-foreground">
               <Plus className="size-4 mr-1.5" /> New client
             </Button>

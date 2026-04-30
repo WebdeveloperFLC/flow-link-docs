@@ -13,6 +13,7 @@ interface AuthCtx {
   hasRole: (r: AppRole | AppRole[]) => boolean;
   canEdit: boolean;
   canUpload: boolean;
+  canCreateClient: boolean;
   isAdmin: boolean;
 }
 
@@ -63,6 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin: roles.includes("admin"),
     canEdit: hasRole(["admin", "counselor"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
+    canCreateClient: hasRole(["admin", "counselor", "documentation"]),
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
