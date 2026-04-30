@@ -547,25 +547,35 @@ const ClientDetail = () => {
             </div>
           )}
 
-          {/* All documents (incl. ad-hoc) */}
+          {/* Flat list — collapsed by default; section cards above are the primary surface. */}
           <Card className="overflow-hidden shadow-elev-sm">
-            <div className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="font-semibold">All uploaded documents</div>
-                  <div className="text-xs text-muted-foreground">
-                    {docs.length} file{docs.length===1?"":"s"} · auto-renamed, PDF-converted & compressed for IRCC (≤ 4 MB)
+            <Accordion type="single" collapsible>
+              <AccordionItem value="flat" className="border-0">
+                <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                  <div className="flex items-center justify-between gap-3 flex-1">
+                    <div className="text-left">
+                      <div className="font-semibold">All uploaded documents (flat list)</div>
+                      <div className="text-xs text-muted-foreground">
+                        {docs.length} file{docs.length===1?"":"s"} · auto-renamed, PDF-converted & compressed for IRCC (≤ 4 MB)
+                      </div>
+                    </div>
+                    {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
+                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-semibold uppercase tracking-wide">
+                        Optimize available
+                      </span>
+                    )}
                   </div>
-                </div>
-                {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
-                  <Button variant="outline" size="sm" onClick={onOptimizeAll} disabled={optimizingAll}>
-                    {optimizingAll ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Sparkles className="size-3.5 mr-1.5" />}
-                    Re-optimize all
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="divide-y">
+                </AccordionTrigger>
+                <AccordionContent>
+                  {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
+                    <div className="px-6 pb-2">
+                      <Button variant="outline" size="sm" onClick={onOptimizeAll} disabled={optimizingAll}>
+                        {optimizingAll ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Sparkles className="size-3.5 mr-1.5" />}
+                        Re-optimize all
+                      </Button>
+                    </div>
+                  )}
+                  <div className="divide-y border-t">
               {docs.length === 0 && (
                 <div className="px-6 py-10 text-center text-sm text-muted-foreground">No documents uploaded yet.</div>
               )}
@@ -608,7 +618,10 @@ const ClientDetail = () => {
                   )}
                 </div>
               ))}
-            </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </Card>
 
           {binders.length > 0 && (
