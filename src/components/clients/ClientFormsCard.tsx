@@ -1,0 +1,210 @@
+import { useEffect, useState, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive } from "lucide-react";
+import { toast } from "sonner";
+import { logActivity } from "@/lib/activity";
+
+interface VisaForm {
+  id: string;
+  name: string;
+  code: string | null;
+  version: number;
+  file_path: string;
+  file_name: string;
+  country: string;
+  category: string;
+  is_active: boolean;
+  is_archived: boolean;
+}
+
+interface SchemaRow { id: string; form_id: string; version: number; is_active: boolean; is_draft: boolean; }
+interface InstanceRow {
+  id: string; form_id: string | null; schema_id: string;
+  status: string; share_token: string | null; submitted_at: string | null;
+}
+
+const randomToken = () => {
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  return btoa(String.fromCharCode(...arr)).replace(/[+/=]/g, "").slice(0, 32);
+};
+
+export const ClientFormsCard = ({
+  clientId, country, category, canEdit,
+}: { clientId: string; country: string; category: string; canEdit: boolean }) => {
+  const [forms, setForms] = useState<VisaForm[]>([]);
+  const [schemas, setSchemas] = useState<SchemaRow[]>([]);
+  const [instances, setInstances] = useState<InstanceRow[]>([]);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [{ data: f }, { data: i }] = await Promise.all([
+      supabase.from("visa_forms").select("*")
+        .eq("country", country).eq("category", category).eq("is_archived", false)
+        .order("name"),
+      supabase.from("questionnaire_instances").select("id, form_id, schema_id, status, share_token, submitted_at")
+        .eq("client_id", clientId),
+    ]);
+    const formIds = (f ?? []).map((x) => x.id);
+    let s: SchemaRow[] = [];
+    if (formIds.length > 0) {
+      const { data } = await supabase.from("questionnaire_schemas")
+        .select("id, form_id, version, is_active, is_draft")
+        .in("form_id", formIds);
+      s = (data ?? []) as SchemaRow[];
+    }
+    setForms((f ?? []) as VisaForm[]);
+    setSchemas(s);
+    setInstances((i ?? []) as InstanceRow[]);
+    setLoading(false);
+  }, [clientId, country, category]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const schemaForForm = (formId: string): SchemaRow | undefined => {
+    const candidates = schemas.filter((s) => s.form_id === formId);
+    // Prefer active, else highest version
+    return candidates.sort((a, b) => Number(b.is_active) - Number(a.is_active) || b.version - a.version)[0];
+  };
+
+  const instanceForForm = (formId: string): InstanceRow | undefined =>
+    instances.find((x) => x.form_id === formId);
+
+  const onView = async (form: VisaForm) => {
+    try {
+      const { data, error } = await supabase.storage.from("visa-forms").createSignedUrl(form.file_path, 600);
+      if (error || !data?.signedUrl) throw error ?? new Error("Could not open form");
+      window.open(data.signedUrl, "_blank", "noopener");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to open form");
+    }
+  };
+
+  const onCreateOrCopyLink = async (form: VisaForm) => {
+    setBusyId(form.id);
+    try {
+      const schema = schemaForForm(form.id);
+      if (!schema) {
+        toast.error("Questionnaire not generated yet for this form. Open Forms Library and run AI extraction.");
+        return;
+      }
+      let inst = instanceForForm(form.id);
+      if (!inst || !inst.share_token) {
+        const token = randomToken();
+        const { data: { user } } = await supabase.auth.getUser();
+        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        if (inst) {
+          const { error } = await supabase.from("questionnaire_instances")
+            .update({ share_token: token, expires_at }).eq("id", inst.id);
+          if (error) throw error;
+        } else {
+          const { data, error } = await supabase.from("questionnaire_instances").insert({
+            client_id: clientId,
+            schema_id: schema.id,
+            form_id: form.id,
+            share_token: token,
+            expires_at,
+            status: "draft",
+            answers: {},
+            created_by: user?.id ?? null,
+          }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
+          if (error) throw error;
+          inst = data as InstanceRow;
+        }
+        await logActivity("questionnaire.link_created", "client", clientId, { form_id: form.id });
+        await load();
+      }
+      const token = (inst?.share_token) ?? (await supabase.from("questionnaire_instances")
+        .select("share_token").eq("client_id", clientId).eq("form_id", form.id).maybeSingle()).data?.share_token;
+      if (!token) throw new Error("Token not available");
+      const url = `${window.location.origin}/questionnaire/${token}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedId(form.id);
+      setTimeout(() => setCopiedId(null), 2000);
+      toast.success("Questionnaire link copied to clipboard");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to create link");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <Card className="overflow-hidden shadow-elev-sm">
+      <div className="px-6 py-4 border-b">
+        <div className="font-semibold flex items-center gap-2">
+          <FileText className="size-4 text-primary" /> Visa forms & questionnaires
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {country} · {category} · {forms.length} form{forms.length === 1 ? "" : "s"} available
+        </div>
+      </div>
+      <div className="divide-y">
+        {loading ? (
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin inline mr-2" />Loading forms…
+          </div>
+        ) : forms.length === 0 ? (
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            No forms uploaded for <b>{country} · {category}</b> yet. Add them in the Forms Library.
+          </div>
+        ) : forms.map((form) => {
+          const schema = schemaForForm(form.id);
+          const inst = instanceForForm(form.id);
+          const submitted = inst?.status === "submitted";
+          return (
+            <div key={form.id} className="px-6 py-3.5 flex items-center gap-3">
+              <FileText className="size-4 text-primary shrink-0" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate flex items-center gap-2">
+                  {form.name}
+                  {form.code && <span className="text-[10px] font-mono text-muted-foreground">{form.code}</span>}
+                  <span className="text-[10px] text-muted-foreground">v{form.version}</span>
+                  {!form.is_active && (
+                    <span className="text-[10px] uppercase font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                      <Archive className="size-2.5" />Inactive
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {schema ? (submitted ? "Questionnaire submitted by client" : inst ? "Questionnaire link active" : "Questionnaire ready · click link to share") : "Questionnaire not generated"}
+                </div>
+              </div>
+              <Button size="icon" variant="ghost" className="size-7" title="Open form PDF" onClick={() => onView(form)}>
+                <Eye className="size-3.5" />
+              </Button>
+              {canEdit && (
+                <Button size="sm" variant="outline" className="h-7"
+                  onClick={() => onCreateOrCopyLink(form)}
+                  disabled={busyId === form.id || !schema}
+                  title={schema ? "Create / copy share link for client" : "Generate the questionnaire from Forms Library first"}>
+                  {busyId === form.id ? (
+                    <Loader2 className="size-3.5 mr-1 animate-spin" />
+                  ) : copiedId === form.id ? (
+                    <Check className="size-3.5 mr-1 text-success" />
+                  ) : inst?.share_token ? (
+                    <Copy className="size-3.5 mr-1" />
+                  ) : (
+                    <Link2 className="size-3.5 mr-1" />
+                  )}
+                  {copiedId === form.id ? "Copied" : inst?.share_token ? "Copy link" : "Get link"}
+                </Button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {forms.length > 0 && (
+        <div className="px-6 py-3 border-t bg-muted/30 text-xs text-muted-foreground flex items-center gap-2">
+          <Send className="size-3" />
+          Share the link with the applicant — they fill the form online and answers feed all attached visa forms automatically.
+        </div>
+      )}
+    </Card>
+  );
+};

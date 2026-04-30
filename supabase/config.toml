@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.odoo-api]
 verify_jwt = false
+
+[functions.questionnaire-resolve]
+verify_jwt = false
+
+[functions.questionnaire-save]
+verify_jwt = false
