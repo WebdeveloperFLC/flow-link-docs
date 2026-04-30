@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, X, Combine } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
