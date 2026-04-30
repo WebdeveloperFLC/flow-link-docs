@@ -156,7 +156,7 @@ const LetterTemplatesPage = () => {
         {LETTER_KINDS.map((lk) => {
           const globalActive = activeFor(lk.kind, null, null);
           const variants = variantsFor(lk.kind);
-          const pending = pendingScope[lk.kind];
+          const pending = getPending(lk.kind);
           return (
             <Card key={lk.kind} className="p-5 shadow-elev-sm space-y-4">
               <div className="flex items-start justify-between gap-3">
