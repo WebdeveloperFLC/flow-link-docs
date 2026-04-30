@@ -129,6 +129,147 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
   }
 }
 
+/** Extract the XFA template XML from a PDF (LiveCycle/dynamic XFA forms). */
+async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | null> {
+  try {
+    const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true, updateMetadata: false });
+    const catalog = pdf.catalog;
+    const acro = catalog.lookup(PDFName.of("AcroForm"), PDFDict);
+    if (!acro) return null;
+    const xfa = acro.lookup(PDFName.of("XFA"));
+    if (!xfa) return null;
+
+    const decodeStream = (s: PDFStream): string => {
+      try {
+        if (s instanceof PDFRawStream) {
+          const bytes = decodePDFRawStream(s).decode();
+          return new TextDecoder().decode(bytes);
+        }
+      } catch (e) { console.warn("decode stream", e); }
+      return "";
+    };
+
+    if (xfa instanceof PDFArray) {
+      // Pairs of [name, stream]
+      for (let i = 0; i < xfa.size(); i += 2) {
+        const nameObj = xfa.lookup(i);
+        const streamRef = xfa.lookup(i + 1);
+        const nm = nameObj?.toString?.() ?? "";
+        if (nm.includes("template") && streamRef instanceof PDFStream) {
+          return decodeStream(streamRef);
+        }
+      }
+      // Fallback: concat all streams
+      let combined = "";
+      for (let i = 1; i < xfa.size(); i += 2) {
+        const s = xfa.lookup(i);
+        if (s instanceof PDFStream) combined += decodeStream(s);
+      }
+      return combined || null;
+    }
+    if (xfa instanceof PDFStream) return decodeStream(xfa);
+    return null;
+  } catch (e) {
+    console.error("XFA extract failed", e);
+    return null;
+  }
+}
+
+/** Match each <field ...> ... </field> block (fields don't nest in XFA template). */
+function* iterateXfaFieldBlocks(xml: string): Generator<{ attrs: string; body: string }> {
+  const open = /<field\b([^>]*)>/g;
+  let m: RegExpExecArray | null;
+  while ((m = open.exec(xml)) !== null) {
+    const attrs = m[1];
+    const startBody = open.lastIndex;
+    const close = xml.indexOf("</field>", startBody);
+    if (close === -1) continue;
+    yield { attrs, body: xml.slice(startBody, close) };
+    open.lastIndex = close + "</field>".length;
+  }
+}
+
+function getAttr(attrs: string, key: string): string {
+  const m = new RegExp(`\\b${key}\\s*=\\s*"([^"]*)"`).exec(attrs);
+  return m ? m[1] : "";
+}
+
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
+}
+
+function xfaFieldType(body: string, attrs: string): FieldDef["type"] {
+  if (/<dateTimeEdit\b/.test(body)) return "date";
+  if (/<choiceList\b/.test(body)) return "dropdown";
+  if (/<numericEdit\b/.test(body)) return "number";
+  if (/<checkButton\b/.test(body)) return "yes_no";
+  if (/multiLine="1"/.test(body)) return "textarea";
+  // Year / Month / Day numeric hints from name
+  const name = getAttr(attrs, "name").toLowerCase();
+  if (/year|month|day|amount|number|count/.test(name)) return "number";
+  return "text";
+}
+
+function xfaCaption(body: string): string {
+  const cap = /<caption\b[^>]*>([\s\S]*?)<\/caption>/.exec(body);
+  if (cap) {
+    const t = /<text\b[^>]*>([\s\S]*?)<\/text>/.exec(cap[1]);
+    if (t) return decodeEntities(t[1]).replace(/\s+/g, " ").replace(/^\*+\s*/, "").trim();
+  }
+  const tt = /<toolTip\b[^>]*>([\s\S]*?)<\/toolTip>/.exec(body);
+  if (tt) return decodeEntities(tt[1]).replace(/\s+/g, " ").trim();
+  return "";
+}
+
+function xfaOptions(body: string): string[] | undefined {
+  const items = /<items\b[^>]*>([\s\S]*?)<\/items>/.exec(body);
+  if (!items) return undefined;
+  const out: string[] = [];
+  const re = /<text\b[^>]*>([\s\S]*?)<\/text>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(items[1])) !== null) {
+    const v = decodeEntities(m[1]).trim();
+    if (v) out.push(v);
+  }
+  return out.length ? out : undefined;
+}
+
+function extractXfaFields(xml: string): FieldDef[] {
+  const out: FieldDef[] = [];
+  const seen: Record<string, number> = {};
+  let index = 0;
+  for (const { attrs, body } of iterateXfaFieldBlocks(xml)) {
+    const presence = getAttr(attrs, "presence");
+    if (presence === "hidden" || presence === "invisible") continue;
+    if (getAttr(attrs, "access") === "readOnly") continue;
+    const name = getAttr(attrs, "name") || `field_${index + 1}`;
+    const required = /<validate\b[^>]*\bnullTest="error"/.test(body);
+    const caption = xfaCaption(body);
+    const isButton = /<ui\b[^>]*>[\s\S]*?<button\b/.test(body) || /<button\b/.test(body);
+    if (isButton) { index++; continue; }
+    const type = xfaFieldType(body, attrs);
+    if (type === "text" && /signature/i.test(name)) { index++; continue; }
+    const label = caption || humanize(name);
+    out.push({
+      id: uniqueFieldId(name, index, seen),
+      pdf_field: name,
+      label: label.slice(0, 200),
+      type,
+      options: xfaOptions(body),
+      required: required || /^\*/.test(caption),
+      mapping_key: mappingFor(label),
+    });
+    index++;
+  }
+  return out;
+}
+
 function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
   const buckets: Record<string, FieldDef[]> = {
     personal: [], travel: [], education: [], employment: [],
