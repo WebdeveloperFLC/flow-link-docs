@@ -18,6 +18,19 @@ interface RoleRow { user_id: string; role: AppRole; }
 
 const ALL_ROLES: AppRole[] = ["admin", "counselor", "documentation", "viewer"];
 
+const ROLE_HELP: Record<AppRole, string> = {
+  admin: "Full system access, settings and team role management",
+  counselor: "Edit access: add clients, upload documents and fill client details",
+  documentation: "Edit access: add clients, upload documents and fill client details",
+  viewer: "View-only access",
+};
+
+const roleOptionLabel = (role: AppRole) => {
+  if (role === "counselor") return "Edit - Counselor";
+  if (role === "documentation") return "Edit - Documentation";
+  return ROLE_LABELS[role];
+};
+
 const Users = () => {
   const { isAdmin, user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -73,7 +86,7 @@ const Users = () => {
           <div className="grid grid-cols-12 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
             <div className="col-span-5">User</div>
             <div className="col-span-3">Current role</div>
-            <div className="col-span-4">Change role</div>
+            <div className="col-span-4">Access level</div>
           </div>
           <div className="divide-y">
             {profiles.length === 0 && (
@@ -93,7 +106,7 @@ const Users = () => {
                   <div className="col-span-3">
                     <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primary])}>
                       <Shield className="size-2.5" />
-                      {ROLE_LABELS[primary]}
+                      {roleOptionLabel(primary)}
                     </span>
                   </div>
                   <div className="col-span-4 flex items-center gap-2">
@@ -101,7 +114,12 @@ const Users = () => {
                       <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         {ALL_ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>{ROLE_LABELS[r]}</SelectItem>
+                          <SelectItem key={r} value={r}>
+                            <span className="flex flex-col py-1">
+                              <span>{roleOptionLabel(r)}</span>
+                              <span className="text-[10px] text-muted-foreground">{ROLE_HELP[r]}</span>
+                            </span>
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -114,7 +132,7 @@ const Users = () => {
         </Card>
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
-          <p>Roles control access: <b>Admins</b> manage everything · <b>Counselors</b> create/edit clients & upload · <b>Documentation</b> uploads & generates binders · <b>Viewers</b> read-only.</p>
+          <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit</b> users can add clients, upload documents and fill all details · <b>Viewer</b> is read-only.</p>
         </div>
       </div>
     </AppLayout>
