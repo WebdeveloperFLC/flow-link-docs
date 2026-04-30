@@ -18,7 +18,7 @@ export const FALLBACK_LETTER_KINDS: LetterKindDef[] = [
 
 /** React hook — returns letter kinds from the `letter_kinds` master list. */
 export function useLetterKinds(): LetterKindDef[] {
-  const items = useMasterItems("letter_kinds" as never);
+  const items = useMasterItems("letter_kinds");
   if (!items.length) return FALLBACK_LETTER_KINDS;
   return items.map((it) => ({
     kind: it.code,

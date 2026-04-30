@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Mail, Loader2, AlertCircle, Download } from "lucide-react";
-import { LETTER_KINDS, type LetterKind } from "@/lib/letterKinds";
+import { useLetterKinds, type LetterKind } from "@/lib/letterKinds";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ interface Props {
 export const LetterCard = ({ clientId, canGenerate, onGenerated }: Props) => {
   const [busy, setBusy] = useState<LetterKind | null>(null);
   const [missing, setMissing] = useState<{ kind: LetterKind; fields: string[] } | null>(null);
+  const LETTER_KINDS = useLetterKinds();
 
   const generate = async (kind: LetterKind) => {
     setBusy(kind);

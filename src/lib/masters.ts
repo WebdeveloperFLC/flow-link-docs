@@ -7,7 +7,8 @@ export type MasterListKey =
   | "document_types"
   | "relationships"
   | "qualification_levels"
-  | "client_statuses";
+  | "client_statuses"
+  | "letter_kinds";
 
 export interface MasterItem {
   id: string;
