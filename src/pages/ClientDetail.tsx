@@ -81,6 +81,26 @@ const ClientDetail = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  // Backfill: ensure every doc has a section_id so it appears in some section card.
+  useEffect(() => {
+    if (!docs.length || !sections.length) return;
+    const orphaned = docs.filter((d) => !d.section_id);
+    if (orphaned.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const updates: Promise<unknown>[] = [];
+      for (const d of orphaned) {
+        const typeName = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
+        const sid = await inferSectionId(typeName);
+        if (sid) updates.push(supabase.from("client_documents").update({ section_id: sid }).eq("id", d.id));
+      }
+      await Promise.all(updates);
+      if (!cancelled && updates.length > 0) load();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, sections]);
+
   const docByType = (typeName: string): Doc | undefined => {
     const matches = docs.filter((d) => (d.document_type === "Other" ? d.custom_type : d.document_type) === typeName);
     return matches.sort((a, b) => b.version - a.version)[0];
