@@ -52,6 +52,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const [combining, setCombining] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [binder, setBinder] = useState<BinderRow | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [mergeMode, setMergeMode] = useState<{ anchorId: string; selected: Set<string> } | null>(null);
+  const [merging, setMerging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
