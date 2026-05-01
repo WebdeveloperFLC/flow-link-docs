@@ -368,6 +368,16 @@ Deno.serve(async (req) => {
 
     let out: Uint8Array;
     try {
+      if (acro.filled.length + xfaFilled.length === 0) {
+        return json({
+          error: hasXfa
+            ? "No PDF fields were written. This questionnaire was generated from fallback fields, not the real IMM/XFA field IDs. Re-generate the questionnaire after re-uploading an unlocked/static PDF."
+            : "No writable PDF fields were detected. This is likely an encrypted Adobe LiveCycle/XFA IRCC form; it cannot be reliably filled by the in-app PDF engine unless uploaded as an unlocked/static form.",
+          filled: { acroform: acro.filled, xfa: xfaFilled },
+          skipped: [...acro.skipped, ...xfaSkipped],
+          has_xfa: hasXfa,
+        }, 422);
+      }
       out = await pdf.save({ updateFieldAppearances: false });
     } catch (e) {
       console.error("pdf.save failed", e);
