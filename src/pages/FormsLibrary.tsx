@@ -165,7 +165,8 @@ const FormsLibrary = () => {
       toast.success(`Questionnaire generated · ${detected} ${sourceLabel} field${detected===1?"":"s"} detected`);
       load();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to parse form");
+      toast.info("This PDF could not be auto-detected. Opening Builder so you can create the fields manually.");
+      navigate(`/forms-library/${f.id}/build`);
     } finally {
       setParsing(null);
     }
