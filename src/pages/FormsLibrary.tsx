@@ -150,13 +150,13 @@ const FormsLibrary = () => {
       });
       if (error) throw error;
       const result = data as ParseResponse;
-      if (result.error) throw new Error(result.error);
       const detected = result.total_fields_detected ?? result.acro_fields_detected ?? 0;
       if (result.source === "none" || detected === 0) {
-        toast.info("No fields were detected automatically. Open Builder to add the form fields manually.");
+        toast.info(result.error || "No fields were detected automatically. Open Builder to add the form fields manually.");
         navigate(`/forms-library/${f.id}/build`);
         return;
       }
+      if (result.error) throw new Error(result.error);
       const sourceLabel =
         result.source === "xfa" ? "XFA"
         : result.source === "ai" ? "AI-detected"
