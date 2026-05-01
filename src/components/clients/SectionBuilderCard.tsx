@@ -19,11 +19,27 @@ import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
+
+function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
+  if (pageCount < 3 || segments.length !== 1) return false;
+  const only = segments[0];
+  return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
+}
+
+function buildPageSegments(pageCount: number, pageSnippets: string[], allowedTypes: string[], reason: string): BinderSegment[] {
+  return Array.from({ length: pageCount }, (_, pageIdx) => ({
+    start_page: pageIdx + 1,
+    end_page: pageIdx + 1,
+    ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedTypes),
+    confidence: 0.35,
+    reason,
+  }));
+}
 
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
