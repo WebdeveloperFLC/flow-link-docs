@@ -55,7 +55,7 @@ type ParseResponse = {
   error?: string;
   total_fields_detected?: number;
   acro_fields_detected?: number;
-  source?: "acroform" | "xfa" | "text" | "ai" | "none";
+  source?: "acroform" | "xfa" | "text" | "template" | "ai" | "none";
 };
 
 const GENERIC_DEFAULT_FIELD_IDS = new Set([
@@ -160,6 +160,7 @@ const FormsLibrary = () => {
       const sourceLabel =
         result.source === "xfa" ? "XFA"
         : result.source === "text" ? "PDF text"
+        : result.source === "template" ? "known template"
         : result.source === "ai" ? "AI-detected"
         : "AcroForm";
       toast.success(`Questionnaire generated · ${detected} ${sourceLabel} field${detected===1?"":"s"} detected`);
