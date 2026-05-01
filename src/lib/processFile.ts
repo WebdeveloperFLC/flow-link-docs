@@ -14,23 +14,45 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
   const ext = (file.name.split(".").pop() || "").toLowerCase();
 
   if (ext === "pdf" || file.type === "application/pdf") {
-    // 1. Re-save through pdf-lib (strips redundancy)
     const bytes = await file.arrayBuffer();
-    let pdf = await PDFDocument.load(bytes, { ignoreEncryption: true });
-    let out = await pdf.save({ useObjectStreams: true });
-    if (out.byteLength <= TARGET_BYTES) {
+    // 1. Try a clean re-save through pdf-lib. If the source PDF is encrypted
+    //    (even with an empty password — common for exported résumés/scans),
+    //    pdf-lib's `ignoreEncryption` keeps the encrypted streams intact, which
+    //    produces a file that browsers refuse to render ("Failed to load PDF
+    //    document"). We detect this and force the rasterize path below, which
+    //    rebuilds an unencrypted PDF from page images.
+    let isEncrypted = false;
+    let out: Uint8Array | null = null;
+    try {
+      const pdf = await PDFDocument.load(bytes);
+      out = await pdf.save({ useObjectStreams: true });
+    } catch {
+      // Most likely encrypted. Try once more with ignoreEncryption only to
+      // confirm — but do NOT trust the resulting bytes for serving.
+      try {
+        await PDFDocument.load(bytes, { ignoreEncryption: true });
+        isEncrypted = true;
+      } catch {
+        isEncrypted = true;
+      }
+    }
+    if (!isEncrypted && out && out.byteLength <= TARGET_BYTES) {
       return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
     }
-    // 2. Rasterize each page → JPEG → rebuild PDF (guarantees small size while staying readable)
+    // 2. Rasterize each page → JPEG → rebuild PDF. This both guarantees a
+    //    small size AND strips any source-side encryption so the file is
+    //    universally viewable.
     try {
       const blob = new File([new Uint8Array(bytes)], file.name, { type: "application/pdf" });
       const qualitySteps: Array<{ dpi: number; q: number }> = [
+        { dpi: 170, q: 0.82 },
         { dpi: 150, q: 0.78 },
         { dpi: 130, q: 0.7 },
         { dpi: 110, q: 0.6 },
       ];
       for (const step of qualitySteps) {
         const jpegs = await rasterizePdfToJpegs(blob, step.dpi, step.q);
+        if (jpegs.length === 0) continue;
         const rebuilt = await PDFDocument.create();
         for (const j of jpegs) {
           const img = await rebuilt.embedJpg(new Uint8Array(await j.arrayBuffer()));
@@ -41,7 +63,11 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
         if (out.byteLength <= TARGET_BYTES) break;
       }
     } catch {
-      // fallback: return un-rasterized re-saved version
+      // fall through to whatever `out` we have
+    }
+    if (!out) {
+      // Last-ditch: pass the original bytes through. Better than nothing.
+      out = new Uint8Array(bytes);
     }
     return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
   }
