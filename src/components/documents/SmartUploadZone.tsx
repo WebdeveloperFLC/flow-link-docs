@@ -1076,15 +1076,9 @@ async function expandBinders(
           segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
-          const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
-          segments = [{
-            start_page: 1,
-            end_page: pageCount,
-            type: only.type ?? "Other",
-            suggested_label: only.suggested_label ?? null,
-            confidence: only.confidence ?? 0.2,
-            reason: "single_segment_review",
-          }];
+          out.push({ file });
+          console.info("[binder-split]", { file: file.name, pageCount, isBinder: false, segments: 1, action: "kept_as_single_document" });
+          continue;
         }
       }
       console.info("[binder-split]", { file: file.name, pageCount, isBinder: isBinderName, segments: segments.length });
