@@ -834,10 +834,10 @@ export const SmartUploadZone = ({
                             </div>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
-                              onClick={() => previewFile(it.file)}
-                              title="Preview this segment"
+                              onClick={() => previewFileAt(idx, it.file)}
+                              title={it.previewed ? "Previewed — click to view again" : "Preview this segment (required before upload)"}
                             >
-                              <Eye className="size-3.5 text-muted-foreground" />
+                              <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
                             </Button>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
@@ -953,10 +953,10 @@ export const SmartUploadZone = ({
                   </div>
                   <Button
                     size="icon" variant="ghost" className="h-7 w-7 shrink-0"
-                    onClick={() => previewFile(it.file)}
-                    title="Preview file"
+                    onClick={() => previewFileAt(i, it.file)}
+                    title={it.previewed ? "Previewed — click to view again" : "Preview file (required before confirming)"}
                   >
-                    <Eye className="size-3.5 text-muted-foreground" />
+                    <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
                   </Button>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
