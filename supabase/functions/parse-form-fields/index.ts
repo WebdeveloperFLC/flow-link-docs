@@ -440,7 +440,7 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "none" = "acroform";
+    let source: "acroform" | "xfa" | "ai" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -452,9 +452,16 @@ Deno.serve(async (req) => {
     }
 
     if (detectedFields.length < 3) {
+      console.log(`Falling back to AI vision for ${form.name}`);
+      const ai = await extractFieldsWithAI(bytes, form.name);
+      console.log(`AI fields detected for ${form.name}: ${ai.length}`);
+      if (ai.length >= 3) { detectedFields = ai; source = "ai"; }
+    }
+
+    if (detectedFields.length < 3) {
       source = "none";
       return new Response(JSON.stringify({
-        error: "No extractable fields were found in this PDF. Nothing was generated, so the builder will not reuse the generic 22-field template. Add fields manually or upload a different PDF.",
+        error: "No fields could be extracted from this PDF (AcroForm, XFA, and AI vision all failed). Open the builder and add fields manually, or upload a clearer source PDF.",
         acro_fields_detected: acro.length,
         total_fields_detected: detectedFields.length,
         source,
