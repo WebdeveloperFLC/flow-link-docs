@@ -245,8 +245,12 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         try {
           const c = await classifyDocument(f, allowedDocumentTypes);
           if (c?.type) {
-            docType = c.type;
-            customType = c.type === "Other" ? (c.customType ?? prettyTitle(f.name)) : null;
+            // Do not let a weak/failed AI "Other" overwrite a type already
+            // determined during binder splitting or deterministic text rules.
+            if (c.type !== "Other" || docType === "Other") {
+              docType = c.type;
+              customType = c.type === "Other" ? (c.customType ?? customType ?? prettyTitle(f.name)) : null;
+            }
           }
         } catch (e) { console.warn("classify failed", e); }
         if (docType === "Other" && !customType) customType = prettyTitle(f.name);
