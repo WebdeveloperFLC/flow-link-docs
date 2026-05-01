@@ -58,6 +58,22 @@ type ParseResponse = {
   source?: "acroform" | "xfa" | "none";
 };
 
+const GENERIC_DEFAULT_FIELD_IDS = new Set([
+  "full_name", "date_of_birth", "gender", "nationality", "passport_number", "passport_expiry",
+  "marital_status", "address_line1", "address_city", "address_country", "phone_alt", "email_alt",
+  "travel_history", "highest_qualification", "institution_name", "graduation_year", "employer_name",
+  "job_title", "annual_income", "bank_name", "account_balance", "family_members",
+]);
+
+const isGenericDefaultSchema = (schema: Schema) => {
+  const fields = (schema.sections ?? []).flatMap((section) => section.fields ?? []);
+  return fields.length === GENERIC_DEFAULT_FIELD_IDS.size
+    && fields.every((field) => {
+      const id = typeof field === "object" && field && "id" in field ? String(field.id) : "";
+      return GENERIC_DEFAULT_FIELD_IDS.has(id);
+    });
+};
+
 const FormsLibrary = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -80,6 +96,7 @@ const FormsLibrary = () => {
     const map: Record<string, Schema[]> = {};
     for (const sc of (s ?? []) as Schema[]) {
       if (!sc.form_id) continue;
+      if (isGenericDefaultSchema(sc)) continue;
       (map[sc.form_id] ??= []).push(sc);
     }
     setSchemasByForm(map);
