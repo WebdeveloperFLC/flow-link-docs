@@ -17,6 +17,11 @@ import { toast } from "sonner";
 import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
+import { isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile } from "@/lib/binderSplit";
+import { classifyDocument } from "@/lib/classifyDocument";
+import { inferSectionId } from "@/lib/sections";
+import { useMasterLabels } from "@/lib/masters";
+import { sanitizeName } from "@/lib/constants";
 
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
@@ -69,6 +74,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const [merging, setMerging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const DOCUMENT_TYPES = useMasterLabels("document_types");
 
   // Sort docs based on mode
   useEffect(() => {
@@ -124,29 +130,94 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
+      // Smart upload: PDFs with ≥3 pages are run through the AI binder splitter,
+      // each segment is classified, and routed to its inferred section (not
+      // always THIS section). Non-PDF / short PDFs are classified as a single
+      // file and still routed to the inferred section.
+      const segments: { file: File; preType?: string; preLabel?: string | null }[] = [];
+      for (const f of Array.from(files)) {
+        if (!isPdfFile(f)) { segments.push({ file: f }); continue; }
+        let pageCount = 0;
+        try { pageCount = await getPdfPageCount(f); } catch { /* ignore */ }
+        if (pageCount < 3) { segments.push({ file: f }); continue; }
+        try {
+          const maxPages = Math.min(pageCount, 30);
+          const [pageSnippets, pageImages] = await Promise.all([
+            extractPerPageText(f, maxPages, 1000).catch(() => [] as string[]),
+            getBinderPageImages(f, maxPages).catch(() => [] as string[]),
+          ]);
+          const { data, error } = await supabase.functions.invoke("split-binder", {
+            body: {
+              filename: f.name,
+              total_pages: pageCount,
+              allowed_types: DOCUMENT_TYPES,
+              case_people: [],
+              page_snippets: pageSnippets,
+              page_image_data_urls: pageImages,
+            },
+          });
+          if (error) throw error;
+          const segs = Array.isArray(data?.segments) ? data.segments : [];
+          if (segs.length < 2) { segments.push({ file: f }); continue; }
+          const baseStem = f.name.replace(/\.pdf$/i, "");
+          for (let i = 0; i < segs.length; i++) {
+            const s = segs[i] as { start_page: number; end_page: number; type: string; suggested_label?: string | null };
+            const label = (s.type === "Other" && s.suggested_label) ? s.suggested_label : s.type;
+            const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+            const segName = `${baseStem}__${String(i + 1).padStart(2, "0")}_${safeLabel}_p${s.start_page}-${s.end_page}.pdf`;
+            try {
+              const segFile = await extractPagesAsPdfFile(f, s.start_page, s.end_page, segName);
+              segments.push({ file: segFile, preType: s.type, preLabel: s.suggested_label ?? null });
+            } catch (e) { console.warn("split-binder: extract failed", e); }
+          }
+          toast.success(`Split "${f.name}" into ${segs.length} documents`);
+        } catch (e) {
+          console.warn("split-binder failed; uploading as single PDF:", e);
+          segments.push({ file: f });
+        }
+      }
+
       let n = 0;
       const baseOrder = (items[items.length - 1]?.section_order ?? 0);
-      for (const f of Array.from(files)) {
+      for (const seg of segments) {
+        const f = seg.file;
+        // Classify (filename + content) to determine document type and target section.
+        let docType = seg.preType ?? "Other";
+        let customType: string | null = seg.preLabel ?? null;
+        try {
+          const c = await classifyDocument(f, DOCUMENT_TYPES);
+          if (c?.type) {
+            docType = c.type;
+            customType = c.type === "Other" ? (c.customType ?? prettyTitle(f.name)) : null;
+          }
+        } catch (e) { console.warn("classify failed", e); }
+        if (docType === "Other" && !customType) customType = prettyTitle(f.name);
+
+        const targetSectionId = (await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id;
+        const targetSection = allSections.find((s) => s.id === targetSectionId) ?? section;
+
         const safe = f.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-        const path = `${clientId}/section/${section.key}/${Date.now()}_${safe}`;
-        const { error: upErr } = await supabase.storage.from("client-documents").upload(path, f, { contentType: f.type || "application/octet-stream" });
+        const path = `${clientId}/section/${targetSection.key}/${Date.now()}_${safe}`;
+        const { error: upErr } = await supabase.storage.from("client-documents").upload(path, f, {
+          contentType: f.type || "application/pdf",
+        });
         if (upErr) { toast.error(upErr.message); continue; }
-        const title = prettyTitle(f.name);
+
         const { error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
-          document_type: "Other",
-          custom_type: title,
+          document_type: docType,
+          custom_type: customType,
           file_name: f.name,
           storage_path: path,
-          mime_type: f.type || null,
+          mime_type: f.type || "application/pdf",
           size_bytes: f.size,
-          section_id: section.id,
+          section_id: targetSectionId,
           section_order: baseOrder + (n + 1) * 10,
         });
         if (insErr) { toast.error(insErr.message); continue; }
         n++;
       }
-      if (n > 0) toast.success(`Uploaded ${n} file${n === 1 ? "" : "s"} to ${section.label}`);
+      if (n > 0) toast.success(`Uploaded ${n} document${n === 1 ? "" : "s"}`);
       onChanged();
     } finally {
       setUploading(false);
