@@ -988,8 +988,14 @@ export const SmartUploadZone = ({
                         . Please pick the correct type — it won't be uploaded as "Other" automatically.
                       </div>
                     </div>
+                    {!it.previewed && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
+                        <Eye className="size-3" />
+                        Preview the file (eye icon above) before choosing a type.
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
-                      <Select onValueChange={(v) => confirmType(i, v)}>
+                      <Select onValueChange={(v) => confirmType(i, v)} disabled={!it.previewed}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Choose document type…" /></SelectTrigger>
                         <SelectContent>
                           {DOCUMENT_TYPES.map((t) => (
@@ -1015,6 +1021,12 @@ export const SmartUploadZone = ({
                           : <>No name detected on the document. Choose who this is for.</>}
                       </div>
                     </div>
+                    {!it.previewed && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
+                        <Eye className="size-3" />
+                        Preview the file (eye icon above) before assigning an owner.
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Select value={it.ownerId ?? ""} onValueChange={(v) => setOwner(i, v)}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Select person…" /></SelectTrigger>
@@ -1028,7 +1040,7 @@ export const SmartUploadZone = ({
                           <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId}>
+                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId || !it.previewed}>
                         Confirm & upload
                       </Button>
                     </div>
