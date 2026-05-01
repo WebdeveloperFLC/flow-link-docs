@@ -991,7 +991,17 @@ async function expandBinders(
         },
       });
       if (error) throw error;
-      const segments = Array.isArray(data?.segments) ? data.segments : [];
+      let segments = Array.isArray(data?.segments) ? data.segments : [];
+      if (shouldFallbackToPageRanges(file.name, pageCount, segments)) {
+        segments = Array.from({ length: pageCount }, (_, i) => ({
+          start_page: i + 1,
+          end_page: i + 1,
+          ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
+          confidence: 0.35,
+          reason: "fallback_page_range",
+        }));
+        toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
+      }
       // Only split when the AI found ≥2 distinct documents.
       if (segments.length < 2) {
         out.push({ file });
