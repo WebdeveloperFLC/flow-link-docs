@@ -14,14 +14,12 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
-import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, type CaseSection } from "@/lib/sections";
+import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, inferSectionId, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import { isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
-import { inferSectionId } from "@/lib/sections";
 import { useMasterLabels } from "@/lib/masters";
-import { sanitizeName } from "@/lib/constants";
 
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
