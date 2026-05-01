@@ -565,7 +565,7 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "ai" | "none" = "acroform";
+    let source: "acroform" | "xfa" | "text" | "ai" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -583,6 +583,13 @@ Deno.serve(async (req) => {
         console.log(`Raw-scan XFA fields detected for ${form.name}: ${xfa.length}`);
         if (xfa.length >= 3) { detectedFields = xfa; source = "xfa"; }
       }
+    }
+
+    if (detectedFields.length < 3) {
+      const visibleText = extractVisibleTextByScanningStreams(bytes);
+      const textFields = extractFieldsFromVisibleText(visibleText);
+      console.log(`Visible text fields detected for ${form.name}: ${textFields.length}`);
+      if (textFields.length >= 3) { detectedFields = textFields; source = "text"; }
     }
 
     if (detectedFields.length < 3) {
