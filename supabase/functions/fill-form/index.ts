@@ -184,29 +184,39 @@ function fillXfaDatasets(
   return { xml: next, filled, skipped };
 }
 
-/** Replace a stream's contents with new bytes (uncompressed). */
-function replaceStreamContents(pdf: PDFDocument, oldStream: PDFStream, newBytes: Uint8Array) {
-  // Build a new flate-uncompressed stream and swap the indirect ref.
-  // pdf-lib lacks a public API for this; we re-write via context.assign.
-  // Strategy: register new stream, then walk XFA array and swap reference.
-  const ctx = (pdf as unknown as { context: { register: (o: unknown) => unknown; assign: (ref: unknown, o: unknown) => void; obj: (o: unknown) => unknown } }).context;
-  // Create a raw stream dict
-  // @ts-expect-error - using internal helper
-  const newStream = (PDFRawStream as unknown as { of: (dict: PDFDict, contents: Uint8Array) => PDFStream }).of(
-    // @ts-expect-error - cloning a minimal dict
-    PDFDict.fromMapWithContext(new Map([[PDFName.of("Length"), ctx.obj(newBytes.length)]]), ctx),
-    newBytes,
-  );
-  // Find the indirect ref of oldStream and reassign
-  // @ts-expect-error access internal map
-  for (const [ref, obj] of ctx.indirectObjects.entries()) {
-    if (obj === oldStream) {
-      ctx.assign(ref, newStream);
-      return;
+/**
+ * Build a new uncompressed PDFRawStream containing newBytes, reusing the
+ * pdf-lib context attached to the document.
+ */
+function buildRawStream(pdf: PDFDocument, newBytes: Uint8Array): PDFStream {
+  // deno-lint-ignore no-explicit-any
+  const ctx: any = (pdf as any).context;
+  // deno-lint-ignore no-explicit-any
+  const dict = (PDFDict as any).withContext(ctx);
+  dict.set(PDFName.of("Length"), ctx.obj(newBytes.length));
+  // deno-lint-ignore no-explicit-any
+  return (PDFRawStream as any).of(dict, newBytes);
+}
+
+/**
+ * Swap the datasets stream inside the AcroForm/XFA array with one containing
+ * newBytes. Works for the typical IRCC layout where XFA is a name/stream pair
+ * array on the AcroForm dict.
+ */
+function replaceXfaDatasetsStream(pdf: PDFDocument, xfaArray: PDFArray, newBytes: Uint8Array): boolean {
+  const newStream = buildRawStream(pdf, newBytes);
+  // deno-lint-ignore no-explicit-any
+  const ctx: any = (pdf as any).context;
+  const newRef = ctx.register(newStream);
+  for (let i = 0; i < xfaArray.size(); i += 2) {
+    const nm = xfaArray.lookup(i)?.toString?.() ?? "";
+    if (nm.includes("datasets")) {
+      // deno-lint-ignore no-explicit-any
+      (xfaArray as any).set(i + 1, newRef);
+      return true;
     }
   }
-  // Fallback: if not indirect, mutate by re-registering — caller will replace the entry in the XFA array.
-  // This branch is rare for IRCC forms.
+  return false;
 }
 
 Deno.serve(async (req) => {
@@ -257,15 +267,15 @@ Deno.serve(async (req) => {
     // 2) XFA pass — write to <datasets> so Adobe Reader displays values.
     let xfaFilled: string[] = [];
     let xfaSkipped: { key: string; reason: string }[] = [];
-    const { datasets } = locateXfaStreams(pdf);
-    if (datasets) {
+    const { datasets, xfaArray } = locateXfaStreams(pdf);
+    if (datasets && xfaArray) {
       const xml = decodeStream(datasets);
       if (xml) {
         const r = fillXfaDatasets(xml, answers, keyMap);
         xfaFilled = r.filled; xfaSkipped = r.skipped;
         if (r.filled.length > 0) {
           try {
-            replaceStreamContents(pdf, datasets, new TextEncoder().encode(r.xml));
+            replaceXfaDatasetsStream(pdf, xfaArray, new TextEncoder().encode(r.xml));
           } catch (e) {
             console.error("XFA stream replace failed", e);
           }
