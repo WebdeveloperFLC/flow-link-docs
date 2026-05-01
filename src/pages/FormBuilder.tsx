@@ -578,35 +578,8 @@ const FormBuilder = () => {
           {/* ---------- Step 3 ---------- */}
           <TabsContent value="settings">
             <Card className="p-6 space-y-5 max-w-2xl">
-              <div>
-                <Label className="text-xs">Country</Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Visa category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Email template (used when sharing the questionnaire)</Label>
-                <Select value={emailTemplateId} onValueChange={setEmailTemplateId}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__default">Default</SelectItem>
-                    {emailTemplates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="text-xs text-muted-foreground">
+                Country, visa category and email template are set in the header strip above so you can change them at any step.
               </div>
               <div className="flex items-center justify-between border-t pt-4">
                 <div>
