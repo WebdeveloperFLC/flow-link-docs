@@ -59,7 +59,7 @@ type ParseResponse = {
   error?: string;
   acro_fields_detected?: number;
   total_fields_detected?: number;
-  source?: "acroform" | "xfa" | "ai" | "none";
+  source?: "acroform" | "xfa" | "text" | "ai" | "none";
 };
 
 const TYPE_LABELS: Record<FieldType, string> = {
@@ -176,6 +176,7 @@ const FormBuilder = () => {
       if (result?.error) throw new Error(result.error);
       const sourceLabel =
         result?.source === "xfa" ? "XFA"
+        : result?.source === "text" ? "PDF text"
         : result?.source === "ai" ? "AI-detected"
         : "AcroForm";
       toast.success(`Detected ${detected} ${sourceLabel} field(s) — review them in step 2.`);
