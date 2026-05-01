@@ -51,6 +51,46 @@ function formatValue(v: unknown, f: Field): string {
   return s;
 }
 
+function splitDateParts(value: string): Record<string, string> | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  if (!m) return null;
+  return { year: m[1], month: m[2], day: m[3] };
+}
+
+function legacyXfaTargets(answerKey: string, rawValue: string): Array<{ pdfField: string; value: string }> {
+  const key = answerKey.toLowerCase().replace(/^[^.]+\./, "");
+  const value = rawValue.trim();
+  const date = splitDateParts(value);
+  const [firstName, ...restName] = value.split(/\s+/).filter(Boolean);
+  const familyName = restName.length ? restName.join(" ") : firstName;
+  const givenName = restName.length ? firstName : "";
+  const map: Record<string, Array<{ pdfField: string; value: string }>> = {
+    full_name: [{ pdfField: "FamilyName", value: familyName.toUpperCase() }, { pdfField: "GivenName", value: givenName.toUpperCase() }],
+    gender: [{ pdfField: "Sex", value }],
+    nationality: [{ pdfField: "Citizenship", value }],
+    place_of_birth: [{ pdfField: "PlaceBirthCity", value }],
+    passport_number: [{ pdfField: "PassportNum", value: value.toUpperCase() }],
+    marital_status: [{ pdfField: "MaritalStatus", value }],
+    address_line1: [{ pdfField: "Streetname", value }],
+    address_city: [{ pdfField: "CityTown", value }],
+    address_state: [{ pdfField: "ProvinceState", value }],
+    address_country: [{ pdfField: "Country", value }],
+    address_postal: [{ pdfField: "PostalCode", value }],
+    phone_alt: [{ pdfField: "ActualNumber", value }],
+    email_alt: [{ pdfField: "Email", value }],
+    highest_qualification: [{ pdfField: "FieldOfStudy", value }],
+    institution_name: [{ pdfField: "School", value }],
+    employer_name: [{ pdfField: "Employer", value }],
+    job_title: [{ pdfField: "Occupation", value }],
+    account_balance: [{ pdfField: "Funds", value }],
+    annual_income: [{ pdfField: "Funds", value }],
+  };
+  if (key === "date_of_birth" && date) return [{ pdfField: "DOBYear", value: date.year }, { pdfField: "DOBMonth", value: date.month }, { pdfField: "DOBDay", value: date.day }];
+  if (key === "passport_issue_date" && date) return [{ pdfField: "IssueYYYY", value: date.year }, { pdfField: "IssueMM", value: date.month }, { pdfField: "IssueDD", value: date.day }];
+  if (key === "passport_expiry" && date) return [{ pdfField: "expiryYYYY", value: date.year }, { pdfField: "expiryMM", value: date.month }, { pdfField: "expiryDD", value: date.day }];
+  return map[key] ?? [];
+}
+
 /** AcroForm fill. Returns { filled, skipped, unmatched } stats. */
 function fillAcroForm(
   pdf: PDFDocument,
