@@ -27,7 +27,7 @@ function sanitizeFieldName(raw: string, fallback: string): string {
 
 function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   if (!text) return [""];
-  const words = text.split(/\s+/);
+  const words = sanitizeText(text).split(/\s+/);
   const lines: string[] = [];
   let line = "";
   for (const w of words) {
@@ -37,6 +37,17 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number): stri
   }
   if (line) lines.push(line);
   return lines;
+}
+
+/** Strip characters that StandardFonts (WinAnsi) cannot encode — these crash pdf-lib. */
+function sanitizeText(s: string): string {
+  return (s ?? "")
+    .replace(/[\u2018\u2019\u02BC]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/\u2022/g, "*")
+    .replace(/\u00A0/g, " ")
+    .replace(/[^\x20-\x7E]/g, "");
 }
 
 async function buildPdf(args: {
@@ -130,7 +141,7 @@ async function buildPdf(args: {
         });
       });
       if (f.required) {
-        const lw = helvBold.widthOfTextAtSize(labelLines[0], LABEL_SIZE);
+        const lw = helvBold.widthOfTextAtSize(labelLines[0] || "", LABEL_SIZE);
         page.drawText(" *", {
           x: xBox + lw, y: top - (LABEL_SIZE + 2) + 2,
           size: LABEL_SIZE, font: helvBold, color: rgb(0.85, 0.20, 0.20),
@@ -139,20 +150,29 @@ async function buildPdf(args: {
       const fieldY = top - labelH - 4 - fieldH;
       const fieldName = uniqueName(sanitizeFieldName(f.pdf_field ?? f.id, "field"));
 
-      if (f.type === "yes_no") {
-        const cb = form.createCheckBox(fieldName);
-        cb.addToPage(page, { x: xBox, y: fieldY + 2, width: 14, height: 14 });
-        page.drawText("Yes / Check if applicable", {
-          x: xBox + 20, y: fieldY + 5, size: 9, font: helv, color: MUTED,
+      try {
+        if (f.type === "yes_no") {
+          const cb = form.createCheckBox(fieldName);
+          cb.addToPage(page, { x: xBox, y: fieldY + 2, width: 14, height: 14 });
+          page.drawText("Yes / Check if applicable", {
+            x: xBox + 20, y: fieldY + 5, size: 9, font: helv, color: MUTED,
+          });
+        } else if (f.type === "dropdown" && f.options?.length) {
+          const dd = form.createDropdown(fieldName);
+          dd.setOptions(f.options.map((o) => sanitizeText(String(o))));
+          dd.addToPage(page, { x: xBox, y: fieldY, width: widthBox, height: fieldH, font: helv });
+        } else {
+          const tx = form.createTextField(fieldName);
+          if (f.type === "textarea") tx.enableMultiline();
+          tx.addToPage(page, { x: xBox, y: fieldY, width: widthBox, height: fieldH, font: helv });
+        }
+      } catch (e) {
+        // If a single field fails to render, draw a placeholder box and continue
+        console.warn("placeField failed", fieldName, String(e));
+        page.drawRectangle({
+          x: xBox, y: fieldY, width: widthBox, height: fieldH,
+          borderColor: RULE, borderWidth: 0.5,
         });
-      } else if (f.type === "dropdown" && f.options?.length) {
-        const dd = form.createDropdown(fieldName);
-        dd.setOptions(f.options);
-        dd.addToPage(page, { x: xBox, y: fieldY, width: widthBox, height: fieldH, font: helv });
-      } else {
-        const tx = form.createTextField(fieldName);
-        if (f.type === "textarea") tx.enableMultiline();
-        tx.addToPage(page, { x: xBox, y: fieldY, width: widthBox, height: fieldH, font: helv });
       }
 
       if (fullRow) {
