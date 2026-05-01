@@ -21,6 +21,7 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Client { id: string; full_name: string; }
 
@@ -101,6 +102,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const [previewState, setPreviewState] = useState<{ url: string; name: string; mime: string } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -485,24 +487,27 @@ export const SmartUploadZone = ({
   /** Open the local file in a new tab so the user can sanity-check it before
    *  confirming a label / owner. Works for PDFs and images without any
    *  storage round-trip. */
-  const previewFile = (file: File) => {
-    return previewFileAt(-1, file);
-  };
+  const previewFile = (file: File) => previewFileAt(-1, file);
 
+  /** Open the local file in an in-page modal. We deliberately do NOT use
+   *  window.open() because some browser extensions (ad-blockers, privacy
+   *  shields) block popups to long lovableproject.com URLs with
+   *  ERR_BLOCKED_BY_CLIENT. An inline iframe bypasses that entirely. */
   const previewFileAt = (idx: number, file: File) => {
     try {
+      // Revoke any previous URL before creating a new one.
+      if (previewState?.url) URL.revokeObjectURL(previewState.url);
       const url = URL.createObjectURL(file);
-      const win = window.open(url, "_blank");
-      if (!win) {
-        const a = document.createElement("a");
-        a.href = url; a.target = "_blank"; a.rel = "noopener";
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setPreviewState({ url, name: file.name, mime: file.type || "application/pdf" });
       if (idx >= 0) patch(idx, { previewed: true });
     } catch {
       toast.error("Preview unavailable");
     }
+  };
+
+  const closePreview = () => {
+    if (previewState?.url) URL.revokeObjectURL(previewState.url);
+    setPreviewState(null);
   };
 
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
@@ -738,6 +743,7 @@ export const SmartUploadZone = ({
   const clearQueue = () => setQueue([]);
 
   return (
+    <>
     <Card className="p-5 shadow-elev-sm">
       <div className="flex items-center justify-between mb-1">
         <div className="font-semibold flex items-center gap-1.5">
@@ -1139,6 +1145,29 @@ export const SmartUploadZone = ({
         </div>
       )}
     </Card>
+    <Dialog open={!!previewState} onOpenChange={(o) => { if (!o) closePreview(); }}>
+      <DialogContent className="max-w-5xl w-[92vw] h-[88vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="px-4 py-2.5 border-b">
+          <DialogTitle className="text-sm font-semibold truncate pr-8">
+            {previewState?.name ?? "Preview"}
+          </DialogTitle>
+        </DialogHeader>
+        {previewState && (
+          previewState.mime.startsWith("image/") ? (
+            <div className="flex-1 overflow-auto bg-muted flex items-center justify-center">
+              <img src={previewState.url} alt={previewState.name} className="max-w-full max-h-full object-contain" />
+            </div>
+          ) : (
+            <iframe
+              src={previewState.url}
+              title={previewState.name}
+              className="flex-1 w-full bg-muted"
+            />
+          )
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
