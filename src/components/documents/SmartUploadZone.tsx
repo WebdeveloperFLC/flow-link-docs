@@ -250,9 +250,15 @@ export const SmartUploadZone = ({
     overrideOwner = false,
   ) => {
     try {
-      // Defensive guard: never let a name-mismatched item upload silently.
-      // Only the explicit "Upload anyway" / "Reassign" actions (which pass
-      // overrideOwner=true or a different targetClient) may proceed.
+      // Defensive guard: never let an unreviewed owner decision upload silently.
+      // Only explicit confirm/reassign/override actions may proceed.
+      if (item.status !== "needs_owner" && item.status !== "name_mismatch" && item.status !== "awaiting_review") {
+        return;
+      }
+      if (item.verificationIssue === "owner_not_readable" && !overrideOwner && targetClient.id === client.id) {
+        return;
+      }
+      // Name mismatches require explicit "Upload anyway" or moving to another case.
       if (item.status === "name_mismatch" && !overrideOwner && targetClient.id === client.id) {
         return;
       }
@@ -506,7 +512,8 @@ export const SmartUploadZone = ({
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType || !item.ownerId) return;
-    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId);
+    const needsOverride = item.verificationIssue === "owner_not_readable";
+    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId, client, needsOverride);
     onUploaded();
   };
 
