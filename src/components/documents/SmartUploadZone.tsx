@@ -21,7 +21,8 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { previewLocalFile } from "@/lib/documentPreview";
+import { buildLocalPreviewUrl } from "@/lib/documentPreview";
+import { InlinePreviewDialog } from "@/components/documents/InlinePreviewDialog";
 
 interface Client { id: string; full_name: string; }
 
@@ -99,6 +100,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const [preview, setPreview] = useState<{ url: string; mime: string; name: string } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -490,9 +492,13 @@ export const SmartUploadZone = ({
     patch(idx, { ownerId });
   };
 
-  /** Open the local file in a new tab so the user can sanity-check it before
-   *  confirming a label / owner. */
-  const previewFile = (file: File) => previewLocalFile(file);
+  /** Open an embedded preview (popup-blocker-safe) for the local file so the
+   *  user can verify it before confirming. */
+  const previewFile = (file: File) => {
+    if (preview?.url) URL.revokeObjectURL(preview.url);
+    const built = buildLocalPreviewUrl(file);
+    setPreview({ url: built.url, mime: built.mime, name: file.name });
+  };
 
   /** User picked a document type for an item that came back as "Other". Still require owner review before upload. */
   const confirmType = async (idx: number, newType: string) => {
@@ -509,9 +515,10 @@ export const SmartUploadZone = ({
 
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
-    if (!item || !item.predictedType || !item.ownerId) return;
+    const ownerId = item?.ownerId ?? applicant?.id ?? null;
+    if (!item || !item.predictedType || !ownerId) return;
     const needsOverride = item.verificationIssue === "owner_not_readable";
-    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId, client, needsOverride);
+    await uploadOne(idx, item, item.predictedType, item.customType, ownerId, client, needsOverride);
     onUploaded();
   };
 
@@ -979,12 +986,12 @@ export const SmartUploadZone = ({
                       <div className="text-[11px] leading-snug">
                         {it.ownerName
                           ? <>Detected name <span className="font-semibold">{it.ownerName}</span> — please confirm who this is for.</>
-                          : <>No name detected on the document. Preview it, then confirm only if it belongs in this case.</>}
+                          : <>Name couldn't be auto-read. Preview the file, then confirm if it belongs to <span className="font-semibold">{client.full_name}</span>.</>}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Select value={it.ownerId ?? ""} onValueChange={(v) => setOwner(i, v)}>
-                        <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Select person…" /></SelectTrigger>
+                    <div className="flex flex-col gap-2">
+                      <Select value={it.ownerId ?? applicant?.id ?? ""} onValueChange={(v) => setOwner(i, v)}>
+                        <SelectTrigger className="h-7 text-[11px] w-full"><SelectValue placeholder="Select person…" /></SelectTrigger>
                         <SelectContent>
                           {people.map((p) => (
                             <SelectItem key={p.id} value={p.id} className="text-xs">
@@ -995,9 +1002,17 @@ export const SmartUploadZone = ({
                           <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId}>
-                        Confirm & upload
-                      </Button>
+                      <div className="flex flex-wrap gap-1.5 justify-end">
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => previewFile(it.file)}>
+                          <Eye className="size-3 mr-1" /> Preview
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => skipItem(i)}>
+                          Skip
+                        </Button>
+                        <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!(it.ownerId ?? applicant?.id)}>
+                          Confirm & upload
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1093,6 +1108,17 @@ export const SmartUploadZone = ({
           <Loader2 className="size-3 animate-spin" /> Identifying & processing…
         </div>
       )}
+      <InlinePreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => {
+          if (!o && preview?.url) URL.revokeObjectURL(preview.url);
+          if (!o) setPreview(null);
+        }}
+        title={preview?.name ?? "Preview"}
+        url={preview?.url ?? null}
+        mime={preview?.mime ?? "application/octet-stream"}
+        fileName={preview?.name}
+      />
     </Card>
   );
 };
