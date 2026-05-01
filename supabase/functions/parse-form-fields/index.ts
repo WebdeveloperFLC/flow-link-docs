@@ -309,6 +309,90 @@ function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
     .map(([key, fs]) => ({ key, label: labels[key], fields: fs }));
 }
 
+/** Last-resort: ask Lovable AI (Gemini) to read the PDF visually and propose fields. */
+async function extractFieldsWithAI(pdfBytes: Uint8Array, formName: string): Promise<FieldDef[]> {
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) { console.warn("LOVABLE_API_KEY missing — skipping AI fallback"); return []; }
+
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < pdfBytes.length; i += chunk) {
+    binary += String.fromCharCode(...pdfBytes.subarray(i, i + chunk));
+  }
+  const dataUrl = `data:application/pdf;base64,${btoa(binary)}`;
+
+  const prompt =
+    `You are reading a government visa application form titled "${formName}". ` +
+    `List EVERY input field a person fills in. For each: name (machine_snake_case), ` +
+    `label (exact text printed on the form, max 120 chars), ` +
+    `type (text|textarea|date|number|dropdown|yes_no), ` +
+    `options (only if dropdown/radio), required (boolean, true when marked with *). ` +
+    `Skip signatures, barcodes, instructions, and read-only headings. Return STRICT JSON only.`;
+
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: dataUrl } },
+        ],
+      }],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "form_fields",
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            required: ["fields"],
+            properties: {
+              fields: {
+                type: "array",
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  required: ["name", "label", "type"],
+                  properties: {
+                    name: { type: "string" },
+                    label: { type: "string" },
+                    type: { type: "string", enum: ["text","textarea","date","number","dropdown","yes_no"] },
+                    options: { type: "array", items: { type: "string" } },
+                    required: { type: "boolean" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    }),
+  });
+  if (!res.ok) {
+    console.error("AI fallback failed", res.status, await res.text());
+    return [];
+  }
+  const json = await res.json();
+  const content = json?.choices?.[0]?.message?.content ?? "";
+  let parsed: { fields?: Array<{ name: string; label: string; type: FieldDef["type"]; options?: string[]; required?: boolean }> } = {};
+  try { parsed = typeof content === "string" ? JSON.parse(content) : content; }
+  catch (e) { console.error("AI JSON parse failed", e, String(content).slice(0, 400)); return []; }
+
+  const seen: Record<string, number> = {};
+  return (parsed.fields ?? []).map((f, i) => ({
+    id: uniqueFieldId(f.name, i, seen),
+    pdf_field: f.name,
+    label: (f.label || humanize(f.name)).slice(0, 200),
+    type: f.type,
+    options: f.options?.length ? f.options : undefined,
+    required: Boolean(f.required),
+    mapping_key: mappingFor(f.label || f.name),
+  }));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
