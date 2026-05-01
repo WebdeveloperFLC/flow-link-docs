@@ -96,7 +96,6 @@ const FormsLibrary = () => {
     const map: Record<string, Schema[]> = {};
     for (const sc of (s ?? []) as Schema[]) {
       if (!sc.form_id) continue;
-      if (isGenericDefaultSchema(sc)) continue;
       (map[sc.form_id] ??= []).push(sc);
     }
     setSchemasByForm(map);
