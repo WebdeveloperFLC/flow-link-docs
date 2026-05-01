@@ -252,7 +252,7 @@ export const SmartUploadZone = ({
     try {
       // Defensive guard: never let an unreviewed owner decision upload silently.
       // Only explicit confirm/reassign/override actions may proceed.
-      if (!["needs_owner", "needs_type", "name_mismatch", "awaiting_review"].includes(item.status)) {
+      if (!["needs_owner", "name_mismatch", "awaiting_review"].includes(item.status)) {
         return;
       }
       if (item.verificationIssue === "owner_not_readable" && !overrideOwner && targetClient.id === client.id) {
@@ -494,7 +494,7 @@ export const SmartUploadZone = ({
    *  confirming a label / owner. */
   const previewFile = (file: File) => previewLocalFile(file);
 
-  /** User picked a document type for an item that came back as "Other". Upload immediately. */
+  /** User picked a document type for an item that came back as "Other". Still require owner review before upload. */
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
     if (!item) return;
@@ -504,9 +504,7 @@ export const SmartUploadZone = ({
       return;
     }
     const ownerId = item.ownerId ?? applicant?.id ?? null;
-    patch(idx, { predictedType: newType, customType, status: "queued", error: undefined });
-    await uploadOne(idx, { ...item, predictedType: newType, customType }, newType, customType, ownerId);
-    onUploaded();
+    patch(idx, { predictedType: newType, customType, status: "needs_owner", ownerId, error: undefined });
   };
 
   const confirmOwner = async (idx: number) => {
