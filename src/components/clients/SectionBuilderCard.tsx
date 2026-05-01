@@ -14,7 +14,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
-import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, inferSectionId, type CaseSection } from "@/lib/sections";
+import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, filterExtractedForSection, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
@@ -27,6 +27,8 @@ import { useMasterLabels } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
 import { buildDocumentName, sanitizeName } from "@/lib/constants";
+import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
+import { mergeExtractedFields } from "@/lib/extractedFields";
 
 function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
@@ -152,10 +154,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
     if (!files || files.length === 0) return;
     setUploading(true);
     try {
-      // Smart upload: PDFs with ≥3 pages are run through the AI binder splitter,
-      // each segment is classified, and routed to its inferred section (not
-      // always THIS section). Non-PDF / short PDFs are classified as a single
-      // file and still routed to the inferred section.
+      // Section-first upload: every file (and every binder segment) is forced
+      // to stay in THIS section. The classifier still runs to label the doc,
+      // but it is never used to move the document to a different section.
       const segments: { file: File; preType?: string; preLabel?: string | null }[] = [];
       for (const f of Array.from(files)) {
         if (!isPdfFile(f)) { segments.push({ file: f }); continue; }
@@ -258,12 +259,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         } catch (e) { console.warn("classify failed", e); }
         if (docType === "Other" && !customType) customType = prettyTitle(f.name);
 
-        // If classification still fails, keep the file in the section where the
-        // user uploaded it instead of silently moving it to Additional/Other.
-        const targetSectionId = docType === "Other"
-          ? section.id
-          : ((await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id);
-        const targetSection = allSections.find((s) => s.id === targetSectionId) ?? section;
+        // SECTION-FIRST: file always stays in the section it was uploaded into.
+        const targetSectionId = section.id;
+        const targetSection = section;
 
         // Run every file through the same safe pipeline as Smart Upload:
         // - already-valid small PDFs are kept as-is (no scanner-corrupting
@@ -287,7 +285,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         });
         if (upErr) { toast.error(upErr.message); continue; }
 
-        const { error: insErr } = await supabase.from("client_documents").insert({
+        const { data: insRow, error: insErr } = await supabase.from("client_documents").insert({
           client_id: clientId,
           document_type: docType,
           custom_type: customType,
@@ -297,9 +295,68 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           size_bytes: processed.size,
           section_id: targetSectionId,
           section_order: baseOrder + (n + 1) * 10,
-        });
+        }).select().single();
         if (insErr) { toast.error(insErr.message); continue; }
         n++;
+
+        // Background: same-section field extraction + authenticity verification.
+        // Both are best-effort and never block the upload UX. Extracted fields
+        // are filtered to ONLY this section's allowed fields so an Identity
+        // upload can never silently fill, say, Finance numbers.
+        const insertedId = (insRow as { id: string } | null)?.id;
+        (async () => {
+          try {
+            const isPdfDoc = processed.type === "application/pdf" || processed.name.toLowerCase().endsWith(".pdf");
+            const isImage = processed.type.startsWith("image/");
+            const snippet = isPdfDoc ? await extractFirstPageText(processed, 28000, 8) : "";
+            const imageDataUrls: string[] = isPdfDoc
+              ? await renderPdfPagesToJpegDataUrls(processed, 6)
+              : isImage
+                ? [await imageFileToJpegDataUrl(processed)].filter(Boolean)
+                : [];
+            if ((snippet || imageDataUrls.length > 0) && insertedId) {
+              const { data } = await supabase.functions.invoke("extract-document-data", {
+                body: {
+                  document_type: effectiveType,
+                  custom_type: docType === "Other" ? (customType ?? null) : null,
+                  file_name: processed.name,
+                  snippet,
+                  image_data_urls: imageDataUrls,
+                },
+              });
+              const rawFields = (data?.fields ?? {}) as Record<string, string | number | null>;
+              const scoped = filterExtractedForSection(section.key, rawFields);
+              if (Object.keys(scoped).length > 0) {
+                const { written } = await mergeExtractedFields(clientId, insertedId, processed.name, scoped);
+                if (written.length > 0) {
+                  toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} into ${section.label}`);
+                }
+              }
+            }
+            // Authenticity verification (never blocks the UX).
+            if (insertedId) {
+              const pageImages: string[] = isPdfDoc
+                ? await renderPdfPagesToJpegDataUrls(processed, 4)
+                : isImage
+                  ? [await imageFileToJpegDataUrl(processed)].filter(Boolean)
+                  : [];
+              const embeddedText = isPdfDoc ? await extractFirstPageText(processed, 12000, 4) : "";
+              if (pageImages.length > 0 || embeddedText) {
+                await supabase.functions.invoke("verify-document", {
+                  body: {
+                    document_id: insertedId,
+                    doc_type: effectiveType,
+                    page_image_data_urls: pageImages,
+                    embedded_text: embeddedText,
+                    ocr_text: "",
+                  },
+                });
+              }
+            }
+          } catch (e) {
+            console.warn("section extract/verify failed:", e);
+          }
+        })();
       }
       if (n > 0) toast.success(`Uploaded ${n} document${n === 1 ? "" : "s"}`);
       onChanged();
@@ -435,7 +492,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onDrop={(e) => {
         if (!canEdit) return;
         e.preventDefault(); setDragActive(false);
-        if (e.dataTransfer.files?.length) toast.message("Use Smart upload so owner detection and preview happen before saving.");
+        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
       }}
     >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
@@ -456,11 +513,17 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           </Select>
           {canEdit && (
             <>
-              <input ref={fileInputRef} type="file" multiple className="hidden"
-                onChange={(e) => { e.currentTarget.value = ""; }} />
-              <Button size="sm" variant="outline" onClick={() => toast.message("Use Smart upload on the right panel for all new documents.")} disabled={uploading}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => { onUpload(e.target.files); e.currentTarget.value = ""; }}
+              />
+              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                 {uploading ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Upload className="size-3.5 mr-1.5" />}
-                Smart upload only
+                Upload to {section.label}
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
@@ -493,9 +556,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
           {dragActive
-            ? "Use Smart upload on the right panel"
+            ? `Drop files into ${section.label}`
             : (canEdit
-                ? "Use Smart upload on the right panel so every file is previewed and owner-checked before saving."
+                ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
                 : "No documents in this section yet.")}
         </div>
       ) : (

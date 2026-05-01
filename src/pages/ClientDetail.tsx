@@ -22,7 +22,8 @@ import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
-import { FinalBinderPanel } from "@/components/clients/FinalBinderPanel";
+import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
+import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
 import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
@@ -65,6 +66,7 @@ const ClientDetail = () => {
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [people, setPeople] = useState<CasePerson[]>([]);
   const [sections, setSections] = useState<CaseSection[]>([]);
+  const [addSectionOpen, setAddSectionOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -78,7 +80,7 @@ const ClientDetail = () => {
     setDocs((d ?? []) as Doc[]);
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
-    setSections(await loadSections());
+    setSections(await loadSections(true));
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
@@ -503,6 +505,16 @@ const ClientDetail = () => {
           {/* Section binders — upload many docs per section, drag to order, combine into a section binder. */}
           {sections.length > 0 && (
             <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Sections · upload into the right one so info auto-fills there
+                </div>
+                {isAdmin && (
+                  <Button size="sm" variant="outline" onClick={() => setAddSectionOpen(true)}>
+                    <Plus className="size-3.5 mr-1.5" /> New section
+                  </Button>
+                )}
+              </div>
               {sections.map((sec) => {
                 const sectionDocs: SectionDoc[] = docs
                   .filter((d) => d.section_id === sec.id)
@@ -647,7 +659,7 @@ const ClientDetail = () => {
 
         {/* Right: upload */}
         <div className="space-y-4">
-          <FinalBinderPanel
+          <CustomBindersPanel
             clientId={client.id}
             clientName={client.full_name}
             sections={sections}
@@ -660,7 +672,9 @@ const ClientDetail = () => {
               }));
               return acc;
             }, {} as Record<string, SectionDoc[]>)}
+            requiredItems={checklistItems.map((it) => ({ id: it.id, name: it.name, mandatory: !!it.mandatory }))}
             canGenerate={canUpload}
+            isAdmin={isAdmin}
             onGenerated={load}
           />
           <CasePeopleCard
@@ -670,18 +684,37 @@ const ClientDetail = () => {
             onChange={setPeople}
           />
           {canUpload ? (
-            <SmartUploadZone
-              client={client}
-              templateTypes={checklistItems.map((it) => it.name)}
-              people={people}
-              onUploaded={load}
-            />
+            <Card className="overflow-hidden shadow-elev-sm">
+              <Accordion type="single" collapsible>
+                <AccordionItem value="advanced" className="border-0">
+                  <AccordionTrigger className="px-5 py-3 hover:no-underline">
+                    <div className="text-left">
+                      <div className="text-sm font-semibold">Advanced: split a multi-doc PDF</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Only for binders that contain several documents in one PDF. Default uploads belong inside a section.
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="px-3 pb-3">
+                      <SmartUploadZone
+                        client={client}
+                        templateTypes={checklistItems.map((it) => it.name)}
+                        people={people}
+                        onUploaded={load}
+                      />
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </Card>
           ) : (
             <Card className="p-6 text-center text-sm text-muted-foreground">Read-only access.</Card>
           )}
         </div>
       </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
+      <AddSectionDialog open={addSectionOpen} onOpenChange={setAddSectionOpen} onCreated={load} />
       <AddDocTypeDialog
         open={addDocOpen}
         onOpenChange={setAddDocOpen}
