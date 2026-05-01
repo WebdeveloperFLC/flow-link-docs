@@ -21,9 +21,14 @@ Deno.serve(async (req) => {
     const snippet = String(body?.snippet ?? "").slice(0, 2000);
     const isImage = !!body?.is_image;
     const filenameTypeHint = typeof body?.filename_type_hint === "string" ? String(body.filename_type_hint).slice(0, 120) : null;
-    const pageImageDataUrl = typeof body?.page_image_data_url === "string" && body.page_image_data_url.startsWith("data:image/") && body.page_image_data_url.length < 4_500_000
+    const legacyPageImage = typeof body?.page_image_data_url === "string" && body.page_image_data_url.startsWith("data:image/") && body.page_image_data_url.length < 4_500_000
       ? body.page_image_data_url
       : "";
+    const pageImageDataUrls: string[] = Array.isArray(body?.page_image_data_urls)
+      ? body.page_image_data_urls
+          .filter((u: unknown) => typeof u === "string" && (u as string).startsWith("data:image/") && (u as string).length < 4_500_000)
+          .slice(0, 3)
+      : (legacyPageImage ? [legacyPageImage] : []);
     const allowed: string[] = Array.isArray(body?.allowed_types) ? body.allowed_types.slice(0, 50) : [];
     const casePeople: string[] = Array.isArray(body?.case_people)
       ? body.case_people.filter((n: unknown) => typeof n === "string" && n.trim()).slice(0, 10)
@@ -34,16 +39,19 @@ Deno.serve(async (req) => {
     if (!apiKey) return json({ type: "Other", confidence: 0, reason: "no_api_key" });
 
     const sys =
-      "You classify uploaded immigration / study-abroad documents AND verify the person whose document it is. Respond ONLY with strict JSON: {\"type\":<one of allowed>,\"confidence\":0..1,\"suggested_label\":<string or null>,\"owner_name\":<full name found in document content or null>,\"owner_confidence\":0..1,\"owner_evidence\":<exact visible text/field proving the name or null>,\"owner_source\":<\"document_text\"|\"document_image\"|null>,\"reason\":<short>}. CRITICAL: never use the filename as evidence for owner_name. The filename may be wrong. owner_name must come only from the document text or provided document image/OCR. Return owner_name null if the candidate/person name is not clearly visible in the document content. For IELTS/language test forms, use Candidate Details / Family Name / First Name fields when visible. If unsure about type, use \"Other\" with low confidence.";
+      "You classify uploaded immigration / study-abroad documents AND verify the person whose document it is. Respond ONLY with strict JSON: {\"type\":<one of allowed>,\"confidence\":0..1,\"suggested_label\":<string or null>,\"owner_name\":<full name found in document content or null>,\"owner_confidence\":0..1,\"owner_evidence\":<exact visible text/field proving the name or null>,\"owner_source\":<\"document_text\"|\"document_image\"|null>,\"reason\":<short>}. Use the provided page images as OCR/vision input when extracted text is empty or sparse. CRITICAL: never use the filename as evidence for owner_name. The filename may be wrong. owner_name must come only from the document text or provided document image/OCR. Return owner_name null if the candidate/person name is not clearly visible in the document content. For IELTS/language test forms, use Candidate Details / Family Name / First Name fields when visible. If unsure about type, use \"Other\" with low confidence.";
 
     const rosterLine = casePeople.length
       ? `\nPeople expected on this case (roster): ${JSON.stringify(casePeople)}. If the document's owner is clearly NOT one of these people, still return the actual name found on the document — do NOT guess one of the listed names. Only return a roster name if the document genuinely matches that person.`
       : "";
-    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename} (use only as a document-type hint, NEVER for owner/candidate name)\nFilename type hint: ${filenameTypeHint ?? "none"}\nIs image upload: ${isImage}\nDocument image provided: ${pageImageDataUrl ? "yes" : "no"}${rosterLine}\nFirst-page extracted text (may be empty/garbled for scans):\n"""${snippet}"""\n\nReturn only JSON. If owner_name is not supported by document text or image, return owner_name:null, owner_confidence:0, owner_evidence:null, owner_source:null.`;
-    const userContent = pageImageDataUrl
+    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename} (use only as a document-type hint, NEVER for owner/candidate name)\nFilename type hint: ${filenameTypeHint ?? "none"}\nIs image upload: ${isImage}\nDocument images provided: ${pageImageDataUrls.length}${rosterLine}\nExtracted text from first pages (may be empty/garbled for scans):\n"""${snippet}"""\n\nReturn only JSON. If owner_name is not supported by document text or image, return owner_name:null, owner_confidence:0, owner_evidence:null, owner_source:null.`;
+    const userContent = pageImageDataUrls.length
       ? [
           { type: "text", text: user },
-          { type: "image_url", image_url: { url: pageImageDataUrl } },
+          ...pageImageDataUrls.flatMap((url, idx) => [
+            { type: "text", text: `Image of page ${idx + 1}:` },
+            { type: "image_url", image_url: { url } },
+          ]),
         ]
       : user;
 

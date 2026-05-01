@@ -245,13 +245,21 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         try {
           const c = await classifyDocument(f, allowedDocumentTypes);
           if (c?.type) {
-            docType = c.type;
-            customType = c.type === "Other" ? (c.customType ?? prettyTitle(f.name)) : null;
+            // Do not let a weak/failed AI "Other" overwrite a type already
+            // determined during binder splitting or deterministic text rules.
+            if (c.type !== "Other" || docType === "Other") {
+              docType = c.type;
+              customType = c.type === "Other" ? (c.customType ?? customType ?? prettyTitle(f.name)) : null;
+            }
           }
         } catch (e) { console.warn("classify failed", e); }
         if (docType === "Other" && !customType) customType = prettyTitle(f.name);
 
-        const targetSectionId = (await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id;
+        // If classification still fails, keep the file in the section where the
+        // user uploaded it instead of silently moving it to Additional/Other.
+        const targetSectionId = docType === "Other"
+          ? section.id
+          : ((await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id);
         const targetSection = allSections.find((s) => s.id === targetSectionId) ?? section;
 
         const safe = f.name.replace(/[^a-zA-Z0-9._-]+/g, "_");

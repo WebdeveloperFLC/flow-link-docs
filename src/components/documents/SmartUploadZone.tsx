@@ -239,6 +239,14 @@ export const SmartUploadZone = ({
     overrideOwner = false,
   ) => {
     try {
+      if (type === "Other" && !customType?.trim()) {
+        patch(idx, {
+          status: "error",
+          predictedType: "Other",
+          error: "Choose the document type before upload",
+        });
+        return;
+      }
       const effectiveType = type === "Other" ? (customType?.trim() || "Other") : type;
       const isShared = ownerId === SHARED_ID;
       const ownerPerson = !isShared ? personById(ownerId ?? undefined) : undefined;

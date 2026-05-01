@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { DOCUMENT_TYPES } from "@/lib/constants";
-import { extractFirstPageText, renderFirstPdfPageToJpegDataUrl } from "@/lib/extractFirstPageText";
+import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 
 export interface Classification {
   type: string;       // one of DOCUMENT_TYPES, or "Other"
@@ -28,6 +28,52 @@ const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
   { type: "Visa Forms", rx: /imm\d{4}|visa[_\s-]?form|application[_\s-]?form/i, conf: 0.88 },
   { type: "Photograph", rx: /^photo|passport[_\s-]?photo|headshot|\.jpe?g$/i, conf: 0.6 },
 ];
+
+const CONTENT_HEURISTICS: { type: string; rx: RegExp; conf: number; suggested?: string }[] = [
+  { type: "Passport", rx: /passport|republic of|nationality|surname|given names?|passport no|date of expiry|place of birth|[A-Z0-9<]{25,}/i, conf: 0.94 },
+  { type: "IELTS / Language Test", rx: /ielts|international english language testing system|test report form|candidate number|overall band|listening\s+reading\s+writing\s+speaking|toefl|pte|duolingo/i, conf: 0.94 },
+  { type: "Academic Transcripts", rx: /transcript|marksheet|mark sheet|statement of marks|consolidated|semester|university|college|degree|diploma|provisional certificate|grade point|cgpa|gpa/i, conf: 0.9 },
+  { type: "Offer Letter", rx: /offer letter|letter of acceptance|admission|accepted to|program of study|student id/i, conf: 0.9 },
+  { type: "GIC Certificate", rx: /guaranteed investment certificate|\bgic\b|investment account|blocked account/i, conf: 0.94 },
+  { type: "Tuition Fee Receipt", rx: /tuition|fee receipt|payment receipt|fees paid|student account payment/i, conf: 0.9 },
+  { type: "Financial Documents", rx: /bank statement|statement of account|account number|account balance|closing balance|available balance|income tax|\bitr\b|fixed deposit|\bfd\b/i, conf: 0.88 },
+  { type: "Visa Forms", rx: /imm\s?\d{4}|application for|visa application|family information|temporary resident|study permit/i, conf: 0.88 },
+  { type: "SOP", rx: /statement of purpose|personal statement|\bsop\b/i, conf: 0.92 },
+  { type: "Resume", rx: /resume|curriculum vitae|\bcv\b|work experience|professional experience|education qualifications/i, conf: 0.88 },
+  { type: "Medical Report", rx: /medical report|emedical|imm\s?1017|panel physician|upfront medical/i, conf: 0.9 },
+  { type: "Birth Certificate", rx: /birth certificate|date of birth|place of birth|registration of birth/i, conf: 0.9 },
+  { type: "Marriage Certificate", rx: /marriage certificate|certificate of marriage/i, conf: 0.9 },
+  { type: "Police Clearance", rx: /police clearance|police certificate|\bpcc\b|criminal record/i, conf: 0.9 },
+  { type: "Employment Letter", rx: /employment letter|experience letter|salary slip|pay slip|no objection certificate|\bnoc\b/i, conf: 0.88 },
+  { type: "Affidavit of Support", rx: /affidavit of support|sponsorship|sponsor declaration|financial support/i, conf: 0.88 },
+];
+
+function pickAllowedType(preferred: string, allowed: string[]): string | null {
+  if (allowed.includes(preferred)) return preferred;
+  const aliases: Record<string, string[]> = {
+    "IELTS / Language Test": ["English Language Proficiency Test", "IELTS", "TOEFL", "PTE", "Duolingo"],
+    "Academic Transcripts": ["Academic Marksheets", "Marksheets", "Degree Certificate", "Diploma", "Provisional Certificate"],
+    "Resume": ["Updated Resume", "CV"],
+    "Financial Documents": ["Bank Statement", "Bank Statements"],
+    "Visa Forms": ["Visa Form", "IMM Forms"],
+    "Police Clearance": ["Police Clearance Certificate", "PCC"],
+    "Employment Letter": ["Experience Letter"],
+  };
+  return aliases[preferred]?.find((t) => allowed.includes(t)) ?? null;
+}
+
+export function classifyByText(text: string, candidateTypes?: string[]): Classification | null {
+  const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])].map(String).filter(Boolean)));
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length < 20) return null;
+  for (const h of CONTENT_HEURISTICS) {
+    if (!h.rx.test(cleaned)) continue;
+    const type = pickAllowedType(h.type, allowed);
+    if (type) return { type, confidence: h.conf, source: "fallback" };
+    return { type: "Other", customType: h.suggested ?? h.type, confidence: 0.65, source: "fallback" };
+  }
+  return null;
+}
 
 export function classifyByFilename(name: string): Classification | null {
   for (const h of HEURISTICS) {
@@ -68,26 +114,33 @@ export async function classifyDocument(
 ): Promise<Classification> {
   // Filename is only a type hint. Candidate ownership must come from document content.
   const fn = classifyByFilename(file.name);
+  let fallbackTextGuess: Classification | null = null;
 
   try {
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     const isImage = file.type.startsWith("image/");
     let snippet = "";
-    let pageImage = "";
+    let pageImages: string[] = [];
     if (isPdf) {
-      snippet = await extractFirstPageText(file, 3000);
-      pageImage = await renderFirstPdfPageToJpegDataUrl(file);
+      // Read more than the first page so multi-page single documents (transcripts,
+      // bank statements, IELTS reports) are not misfiled as Other when page 1 is sparse.
+      snippet = await extractFirstPageText(file, 8000, 8);
+      pageImages = await renderPdfPagesToJpegDataUrls(file, 3, 150, 0.78);
     } else if (isImage) {
-      pageImage = await imageFileToJpegDataUrl(file);
+      const img = await imageFileToJpegDataUrl(file);
+      pageImages = img ? [img] : [];
     }
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
+    const textGuess = classifyByText(snippet, allowed);
+    fallbackTextGuess = textGuess;
     const { data, error } = await supabase.functions.invoke("classify-document", {
       body: {
         filename: file.name,
         snippet,
         is_image: isImage,
-        page_image_data_url: pageImage,
+        page_image_data_url: pageImages[0] ?? "",
+        page_image_data_urls: pageImages,
         size_bytes: file.size,
         allowed_types: allowed,
         case_people: (peopleNames ?? []).filter((n) => n && n.trim()).slice(0, 10),
@@ -99,21 +152,22 @@ export async function classifyDocument(
     const aiConfidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
     // If AI cannot read a scanned/low-signal file, keep a strong filename type hint.
     // Ownership is still NEVER taken from the filename; only document type falls back.
-    const useFilenameType = !!fn && (aiType === "Other" || aiConfidence < 0.5);
-    const type = useFilenameType ? fn.type : aiType;
-    const confidence = useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
+    const useTextType = !!textGuess && (aiType === "Other" || aiConfidence < 0.55);
+    const useFilenameType = !useTextType && !!fn && (aiType === "Other" || aiConfidence < 0.5);
+    const type = useTextType ? textGuess.type : useFilenameType ? fn.type : aiType;
+    const confidence = useTextType ? Math.max(textGuess.confidence, aiConfidence) : useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
     return {
       type,
-      customType: type === "Other" ? (data?.suggested_label as string | undefined) : undefined,
+      customType: type === "Other" ? (textGuess?.customType ?? data?.suggested_label as string | undefined) : undefined,
       confidence,
-      source: useFilenameType ? "filename" : "ai",
+      source: useTextType ? "fallback" : useFilenameType ? "filename" : "ai",
       ownerName: (data?.owner_name as string | null) ?? null,
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
       ownerEvidence: (data?.owner_evidence as string | null) ?? null,
       ownerSource: data?.owner_source === "document_text" || data?.owner_source === "document_image" ? data.owner_source : null,
     };
   } catch {
-    return fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
+    return fallbackTextGuess ?? fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
   }
 }
 
