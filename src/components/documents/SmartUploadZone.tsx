@@ -519,7 +519,7 @@ export const SmartUploadZone = ({
                         <SelectContent>
                           {people.map((p) => (
                             <SelectItem key={p.id} value={p.id} className="text-xs">
-                              {p.full_name} · {p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}
+                              {p.full_name} · {ROLE_LABEL[p.role]}
                               {p.date_of_birth ? ` (DOB ${p.date_of_birth})` : ""}
                             </SelectItem>
                           ))}
