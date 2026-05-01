@@ -20,6 +20,7 @@ import { logActivity } from "@/lib/activity";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  type BinderSegment,
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
@@ -161,7 +162,18 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             },
           });
           if (error) throw error;
-          let segs = Array.isArray(data?.segments) ? data.segments : [];
+          let segs: BinderSegment[] = Array.isArray(data?.segments) ? data.segments : [];
+          // Re-type weak / "Other" segments with deterministic text rules.
+          segs = segs.map((s) => {
+            const needsRetype = !s.type || s.type === "Other" || (s.confidence ?? 0) < 0.5;
+            if (!needsRetype) return s;
+            const start = Math.max(1, Math.min(pageCount, s.start_page ?? 1));
+            const end = Math.max(start, Math.min(pageCount, s.end_page ?? start));
+            const joined = pageSnippets.slice(start - 1, end).join(" \n ");
+            const guess = inferTypeFromPageText(joined, allowedDocumentTypes);
+            if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
+            return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
+          });
           if (shouldFallbackToPageRanges(f.name, pageCount, segs)) {
             segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
               start_page: pageIdx + 1,
@@ -172,7 +184,19 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             }));
             toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
           }
-          if (segs.length < 2) { segments.push({ file: f }); continue; }
+          // Never upload a multi-page PDF as one "Other" document. If we ended
+          // up with a single segment, force a per-page split so each page is
+          // classified and routed individually.
+          if (segs.length < 2) {
+            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
+              start_page: pageIdx + 1,
+              end_page: pageIdx + 1,
+              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
+              confidence: 0.35,
+              reason: "single_segment_forced_split",
+            }));
+            toast.message(`"${f.name}" was split page-by-page for routing.`);
+          }
           const baseStem = f.name.replace(/\.pdf$/i, "");
           for (let i = 0; i < segs.length; i++) {
             const s = segs[i] as { start_page: number; end_page: number; type: string; suggested_label?: string | null };
