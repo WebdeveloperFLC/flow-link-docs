@@ -19,7 +19,7 @@ export function getAllowedDocumentTypes(extraTypes: string[] = []): string[] {
 
 /** Filename-based hint that a multi-page PDF is likely a binder of mixed documents. */
 export function looksLikeBinderName(fileName: string): boolean {
-  return /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?|all\s+docs|documents?\s+package)\b/i.test(fileName);
+  return /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?|student\s+docs?|student\s+documents?|all\s+docs|all\s+documents?|complete\s+(file|binder|docs?|documents?)|full\s+(file|binder|docs?|documents?)|visa\s+(file|docs?|documents?)|case\s+(file|docs?|documents?)|documents?\s+package)\b/i.test(fileName);
 }
 
 /**
@@ -41,12 +41,15 @@ export function shouldFallbackToPageRanges(fileName: string, pageCount: number, 
   if (!segments || segments.length === 0) return looksLikeBinder;
 
   // Single segment covering the whole document is the same as "AI did not split" —
-  // for a likely binder, fall back to page ranges so the user can review.
+  // for a likely binder, ALWAYS fall back to page ranges so the user can review.
   if (segments.length === 1) {
     const s = segments[0];
     const coversAll = (s.start_page ?? 1) <= 1 && (s.end_page ?? 0) >= pageCount;
-    const isOtherLowConf = s.type === "Other" && (s.confidence ?? 0) < 0.7;
+    // Hard rule: a binder-named PDF must never end up as one segment, even if
+    // the AI confidently labels the whole thing as "Passport".
+    if (looksLikeBinder && coversAll) return true;
     if (looksLikeBinder) return true;
+    const isOtherLowConf = s.type === "Other" && (s.confidence ?? 0) < 0.7;
     if (coversAll && isOtherLowConf) return true;
     return false;
   }
