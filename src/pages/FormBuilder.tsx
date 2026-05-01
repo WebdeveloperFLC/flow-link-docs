@@ -166,14 +166,14 @@ const FormBuilder = () => {
       });
       if (error) throw error;
       const result = data as ParseResponse;
-      if (result?.error) throw new Error(result.error);
       await load();
       const detected = result?.total_fields_detected ?? result?.acro_fields_detected ?? 0;
       if (result?.source === "none" || detected === 0) {
-        toast.info("No fields were detected automatically. Add sections and fields manually in step 2.");
+        toast.info(result?.error || "No fields were detected automatically. Add sections and fields manually in step 2.");
         setStep("build");
         return;
       }
+      if (result?.error) throw new Error(result.error);
       const sourceLabel =
         result?.source === "xfa" ? "XFA"
         : result?.source === "ai" ? "AI-detected"
