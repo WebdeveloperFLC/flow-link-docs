@@ -370,6 +370,33 @@ export const SmartUploadZone = ({
       } catch (e) {
         console.warn("extract-document-data failed:", e);
       }
+
+      // Background authenticity check ("synergy gate"): produce a verification
+      // record so reviewers can see fraud signals on the document. Best-effort
+      // — never block the upload UX.
+      try {
+        const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
+        const isImage = item.file.type.startsWith("image/");
+        const pageImages: string[] = isPdf
+          ? await renderPdfPagesToJpegDataUrls(item.file, 4)
+          : isImage
+            ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
+            : [];
+        const embeddedText = isPdf ? await extractFirstPageText(item.file, 12000, 4) : "";
+        if (pageImages.length > 0 || embeddedText) {
+          await supabase.functions.invoke("verify-document", {
+            body: {
+              document_id: ins.id,
+              doc_type: effectiveType,
+              page_image_data_urls: pageImages,
+              embedded_text: embeddedText,
+              ocr_text: "",
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("verify-document failed:", e);
+      }
     } catch (e) {
       patch(idx, { status: "error", error: e instanceof Error ? e.message : "Upload failed" });
     }
