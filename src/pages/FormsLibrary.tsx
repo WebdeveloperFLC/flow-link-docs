@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
@@ -383,6 +384,10 @@ function UploadFormDialog({
   const [file, setFile] = useState<File | null>(null);
   const [requiresValidation, setRequiresValidation] = useState(false);
   const [busy, setBusy] = useState(false);
+  const masterCountries = useMasterLabels("countries");
+  const masterCategories = useMasterLabels("application_types");
+  const countryOptions = masterCountries.length ? masterCountries : COUNTRIES;
+  const categoryOptions = masterCategories.length ? masterCategories : APPLICATION_TYPES;
 
   const submit = async () => {
     if (!country || !category || !name || !file) {
@@ -432,7 +437,7 @@ function UploadFormDialog({
               <Select value={country} onValueChange={setCountry}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
-                  {COUNTRIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {countryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -441,7 +446,7 @@ function UploadFormDialog({
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
-                  {APPLICATION_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {categoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
