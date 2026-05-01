@@ -215,7 +215,12 @@ async function buildPdf(args: {
     x: MX, y: 20, size: 7.5, font: helv, color: MUTED,
   });
 
-  return await pdf.save();
+  try {
+    form.updateFieldAppearances(helv);
+  } catch (e) {
+    console.warn("updateFieldAppearances failed (continuing)", String(e));
+  }
+  return await pdf.save({ updateFieldAppearances: false });
 }
 
 Deno.serve(async (req) => {
