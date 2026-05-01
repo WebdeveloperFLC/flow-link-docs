@@ -57,15 +57,24 @@ export function sanitizeName(name: string) {
   return name.replace(/[^a-zA-Z0-9]/g, "");
 }
 
+/** Today's date in YYYY-MM-DD using the user's local timezone. */
+function todayPrefix(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function buildDocumentName(docType: string, clientName: string, version: number, ext: string) {
   const cleanType = sanitizeName(docType);
   const cleanClient = sanitizeName(clientName);
   const v = version > 1 ? `_v${version}` : "";
-  return `${cleanType}_${cleanClient}${v}.${ext}`;
+  return `${todayPrefix()}_${cleanType}_${cleanClient}${v}.${ext}`;
 }
 
 /**
- * Person-aware filename: `{Type}_{Role}_{PersonName}_v{n}.{ext}`.
+ * Person-aware filename: `{YYYY-MM-DD}_{Type}_{Role}_{PersonName}_v{n}.{ext}`.
  * For shared documents pass roleLabel="Shared" and personName="" (omitted).
  */
 export function buildPersonDocumentName(
@@ -80,5 +89,5 @@ export function buildPersonDocumentName(
   const cleanPerson = sanitizeName(personName);
   const v = version > 1 ? `_v${version}` : "";
   const tail = cleanPerson ? `_${cleanPerson}` : "";
-  return `${cleanType}_${cleanRole}${tail}${v}.${ext}`;
+  return `${todayPrefix()}_${cleanType}_${cleanRole}${tail}${v}.${ext}`;
 }

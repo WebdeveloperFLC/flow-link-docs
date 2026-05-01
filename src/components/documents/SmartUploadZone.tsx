@@ -150,24 +150,16 @@ export const SmartUploadZone = ({
           alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
         };
 
-        // HARD BLOCK: never silently auto-upload an unidentified document into "Other".
-        // Force the user to choose the type. This handles scanned PDFs where AI fails.
-        if (c.needsManualType || c.type === "Other") {
-          const suggestedOwner = isMulti
-            ? (match.best?.id ?? applicant?.id ?? null)
-            : (applicant?.id ?? null);
-          patch(idx, {
-            ...baseUpdate,
-            status: "needs_type",
-            ownerId: suggestedOwner,
-          });
-          await logActivity("document.type_needs_pick", "client", client.id, {
+        // No hard block on "Other": yesterday's working behavior was to always
+        // auto-upload with the best classification we have. The card UI keeps a
+        // dropdown for the user to correct the type post-upload if needed.
+        if (c.type === "Other") {
+          await logActivity("document.classified_other", "client", client.id, {
             file_name: item.file.name,
             is_scanned: c.isScanned ?? null,
             ai_confidence: c.confidence,
             suggested_label: c.customType ?? null,
           });
-          return null;
         }
 
         // HARD BLOCK: owner must be verified from document content/image, never filename.
@@ -377,6 +369,33 @@ export const SmartUploadZone = ({
         }
       } catch (e) {
         console.warn("extract-document-data failed:", e);
+      }
+
+      // Background authenticity check ("synergy gate"): produce a verification
+      // record so reviewers can see fraud signals on the document. Best-effort
+      // — never block the upload UX.
+      try {
+        const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
+        const isImage = item.file.type.startsWith("image/");
+        const pageImages: string[] = isPdf
+          ? await renderPdfPagesToJpegDataUrls(item.file, 4)
+          : isImage
+            ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
+            : [];
+        const embeddedText = isPdf ? await extractFirstPageText(item.file, 12000, 4) : "";
+        if (pageImages.length > 0 || embeddedText) {
+          await supabase.functions.invoke("verify-document", {
+            body: {
+              document_id: ins.id,
+              doc_type: effectiveType,
+              page_image_data_urls: pageImages,
+              embedded_text: embeddedText,
+              ocr_text: "",
+            },
+          });
+        }
+      } catch (e) {
+        console.warn("verify-document failed:", e);
       }
     } catch (e) {
       patch(idx, { status: "error", error: e instanceof Error ? e.message : "Upload failed" });
