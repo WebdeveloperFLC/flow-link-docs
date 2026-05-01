@@ -1114,7 +1114,7 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
-      if (shouldFallbackToPageRanges(file.name, pageCount, [])) {
+      if (looksLikeBinderName(file.name) && shouldFallbackToPageRanges(file.name, pageCount, [])) {
         const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
         const baseStem = file.name.replace(/\.pdf$/i, "");
         for (let i = 1; i <= pageCount; i++) {
