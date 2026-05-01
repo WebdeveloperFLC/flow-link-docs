@@ -493,9 +493,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
           {dragActive
-            ? `Drop files into ${section.label}`
+            ? "Use Smart upload on the right panel"
             : (canEdit
-                ? `Drop files here or click Upload — multiple files supported. They'll be added to ${section.label}.`
+                ? "Use Smart upload on the right panel so every file is previewed and owner-checked before saving."
                 : "No documents in this section yet.")}
         </div>
       ) : (
