@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { DOCUMENT_TYPES } from "@/lib/constants";
-import { extractFirstPageText, renderFirstPdfPageToJpegDataUrl } from "@/lib/extractFirstPageText";
+import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 
 export interface Classification {
   type: string;       // one of DOCUMENT_TYPES, or "Other"
@@ -28,6 +28,52 @@ const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
   { type: "Visa Forms", rx: /imm\d{4}|visa[_\s-]?form|application[_\s-]?form/i, conf: 0.88 },
   { type: "Photograph", rx: /^photo|passport[_\s-]?photo|headshot|\.jpe?g$/i, conf: 0.6 },
 ];
+
+const CONTENT_HEURISTICS: { type: string; rx: RegExp; conf: number; suggested?: string }[] = [
+  { type: "Passport", rx: /passport|republic of|nationality|surname|given names?|passport no|date of expiry|place of birth|[A-Z0-9<]{25,}/i, conf: 0.94 },
+  { type: "IELTS / Language Test", rx: /ielts|international english language testing system|test report form|candidate number|overall band|listening\s+reading\s+writing\s+speaking|toefl|pte|duolingo/i, conf: 0.94 },
+  { type: "Academic Transcripts", rx: /transcript|marksheet|mark sheet|statement of marks|consolidated|semester|university|college|degree|diploma|provisional certificate|grade point|cgpa|gpa/i, conf: 0.9 },
+  { type: "Offer Letter", rx: /offer letter|letter of acceptance|admission|accepted to|program of study|student id/i, conf: 0.9 },
+  { type: "GIC Certificate", rx: /guaranteed investment certificate|\bgic\b|investment account|blocked account/i, conf: 0.94 },
+  { type: "Tuition Fee Receipt", rx: /tuition|fee receipt|payment receipt|fees paid|student account payment/i, conf: 0.9 },
+  { type: "Financial Documents", rx: /bank statement|statement of account|account number|account balance|closing balance|available balance|income tax|\bitr\b|fixed deposit|\bfd\b/i, conf: 0.88 },
+  { type: "Visa Forms", rx: /imm\s?\d{4}|application for|visa application|family information|temporary resident|study permit/i, conf: 0.88 },
+  { type: "SOP", rx: /statement of purpose|personal statement|\bsop\b/i, conf: 0.92 },
+  { type: "Resume", rx: /resume|curriculum vitae|\bcv\b|work experience|professional experience|education qualifications/i, conf: 0.88 },
+  { type: "Medical Report", rx: /medical report|emedical|imm\s?1017|panel physician|upfront medical/i, conf: 0.9 },
+  { type: "Birth Certificate", rx: /birth certificate|date of birth|place of birth|registration of birth/i, conf: 0.9 },
+  { type: "Marriage Certificate", rx: /marriage certificate|certificate of marriage/i, conf: 0.9 },
+  { type: "Police Clearance", rx: /police clearance|police certificate|\bpcc\b|criminal record/i, conf: 0.9 },
+  { type: "Employment Letter", rx: /employment letter|experience letter|salary slip|pay slip|no objection certificate|\bnoc\b/i, conf: 0.88 },
+  { type: "Affidavit of Support", rx: /affidavit of support|sponsorship|sponsor declaration|financial support/i, conf: 0.88 },
+];
+
+function pickAllowedType(preferred: string, allowed: string[]): string | null {
+  if (allowed.includes(preferred)) return preferred;
+  const aliases: Record<string, string[]> = {
+    "IELTS / Language Test": ["English Language Proficiency Test", "IELTS", "TOEFL", "PTE", "Duolingo"],
+    "Academic Transcripts": ["Academic Marksheets", "Marksheets", "Degree Certificate", "Diploma", "Provisional Certificate"],
+    "Resume": ["Updated Resume", "CV"],
+    "Financial Documents": ["Bank Statement", "Bank Statements"],
+    "Visa Forms": ["Visa Form", "IMM Forms"],
+    "Police Clearance": ["Police Clearance Certificate", "PCC"],
+    "Employment Letter": ["Experience Letter"],
+  };
+  return aliases[preferred]?.find((t) => allowed.includes(t)) ?? null;
+}
+
+export function classifyByText(text: string, candidateTypes?: string[]): Classification | null {
+  const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])].map(String).filter(Boolean)));
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (cleaned.length < 20) return null;
+  for (const h of CONTENT_HEURISTICS) {
+    if (!h.rx.test(cleaned)) continue;
+    const type = pickAllowedType(h.type, allowed);
+    if (type) return { type, confidence: h.conf, source: "fallback" };
+    return { type: "Other", customType: h.suggested ?? h.type, confidence: 0.65, source: "fallback" };
+  }
+  return null;
+}
 
 export function classifyByFilename(name: string): Classification | null {
   for (const h of HEURISTICS) {
