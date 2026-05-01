@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 interface Client { id: string; full_name: string; }
 
 type ItemStatus =
-  | "queued" | "identifying" | "needs_owner" | "name_mismatch" | "awaiting_review"
+  | "queued" | "identifying" | "needs_owner" | "needs_type" | "name_mismatch" | "awaiting_review"
   | "processing" | "uploading" | "done" | "error" | "skipped";
 
 interface ClientLite { id: string; full_name: string; application_id: string; }
@@ -149,6 +149,26 @@ export const SmartUploadZone = ({
           matchScore: match.score,
           alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
         };
+
+        // HARD BLOCK: never silently auto-upload an unidentified document into "Other".
+        // Force the user to choose the type. This handles scanned PDFs where AI fails.
+        if (c.needsManualType || c.type === "Other") {
+          const suggestedOwner = isMulti
+            ? (match.best?.id ?? applicant?.id ?? null)
+            : (applicant?.id ?? null);
+          patch(idx, {
+            ...baseUpdate,
+            status: "needs_type",
+            ownerId: suggestedOwner,
+          });
+          await logActivity("document.type_needs_pick", "client", client.id, {
+            file_name: item.file.name,
+            is_scanned: c.isScanned ?? null,
+            ai_confidence: c.confidence,
+            suggested_label: c.customType ?? null,
+          });
+          return null;
+        }
 
         // HARD BLOCK: owner must be verified from document content/image, never filename.
         const detectedName = c.ownerName?.trim() ?? "";
@@ -438,6 +458,21 @@ export const SmartUploadZone = ({
 
   const setOwner = (idx: number, ownerId: string) => {
     patch(idx, { ownerId });
+  };
+
+  /** User picked a document type for an item that came back as "Other". Upload immediately. */
+  const confirmType = async (idx: number, newType: string) => {
+    const item = queue[idx];
+    if (!item) return;
+    const customType = newType === "Other" ? (item.customType?.trim() || "") : undefined;
+    if (newType === "Other" && !customType) {
+      patch(idx, { error: "Please type a label for this Other document or choose a known type." });
+      return;
+    }
+    const ownerId = item.ownerId ?? applicant?.id ?? null;
+    patch(idx, { predictedType: newType, customType, status: "queued", error: undefined });
+    await uploadOne(idx, { ...item, predictedType: newType, customType }, newType, customType, ownerId);
+    onUploaded();
   };
 
   const confirmOwner = async (idx: number) => {
@@ -823,7 +858,7 @@ export const SmartUploadZone = ({
               <div
                 key={i}
                 className={`flex flex-col gap-1.5 text-xs p-2 rounded ${
-                  it.status === "name_mismatch" || it.status === "needs_owner"
+                  it.status === "name_mismatch" || it.status === "needs_owner" || it.status === "needs_type"
                     ? "bg-amber-50 border border-amber-300"
                     : "bg-muted/50"
                 }`}
@@ -861,6 +896,33 @@ export const SmartUploadZone = ({
                     </Select>
                   )}
                 </div>
+
+                {/* AI couldn't identify the document — require user to pick a type before upload */}
+                {it.status === "needs_type" && (
+                  <div className="ml-5 mt-1 p-2 rounded bg-amber-100/60 border border-amber-300 space-y-2">
+                    <div className="flex items-start gap-1.5 text-amber-900">
+                      <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                      <div className="text-[11px] leading-snug">
+                        Couldn't confidently identify this document
+                        {it.customType ? <> (looks like <span className="font-semibold">{it.customType}</span>)</> : null}
+                        . Please pick the correct type — it won't be uploaded as "Other" automatically.
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select onValueChange={(v) => confirmType(i, v)}>
+                        <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Choose document type…" /></SelectTrigger>
+                        <SelectContent>
+                          {DOCUMENT_TYPES.map((t) => (
+                            <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => skipItem(i)}>
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Roster picker for multi-person cases needing confirmation */}
                 {it.status === "needs_owner" && (
@@ -993,6 +1055,7 @@ function StatusIcon({ status }: { status: ItemStatus }) {
   if (status === "error") return <AlertTriangle className="size-3.5 text-destructive shrink-0" />;
   if (status === "name_mismatch") return <UserX className="size-3.5 text-amber-600 shrink-0" />;
   if (status === "needs_owner") return <Users className="size-3.5 text-amber-600 shrink-0" />;
+  if (status === "needs_type") return <AlertTriangle className="size-3.5 text-amber-600 shrink-0" />;
   if (status === "awaiting_review") return <Scissors className="size-3.5 text-primary shrink-0" />;
   if (status === "skipped") return <div className="size-3.5 rounded-full bg-muted shrink-0" />;
   if (status === "queued") return <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />;
