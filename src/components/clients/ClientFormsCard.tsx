@@ -143,7 +143,20 @@ export const ClientFormsCard = ({
       const { data, error } = await supabase.functions.invoke("fill-form", {
         body: { instance_id: inst.id },
       });
-      if (error) throw error;
+      // FunctionsHttpError exposes the JSON body via .context.json() — surface
+      // the backend's specific message instead of the generic "non-2xx" toast.
+      if (error) {
+        let detail = error.message;
+        try {
+          // deno-lint-ignore no-explicit-any
+          const ctx: any = (error as any).context;
+          if (ctx) {
+            const body = typeof ctx.json === "function" ? await ctx.json() : null;
+            if (body?.error) detail = body.error;
+          }
+        } catch { /* ignore */ }
+        throw new Error(detail);
+      }
       if (data?.error) throw new Error(data.error);
       const filledCount = (data?.filled?.acroform?.length ?? 0) + (data?.filled?.xfa?.length ?? 0);
       const skipped = data?.skipped?.length ?? 0;
