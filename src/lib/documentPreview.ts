@@ -122,6 +122,9 @@ export function previewLocalFile(file: File): void {
  * popups are blocked.
  */
 export function buildLocalPreviewUrl(file: File): { url: string; mime: string } {
-  const url = URL.createObjectURL(file);
-  return { url, mime: file.type || "application/octet-stream" };
+  const lowerName = file.name.toLowerCase();
+  const mime = lowerName.endsWith(".pdf") ? "application/pdf" : file.type || "application/octet-stream";
+  const previewBlob = file.type === mime ? file : new Blob([file], { type: mime });
+  const url = URL.createObjectURL(previewBlob);
+  return { url, mime };
 }
