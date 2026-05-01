@@ -252,7 +252,7 @@ export const SmartUploadZone = ({
     try {
       // Defensive guard: never let an unreviewed owner decision upload silently.
       // Only explicit confirm/reassign/override actions may proceed.
-      if (item.status !== "needs_owner" && item.status !== "name_mismatch" && item.status !== "awaiting_review") {
+      if (!["needs_owner", "needs_type", "name_mismatch", "awaiting_review"].includes(item.status)) {
         return;
       }
       if (item.verificationIssue === "owner_not_readable" && !overrideOwner && targetClient.id === client.id) {
@@ -724,7 +724,7 @@ export const SmartUploadZone = ({
         </span>
       </div>
       <p className="text-xs text-muted-foreground mb-3">
-        Drop any documents — we auto-detect type, rename, convert to PDF, and compress for IRCC submission.
+        Drop documents to detect type and owner first. Review each result before it is saved.
       </p>
 
       {isMulti && (
@@ -754,7 +754,7 @@ export const SmartUploadZone = ({
         <Sparkles className="size-7 mx-auto text-secondary mb-2" />
         <div className="text-sm font-medium">Drop files or click to browse</div>
         <div className="text-xs text-muted-foreground mt-1">
-          PDF or images · auto-classified & renamed
+          PDF or images · preview and confirm before upload
         </div>
       </label>
 
@@ -981,7 +981,7 @@ export const SmartUploadZone = ({
                       <div className="text-[11px] leading-snug">
                         {it.ownerName
                           ? <>Detected name <span className="font-semibold">{it.ownerName}</span> — please confirm who this is for.</>
-                          : <>No name detected on the document. Choose who this is for.</>}
+                          : <>No name detected on the document. Preview it, then confirm only if it belongs in this case.</>}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
