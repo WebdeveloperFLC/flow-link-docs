@@ -51,6 +51,13 @@ interface Schema {
 
 interface EmailTemplate { id: string; name: string; is_default: boolean }
 
+type ParseResponse = {
+  error?: string;
+  total_fields_detected?: number;
+  acro_fields_detected?: number;
+  source?: "acroform" | "xfa" | "none";
+};
+
 const FormsLibrary = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -125,9 +132,11 @@ const FormsLibrary = () => {
         body: { form_id: f.id },
       });
       if (error) throw error;
-      if ((data as { error?: string }).error) throw new Error((data as { error: string }).error);
-      const detected = (data as { acro_fields_detected: number }).acro_fields_detected;
-      toast.success(`Questionnaire generated · ${detected} field${detected===1?"":"s"} detected`);
+      const result = data as ParseResponse;
+      if (result.error) throw new Error(result.error);
+      const detected = result.total_fields_detected ?? result.acro_fields_detected ?? 0;
+      const sourceLabel = result.source === "xfa" ? "XFA" : "AcroForm";
+      toast.success(`Questionnaire generated · ${detected} ${sourceLabel} field${detected===1?"":"s"} detected`);
       load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to parse form");
