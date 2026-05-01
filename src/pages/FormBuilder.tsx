@@ -55,6 +55,13 @@ interface VisaFormRow {
   is_active: boolean;
 }
 
+type ParseResponse = {
+  error?: string;
+  acro_fields_detected?: number;
+  total_fields_detected?: number;
+  source?: "acroform" | "xfa" | "none";
+};
+
 const TYPE_LABELS: Record<FieldType, string> = {
   text: "Short text",
   textarea: "Long text",
@@ -146,9 +153,12 @@ const FormBuilder = () => {
         body: { form_id: formId },
       });
       if (error) throw error;
-      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      const result = data as ParseResponse;
+      if (result?.error) throw new Error(result.error);
       await load();
-      toast.success(`Detected ${(data as { acro_fields_detected?: number })?.acro_fields_detected ?? 0} field(s) — review them in step 2.`);
+      const detected = result?.total_fields_detected ?? result?.acro_fields_detected ?? 0;
+      const sourceLabel = result?.source === "xfa" ? "XFA" : "AcroForm";
+      toast.success(`Detected ${detected} ${sourceLabel} field(s) — review them in step 2.`);
       setStep("build");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to parse PDF");
