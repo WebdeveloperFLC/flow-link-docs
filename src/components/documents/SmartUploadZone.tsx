@@ -973,13 +973,15 @@ async function expandBinders(
       out.push({ file });
       continue;
     }
+    let pageSnippets: string[] = [];
     try {
       // Cap to 30 pages of input (large binders → still useful, costs bounded).
       const maxPages = Math.min(pageCount, 30);
-      const [pageSnippets, pageImages] = await Promise.all([
+      const [snippets, pageImages] = await Promise.all([
         extractPerPageText(file, maxPages, 1000).catch(() => [] as string[]),
         getBinderPageImages(file, maxPages).catch(() => [] as string[]),
       ]);
+      pageSnippets = snippets;
       const { data, error } = await supabase.functions.invoke("split-binder", {
         body: {
           filename: file.name,
@@ -1039,6 +1041,19 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
+      if (shouldFallbackToPageRanges(file.name, pageCount, [])) {
+        const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        const baseStem = file.name.replace(/\.pdf$/i, "");
+        for (let i = 1; i <= pageCount; i++) {
+          const guessed = inferTypeFromPageText(pageSnippets[i - 1] ?? "", allowedTypes);
+          const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+          const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+          const segFile = await extractPagesAsPdfFile(file, i, i, `${baseStem}__${String(i).padStart(2, "0")}_${safeLabel}_p${i}-${i}.pdf`);
+          out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: guessed.type === "Other" ? guessed.suggested_label ?? undefined : undefined });
+        }
+        toast.message(`Could not auto-read binder boundaries, so "${file.name}" was prepared page-by-page for review.`);
+        continue;
+      }
       out.push({ file });
     }
   }
