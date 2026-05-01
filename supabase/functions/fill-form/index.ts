@@ -51,6 +51,46 @@ function formatValue(v: unknown, f: Field): string {
   return s;
 }
 
+function splitDateParts(value: string): Record<string, string> | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  if (!m) return null;
+  return { year: m[1], month: m[2], day: m[3] };
+}
+
+function legacyXfaTargets(answerKey: string, rawValue: string): Array<{ pdfField: string; value: string }> {
+  const key = answerKey.toLowerCase().replace(/^[^.]+\./, "");
+  const value = rawValue.trim();
+  const date = splitDateParts(value);
+  const [firstName, ...restName] = value.split(/\s+/).filter(Boolean);
+  const familyName = restName.length ? restName.join(" ") : firstName;
+  const givenName = restName.length ? firstName : "";
+  const map: Record<string, Array<{ pdfField: string; value: string }>> = {
+    full_name: [{ pdfField: "FamilyName", value: familyName.toUpperCase() }, { pdfField: "GivenName", value: givenName.toUpperCase() }],
+    gender: [{ pdfField: "Sex", value }],
+    nationality: [{ pdfField: "Citizenship", value }],
+    place_of_birth: [{ pdfField: "PlaceBirthCity", value }],
+    passport_number: [{ pdfField: "PassportNum", value: value.toUpperCase() }],
+    marital_status: [{ pdfField: "MaritalStatus", value }],
+    address_line1: [{ pdfField: "Streetname", value }],
+    address_city: [{ pdfField: "CityTown", value }],
+    address_state: [{ pdfField: "ProvinceState", value }],
+    address_country: [{ pdfField: "Country", value }],
+    address_postal: [{ pdfField: "PostalCode", value }],
+    phone_alt: [{ pdfField: "ActualNumber", value }],
+    email_alt: [{ pdfField: "Email", value }],
+    highest_qualification: [{ pdfField: "FieldOfStudy", value }],
+    institution_name: [{ pdfField: "School", value }],
+    employer_name: [{ pdfField: "Employer", value }],
+    job_title: [{ pdfField: "Occupation", value }],
+    account_balance: [{ pdfField: "Funds", value }],
+    annual_income: [{ pdfField: "Funds", value }],
+  };
+  if (key === "date_of_birth" && date) return [{ pdfField: "DOBYear", value: date.year }, { pdfField: "DOBMonth", value: date.month }, { pdfField: "DOBDay", value: date.day }];
+  if (key === "passport_issue_date" && date) return [{ pdfField: "IssueYYYY", value: date.year }, { pdfField: "IssueMM", value: date.month }, { pdfField: "IssueDD", value: date.day }];
+  if (key === "passport_expiry" && date) return [{ pdfField: "expiryYYYY", value: date.year }, { pdfField: "expiryMM", value: date.month }, { pdfField: "expiryDD", value: date.day }];
+  return map[key] ?? [];
+}
+
 /** AcroForm fill. Returns { filled, skipped, unmatched } stats. */
 function fillAcroForm(
   pdf: PDFDocument,
@@ -100,9 +140,13 @@ function fillAcroForm(
 
 /** Locate XFA streams by role: returns { datasets, template }. */
 function locateXfaStreams(pdf: PDFDocument): { datasets?: PDFStream; template?: PDFStream; xfaArray?: PDFArray } {
-  const acro = pdf.catalog.lookup(PDFName.of("AcroForm"), PDFDict);
+  let acro: PDFDict | undefined;
+  try { acro = pdf.catalog.lookup(PDFName.of("AcroForm"), PDFDict); }
+  catch (e) { console.error("AcroForm lookup failed", e); return {}; }
   if (!acro) return {};
-  const xfa = acro.lookup(PDFName.of("XFA"));
+  let xfa: unknown;
+  try { xfa = acro.lookup(PDFName.of("XFA")); }
+  catch (e) { console.error("XFA lookup failed", e); return {}; }
   if (!xfa) return {};
   if (xfa instanceof PDFArray) {
     let datasets: PDFStream | undefined;
@@ -175,11 +219,20 @@ function fillXfaDatasets(
   for (const [answerKey, raw] of Object.entries(answers)) {
     if (raw === "" || raw === null || raw === undefined) continue;
     const m = keyMap[answerKey];
-    if (!m) { skipped.push({ key: answerKey, reason: "no schema field" }); continue; }
-    const value = formatValue(raw, m.field);
-    const result = setXfaValue(next, m.pdfField, value);
-    if (result.changed) { next = result.xml; filled.push(m.pdfField); }
-    else skipped.push({ key: answerKey, reason: `xfa leaf not found: ${m.pdfField}` });
+    const value = m ? formatValue(raw, m.field) : String(raw);
+    const candidates = m ? [{ pdfField: m.pdfField, value }] : [];
+    candidates.push(...legacyXfaTargets(answerKey, value));
+
+    let changed = false;
+    for (const candidate of candidates) {
+      const result = setXfaValue(next, candidate.pdfField, candidate.value);
+      if (result.changed) {
+        next = result.xml;
+        filled.push(candidate.pdfField);
+        changed = true;
+      }
+    }
+    if (!changed) skipped.push({ key: answerKey, reason: m ? `xfa leaf not found: ${m.pdfField}` : "no schema field" });
   }
   return { xml: next, filled, skipped };
 }
@@ -315,6 +368,16 @@ Deno.serve(async (req) => {
 
     let out: Uint8Array;
     try {
+      if (acro.filled.length + xfaFilled.length === 0) {
+        return json({
+          error: hasXfa
+            ? "No PDF fields were written. This questionnaire was generated from fallback fields, not the real IMM/XFA field IDs. Re-generate the questionnaire after re-uploading an unlocked/static PDF."
+            : "No writable PDF fields were detected. This is likely an encrypted Adobe LiveCycle/XFA IRCC form; it cannot be reliably filled by the in-app PDF engine unless uploaded as an unlocked/static form.",
+          filled: { acroform: acro.filled, xfa: xfaFilled },
+          skipped: [...acro.skipped, ...xfaSkipped],
+          has_xfa: hasXfa,
+        }, 422);
+      }
       out = await pdf.save({ updateFieldAppearances: false });
     } catch (e) {
       console.error("pdf.save failed", e);
