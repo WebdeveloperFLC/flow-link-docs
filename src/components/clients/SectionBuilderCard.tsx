@@ -47,7 +47,7 @@ function buildPageSegments(pageCount: number, pageSnippets: string[], allowedTyp
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
   const base = fileName.replace(/\.[^.]+$/, "");
-  const cleaned = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
+  const cleaned = base.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   if (!cleaned) return base;
   // Title-case words that are all-lowercase; preserve mixed-case tokens like "B.Tech".
   return cleaned
@@ -516,7 +516,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                   onToggleMergePick={() => setMergeMode((m) => {
                     if (!m || m.anchorId === d.id) return m;
                     const next = new Set(m.selected);
-                    next.has(d.id) ? next.delete(d.id) : next.add(d.id);
+                    if (next.has(d.id)) next.delete(d.id);
+                    else next.add(d.id);
                     return { ...m, selected: next };
                   })}
                   onRenameTitle={(t) => onRenameTitle(d, t)}
