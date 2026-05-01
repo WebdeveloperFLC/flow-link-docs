@@ -21,7 +21,6 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Client { id: string; full_name: string; }
 
@@ -60,9 +59,6 @@ interface QueueItem {
   startPage?: number;          // 1-based inclusive
   endPage?: number;            // 1-based inclusive
   totalSourcePages?: number;
-  /** True once the user has opened the inline preview at least once. Required
-   *  before confirming type/owner or uploading binder segments. */
-  previewed?: boolean;
 }
 
 const CONCURRENCY = 3;
@@ -102,7 +98,6 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
-  const [previewState, setPreviewState] = useState<{ url: string; name: string; mime: string } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -487,37 +482,25 @@ export const SmartUploadZone = ({
   /** Open the local file in a new tab so the user can sanity-check it before
    *  confirming a label / owner. Works for PDFs and images without any
    *  storage round-trip. */
-  const previewFile = (file: File) => previewFileAt(-1, file);
-
-  /** Open the local file in an in-page modal. We deliberately do NOT use
-   *  window.open() because some browser extensions (ad-blockers, privacy
-   *  shields) block popups to long lovableproject.com URLs with
-   *  ERR_BLOCKED_BY_CLIENT. An inline iframe bypasses that entirely. */
-  const previewFileAt = (idx: number, file: File) => {
+  const previewFile = (file: File) => {
     try {
-      // Revoke any previous URL before creating a new one.
-      if (previewState?.url) URL.revokeObjectURL(previewState.url);
       const url = URL.createObjectURL(file);
-      setPreviewState({ url, name: file.name, mime: file.type || "application/pdf" });
-      if (idx >= 0) patch(idx, { previewed: true });
+      const win = window.open(url, "_blank");
+      if (!win) {
+        const a = document.createElement("a");
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
       toast.error("Preview unavailable");
     }
-  };
-
-  const closePreview = () => {
-    if (previewState?.url) URL.revokeObjectURL(previewState.url);
-    setPreviewState(null);
   };
 
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
     if (!item) return;
-    if (!item.previewed) {
-      patch(idx, { error: "Preview the file first to confirm what it is." });
-      return;
-    }
     const customType = newType === "Other" ? (item.customType?.trim() || "") : undefined;
     if (newType === "Other" && !customType) {
       patch(idx, { error: "Please type a label for this Other document or choose a known type." });
@@ -532,10 +515,6 @@ export const SmartUploadZone = ({
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType || !item.ownerId) return;
-    if (!item.previewed) {
-      patch(idx, { error: "Preview the file first to confirm the owner." });
-      return;
-    }
     await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId);
     onUploaded();
   };
@@ -678,12 +657,6 @@ export const SmartUploadZone = ({
         .map((it, i) => ({ it, i }))
         .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
       if (!segs.length) return;
-      // Require preview at least once per segment.
-      const unseen = segs.filter(({ it }) => !it.previewed);
-      if (unseen.length) {
-        toast.error(`Preview each segment before uploading (${unseen.length} not yet previewed).`);
-        return;
-      }
       // Hard guard: a likely binder must never upload as one full-range segment.
       // If that's the only thing in the queue for this binder, explode it into
       // page-level segments first so each page can be classified individually.
@@ -743,7 +716,6 @@ export const SmartUploadZone = ({
   const clearQueue = () => setQueue([]);
 
   return (
-    <>
     <Card className="p-5 shadow-elev-sm">
       <div className="flex items-center justify-between mb-1">
         <div className="font-semibold flex items-center gap-1.5">
@@ -820,13 +792,6 @@ export const SmartUploadZone = ({
                   <p className="text-[10px] text-muted-foreground">
                     Review each segment before uploading. Adjust the page range, change the type or person, merge with the next segment, or remove a segment.
                   </p>
-                  {sorted.some(({ it }) => !it.previewed) && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-300 rounded px-2 py-1">
-                      <AlertTriangle className="size-3" />
-                      Preview each segment (eye icon) before uploading — you haven't viewed{" "}
-                      <span className="font-semibold">{sorted.filter(({ it }) => !it.previewed).length}</span> yet.
-                    </div>
-                  )}
                   <div className="space-y-1.5">
                     {sorted.map(({ idx, it }, segPos) => {
                       const isLast = segPos === sorted.length - 1;
@@ -847,10 +812,10 @@ export const SmartUploadZone = ({
                             </div>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
-                              onClick={() => previewFileAt(idx, it.file)}
-                              title={it.previewed ? "Previewed — click to view again" : "Preview this segment (required before upload)"}
+                              onClick={() => previewFile(it.file)}
+                              title="Preview this segment"
                             >
-                              <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
+                              <Eye className="size-3.5 text-muted-foreground" />
                             </Button>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
@@ -966,10 +931,10 @@ export const SmartUploadZone = ({
                   </div>
                   <Button
                     size="icon" variant="ghost" className="h-7 w-7 shrink-0"
-                    onClick={() => previewFileAt(i, it.file)}
-                    title={it.previewed ? "Previewed — click to view again" : "Preview file (required before confirming)"}
+                    onClick={() => previewFile(it.file)}
+                    title="Preview file"
                   >
-                    <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
+                    <Eye className="size-3.5 text-muted-foreground" />
                   </Button>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
@@ -994,14 +959,8 @@ export const SmartUploadZone = ({
                         . Please pick the correct type — it won't be uploaded as "Other" automatically.
                       </div>
                     </div>
-                    {!it.previewed && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
-                        <Eye className="size-3" />
-                        Preview the file (eye icon above) before choosing a type.
-                      </div>
-                    )}
                     <div className="flex items-center gap-2">
-                      <Select onValueChange={(v) => confirmType(i, v)} disabled={!it.previewed}>
+                      <Select onValueChange={(v) => confirmType(i, v)}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Choose document type…" /></SelectTrigger>
                         <SelectContent>
                           {DOCUMENT_TYPES.map((t) => (
@@ -1027,12 +986,6 @@ export const SmartUploadZone = ({
                           : <>No name detected on the document. Choose who this is for.</>}
                       </div>
                     </div>
-                    {!it.previewed && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
-                        <Eye className="size-3" />
-                        Preview the file (eye icon above) before assigning an owner.
-                      </div>
-                    )}
                     <div className="flex items-center gap-2">
                       <Select value={it.ownerId ?? ""} onValueChange={(v) => setOwner(i, v)}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Select person…" /></SelectTrigger>
@@ -1046,7 +999,7 @@ export const SmartUploadZone = ({
                           <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId || !it.previewed}>
+                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId}>
                         Confirm & upload
                       </Button>
                     </div>
@@ -1145,29 +1098,6 @@ export const SmartUploadZone = ({
         </div>
       )}
     </Card>
-    <Dialog open={!!previewState} onOpenChange={(o) => { if (!o) closePreview(); }}>
-      <DialogContent className="max-w-5xl w-[92vw] h-[88vh] p-0 gap-0 flex flex-col">
-        <DialogHeader className="px-4 py-2.5 border-b">
-          <DialogTitle className="text-sm font-semibold truncate pr-8">
-            {previewState?.name ?? "Preview"}
-          </DialogTitle>
-        </DialogHeader>
-        {previewState && (
-          previewState.mime.startsWith("image/") ? (
-            <div className="flex-1 overflow-auto bg-muted flex items-center justify-center">
-              <img src={previewState.url} alt={previewState.name} className="max-w-full max-h-full object-contain" />
-            </div>
-          ) : (
-            <iframe
-              src={previewState.url}
-              title={previewState.name}
-              className="flex-1 w-full bg-muted"
-            />
-          )
-        )}
-      </DialogContent>
-    </Dialog>
-    </>
   );
 };
 
