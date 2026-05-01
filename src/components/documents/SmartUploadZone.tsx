@@ -263,15 +263,23 @@ export const SmartUploadZone = ({
       try {
         const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
         const isImage = item.file.type.startsWith("image/");
-        const snippet = isPdf ? await extractFirstPageText(item.file, 12000, 3) : "";
+        // Scan up to 8 pages and ~28k chars so multi-page resumes / transcripts /
+        // bank statements get fully read instead of just the first page.
+        const snippet = isPdf ? await extractFirstPageText(item.file, 28000, 8) : "";
         const imageDataUrls: string[] = isPdf
-          ? await renderPdfPagesToJpegDataUrls(item.file, 3)
+          ? await renderPdfPagesToJpegDataUrls(item.file, 6)
           : isImage
             ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
             : [];
         if (snippet || imageDataUrls.length > 0) {
           const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: { document_type: effectiveType, file_name: processed.name, snippet, image_data_urls: imageDataUrls },
+            body: {
+              document_type: effectiveType,
+              custom_type: type === "Other" ? customType?.trim() || null : null,
+              file_name: processed.name,
+              snippet,
+              image_data_urls: imageDataUrls,
+            },
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
