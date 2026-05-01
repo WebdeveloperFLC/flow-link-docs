@@ -17,6 +17,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
