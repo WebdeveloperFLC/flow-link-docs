@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown } from "lucide-react";
+import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
@@ -17,6 +17,7 @@ interface VisaForm {
   category: string;
   is_active: boolean;
   is_archived: boolean;
+  email_template_id?: string | null;
 }
 
 interface SchemaRow { id: string; form_id: string; version: number; is_active: boolean; is_draft: boolean; }
@@ -24,6 +25,9 @@ interface InstanceRow {
   id: string; form_id: string | null; schema_id: string;
   status: string; share_token: string | null; submitted_at: string | null;
 }
+interface EmailTpl { id: string; subject: string; body_html: string; is_default: boolean }
+interface ClientLite { full_name: string; email: string | null }
+interface FirmLite { firm_name: string | null }
 
 const randomToken = () => {
   const arr = new Uint8Array(24);
@@ -39,17 +43,24 @@ export const ClientFormsCard = ({
   const [instances, setInstances] = useState<InstanceRow[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [fillBusyId, setFillBusyId] = useState<string | null>(null);
+  const [emailBusyId, setEmailBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [emailTpls, setEmailTpls] = useState<EmailTpl[]>([]);
+  const [clientInfo, setClientInfo] = useState<ClientLite | null>(null);
+  const [firmInfo, setFirmInfo] = useState<FirmLite | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: f }, { data: i }] = await Promise.all([
+    const [{ data: f }, { data: i }, { data: t }, { data: c }, { data: fp }] = await Promise.all([
       supabase.from("visa_forms").select("*")
         .eq("country", country).eq("category", category).eq("is_archived", false)
         .order("name"),
       supabase.from("questionnaire_instances").select("id, form_id, schema_id, status, share_token, submitted_at")
         .eq("client_id", clientId),
+      supabase.from("questionnaire_email_templates").select("id, subject, body_html, is_default"),
+      supabase.from("clients").select("full_name, email").eq("id", clientId).maybeSingle(),
+      supabase.from("firm_profile").select("firm_name").limit(1).maybeSingle(),
     ]);
     const formIds = (f ?? []).map((x) => x.id);
     let s: SchemaRow[] = [];
@@ -62,6 +73,9 @@ export const ClientFormsCard = ({
     setForms((f ?? []) as VisaForm[]);
     setSchemas(s);
     setInstances((i ?? []) as InstanceRow[]);
+    setEmailTpls((t ?? []) as EmailTpl[]);
+    setClientInfo((c ?? null) as ClientLite | null);
+    setFirmInfo((fp ?? null) as FirmLite | null);
     setLoading(false);
   }, [clientId, country, category]);
 
