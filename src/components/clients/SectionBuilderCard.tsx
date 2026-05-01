@@ -327,7 +327,14 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               const rawFields = (data?.fields ?? {}) as Record<string, string | number | null>;
               const scoped = filterExtractedForSection(section.key, rawFields);
               if (Object.keys(scoped).length > 0) {
-                const { written } = await mergeExtractedFields(clientId, insertedId, processed.name, scoped);
+                const { written } = await mergeExtractedFields(
+                  clientId,
+                  insertedId,
+                  processed.name,
+                  scoped,
+                  effectiveType,
+                  docType === "Other" ? (customType ?? null) : null,
+                );
                 if (written.length > 0) {
                   toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} into ${section.label}`);
                 }

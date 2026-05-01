@@ -370,7 +370,8 @@ export const SmartUploadZone = ({
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
             const { written, conflicts } = await mergeExtractedFields(
-              targetClient.id, ins.id, processed.name, fields,
+              targetClient.id, ins.id, processed.name, fields, effectiveType,
+              type === "Other" ? (customType ?? null) : null,
             );
             if (written.length > 0) {
               toast.success(`Extracted ${written.length} field${written.length === 1 ? "" : "s"} from ${processed.name}`);
