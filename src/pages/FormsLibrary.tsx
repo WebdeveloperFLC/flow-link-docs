@@ -12,9 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Badge } from "@/components/ui/badge";
 import {
   FileText, Plus, Upload, Trash2, Archive, Sparkles, Loader2, RefreshCw,
-  CheckCircle2, AlertTriangle, Eye,
+  CheckCircle2, AlertTriangle, Eye, Wrench,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
@@ -52,6 +53,7 @@ interface EmailTemplate { id: string; name: string; is_default: boolean }
 
 const FormsLibrary = () => {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [forms, setForms] = useState<VisaForm[]>([]);
   const [schemasByForm, setSchemasByForm] = useState<Record<string, Schema[]>>({});
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
@@ -271,6 +273,10 @@ const FormsLibrary = () => {
                               )}
                               {isAdmin && !f.is_archived && (
                                 <div className="flex gap-1.5 mt-2">
+                                  <Button size="sm" className="h-7 text-xs flex-1 gradient-brand text-primary-foreground"
+                                    onClick={() => navigate(`/forms-library/${f.id}/build`)}>
+                                    <Wrench className="size-3 mr-1" /> Open in Builder
+                                  </Button>
                                   <Button size="sm" variant="outline" className="h-7 text-xs"
                                     onClick={() => generateSchema(f)} disabled={parsing === f.id}>
                                     {parsing === f.id ? (
@@ -278,7 +284,7 @@ const FormsLibrary = () => {
                                     ) : (
                                       <Sparkles className="size-3 mr-1" />
                                     )}
-                                    {latestSchema ? "Re-generate" : "Generate"}
+                                    Auto-detect
                                   </Button>
                                 </div>
                               )}
