@@ -119,7 +119,7 @@ const FormBuilder = () => {
       .order("version", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (schema?.sections) setSections(schema.sections as Section[]);
+    if (schema?.sections) setSections(schema.sections as unknown as Section[]);
     else setSections([]);
 
     // Pick starting step based on state
@@ -211,13 +211,19 @@ const FormBuilder = () => {
       const { data: prev } = await supabase.from("questionnaire_schemas")
         .select("version").eq("form_id", formId).order("version", { ascending: false }).limit(1).maybeSingle();
       const v = (prev?.version ?? 0) + 1;
-      const { error } = await supabase.from("questionnaire_schemas").insert({
+      const payload: Record<string, unknown> = {
         form_id: formId,
         name: `${form?.name ?? "Form"} questionnaire`,
-        country: form?.country, category: form?.category,
-        version: v, sections, mappings: {},
-        is_active: false, is_draft: true, generated_by_ai: false,
-      });
+        country: form?.country,
+        category: form?.category,
+        version: v,
+        sections: sections as unknown,
+        mappings: {},
+        is_active: false,
+        is_draft: true,
+        generated_by_ai: false,
+      };
+      const { error } = await supabase.from("questionnaire_schemas").insert(payload as never);
       if (error) throw error;
       toast.success("Draft saved");
     } catch (e) {
