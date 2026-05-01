@@ -504,6 +504,15 @@ Deno.serve(async (req) => {
     }
 
     if (detectedFields.length < 3) {
+      const scannedXml = extractXfaXmlByScanningStreams(bytes);
+      if (scannedXml) {
+        const xfa = extractXfaFields(scannedXml);
+        console.log(`Raw-scan XFA fields detected for ${form.name}: ${xfa.length}`);
+        if (xfa.length >= 3) { detectedFields = xfa; source = "xfa"; }
+      }
+    }
+
+    if (detectedFields.length < 3) {
       console.log(`Falling back to AI vision for ${form.name}`);
       const ai = await extractFieldsWithAI(bytes, form.name);
       console.log(`AI fields detected for ${form.name}: ${ai.length}`);
@@ -513,11 +522,11 @@ Deno.serve(async (req) => {
     if (detectedFields.length < 3) {
       source = "none";
       return new Response(JSON.stringify({
-        error: "No fields could be extracted from this PDF (AcroForm, XFA, and AI vision all failed). Open the builder and add fields manually, or upload a clearer source PDF.",
+        error: "No fields could be extracted automatically. The builder is ready for manual field creation.",
         acro_fields_detected: acro.length,
         total_fields_detected: detectedFields.length,
         source,
-      }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const sections = buildSchemaFromFields(detectedFields);
