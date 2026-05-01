@@ -51,6 +51,29 @@ interface Schema {
 
 interface EmailTemplate { id: string; name: string; is_default: boolean }
 
+type ParseResponse = {
+  error?: string;
+  total_fields_detected?: number;
+  acro_fields_detected?: number;
+  source?: "acroform" | "xfa" | "none";
+};
+
+const GENERIC_DEFAULT_FIELD_IDS = new Set([
+  "full_name", "date_of_birth", "gender", "nationality", "passport_number", "passport_expiry",
+  "marital_status", "address_line1", "address_city", "address_country", "phone_alt", "email_alt",
+  "travel_history", "highest_qualification", "institution_name", "graduation_year", "employer_name",
+  "job_title", "annual_income", "bank_name", "account_balance", "family_members",
+]);
+
+const isGenericDefaultSchema = (schema: Schema) => {
+  const fields = (schema.sections ?? []).flatMap((section) => section.fields ?? []);
+  return fields.length === GENERIC_DEFAULT_FIELD_IDS.size
+    && fields.every((field) => {
+      const id = typeof field === "object" && field && "id" in field ? String(field.id) : "";
+      return GENERIC_DEFAULT_FIELD_IDS.has(id);
+    });
+};
+
 const FormsLibrary = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -73,6 +96,7 @@ const FormsLibrary = () => {
     const map: Record<string, Schema[]> = {};
     for (const sc of (s ?? []) as Schema[]) {
       if (!sc.form_id) continue;
+      if (isGenericDefaultSchema(sc)) continue;
       (map[sc.form_id] ??= []).push(sc);
     }
     setSchemasByForm(map);
@@ -125,9 +149,11 @@ const FormsLibrary = () => {
         body: { form_id: f.id },
       });
       if (error) throw error;
-      if ((data as { error?: string }).error) throw new Error((data as { error: string }).error);
-      const detected = (data as { acro_fields_detected: number }).acro_fields_detected;
-      toast.success(`Questionnaire generated · ${detected} field${detected===1?"":"s"} detected`);
+      const result = data as ParseResponse;
+      if (result.error) throw new Error(result.error);
+      const detected = result.total_fields_detected ?? result.acro_fields_detected ?? 0;
+      const sourceLabel = result.source === "xfa" ? "XFA" : "AcroForm";
+      toast.success(`Questionnaire generated · ${detected} ${sourceLabel} field${detected===1?"":"s"} detected`);
       load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to parse form");

@@ -55,6 +55,13 @@ interface VisaFormRow {
   is_active: boolean;
 }
 
+type ParseResponse = {
+  error?: string;
+  acro_fields_detected?: number;
+  total_fields_detected?: number;
+  source?: "acroform" | "xfa" | "none";
+};
+
 const TYPE_LABELS: Record<FieldType, string> = {
   text: "Short text",
   textarea: "Long text",
@@ -72,6 +79,18 @@ const STEPS = [
   { id: "publish",  label: "4. Publish" },
 ] as const;
 type StepId = typeof STEPS[number]["id"];
+
+const GENERIC_DEFAULT_FIELD_IDS = new Set([
+  "full_name", "date_of_birth", "gender", "nationality", "passport_number", "passport_expiry",
+  "marital_status", "address_line1", "address_city", "address_country", "phone_alt", "email_alt",
+  "travel_history", "highest_qualification", "institution_name", "graduation_year", "employer_name",
+  "job_title", "annual_income", "bank_name", "account_balance", "family_members",
+]);
+
+const isGenericDefaultSchema = (sections: Section[] | null | undefined) => {
+  const fields = (sections ?? []).flatMap((s) => s.fields ?? []);
+  return fields.length === GENERIC_DEFAULT_FIELD_IDS.size && fields.every((f) => GENERIC_DEFAULT_FIELD_IDS.has(f.id));
+};
 
 const FormBuilder = () => {
   const { formId } = useParams<{ formId: string }>();
@@ -112,13 +131,13 @@ const FormBuilder = () => {
     setRequiresVal(row.requires_validation);
     setEmailTemplates((t ?? []) as Array<{ id: string; name: string }>);
 
-    const { data: schema } = await supabase
+    const { data: schemas } = await supabase
       .from("questionnaire_schemas")
       .select("sections")
       .eq("form_id", formId)
       .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
+    const schema = (schemas ?? []).find((s) => !isGenericDefaultSchema(s.sections as unknown as Section[]));
     if (schema?.sections) setSections(schema.sections as unknown as Section[]);
     else setSections([]);
 
@@ -146,9 +165,12 @@ const FormBuilder = () => {
         body: { form_id: formId },
       });
       if (error) throw error;
-      if ((data as { error?: string })?.error) throw new Error((data as { error: string }).error);
+      const result = data as ParseResponse;
+      if (result?.error) throw new Error(result.error);
       await load();
-      toast.success(`Detected ${(data as { acro_fields_detected?: number })?.acro_fields_detected ?? 0} field(s) — review them in step 2.`);
+      const detected = result?.total_fields_detected ?? result?.acro_fields_detected ?? 0;
+      const sourceLabel = result?.source === "xfa" ? "XFA" : "AcroForm";
+      toast.success(`Detected ${detected} ${sourceLabel} field(s) — review them in step 2.`);
       setStep("build");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to parse PDF");

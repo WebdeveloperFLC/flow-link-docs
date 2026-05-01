@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, decodePDFRawStream } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, PDFRef, decodePDFRawStream } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -147,10 +147,10 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
 async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | null> {
   try {
     const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true, updateMetadata: false });
-    const catalog = pdf.catalog;
-    const acro = catalog.lookup(PDFName.of("AcroForm"), PDFDict);
-    if (!acro) return null;
-    const xfa = acro.lookup(PDFName.of("XFA"));
+    const lookup = (obj: unknown) => obj instanceof PDFRef ? pdf.context.lookup(obj) : obj;
+    const acro = lookup(pdf.catalog.get(PDFName.of("AcroForm")));
+    if (!(acro instanceof PDFDict)) return null;
+    const xfa = lookup(acro.get(PDFName.of("XFA")));
     if (!xfa) return null;
 
     const decodeStream = (s: PDFStream): string => {
@@ -166,8 +166,8 @@ async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | nul
     if (xfa instanceof PDFArray) {
       // Pairs of [name, stream]
       for (let i = 0; i < xfa.size(); i += 2) {
-        const nameObj = xfa.lookup(i);
-        const streamRef = xfa.lookup(i + 1);
+        const nameObj = lookup(xfa.get(i));
+        const streamRef = lookup(xfa.get(i + 1));
         const nm = nameObj?.toString?.() ?? "";
         if (nm.includes("template") && streamRef instanceof PDFStream) {
           return decodeStream(streamRef);
@@ -176,7 +176,7 @@ async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | nul
       // Fallback: concat all streams
       let combined = "";
       for (let i = 1; i < xfa.size(); i += 2) {
-        const s = xfa.lookup(i);
+        const s = lookup(xfa.get(i));
         if (s instanceof PDFStream) combined += decodeStream(s);
       }
       return combined || null;
@@ -309,55 +309,6 @@ function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
     .map(([key, fs]) => ({ key, label: labels[key], fields: fs }));
 }
 
-const DEFAULT_SECTIONS: SectionDef[] = [
-  {
-    key: "personal", label: "Personal Information", fields: [
-      { id: "full_name", label: "Full legal name", type: "text", required: true },
-      { id: "date_of_birth", label: "Date of birth", type: "date", required: true, mapping_key: "date_of_birth" },
-      { id: "gender", label: "Gender", type: "dropdown", options: ["Male","Female","Other"], mapping_key: "gender" },
-      { id: "nationality", label: "Nationality", type: "text", mapping_key: "nationality" },
-      { id: "passport_number", label: "Passport number", type: "text", mapping_key: "passport_number" },
-      { id: "passport_expiry", label: "Passport expiry", type: "date", mapping_key: "passport_expiry" },
-      { id: "marital_status", label: "Marital status", type: "dropdown", options: ["Single","Married","Divorced","Widowed"], mapping_key: "marital_status" },
-      { id: "address_line1", label: "Address", type: "text", mapping_key: "address_line1" },
-      { id: "address_city", label: "City", type: "text", mapping_key: "address_city" },
-      { id: "address_country", label: "Country", type: "text", mapping_key: "address_country" },
-      { id: "phone_alt", label: "Phone", type: "text", mapping_key: "phone_alt" },
-      { id: "email_alt", label: "Email", type: "text", mapping_key: "email_alt" },
-    ],
-  },
-  {
-    key: "travel", label: "Travel History", fields: [
-      { id: "travel_history", label: "Previous trips", type: "multi_entry", repeatable: true },
-    ],
-  },
-  {
-    key: "education", label: "Education", fields: [
-      { id: "highest_qualification", label: "Highest qualification", type: "text", mapping_key: "highest_qualification" },
-      { id: "institution_name", label: "Institution", type: "text", mapping_key: "institution_name" },
-      { id: "graduation_year", label: "Graduation year", type: "number", mapping_key: "graduation_year" },
-    ],
-  },
-  {
-    key: "employment", label: "Employment", fields: [
-      { id: "employer_name", label: "Employer", type: "text", mapping_key: "employer_name" },
-      { id: "job_title", label: "Job title", type: "text", mapping_key: "job_title" },
-      { id: "annual_income", label: "Annual income", type: "number", mapping_key: "annual_income" },
-    ],
-  },
-  {
-    key: "financial", label: "Financial Information", fields: [
-      { id: "bank_name", label: "Bank", type: "text", mapping_key: "bank_name" },
-      { id: "account_balance", label: "Account balance", type: "number", mapping_key: "account_balance" },
-    ],
-  },
-  {
-    key: "family", label: "Family Details", fields: [
-      { id: "family_members", label: "Family members", type: "multi_entry", repeatable: true },
-    ],
-  },
-];
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -393,8 +344,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    const sourcePath = form.source_pdf_path || form.file_path;
     const { data: file, error: dlErr } = await supabase.storage
-      .from("visa-forms").download(form.file_path);
+      .from("visa-forms").download(sourcePath);
     if (dlErr || !file) {
       return new Response(JSON.stringify({ error: "Cannot read form file" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -404,7 +356,7 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "defaults" = "acroform";
+    let source: "acroform" | "xfa" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -415,14 +367,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    let sections: SectionDef[];
-    if (detectedFields.length >= 3) {
-      sections = buildSchemaFromFields(detectedFields);
-    } else {
-      console.log(`No form fields detected for ${form.name}, using defaults.`);
-      sections = DEFAULT_SECTIONS;
-      source = "defaults";
+    if (detectedFields.length < 3) {
+      source = "none";
+      return new Response(JSON.stringify({
+        error: "No extractable fields were found in this PDF. Nothing was generated, so the builder will not reuse the generic 22-field template. Add fields manually or upload a different PDF.",
+        acro_fields_detected: acro.length,
+        total_fields_detected: detectedFields.length,
+        source,
+      }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    const sections = buildSchemaFromFields(detectedFields);
 
     const mappings: Record<string, { table: string; column: string }> = {};
     for (const s of sections) {
