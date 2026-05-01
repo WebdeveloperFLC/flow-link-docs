@@ -17,7 +17,10 @@ import { toast } from "sonner";
 import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, inferSectionId, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
-import { isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile } from "@/lib/binderSplit";
+import {
+  isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+} from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
 
@@ -73,6 +76,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const DOCUMENT_TYPES = useMasterLabels("document_types");
+  const allowedDocumentTypes = getAllowedDocumentTypes(DOCUMENT_TYPES);
 
   // Sort docs based on mode
   useEffect(() => {
@@ -138,24 +142,36 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         let pageCount = 0;
         try { pageCount = await getPdfPageCount(f); } catch { /* ignore */ }
         if (pageCount < 3) { segments.push({ file: f }); continue; }
+        let pageSnippets: string[] = [];
         try {
           const maxPages = Math.min(pageCount, 30);
-          const [pageSnippets, pageImages] = await Promise.all([
+          const [snippets, pageImages] = await Promise.all([
             extractPerPageText(f, maxPages, 1000).catch(() => [] as string[]),
             getBinderPageImages(f, maxPages).catch(() => [] as string[]),
           ]);
+          pageSnippets = snippets;
           const { data, error } = await supabase.functions.invoke("split-binder", {
             body: {
               filename: f.name,
               total_pages: pageCount,
-              allowed_types: DOCUMENT_TYPES,
+              allowed_types: allowedDocumentTypes,
               case_people: [],
               page_snippets: pageSnippets,
               page_image_data_urls: pageImages,
             },
           });
           if (error) throw error;
-          const segs = Array.isArray(data?.segments) ? data.segments : [];
+          let segs = Array.isArray(data?.segments) ? data.segments : [];
+          if (shouldFallbackToPageRanges(f.name, pageCount, segs)) {
+            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
+              start_page: pageIdx + 1,
+              end_page: pageIdx + 1,
+              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
+              confidence: 0.35,
+              reason: "fallback_page_range",
+            }));
+            toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
+          }
           if (segs.length < 2) { segments.push({ file: f }); continue; }
           const baseStem = f.name.replace(/\.pdf$/i, "");
           for (let i = 0; i < segs.length; i++) {
@@ -171,6 +187,22 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           toast.success(`Split "${f.name}" into ${segs.length} documents`);
         } catch (e) {
           console.warn("split-binder failed; uploading as single PDF:", e);
+          if (shouldFallbackToPageRanges(f.name, pageCount, [])) {
+            const baseStem = f.name.replace(/\.pdf$/i, "");
+            for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
+              const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
+              const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+              const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+              try {
+                const segFile = await extractPagesAsPdfFile(f, pageIdx + 1, pageIdx + 1, `${baseStem}__${String(pageIdx + 1).padStart(2, "0")}_${safeLabel}_p${pageIdx + 1}-${pageIdx + 1}.pdf`);
+                segments.push({ file: segFile, preType: guessed.type, preLabel: guessed.type === "Other" ? guessed.suggested_label ?? null : null });
+              } catch (fallbackError) {
+                console.warn("split-binder: fallback page extract failed", pageIdx + 1, fallbackError);
+              }
+            }
+            toast.message(`Could not auto-read binder boundaries, so "${f.name}" was split page-by-page.`);
+            continue;
+          }
           segments.push({ file: f });
         }
       }
@@ -183,7 +215,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         let docType = seg.preType ?? "Other";
         let customType: string | null = seg.preLabel ?? null;
         try {
-          const c = await classifyDocument(f, DOCUMENT_TYPES);
+          const c = await classifyDocument(f, allowedDocumentTypes);
           if (c?.type) {
             docType = c.type;
             customType = c.type === "Other" ? (c.customType ?? prettyTitle(f.name)) : null;

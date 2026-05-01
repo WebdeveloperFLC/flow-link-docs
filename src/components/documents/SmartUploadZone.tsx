@@ -14,7 +14,10 @@ import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
-import { isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages } from "@/lib/binderSplit";
+import {
+  isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+} from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
@@ -79,6 +82,10 @@ export const SmartUploadZone = ({
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
+  const allowedDocumentTypes = useMemo(
+    () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
+    [templateTypes, DOCUMENT_TYPES],
+  );
 
   const applicant = useMemo(() => people.find((p) => p.role === "applicant"), [people]);
   const isMulti = people.length >= 2;
@@ -108,7 +115,7 @@ export const SmartUploadZone = ({
         patch(idx, { status: "identifying" });
         const c = await classifyDocument(
           item.file,
-          templateTypes,
+          allowedDocumentTypes,
           people.map((p) => p.full_name),
         );
         const match = matchPersonRoster(c.ownerName ?? null, people);
@@ -202,7 +209,7 @@ export const SmartUploadZone = ({
         return null;
       }
     },
-    [templateTypes, people, isMulti, applicant, client.id],
+    [allowedDocumentTypes, people, isMulti, applicant, client.id],
   );
 
   const uploadOne = async (
@@ -346,7 +353,7 @@ export const SmartUploadZone = ({
       // becomes its own queue item with binder lineage so the user can merge
       // or edit ranges before upload. Single (non-binder) files keep the
       // legacy auto-upload flow.
-      const expanded = await expandBinders(arr, people.map((p) => p.full_name), DOCUMENT_TYPES);
+      const expanded = await expandBinders(arr, people.map((p) => p.full_name), allowedDocumentTypes);
 
       const startIdx = queue.length;
       const initial: QueueItem[] = expanded.map((e) =>
@@ -393,7 +400,7 @@ export const SmartUploadZone = ({
       setBusy(false);
       onUploaded();
     },
-    [queue.length, classifyAndAssign, applicant, onUploaded, people, DOCUMENT_TYPES] // eslint-disable-line react-hooks/exhaustive-deps
+    [queue.length, classifyAndAssign, applicant, onUploaded, people, allowedDocumentTypes] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const overrideType = async (idx: number, newType: string) => {
@@ -966,13 +973,15 @@ async function expandBinders(
       out.push({ file });
       continue;
     }
+    let pageSnippets: string[] = [];
     try {
       // Cap to 30 pages of input (large binders → still useful, costs bounded).
       const maxPages = Math.min(pageCount, 30);
-      const [pageSnippets, pageImages] = await Promise.all([
+      const [snippets, pageImages] = await Promise.all([
         extractPerPageText(file, maxPages, 1000).catch(() => [] as string[]),
         getBinderPageImages(file, maxPages).catch(() => [] as string[]),
       ]);
+      pageSnippets = snippets;
       const { data, error } = await supabase.functions.invoke("split-binder", {
         body: {
           filename: file.name,
@@ -984,7 +993,17 @@ async function expandBinders(
         },
       });
       if (error) throw error;
-      const segments = Array.isArray(data?.segments) ? data.segments : [];
+      let segments = Array.isArray(data?.segments) ? data.segments : [];
+      if (shouldFallbackToPageRanges(file.name, pageCount, segments)) {
+        segments = Array.from({ length: pageCount }, (_, i) => ({
+          start_page: i + 1,
+          end_page: i + 1,
+          ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
+          confidence: 0.35,
+          reason: "fallback_page_range",
+        }));
+        toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
+      }
       // Only split when the AI found ≥2 distinct documents.
       if (segments.length < 2) {
         out.push({ file });
@@ -1022,6 +1041,23 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
+      if (shouldFallbackToPageRanges(file.name, pageCount, [])) {
+        const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        const baseStem = file.name.replace(/\.pdf$/i, "");
+        for (let i = 1; i <= pageCount; i++) {
+          const guessed = inferTypeFromPageText(pageSnippets[i - 1] ?? "", allowedTypes);
+          const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+          const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+          try {
+            const segFile = await extractPagesAsPdfFile(file, i, i, `${baseStem}__${String(i).padStart(2, "0")}_${safeLabel}_p${i}-${i}.pdf`);
+            out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: guessed.type === "Other" ? guessed.suggested_label ?? undefined : undefined });
+          } catch (fallbackError) {
+            console.warn("split-binder: fallback page extract failed", i, fallbackError);
+          }
+        }
+        toast.message(`Could not auto-read binder boundaries, so "${file.name}" was prepared page-by-page for review.`);
+        continue;
+      }
       out.push({ file });
     }
   }
