@@ -149,6 +149,125 @@ export const ClientFormsCard = ({
     }
   };
 
+  // Ensure (or create) a share token for the form, return the URL.
+  const ensureShareUrl = async (form: VisaForm): Promise<string> => {
+    const schema = schemaForForm(form.id);
+    if (!schema) throw new Error("Questionnaire not generated yet for this form. Open Forms Library and run AI extraction.");
+    let inst = instanceForForm(form.id);
+    if (!inst || !inst.share_token) {
+      const token = randomToken();
+      const { data: { user } } = await supabase.auth.getUser();
+      const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      if (inst) {
+        const { error } = await supabase.from("questionnaire_instances")
+          .update({ share_token: token, expires_at }).eq("id", inst.id);
+        if (error) throw error;
+        inst = { ...inst, share_token: token };
+      } else {
+        const { data, error } = await supabase.from("questionnaire_instances").insert({
+          client_id: clientId,
+          schema_id: schema.id,
+          form_id: form.id,
+          share_token: token,
+          expires_at,
+          status: "draft",
+          answers: {},
+          created_by: user?.id ?? null,
+        }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
+        if (error) throw error;
+        inst = data as InstanceRow;
+      }
+      await load();
+    }
+    return `${window.location.origin}/questionnaire/${form.id ? "" : ""}${inst!.share_token}`.replace(/\/$/, "") + "";
+  };
+
+  const renderTemplate = (raw: string, vars: Record<string, string>) =>
+    raw.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
+
+  const onSendViaEmail = async (form: VisaForm) => {
+    if (!clientInfo?.email) {
+      toast.error("Add an email address to this client first.");
+      return;
+    }
+    setEmailBusyId(form.id);
+    try {
+      const schema = schemaForForm(form.id);
+      if (!schema) throw new Error("Questionnaire not generated yet for this form.");
+      let inst = instanceForForm(form.id);
+      if (!inst || !inst.share_token) {
+        const token = randomToken();
+        const { data: { user } } = await supabase.auth.getUser();
+        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        if (inst) {
+          await supabase.from("questionnaire_instances")
+            .update({ share_token: token, expires_at }).eq("id", inst.id);
+          inst = { ...inst, share_token: token };
+        } else {
+          const { data, error } = await supabase.from("questionnaire_instances").insert({
+            client_id: clientId,
+            schema_id: schema.id,
+            form_id: form.id,
+            share_token: token,
+            expires_at,
+            status: "draft",
+            answers: {},
+            created_by: user?.id ?? null,
+          }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
+          if (error) throw error;
+          inst = data as InstanceRow;
+        }
+      }
+      const url = `${window.location.origin}/questionnaire/${inst!.share_token}`;
+
+      // Pick template: form-specific → default → built-in fallback
+      const tpl =
+        emailTpls.find((t) => t.id === form.email_template_id) ??
+        emailTpls.find((t) => t.is_default) ??
+        null;
+
+      const vars = {
+        client_name: clientInfo.full_name ?? "",
+        form_name: form.name,
+        questionnaire_link: url,
+        firm_name: firmInfo?.firm_name ?? "",
+      };
+
+      const subject = tpl
+        ? renderTemplate(tpl.subject, vars)
+        : `Your visa questionnaire — ${form.name}`;
+      const bodyHtml = tpl
+        ? renderTemplate(tpl.body_html, vars)
+        : `<p>Hi ${vars.client_name},</p><p>Please complete your questionnaire for <b>${vars.form_name}</b>:</p><p><a href="${url}">${url}</a></p><p>Thanks,<br/>${vars.firm_name}</p>`;
+
+      // Strip simple HTML for the mailto body (most clients open as plain text)
+      const bodyText = bodyHtml
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|h\d)>/gi, "\n\n")
+        .replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, (_m, href, text) => `${text} (${href})`)
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      const mailto = `mailto:${encodeURIComponent(clientInfo.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+      window.location.href = mailto;
+
+      await logActivity("questionnaire.email_drafted", "client", clientId, {
+        form_id: form.id,
+        template_id: tpl?.id ?? null,
+        recipient: clientInfo.email,
+      });
+      await load();
+      toast.success("Email draft opened in your mail client");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to draft email");
+    } finally {
+      setEmailBusyId(null);
+    }
+  };
+
   const onGenerateFilled = async (form: VisaForm) => {
     const inst = instanceForForm(form.id);
     if (!inst) { toast.error("No questionnaire instance for this form yet"); return; }
