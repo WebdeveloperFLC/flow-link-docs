@@ -215,11 +215,20 @@ function fillXfaDatasets(
   for (const [answerKey, raw] of Object.entries(answers)) {
     if (raw === "" || raw === null || raw === undefined) continue;
     const m = keyMap[answerKey];
-    if (!m) { skipped.push({ key: answerKey, reason: "no schema field" }); continue; }
-    const value = formatValue(raw, m.field);
-    const result = setXfaValue(next, m.pdfField, value);
-    if (result.changed) { next = result.xml; filled.push(m.pdfField); }
-    else skipped.push({ key: answerKey, reason: `xfa leaf not found: ${m.pdfField}` });
+    const value = m ? formatValue(raw, m.field) : String(raw);
+    const candidates = m ? [{ pdfField: m.pdfField, value }] : [];
+    candidates.push(...legacyXfaTargets(answerKey, value));
+
+    let changed = false;
+    for (const candidate of candidates) {
+      const result = setXfaValue(next, candidate.pdfField, candidate.value);
+      if (result.changed) {
+        next = result.xml;
+        filled.push(candidate.pdfField);
+        changed = true;
+      }
+    }
+    if (!changed) skipped.push({ key: answerKey, reason: m ? `xfa leaf not found: ${m.pdfField}` : "no schema field" });
   }
   return { xml: next, filled, skipped };
 }
