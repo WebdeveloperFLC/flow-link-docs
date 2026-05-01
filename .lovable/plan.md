@@ -1,45 +1,118 @@
-I reviewed the current implementation and the latest backend logs. The persistent error is now clear: the new `fill-form` function still tries to fully load and save IRCC/XFA PDFs through `pdf-lib`. For several IRCC-style PDFs, `pdf-lib` parses broken/unsupported internal PDF objects and throws errors such as `Expected instance of ..., but got instance of undefined` / `Invalid object ref`. This prevents reliable filling before mapping can even be completed.
 
-Do I know what the issue is? Yes.
+# Form Builder: Upload → Build → Settings → Publish
 
-What is happening:
-- The client answer keys are still not using `pdf_field` first in `Questionnaire.tsx`, so newly submitted answers can still be keyed by the sanitized/schema id instead of the original PDF field name.
-- The `fill-form` function calls `pdf.getForm()` and later `pdf.save()` for every PDF. That is unsafe for dynamic XFA / IRCC PDFs because `pdf-lib` does not support XFA reliably and can crash while traversing/saving damaged or unsupported page trees.
-- The current XFA injection only updates existing XML leaf nodes by the last tag name. IRCC XFA fields often need dataset packets created/updated using full field names and repeated-name handling, not just a simple last-segment regex.
+## Why this plan
 
-Planned fix:
+The 3 IRCC PDFs you uploaded are all AES-encrypted dynamic XFA forms (Adobe LiveCycle). No free library can fill them and keep IRCC's signature valid. Instead of fighting that, we let staff design a clean, fillable form inside the CRM, mapped to questionnaire answers — guaranteed to fill every time.
 
-1. Correct questionnaire answer keys
-- Update `src/pages/Questionnaire.tsx` so `answerKeyFor()` prefers `field.pdf_field` first.
-- Keep fallback support for old saved answers keyed by `id`, so existing questionnaire answers are not lost.
+The reference PDF (your IRCC file) becomes a visual guide, not the output target.
 
-2. Make `fill-form` avoid crashing on unsupported PDFs
-- Change `supabase/functions/fill-form/index.ts` to detect XFA before doing any AcroForm/page operations.
-- For XFA PDFs, avoid calling `pdf.getForm()` and avoid operations that require page traversal when possible.
-- Wrap AcroForm filling in a safe `try/catch` so one broken PDF object does not abort the whole process.
-- If the PDF cannot safely be rewritten by `pdf-lib`, return a clear mapping/report error instead of the generic crash.
+## The 4 steps (visible to the user)
 
-3. Improve XFA dataset filling
-- Build a stronger XFA field map from the schema using the original `pdf_field` values.
-- Update datasets using both full SOM-like names and leaf names, with duplicate handling.
-- Preserve XML escaping and generate a detailed report of:
-  - fields written
-  - fields skipped
-  - fields not found in the PDF/XFA dataset
-  - unsupported fields such as signatures/barcodes
+```text
+┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐
+│ 1.UPLOAD │ -> │ 2.BUILD  │ -> │3.SETTINGS│ -> │4.PUBLISH │
+│  source  │    │ edit     │    │ country  │    │ generate │
+│  PDF     │    │ fields   │    │ category │    │ fillable │
+│          │    │          │    │ sections │    │ form     │
+└──────────┘    └──────────┘    └──────────┘    └──────────┘
+```
 
-4. Improve parse-time field extraction
-- Update `supabase/functions/parse-form-fields/index.ts` to capture a better full XFA path when possible, not just the local field name.
-- Keep `pdf_field` as the canonical original field identifier for filling.
+A new page **Forms Library → Form Builder** with a 4-tab wizard. Each tab can be revisited; progress is saved as a draft.
 
-5. Improve UI error visibility
-- Update `src/components/clients/ClientFormsCard.tsx` so when filled PDF generation fails, the toast shows the real backend error and mapping report summary, instead of just “Failed to generate filled PDF”.
+---
 
-6. Deploy the updated backend function
-- Deploy the edited `fill-form` function after changes so the live app uses the corrected filling path.
+### Step 1 — UPLOAD
+- Drag-and-drop the source PDF (any IRCC, USCIS, UK form — XFA or AcroForm, encrypted or not).
+- File stored in `visa-forms` bucket (already exists).
+- Backend runs auto-extraction:
+  - If it's an AcroForm → read field names directly with `pdf-lib`.
+  - If it's XFA → parse the `<template>` XML to extract the field tree (name + label + type + page).
+  - If it's encrypted/locked → use Lovable AI (`google/gemini-2.5-pro`) on rendered page images to OCR labels and propose fields.
+- Result: a list of detected fields shown in Step 2.
 
-Expected outcome:
-- The “same error” from `pdf-lib` should stop appearing as a generic failure.
-- Standard AcroForm PDFs should fill normally.
-- XFA/IRCC forms should use the XFA-safe path and produce a useful filled file or a precise report of fields that cannot be written.
-- New questionnaire submissions should map to the original PDF field names 1-to-1.
+### Step 2 — BUILD (the core piece)
+A spreadsheet-style editor of every detected field:
+
+| Drag | Field name | Label shown to client | Type | Required | Section | Options | Actions |
+|---|---|---|---|---|---|---|---|
+| ⋮⋮ | FamilyName | Family name | Text | ✓ | Personal | — | rename / delete |
+| ⋮⋮ | DOBYear | Year of birth | Number | ✓ | Personal | — | rename / delete |
+| ⋮⋮ | MaritalStatus | Marital status | Dropdown | ✓ | Personal | Single, Married… | rename / delete |
+
+Capabilities:
+- Reorder fields (drag-handle).
+- Rename label, change type (text/date/number/yes-no/dropdown/textarea/checkbox).
+- Delete fields you don't want to ask the client.
+- Add new custom fields not in the original PDF.
+- Group fields into **sections** (Personal, Passport, Travel, Education, etc.).
+- Live preview pane on the right shows how the questionnaire will look to the client.
+
+This replaces the current AI-only schema generator that you can't edit.
+
+### Step 3 — SETTINGS
+Single panel with:
+- **Country** (dropdown from `master_items`)
+- **Visa category** (dropdown from `master_items`)
+- **CRM section** to attach this form to (Visitor docs / Study docs / etc. — from `case_sections`)
+- Email template to use when sharing the questionnaire link
+- Toggles: Active / Auto-create questionnaire on new client / Requires counselor validation
+
+These already exist in `visa_forms` — we just expose them in one clean place instead of being scattered.
+
+### Step 4 — PUBLISH
+On click:
+1. Save schema to `questionnaire_schemas` (active version) — this is what the client fills online.
+2. Generate a **clean, internally-built fillable PDF** using `pdf-lib`:
+   - Sectioned layout matching Step 2 grouping.
+   - Real AcroForm fields (so PDFs from our system are *actually* fillable later if needed).
+   - Firm logo + form code + version on every page.
+3. Store published PDF in `visa-forms`. Mark previous version as superseded (`version + 1`).
+4. From this point: existing "Get link" + "Filled PDF" buttons in `ClientFormsCard` work reliably, every time, because the form is one we built.
+
+The original IRCC source PDF is kept as a downloadable reference (Step 1 file) but is **not** the fill target anymore.
+
+---
+
+## What gets removed
+
+- The fragile XFA stream injection in `fill-form` (the `setXfaValue`, `replaceXfaDatasetsStream` paths) — replaced by clean AcroForm fill on our own published PDFs.
+- The "fall back to data sheet because XFA is unwriteable" branch — no longer needed.
+- The auto-only AI schema generation as the *only* path — kept as the Step 1 starting point, but always editable in Step 2.
+
+---
+
+## Technical notes (for completeness)
+
+**New / changed files**
+- `src/pages/FormBuilder.tsx` — new wizard page with 4 tabs.
+- `src/components/forms/UploadStep.tsx`, `BuildStep.tsx`, `SettingsStep.tsx`, `PublishStep.tsx`.
+- `src/components/forms/FieldEditor.tsx` — drag-and-drop sortable field grid (uses `@dnd-kit/sortable`, already installed).
+- `src/components/forms/QuestionnairePreview.tsx` — live preview.
+- `supabase/functions/parse-form-fields/index.ts` — extended to also return XFA template tree + AI-OCR fallback.
+- `supabase/functions/build-published-form/index.ts` — new function: takes the edited schema and produces the clean AcroForm PDF.
+- `supabase/functions/fill-form/index.ts` — simplified: only fills our own published AcroForm PDFs.
+- `src/pages/FormsLibrary.tsx` — "Open in Builder" button on every form card.
+
+**Database**
+- `visa_forms`: add `published_schema_id uuid`, `published_pdf_path text`, `source_pdf_path text` (rename current `file_path` later, no breaking change).
+- `questionnaire_schemas`: already has `sections jsonb` — we just write the edited version here.
+
+**Libraries**
+- `pdf-lib` (already installed) — used for both parsing AcroForm fields and building the published PDF.
+- `@dnd-kit/sortable` (already installed) — drag-reorder.
+- Lovable AI Gateway (`google/gemini-2.5-pro`) — only as fallback OCR when no fields are extractable. Free, no key needed.
+
+**Out of scope**
+- We do **not** attempt to keep IRCC's XFA signature valid. That requires a paid commercial SDK; if you ever want it, I'll integrate Apryse later as a separate task.
+
+---
+
+## Result for you
+
+- Upload **any** form (even encrypted IRCC XFA) → you get an editable field list within ~10s.
+- You control labels, order, types, sections — no more AI guessing wrong.
+- "Get link" sends the client a clean form. "Filled PDF" produces a real fillable PDF every time.
+- Zero further credits wasted on XFA workarounds.
+
+Approve this and I'll build it. If you want any of the 4 steps tweaked first, tell me which and how.
