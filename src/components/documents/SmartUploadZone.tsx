@@ -1048,8 +1048,12 @@ async function expandBinders(
           const guessed = inferTypeFromPageText(pageSnippets[i - 1] ?? "", allowedTypes);
           const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
           const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
-          const segFile = await extractPagesAsPdfFile(file, i, i, `${baseStem}__${String(i).padStart(2, "0")}_${safeLabel}_p${i}-${i}.pdf`);
-          out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: guessed.type === "Other" ? guessed.suggested_label ?? undefined : undefined });
+          try {
+            const segFile = await extractPagesAsPdfFile(file, i, i, `${baseStem}__${String(i).padStart(2, "0")}_${safeLabel}_p${i}-${i}.pdf`);
+            out.push({ file: segFile, binderId, binderSource: file, binderSourceName: file.name, segIndex: i - 1, startPage: i, endPage: i, totalSourcePages: pageCount, type: guessed.type, customType: guessed.type === "Other" ? guessed.suggested_label ?? undefined : undefined });
+          } catch (fallbackError) {
+            console.warn("split-binder: fallback page extract failed", i, fallbackError);
+          }
         }
         toast.message(`Could not auto-read binder boundaries, so "${file.name}" was prepared page-by-page for review.`);
         continue;
