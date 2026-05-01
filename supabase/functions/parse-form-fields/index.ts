@@ -355,7 +355,7 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "defaults" = "acroform";
+    let source: "acroform" | "xfa" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -366,14 +366,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    let sections: SectionDef[];
-    if (detectedFields.length >= 3) {
-      sections = buildSchemaFromFields(detectedFields);
-    } else {
-      console.log(`No form fields detected for ${form.name}, using defaults.`);
-      sections = DEFAULT_SECTIONS;
-      source = "defaults";
+    if (detectedFields.length < 3) {
+      source = "none";
+      return new Response(JSON.stringify({
+        error: "No extractable fields were found in this PDF. Nothing was generated, so the builder will not reuse the generic 22-field template. Add fields manually or upload a different PDF.",
+        acro_fields_detected: acro.length,
+        total_fields_detected: detectedFields.length,
+        source,
+      }), { status: 422, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+
+    const sections = buildSchemaFromFields(detectedFields);
 
     const mappings: Record<string, { table: string; column: string }> = {};
     for (const s of sections) {
