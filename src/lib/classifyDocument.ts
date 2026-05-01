@@ -11,6 +11,11 @@ export interface Classification {
   ownerConfidence?: number;
   ownerEvidence?: string | null;
   ownerSource?: "document_text" | "document_image" | null;
+  /** True when classifier could not confidently identify the document and the
+   *  caller should require a manual type selection before uploading. */
+  needsManualType?: boolean;
+  /** Was OCR/text empty (scanned PDF)? Helps the UI explain itself. */
+  isScanned?: boolean;
 }
 
 const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
@@ -60,6 +65,45 @@ function pickAllowedType(preferred: string, allowed: string[]): string | null {
     "Employment Letter": ["Experience Letter"],
   };
   return aliases[preferred]?.find((t) => allowed.includes(t)) ?? null;
+}
+
+/** Normalize a freeform AI-returned type string to a value from `allowed`.
+ *  Handles common alias drift (e.g. "Statement of Purpose" vs "SOP", "Updated Resume" vs "Resume",
+ *  "English Language Proficiency Test" vs "IELTS / Language Test"). Returns null if no match. */
+export function normalizeAiType(raw: string | undefined | null, allowed: string[]): string | null {
+  if (!raw) return null;
+  const t = String(raw).trim();
+  if (!t) return null;
+  if (allowed.includes(t)) return t;
+  // Reverse alias map: each allowed type can absorb several aliases.
+  const aliasOf: Record<string, string[]> = {
+    "IELTS / Language Test": ["english language proficiency test", "ielts", "toefl", "pte", "duolingo", "language test", "language proficiency test"],
+    "English Language Proficiency Test": ["ielts / language test", "ielts", "toefl", "pte", "duolingo", "language test"],
+    "SOP": ["statement of purpose", "personal statement", "sop"],
+    "Statement of Purpose": ["sop", "personal statement"],
+    "Resume": ["updated resume", "cv", "curriculum vitae"],
+    "Updated Resume": ["resume", "cv", "curriculum vitae"],
+    "Academic Transcripts": ["transcript", "marksheet", "marksheets", "academic marksheets", "degree certificate", "diploma", "provisional certificate", "consolidated marksheet"],
+    "Academic Marksheets": ["academic transcripts", "transcript", "marksheet", "marksheets"],
+    "Financial Documents": ["bank statement", "bank statements", "statement of account", "itr", "income tax return"],
+    "Police Clearance": ["police clearance certificate", "pcc", "police certificate"],
+    "Employment Letter": ["experience letter"],
+    "Experience Letter": ["employment letter"],
+    "Visa Forms": ["visa form", "imm forms", "imm form"],
+    "No Objection Certificate": ["noc"],
+  };
+  const lower = t.toLowerCase();
+  for (const allowedType of allowed) {
+    const aliases = aliasOf[allowedType];
+    if (!aliases) continue;
+    if (aliases.some((a) => a === lower)) return allowedType;
+  }
+  // Loose contains-match for very common cases: "passport copy" → "Passport".
+  for (const allowedType of allowed) {
+    if (allowedType === "Other") continue;
+    if (lower.includes(allowedType.toLowerCase())) return allowedType;
+  }
+  return null;
 }
 
 export function classifyByText(text: string, candidateTypes?: string[]): Classification | null {
@@ -130,6 +174,7 @@ export async function classifyDocument(
       const img = await imageFileToJpegDataUrl(file);
       pageImages = img ? [img] : [];
     }
+    const isScanned = isPdf && snippet.replace(/\s+/g, "").length < 30;
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
     const textGuess = classifyByText(snippet, allowed);
@@ -148,7 +193,11 @@ export async function classifyDocument(
       },
     });
     if (error) throw error;
-    const aiType = typeof data?.type === "string" && allowed.includes(data.type) ? data.type : "Other";
+    const rawAiType = typeof data?.type === "string" ? data.type : "";
+    const aiType =
+      rawAiType && allowed.includes(rawAiType)
+        ? rawAiType
+        : (normalizeAiType(rawAiType, allowed) ?? "Other");
     const aiConfidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
     // If AI cannot read a scanned/low-signal file, keep a strong filename type hint.
     // Ownership is still NEVER taken from the filename; only document type falls back.
@@ -156,6 +205,25 @@ export async function classifyDocument(
     const useFilenameType = !useTextType && !!fn && (aiType === "Other" || aiConfidence < 0.5);
     const type = useTextType ? textGuess.type : useFilenameType ? fn.type : aiType;
     const confidence = useTextType ? Math.max(textGuess.confidence, aiConfidence) : useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
+    // Decide whether this classification is good enough to auto-upload.
+    // We refuse to silently auto-file as "Other" — the UI must ask the user.
+    const needsManualType = type === "Other";
+    if (typeof console !== "undefined") {
+      try {
+        console.info("[classifyDocument]", {
+          file: file.name,
+          isScanned,
+          textLen: snippet.length,
+          imagesSent: pageImages.length,
+          rawAiType,
+          aiType,
+          aiConfidence,
+          finalType: type,
+          source: useTextType ? "fallback" : useFilenameType ? "filename" : "ai",
+          needsManualType,
+        });
+      } catch { /* ignore */ }
+    }
     return {
       type,
       customType: type === "Other" ? (textGuess?.customType ?? data?.suggested_label as string | undefined) : undefined,
@@ -165,9 +233,11 @@ export async function classifyDocument(
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
       ownerEvidence: (data?.owner_evidence as string | null) ?? null,
       ownerSource: data?.owner_source === "document_text" || data?.owner_source === "document_image" ? data.owner_source : null,
+      needsManualType,
+      isScanned,
     };
   } catch {
-    return fallbackTextGuess ?? fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
+    return fallbackTextGuess ?? fn ?? { type: "Other", confidence: 0.1, source: "fallback", needsManualType: true };
   }
 }
 
