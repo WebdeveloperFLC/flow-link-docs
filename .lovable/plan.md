@@ -1,54 +1,43 @@
-# Questionnaire email templates — make the setting visible and usable
+I found the current failure path: when the binder splitter returns fewer than 2 segments, the app still falls back to uploading the original multi-page PDF as a single document. Because “Applicant Binder” is not a real document type, the classifier labels the whole file as `Other`, so it lands in the Other/Additional section instead of being split.
 
-## Where things stand today
+Plan:
 
-The email-template feature is partially built but mostly hidden:
+1. Prevent whole-binder fallback
+   - Update both upload paths:
+     - `SmartUploadZone` main smart upload
+     - `SectionBuilderCard` section drop/upload
+   - For multi-page PDFs, if the AI splitter returns only one segment or an `Other`/low-confidence segment, do not upload the original PDF as one file.
+   - Instead, automatically create page-range segments for review/upload so the binder can never be saved whole as `Other` after splitter uncertainty.
 
-- The DB table `questionnaire_email_templates` exists, and `visa_forms.email_template_id` already stores a per-form selection.
-- A selector "Email template (used when sharing the questionnaire)" exists, but only inside **Form Builder → Step 3 "Settings"** (`/forms-library/:id/build`). If you stay on Step 2 ("Build") you never see it. There is also a per-form selector in `FormsLibrary.tsx` row settings.
-- There is **no UI to create/edit/delete** entries in `questionnaire_email_templates`, so the dropdown only ever shows "Default".
-- On the client page, "Share questionnaire" only **copies a link** to the clipboard — it never actually sends an email, so the chosen template is never used.
+2. Broaden binder detection
+   - Replace the current filename-only `shouldFallbackToPageRanges(...)` behavior with a more robust “needs manual split fallback” rule.
+   - Trigger fallback for:
+     - filenames containing binder/bundle/combined/package/compiled/applicant documents
+     - AI output with one segment covering all pages
+     - AI output where the only segment is `Other`
+     - AI output with incomplete/invalid boundaries
+     - splitter errors on multi-page PDFs
+   - Keep normal 1–2 page uploads unchanged.
 
-That's why it feels like the setting is missing — it's there, but buried, empty, and not wired to any send action.
+3. Improve segment type detection before routing
+   - Add a deterministic text-based classifier for each page/segment using existing document rules: passport, IELTS, transcript, offer letter, bank statement, GIC, tuition receipt, SOP, resume, IMM forms, employment, sponsor/affidavit, birth/marriage/police clearance, etc.
+   - Use that deterministic classification before accepting `Other` from AI.
+   - Preserve AI classifications when confident and valid.
 
-## What we'll build
+4. Stop section uploads from silently misrouting binders
+   - In `SectionBuilderCard`, when a binder split is uncertain, split page-by-page rather than inserting the original file into the current/Other section.
+   - If a segment remains `Other`, use the segment label/page range as custom type, but never save the full source binder as the `Other` document.
 
-### 1. Make the per-form email-template setting easier to find
-- In `FormBuilder.tsx`, lift the email-template selector out of Step 3 into a small, always-visible header strip on every step (next to country/category), so users see and can change it without clicking through to "Settings".
-- Add a "Manage templates" link next to the dropdown that opens the new manager (see step 2).
+5. Make Smart Upload review clearer
+   - Ensure uncertain binders always appear in the “Binder split review” panel.
+   - Default owner to the applicant, but keep the manual reassignment dropdown for applicant/co-applicant/sponsor/co-sponsor.
+   - The user can merge adjacent page ranges and change the type/person before clicking Upload all.
 
-### 2. New "Questionnaire email templates" manager
-- Add a Settings tab/page (under existing `Settings.tsx`, or a new route `/settings/questionnaire-emails`) that lists rows from `questionnaire_email_templates` with create / edit / delete / set-default actions.
-- Editor fields: `name`, `subject`, `body_html` (rich-text textarea with merge-tag hints like `{{client_name}}`, `{{questionnaire_link}}`, `{{form_name}}`, `{{firm_name}}`).
-- Mark exactly one row as `is_default`. Used when a form has `email_template_id = null`.
-- Admin-only (matches existing RLS `admins manage qet`).
+6. Optional cleanup for the already-bad upload
+   - The latest document for this client is currently stored as one `Other_Applicant_...pdf` in the legacy `Other` section.
+   - After implementing the fix, I can either leave it for manual deletion or remove/reprocess it if you want. I will not delete it automatically unless you ask.
 
-### 3. "Send questionnaire via email" action on the client page
-- In `ClientFormsCard.tsx`, keep "Copy link" and add a new "Send via email" button next to it.
-- New edge function `questionnaire-send-email`:
-  - Resolves or creates the `questionnaire_instances` row (same logic as the existing copy-link flow).
-  - Picks the email template: `visa_forms.email_template_id` → fallback to `is_default = true` → fallback to a built-in default.
-  - Renders subject/body with merge tags filled in (client name, link `${origin}/questionnaire/${token}`, form name, firm name from `firm_profile`).
-  - Sends through Lovable's built-in transactional email infrastructure (scaffold via the email-domain tooling — recipient is the client's email; trigger is the counselor's explicit click, so this is transactional, one-recipient, expected by the user).
-  - Logs `questionnaire.email_sent` to `activity_logs`.
-- Toast on success; surface the rendered subject so the counselor knows what was sent.
-
-### 4. Small polish
-- In `FormsLibrary.tsx` row settings, label the existing dropdown more clearly: "Email template for sharing" + a "Manage" link.
-- When no templates exist yet, show a hint under the dropdown: "No custom templates yet — set up reusable copy in Settings → Questionnaire emails."
-
-## Files touched
-
-- `src/pages/FormBuilder.tsx` — move/duplicate email-template selector to a persistent header.
-- `src/pages/FormsLibrary.tsx` — relabel existing dropdown, add "Manage" link.
-- `src/pages/Settings.tsx` (or new `src/pages/QuestionnaireEmailTemplates.tsx` + route in `App.tsx`) — CRUD UI.
-- `src/components/clients/ClientFormsCard.tsx` — new "Send via email" button.
-- `supabase/functions/questionnaire-send-email/index.ts` — new edge function.
-- Email infra: run `email_domain--setup_email_infra` + `email_domain--scaffold_transactional_email` if not already set up; add a `questionnaire-invite` template under `_shared/transactional-email-templates/` whose body comes from the chosen DB row at send time (template renders the HTML passed in via `templateData.bodyHtml` inside a branded shell, with subject from `templateData.subject`).
-
-## Out of scope
-
-- Bulk sending to multiple clients (would be marketing-style and is intentionally avoided).
-- Tracking opens/clicks beyond the existing share-link view counter.
-
-After you approve, I'll implement steps 1–4 in one pass and deploy the new edge function automatically.
+Technical notes:
+- Files to update: `src/lib/binderSplit.ts`, `src/components/documents/SmartUploadZone.tsx`, and `src/components/clients/SectionBuilderCard.tsx`.
+- No database schema changes are needed.
+- I will not edit the generated backend client/types files.

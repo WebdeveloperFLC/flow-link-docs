@@ -17,6 +17,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -994,6 +995,18 @@ async function expandBinders(
       });
       if (error) throw error;
       let segments = Array.isArray(data?.segments) ? data.segments : [];
+      // Override AI types with deterministic per-segment text classification when AI says "Other"
+      // or has very low confidence — keeps obvious passport/transcript/IELTS pages out of "Other".
+      segments = segments.map((s: BinderSegment) => {
+        const needsRetype = !s.type || s.type === "Other" || (s.confidence ?? 0) < 0.5;
+        if (!needsRetype) return s;
+        const start = Math.max(1, Math.min(pageCount, s.start_page ?? 1));
+        const end = Math.max(start, Math.min(pageCount, s.end_page ?? start));
+        const joined = pageSnippets.slice(start - 1, end).join(" \n ");
+        const guess = inferTypeFromPageText(joined, allowedTypes);
+        if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
+        return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
+      });
       if (shouldFallbackToPageRanges(file.name, pageCount, segments)) {
         segments = Array.from({ length: pageCount }, (_, i) => ({
           start_page: i + 1,
@@ -1004,10 +1017,19 @@ async function expandBinders(
         }));
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
-      // Only split when the AI found ≥2 distinct documents.
+      // For multi-page PDFs we always want to keep the user in control — never silently
+      // upload the whole file as one "Other" document. If we somehow ended up with a
+      // single segment covering everything, expose it as a reviewable segment instead.
       if (segments.length < 2) {
-        out.push({ file });
-        continue;
+        const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
+        segments = [{
+          start_page: 1,
+          end_page: pageCount,
+          type: only.type ?? "Other",
+          suggested_label: only.suggested_label ?? null,
+          confidence: only.confidence ?? 0.2,
+          reason: "single_segment_review",
+        }];
       }
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");

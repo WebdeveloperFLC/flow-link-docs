@@ -17,12 +17,45 @@ export function getAllowedDocumentTypes(extraTypes: string[] = []): string[] {
   return Array.from(new Set([...DEFAULT_DOCUMENT_TYPES, ...extraTypes].map(String).filter(Boolean)));
 }
 
+/** Filename-based hint that a multi-page PDF is likely a binder of mixed documents. */
+export function looksLikeBinderName(fileName: string): boolean {
+  return /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?|all\s+docs|documents?\s+package)\b/i.test(fileName);
+}
+
+/**
+ * Decide whether the AI splitter result is unreliable and we should split the
+ * PDF into page-range segments for manual review instead of uploading it whole.
+ *
+ * Triggers when ANY of:
+ *  - filename looks like a binder
+ *  - splitter returned 0 / 1 segments for a multi-page PDF
+ *  - the only / dominant segment is "Other" with low confidence
+ *  - segments don't cover all pages or are otherwise incomplete
+ */
 export function shouldFallbackToPageRanges(fileName: string, pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3) return false;
-  const looksLikeBinder = /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?)\b/i.test(fileName);
-  if (!looksLikeBinder) return false;
-  if (segments.length < 2) return true;
-  return segments.length === 1 && segments[0]?.type === "Other" && (segments[0]?.confidence ?? 0) < 0.55;
+  const looksLikeBinder = looksLikeBinderName(fileName);
+
+  // No usable AI output → must fall back for any multi-page PDF that looks like a binder,
+  // or for any PDF when there's literally nothing to work with.
+  if (!segments || segments.length === 0) return looksLikeBinder;
+
+  // Single segment covering the whole document is the same as "AI did not split" —
+  // for a likely binder, fall back to page ranges so the user can review.
+  if (segments.length === 1) {
+    const s = segments[0];
+    const coversAll = (s.start_page ?? 1) <= 1 && (s.end_page ?? 0) >= pageCount;
+    const isOtherLowConf = s.type === "Other" && (s.confidence ?? 0) < 0.7;
+    if (looksLikeBinder) return true;
+    if (coversAll && isOtherLowConf) return true;
+    return false;
+  }
+
+  // Multiple segments but the first/dominant one is "Other" and weak → likely bad split.
+  const dominant = [...segments].sort((a, b) => (b.end_page - b.start_page) - (a.end_page - a.start_page))[0];
+  if (looksLikeBinder && dominant?.type === "Other" && (dominant.confidence ?? 0) < 0.5) return true;
+
+  return false;
 }
 
 export function inferTypeFromPageText(text: string, allowedTypes: string[]): { type: string; suggested_label?: string | null } {
