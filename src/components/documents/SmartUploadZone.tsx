@@ -1064,30 +1064,16 @@ async function expandBinders(
         if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
         return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
       });
-      if (shouldFallbackToPageRanges(file.name, pageCount, segments)) {
-        segments = Array.from({ length: pageCount }, (_, i) => ({
-          start_page: i + 1,
-          end_page: i + 1,
-          ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
-          confidence: 0.35,
-          reason: "fallback_page_range",
-        }));
+      const isBinderName = looksLikeBinderName(file.name);
+      if (isBinderName && shouldFallbackToPageRanges(file.name, pageCount, segments)) {
+        segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range");
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
-      // For multi-page PDFs we always want to keep the user in control — never silently
-      // upload the whole file as one "Other" document. If we somehow ended up with a
-      // single segment covering everything for a likely binder, force a per-page split
-      // so the user can manually merge into the right documents.
+      // Normal 3+ page PDFs can be one valid document. Only binder-named PDFs
+      // are forcibly exploded when AI returns one full-document segment.
       if (segments.length < 2) {
-        const isBinder = looksLikeBinderName(file.name);
-        if (isBinder) {
-          segments = Array.from({ length: pageCount }, (_, i) => ({
-            start_page: i + 1,
-            end_page: i + 1,
-            ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
-            confidence: 0.35,
-            reason: "binder_single_segment_forced_split",
-          }));
+        if (isBinderName && isOneFullDocumentSegment(pageCount, segments)) {
+          segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
           const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
@@ -1101,7 +1087,7 @@ async function expandBinders(
           }];
         }
       }
-      console.info("[binder-split]", { file: file.name, pageCount, isBinder: looksLikeBinderName(file.name), segments: segments.length });
+      console.info("[binder-split]", { file: file.name, pageCount, isBinder: isBinderName, segments: segments.length });
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
       const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
