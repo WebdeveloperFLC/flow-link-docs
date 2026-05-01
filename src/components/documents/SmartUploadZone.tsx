@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload } from "lucide-react";
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
@@ -16,11 +16,12 @@ import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import { isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages } from "@/lib/binderSplit";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface Client { id: string; full_name: string; }
 
 type ItemStatus =
-  | "queued" | "identifying" | "needs_owner" | "name_mismatch"
+  | "queued" | "identifying" | "needs_owner" | "name_mismatch" | "awaiting_review"
   | "processing" | "uploading" | "done" | "error" | "skipped";
 
 interface ClientLite { id: string; full_name: string; application_id: string; }
@@ -46,6 +47,14 @@ interface QueueItem {
   // Multi-person:
   ownerId?: string | null;     // case_people.id, or SHARED_ID, or null until chosen
   alternatives?: { person: CasePerson; score: number }[];
+  // Binder lineage: set only for items produced by binder splitting.
+  binderId?: string;           // shared id across all segments of one source PDF
+  binderSource?: File;         // original PDF File, used for re-slicing on edit
+  binderSourceName?: string;   // pretty name of source binder
+  segIndex?: number;           // 0-based segment index within the binder
+  startPage?: number;          // 1-based inclusive
+  endPage?: number;            // 1-based inclusive
+  totalSourcePages?: number;
 }
 
 const CONCURRENCY = 3;
