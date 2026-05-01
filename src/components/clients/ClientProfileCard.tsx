@@ -114,7 +114,11 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
 
   useEffect(() => { load(); }, [clientId, refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const sourceMap = (profile?.source_documents as Record<string, string> | undefined) ?? {};
+  const sourceMapRaw =
+    (profile?.source_documents as Record<string, string | { file_name: string; document_type?: string | null }> | undefined) ?? {};
+  const sourceMap: Record<string, string> = Object.fromEntries(
+    Object.entries(sourceMapRaw).map(([k, v]) => [k, typeof v === "string" ? v : v?.file_name ?? ""]),
+  );
 
   const valFor = (k: string): string => {
     if (k in edits) return edits[k];

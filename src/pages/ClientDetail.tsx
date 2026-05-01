@@ -173,7 +173,10 @@ const ClientDetail = () => {
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
-            const { written } = await mergeExtractedFields(client.id, d.id, d.file_name, fields);
+            const { written } = await mergeExtractedFields(
+              client.id, d.id, d.file_name, fields, effectiveType,
+              d.document_type === "Other" ? (d.custom_type ?? null) : null,
+            );
             totalWritten += written.length;
           }
           ok++;
