@@ -172,29 +172,26 @@ export const SmartUploadZone = ({
           !!c.ownerEvidence?.trim() &&
           (c.ownerSource === "document_text" || c.ownerSource === "document_image");
 
-        // Owner not readable from document content/image.
+        // Owner not readable from document content/image. Do NOT auto-upload in
+        // single-person cases: scanned PDFs can fail OCR, and that was exactly
+        // how a different person's document got saved to the current case.
         if (!ownerVerifiedFromContent) {
-          if (isMulti) {
-            // Multi-person: let user pick the right person.
-            const suggested = match.best?.id ?? applicant?.id ?? null;
-            patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
-            await logActivity("document.owner_needs_pick", "client", client.id, {
-              file_name: item.file.name,
-              detected_owner: detectedName || null,
-              owner_confidence: ownerConf,
-              owner_source: c.ownerSource ?? null,
-            });
-            return null;
-          }
-          // Single-person + no readable name: only one possible owner — auto-assign.
-          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
-          await logActivity("document.owner_assumed_applicant", "client", client.id, {
+          const suggested = match.best?.id ?? applicant?.id ?? null;
+          patch(idx, {
+            ...baseUpdate,
+            status: "needs_owner",
+            ownerId: suggested,
+            verificationIssue: "owner_not_readable",
+          });
+          await logActivity("document.owner_needs_review", "client", client.id, {
             file_name: item.file.name,
             detected_owner: detectedName || null,
             owner_confidence: ownerConf,
             owner_source: c.ownerSource ?? null,
+            case_people: people.map((p) => p.full_name),
+            is_multi_person: isMulti,
           });
-          return { classification: c, ownerId: applicant?.id ?? null };
+          return null;
         }
 
         // Owner WAS readable from document content. If they don't match anyone
@@ -222,23 +219,19 @@ export const SmartUploadZone = ({
           return null;
         }
 
-        // Single-person case (no mismatch) → always applicant
-        if (!isMulti) {
-          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
-          return { classification: c, ownerId: applicant?.id ?? null };
-        }
-
-        // Multi-person case → require explicit confirmation when ambiguous / no name
-        if (match.noNameDetected || !match.best || match.ambiguous) {
-          // Default suggestion: best candidate if any, otherwise applicant
-          const suggested = match.best?.id ?? applicant?.id ?? null;
-          patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
-          return null;
-        }
-
-        // High confidence: still show chip for reconfirmation, but proceed
-        patch(idx, { ...baseUpdate, ownerId: match.best.id });
-        return { classification: c, ownerId: match.best.id };
+        // Safer simplified process: even when the owner matches, require a
+        // visible review/confirm click before anything is stored.
+        patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: match.best?.id ?? applicant?.id ?? null });
+        await logActivity("document.owner_needs_review", "client", client.id, {
+          file_name: item.file.name,
+          detected_owner: detectedName,
+          owner_confidence: ownerConf,
+          owner_source: c.ownerSource ?? null,
+          case_people: people.map((p) => p.full_name),
+          score: match.score,
+          is_multi_person: isMulti,
+        });
+        return null;
       } catch (e) {
         patch(idx, { status: "error", error: e instanceof Error ? e.message : "Classify failed" });
         return null;
