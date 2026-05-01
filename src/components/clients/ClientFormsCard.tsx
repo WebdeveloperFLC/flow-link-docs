@@ -149,39 +149,6 @@ export const ClientFormsCard = ({
     }
   };
 
-  // Ensure (or create) a share token for the form, return the URL.
-  const ensureShareUrl = async (form: VisaForm): Promise<string> => {
-    const schema = schemaForForm(form.id);
-    if (!schema) throw new Error("Questionnaire not generated yet for this form. Open Forms Library and run AI extraction.");
-    let inst = instanceForForm(form.id);
-    if (!inst || !inst.share_token) {
-      const token = randomToken();
-      const { data: { user } } = await supabase.auth.getUser();
-      const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      if (inst) {
-        const { error } = await supabase.from("questionnaire_instances")
-          .update({ share_token: token, expires_at }).eq("id", inst.id);
-        if (error) throw error;
-        inst = { ...inst, share_token: token };
-      } else {
-        const { data, error } = await supabase.from("questionnaire_instances").insert({
-          client_id: clientId,
-          schema_id: schema.id,
-          form_id: form.id,
-          share_token: token,
-          expires_at,
-          status: "draft",
-          answers: {},
-          created_by: user?.id ?? null,
-        }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
-        if (error) throw error;
-        inst = data as InstanceRow;
-      }
-      await load();
-    }
-    return `${window.location.origin}/questionnaire/${form.id ? "" : ""}${inst!.share_token}`.replace(/\/$/, "") + "";
-  };
-
   const renderTemplate = (raw: string, vars: Record<string, string>) =>
     raw.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
 
