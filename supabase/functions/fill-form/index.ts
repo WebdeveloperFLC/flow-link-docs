@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import {
-  PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream,
+  PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, StandardFonts, rgb, PDFFont, PDFPage,
   decodePDFRawStream, PDFTextField, PDFCheckBox, PDFDropdown, PDFRadioGroup,
 } from "https://esm.sh/pdf-lib@1.17.1";
 
@@ -272,6 +272,203 @@ function replaceXfaDatasetsStream(pdf: PDFDocument, xfaArray: PDFArray, newBytes
   return false;
 }
 
+/* ============================================================
+ * Internal IMM5257-style PDF builder.
+ * Generates a clean, deterministic PDF from questionnaire answers.
+ * Used when the uploaded form is dynamic XFA / encrypted / unwriteable.
+ * ============================================================ */
+
+type Answer = { label: string; value: string };
+
+function collectAnswers(
+  sections: Section[],
+  answers: Record<string, unknown>,
+): { sectionKey: string; sectionLabel: string; rows: Answer[] }[] {
+  const out: { sectionKey: string; sectionLabel: string; rows: Answer[] }[] = [];
+  for (const s of sections) {
+    const rows: Answer[] = [];
+    for (const f of (s.fields ?? [])) {
+      const candidates = [
+        `${s.key}.${f.id ?? ""}`,
+        `${s.key}.${f.pdf_field ?? ""}`,
+        f.id ?? "",
+        f.pdf_field ?? "",
+      ].filter(Boolean);
+      let v: unknown = undefined;
+      for (const k of candidates) {
+        if (k in answers && answers[k] !== "" && answers[k] !== null && answers[k] !== undefined) {
+          v = answers[k]; break;
+        }
+      }
+      const value = v === undefined ? "" : formatValue(v, f);
+      rows.push({ label: f.label || (f.pdf_field ?? f.id ?? "Field"), value });
+    }
+    if (rows.length) out.push({ sectionKey: s.key, sectionLabel: s.label || s.key, rows });
+  }
+  return out;
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  if (!text) return [""];
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const w of words) {
+    const trial = line ? `${line} ${w}` : w;
+    if (font.widthOfTextAtSize(trial, size) <= maxWidth) {
+      line = trial;
+    } else {
+      if (line) lines.push(line);
+      // Break very long single tokens
+      if (font.widthOfTextAtSize(w, size) > maxWidth) {
+        let chunk = "";
+        for (const ch of w) {
+          if (font.widthOfTextAtSize(chunk + ch, size) > maxWidth) {
+            lines.push(chunk); chunk = ch;
+          } else chunk += ch;
+        }
+        line = chunk;
+      } else {
+        line = w;
+      }
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+async function buildInternalImm5257Pdf(args: {
+  formName: string;
+  clientName?: string;
+  sections: Section[];
+  answers: Record<string, unknown>;
+}): Promise<Uint8Array> {
+  const pdf = await PDFDocument.create();
+  const helv = await pdf.embedFont(StandardFonts.Helvetica);
+  const helvBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  const PAGE_W = 612;   // letter
+  const PAGE_H = 792;
+  const MARGIN_X = 48;
+  const MARGIN_TOP = 56;
+  const MARGIN_BOTTOM = 56;
+  const LABEL_W = 200;
+  const VALUE_W = PAGE_W - MARGIN_X * 2 - LABEL_W - 12;
+  const TEXT_SIZE = 10;
+  const LINE_H = 13;
+  const SECTION_GAP = 14;
+
+  const PRIMARY = rgb(0.10, 0.20, 0.45);
+  const MUTED = rgb(0.40, 0.40, 0.45);
+  const RULE = rgb(0.85, 0.87, 0.92);
+  const BLACK = rgb(0.10, 0.10, 0.12);
+
+  let page: PDFPage = pdf.addPage([PAGE_W, PAGE_H]);
+  let y = PAGE_H - MARGIN_TOP;
+
+  const drawHeader = (p: PDFPage, pageNum: number) => {
+    p.drawText("Internal Application Data Sheet", {
+      x: MARGIN_X, y: PAGE_H - 36, size: 14, font: helvBold, color: PRIMARY,
+    });
+    p.drawText("IMM5257 Equivalent — Generated from Client Questionnaire", {
+      x: MARGIN_X, y: PAGE_H - 52, size: 9, font: helv, color: MUTED,
+    });
+    p.drawLine({
+      start: { x: MARGIN_X, y: PAGE_H - 60 },
+      end: { x: PAGE_W - MARGIN_X, y: PAGE_H - 60 },
+      thickness: 0.6, color: RULE,
+    });
+    // Footer
+    const stamp = new Date().toISOString().slice(0, 16).replace("T", " ");
+    p.drawText(`Generated ${stamp} UTC`, {
+      x: MARGIN_X, y: 32, size: 8, font: helv, color: MUTED,
+    });
+    p.drawText(`Page ${pageNum}`, {
+      x: PAGE_W - MARGIN_X - 40, y: 32, size: 8, font: helv, color: MUTED,
+    });
+    p.drawText("This is an internal record, not the official IRCC submission PDF.", {
+      x: MARGIN_X, y: 20, size: 7.5, font: helv, color: MUTED,
+    });
+  };
+
+  let pageNum = 1;
+  drawHeader(page, pageNum);
+  y = PAGE_H - 80;
+
+  // Subject block
+  if (args.clientName) {
+    page.drawText("Applicant", { x: MARGIN_X, y, size: 9, font: helvBold, color: MUTED });
+    page.drawText(args.clientName, { x: MARGIN_X + 70, y, size: 11, font: helvBold, color: BLACK });
+    y -= 16;
+  }
+  page.drawText("Form", { x: MARGIN_X, y, size: 9, font: helvBold, color: MUTED });
+  page.drawText(args.formName, { x: MARGIN_X + 70, y, size: 10, font: helv, color: BLACK });
+  y -= 22;
+
+  const newPage = () => {
+    page = pdf.addPage([PAGE_W, PAGE_H]);
+    pageNum++;
+    drawHeader(page, pageNum);
+    y = PAGE_H - 80;
+  };
+
+  const ensureSpace = (needed: number) => {
+    if (y - needed < MARGIN_BOTTOM) newPage();
+  };
+
+  const grouped = collectAnswers(args.sections, args.answers);
+  if (grouped.length === 0) {
+    page.drawText("No questionnaire answers were submitted.", {
+      x: MARGIN_X, y, size: 11, font: helv, color: BLACK,
+    });
+  }
+
+  for (const group of grouped) {
+    ensureSpace(40);
+    // Section header
+    page.drawRectangle({
+      x: MARGIN_X, y: y - 4, width: PAGE_W - MARGIN_X * 2, height: 20,
+      color: rgb(0.94, 0.96, 1),
+    });
+    page.drawText(group.sectionLabel.toUpperCase(), {
+      x: MARGIN_X + 8, y: y + 2, size: 10, font: helvBold, color: PRIMARY,
+    });
+    y -= 24;
+
+    for (const row of group.rows) {
+      const labelLines = wrapText(row.label, helv, TEXT_SIZE, LABEL_W);
+      const valueLines = wrapText(row.value || "—", helvBold, TEXT_SIZE, VALUE_W);
+      const blockH = Math.max(labelLines.length, valueLines.length) * LINE_H + 6;
+      ensureSpace(blockH + 4);
+
+      // Row top
+      const rowTop = y;
+      labelLines.forEach((ln, i) => {
+        page.drawText(ln, {
+          x: MARGIN_X, y: rowTop - i * LINE_H - LINE_H + 4,
+          size: TEXT_SIZE, font: helv, color: MUTED,
+        });
+      });
+      valueLines.forEach((ln, i) => {
+        page.drawText(ln, {
+          x: MARGIN_X + LABEL_W + 12, y: rowTop - i * LINE_H - LINE_H + 4,
+          size: TEXT_SIZE, font: row.value ? helvBold : helv,
+          color: row.value ? BLACK : MUTED,
+        });
+      });
+      y = rowTop - blockH;
+      // Row separator
+      page.drawLine({
+        start: { x: MARGIN_X, y: y + 2 }, end: { x: PAGE_W - MARGIN_X, y: y + 2 },
+        thickness: 0.4, color: RULE,
+      });
+    }
+    y -= SECTION_GAP;
+  }
+
+  return await pdf.save();
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
@@ -285,6 +482,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const instance_id: string = String(body.instance_id ?? "");
+    const force_internal: boolean = Boolean(body.force_internal ?? false);
     if (!instance_id) return json({ error: "instance_id required" }, 400);
 
     const { data: inst, error: instErr } = await supabase
@@ -305,6 +503,51 @@ Deno.serve(async (req) => {
       .from("visa_forms").select("id, name, file_path, file_name").eq("id", formId).maybeSingle();
     if (!form) return json({ error: "Form not found" }, 404);
 
+    const sections = (schema.sections ?? []) as Section[];
+    const answers = (inst.answers ?? {}) as Record<string, unknown>;
+    const keyMap = buildAnswerKeyToPdfField(sections);
+
+    // Look up client name for the internal data sheet
+    let clientName: string | undefined;
+    try {
+      const { data: client } = await supabase
+        .from("clients").select("full_name").eq("id", inst.client_id).maybeSingle();
+      clientName = client?.full_name ?? undefined;
+    } catch { /* ignore */ }
+
+    const finalize = async (out: Uint8Array, mode: "filled" | "internal", extra: Record<string, unknown>) => {
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const suffix = mode === "internal" ? "-data-sheet" : "";
+      const outPath = `${inst.client_id}/filled-forms/${form.id}-${stamp}${suffix}.pdf`;
+      const { error: upErr } = await supabase.storage.from("client-documents")
+        .upload(outPath, out, { contentType: "application/pdf", upsert: true });
+      if (upErr) return json({ error: `Upload failed: ${upErr.message}` }, 500);
+      const fileLabel = mode === "internal"
+        ? `${form.name} - data sheet.pdf`
+        : `${form.name} - filled.pdf`;
+      const { data: ff, error: ffErr } = await supabase.from("filled_forms").insert({
+        client_id: inst.client_id, form_id: form.id, instance_id: inst.id,
+        file_name: fileLabel, file_path: outPath, size_bytes: out.byteLength,
+        status: inst.status === "submitted" ? "ready" : "draft",
+        created_by: userResp.user.id,
+      }).select().single();
+      if (ffErr) console.error("filled_forms insert failed", ffErr);
+      await supabase.from("activity_logs").insert({
+        action: mode === "internal" ? "form.data_sheet_generated" : "form.filled",
+        entity_type: "filled_form", entity_id: ff?.id ?? null, user_id: userResp.user.id,
+        details: { form_id: form.id, instance_id: inst.id, mode, ...extra },
+      });
+      return json({ ok: true, mode, filled_form_id: ff?.id ?? null, file_path: outPath, ...extra });
+    };
+
+    // Shortcut: build internal data sheet directly without touching the source PDF.
+    if (force_internal) {
+      const out = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(out, "internal", { reason: "force_internal" });
+    }
+
     const { data: file, error: dlErr } = await supabase.storage.from("visa-forms").download(form.file_path);
     if (dlErr || !file) return json({ error: "Cannot read form PDF" }, 500);
     const pdfBytes = new Uint8Array(await file.arrayBuffer());
@@ -312,20 +555,18 @@ Deno.serve(async (req) => {
     let pdf: PDFDocument;
     try {
       pdf = await PDFDocument.load(pdfBytes, {
-        ignoreEncryption: true,
-        updateMetadata: false,
-        throwOnInvalidObject: false,
+        ignoreEncryption: true, updateMetadata: false, throwOnInvalidObject: false,
       });
     } catch (e) {
-      return json({
-        error: `Could not parse PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
-               `This form may use an unsupported PDF format.`,
-      }, 500);
+      console.warn("Source PDF parse failed, falling back to internal data sheet", e);
+      const out = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(out, "internal", {
+        reason: "source_pdf_unparseable",
+        detail: e instanceof Error ? e.message : "unknown",
+      });
     }
-
-    const sections = (schema.sections ?? []) as Section[];
-    const answers = (inst.answers ?? {}) as Record<string, unknown>;
-    const keyMap = buildAnswerKeyToPdfField(sections);
 
     // Detect XFA up front so we can avoid AcroForm operations that crash
     // on dynamic XFA / IRCC PDFs (pdf-lib does not officially support XFA).
@@ -369,79 +610,33 @@ Deno.serve(async (req) => {
     let out: Uint8Array;
     try {
       if (acro.filled.length + xfaFilled.length === 0) {
-        return json({
-          error: hasXfa
-            ? "No PDF fields were written. This questionnaire was generated from fallback fields, not the real IMM/XFA field IDs. Re-generate the questionnaire after re-uploading an unlocked/static PDF."
-            : "No writable PDF fields were detected. This is likely an encrypted Adobe LiveCycle/XFA IRCC form; it cannot be reliably filled by the in-app PDF engine unless uploaded as an unlocked/static form.",
-          filled: { acroform: acro.filled, xfa: xfaFilled },
-          skipped: [...acro.skipped, ...xfaSkipped],
+        // Source PDF can't be filled (dynamic XFA / encrypted / no widgets).
+        // Generate the internal IMM5257-style data sheet so the user always gets a result.
+        const internal = await buildInternalImm5257Pdf({
+          formName: form.name, clientName, sections, answers,
+        });
+        return await finalize(internal, "internal", {
+          reason: hasXfa ? "xfa_not_writable" : "no_writable_fields",
           has_xfa: hasXfa,
-        }, 422);
+          skipped_sample: [...acro.skipped, ...xfaSkipped].slice(0, 10),
+        });
       }
       out = await pdf.save({ updateFieldAppearances: false });
     } catch (e) {
-      console.error("pdf.save failed", e);
-      return json({
-        error: `Could not write filled PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
-               `The original form has internal references that pdf-lib cannot rewrite. ` +
-               `${xfaFilled.length} XFA field(s) and ${acro.filled.length} AcroForm field(s) were prepared.`,
-        filled: { acroform: acro.filled, xfa: xfaFilled },
-        skipped: [...acro.skipped, ...xfaSkipped],
-        has_xfa: hasXfa,
-      }, 500);
+      console.error("pdf.save failed, falling back to internal data sheet", e);
+      const internal = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(internal, "internal", {
+        reason: "save_failed",
+        detail: e instanceof Error ? e.message : "unknown",
+      });
     }
 
-    // Upload to client-documents
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const outPath = `${inst.client_id}/filled-forms/${form.id}-${stamp}.pdf`;
-    const { error: upErr } = await supabase.storage.from("client-documents")
-      .upload(outPath, out, { contentType: "application/pdf", upsert: true });
-    if (upErr) return json({ error: `Upload failed: ${upErr.message}` }, 500);
-
-    // Insert into filled_forms
-    const { data: ff, error: ffErr } = await supabase.from("filled_forms").insert({
-      client_id: inst.client_id,
-      form_id: form.id,
-      instance_id: inst.id,
-      file_name: `${form.name} - filled.pdf`,
-      file_path: outPath,
-      size_bytes: out.byteLength,
-      status: inst.status === "submitted" ? "ready" : "draft",
-      created_by: userResp.user.id,
-    }).select().single();
-    if (ffErr) console.error("filled_forms insert failed", ffErr);
-
-    // Activity log
-    await supabase.from("activity_logs").insert({
-      action: "form.filled",
-      entity_type: "filled_form",
-      entity_id: ff?.id ?? null,
-      user_id: userResp.user.id,
-      details: {
-        form_id: form.id,
-        instance_id: inst.id,
-        acro_filled: acro.filled.length,
-        xfa_filled: xfaFilled.length,
-        skipped: acro.skipped.length + xfaSkipped.length,
-      },
-    });
-
-    // Build mapping report
-    const fieldsInSchema = sections.flatMap((s) => s.fields ?? []);
-    const allPdfNames = new Set<string>([...acro.pdfFieldNames]);
-    const unmatchedSchemaFields = fieldsInSchema
-      .map((f) => f.pdf_field ?? f.id ?? "")
-      .filter((n) => n && !allPdfNames.has(n))
-      .slice(0, 50);
-
-    return json({
-      ok: true,
-      filled_form_id: ff?.id ?? null,
-      file_path: outPath,
+    return await finalize(out, "filled", {
       filled: { acroform: acro.filled, xfa: xfaFilled },
-      skipped: [...acro.skipped, ...xfaSkipped],
-      unmatched_schema_fields_sample: unmatchedSchemaFields,
-      total_pdf_fields: allPdfNames.size,
+      skipped_sample: [...acro.skipped, ...xfaSkipped].slice(0, 20),
+      has_xfa: hasXfa,
     });
   } catch (e) {
     console.error("fill-form error", e);
