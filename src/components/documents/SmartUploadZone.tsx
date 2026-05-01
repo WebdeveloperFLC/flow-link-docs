@@ -16,7 +16,7 @@ import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
@@ -561,6 +561,47 @@ export const SmartUploadZone = ({
         .map((it, i) => ({ it, i }))
         .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
       if (!segs.length) return;
+      // Hard guard: a likely binder must never upload as one full-range segment.
+      // If that's the only thing in the queue for this binder, explode it into
+      // page-level segments first so each page can be classified individually.
+      if (segs.length === 1) {
+        const only = segs[0].it;
+        const total = only.totalSourcePages ?? 0;
+        const coversAll =
+          (only.startPage ?? 1) <= 1 && (only.endPage ?? 0) >= total && total > 1;
+        const isBinder = looksLikeBinderName(only.binderSourceName ?? only.file.name);
+        if (isBinder && coversAll && only.binderSource) {
+          toast.message("This still covers the whole binder — splitting page-by-page for review. Merge pages that belong together, then upload.");
+          const baseStem = (only.binderSourceName ?? only.binderSource.name).replace(/\.pdf$/i, "");
+          const newItems: QueueItem[] = [];
+          for (let p = 1; p <= total; p++) {
+            try {
+              const segName = `${baseStem}__${String(p).padStart(2, "0")}_Page_p${p}-${p}.pdf`;
+              const segFile = await extractPagesAsPdfFile(only.binderSource, p, p, segName);
+              newItems.push({
+                file: segFile,
+                status: "awaiting_review",
+                predictedType: "Other",
+                binderId,
+                binderSource: only.binderSource,
+                binderSourceName: only.binderSourceName,
+                segIndex: p - 1,
+                startPage: p,
+                endPage: p,
+                totalSourcePages: total,
+                ownerId: only.ownerId ?? applicant?.id ?? null,
+              });
+            } catch (e) { console.warn("forced page split failed", p, e); }
+          }
+          if (newItems.length) {
+            setQueue((q) => {
+              const without = q.filter((it) => !(it.binderId === binderId && it.status === "awaiting_review"));
+              return [...without, ...newItems];
+            });
+          }
+          return;
+        }
+      }
       setBusy(true);
       try {
         for (const { it, i } of segs) {
@@ -1019,18 +1060,32 @@ async function expandBinders(
       }
       // For multi-page PDFs we always want to keep the user in control — never silently
       // upload the whole file as one "Other" document. If we somehow ended up with a
-      // single segment covering everything, expose it as a reviewable segment instead.
+      // single segment covering everything for a likely binder, force a per-page split
+      // so the user can manually merge into the right documents.
       if (segments.length < 2) {
-        const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
-        segments = [{
-          start_page: 1,
-          end_page: pageCount,
-          type: only.type ?? "Other",
-          suggested_label: only.suggested_label ?? null,
-          confidence: only.confidence ?? 0.2,
-          reason: "single_segment_review",
-        }];
+        const isBinder = looksLikeBinderName(file.name);
+        if (isBinder) {
+          segments = Array.from({ length: pageCount }, (_, i) => ({
+            start_page: i + 1,
+            end_page: i + 1,
+            ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
+            confidence: 0.35,
+            reason: "binder_single_segment_forced_split",
+          }));
+          toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
+        } else {
+          const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
+          segments = [{
+            start_page: 1,
+            end_page: pageCount,
+            type: only.type ?? "Other",
+            suggested_label: only.suggested_label ?? null,
+            confidence: only.confidence ?? 0.2,
+            reason: "single_segment_review",
+          }];
+        }
       }
+      console.info("[binder-split]", { file: file.name, pageCount, isBinder: looksLikeBinderName(file.name), segments: segments.length });
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
       const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
