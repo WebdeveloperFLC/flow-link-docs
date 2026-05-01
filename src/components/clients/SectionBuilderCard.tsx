@@ -492,7 +492,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onDrop={(e) => {
         if (!canEdit) return;
         e.preventDefault(); setDragActive(false);
-        if (e.dataTransfer.files?.length) toast.message("Use Smart upload so owner detection and preview happen before saving.");
+        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
       }}
     >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
@@ -513,11 +513,17 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           </Select>
           {canEdit && (
             <>
-              <input ref={fileInputRef} type="file" multiple className="hidden"
-                onChange={(e) => { e.currentTarget.value = ""; }} />
-              <Button size="sm" variant="outline" onClick={() => toast.message("Use Smart upload on the right panel for all new documents.")} disabled={uploading}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => { onUpload(e.target.files); e.currentTarget.value = ""; }}
+              />
+              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
                 {uploading ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Upload className="size-3.5 mr-1.5" />}
-                Smart upload only
+                Upload to {section.label}
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
@@ -550,9 +556,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
           {dragActive
-            ? "Use Smart upload on the right panel"
+            ? `Drop files into ${section.label}`
             : (canEdit
-                ? "Use Smart upload on the right panel so every file is previewed and owner-checked before saving."
+                ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
                 : "No documents in this section yet.")}
         </div>
       ) : (
