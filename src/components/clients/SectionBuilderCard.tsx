@@ -158,7 +158,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         if (!isPdfFile(f)) { segments.push({ file: f }); continue; }
         let pageCount = 0;
         try { pageCount = await getPdfPageCount(f); } catch { /* ignore */ }
-        if (pageCount < 3) { segments.push({ file: f }); continue; }
+        if (pageCount < 3 || !looksLikeBinderName(f.name)) { segments.push({ file: f }); continue; }
         let pageSnippets: string[] = [];
         try {
           const maxPages = Math.min(pageCount, 30);
