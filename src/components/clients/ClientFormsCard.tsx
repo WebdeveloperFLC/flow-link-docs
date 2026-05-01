@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive } from "lucide-react";
+import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
@@ -38,6 +38,7 @@ export const ClientFormsCard = ({
   const [schemas, setSchemas] = useState<SchemaRow[]>([]);
   const [instances, setInstances] = useState<InstanceRow[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [fillBusyId, setFillBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -134,6 +135,37 @@ export const ClientFormsCard = ({
     }
   };
 
+  const onGenerateFilled = async (form: VisaForm) => {
+    const inst = instanceForForm(form.id);
+    if (!inst) { toast.error("No questionnaire instance for this form yet"); return; }
+    setFillBusyId(form.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("fill-form", {
+        body: { instance_id: inst.id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const filledCount = (data?.filled?.acroform?.length ?? 0) + (data?.filled?.xfa?.length ?? 0);
+      const skipped = data?.skipped?.length ?? 0;
+      const unmatched = data?.unmatched_schema_fields_sample?.length ?? 0;
+      toast.success(
+        `Filled PDF generated · ${filledCount} field${filledCount === 1 ? "" : "s"} written` +
+        (skipped ? ` · ${skipped} skipped` : "") +
+        (unmatched ? ` · ${unmatched} unmatched` : ""),
+      );
+      // Open the filled PDF.
+      if (data?.file_path) {
+        const { data: signed } = await supabase.storage
+          .from("client-documents").createSignedUrl(data.file_path, 600);
+        if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener");
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to generate filled PDF");
+    } finally {
+      setFillBusyId(null);
+    }
+  };
+
   return (
     <Card className="overflow-hidden shadow-elev-sm">
       <div className="px-6 py-4 border-b">
@@ -178,6 +210,17 @@ export const ClientFormsCard = ({
               <Button size="icon" variant="ghost" className="size-7" title="Open form PDF" onClick={() => onView(form)}>
                 <Eye className="size-3.5" />
               </Button>
+              {canEdit && inst && (
+                <Button size="sm" variant="outline" className="h-7"
+                  onClick={() => onGenerateFilled(form)}
+                  disabled={fillBusyId === form.id}
+                  title="Auto-fill the original PDF using the client's answers">
+                  {fillBusyId === form.id
+                    ? <Loader2 className="size-3.5 mr-1 animate-spin" />
+                    : <FileDown className="size-3.5 mr-1" />}
+                  Filled PDF
+                </Button>
+              )}
               {canEdit && (
                 <Button size="sm" variant="outline" className="h-7"
                   onClick={() => onCreateOrCopyLink(form)}
