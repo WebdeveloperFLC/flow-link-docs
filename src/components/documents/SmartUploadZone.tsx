@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload, Eye } from "lucide-react";
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
@@ -479,6 +479,24 @@ export const SmartUploadZone = ({
     patch(idx, { ownerId });
   };
 
+  /** Open the local file in a new tab so the user can sanity-check it before
+   *  confirming a label / owner. Works for PDFs and images without any
+   *  storage round-trip. */
+  const previewFile = (file: File) => {
+    try {
+      const url = URL.createObjectURL(file);
+      const win = window.open(url, "_blank");
+      if (!win) {
+        const a = document.createElement("a");
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error("Preview unavailable");
+    }
+  };
+
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
@@ -794,6 +812,13 @@ export const SmartUploadZone = ({
                             </div>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
+                              onClick={() => previewFile(it.file)}
+                              title="Preview this segment"
+                            >
+                              <Eye className="size-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              size="icon" variant="ghost" className="h-7 w-7"
                               onClick={() => dropSegment(idx)}
                               title="Remove segment"
                             >
@@ -904,6 +929,13 @@ export const SmartUploadZone = ({
                       {it.error && <span className="text-destructive ml-1">· {it.error}</span>}
                     </div>
                   </div>
+                  <Button
+                    size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+                    onClick={() => previewFile(it.file)}
+                    title="Preview file"
+                  >
+                    <Eye className="size-3.5 text-muted-foreground" />
+                  </Button>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
                       <SelectTrigger className="h-7 w-[140px] text-[11px]"><SelectValue /></SelectTrigger>
