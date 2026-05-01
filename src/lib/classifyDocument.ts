@@ -119,21 +119,26 @@ export async function classifyDocument(
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     const isImage = file.type.startsWith("image/");
     let snippet = "";
-    let pageImage = "";
+    let pageImages: string[] = [];
     if (isPdf) {
-      snippet = await extractFirstPageText(file, 3000);
-      pageImage = await renderFirstPdfPageToJpegDataUrl(file);
+      // Read more than the first page so multi-page single documents (transcripts,
+      // bank statements, IELTS reports) are not misfiled as Other when page 1 is sparse.
+      snippet = await extractFirstPageText(file, 8000, 8);
+      pageImages = await renderPdfPagesToJpegDataUrls(file, 3, 150, 0.78);
     } else if (isImage) {
-      pageImage = await imageFileToJpegDataUrl(file);
+      const img = await imageFileToJpegDataUrl(file);
+      pageImages = img ? [img] : [];
     }
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
+    const textGuess = classifyByText(snippet, allowed);
     const { data, error } = await supabase.functions.invoke("classify-document", {
       body: {
         filename: file.name,
         snippet,
         is_image: isImage,
-        page_image_data_url: pageImage,
+        page_image_data_url: pageImages[0] ?? "",
+        page_image_data_urls: pageImages,
         size_bytes: file.size,
         allowed_types: allowed,
         case_people: (peopleNames ?? []).filter((n) => n && n.trim()).slice(0, 10),
@@ -145,14 +150,15 @@ export async function classifyDocument(
     const aiConfidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
     // If AI cannot read a scanned/low-signal file, keep a strong filename type hint.
     // Ownership is still NEVER taken from the filename; only document type falls back.
-    const useFilenameType = !!fn && (aiType === "Other" || aiConfidence < 0.5);
-    const type = useFilenameType ? fn.type : aiType;
-    const confidence = useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
+    const useTextType = !!textGuess && (aiType === "Other" || aiConfidence < 0.55);
+    const useFilenameType = !useTextType && !!fn && (aiType === "Other" || aiConfidence < 0.5);
+    const type = useTextType ? textGuess.type : useFilenameType ? fn.type : aiType;
+    const confidence = useTextType ? Math.max(textGuess.confidence, aiConfidence) : useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
     return {
       type,
-      customType: type === "Other" ? (data?.suggested_label as string | undefined) : undefined,
+      customType: type === "Other" ? (textGuess?.customType ?? data?.suggested_label as string | undefined) : undefined,
       confidence,
-      source: useFilenameType ? "filename" : "ai",
+      source: useTextType ? "fallback" : useFilenameType ? "filename" : "ai",
       ownerName: (data?.owner_name as string | null) ?? null,
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
       ownerEvidence: (data?.owner_evidence as string | null) ?? null,
