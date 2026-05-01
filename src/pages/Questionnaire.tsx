@@ -16,7 +16,10 @@ type Field = {
 type Section = { key: string; label: string; fields: Field[] };
 
 const answerKeyFor = (sectionKey: string, field: Field, index: number) => {
-  const rawKey = field.key ?? field.id ?? field.pdf_field ?? `field_${index}`;
+  // Prefer the original PDF field name so saved answers are keyed 1-to-1
+  // with the visa form's AcroForm/XFA field names. Fall back to id/key only
+  // when pdf_field is missing (e.g. legacy default schemas).
+  const rawKey = field.pdf_field ?? field.id ?? field.key ?? `field_${index}`;
   const cleanKey = String(rawKey).trim() || `field_${index}`;
   return `${sectionKey}.${cleanKey}`;
 };
