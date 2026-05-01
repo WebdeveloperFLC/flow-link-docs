@@ -158,14 +158,25 @@ export const ClientFormsCard = ({
         throw new Error(detail);
       }
       if (data?.error) throw new Error(data.error);
-      const filledCount = (data?.filled?.acroform?.length ?? 0) + (data?.filled?.xfa?.length ?? 0);
-      const skipped = data?.skipped?.length ?? 0;
-      const unmatched = data?.unmatched_schema_fields_sample?.length ?? 0;
-      toast.success(
-        `Filled PDF generated · ${filledCount} field${filledCount === 1 ? "" : "s"} written` +
-        (skipped ? ` · ${skipped} skipped` : "") +
-        (unmatched ? ` · ${unmatched} unmatched` : ""),
-      );
+      if (data?.mode === "internal") {
+        const reasonMap: Record<string, string> = {
+          xfa_not_writable: "official PDF is dynamic XFA",
+          no_writable_fields: "no fillable fields detected",
+          source_pdf_unparseable: "source PDF could not be parsed",
+          save_failed: "source PDF could not be re-saved",
+          force_internal: "internal data sheet requested",
+        };
+        const reason = reasonMap[data?.reason as string] ?? "fallback";
+        toast.success(`Internal data sheet generated (${reason})`);
+      } else {
+        const filledCount =
+          (data?.filled?.acroform?.length ?? 0) + (data?.filled?.xfa?.length ?? 0);
+        const skipped = data?.skipped_sample?.length ?? 0;
+        toast.success(
+          `Filled PDF generated · ${filledCount} field${filledCount === 1 ? "" : "s"} written` +
+          (skipped ? ` · ${skipped} skipped` : ""),
+        );
+      }
       // Open the filled PDF.
       if (data?.file_path) {
         const { data: signed } = await supabase.storage
