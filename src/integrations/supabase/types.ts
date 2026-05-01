@@ -1212,6 +1212,7 @@ export type Database = {
       visa_forms: {
         Row: {
           auto_questionnaire: boolean
+          builder_state: Json
           category: string
           code: string | null
           country: string
@@ -1226,14 +1227,18 @@ export type Database = {
           name: string
           notes: string | null
           parent_form_id: string | null
+          published_pdf_path: string | null
+          published_schema_id: string | null
           requires_validation: boolean
           send_mode: string
           size_bytes: number | null
+          source_pdf_path: string | null
           updated_at: string
           version: number
         }
         Insert: {
           auto_questionnaire?: boolean
+          builder_state?: Json
           category: string
           code?: string | null
           country: string
@@ -1248,14 +1253,18 @@ export type Database = {
           name: string
           notes?: string | null
           parent_form_id?: string | null
+          published_pdf_path?: string | null
+          published_schema_id?: string | null
           requires_validation?: boolean
           send_mode?: string
           size_bytes?: number | null
+          source_pdf_path?: string | null
           updated_at?: string
           version?: number
         }
         Update: {
           auto_questionnaire?: boolean
+          builder_state?: Json
           category?: string
           code?: string | null
           country?: string
@@ -1270,9 +1279,12 @@ export type Database = {
           name?: string
           notes?: string | null
           parent_form_id?: string | null
+          published_pdf_path?: string | null
+          published_schema_id?: string | null
           requires_validation?: boolean
           send_mode?: string
           size_bytes?: number | null
+          source_pdf_path?: string | null
           updated_at?: string
           version?: number
         }

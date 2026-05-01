@@ -17,6 +17,7 @@ import Settings from "./pages/Settings";
 import Masters from "./pages/Masters";
 import Verification from "./pages/Verification";
 import FormsLibrary from "./pages/FormsLibrary";
+import FormBuilder from "./pages/FormBuilder";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
             <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
             <Route path="/forms-library" element={<ProtectedRoute><FormsLibrary /></ProtectedRoute>} />
+            <Route path="/forms-library/:formId/build" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

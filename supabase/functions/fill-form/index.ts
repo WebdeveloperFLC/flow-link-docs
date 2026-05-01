@@ -500,7 +500,7 @@ Deno.serve(async (req) => {
     const formId = inst.form_id;
     if (!formId) return json({ error: "Instance has no form_id" }, 400);
     const { data: form } = await supabase
-      .from("visa_forms").select("id, name, file_path, file_name").eq("id", formId).maybeSingle();
+      .from("visa_forms").select("id, name, file_path, file_name, published_pdf_path").eq("id", formId).maybeSingle();
     if (!form) return json({ error: "Form not found" }, 404);
 
     const sections = (schema.sections ?? []) as Section[];
@@ -548,7 +548,10 @@ Deno.serve(async (req) => {
       return await finalize(out, "internal", { reason: "force_internal" });
     }
 
-    const { data: file, error: dlErr } = await supabase.storage.from("visa-forms").download(form.file_path);
+    // Prefer the published, builder-produced PDF (clean AcroForm we control).
+    // Fall back to the original uploaded file for legacy forms not yet republished.
+    const sourcePath = (form as { published_pdf_path?: string | null }).published_pdf_path || form.file_path;
+    const { data: file, error: dlErr } = await supabase.storage.from("visa-forms").download(sourcePath);
     if (dlErr || !file) return json({ error: "Cannot read form PDF" }, 500);
     const pdfBytes = new Uint8Array(await file.arrayBuffer());
 
