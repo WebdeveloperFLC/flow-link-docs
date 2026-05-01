@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { groupForType } from "@/lib/binderGroups";
+import { PROFILE_FIELDS, type ProfileField } from "@/lib/extractedFields";
 
 export interface CaseSection {
   id: string;
@@ -15,11 +16,11 @@ export interface CaseSection {
 const GROUP_TO_SECTION: Record<string, string[]> = {
   identity: ["identity"],
   academic: ["academic", "academics"],
-  experience: ["experience"],
+  experience: ["work_experience", "experience"],
   financial: ["financial", "finance"],
   forms: ["forms"],
   family: ["family"],
-  supporting: ["supporting"],
+  supporting: ["supporting", "institutional"],
   other: ["other", "additional"],
 };
 
@@ -83,4 +84,108 @@ export async function setSectionOrderMode(clientId: string, sectionId: string, m
       client_id: clientId, section_id: sectionId, order_mode: mode,
     });
   }
+}
+
+/** Create a new custom section. Returns the inserted row. */
+export async function createSection(label: string): Promise<CaseSection | null> {
+  const trimmed = label.trim();
+  if (!trimmed) return null;
+  const baseKey = trimmed
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 40) || `section_${Date.now()}`;
+  // Ensure uniqueness
+  const { data: existing } = await supabase
+    .from("case_sections")
+    .select("key")
+    .ilike("key", `${baseKey}%`);
+  const taken = new Set((existing ?? []).map((r) => (r as { key: string }).key));
+  let key = baseKey;
+  let n = 2;
+  while (taken.has(key)) { key = `${baseKey}_${n}`; n++; }
+  // Place at the end
+  const { data: maxRow } = await supabase
+    .from("case_sections")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort_order = ((maxRow?.sort_order as number | undefined) ?? 0) + 10;
+  const { data, error } = await supabase
+    .from("case_sections")
+    .insert({ key, label: trimmed, sort_order, is_default: false } as never)
+    .select()
+    .single();
+  if (error) return null;
+  cachedSections = null; // force reload
+  return data as CaseSection;
+}
+
+/**
+ * Field whitelist owned by each section. The extractor's results are filtered
+ * to this whitelist so a document uploaded into "Identity" can only auto-fill
+ * Identity fields, "Finance" can only auto-fill Finance fields, etc.
+ *
+ * The whitelist is keyed by the section.key. Unknown / custom sections fall
+ * back to allowing nothing (so a document never silently writes elsewhere).
+ * The "additional"/"other"/"supporting" buckets allow the full set so they
+ * remain a useful catch-all for misclassified docs.
+ */
+const SECTION_FIELD_MAP: Record<string, ProfileField[]> = {
+  identity: [
+    "date_of_birth", "gender", "nationality", "place_of_birth",
+    "passport_number", "passport_issue_date", "passport_expiry", "passport_country",
+    "marital_status", "spouse_name",
+    "address_line1", "address_city", "address_state", "address_country", "address_postal",
+    "phone_alt", "email_alt",
+    "emergency_contact_name", "emergency_contact_phone",
+  ],
+  academic: [
+    "highest_qualification", "institution_name", "graduation_year", "gpa_or_percentage",
+    "ielts_overall", "ielts_listening", "ielts_reading", "ielts_writing", "ielts_speaking", "ielts_test_date",
+  ],
+  academics: [
+    "highest_qualification", "institution_name", "graduation_year", "gpa_or_percentage",
+    "ielts_overall", "ielts_listening", "ielts_reading", "ielts_writing", "ielts_speaking", "ielts_test_date",
+  ],
+  experience: ["employer_name", "job_title", "annual_income", "currency"],
+  work_experience: ["employer_name", "job_title", "annual_income", "currency"],
+  financial: ["bank_name", "account_balance", "gic_amount", "tuition_paid", "annual_income", "currency"],
+  finance: ["bank_name", "account_balance", "gic_amount", "tuition_paid", "annual_income", "currency"],
+  forms: [],
+  family: ["spouse_name", "marital_status"],
+  institutional: ["institution_name"],
+  supporting: [...PROFILE_FIELDS],
+  other: [...PROFILE_FIELDS],
+  additional: [...PROFILE_FIELDS],
+};
+
+/** Whether a section also owns the education-history list (separate table). */
+const SECTION_OWNS_EDUCATION = new Set(["academic", "academics", "institutional"]);
+
+export function fieldsForSection(sectionKey: string | null | undefined): {
+  fields: ProfileField[];
+  ownsEducation: boolean;
+} {
+  const key = sectionKey ?? "";
+  return {
+    fields: SECTION_FIELD_MAP[key] ?? [],
+    ownsEducation: SECTION_OWNS_EDUCATION.has(key),
+  };
+}
+
+/** Filter raw extractor output down to the fields this section is allowed to fill. */
+export function filterExtractedForSection<T extends Record<string, unknown>>(
+  sectionKey: string | null | undefined,
+  fields: T,
+): T {
+  const { fields: allow, ownsEducation } = fieldsForSection(sectionKey);
+  const allowSet = new Set<string>(allow);
+  if (ownsEducation) allowSet.add("education_history");
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(fields ?? {})) {
+    if (allowSet.has(k)) out[k] = v;
+  }
+  return out as T;
 }
