@@ -59,6 +59,9 @@ interface QueueItem {
   startPage?: number;          // 1-based inclusive
   endPage?: number;            // 1-based inclusive
   totalSourcePages?: number;
+  /** True once the user has opened the inline preview at least once. Required
+   *  before confirming type/owner or uploading binder segments. */
+  previewed?: boolean;
 }
 
 const CONCURRENCY = 3;
@@ -483,6 +486,10 @@ export const SmartUploadZone = ({
    *  confirming a label / owner. Works for PDFs and images without any
    *  storage round-trip. */
   const previewFile = (file: File) => {
+    return previewFileAt(-1, file);
+  };
+
+  const previewFileAt = (idx: number, file: File) => {
     try {
       const url = URL.createObjectURL(file);
       const win = window.open(url, "_blank");
@@ -492,6 +499,7 @@ export const SmartUploadZone = ({
         document.body.appendChild(a); a.click(); a.remove();
       }
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (idx >= 0) patch(idx, { previewed: true });
     } catch {
       toast.error("Preview unavailable");
     }
