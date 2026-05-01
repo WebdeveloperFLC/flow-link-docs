@@ -334,6 +334,7 @@ const FormsLibrary = () => {
 function UploadFormDialog({
   open, onOpenChange, onSaved,
 }: { open: boolean; onOpenChange: (v: boolean) => void; onSaved: () => void }) {
+  const navigate = useNavigate();
   const [country, setCountry] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [name, setName] = useState("");
@@ -364,19 +365,12 @@ function UploadFormDialog({
       if (insErr) throw insErr;
 
       await logActivity("form.uploaded", "visa_form", ins.id, { name, country, category });
-      toast.success("Form uploaded · generating questionnaire…");
-
-      // Auto-generate questionnaire
-      try {
-        await supabase.functions.invoke("parse-form-fields", { body: { form_id: ins.id } });
-      } catch (e) {
-        console.warn("auto-parse failed", e);
-      }
-
+      toast.success("Form uploaded — opening Form Builder…");
       onSaved();
       onOpenChange(false);
       setCountry(""); setCategory(""); setName(""); setCode(""); setFile(null);
       setRequiresValidation(false);
+      navigate(`/forms-library/${ins.id}/build`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Upload failed");
     } finally {
