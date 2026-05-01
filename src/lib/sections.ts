@@ -10,13 +10,17 @@ export interface CaseSection {
   is_archived: boolean;
 }
 
-/** Map a binderGroups key to the seeded case_sections.key. */
-const GROUP_TO_SECTION: Record<string, string> = {
-  identity: "identity",
-  academic: "academic",
-  financial: "financial",
-  forms: "forms",
-  supporting: "supporting",
+/** Map a binderGroups key to one of the seeded case_sections.key values.
+ *  Multiple keys are tried in order — the first that exists in the DB wins. */
+const GROUP_TO_SECTION: Record<string, string[]> = {
+  identity: ["identity"],
+  academic: ["academic", "academics"],
+  experience: ["experience"],
+  financial: ["financial", "finance"],
+  forms: ["forms"],
+  family: ["family"],
+  supporting: ["supporting"],
+  other: ["other", "additional"],
 };
 
 let cachedSections: CaseSection[] | null = null;
@@ -36,9 +40,14 @@ export async function loadSections(force = false): Promise<CaseSection[]> {
 export async function inferSectionId(typeName: string): Promise<string | null> {
   const sections = await loadSections();
   const groupKey = groupForType(typeName).key;
-  const sectionKey = GROUP_TO_SECTION[groupKey] ?? "additional";
-  const found = sections.find((s) => s.key === sectionKey) ?? sections.find((s) => s.key === "additional");
-  return found?.id ?? null;
+  const candidates = GROUP_TO_SECTION[groupKey] ?? ["additional", "other"];
+  for (const key of candidates) {
+    const hit = sections.find((s) => s.key === key);
+    if (hit) return hit.id;
+  }
+  // Final fallbacks
+  const fb = sections.find((s) => s.key === "additional") ?? sections.find((s) => s.key === "other");
+  return fb?.id ?? null;
 }
 
 /** Persist a new ordering for documents inside one section. */
