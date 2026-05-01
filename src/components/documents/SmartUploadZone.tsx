@@ -743,10 +743,10 @@ export const SmartUploadZone = ({
         );
       })()}
 
-      {queue.length > 0 && (
+      {queue.some((it) => it.status !== "awaiting_review") && (
         <>
           <div className="mt-4 space-y-1.5 max-h-96 overflow-auto">
-            {queue.map((it, i) => (
+            {queue.map((it, i) => it.status === "awaiting_review" ? null : (
               <div
                 key={i}
                 className={`flex flex-col gap-1.5 text-xs p-2 rounded ${
