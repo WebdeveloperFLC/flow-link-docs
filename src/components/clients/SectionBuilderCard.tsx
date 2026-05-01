@@ -17,7 +17,10 @@ import { toast } from "sonner";
 import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, inferSectionId, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
-import { isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile } from "@/lib/binderSplit";
+import {
+  isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+} from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
 
@@ -73,6 +76,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const DOCUMENT_TYPES = useMasterLabels("document_types");
+  const allowedDocumentTypes = getAllowedDocumentTypes(DOCUMENT_TYPES);
 
   // Sort docs based on mode
   useEffect(() => {
@@ -148,14 +152,24 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             body: {
               filename: f.name,
               total_pages: pageCount,
-              allowed_types: DOCUMENT_TYPES,
+              allowed_types: allowedDocumentTypes,
               case_people: [],
               page_snippets: pageSnippets,
               page_image_data_urls: pageImages,
             },
           });
           if (error) throw error;
-          const segs = Array.isArray(data?.segments) ? data.segments : [];
+          let segs = Array.isArray(data?.segments) ? data.segments : [];
+          if (shouldFallbackToPageRanges(f.name, pageCount, segs)) {
+            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
+              start_page: pageIdx + 1,
+              end_page: pageIdx + 1,
+              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
+              confidence: 0.35,
+              reason: "fallback_page_range",
+            }));
+            toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
+          }
           if (segs.length < 2) { segments.push({ file: f }); continue; }
           const baseStem = f.name.replace(/\.pdf$/i, "");
           for (let i = 0; i < segs.length; i++) {
