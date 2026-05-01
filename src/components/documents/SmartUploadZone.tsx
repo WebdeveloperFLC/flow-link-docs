@@ -479,6 +479,24 @@ export const SmartUploadZone = ({
     patch(idx, { ownerId });
   };
 
+  /** Open the local file in a new tab so the user can sanity-check it before
+   *  confirming a label / owner. Works for PDFs and images without any
+   *  storage round-trip. */
+  const previewFile = (file: File) => {
+    try {
+      const url = URL.createObjectURL(file);
+      const win = window.open(url, "_blank");
+      if (!win) {
+        const a = document.createElement("a");
+        a.href = url; a.target = "_blank"; a.rel = "noopener";
+        document.body.appendChild(a); a.click(); a.remove();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      toast.error("Preview unavailable");
+    }
+  };
+
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
