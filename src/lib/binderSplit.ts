@@ -1,5 +1,6 @@
 import { PDFDocument } from "pdf-lib";
 import { renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
+import { DOCUMENT_TYPES as DEFAULT_DOCUMENT_TYPES } from "@/lib/constants";
 
 export interface BinderSegment {
   start_page: number; // 1-based inclusive
@@ -10,6 +11,48 @@ export interface BinderSegment {
   owner_evidence?: string | null;
   confidence?: number;
   reason?: string | null;
+}
+
+export function getAllowedDocumentTypes(extraTypes: string[] = []): string[] {
+  return Array.from(new Set([...DEFAULT_DOCUMENT_TYPES, ...extraTypes].map(String).filter(Boolean)));
+}
+
+export function shouldFallbackToPageRanges(fileName: string, pageCount: number, segments: BinderSegment[]): boolean {
+  if (pageCount < 3) return false;
+  const looksLikeBinder = /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?)\b/i.test(fileName);
+  if (!looksLikeBinder) return false;
+  if (segments.length < 2) return true;
+  return segments.length === 1 && segments[0]?.type === "Other" && (segments[0]?.confidence ?? 0) < 0.55;
+}
+
+export function inferTypeFromPageText(text: string, allowedTypes: string[]): { type: string; suggested_label?: string | null } {
+  const allowed = new Set(getAllowedDocumentTypes(allowedTypes));
+  const rules: Array<[RegExp, string, string?]> = [
+    [/passport|republic of|nationality|surname|given names|mrz|date of expiry/i, "Passport"],
+    [/ielts|toefl|pte|duolingo|test report form|candidate details|language proficiency/i, "English Language Proficiency Test"],
+    [/transcript|marksheet|statement of marks|degree|diploma|provisional certificate|semester|university/i, "Academic Transcripts"],
+    [/offer letter|letter of acceptance|admission|accepted to|program of study/i, "Offer Letter"],
+    [/bank statement|statement of account|account balance|closing balance|available balance/i, "Financial Documents"],
+    [/guaranteed investment certificate|\bgic\b|blocked account/i, "GIC Certificate"],
+    [/tuition|fee receipt|payment receipt|fees paid/i, "Tuition Fee Receipt"],
+    [/statement of purpose|personal statement|\bsop\b/i, "Statement of Purpose"],
+    [/resume|curriculum vitae|\bcv\b|work experience/i, "Updated Resume"],
+    [/imm\s?\d{4}|application for|visa application|family information/i, "Visa Forms"],
+    [/employment letter|experience letter|salary slip|pay slip|no objection certificate|\bnoc\b/i, "Employment Letter"],
+    [/affidavit of support|sponsor|sponsorship|invitation letter/i, "Affidavit of Support"],
+    [/birth certificate|date of birth|place of birth/i, "Birth Certificate"],
+    [/marriage certificate/i, "Marriage Certificate"],
+    [/police clearance|\bpcc\b/i, "Police Clearance"],
+  ];
+  for (const [rx, preferred] of rules) {
+    if (!rx.test(text)) continue;
+    if (allowed.has(preferred)) return { type: preferred };
+    if (preferred === "English Language Proficiency Test" && allowed.has("IELTS / Language Test")) return { type: "IELTS / Language Test" };
+    if (preferred === "Statement of Purpose" && allowed.has("SOP")) return { type: "SOP" };
+    if (preferred === "Updated Resume" && allowed.has("Resume")) return { type: "Resume" };
+    return { type: "Other", suggested_label: preferred };
+  }
+  return { type: "Other", suggested_label: null };
 }
 
 /** Get the page count of a PDF File. Returns 0 on failure or non-PDF. */
