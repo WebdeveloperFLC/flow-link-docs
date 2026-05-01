@@ -62,7 +62,19 @@ export async function getPdfPageCount(file: File): Promise<number> {
     const pdf = await PDFDocument.load(buf, { ignoreEncryption: true });
     return pdf.getPageCount();
   } catch {
-    return 0;
+    try {
+      const pdfjs = await (async () => {
+        const mod = await import("pdfjs-dist");
+        const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+        mod.GlobalWorkerOptions.workerSrc = (worker as { default: string }).default;
+        return mod;
+      })();
+      const buf = await file.arrayBuffer();
+      const doc = await pdfjs.getDocument({ data: new Uint8Array(buf) }).promise;
+      return doc.numPages || 0;
+    } catch {
+      return 0;
+    }
   }
 }
 
