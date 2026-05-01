@@ -271,7 +271,7 @@ const FormsLibrary = () => {
                                   </Select>
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
-                                  <span>Email template</span>
+                                  <span>Email template for sharing</span>
                                   <Select value={f.email_template_id ?? "__default"}
                                     onValueChange={(v) => toggleField(f.id, "email_template_id", v === "__default" ? null as unknown as string : v)}>
                                     <SelectTrigger className="h-7 w-[140px] text-xs"><SelectValue placeholder="Default" /></SelectTrigger>
@@ -282,6 +282,11 @@ const FormsLibrary = () => {
                                       ))}
                                     </SelectContent>
                                   </Select>
+                                </div>
+                                <div className="text-[11px] text-muted-foreground -mt-1">
+                                  {emailTemplates.length === 0
+                                    ? <>No custom templates yet. <a href="/settings/questionnaire-emails" className="text-primary hover:underline">Create one</a> to personalise sharing emails.</>
+                                    : <a href="/settings/questionnaire-emails" className="text-primary hover:underline">Manage templates</a>}
                                 </div>
                               </div>
                             )}
