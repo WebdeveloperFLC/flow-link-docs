@@ -699,6 +699,21 @@ function StatusIcon({ status }: { status: ItemStatus }) {
 
 export default SmartUploadZone;
 
+/** Result of expanding the user's selection: either a plain file or one segment of a binder. */
+interface ExpandedItem {
+  file: File;
+  // Only set for binder segments
+  binderId?: string;
+  binderSource?: File;
+  binderSourceName?: string;
+  segIndex?: number;
+  startPage?: number;
+  endPage?: number;
+  totalSourcePages?: number;
+  type?: string;
+  customType?: string;
+}
+
 /**
  * Detect multi-page PDF binders and split them into one File per segment.
  * Returns the same files unchanged when no splitting is warranted.
@@ -707,11 +722,11 @@ async function expandBinders(
   files: File[],
   rosterNames: string[],
   allowedTypes: string[],
-): Promise<File[]> {
-  const out: File[] = [];
+): Promise<ExpandedItem[]> {
+  const out: ExpandedItem[] = [];
   for (const file of files) {
     if (!isPdfFile(file)) {
-      out.push(file);
+      out.push({ file });
       continue;
     }
     let pageCount = 0;
@@ -719,7 +734,7 @@ async function expandBinders(
     // Only attempt to split PDFs with at least 3 pages — most single-document
     // uploads are 1–2 pages and don't need splitting.
     if (pageCount < 3) {
-      out.push(file);
+      out.push({ file });
       continue;
     }
     try {
@@ -743,11 +758,12 @@ async function expandBinders(
       const segments = Array.isArray(data?.segments) ? data.segments : [];
       // Only split when the AI found ≥2 distinct documents.
       if (segments.length < 2) {
-        out.push(file);
+        out.push({ file });
         continue;
       }
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
+      const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       for (let i = 0; i < segments.length; i++) {
         const s = segments[i] as {
           start_page: number; end_page: number; type: string;
@@ -758,7 +774,18 @@ async function expandBinders(
         const segName = `${baseStem}__${String(i + 1).padStart(2, "0")}_${safeLabel}_p${s.start_page}-${s.end_page}.pdf`;
         try {
           const segFile = await extractPagesAsPdfFile(file, s.start_page, s.end_page, segName);
-          out.push(segFile);
+          out.push({
+            file: segFile,
+            binderId,
+            binderSource: file,
+            binderSourceName: file.name,
+            segIndex: i,
+            startPage: s.start_page,
+            endPage: s.end_page,
+            totalSourcePages: pageCount,
+            type: s.type,
+            customType: s.type === "Other" && s.suggested_label ? s.suggested_label : undefined,
+          });
         } catch (e) {
           console.warn("split-binder: failed to extract pages", s, e);
         }
@@ -766,7 +793,7 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
-      out.push(file);
+      out.push({ file });
     }
   }
   return out;
