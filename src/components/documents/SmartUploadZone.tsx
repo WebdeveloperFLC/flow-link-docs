@@ -615,6 +615,134 @@ export const SmartUploadZone = ({
         </div>
       </label>
 
+      {/* Binder review groups: any awaiting_review items grouped by binder. */}
+      {(() => {
+        const groups = new Map<string, { idx: number; it: QueueItem }[]>();
+        queue.forEach((it, idx) => {
+          if (it.status === "awaiting_review" && it.binderId) {
+            const arr = groups.get(it.binderId) ?? [];
+            arr.push({ idx, it });
+            groups.set(it.binderId, arr);
+          }
+        });
+        if (groups.size === 0) return null;
+        return (
+          <div className="mt-4 space-y-3">
+            {Array.from(groups.entries()).map(([binderId, segs]) => {
+              const sorted = [...segs].sort((a, b) => (a.it.segIndex ?? 0) - (b.it.segIndex ?? 0));
+              const first = sorted[0]?.it;
+              const total = first?.totalSourcePages ?? 0;
+              return (
+                <div key={binderId} className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Scissors className="size-3.5 text-primary" />
+                    <div className="text-xs font-semibold text-primary truncate">
+                      Binder split: {first?.binderSourceName ?? "PDF"} · {total || "?"} pages → {sorted.length} document{sorted.length === 1 ? "" : "s"}
+                    </div>
+                    <div className="flex-1" />
+                    <Button size="sm" className="h-7 text-[11px]" onClick={() => uploadBinder(binderId)} disabled={busy}>
+                      <Upload className="size-3 mr-1" /> Upload all ({sorted.length})
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Review each segment before uploading. Adjust the page range, change the type or person, merge with the next segment, or remove a segment.
+                  </p>
+                  <div className="space-y-1.5">
+                    {sorted.map(({ idx, it }, segPos) => {
+                      const isLast = segPos === sorted.length - 1;
+                      return (
+                        <div key={idx} className="rounded-md border border-border bg-background/60 p-2 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center size-5 rounded bg-primary/10 text-primary text-[10px] font-bold shrink-0">
+                              {segPos + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate text-xs font-medium">{it.file.name}</div>
+                              <div className="text-[10px] text-muted-foreground">
+                                Pages {it.startPage}–{it.endPage} of {total || "?"}
+                                {it.predictedType && (
+                                  <> · <span className="font-semibold text-foreground">{it.predictedType === "Other" ? (it.customType || "Other") : it.predictedType}</span></>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="icon" variant="ghost" className="h-7 w-7"
+                              onClick={() => dropSegment(idx)}
+                              title="Remove segment"
+                            >
+                              <Trash2 className="size-3.5 text-muted-foreground" />
+                            </Button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground shrink-0">Pages</span>
+                              <Input
+                                type="number" min={1} max={total || undefined}
+                                value={it.startPage ?? 1}
+                                className="h-7 w-14 text-[11px] px-1.5"
+                                onChange={(e) => {
+                                  const v = Number(e.target.value);
+                                  if (!Number.isFinite(v)) return;
+                                  setSegmentRange(idx, v, it.endPage ?? v);
+                                }}
+                              />
+                              <span className="text-[10px] text-muted-foreground">–</span>
+                              <Input
+                                type="number" min={1} max={total || undefined}
+                                value={it.endPage ?? 1}
+                                className="h-7 w-14 text-[11px] px-1.5"
+                                onChange={(e) => {
+                                  const v = Number(e.target.value);
+                                  if (!Number.isFinite(v)) return;
+                                  setSegmentRange(idx, it.startPage ?? v, v);
+                                }}
+                              />
+                            </div>
+                            <Select value={it.predictedType ?? "Other"} onValueChange={(v) => setSegmentType(idx, v)}>
+                              <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Type" /></SelectTrigger>
+                              <SelectContent>
+                                {DOCUMENT_TYPES.map((t) => (
+                                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <Select value={it.ownerId ?? applicant?.id ?? ""} onValueChange={(v) => setOwner(idx, v)}>
+                              <SelectTrigger className="h-7 text-[11px]">
+                                <SelectValue placeholder="Assign to…" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {people.map((p) => (
+                                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                                    {p.full_name} · {ROLE_LABEL[p.role]}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              size="sm" variant="outline" className="h-7 text-[11px]"
+                              disabled={isLast}
+                              onClick={() => mergeWithNext(idx)}
+                              title={isLast ? "No segment after this" : "Merge with the next segment"}
+                            >
+                              <Combine className="size-3 mr-1" /> Merge with next
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
       {queue.length > 0 && (
         <>
           <div className="mt-4 space-y-1.5 max-h-96 overflow-auto">
