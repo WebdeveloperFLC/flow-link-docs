@@ -353,7 +353,7 @@ export const SmartUploadZone = ({
       // becomes its own queue item with binder lineage so the user can merge
       // or edit ranges before upload. Single (non-binder) files keep the
       // legacy auto-upload flow.
-      const expanded = await expandBinders(arr, people.map((p) => p.full_name), DOCUMENT_TYPES);
+      const expanded = await expandBinders(arr, people.map((p) => p.full_name), allowedDocumentTypes);
 
       const startIdx = queue.length;
       const initial: QueueItem[] = expanded.map((e) =>
@@ -400,7 +400,7 @@ export const SmartUploadZone = ({
       setBusy(false);
       onUploaded();
     },
-    [queue.length, classifyAndAssign, applicant, onUploaded, people, DOCUMENT_TYPES] // eslint-disable-line react-hooks/exhaustive-deps
+    [queue.length, classifyAndAssign, applicant, onUploaded, people, allowedDocumentTypes] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const overrideType = async (idx: number, newType: string) => {
