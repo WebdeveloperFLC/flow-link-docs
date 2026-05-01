@@ -342,21 +342,44 @@ export const SmartUploadZone = ({
 
       setBusy(true);
       // Step 1: expand binders. Any multi-page PDF (≥3 pages) is sent to the
-      // AI binder splitter; if multiple segments come back, the original file
-      // is replaced by one File per segment so each is classified, owner-
-      // matched, and routed to its correct section independently.
+      // AI binder splitter; if multiple segments come back, each segment
+      // becomes its own queue item with binder lineage so the user can merge
+      // or edit ranges before upload. Single (non-binder) files keep the
+      // legacy auto-upload flow.
       const expanded = await expandBinders(arr, people.map((p) => p.full_name), DOCUMENT_TYPES);
 
       const startIdx = queue.length;
-      const initial: QueueItem[] = expanded.map((f) => ({ file: f, status: "queued" as const }));
+      const initial: QueueItem[] = expanded.map((e) =>
+        e.binderId
+          ? {
+              file: e.file,
+              status: "awaiting_review" as const,
+              predictedType: e.type,
+              customType: e.customType,
+              binderId: e.binderId,
+              binderSource: e.binderSource,
+              binderSourceName: e.binderSourceName,
+              segIndex: e.segIndex,
+              startPage: e.startPage,
+              endPage: e.endPage,
+              totalSourcePages: e.totalSourcePages,
+              ownerId: applicant?.id ?? null,
+            }
+          : { file: e.file, status: "queued" as const },
+      );
       setQueue((q) => [...q, ...initial]);
 
-      const tasks = initial.map((it, i) => async () => {
-        const idx = startIdx + i;
-        const result = await classifyAndAssign(idx, it);
-        if (!result) return; // paused for user input
-        await uploadOne(idx, { ...it } as QueueItem, result.classification.type, result.classification.customType, result.ownerId);
-      });
+      // Only auto-process non-binder items. Binder segments wait for the user
+      // to review (merge / adjust ranges / confirm owner) and click "Upload all".
+      const tasks = initial
+        .map((it, i) => ({ it, i }))
+        .filter((x) => x.it.status === "queued")
+        .map(({ it, i }) => async () => {
+          const idx = startIdx + i;
+          const result = await classifyAndAssign(idx, it);
+          if (!result) return;
+          await uploadOne(idx, { ...it } as QueueItem, result.classification.type, result.classification.customType, result.ownerId);
+        });
 
       const queues: Array<() => Promise<void>> = [...tasks];
       const workers = Array.from({ length: CONCURRENCY }, async () => {
