@@ -255,7 +255,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         } catch (e) { console.warn("classify failed", e); }
         if (docType === "Other" && !customType) customType = prettyTitle(f.name);
 
-        const targetSectionId = (await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id;
+        // If classification still fails, keep the file in the section where the
+        // user uploaded it instead of silently moving it to Additional/Other.
+        const targetSectionId = docType === "Other"
+          ? section.id
+          : ((await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id);
         const targetSection = allSections.find((s) => s.id === targetSectionId) ?? section;
 
         const safe = f.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
