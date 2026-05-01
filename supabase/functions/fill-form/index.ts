@@ -255,35 +255,78 @@ Deno.serve(async (req) => {
     const { data: file, error: dlErr } = await supabase.storage.from("visa-forms").download(form.file_path);
     if (dlErr || !file) return json({ error: "Cannot read form PDF" }, 500);
     const pdfBytes = new Uint8Array(await file.arrayBuffer());
-    const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true, updateMetadata: false });
+
+    let pdf: PDFDocument;
+    try {
+      pdf = await PDFDocument.load(pdfBytes, {
+        ignoreEncryption: true,
+        updateMetadata: false,
+        throwOnInvalidObject: false,
+      });
+    } catch (e) {
+      return json({
+        error: `Could not parse PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
+               `This form may use an unsupported PDF format.`,
+      }, 500);
+    }
 
     const sections = (schema.sections ?? []) as Section[];
     const answers = (inst.answers ?? {}) as Record<string, unknown>;
     const keyMap = buildAnswerKeyToPdfField(sections);
 
-    // 1) AcroForm pass.
-    const acro = fillAcroForm(pdf, answers, keyMap);
+    // Detect XFA up front so we can avoid AcroForm operations that crash
+    // on dynamic XFA / IRCC PDFs (pdf-lib does not officially support XFA).
+    const xfaInfo = locateXfaStreams(pdf);
+    const hasXfa = !!(xfaInfo.datasets && xfaInfo.xfaArray);
+
+    // 1) AcroForm pass — wrapped so a single broken widget can never abort
+    // the whole job. Skipped entirely for XFA-only forms.
+    let acro: { filled: string[]; skipped: { key: string; reason: string }[]; pdfFieldNames: Set<string> } =
+      { filled: [], skipped: [], pdfFieldNames: new Set() };
+    if (!hasXfa) {
+      try {
+        acro = fillAcroForm(pdf, answers, keyMap);
+      } catch (e) {
+        console.error("AcroForm fill failed", e);
+        acro.skipped.push({ key: "*", reason: `AcroForm pass aborted: ${e instanceof Error ? e.message : "error"}` });
+      }
+    }
 
     // 2) XFA pass — write to <datasets> so Adobe Reader displays values.
     let xfaFilled: string[] = [];
     let xfaSkipped: { key: string; reason: string }[] = [];
-    const { datasets, xfaArray } = locateXfaStreams(pdf);
-    if (datasets && xfaArray) {
-      const xml = decodeStream(datasets);
+    if (hasXfa) {
+      const xml = decodeStream(xfaInfo.datasets!);
       if (xml) {
         const r = fillXfaDatasets(xml, answers, keyMap);
         xfaFilled = r.filled; xfaSkipped = r.skipped;
         if (r.filled.length > 0) {
           try {
-            replaceXfaDatasetsStream(pdf, xfaArray, new TextEncoder().encode(r.xml));
+            replaceXfaDatasetsStream(pdf, xfaInfo.xfaArray!, new TextEncoder().encode(r.xml));
           } catch (e) {
             console.error("XFA stream replace failed", e);
+            xfaSkipped.push({ key: "*", reason: `XFA stream replace failed: ${e instanceof Error ? e.message : "error"}` });
           }
         }
+      } else {
+        xfaSkipped.push({ key: "*", reason: "XFA datasets stream is empty or undecodable" });
       }
     }
 
-    const out = await pdf.save({ updateFieldAppearances: false });
+    let out: Uint8Array;
+    try {
+      out = await pdf.save({ updateFieldAppearances: false });
+    } catch (e) {
+      console.error("pdf.save failed", e);
+      return json({
+        error: `Could not write filled PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
+               `The original form has internal references that pdf-lib cannot rewrite. ` +
+               `${xfaFilled.length} XFA field(s) and ${acro.filled.length} AcroForm field(s) were prepared.`,
+        filled: { acroform: acro.filled, xfa: xfaFilled },
+        skipped: [...acro.skipped, ...xfaSkipped],
+        has_xfa: hasXfa,
+      }, 500);
+    }
 
     // Upload to client-documents
     const stamp = new Date().toISOString().replace(/[:.]/g, "-");
