@@ -920,6 +920,7 @@ function StatusIcon({ status }: { status: ItemStatus }) {
   if (status === "error") return <AlertTriangle className="size-3.5 text-destructive shrink-0" />;
   if (status === "name_mismatch") return <UserX className="size-3.5 text-amber-600 shrink-0" />;
   if (status === "needs_owner") return <Users className="size-3.5 text-amber-600 shrink-0" />;
+  if (status === "awaiting_review") return <Scissors className="size-3.5 text-primary shrink-0" />;
   if (status === "skipped") return <div className="size-3.5 rounded-full bg-muted shrink-0" />;
   if (status === "queued") return <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />;
   return <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />;
