@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { COUNTRIES, APPLICATION_TYPES } from "@/lib/constants";
+import { useMasterLabels } from "@/lib/masters";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
