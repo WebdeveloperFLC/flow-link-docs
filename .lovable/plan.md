@@ -1,45 +1,68 @@
-# Fix scanned-PDF "Failed to load" + add preview before labeling
+I found this is not fully fixed because there are still multiple upload/view paths behaving differently:
 
-## Problem 1 — Scanned PDF won't open after upload
+- The main Smart Upload path now has a preview button, but it still auto-uploads some files before the user can confirm the label.
+- The “general/section upload” inside each document section does not show a pre-upload preview/review queue at all.
+- Section upload stores the original file name and bytes directly, while Smart Upload renames/converts through `processToPdf`. That explains inconsistent naming and some view failures.
+- Some PDF operations still re-save scanned PDFs through `pdf-lib` when splitting/merging/optimizing, which can break scanner-style PDFs. The first fix only covered one upload path.
+- “View” currently relies on opening an object URL in a browser tab. This works for many PDFs but is unreliable for some scanned PDFs, pop-up handling, and files whose metadata/name is off.
 
-**Root cause:** `src/lib/processFile.ts` always pipes uploaded PDFs through `pdf-lib` (`PDFDocument.load` → `save({ useObjectStreams: true })`). For many scanned PDFs this is fine, but pdf-lib silently mangles a number of valid scanner outputs (XFA shells, linearized files, certain JBIG2/JPEG2000 streams, broken xref tables it "fixes"). The re-saved bytes then fail to render in pdfjs/Chrome with "Failed to load PDF document". The current rasterize fallback only triggers for *encrypted* PDFs, not for these structurally-fragile scans.
+Plan to fix it permanently across the documents module:
 
-**Fix:** Trust the original bytes whenever they're already under the IRCC limit. Only re-process when we actually have to (oversize, encrypted, or image-based input).
+1. Unify document processing and naming
+   - Create one shared upload helper used by Smart Upload and section/general upload.
+   - All uploaded documents will go through the same safe pipeline:
+     - Preserve already-valid under-limit PDFs without re-saving.
+     - Convert images to PDF.
+     - Use the same date/type/person/version naming convention.
+     - Set consistent `mime_type = application/pdf` and `file_name`.
+   - This removes the mismatch where section uploads currently keep names like the original scanned file while Smart Upload creates structured names.
 
-Changes in `src/lib/processFile.ts`:
+2. Add pre-upload review/preview everywhere
+   - For Smart Upload, change the behavior so classification becomes a suggestion and waits for confirmation before final upload.
+   - For general/section upload, add a small review queue after selecting files:
+     - Preview button for every file before saving.
+     - Detected/suggested label shown.
+     - Dropdown to correct the label.
+     - Upload/confirm action.
+   - This addresses “view option not available when uploaded in general upload section.”
 
-1. If the input is a PDF and `file.size <= TARGET_BYTES (3.8 MB)` → return the original `File` as-is (just renamed to `${baseName}.pdf`). No pdf-lib round-trip. This alone resolves the broken-scan case for the vast majority of uploads.
-2. If oversize → try pdf-lib re-save first; if the re-saved file is still oversize OR pdf-lib throws → fall through to the existing rasterize-to-JPEG rebuild path (already encryption-safe).
-3. Keep encryption detection: if `PDFDocument.load` throws, still rasterize.
-4. Image and unknown-type branches stay unchanged.
+3. Make PDF viewing more robust
+   - Replace duplicated `onView` logic with a shared document preview helper.
+   - It will:
+     - Download the file.
+     - Force PDF MIME type when appropriate.
+     - Open in a controlled preview tab/window with a download fallback.
+     - Show a clear error if the file bytes are already corrupted rather than silently failing.
+   - Use this same helper in:
+     - Client detail flat list.
+     - Section cards.
+     - Any queue preview buttons.
 
-This removes the "always re-save" step that's corrupting scanned PDFs while preserving size compliance and the encrypted-file safety net.
+4. Stop scanner-PDF corruption in remaining paths
+   - Update binder/page splitting so it does not use `pdf-lib` for PDFs that do not need splitting.
+   - For actual page extraction/merging where re-saving is unavoidable, add a rasterized fallback when `pdf-lib` cannot safely copy/render pages.
+   - Disable or harden the “re-optimize” path so it does not rewrite scanned PDFs in a way that breaks viewing.
 
-## Problem 2 — No way to view a document before labeling it
+5. Improve classification for the labels currently becoming `Other`
+   - Extend aliases/heuristics for project-specific labels like:
+     - `10th Marksheet`
+     - `12th Marksheet`
+     - `Academic Marksheets`
+     - `English Language Proficiency Test`
+     - `Statement of Purpose`
+     - `Updated Resume`
+     - `Digital Photo`
+   - Ensure `Other` uses a meaningful custom label when unavoidable, instead of saving multiple files as `Other_Applicant_...pdf`.
+   - Prevent duplicate version calculation races when multiple files are uploaded together so names do not repeat incorrectly.
 
-Right now `SmartUploadZone` auto-classifies and uploads in one shot; only binder *segments* land in `awaiting_review`. Single uploads never give the user a chance to look at the file before a label is written.
+6. Keep existing broken files understandable
+   - New uploads should be fixed after the change.
+   - Files already corrupted by previous processing may still need re-upload from the original scan because the original bytes may no longer exist in storage.
+   - For existing non-corrupted files that are only mislabeled/named, I can add a safe rename/metadata repair pass separately if you want it.
 
-**Fix:** Add a "Preview" affordance on every queue item that's currently in `awaiting_review`, `needs_label`, or `owner_mismatch` state, so the user can open the local `File` (already in memory — no storage round-trip needed) before confirming the label or owner.
-
-Changes:
-
-1. In `SmartUploadZone.tsx`, add a small `Preview` button next to the type/owner controls for any non-uploaded queue item. Clicking it does:
-   ```ts
-   const url = URL.createObjectURL(item.file);
-   window.open(url, "_blank");
-   setTimeout(() => URL.revokeObjectURL(url), 60_000);
-   ```
-   No new dependency, works for PDFs and images.
-2. For items that auto-classified to a known type and uploaded immediately, expose the same Preview button while they're in flight (status `processing` / `uploading`) so users can sanity-check what just got assigned.
-3. Optional nicety: change the default behavior so that classification produces a *suggestion* but waits for user confirmation before uploading. **Keeping current auto-upload as default** to avoid disrupting existing workflows; preview is the additive change. If you'd prefer hard "always confirm before upload", say so and I'll flip the default.
-
-## Files to change
-
-- `src/lib/processFile.ts` — rewrite the PDF branch as described.
-- `src/components/documents/SmartUploadZone.tsx` — add Preview button in the queue-item row renderer.
-
-## Out of scope
-
-- No DB migration.
-- No edge function changes. Existing `client-documents` files that were already corrupted by the old re-save will still be broken; re-uploading them (or running `process-large-file`) won't help because their source bytes were lost. New uploads after this fix will render correctly.
-- OCR/text-extraction quality (the stack-overflow snippet about Vision-API OCR fallback) is a separate concern from rendering and isn't needed here.
+Expected result:
+- Every upload surface has preview before final save.
+- Naming is consistent everywhere.
+- Scanned PDFs are no longer unnecessarily rewritten.
+- View uses one reliable preview path.
+- This should not keep coming back for new uploads because the root causes are being removed, not patched in one component only.
