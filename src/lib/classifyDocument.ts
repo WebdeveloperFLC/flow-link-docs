@@ -201,13 +201,18 @@ export async function classifyDocument(
     const aiConfidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
     // If AI cannot read a scanned/low-signal file, keep a strong filename type hint.
     // Ownership is still NEVER taken from the filename; only document type falls back.
-    const useTextType = !!textGuess && (aiType === "Other" || aiConfidence < 0.55);
-    const useFilenameType = !useTextType && !!fn && (aiType === "Other" || aiConfidence < 0.5);
+    // More lenient than the recent regression: prefer text/filename hints whenever
+    // AI confidence is mediocre, so borderline-but-correct classifications win
+    // instead of being kicked to "Other".
+    const useTextType = !!textGuess && (aiType === "Other" || aiConfidence < 0.5);
+    const useFilenameType = !useTextType && !!fn && (aiType === "Other" || aiConfidence < 0.45);
     const type = useTextType ? textGuess.type : useFilenameType ? fn.type : aiType;
     const confidence = useTextType ? Math.max(textGuess.confidence, aiConfidence) : useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
-    // Decide whether this classification is good enough to auto-upload.
-    // We refuse to silently auto-file as "Other" — the UI must ask the user.
-    const needsManualType = type === "Other";
+    // We do NOT block uploads on classification anymore. The card will still
+    // surface a "change type" affordance after upload so the user can correct
+    // anything that landed as "Other", but the rest of the pipeline (rename,
+    // upload, CRM extraction, verification) must always run.
+    const needsManualType = false;
     if (typeof console !== "undefined") {
       try {
         console.info("[classifyDocument]", {
