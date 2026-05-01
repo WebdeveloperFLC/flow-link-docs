@@ -83,10 +83,11 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({}));
     const docType = String(body?.document_type ?? "").slice(0, 80);
-    const snippet = String(body?.snippet ?? "").slice(0, 14000);
+    const customType = String(body?.custom_type ?? "").slice(0, 80);
+    const snippet = String(body?.snippet ?? "").slice(0, 30000);
     const fileName = String(body?.file_name ?? "").slice(0, 200);
     const imageDataUrls: string[] = Array.isArray(body?.image_data_urls)
-      ? body.image_data_urls.filter((s: unknown) => typeof s === "string" && s.startsWith("data:image")).slice(0, 4)
+      ? body.image_data_urls.filter((s: unknown) => typeof s === "string" && s.startsWith("data:image")).slice(0, 6)
       : [];
 
     if (!snippet && imageDataUrls.length === 0) {
@@ -97,17 +98,27 @@ Deno.serve(async (req) => {
     if (!apiKey) return json({ fields: {}, reason: "no_api_key" });
 
     const sys =
-      "You extract structured CRM fields from immigration / study-abroad documents. " +
-      "Read the document content carefully — including text snippet AND any provided page images (use OCR on the images). " +
-      "Extract every field that is clearly visible anywhere on the page: headers, footers, signature blocks, contact sections, labelled fields, sidebars. " +
-      "Pay special attention to phone numbers (main and alternate), email addresses, and full education history. " +
-      "If the document lists multiple degrees (e.g. on a resume), return ALL of them in education_history, not just the highest. " +
-      "Also fill the legacy single-field highest_qualification/institution_name/graduation_year/gpa_or_percentage with the highest-level degree from education_history. " +
-      "Return null for anything not clearly present. Do NOT hallucinate. " +
-      "Dates MUST be ISO YYYY-MM-DD. Numbers must be plain numbers, no currency symbols. " +
-      "Use the save_fields tool to return the result.";
+      "You are an expert extractor for immigration / study-abroad case documents. " +
+      "Read the ENTIRE document — every page, every section — using both the text snippet AND every page image (OCR all images). " +
+      "Do not stop after the first page; resumes, transcripts, bank statements, and IELTS reports often have key data on later pages. " +
+      "Extract every field that appears anywhere — headers, footers, signature blocks, contact strips, sidebars, tables, stamps, watermarks. " +
+      "Phones / emails: capture BOTH the primary and any alternate numbers/emails listed (header, footer, contact section). " +
+      "Education: list EVERY qualification — high school, diplomas, bachelor, master, phd, certificates — in education_history. " +
+      "Also populate the legacy fields highest_qualification / institution_name / graduation_year / gpa_or_percentage from the highest degree. " +
+      "Employment: capture employer_name, job_title, annual_income, currency. " +
+      "Financial: capture bank_name, account_balance, gic_amount, tuition_paid, currency when visible. " +
+      "Identity: passport_number, passport_country, passport_issue_date, passport_expiry, date_of_birth, nationality, place_of_birth, gender, marital_status, spouse_name. " +
+      "Address: street/city/state/country/postal — split into the dedicated address fields. " +
+      "Return null for anything not clearly readable. Never invent or guess. " +
+      "Dates MUST be ISO YYYY-MM-DD. Numbers must be plain numbers (no currency symbols, commas removed). " +
+      "Always call the save_fields tool exactly once with the full result.";
 
-    const userText = `Document type: ${docType || "unknown"}\nFile name: ${fileName}\nDocument text (may be empty or garbled if scanned):\n"""${snippet}"""`;
+    const typeLabel = customType || docType || "unknown";
+    const userText =
+      `Document type: ${typeLabel}\n` +
+      `File name: ${fileName}\n` +
+      `Page images attached: ${imageDataUrls.length}\n` +
+      `Document text (may be empty or garbled if scanned — rely on the images then):\n"""${snippet}"""`;
     const userContent: unknown[] = [{ type: "text", text: userText }];
     for (const url of imageDataUrls) {
       userContent.push({ type: "image_url", image_url: { url } });
