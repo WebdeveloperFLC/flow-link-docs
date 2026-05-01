@@ -362,6 +362,21 @@ export const ClientFormsCard = ({
                   {copiedId === form.id ? "Copied" : inst?.share_token ? "Copy link" : "Get link"}
                 </Button>
               )}
+              {canEdit && (
+                <Button size="sm" variant="outline" className="h-7"
+                  onClick={() => onSendViaEmail(form)}
+                  disabled={emailBusyId === form.id || !schema || !clientInfo?.email}
+                  title={
+                    !schema ? "Generate the questionnaire first"
+                    : !clientInfo?.email ? "This client has no email address on file"
+                    : "Open an email draft with the questionnaire link using the configured template"
+                  }>
+                  {emailBusyId === form.id
+                    ? <Loader2 className="size-3.5 mr-1 animate-spin" />
+                    : <Mail className="size-3.5 mr-1" />}
+                  Send via email
+                </Button>
+              )}
             </div>
           );
         })}
