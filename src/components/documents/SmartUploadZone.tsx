@@ -929,6 +929,13 @@ export const SmartUploadZone = ({
                       {it.error && <span className="text-destructive ml-1">· {it.error}</span>}
                     </div>
                   </div>
+                  <Button
+                    size="icon" variant="ghost" className="h-7 w-7 shrink-0"
+                    onClick={() => previewFile(it.file)}
+                    title="Preview file"
+                  >
+                    <Eye className="size-3.5 text-muted-foreground" />
+                  </Button>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
                       <SelectTrigger className="h-7 w-[140px] text-[11px]"><SelectValue /></SelectTrigger>
