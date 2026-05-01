@@ -1,68 +1,82 @@
-I found this is not fully fixed because there are still multiple upload/view paths behaving differently:
+## Problem
 
-- The main Smart Upload path now has a preview button, but it still auto-uploads some files before the user can confirm the label.
-- The “general/section upload” inside each document section does not show a pre-upload preview/review queue at all.
-- Section upload stores the original file name and bytes directly, while Smart Upload renames/converts through `processToPdf`. That explains inconsistent naming and some view failures.
-- Some PDF operations still re-save scanned PDFs through `pdf-lib` when splitting/merging/optimizing, which can break scanner-style PDFs. The first fix only covered one upload path.
-- “View” currently relies on opening an object URL in a browser tab. This works for many PDFs but is unreliable for some scanned PDFs, pop-up handling, and files whose metadata/name is off.
+A document belonging to **Manav Yogesh Patel** was uploaded into **Patel Chintan Rajnikant**'s case without any warning. The classifier *did* read the owner name from the document, but the upload pipeline still accepted it.
 
-Plan to fix it permanently across the documents module:
+## Root cause
 
-1. Unify document processing and naming
-   - Create one shared upload helper used by Smart Upload and section/general upload.
-   - All uploaded documents will go through the same safe pipeline:
-     - Preserve already-valid under-limit PDFs without re-saving.
-     - Convert images to PDF.
-     - Use the same date/type/person/version naming convention.
-     - Set consistent `mime_type = application/pdf` and `file_name`.
-   - This removes the mismatch where section uploads currently keep names like the original scanned file while Smart Upload creates structured names.
+In `SmartUploadZone.tsx → classifyAndAssign`, the owner-mismatch check has a hole for **single-person cases** (cases with only the applicant, like Chintan's):
 
-2. Add pre-upload review/preview everywhere
-   - For Smart Upload, change the behavior so classification becomes a suggestion and waits for confirmation before final upload.
-   - For general/section upload, add a small review queue after selecting files:
-     - Preview button for every file before saving.
-     - Detected/suggested label shown.
-     - Dropdown to correct the label.
-     - Upload/confirm action.
-   - This addresses “view option not available when uploaded in general upload section.”
+```text
+ownerVerifiedFromContent? ── no ──► single-person ──► auto-assign to applicant, upload
+                          │
+                          yes
+                          ▼
+              noRosterMatch (score < 0.6)?
+                          │
+                       yes│            single-person ──► auto-assign to applicant, upload  ◄── BUG
+                          │
+                       no │
+                          ▼
+                  proceed with best match
+```
 
-3. Make PDF viewing more robust
-   - Replace duplicated `onView` logic with a shared document preview helper.
-   - It will:
-     - Download the file.
-     - Force PDF MIME type when appropriate.
-     - Open in a controlled preview tab/window with a download fallback.
-     - Show a clear error if the file bytes are already corrupted rather than silently failing.
-   - Use this same helper in:
-     - Client detail flat list.
-     - Section cards.
-     - Any queue preview buttons.
+So when:
+1. The document owner (e.g. "Manav Yogesh Patel") IS clearly read from the document, AND
+2. That name does NOT match anyone on the case roster (Chintan), AND
+3. The case has only 1 person,
 
-4. Stop scanner-PDF corruption in remaining paths
-   - Update binder/page splitting so it does not use `pdf-lib` for PDFs that do not need splitting.
-   - For actual page extraction/merging where re-saving is unavoidable, add a rasterized fallback when `pdf-lib` cannot safely copy/render pages.
-   - Disable or harden the “re-optimize” path so it does not rewrite scanned PDFs in a way that breaks viewing.
+the code silently overrides the detected name and assigns the document to the applicant. No prompt, no warning, no block.
 
-5. Improve classification for the labels currently becoming `Other`
-   - Extend aliases/heuristics for project-specific labels like:
-     - `10th Marksheet`
-     - `12th Marksheet`
-     - `Academic Marksheets`
-     - `English Language Proficiency Test`
-     - `Statement of Purpose`
-     - `Updated Resume`
-     - `Digital Photo`
-   - Ensure `Other` uses a meaningful custom label when unavoidable, instead of saving multiple files as `Other_Applicant_...pdf`.
-   - Prevent duplicate version calculation races when multiple files are uploaded together so names do not repeat incorrectly.
+The same gap also exists in the "owner unreadable" branch for single-person cases — it auto-assigns without showing the user what was detected.
 
-6. Keep existing broken files understandable
-   - New uploads should be fixed after the change.
-   - Files already corrupted by previous processing may still need re-upload from the original scan because the original bytes may no longer exist in storage.
-   - For existing non-corrupted files that are only mislabeled/named, I can add a safe rename/metadata repair pass separately if you want it.
+## Fix
 
-Expected result:
-- Every upload surface has preview before final save.
-- Naming is consistent everywhere.
-- Scanned PDFs are no longer unnecessarily rewritten.
-- View uses one reliable preview path.
-- This should not keep coming back for new uploads because the root causes are being removed, not patched in one component only.
+Treat a confidently-detected, non-matching owner name as a **hard mismatch** for every case (single-person OR multi-person), and force the user to make an explicit decision before the file is uploaded.
+
+### Changes in `src/components/documents/SmartUploadZone.tsx`
+
+1. **New status & UX state**: introduce a `name_mismatch` status path that surfaces:
+   - The detected owner name + evidence snippet from the document.
+   - The current case's people.
+   - Three explicit actions:
+     - **Reassign to another case** (existing search-by-name flow).
+     - **Upload anyway as <applicant>** (records `document.uploaded_with_override`, requires a confirm).
+     - **Skip / remove from queue**.
+   - A **Preview** button so the user can verify the file's contents before deciding.
+
+2. **classifyAndAssign — replace the single-person shortcut**:
+   - When `ownerVerifiedFromContent === true` AND `noRosterMatch === true`:
+     - For both single- and multi-person cases, set status `name_mismatch` and STOP. Do not auto-upload.
+   - When `ownerVerifiedFromContent === false` (owner unreadable):
+     - Single-person: keep auto-assigning to applicant (today's behavior is fine here — there's literally no other choice and we can't read a name).
+     - Multi-person: keep current `needs_owner` picker.
+   - Use a stricter "no roster match" threshold: treat `match.score < 0.6` AND `match.best === undefined` as a mismatch (today's logic), but ALSO require the detected name's token overlap with the matched person to be ≥ 0.5 before proceeding silently — otherwise force `name_mismatch`.
+
+3. **Activity logging**: log `document.owner_mismatch_blocked` with `{ detected_owner, case_people, score, file_name }` whenever we surface the mismatch card, and `document.uploaded_with_override` when the user proceeds anyway. This gives an audit trail for incidents like this one.
+
+4. **handleFiles auto-process loop**: items in `name_mismatch` must NOT be picked up by the concurrency worker — only `queued` items are processed. Verify the filter at line 448 already covers this (it does), and add a defensive guard inside `uploadOne` to refuse uploading when an item's status is `name_mismatch` unless `overrideOwner === true`.
+
+### Visual outcome (queue card)
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│  ⚠  Owner mismatch                                         │
+│  File: MANAV_YOGESH_PATEL_-_certificate.pdf                │
+│  Detected on document: "Manav Yogesh Patel"                │
+│  This case: Patel Chintan Rajnikant                        │
+│                                                            │
+│  [ Preview ]  [ Move to another case ]                     │
+│  [ Upload anyway as Patel Chintan Rajnikant ]   [ Skip ]   │
+└────────────────────────────────────────────────────────────┘
+```
+
+## Why this won't keep coming back
+
+- The decision is centralised: the same `name_mismatch` branch runs for single- and multi-person cases, so future single-person cases can't slip through.
+- The hard guard inside `uploadOne` makes it impossible for any other code path (binder split, retry, override type) to bypass the check without going through the explicit "Upload anyway" action.
+- We log both the block and the override, so even if a user clicks through, there's a permanent activity record.
+
+## Out of scope (note for user)
+
+- The wrongly-uploaded Manav certificate already in Chintan's case must be **deleted manually** — this fix is preventative only.
+- This does not change the General/Section upload path's content-OCR step. If you want the same owner-mismatch block in those upload zones too, say so and I'll extend it there in the same change.
