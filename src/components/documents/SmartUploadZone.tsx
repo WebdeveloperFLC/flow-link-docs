@@ -460,6 +460,21 @@ export const SmartUploadZone = ({
     patch(idx, { ownerId });
   };
 
+  /** User picked a document type for an item that came back as "Other". Upload immediately. */
+  const confirmType = async (idx: number, newType: string) => {
+    const item = queue[idx];
+    if (!item) return;
+    const customType = newType === "Other" ? (item.customType?.trim() || "") : undefined;
+    if (newType === "Other" && !customType) {
+      patch(idx, { error: "Please type a label for this Other document or choose a known type." });
+      return;
+    }
+    const ownerId = item.ownerId ?? applicant?.id ?? null;
+    patch(idx, { predictedType: newType, customType, status: "queued", error: undefined });
+    await uploadOne(idx, { ...item, predictedType: newType, customType }, newType, customType, ownerId);
+    onUploaded();
+  };
+
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType || !item.ownerId) return;
