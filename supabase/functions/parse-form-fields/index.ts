@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, PDFRef, decodePDFRawStream } from "https://esm.sh/pdf-lib@1.17.1";
+import { inflate } from "https://esm.sh/pako@2.1.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -187,6 +188,57 @@ async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | nul
     console.error("XFA extract failed", e);
     return null;
   }
+}
+
+function bytesToText(bytes: Uint8Array): string {
+  return new TextDecoder("latin1").decode(bytes);
+}
+
+function trimPdfStreamBounds(bytes: Uint8Array, start: number, end: number): Uint8Array {
+  let s = start;
+  let e = end;
+  if (bytes[s] === 13 && bytes[s + 1] === 10) s += 2;
+  else if (bytes[s] === 10 || bytes[s] === 13) s += 1;
+  if (bytes[e - 2] === 13 && bytes[e - 1] === 10) e -= 2;
+  else if (bytes[e - 1] === 10 || bytes[e - 1] === 13) e -= 1;
+  return bytes.subarray(s, e);
+}
+
+/** Raw stream scan fallback for malformed IRCC/LiveCycle PDFs whose object refs break pdf-lib. */
+function extractXfaXmlByScanningStreams(pdfBytes: Uint8Array): string | null {
+  const pdfText = bytesToText(pdfBytes);
+  const candidates: string[] = [];
+  let pos = 0;
+
+  while (true) {
+    const streamIdx = pdfText.indexOf("stream", pos);
+    if (streamIdx < 0) break;
+    const endIdx = pdfText.indexOf("endstream", streamIdx + 6);
+    if (endIdx < 0) break;
+
+    const dictStart = Math.max(0, pdfText.lastIndexOf("<<", streamIdx));
+    const dictText = pdfText.slice(dictStart, streamIdx);
+    const raw = trimPdfStreamBounds(pdfBytes, streamIdx + 6, endIdx);
+
+    let decoded = raw;
+    if (/\/FlateDecode\b/.test(dictText)) {
+      try { decoded = inflate(raw); }
+      catch { pos = endIdx + 9; continue; }
+    }
+
+    const text = new TextDecoder().decode(decoded);
+    if (/<(?:\?xpacket|xdp:xdp|template\b|field\b)|xfa:datasets/.test(text)) {
+      candidates.push(text);
+    }
+    pos = endIdx + 9;
+  }
+
+  if (candidates.length === 0) return null;
+  const combined = candidates.join("\n");
+  const start = combined.indexOf("<template");
+  const end = combined.lastIndexOf("</template>");
+  if (start >= 0 && end > start) return combined.slice(start, end + "</template>".length);
+  return combined;
 }
 
 /** Match each <field ...> ... </field> block (fields don't nest in XFA template). */
