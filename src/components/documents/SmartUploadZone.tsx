@@ -59,6 +59,9 @@ interface QueueItem {
   startPage?: number;          // 1-based inclusive
   endPage?: number;            // 1-based inclusive
   totalSourcePages?: number;
+  /** True once the user has opened the inline preview at least once. Required
+   *  before confirming type/owner or uploading binder segments. */
+  previewed?: boolean;
 }
 
 const CONCURRENCY = 3;
@@ -483,6 +486,10 @@ export const SmartUploadZone = ({
    *  confirming a label / owner. Works for PDFs and images without any
    *  storage round-trip. */
   const previewFile = (file: File) => {
+    return previewFileAt(-1, file);
+  };
+
+  const previewFileAt = (idx: number, file: File) => {
     try {
       const url = URL.createObjectURL(file);
       const win = window.open(url, "_blank");
@@ -492,6 +499,7 @@ export const SmartUploadZone = ({
         document.body.appendChild(a); a.click(); a.remove();
       }
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      if (idx >= 0) patch(idx, { previewed: true });
     } catch {
       toast.error("Preview unavailable");
     }
@@ -501,6 +509,10 @@ export const SmartUploadZone = ({
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
     if (!item) return;
+    if (!item.previewed) {
+      patch(idx, { error: "Preview the file first to confirm what it is." });
+      return;
+    }
     const customType = newType === "Other" ? (item.customType?.trim() || "") : undefined;
     if (newType === "Other" && !customType) {
       patch(idx, { error: "Please type a label for this Other document or choose a known type." });
@@ -515,6 +527,10 @@ export const SmartUploadZone = ({
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType || !item.ownerId) return;
+    if (!item.previewed) {
+      patch(idx, { error: "Preview the file first to confirm the owner." });
+      return;
+    }
     await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId);
     onUploaded();
   };
@@ -657,6 +673,12 @@ export const SmartUploadZone = ({
         .map((it, i) => ({ it, i }))
         .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
       if (!segs.length) return;
+      // Require preview at least once per segment.
+      const unseen = segs.filter(({ it }) => !it.previewed);
+      if (unseen.length) {
+        toast.error(`Preview each segment before uploading (${unseen.length} not yet previewed).`);
+        return;
+      }
       // Hard guard: a likely binder must never upload as one full-range segment.
       // If that's the only thing in the queue for this binder, explode it into
       // page-level segments first so each page can be classified individually.
@@ -792,6 +814,13 @@ export const SmartUploadZone = ({
                   <p className="text-[10px] text-muted-foreground">
                     Review each segment before uploading. Adjust the page range, change the type or person, merge with the next segment, or remove a segment.
                   </p>
+                  {sorted.some(({ it }) => !it.previewed) && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-300 rounded px-2 py-1">
+                      <AlertTriangle className="size-3" />
+                      Preview each segment (eye icon) before uploading — you haven't viewed{" "}
+                      <span className="font-semibold">{sorted.filter(({ it }) => !it.previewed).length}</span> yet.
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     {sorted.map(({ idx, it }, segPos) => {
                       const isLast = segPos === sorted.length - 1;
@@ -812,10 +841,10 @@ export const SmartUploadZone = ({
                             </div>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
-                              onClick={() => previewFile(it.file)}
-                              title="Preview this segment"
+                              onClick={() => previewFileAt(idx, it.file)}
+                              title={it.previewed ? "Previewed — click to view again" : "Preview this segment (required before upload)"}
                             >
-                              <Eye className="size-3.5 text-muted-foreground" />
+                              <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
                             </Button>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
@@ -931,10 +960,10 @@ export const SmartUploadZone = ({
                   </div>
                   <Button
                     size="icon" variant="ghost" className="h-7 w-7 shrink-0"
-                    onClick={() => previewFile(it.file)}
-                    title="Preview file"
+                    onClick={() => previewFileAt(i, it.file)}
+                    title={it.previewed ? "Previewed — click to view again" : "Preview file (required before confirming)"}
                   >
-                    <Eye className="size-3.5 text-muted-foreground" />
+                    <Eye className={`size-3.5 ${it.previewed ? "text-primary" : "text-amber-600"}`} />
                   </Button>
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
@@ -959,8 +988,14 @@ export const SmartUploadZone = ({
                         . Please pick the correct type — it won't be uploaded as "Other" automatically.
                       </div>
                     </div>
+                    {!it.previewed && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
+                        <Eye className="size-3" />
+                        Preview the file (eye icon above) before choosing a type.
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
-                      <Select onValueChange={(v) => confirmType(i, v)}>
+                      <Select onValueChange={(v) => confirmType(i, v)} disabled={!it.previewed}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Choose document type…" /></SelectTrigger>
                         <SelectContent>
                           {DOCUMENT_TYPES.map((t) => (
@@ -986,6 +1021,12 @@ export const SmartUploadZone = ({
                           : <>No name detected on the document. Choose who this is for.</>}
                       </div>
                     </div>
+                    {!it.previewed && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-amber-800">
+                        <Eye className="size-3" />
+                        Preview the file (eye icon above) before assigning an owner.
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Select value={it.ownerId ?? ""} onValueChange={(v) => setOwner(i, v)}>
                         <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Select person…" /></SelectTrigger>
@@ -999,7 +1040,7 @@ export const SmartUploadZone = ({
                           <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId}>
+                      <Button size="sm" className="h-7 text-[11px]" onClick={() => confirmOwner(i)} disabled={!it.ownerId || !it.previewed}>
                         Confirm & upload
                       </Button>
                     </div>
