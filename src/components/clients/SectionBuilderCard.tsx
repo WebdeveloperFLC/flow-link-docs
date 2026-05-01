@@ -193,8 +193,12 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
               const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
               const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
-              const segFile = await extractPagesAsPdfFile(f, pageIdx + 1, pageIdx + 1, `${baseStem}__${String(pageIdx + 1).padStart(2, "0")}_${safeLabel}_p${pageIdx + 1}-${pageIdx + 1}.pdf`);
-              segments.push({ file: segFile, preType: guessed.type, preLabel: guessed.type === "Other" ? guessed.suggested_label ?? null : null });
+              try {
+                const segFile = await extractPagesAsPdfFile(f, pageIdx + 1, pageIdx + 1, `${baseStem}__${String(pageIdx + 1).padStart(2, "0")}_${safeLabel}_p${pageIdx + 1}-${pageIdx + 1}.pdf`);
+                segments.push({ file: segFile, preType: guessed.type, preLabel: guessed.type === "Other" ? guessed.suggested_label ?? null : null });
+              } catch (fallbackError) {
+                console.warn("split-binder: fallback page extract failed", pageIdx + 1, fallbackError);
+              }
             }
             toast.message(`Could not auto-read binder boundaries, so "${f.name}" was split page-by-page.`);
             continue;
