@@ -1019,18 +1019,32 @@ async function expandBinders(
       }
       // For multi-page PDFs we always want to keep the user in control — never silently
       // upload the whole file as one "Other" document. If we somehow ended up with a
-      // single segment covering everything, expose it as a reviewable segment instead.
+      // single segment covering everything for a likely binder, force a per-page split
+      // so the user can manually merge into the right documents.
       if (segments.length < 2) {
-        const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
-        segments = [{
-          start_page: 1,
-          end_page: pageCount,
-          type: only.type ?? "Other",
-          suggested_label: only.suggested_label ?? null,
-          confidence: only.confidence ?? 0.2,
-          reason: "single_segment_review",
-        }];
+        const isBinder = looksLikeBinderName(file.name);
+        if (isBinder) {
+          segments = Array.from({ length: pageCount }, (_, i) => ({
+            start_page: i + 1,
+            end_page: i + 1,
+            ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
+            confidence: 0.35,
+            reason: "binder_single_segment_forced_split",
+          }));
+          toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
+        } else {
+          const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
+          segments = [{
+            start_page: 1,
+            end_page: pageCount,
+            type: only.type ?? "Other",
+            suggested_label: only.suggested_label ?? null,
+            confidence: only.confidence ?? 0.2,
+            reason: "single_segment_review",
+          }];
+        }
       }
+      console.info("[binder-split]", { file: file.name, pageCount, isBinder: looksLikeBinderName(file.name), segments: segments.length });
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
       const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
