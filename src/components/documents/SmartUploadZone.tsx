@@ -509,6 +509,10 @@ export const SmartUploadZone = ({
   const confirmType = async (idx: number, newType: string) => {
     const item = queue[idx];
     if (!item) return;
+    if (!item.previewed) {
+      patch(idx, { error: "Preview the file first to confirm what it is." });
+      return;
+    }
     const customType = newType === "Other" ? (item.customType?.trim() || "") : undefined;
     if (newType === "Other" && !customType) {
       patch(idx, { error: "Please type a label for this Other document or choose a known type." });
@@ -523,6 +527,10 @@ export const SmartUploadZone = ({
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
     if (!item || !item.predictedType || !item.ownerId) return;
+    if (!item.previewed) {
+      patch(idx, { error: "Preview the file first to confirm the owner." });
+      return;
+    }
     await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId);
     onUploaded();
   };
