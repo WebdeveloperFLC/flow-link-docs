@@ -47,29 +47,42 @@ Deno.serve(async (req) => {
     if (dlErr || !blob) return json({ error: "Download failed" }, 500);
 
     const original = await blob.arrayBuffer();
-    const pdf = await PDFDocument.load(original);
-    const out = await pdf.save({ useObjectStreams: true });
-
     const before = original.byteLength;
-    const after = out.byteLength;
 
-    if (after < before) {
-      const upload = await admin.storage
-        .from("client-documents")
-        .upload(doc.storage_path, new Blob([out], { type: "application/pdf" }), {
-          upsert: true,
-          contentType: "application/pdf",
-        });
-      if (upload.error) return json({ error: upload.error.message }, 500);
-      await admin.from("client_documents").update({ size_bytes: after, status: "processed" }).eq("id", doc.id);
+    // SAFETY: pdf-lib's re-save can mangle scanner-style PDFs (linearized,
+    // JBIG2 / JPEG2000 streams, XFA shells). Only attempt the re-save when
+    // we can load the source cleanly AND when it actually saves bytes.
+    // Otherwise return the original untouched so "View" keeps working.
+    let after = before;
+    let touched = false;
+    try {
+      const pdf = await PDFDocument.load(original, { ignoreEncryption: false });
+      const out = await pdf.save({ useObjectStreams: true });
+      if (out.byteLength < before) {
+        const upload = await admin.storage
+          .from("client-documents")
+          .upload(doc.storage_path, new Blob([out], { type: "application/pdf" }), {
+            upsert: true,
+            contentType: "application/pdf",
+          });
+        if (upload.error) return json({ error: upload.error.message }, 500);
+        await admin.from("client_documents").update({ size_bytes: out.byteLength, status: "processed" }).eq("id", doc.id);
+        after = out.byteLength;
+        touched = true;
+      }
+    } catch (e) {
+      // Encrypted or structurally fragile PDF — leave it alone rather than
+      // produce a file that browsers refuse to render.
+      console.warn("process-large-file: skipped re-save", doc.id, e instanceof Error ? e.message : e);
     }
 
     return json({
       ok: true,
       file_name: doc.file_name,
       before_bytes: before,
-      after_bytes: Math.min(before, after),
+      after_bytes: after,
       saved: Math.max(0, before - after),
+      touched,
     });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unknown" }, 500);
