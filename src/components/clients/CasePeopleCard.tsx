@@ -97,6 +97,8 @@ export const CasePeopleCard = ({ clientId, canEdit, isAdmin, onChange, refreshKe
                 <span className={`text-[10px] uppercase tracking-wide font-semibold px-1.5 py-0.5 rounded ${
                   p.role === "applicant" ? "bg-primary/10 text-primary"
                   : p.role === "co_applicant" ? "bg-secondary/10 text-secondary"
+                  : p.role === "sponsor" ? "bg-success/10 text-success"
+                  : p.role === "co_sponsor" ? "bg-success/10 text-success"
                   : "bg-muted text-muted-foreground"
                 }`}>
                   {ROLE_LABEL[p.role]}
