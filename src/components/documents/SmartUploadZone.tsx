@@ -743,6 +743,7 @@ export const SmartUploadZone = ({
   const clearQueue = () => setQueue([]);
 
   return (
+    <>
     <Card className="p-5 shadow-elev-sm">
       <div className="flex items-center justify-between mb-1">
         <div className="font-semibold flex items-center gap-1.5">
@@ -1144,6 +1145,29 @@ export const SmartUploadZone = ({
         </div>
       )}
     </Card>
+    <Dialog open={!!previewState} onOpenChange={(o) => { if (!o) closePreview(); }}>
+      <DialogContent className="max-w-5xl w-[92vw] h-[88vh] p-0 gap-0 flex flex-col">
+        <DialogHeader className="px-4 py-2.5 border-b">
+          <DialogTitle className="text-sm font-semibold truncate pr-8">
+            {previewState?.name ?? "Preview"}
+          </DialogTitle>
+        </DialogHeader>
+        {previewState && (
+          previewState.mime.startsWith("image/") ? (
+            <div className="flex-1 overflow-auto bg-muted flex items-center justify-center">
+              <img src={previewState.url} alt={previewState.name} className="max-w-full max-h-full object-contain" />
+            </div>
+          ) : (
+            <iframe
+              src={previewState.url}
+              title={previewState.name}
+              className="flex-1 w-full bg-muted"
+            />
+          )
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 
