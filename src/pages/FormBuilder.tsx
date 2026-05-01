@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import {
   Loader2, Sparkles, Plus, Trash2, GripVertical, Eye, CheckCircle2,
-  Upload, FileDown, ChevronRight,
+  Upload, FileDown, ChevronRight, AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMasterItems } from "@/lib/masters";
@@ -169,6 +169,11 @@ const FormBuilder = () => {
       if (result?.error) throw new Error(result.error);
       await load();
       const detected = result?.total_fields_detected ?? result?.acro_fields_detected ?? 0;
+      if (result?.source === "none" || detected === 0) {
+        toast.info("No fields were detected automatically. Add sections and fields manually in step 2.");
+        setStep("build");
+        return;
+      }
       const sourceLabel =
         result?.source === "xfa" ? "XFA"
         : result?.source === "ai" ? "AI-detected"
@@ -219,6 +224,7 @@ const FormBuilder = () => {
   const addSection = () => {
     const key = `section_${Date.now().toString(36)}`;
     setSections((prev) => [...prev, { key, label: "New section", fields: [] }]);
+    setStep("build");
   };
   const updateSection = (sIdx: number, label: string) => {
     setSections((prev) => prev.map((s, i) => i === sIdx ? { ...s, label } : s));
@@ -402,8 +408,12 @@ const FormBuilder = () => {
             </div>
 
             {sections.length === 0 ? (
-              <Card className="p-8 text-center text-sm text-muted-foreground">
-                No fields yet. Go to step 1 and click <b>Detect fields</b>, or add a section manually.
+              <Card className="p-8 text-center text-sm text-muted-foreground space-y-4">
+                <AlertTriangle className="size-8 mx-auto text-warning" />
+                <div>No fields yet. Auto-detection can fail on protected/scanned PDFs; create the field structure manually here.</div>
+                <Button size="sm" onClick={addSection}>
+                  <Plus className="size-3.5 mr-1" /> Add first section
+                </Button>
               </Card>
             ) : sections.map((sec, sIdx) => (
               <Card key={sec.key} className="overflow-hidden">
