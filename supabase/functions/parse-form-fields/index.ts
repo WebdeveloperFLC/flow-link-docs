@@ -16,6 +16,8 @@ interface FieldDef {
   required?: boolean;
   repeatable?: boolean;
   mapping_key?: string;
+  max_length?: number;
+  format?: string;
 }
 
 interface SectionDef {
@@ -90,9 +92,12 @@ function humanize(name: string): string {
 }
 
 function uniqueFieldId(name: string, index: number, seen: Record<string, number>): string {
-  const base = name.replace(/[^a-zA-Z0-9_]/g, "_").replace(/^_+|_+$/g, "") || `field_${index + 1}`;
-  seen[base] = (seen[base] ?? 0) + 1;
-  return seen[base] === 1 ? base : `${base}_${seen[base]}`;
+  // Preserve the PDF field name verbatim when it is unique. Only when the same
+  // raw name appears twice do we suffix; we still keep the original characters
+  // (dots, brackets) so id round-trips back to pdf_field for the filler.
+  const raw = name || `field_${index + 1}`;
+  seen[raw] = (seen[raw] ?? 0) + 1;
+  return seen[raw] === 1 ? raw : `${raw}#${seen[raw]}`;
 }
 
 async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
@@ -112,6 +117,14 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
           options = f.getOptions?.();
         }
       } catch { /* ignore */ }
+      let max_length: number | undefined;
+      try {
+        if (ctor === "PDFTextField") {
+          // @ts-expect-error getMaxLength exists on PDFTextField
+          const ml = f.getMaxLength?.();
+          if (typeof ml === "number" && ml > 0) max_length = ml;
+        }
+      } catch { /* ignore */ }
       const label = humanize(name);
       out.push({
         id: uniqueFieldId(name, index, seen),
@@ -119,6 +132,7 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
         label,
         type: inferType(name, ctor),
         options,
+        max_length,
         mapping_key: mappingFor(label),
       });
     }
