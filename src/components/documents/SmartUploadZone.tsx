@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload } from "lucide-react";
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
@@ -16,11 +16,12 @@ import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import { isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages } from "@/lib/binderSplit";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 interface Client { id: string; full_name: string; }
 
 type ItemStatus =
-  | "queued" | "identifying" | "needs_owner" | "name_mismatch"
+  | "queued" | "identifying" | "needs_owner" | "name_mismatch" | "awaiting_review"
   | "processing" | "uploading" | "done" | "error" | "skipped";
 
 interface ClientLite { id: string; full_name: string; application_id: string; }
@@ -46,6 +47,14 @@ interface QueueItem {
   // Multi-person:
   ownerId?: string | null;     // case_people.id, or SHARED_ID, or null until chosen
   alternatives?: { person: CasePerson; score: number }[];
+  // Binder lineage: set only for items produced by binder splitting.
+  binderId?: string;           // shared id across all segments of one source PDF
+  binderSource?: File;         // original PDF File, used for re-slicing on edit
+  binderSourceName?: string;   // pretty name of source binder
+  segIndex?: number;           // 0-based segment index within the binder
+  startPage?: number;          // 1-based inclusive
+  endPage?: number;            // 1-based inclusive
+  totalSourcePages?: number;
 }
 
 const CONCURRENCY = 3;
@@ -333,21 +342,44 @@ export const SmartUploadZone = ({
 
       setBusy(true);
       // Step 1: expand binders. Any multi-page PDF (≥3 pages) is sent to the
-      // AI binder splitter; if multiple segments come back, the original file
-      // is replaced by one File per segment so each is classified, owner-
-      // matched, and routed to its correct section independently.
+      // AI binder splitter; if multiple segments come back, each segment
+      // becomes its own queue item with binder lineage so the user can merge
+      // or edit ranges before upload. Single (non-binder) files keep the
+      // legacy auto-upload flow.
       const expanded = await expandBinders(arr, people.map((p) => p.full_name), DOCUMENT_TYPES);
 
       const startIdx = queue.length;
-      const initial: QueueItem[] = expanded.map((f) => ({ file: f, status: "queued" as const }));
+      const initial: QueueItem[] = expanded.map((e) =>
+        e.binderId
+          ? {
+              file: e.file,
+              status: "awaiting_review" as const,
+              predictedType: e.type,
+              customType: e.customType,
+              binderId: e.binderId,
+              binderSource: e.binderSource,
+              binderSourceName: e.binderSourceName,
+              segIndex: e.segIndex,
+              startPage: e.startPage,
+              endPage: e.endPage,
+              totalSourcePages: e.totalSourcePages,
+              ownerId: applicant?.id ?? null,
+            }
+          : { file: e.file, status: "queued" as const },
+      );
       setQueue((q) => [...q, ...initial]);
 
-      const tasks = initial.map((it, i) => async () => {
-        const idx = startIdx + i;
-        const result = await classifyAndAssign(idx, it);
-        if (!result) return; // paused for user input
-        await uploadOne(idx, { ...it } as QueueItem, result.classification.type, result.classification.customType, result.ownerId);
-      });
+      // Only auto-process non-binder items. Binder segments wait for the user
+      // to review (merge / adjust ranges / confirm owner) and click "Upload all".
+      const tasks = initial
+        .map((it, i) => ({ it, i }))
+        .filter((x) => x.it.status === "queued")
+        .map(({ it, i }) => async () => {
+          const idx = startIdx + i;
+          const result = await classifyAndAssign(idx, it);
+          if (!result) return;
+          await uploadOne(idx, { ...it } as QueueItem, result.classification.type, result.classification.customType, result.ownerId);
+        });
 
       const queues: Array<() => Promise<void>> = [...tasks];
       const workers = Array.from({ length: CONCURRENCY }, async () => {
@@ -436,6 +468,106 @@ export const SmartUploadZone = ({
     onUploaded();
   };
 
+  // ---------- Binder review controls ----------------------------------------
+
+  /** Re-slice the source PDF for an item using its current startPage/endPage. */
+  const rebuildSegmentFile = useCallback(async (item: QueueItem): Promise<File | null> => {
+    if (!item.binderSource || !item.startPage || !item.endPage) return null;
+    const stem = (item.binderSourceName ?? item.binderSource.name).replace(/\.pdf$/i, "");
+    const label = item.predictedType === "Other" ? (item.customType || "Segment") : (item.predictedType || "Segment");
+    const safe = String(label).replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+    const segName = `${stem}__${String((item.segIndex ?? 0) + 1).padStart(2, "0")}_${safe}_p${item.startPage}-${item.endPage}.pdf`;
+    try {
+      return await extractPagesAsPdfFile(item.binderSource, item.startPage, item.endPage, segName);
+    } catch (e) {
+      console.warn("rebuildSegmentFile failed", e);
+      return null;
+    }
+  }, []);
+
+  /** Merge segment at idx with the next segment in the same binder. */
+  const mergeWithNext = useCallback(
+    async (idx: number) => {
+      const cur = queue[idx];
+      if (!cur || !cur.binderId) return;
+      // Find next segment of the same binder (by segIndex order)
+      const peers = queue
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.binderId === cur.binderId && it.status !== "skipped" && it.status !== "done")
+        .sort((a, b) => (a.it.segIndex ?? 0) - (b.it.segIndex ?? 0));
+      const pos = peers.findIndex((p) => p.i === idx);
+      const next = peers[pos + 1];
+      if (!next) {
+        toast.message("No segment after this one to merge with.");
+        return;
+      }
+      const newStart = Math.min(cur.startPage ?? 1, next.it.startPage ?? 1);
+      const newEnd = Math.max(cur.endPage ?? 1, next.it.endPage ?? 1);
+      const merged: QueueItem = {
+        ...cur,
+        startPage: newStart,
+        endPage: newEnd,
+        // Keep the type with the broader confidence — use cur by default.
+        predictedType: cur.predictedType ?? next.it.predictedType,
+        customType: cur.customType ?? next.it.customType,
+        ownerId: cur.ownerId ?? next.it.ownerId,
+      };
+      const rebuiltFile = await rebuildSegmentFile(merged);
+      if (rebuiltFile) merged.file = rebuiltFile;
+      setQueue((q) => q.filter((_, i) => i !== next.i).map((it, i) => (i === idx ? merged : it)));
+      toast.success(`Merged segments → pages ${newStart}-${newEnd}`);
+    },
+    [queue, rebuildSegmentFile],
+  );
+
+  /** Update start/end page of a binder segment and re-slice the source PDF. */
+  const setSegmentRange = useCallback(
+    async (idx: number, startPage: number, endPage: number) => {
+      const cur = queue[idx];
+      if (!cur || !cur.binderId || !cur.totalSourcePages) return;
+      const total = cur.totalSourcePages;
+      const start = Math.max(1, Math.min(total, Math.floor(startPage)));
+      const end = Math.max(start, Math.min(total, Math.floor(endPage)));
+      const next: QueueItem = { ...cur, startPage: start, endPage: end };
+      const rebuiltFile = await rebuildSegmentFile(next);
+      if (rebuiltFile) next.file = rebuiltFile;
+      patch(idx, { startPage: start, endPage: end, file: next.file });
+    },
+    [queue, rebuildSegmentFile],
+  );
+
+  /** Set the predicted document type of a segment (without re-uploading yet). */
+  const setSegmentType = useCallback((idx: number, type: string) => {
+    patch(idx, { predictedType: type, customType: type === "Other" ? queue[idx]?.customType : undefined });
+  }, [queue]);
+
+  /** Remove a segment from the queue without uploading it. */
+  const dropSegment = useCallback((idx: number) => {
+    setQueue((q) => q.filter((_, i) => i !== idx));
+  }, []);
+
+  /** Upload every awaiting_review segment in this binder using the current settings. */
+  const uploadBinder = useCallback(
+    async (binderId: string) => {
+      const segs = queue
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
+      if (!segs.length) return;
+      setBusy(true);
+      try {
+        for (const { it, i } of segs) {
+          const type = it.predictedType || "Other";
+          const ownerId = it.ownerId ?? applicant?.id ?? null;
+          await uploadOne(i, it, type, it.customType, ownerId);
+        }
+      } finally {
+        setBusy(false);
+        onUploaded();
+      }
+    },
+    [queue, applicant, onUploaded], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const clearQueue = () => setQueue([]);
 
   return (
@@ -483,10 +615,138 @@ export const SmartUploadZone = ({
         </div>
       </label>
 
-      {queue.length > 0 && (
+      {/* Binder review groups: any awaiting_review items grouped by binder. */}
+      {(() => {
+        const groups = new Map<string, { idx: number; it: QueueItem }[]>();
+        queue.forEach((it, idx) => {
+          if (it.status === "awaiting_review" && it.binderId) {
+            const arr = groups.get(it.binderId) ?? [];
+            arr.push({ idx, it });
+            groups.set(it.binderId, arr);
+          }
+        });
+        if (groups.size === 0) return null;
+        return (
+          <div className="mt-4 space-y-3">
+            {Array.from(groups.entries()).map(([binderId, segs]) => {
+              const sorted = [...segs].sort((a, b) => (a.it.segIndex ?? 0) - (b.it.segIndex ?? 0));
+              const first = sorted[0]?.it;
+              const total = first?.totalSourcePages ?? 0;
+              return (
+                <div key={binderId} className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Scissors className="size-3.5 text-primary" />
+                    <div className="text-xs font-semibold text-primary truncate">
+                      Binder split: {first?.binderSourceName ?? "PDF"} · {total || "?"} pages → {sorted.length} document{sorted.length === 1 ? "" : "s"}
+                    </div>
+                    <div className="flex-1" />
+                    <Button size="sm" className="h-7 text-[11px]" onClick={() => uploadBinder(binderId)} disabled={busy}>
+                      <Upload className="size-3 mr-1" /> Upload all ({sorted.length})
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    Review each segment before uploading. Adjust the page range, change the type or person, merge with the next segment, or remove a segment.
+                  </p>
+                  <div className="space-y-1.5">
+                    {sorted.map(({ idx, it }, segPos) => {
+                      const isLast = segPos === sorted.length - 1;
+                      return (
+                        <div key={idx} className="rounded-md border border-border bg-background/60 p-2 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center size-5 rounded bg-primary/10 text-primary text-[10px] font-bold shrink-0">
+                              {segPos + 1}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate text-xs font-medium">{it.file.name}</div>
+                              <div className="text-[10px] text-muted-foreground">
+                                Pages {it.startPage}–{it.endPage} of {total || "?"}
+                                {it.predictedType && (
+                                  <> · <span className="font-semibold text-foreground">{it.predictedType === "Other" ? (it.customType || "Other") : it.predictedType}</span></>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="icon" variant="ghost" className="h-7 w-7"
+                              onClick={() => dropSegment(idx)}
+                              title="Remove segment"
+                            >
+                              <Trash2 className="size-3.5 text-muted-foreground" />
+                            </Button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] text-muted-foreground shrink-0">Pages</span>
+                              <Input
+                                type="number" min={1} max={total || undefined}
+                                value={it.startPage ?? 1}
+                                className="h-7 w-14 text-[11px] px-1.5"
+                                onChange={(e) => {
+                                  const v = Number(e.target.value);
+                                  if (!Number.isFinite(v)) return;
+                                  setSegmentRange(idx, v, it.endPage ?? v);
+                                }}
+                              />
+                              <span className="text-[10px] text-muted-foreground">–</span>
+                              <Input
+                                type="number" min={1} max={total || undefined}
+                                value={it.endPage ?? 1}
+                                className="h-7 w-14 text-[11px] px-1.5"
+                                onChange={(e) => {
+                                  const v = Number(e.target.value);
+                                  if (!Number.isFinite(v)) return;
+                                  setSegmentRange(idx, it.startPage ?? v, v);
+                                }}
+                              />
+                            </div>
+                            <Select value={it.predictedType ?? "Other"} onValueChange={(v) => setSegmentType(idx, v)}>
+                              <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Type" /></SelectTrigger>
+                              <SelectContent>
+                                {DOCUMENT_TYPES.map((t) => (
+                                  <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <Select value={it.ownerId ?? applicant?.id ?? ""} onValueChange={(v) => setOwner(idx, v)}>
+                              <SelectTrigger className="h-7 text-[11px]">
+                                <SelectValue placeholder="Assign to…" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {people.map((p) => (
+                                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                                    {p.full_name} · {ROLE_LABEL[p.role]}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value={SHARED_ID} className="text-xs">Shared (all)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              size="sm" variant="outline" className="h-7 text-[11px]"
+                              disabled={isLast}
+                              onClick={() => mergeWithNext(idx)}
+                              title={isLast ? "No segment after this" : "Merge with the next segment"}
+                            >
+                              <Combine className="size-3 mr-1" /> Merge with next
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })()}
+
+      {queue.some((it) => it.status !== "awaiting_review") && (
         <>
           <div className="mt-4 space-y-1.5 max-h-96 overflow-auto">
-            {queue.map((it, i) => (
+            {queue.map((it, i) => it.status === "awaiting_review" ? null : (
               <div
                 key={i}
                 className={`flex flex-col gap-1.5 text-xs p-2 rounded ${
@@ -660,12 +920,28 @@ function StatusIcon({ status }: { status: ItemStatus }) {
   if (status === "error") return <AlertTriangle className="size-3.5 text-destructive shrink-0" />;
   if (status === "name_mismatch") return <UserX className="size-3.5 text-amber-600 shrink-0" />;
   if (status === "needs_owner") return <Users className="size-3.5 text-amber-600 shrink-0" />;
+  if (status === "awaiting_review") return <Scissors className="size-3.5 text-primary shrink-0" />;
   if (status === "skipped") return <div className="size-3.5 rounded-full bg-muted shrink-0" />;
   if (status === "queued") return <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />;
   return <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />;
 }
 
 export default SmartUploadZone;
+
+/** Result of expanding the user's selection: either a plain file or one segment of a binder. */
+interface ExpandedItem {
+  file: File;
+  // Only set for binder segments
+  binderId?: string;
+  binderSource?: File;
+  binderSourceName?: string;
+  segIndex?: number;
+  startPage?: number;
+  endPage?: number;
+  totalSourcePages?: number;
+  type?: string;
+  customType?: string;
+}
 
 /**
  * Detect multi-page PDF binders and split them into one File per segment.
@@ -675,11 +951,11 @@ async function expandBinders(
   files: File[],
   rosterNames: string[],
   allowedTypes: string[],
-): Promise<File[]> {
-  const out: File[] = [];
+): Promise<ExpandedItem[]> {
+  const out: ExpandedItem[] = [];
   for (const file of files) {
     if (!isPdfFile(file)) {
-      out.push(file);
+      out.push({ file });
       continue;
     }
     let pageCount = 0;
@@ -687,7 +963,7 @@ async function expandBinders(
     // Only attempt to split PDFs with at least 3 pages — most single-document
     // uploads are 1–2 pages and don't need splitting.
     if (pageCount < 3) {
-      out.push(file);
+      out.push({ file });
       continue;
     }
     try {
@@ -711,11 +987,12 @@ async function expandBinders(
       const segments = Array.isArray(data?.segments) ? data.segments : [];
       // Only split when the AI found ≥2 distinct documents.
       if (segments.length < 2) {
-        out.push(file);
+        out.push({ file });
         continue;
       }
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
+      const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
       for (let i = 0; i < segments.length; i++) {
         const s = segments[i] as {
           start_page: number; end_page: number; type: string;
@@ -726,7 +1003,18 @@ async function expandBinders(
         const segName = `${baseStem}__${String(i + 1).padStart(2, "0")}_${safeLabel}_p${s.start_page}-${s.end_page}.pdf`;
         try {
           const segFile = await extractPagesAsPdfFile(file, s.start_page, s.end_page, segName);
-          out.push(segFile);
+          out.push({
+            file: segFile,
+            binderId,
+            binderSource: file,
+            binderSourceName: file.name,
+            segIndex: i,
+            startPage: s.start_page,
+            endPage: s.end_page,
+            totalSourcePages: pageCount,
+            type: s.type,
+            customType: s.type === "Other" && s.suggested_label ? s.suggested_label : undefined,
+          });
         } catch (e) {
           console.warn("split-binder: failed to extract pages", s, e);
         }
@@ -734,7 +1022,7 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
-      out.push(file);
+      out.push({ file });
     }
   }
   return out;
