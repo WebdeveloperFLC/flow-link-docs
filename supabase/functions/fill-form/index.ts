@@ -140,9 +140,13 @@ function fillAcroForm(
 
 /** Locate XFA streams by role: returns { datasets, template }. */
 function locateXfaStreams(pdf: PDFDocument): { datasets?: PDFStream; template?: PDFStream; xfaArray?: PDFArray } {
-  const acro = pdf.catalog.lookup(PDFName.of("AcroForm"), PDFDict);
+  let acro: PDFDict | undefined;
+  try { acro = pdf.catalog.lookup(PDFName.of("AcroForm"), PDFDict); }
+  catch (e) { console.error("AcroForm lookup failed", e); return {}; }
   if (!acro) return {};
-  const xfa = acro.lookup(PDFName.of("XFA"));
+  let xfa: unknown;
+  try { xfa = acro.lookup(PDFName.of("XFA")); }
+  catch (e) { console.error("XFA lookup failed", e); return {}; }
   if (!xfa) return {};
   if (xfa instanceof PDFArray) {
     let datasets: PDFStream | undefined;
