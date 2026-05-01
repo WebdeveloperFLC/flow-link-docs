@@ -15,20 +15,28 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
 
   if (ext === "pdf" || file.type === "application/pdf") {
     const bytes = await file.arrayBuffer();
-    // 1. Try a clean re-save through pdf-lib. If the source PDF is encrypted
-    //    (even with an empty password — common for exported résumés/scans),
-    //    pdf-lib's `ignoreEncryption` keeps the encrypted streams intact, which
-    //    produces a file that browsers refuse to render ("Failed to load PDF
-    //    document"). We detect this and force the rasterize path below, which
-    //    rebuilds an unencrypted PDF from page images.
+
+    // FAST PATH: If the file is already within the IRCC limit, hand the
+    // ORIGINAL bytes back untouched. Re-saving through pdf-lib was corrupting
+    // some scanner outputs (linearized PDFs, JBIG2/JPEG2000 streams, XFA
+    // shells) and producing files that browsers refused to render with
+    // "Failed to load PDF document". Trust the source whenever we can.
+    if (file.size <= TARGET_BYTES) {
+      return new File([new Uint8Array(bytes)], `${baseName}.pdf`, { type: "application/pdf" });
+    }
+
+    // OVERSIZE PATH: try a clean re-save through pdf-lib. If the source PDF
+    // is encrypted (even with an empty password — common for exported
+    // résumés/scans), pdf-lib's `ignoreEncryption` keeps the encrypted
+    // streams intact, which produces a file that browsers refuse to render.
+    // We detect this and force the rasterize path below, which rebuilds an
+    // unencrypted PDF from page images.
     let isEncrypted = false;
     let out: Uint8Array | null = null;
     try {
       const pdf = await PDFDocument.load(bytes);
       out = await pdf.save({ useObjectStreams: true });
     } catch {
-      // Most likely encrypted. Try once more with ignoreEncryption only to
-      // confirm — but do NOT trust the resulting bytes for serving.
       try {
         await PDFDocument.load(bytes, { ignoreEncryption: true });
         isEncrypted = true;
@@ -39,9 +47,9 @@ export async function processToPdf(file: File, baseName: string): Promise<File> 
     if (!isEncrypted && out && out.byteLength <= TARGET_BYTES) {
       return new File([new Uint8Array(out)], `${baseName}.pdf`, { type: "application/pdf" });
     }
-    // 2. Rasterize each page → JPEG → rebuild PDF. This both guarantees a
-    //    small size AND strips any source-side encryption so the file is
-    //    universally viewable.
+    // Rasterize each page → JPEG → rebuild PDF. This both guarantees a small
+    // size AND strips any source-side encryption so the file is universally
+    // viewable.
     try {
       const blob = new File([new Uint8Array(bytes)], file.name, { type: "application/pdf" });
       const qualitySteps: Array<{ dpi: number; q: number }> = [
