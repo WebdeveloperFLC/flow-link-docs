@@ -482,6 +482,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const instance_id: string = String(body.instance_id ?? "");
+    const force_internal: boolean = Boolean(body.force_internal ?? false);
     if (!instance_id) return json({ error: "instance_id required" }, 400);
 
     const { data: inst, error: instErr } = await supabase
@@ -502,6 +503,51 @@ Deno.serve(async (req) => {
       .from("visa_forms").select("id, name, file_path, file_name").eq("id", formId).maybeSingle();
     if (!form) return json({ error: "Form not found" }, 404);
 
+    const sections = (schema.sections ?? []) as Section[];
+    const answers = (inst.answers ?? {}) as Record<string, unknown>;
+    const keyMap = buildAnswerKeyToPdfField(sections);
+
+    // Look up client name for the internal data sheet
+    let clientName: string | undefined;
+    try {
+      const { data: client } = await supabase
+        .from("clients").select("full_name").eq("id", inst.client_id).maybeSingle();
+      clientName = client?.full_name ?? undefined;
+    } catch { /* ignore */ }
+
+    const finalize = async (out: Uint8Array, mode: "filled" | "internal", extra: Record<string, unknown>) => {
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const suffix = mode === "internal" ? "-data-sheet" : "";
+      const outPath = `${inst.client_id}/filled-forms/${form.id}-${stamp}${suffix}.pdf`;
+      const { error: upErr } = await supabase.storage.from("client-documents")
+        .upload(outPath, out, { contentType: "application/pdf", upsert: true });
+      if (upErr) return json({ error: `Upload failed: ${upErr.message}` }, 500);
+      const fileLabel = mode === "internal"
+        ? `${form.name} - data sheet.pdf`
+        : `${form.name} - filled.pdf`;
+      const { data: ff, error: ffErr } = await supabase.from("filled_forms").insert({
+        client_id: inst.client_id, form_id: form.id, instance_id: inst.id,
+        file_name: fileLabel, file_path: outPath, size_bytes: out.byteLength,
+        status: inst.status === "submitted" ? "ready" : "draft",
+        created_by: userResp.user.id,
+      }).select().single();
+      if (ffErr) console.error("filled_forms insert failed", ffErr);
+      await supabase.from("activity_logs").insert({
+        action: mode === "internal" ? "form.data_sheet_generated" : "form.filled",
+        entity_type: "filled_form", entity_id: ff?.id ?? null, user_id: userResp.user.id,
+        details: { form_id: form.id, instance_id: inst.id, mode, ...extra },
+      });
+      return json({ ok: true, mode, filled_form_id: ff?.id ?? null, file_path: outPath, ...extra });
+    };
+
+    // Shortcut: build internal data sheet directly without touching the source PDF.
+    if (force_internal) {
+      const out = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(out, "internal", { reason: "force_internal" });
+    }
+
     const { data: file, error: dlErr } = await supabase.storage.from("visa-forms").download(form.file_path);
     if (dlErr || !file) return json({ error: "Cannot read form PDF" }, 500);
     const pdfBytes = new Uint8Array(await file.arrayBuffer());
@@ -509,20 +555,18 @@ Deno.serve(async (req) => {
     let pdf: PDFDocument;
     try {
       pdf = await PDFDocument.load(pdfBytes, {
-        ignoreEncryption: true,
-        updateMetadata: false,
-        throwOnInvalidObject: false,
+        ignoreEncryption: true, updateMetadata: false, throwOnInvalidObject: false,
       });
     } catch (e) {
-      return json({
-        error: `Could not parse PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
-               `This form may use an unsupported PDF format.`,
-      }, 500);
+      console.warn("Source PDF parse failed, falling back to internal data sheet", e);
+      const out = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(out, "internal", {
+        reason: "source_pdf_unparseable",
+        detail: e instanceof Error ? e.message : "unknown",
+      });
     }
-
-    const sections = (schema.sections ?? []) as Section[];
-    const answers = (inst.answers ?? {}) as Record<string, unknown>;
-    const keyMap = buildAnswerKeyToPdfField(sections);
 
     // Detect XFA up front so we can avoid AcroForm operations that crash
     // on dynamic XFA / IRCC PDFs (pdf-lib does not officially support XFA).
@@ -566,79 +610,33 @@ Deno.serve(async (req) => {
     let out: Uint8Array;
     try {
       if (acro.filled.length + xfaFilled.length === 0) {
-        return json({
-          error: hasXfa
-            ? "No PDF fields were written. This questionnaire was generated from fallback fields, not the real IMM/XFA field IDs. Re-generate the questionnaire after re-uploading an unlocked/static PDF."
-            : "No writable PDF fields were detected. This is likely an encrypted Adobe LiveCycle/XFA IRCC form; it cannot be reliably filled by the in-app PDF engine unless uploaded as an unlocked/static form.",
-          filled: { acroform: acro.filled, xfa: xfaFilled },
-          skipped: [...acro.skipped, ...xfaSkipped],
+        // Source PDF can't be filled (dynamic XFA / encrypted / no widgets).
+        // Generate the internal IMM5257-style data sheet so the user always gets a result.
+        const internal = await buildInternalImm5257Pdf({
+          formName: form.name, clientName, sections, answers,
+        });
+        return await finalize(internal, "internal", {
+          reason: hasXfa ? "xfa_not_writable" : "no_writable_fields",
           has_xfa: hasXfa,
-        }, 422);
+          skipped_sample: [...acro.skipped, ...xfaSkipped].slice(0, 10),
+        });
       }
       out = await pdf.save({ updateFieldAppearances: false });
     } catch (e) {
-      console.error("pdf.save failed", e);
-      return json({
-        error: `Could not write filled PDF: ${e instanceof Error ? e.message : "unknown"}. ` +
-               `The original form has internal references that pdf-lib cannot rewrite. ` +
-               `${xfaFilled.length} XFA field(s) and ${acro.filled.length} AcroForm field(s) were prepared.`,
-        filled: { acroform: acro.filled, xfa: xfaFilled },
-        skipped: [...acro.skipped, ...xfaSkipped],
-        has_xfa: hasXfa,
-      }, 500);
+      console.error("pdf.save failed, falling back to internal data sheet", e);
+      const internal = await buildInternalImm5257Pdf({
+        formName: form.name, clientName, sections, answers,
+      });
+      return await finalize(internal, "internal", {
+        reason: "save_failed",
+        detail: e instanceof Error ? e.message : "unknown",
+      });
     }
 
-    // Upload to client-documents
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const outPath = `${inst.client_id}/filled-forms/${form.id}-${stamp}.pdf`;
-    const { error: upErr } = await supabase.storage.from("client-documents")
-      .upload(outPath, out, { contentType: "application/pdf", upsert: true });
-    if (upErr) return json({ error: `Upload failed: ${upErr.message}` }, 500);
-
-    // Insert into filled_forms
-    const { data: ff, error: ffErr } = await supabase.from("filled_forms").insert({
-      client_id: inst.client_id,
-      form_id: form.id,
-      instance_id: inst.id,
-      file_name: `${form.name} - filled.pdf`,
-      file_path: outPath,
-      size_bytes: out.byteLength,
-      status: inst.status === "submitted" ? "ready" : "draft",
-      created_by: userResp.user.id,
-    }).select().single();
-    if (ffErr) console.error("filled_forms insert failed", ffErr);
-
-    // Activity log
-    await supabase.from("activity_logs").insert({
-      action: "form.filled",
-      entity_type: "filled_form",
-      entity_id: ff?.id ?? null,
-      user_id: userResp.user.id,
-      details: {
-        form_id: form.id,
-        instance_id: inst.id,
-        acro_filled: acro.filled.length,
-        xfa_filled: xfaFilled.length,
-        skipped: acro.skipped.length + xfaSkipped.length,
-      },
-    });
-
-    // Build mapping report
-    const fieldsInSchema = sections.flatMap((s) => s.fields ?? []);
-    const allPdfNames = new Set<string>([...acro.pdfFieldNames]);
-    const unmatchedSchemaFields = fieldsInSchema
-      .map((f) => f.pdf_field ?? f.id ?? "")
-      .filter((n) => n && !allPdfNames.has(n))
-      .slice(0, 50);
-
-    return json({
-      ok: true,
-      filled_form_id: ff?.id ?? null,
-      file_path: outPath,
+    return await finalize(out, "filled", {
       filled: { acroform: acro.filled, xfa: xfaFilled },
-      skipped: [...acro.skipped, ...xfaSkipped],
-      unmatched_schema_fields_sample: unmatchedSchemaFields,
-      total_pdf_fields: allPdfNames.size,
+      skipped_sample: [...acro.skipped, ...xfaSkipped].slice(0, 20),
+      has_xfa: hasXfa,
     });
   } catch (e) {
     console.error("fill-form error", e);
