@@ -681,7 +681,8 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "text" | "ai" | "none" = "acroform";
+    let detectedSections: SectionDef[] | null = null;
+    let source: "acroform" | "xfa" | "text" | "template" | "ai" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -709,6 +710,16 @@ Deno.serve(async (req) => {
     }
 
     if (detectedFields.length < 3) {
+      const templated = knownFormTemplate(form);
+      if (templated) {
+        detectedSections = templated;
+        detectedFields = templated.flatMap((s) => s.fields);
+        source = "template";
+        console.log(`Known template fields detected for ${form.name}: ${detectedFields.length}`);
+      }
+    }
+
+    if (detectedFields.length < 3) {
       console.log(`Falling back to AI vision for ${form.name}`);
       const ai = await extractFieldsWithAI(bytes, form.name);
       console.log(`AI fields detected for ${form.name}: ${ai.length}`);
@@ -725,7 +736,7 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const sections = buildSchemaFromFields(detectedFields);
+    const sections = detectedSections ?? buildSchemaFromFields(detectedFields);
 
     const mappings: Record<string, { table: string; column: string }> = {};
     for (const s of sections) {
