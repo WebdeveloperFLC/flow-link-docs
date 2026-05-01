@@ -215,7 +215,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           toast.success(`Split "${f.name}" into ${segs.length} documents`);
         } catch (e) {
           console.warn("split-binder failed; uploading as single PDF:", e);
-          if (shouldFallbackToPageRanges(f.name, pageCount, [])) {
+          if (looksLikeBinderName(f.name) && shouldFallbackToPageRanges(f.name, pageCount, [])) {
             const baseStem = f.name.replace(/\.pdf$/i, "");
             for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
               const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
