@@ -139,16 +139,15 @@ export const SmartUploadZone = ({
             });
             return null;
           }
-          // Single-person case: existing legacy block (Reassign / Upload anyway / Skip).
-          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_readable" });
-          await logActivity("document.owner_not_verified", "client", client.id, {
+          // Single-person case: only one possible owner (the applicant) — auto-assign and proceed.
+          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
+          await logActivity("document.owner_assumed_applicant", "client", client.id, {
             file_name: item.file.name,
             detected_owner: detectedName || null,
             owner_confidence: ownerConf,
             owner_source: c.ownerSource ?? null,
-            owner_evidence: c.ownerEvidence ?? null,
           });
-          return null;
+          return { classification: c, ownerId: applicant?.id ?? null };
         }
 
         const noRosterMatch =
@@ -166,14 +165,9 @@ export const SmartUploadZone = ({
             });
             return null;
           }
-          patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_on_case" });
-          await logActivity("document.owner_not_on_case", "client", client.id, {
-            file_name: item.file.name,
-            detected_owner: detectedName,
-            case_people: people.map((p) => p.full_name),
-            score: match.score,
-          });
-          return null;
+          // Single-person case: assume the applicant is the owner.
+          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
+          return { classification: c, ownerId: applicant?.id ?? null };
         }
 
         // Single-person case (no mismatch) → always applicant
