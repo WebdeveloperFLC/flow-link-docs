@@ -182,7 +182,8 @@ const FormBuilder = () => {
       toast.success(`Detected ${detected} ${sourceLabel} field(s) — review them in step 2.`);
       setStep("build");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to parse PDF");
+      toast.info("This PDF could not be auto-detected. Continue in step 2 to create the fields manually.");
+      setStep("build");
     } finally {
       setParsing(false);
     }
