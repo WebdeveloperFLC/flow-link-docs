@@ -137,7 +137,10 @@ const FormBuilder = () => {
       .eq("form_id", formId)
       .order("version", { ascending: false })
       .limit(10);
-    const schema = (schemas ?? []).find((s) => !isGenericDefaultSchema(s.sections as unknown as Section[]));
+    // Prefer a non-generic schema, but fall back to the generic default template
+    // so newly uploaded forms always have an editable starting point in the Builder.
+    const nonGeneric = (schemas ?? []).find((s) => !isGenericDefaultSchema(s.sections as unknown as Section[]));
+    const schema = nonGeneric ?? (schemas ?? [])[0];
     if (schema?.sections) setSections(schema.sections as unknown as Section[]);
     else setSections([]);
 
