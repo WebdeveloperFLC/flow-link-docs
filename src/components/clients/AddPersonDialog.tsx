@@ -22,7 +22,11 @@ interface Props {
 const OTHER = "__other__";
 
 const defaultRelForRole = (role: PersonRole) =>
-  role === "co_applicant" ? "Spouse" : role === "dependant" ? "Son" : "";
+  role === "co_applicant" ? "Spouse"
+  : role === "dependant" ? "Son"
+  : role === "sponsor" ? "Father"
+  : role === "co_sponsor" ? "Mother"
+  : "";
 
 export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster = [] }: Props) => {
   const hasApplicant = roster.some((p) => p.role === "applicant" && !p.is_archived);
@@ -120,6 +124,8 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
                   {!hasApplicant && <SelectItem value="applicant">Applicant (principal)</SelectItem>}
                   <SelectItem value="co_applicant">Co-applicant</SelectItem>
                   <SelectItem value="dependant">Dependant</SelectItem>
+                  <SelectItem value="sponsor">Sponsor</SelectItem>
+                  <SelectItem value="co_sponsor">Co-sponsor</SelectItem>
                 </SelectContent>
               </Select>
             </div>

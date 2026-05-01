@@ -12,7 +12,7 @@ import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
-import { ROLE_SHORT, type CasePerson } from "@/lib/casePeople";
+import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import { toast } from "sonner";
 
@@ -87,7 +87,7 @@ export const SmartUploadZone = ({
       if (!id) return "Unassigned";
       if (id === SHARED_ID) return "Shared (all)";
       const p = personById(id);
-      return p ? `${p.full_name} · ${p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}` : "Unknown";
+      return p ? `${p.full_name} · ${ROLE_LABEL[p.role]}` : "Unknown";
     },
     [personById],
   );
@@ -126,6 +126,20 @@ export const SmartUploadZone = ({
           (c.ownerSource === "document_text" || c.ownerSource === "document_image");
 
         if (!ownerVerifiedFromContent) {
+          // Multi-person case: let the user pick from the roster instead of hard-blocking.
+          // Default suggestion = best fuzzy candidate, or applicant.
+          if (isMulti) {
+            const suggested = match.best?.id ?? applicant?.id ?? null;
+            patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
+            await logActivity("document.owner_needs_pick", "client", client.id, {
+              file_name: item.file.name,
+              detected_owner: detectedName || null,
+              owner_confidence: ownerConf,
+              owner_source: c.ownerSource ?? null,
+            });
+            return null;
+          }
+          // Single-person case: existing legacy block (Reassign / Upload anyway / Skip).
           patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_readable" });
           await logActivity("document.owner_not_verified", "client", client.id, {
             file_name: item.file.name,
@@ -141,6 +155,17 @@ export const SmartUploadZone = ({
           !match.best && match.score < 0.6;
 
         if (noRosterMatch) {
+          // Multi-person: let user pick the right person from the roster.
+          if (isMulti) {
+            patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: applicant?.id ?? null });
+            await logActivity("document.owner_needs_pick", "client", client.id, {
+              file_name: item.file.name,
+              detected_owner: detectedName,
+              case_people: people.map((p) => p.full_name),
+              score: match.score,
+            });
+            return null;
+          }
           patch(idx, { ...baseUpdate, status: "name_mismatch", ownerId: null, verificationIssue: "owner_not_on_case" });
           await logActivity("document.owner_not_on_case", "client", client.id, {
             file_name: item.file.name,
@@ -519,7 +544,7 @@ export const SmartUploadZone = ({
                         <SelectContent>
                           {people.map((p) => (
                             <SelectItem key={p.id} value={p.id} className="text-xs">
-                              {p.full_name} · {p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}
+                              {p.full_name} · {ROLE_LABEL[p.role]}
                               {p.date_of_birth ? ` (DOB ${p.date_of_birth})` : ""}
                             </SelectItem>
                           ))}
