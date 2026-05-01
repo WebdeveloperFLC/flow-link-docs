@@ -1,78 +1,68 @@
-# Fix: per-section multi-upload, reorder, and combine
+# Fix client-form ↔ visa PDF field mapping
 
-## What's happening today
+## Root cause
 
-The `SectionBuilderCard` already supports multi-file upload, drag-to-reorder, manual/auto ordering, and a Combine button — for every section (Identity, Academic, Experience, Financial, Forms, Supporting, Additional). However the experience falls short of what you described in three ways:
+After investigating the pipeline, the "filled PDF" step **does not exist in the codebase**:
 
-1. **Cards are buried.** The big "All uploaded documents" card sits above the section cards, so on a long client page (Manav has many docs) the section cards aren't the first thing you see. You can miss them entirely.
-2. **No per-file label.** When you drop 10 marksheets into Academic, every row shows the file name plus the generic subtitle "Academic". You can't see which row is "Grade 10", which is "B.Tech Year 2", etc., so reordering by sequence is painful.
-3. **No drag-to-drop zone on the card.** Upload only works through the small "Upload" button. Dragging files directly onto the card body does nothing, which is why it feels like the feature isn't there.
-4. **Experience / Forms / Additional sections look "missing"** in the Build-final-binder panel because that panel filters out sections with 0 docs. Users assume the section itself doesn't exist.
+- `parse-form-fields` extracts AcroForm/XFA fields and builds a questionnaire schema. ✓
+- `questionnaire-resolve` / `questionnaire-save` show the questionnaire and store answers as JSON. ✓
+- **There is no edge function or client code that opens the original PDF and writes the answers into its form fields.** The `filled_forms` table is defined but nothing inserts into it.
 
-## What we'll change
+Whatever "filled PDF" the user is seeing is therefore either empty, stale, or produced by some unrelated flow — which fully explains "wrong fields, shifted, truncated, doesn't match IRCC structure."
 
-### 1. Promote section cards, demote the flat list
+Two additional latent bugs that will cause mis-mapping even after a fill step is added:
 
-- Move the stack of `SectionBuilderCard`s **above** the "All uploaded documents" card on `ClientDetail`.
-- Collapse the flat "All uploaded documents" card into a closed-by-default accordion ("Show flat list of all files"). Keeps the data accessible without competing for attention.
+1. **Wrong key used for mapping.** In `parse-form-fields`, each field is stored with a sanitized `id` (e.g. dots/spaces stripped, duplicates suffixed `_2`) while the original PDF field name is kept in `pdf_field`. The questionnaire UI currently keys answers by `id`. Filling by `id` against the PDF will silently miss or collide. **We must always look up by `pdf_field` when writing back.**
+2. **XFA forms aren't handled.** Most IRCC IMM PDFs (IMM 5257, 5645, 0008, etc.) are dynamic XFA. `pdf-lib`'s `getForm().getTextField(name).setText(...)` only works for AcroForm. For XFA we have to inject values into the XFA `<datasets>` stream so Adobe/Foxit/Chrome render them in the right place, then optionally flatten.
 
-### 2. Drop zone on every section card
+## What we'll build
 
-- Wrap each `SectionBuilderCard` body in a drag-and-drop zone using the existing `react-dropzone` pattern. Drop one or many files anywhere on the card → they all upload to that section in one batch (current code already loops a `FileList`).
-- Visual hover state: dashed border + "Drop files into Academic" label.
-- The existing **Upload** button remains for click-to-pick.
+### 1. New edge function: `fill-form`
 
-### 3. Per-file label (Title)
+Input: `{ instance_id }` (or `{ client_id, form_id, answers }` for ad-hoc).
 
-- Add a **Title** column / inline-editable field for every row. Defaults to the cleaned file name (`B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`). Stored in `client_documents.custom_type` (we'll repurpose it as the human label inside a section).
-- Click the title → edit-in-place → save on blur. So a row reads:
-  ```text
-  ⋮⋮ 03  Grade 12 Marksheet         class_xii.pdf · 412 KB   👁 ⬇ ✕
-  ```
-- For new uploads done through a section card, set `custom_type = cleaned filename` instead of `custom_type = section.label`. This is the only DB behavior change.
+Steps:
+1. Load the `questionnaire_instance` → answers, schema, form.
+2. Download the original PDF from `visa-forms` storage.
+3. Detect form type:
+   - **AcroForm** path: `pdf-lib` → for each schema field with a `pdf_field`, find the matching widget by name and `setText` / `check` / `select` based on `type`. Apply formatting (date `YYYY-MM-DD` → form's expected mask, uppercase where required, `maxLength` truncation).
+   - **XFA** path: re-extract the XFA package, parse `<datasets>` XML, set each `<field-name>value</field-name>` node by SOM expression (`$.form1.page1.fieldName`), re-encode and write back the stream. Keep AcroForm widgets in sync where they exist (hybrid PDFs) so non-Adobe viewers still display values.
+4. Optionally flatten (configurable per form via `visa_forms.requires_validation`).
+5. Upload to `client-documents` storage and insert a `filled_forms` row (`status='draft'|'submitted'`, link to `instance_id` and `form_id`).
+6. Log `activity_logs` event `form.filled`.
 
-### 4. Show every section, even when empty
+### 2. Mapping correctness fixes
 
-- In `FinalBinderPanel`, stop filtering sections with 0 docs. Empty sections render disabled with "0 docs — upload first" so users know the bucket exists. Checkbox stays disabled until docs are present.
-- Ensure `case_sections` includes **Experience**, **Additional documents**, etc. (already seeded by the previous migration; we'll just verify on load and re-seed any missing keys).
+- Use `pdf_field` (not `id`) as the canonical PDF target everywhere downstream of `parse-form-fields`. Update `Questionnaire.tsx` `answerKeyFor` to **prefer `pdf_field`** so saved answers are already keyed by the exact PDF name. Fall back to `id` only when `pdf_field` is absent.
+- Add a server-side reconciliation pass in `fill-form`: build a name-set from the actual PDF and warn/log any answer key that has no matching field. Surface this in the response so the UI can show a "Mapping report".
+- Preserve order, formatting hints (`type: date|number|yes_no|dropdown`), and `maxLength` (read from XFA `<value><text maxChars="...">` or AcroForm `MaxLen`) when writing.
 
-### 5. Combine button — clearer state
+### 3. UI: "Generate filled PDF" action
 
-- Rename the Combine button label dynamically:
-  - 0 docs → disabled "Combine"
-  - 1 doc → "Use as binder" (single-doc passthrough)
-  - 2+ docs → "Combine N files into binder"
-- On success, scroll the binder strip into view and toast "Academic binder ready · 10 files merged in this order".
+In `ClientFormsCard.tsx` add a button per submitted questionnaire:
+- Calls `fill-form` edge function.
+- Shows the mapping report (filled / skipped / unmatched fields).
+- Adds the resulting PDF to the client's documents (auto-sectioned to "Visa Forms") and to `filled_forms`.
 
-### 6. Multi-page combine within one row group (passport pages)
+### 4. Re-parser improvement (small but important)
 
-This was approved last round but not yet exposed. Add a small **"Merge with…"** action in the row's overflow menu that lets you pick one or more sibling rows in the same section, merges them into one PDF (using the existing `combinePdfsFromStorage` helper), uploads as a new row, and archives the originals as previous versions. Useful for "passport page 1 + page 2".
+In `parse-form-fields`:
+- Stop sanitizing `id` away from the original name when no collision exists — keep `id === pdf_field` whenever safe. Reduces drift between schema id and PDF name.
+- Capture `max_length` and `format` (date mask, numeric, uppercase) from XFA/AcroForm and store on the field, so the filler can format correctly.
 
-## Technical details
+## Files to add / edit
 
-Files to edit:
+- **New:** `supabase/functions/fill-form/index.ts` — AcroForm + XFA filler
+- **Edit:** `supabase/functions/parse-form-fields/index.ts` — keep names verbatim, capture maxLength/format
+- **Edit:** `src/pages/Questionnaire.tsx` — key answers by `pdf_field` first
+- **Edit:** `src/components/clients/ClientFormsCard.tsx` — "Generate filled PDF" + mapping report dialog
+- **No DB migration needed** — `filled_forms` already exists with the right columns.
 
-- `src/components/clients/SectionBuilderCard.tsx`
-  - Wrap content in a `<div onDragOver onDrop>` (or `react-dropzone` if already in deps; otherwise plain handlers — no new dep needed).
-  - In `onUpload`, set `custom_type` to the cleaned filename (strip extension, replace `_`/`-` with spaces, title-case).
-  - Add inline-edit `Title` for each row → `update client_documents set custom_type=… where id=…`.
-  - Add row overflow menu with "Merge with…" → opens a small picker of sibling rows in the same section, then calls `combinePdfsFromStorage` and writes the result.
-  - Dynamic Combine button label.
+## Out of scope (call out)
 
-- `src/components/clients/FinalBinderPanel.tsx`
-  - Render all `sections` (not only `sectionsWithDocs`); disable checkbox + button when a section has no docs.
+- Signature/photo widgets — left blank, flagged in the mapping report.
+- Re-flowing IRCC barcodes (the 2D barcode at the end of XFA forms) — these regenerate inside Adobe Reader when the user opens the file, not on our server. We document this in the report.
 
-- `src/pages/ClientDetail.tsx`
-  - Reorder right column: `SectionBuilderCard` stack first, then `FinalBinderPanel`, then collapsed "All uploaded documents" inside an `<Accordion>`.
+## Acceptance test
 
-- `src/lib/sections.ts`
-  - Add `ensureDefaultSections()` that re-seeds any of the seven default keys missing on `case_sections` (idempotent; safety net only).
-
-No new database migration required — the schema (`section_id`, `section_order`, `custom_type`, `client_section_settings`) already supports everything above.
-
-## What the user gets
-
-- Drop ten marksheets onto the Academic card, see ten rows named "Grade 10 Marksheet", "Grade 12 Marksheet", "B.Tech Year 1", etc. (auto-derived from filenames, editable inline).
-- Drag rows to put them in submission order, click **Combine 10 files into binder**, get one `Academic_Binder.pdf`.
-- Same flow available on Identity, Experience, Financial, Forms, Supporting, and Additional documents — every section card behaves identically.
-- Passport page 1 + page 2 → row menu → "Merge with…" → one combined Passport file replaces them.
+Upload IMM 5257 → generate questionnaire → fill a few personal/passport/employment fields → click "Generate filled PDF" → open the PDF in Adobe Reader: every value lands in the correct labeled box, dates use the form's mask, no shifted/truncated content, and the mapping report lists 0 unmatched fields for those entered.
