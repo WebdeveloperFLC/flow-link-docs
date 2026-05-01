@@ -68,14 +68,12 @@ const Auth = () => {
         <div className="absolute inset-0 opacity-20"
           style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="size-12 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center">
-              <FileText className="size-6" />
-            </div>
-            <div>
-              <div className="text-xl font-bold tracking-tight">Future Link</div>
-              <div className="text-xs uppercase tracking-[0.2em] opacity-80">Document Management</div>
-            </div>
+          <div className="bg-white rounded-2xl p-4 inline-block shadow-elev-md">
+            <img
+              src="/flc-logo.png"
+              alt="Future Link Consultants"
+              className="h-16 w-auto object-contain"
+            />
           </div>
         </div>
 

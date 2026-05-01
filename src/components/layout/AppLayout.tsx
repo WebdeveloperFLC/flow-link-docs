@@ -1,10 +1,11 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, FileText, UserCog, Settings as SettingsIcon, Mail, Database, FileStack } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import flcLogo from "@/assets/flc-logo.png";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean };
 
@@ -28,16 +29,12 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className="min-h-screen flex bg-background">
       <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
-        <div className="px-6 py-6 border-b border-sidebar-border">
-          <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-lg gradient-accent flex items-center justify-center shadow-elev-md">
-              <FileText className="size-5 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-bold text-white tracking-tight">Future Link</div>
-              <div className="text-[10px] text-sidebar-foreground/70 uppercase tracking-wider">DMS</div>
-            </div>
-          </div>
+        <div className="px-4 py-5 border-b border-sidebar-border bg-white">
+          <img
+            src={flcLogo}
+            alt="Future Link Consultants"
+            className="w-full h-auto max-h-16 object-contain"
+          />
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
