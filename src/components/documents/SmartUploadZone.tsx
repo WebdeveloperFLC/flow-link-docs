@@ -1025,9 +1025,9 @@ async function expandBinders(
     }
     let pageCount = 0;
     try { pageCount = await getPdfPageCount(file); } catch { pageCount = 0; }
-    // Only attempt to split PDFs with at least 3 pages — most single-document
-    // uploads are 1–2 pages and don't need splitting.
-    if (pageCount < 3) {
+    // Only attempt binder splitting when the filename indicates a binder/package.
+    // Normal multi-page documents (transcripts, bank statements, passports) must stay intact.
+    if (pageCount < 3 || !looksLikeBinderName(file.name)) {
       out.push({ file });
       continue;
     }
