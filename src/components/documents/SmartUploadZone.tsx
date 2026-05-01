@@ -897,6 +897,33 @@ export const SmartUploadZone = ({
                   )}
                 </div>
 
+                {/* AI couldn't identify the document — require user to pick a type before upload */}
+                {it.status === "needs_type" && (
+                  <div className="ml-5 mt-1 p-2 rounded bg-amber-100/60 border border-amber-300 space-y-2">
+                    <div className="flex items-start gap-1.5 text-amber-900">
+                      <AlertTriangle className="size-3.5 mt-0.5 shrink-0" />
+                      <div className="text-[11px] leading-snug">
+                        Couldn't confidently identify this document
+                        {it.customType ? <> (looks like <span className="font-semibold">{it.customType}</span>)</> : null}
+                        . Please pick the correct type — it won't be uploaded as "Other" automatically.
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Select onValueChange={(v) => confirmType(i, v)}>
+                        <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Choose document type…" /></SelectTrigger>
+                        <SelectContent>
+                          {DOCUMENT_TYPES.map((t) => (
+                            <SelectItem key={t} value={t} className="text-xs">{t}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button size="sm" variant="outline" className="h-7 text-[11px]" onClick={() => skipItem(i)}>
+                        Skip
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Roster picker for multi-person cases needing confirmation */}
                 {it.status === "needs_owner" && (
                   <div className="ml-5 mt-1 p-2 rounded bg-amber-100/60 border border-amber-300 space-y-2">
