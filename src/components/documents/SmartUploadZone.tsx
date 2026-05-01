@@ -14,7 +14,10 @@ import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
-import { isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages } from "@/lib/binderSplit";
+import {
+  isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+} from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 
@@ -79,6 +82,10 @@ export const SmartUploadZone = ({
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
+  const allowedDocumentTypes = useMemo(
+    () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
+    [templateTypes, DOCUMENT_TYPES],
+  );
 
   const applicant = useMemo(() => people.find((p) => p.role === "applicant"), [people]);
   const isMulti = people.length >= 2;
