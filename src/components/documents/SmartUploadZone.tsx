@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users } from "lucide-react";
+import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Scissors } from "lucide-react";
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
@@ -14,6 +14,7 @@ import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
+import { isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages } from "@/lib/binderSplit";
 import { toast } from "sonner";
 
 interface Client { id: string; full_name: string; }
