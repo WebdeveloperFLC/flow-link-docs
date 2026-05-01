@@ -561,6 +561,47 @@ export const SmartUploadZone = ({
         .map((it, i) => ({ it, i }))
         .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
       if (!segs.length) return;
+      // Hard guard: a likely binder must never upload as one full-range segment.
+      // If that's the only thing in the queue for this binder, explode it into
+      // page-level segments first so each page can be classified individually.
+      if (segs.length === 1) {
+        const only = segs[0].it;
+        const total = only.totalSourcePages ?? 0;
+        const coversAll =
+          (only.startPage ?? 1) <= 1 && (only.endPage ?? 0) >= total && total > 1;
+        const isBinder = looksLikeBinderName(only.binderSourceName ?? only.file.name);
+        if (isBinder && coversAll && only.binderSource) {
+          toast.message("This still covers the whole binder — splitting page-by-page for review. Merge pages that belong together, then upload.");
+          const baseStem = (only.binderSourceName ?? only.binderSource.name).replace(/\.pdf$/i, "");
+          const newItems: QueueItem[] = [];
+          for (let p = 1; p <= total; p++) {
+            try {
+              const segName = `${baseStem}__${String(p).padStart(2, "0")}_Page_p${p}-${p}.pdf`;
+              const segFile = await extractPagesAsPdfFile(only.binderSource, p, p, segName);
+              newItems.push({
+                file: segFile,
+                status: "awaiting_review",
+                predictedType: "Other",
+                binderId,
+                binderSource: only.binderSource,
+                binderSourceName: only.binderSourceName,
+                segIndex: p - 1,
+                startPage: p,
+                endPage: p,
+                totalSourcePages: total,
+                ownerId: only.ownerId ?? applicant?.id ?? null,
+              });
+            } catch (e) { console.warn("forced page split failed", p, e); }
+          }
+          if (newItems.length) {
+            setQueue((q) => {
+              const without = q.filter((it) => !(it.binderId === binderId && it.status === "awaiting_review"));
+              return [...without, ...newItems];
+            });
+          }
+          return;
+        }
+      }
       setBusy(true);
       try {
         for (const { it, i } of segs) {
