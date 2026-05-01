@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, decodePDFRawStream } from "https://esm.sh/pdf-lib@1.17.1";
+import { PDFDocument, PDFArray, PDFDict, PDFName, PDFStream, PDFRawStream, PDFRef, decodePDFRawStream } from "https://esm.sh/pdf-lib@1.17.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -147,10 +147,10 @@ async function extractAcroFields(pdfBytes: Uint8Array): Promise<FieldDef[]> {
 async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | null> {
   try {
     const pdf = await PDFDocument.load(pdfBytes, { ignoreEncryption: true, updateMetadata: false });
-    const catalog = pdf.catalog;
-    const acro = catalog.lookup(PDFName.of("AcroForm"), PDFDict);
-    if (!acro) return null;
-    const xfa = acro.lookup(PDFName.of("XFA"));
+    const lookup = (obj: unknown) => obj instanceof PDFRef ? pdf.context.lookup(obj) : obj;
+    const acro = lookup(pdf.catalog.get(PDFName.of("AcroForm")));
+    if (!(acro instanceof PDFDict)) return null;
+    const xfa = lookup(acro.get(PDFName.of("XFA")));
     if (!xfa) return null;
 
     const decodeStream = (s: PDFStream): string => {
@@ -166,8 +166,8 @@ async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | nul
     if (xfa instanceof PDFArray) {
       // Pairs of [name, stream]
       for (let i = 0; i < xfa.size(); i += 2) {
-        const nameObj = xfa.lookup(i);
-        const streamRef = xfa.lookup(i + 1);
+        const nameObj = lookup(xfa.get(i));
+        const streamRef = lookup(xfa.get(i + 1));
         const nm = nameObj?.toString?.() ?? "";
         if (nm.includes("template") && streamRef instanceof PDFStream) {
           return decodeStream(streamRef);
@@ -176,7 +176,7 @@ async function extractXfaTemplateXml(pdfBytes: Uint8Array): Promise<string | nul
       // Fallback: concat all streams
       let combined = "";
       for (let i = 1; i < xfa.size(); i += 2) {
-        const s = xfa.lookup(i);
+        const s = lookup(xfa.get(i));
         if (s instanceof PDFStream) combined += decodeStream(s);
       }
       return combined || null;
