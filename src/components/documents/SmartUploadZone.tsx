@@ -814,6 +814,13 @@ export const SmartUploadZone = ({
                   <p className="text-[10px] text-muted-foreground">
                     Review each segment before uploading. Adjust the page range, change the type or person, merge with the next segment, or remove a segment.
                   </p>
+                  {sorted.some(({ it }) => !it.previewed) && (
+                    <div className="flex items-center gap-1.5 text-[10px] text-amber-700 bg-amber-50 border border-amber-300 rounded px-2 py-1">
+                      <AlertTriangle className="size-3" />
+                      Preview each segment (eye icon) before uploading — you haven't viewed{" "}
+                      <span className="font-semibold">{sorted.filter(({ it }) => !it.previewed).length}</span> yet.
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     {sorted.map(({ idx, it }, segPos) => {
                       const isLast = segPos === sorted.length - 1;
