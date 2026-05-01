@@ -812,6 +812,13 @@ export const SmartUploadZone = ({
                             </div>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7"
+                              onClick={() => previewFile(it.file)}
+                              title="Preview this segment"
+                            >
+                              <Eye className="size-3.5 text-muted-foreground" />
+                            </Button>
+                            <Button
+                              size="icon" variant="ghost" className="h-7 w-7"
                               onClick={() => dropSegment(idx)}
                               title="Remove segment"
                             >
