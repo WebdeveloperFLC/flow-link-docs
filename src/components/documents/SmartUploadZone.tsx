@@ -16,7 +16,7 @@ import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
