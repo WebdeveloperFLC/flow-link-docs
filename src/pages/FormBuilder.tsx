@@ -59,7 +59,7 @@ type ParseResponse = {
   error?: string;
   acro_fields_detected?: number;
   total_fields_detected?: number;
-  source?: "acroform" | "xfa" | "ai" | "none";
+  source?: "acroform" | "xfa" | "text" | "ai" | "none";
 };
 
 const TYPE_LABELS: Record<FieldType, string> = {
@@ -166,22 +166,24 @@ const FormBuilder = () => {
       });
       if (error) throw error;
       const result = data as ParseResponse;
-      if (result?.error) throw new Error(result.error);
       await load();
       const detected = result?.total_fields_detected ?? result?.acro_fields_detected ?? 0;
       if (result?.source === "none" || detected === 0) {
-        toast.info("No fields were detected automatically. Add sections and fields manually in step 2.");
+        toast.info(result?.error || "No fields were detected automatically. Add sections and fields manually in step 2.");
         setStep("build");
         return;
       }
+      if (result?.error) throw new Error(result.error);
       const sourceLabel =
         result?.source === "xfa" ? "XFA"
+        : result?.source === "text" ? "PDF text"
         : result?.source === "ai" ? "AI-detected"
         : "AcroForm";
       toast.success(`Detected ${detected} ${sourceLabel} field(s) — review them in step 2.`);
       setStep("build");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to parse PDF");
+      toast.info("This PDF could not be auto-detected. Continue in step 2 to create the fields manually.");
+      setStep("build");
     } finally {
       setParsing(false);
     }

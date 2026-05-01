@@ -338,6 +338,79 @@ function extractXfaFields(xml: string): FieldDef[] {
   return out;
 }
 
+function slugId(label: string, index: number, seen: Record<string, number>): string {
+  const base = label.toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 64) || `field_${index + 1}`;
+  seen[base] = (seen[base] ?? 0) + 1;
+  return seen[base] === 1 ? base : `${base}_${seen[base]}`;
+}
+
+function extractPdfLiteralStrings(block: string): string[] {
+  const out: string[] = [];
+  for (let i = 0; i < block.length; i++) {
+    if (block[i] !== "(") continue;
+    let depth = 1;
+    let raw = "";
+    i++;
+    for (; i < block.length; i++) {
+      const ch = block[i];
+      if (ch === "\\") {
+        const n = block[++i] ?? "";
+        raw += n === "n" || n === "r" ? "\n" : n === "t" ? "\t" : n;
+      } else if (ch === "(") { depth++; raw += ch; }
+      else if (ch === ")") { if (--depth === 0) break; raw += ch; }
+      else raw += ch;
+    }
+    const text = raw.replace(/\s+/g, " ").trim();
+    if (/[A-Za-z]/.test(text) && text.length <= 180) out.push(text);
+  }
+  return out;
+}
+
+function extractVisibleTextByScanningStreams(pdfBytes: Uint8Array): string {
+  const pdfText = bytesToText(pdfBytes);
+  const pieces: string[] = [];
+  let pos = 0;
+  while (true) {
+    const streamIdx = pdfText.indexOf("stream", pos);
+    if (streamIdx < 0) break;
+    const endIdx = pdfText.indexOf("endstream", streamIdx + 6);
+    if (endIdx < 0) break;
+    const dictStart = Math.max(0, pdfText.lastIndexOf("<<", streamIdx));
+    const dictText = pdfText.slice(dictStart, streamIdx);
+    const raw = trimPdfStreamBounds(pdfBytes, streamIdx + 6, endIdx);
+    let decoded = raw;
+    if (/\/FlateDecode\b/.test(dictText)) {
+      try { decoded = inflate(raw); }
+      catch { pos = endIdx + 9; continue; }
+    }
+    const text = new TextDecoder("latin1").decode(decoded);
+    if (/\bBT\b[\s\S]*\bET\b/.test(text)) pieces.push(...extractPdfLiteralStrings(text));
+    pos = endIdx + 9;
+  }
+  return pieces.filter(Boolean).join("\n");
+}
+
+function extractFieldsFromVisibleText(text: string): FieldDef[] {
+  const labels = Array.from(new Set(text.split(/\n+/)
+    .map((line) => line.replace(/^\d+[.)]?\s*/, "").replace(/\s+/g, " ").trim())
+    .filter((line) => line.length >= 3 && line.length <= 140)
+    .filter((line) => /[A-Za-z]/.test(line))
+    .filter((line) => !/^(page|protected|imm\s*\d+|application|office use|for official use|warning|privacy notice|barcode|signature|date signed)$/i.test(line))
+    .filter((line) => /\?$|:$|name|date|birth|passport|uci|address|city|country|postal|phone|telephone|email|status|gender|sex|citizenship|nationality|occupation|employer|school|language|height|eye|married|spouse|children|father|mother|from|to|number|amount|fund|visit|permit|representative|client id/i.test(line))));
+
+  const seen: Record<string, number> = {};
+  return labels.slice(0, 120).map((label, index) => {
+    const type = /\?$|^(have|has|are|is|do|does|did|will|can)\b/i.test(label)
+      ? "yes_no"
+      : inferType(label, "PDFTextField");
+    const id = slugId(label, index, seen);
+    return { id, pdf_field: id, label: label.replace(/[:：]$/, ""), type, mapping_key: mappingFor(label) };
+  });
+}
+
 function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
   const buckets: Record<string, FieldDef[]> = {
     personal: [], travel: [], education: [], employment: [],
@@ -492,7 +565,7 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "ai" | "none" = "acroform";
+    let source: "acroform" | "xfa" | "text" | "ai" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -510,6 +583,13 @@ Deno.serve(async (req) => {
         console.log(`Raw-scan XFA fields detected for ${form.name}: ${xfa.length}`);
         if (xfa.length >= 3) { detectedFields = xfa; source = "xfa"; }
       }
+    }
+
+    if (detectedFields.length < 3) {
+      const visibleText = extractVisibleTextByScanningStreams(bytes);
+      const textFields = extractFieldsFromVisibleText(visibleText);
+      console.log(`Visible text fields detected for ${form.name}: ${textFields.length}`);
+      if (textFields.length >= 3) { detectedFields = textFields; source = "text"; }
     }
 
     if (detectedFields.length < 3) {
