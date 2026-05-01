@@ -344,8 +344,9 @@ Deno.serve(async (req) => {
       });
     }
 
+    const sourcePath = form.source_pdf_path || form.file_path;
     const { data: file, error: dlErr } = await supabase.storage
-      .from("visa-forms").download(form.file_path);
+      .from("visa-forms").download(sourcePath);
     if (dlErr || !file) {
       return new Response(JSON.stringify({ error: "Cannot read form file" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
