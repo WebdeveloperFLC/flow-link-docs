@@ -858,7 +858,7 @@ export const SmartUploadZone = ({
               <div
                 key={i}
                 className={`flex flex-col gap-1.5 text-xs p-2 rounded ${
-                  it.status === "name_mismatch" || it.status === "needs_owner"
+                  it.status === "name_mismatch" || it.status === "needs_owner" || it.status === "needs_type"
                     ? "bg-amber-50 border border-amber-300"
                     : "bg-muted/50"
                 }`}
