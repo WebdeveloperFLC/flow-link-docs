@@ -16,6 +16,33 @@ export const PROFILE_FIELDS = [
 ] as const;
 export type ProfileField = typeof PROFILE_FIELDS[number];
 
+/**
+ * Core identity fields where a Passport document is the authoritative source.
+ * Passport-typed extractions OVERRIDE values previously written by other doc types.
+ */
+export const PASSPORT_AUTHORITATIVE_FIELDS: ProfileField[] = [
+  "date_of_birth",
+  "passport_number",
+  "passport_issue_date",
+  "passport_expiry",
+  "passport_country",
+  "nationality",
+  "place_of_birth",
+  "gender",
+];
+
+const isPassportDoc = (t?: string | null, c?: string | null): boolean => {
+  const s = `${t ?? ""} ${c ?? ""}`.toLowerCase();
+  return /\bpassport\b/.test(s);
+};
+
+type SourceEntry = string | { file_name: string; document_type?: string | null };
+function readSourceType(entry: SourceEntry | undefined): string | null {
+  if (!entry) return null;
+  if (typeof entry === "string") return null;
+  return entry.document_type ?? null;
+}
+
 export interface EducationEntry {
   degree?: string | null;
   field_of_study?: string | null;

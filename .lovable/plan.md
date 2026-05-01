@@ -1,96 +1,100 @@
-## Goal
+# Passport-First Precedence for Identity Fields
 
-Move from one global "Smart upload" panel to a **section-first** workflow that satisfies the acceptance criteria: extraction stays inside the section the user uploaded into, custom binders can be built from any section with manual ordering, and existing preview/share/verify/optimize features keep working.
+## Problem
 
-## Explicit Confirmations (per user request)
+Looking at the screenshot, the client profile shows core identity fields (DOB, Passport number, Issue date, Expiry date, Nationality, Place of birth, Gender) all sourced from `2026-05-01_MedicalReport_…`. A medical report is not authoritative for passport data, and the value `w2624950` is clearly a stray OCR string mistakenly captured as a passport number.
 
-1. **Same-section auto-fill of information fields (AC-2.2)** — When a document is uploaded **inside a section**, all extracted data is auto-filled into the **information fields of that same section** (e.g. Identity → name/DOB/passport in the Identity section's fields; Academics → institution/degree/dates in the Academics section's fields; Finance → balances/dates in the Finance section's fields). Extracted values will **not** be written into a global panel or a different section. Concretely: the section card will own and render its own field block (sourced from `client_profile` / `client_education` for that section's scope), the extractor result is filtered to that section's allowed fields, and `mergeExtractedFields(...)` is invoked with that filtered subset so only the current section's fields get populated.
+Root cause is in `src/lib/extractedFields.ts` → `mergeExtractedFields`. The merge logic is **first-write-wins**: whichever document is uploaded first writes the field, and any later upload (even a real Passport) only logs a conflict and never overwrites. So if a Medical Report is processed first, its noisy values stick forever.
 
-2. **Unlimited binders, no "single full binder" lock-in (AC-4.1, AC-4.4)** — The new `CustomBindersPanel` lets the user create **as many binders as needed**, each containing any subset of documents from any section, in any order. There is **no system-enforced cap** and **no requirement** to produce one combined "full binder". This is exactly what IRCC separate uploads need (Identity binder, Education binder, Finance binder, etc., each downloadable/shareable on its own). The legacy "Full binder" / "Grouped binders" buttons are kept only as optional shortcuts and are not the default path.
+## Fix: Authoritative-Source Override
 
-3. **Existing functionality remains fully intact** — The refactor will **not** break any of:
-   - **Document preview** at section level *and* binder level — keeps using `openClientDocument` + `InlinePreviewDialog`.
-   - **Share links** for both individual documents *and* entire binders — keeps using `ShareLinkDialog` against `share_links` (`target_type='document' | 'binder'`) and the `share-resolve` edge function. Access control unchanged.
-   - **Document verification** — section uploads still call `verify-document` after insert; verification records persist on the document and remain visible after binder creation.
-   - **File optimization with quality retention** — every uploaded file still flows through `processToPdf` (≤ 4 MB IRCC target, multi-step quality fallback). The "Re-optimize all" / per-doc optimize buttons stay. Optimization will not break preview, sharing, or verification.
+Introduce a precedence rule: for a defined set of "core identity" fields, a document classified as a **Passport** always overrides whatever non-passport source previously wrote that field. Passport-vs-passport stays first-write-wins (with conflict logging) so two passports don't silently overwrite each other.
+
+### Core identity fields (passport authoritative)
+- `date_of_birth`
+- `passport_number`
+- `passport_issue_date`
+- `passport_expiry`
+- `passport_country`
+- `nationality`
+- `place_of_birth`
+- `gender`
+
+All other fields (address, education, finance, IELTS, contacts) keep current first-write-wins behaviour.
 
 ## Changes
 
-### 1. Section-based Smart Upload (AC-1, AC-2)
+### 1. `src/lib/extractedFields.ts`
+- Add constant `PASSPORT_AUTHORITATIVE_FIELDS` listing the 8 fields above.
+- Add `isPassportDoc(documentType, customType)` helper that returns true when the document type label normalises to "passport" (case-insensitive, also matches `"Passport"` master entry).
+- Extend `mergeExtractedFields` signature with `documentType?: string | null` and `customType?: string | null`.
+- New merge rule inside the field loop:
+  - If field is in `PASSPORT_AUTHORITATIVE_FIELDS` AND the incoming doc is a passport AND the existing source for that field (read from `source_documents[field]`) was **not** a passport → **overwrite** the value, update `source_documents[field]`, push to `written`, and log an `profile.fields_overridden` activity entry (so the change is auditable).
+  - If field is in `PASSPORT_AUTHORITATIVE_FIELDS`, incoming is passport, and existing source was already a passport → keep current conflict-logging behaviour (don't silently clobber another passport).
+  - Non-passport documents trying to write a core identity field that already has a value coming from a passport → skip (do not even log conflict; passport wins).
+  - All other cases keep today's behaviour.
+- To know the existing field's source we already have `existing.source_documents` (filename → field map). We extend it to also store the `document_type` per field. New shape: `source_documents[field] = { file_name, document_type }`. Reading code stays backwards-compatible: if value is a string we treat it as `{ file_name: value, document_type: null }`.
 
-In `src/components/clients/SectionBuilderCard.tsx`:
+### 2. `src/components/clients/ClientProfileCard.tsx`
+- Update the `sourceMap` reader (`sourceMap[f.key]`) to handle both the legacy string shape and the new `{ file_name, document_type }` shape so the existing "✨ filename" hint keeps rendering.
 
-- Replace the disabled "Smart upload only" button with a real **per-section** upload control (file input + active drag-drop on the card itself).
-- When files are dropped/selected on a section:
-  - Run `processToPdf` (preserves AC-6.4 optimization + readability) + `classifyDocument`.
-  - **Force `section_id = section.id`** on every uploaded row — never call `inferSectionId(...)` here, so the file stays where the user dropped it (AC-2.2).
-  - Call `extract-document-data`, then **filter** the returned fields down to the field set owned by this section before calling `mergeExtractedFields(...)`. This guarantees Identity uploads only fill Identity fields, Academics only fill Academics fields, etc.
-  - Call `verify-document` so authenticity checks still run (AC-6.3).
-- Each section card renders an **"Information"** sub-block showing its own fields (read from `client_profile` / `client_education` and scoped per section) so the user sees auto-filled data in-place (AC-2.3).
-- PDF binder splitting (`split-binder`) on the section card keeps every split segment in the **current section** (override `targetSectionId = section.id`).
+### 3. Call sites pass document type
+Three places already know the doc type at merge time — pass it through:
+- `src/components/clients/SectionBuilderCard.tsx` (around line 330) → pass `effectiveType` and `customType`.
+- `src/components/documents/SmartUploadZone.tsx` (around line 372) → pass `effectiveType` and `customType`.
+- `src/pages/ClientDetail.tsx` re-extract loop (around line 176) → pass `effectiveType` and `d.custom_type`.
 
-### 2. Default + custom sections (AC-1.2, AC-1.3)
+### 4. Backfill / re-extract guidance
+For the user's current record where the Medical Report wrote bad passport data, re-running "Re-extract" after this fix will detect the real Passport document, see the existing source is non-passport, and override the bad fields. No migration needed.
 
-- The DB already has Identity / Academic(s) / Experience / Financial / Forms / Family / Supporting / Other / Additional. Add **Work Experience** and **Institutional Documents** rows to `case_sections` if missing.
-- Add a "+ New section" button on `ClientDetail.tsx`, opening a small dialog (label + key) that inserts into `case_sections` (admin-gated by existing RLS) and reloads sections. **No quantity cap.**
+## Technical Detail
 
-### 3. General (Smart) upload restricted to page-splitting (AC-3)
+```ts
+// src/lib/extractedFields.ts
+export const PASSPORT_AUTHORITATIVE_FIELDS: ProfileField[] = [
+  "date_of_birth", "passport_number", "passport_issue_date",
+  "passport_expiry", "passport_country", "nationality",
+  "place_of_birth", "gender",
+];
 
-In `src/pages/ClientDetail.tsx`:
+const isPassportDoc = (t?: string | null, c?: string | null) => {
+  const s = `${t ?? ""} ${c ?? ""}`.toLowerCase();
+  return /\bpassport\b/.test(s);
+};
 
-- Move `SmartUploadZone` out of the always-visible right column into a collapsed accordion titled **"Advanced: split a multi-doc PDF"**, with helper copy that this is only for splitting binders into pages — not the default upload.
-- Section uploaders become the primary surface above the accordion.
+// Inside merge loop, when current value exists and differs:
+const incomingIsPassport = isPassportDoc(documentType, customType);
+const existingSrc = sourceMap[field]; // {file_name, document_type} | string | undefined
+const existingType = typeof existingSrc === "string" ? null : existingSrc?.document_type ?? null;
+const existingIsPassport = isPassportDoc(existingType, null);
 
-### 4. Multi-binder builder with cross-section selection + ordering (AC-4)
-
-Replace the current `FinalBinderPanel` with a **CustomBindersPanel**:
-
-- Lists all binders for the client (uses existing `binders` table — `scope`, `group_label`, `included_items` columns already exist; **no schema change**).
-- "New binder" opens a dialog where the user:
-  - Names the binder (e.g. "Identity binder").
-  - Sees all documents grouped by section with checkboxes — pick any across sections (AC-4.2).
-  - Reorders the picked list with up/down (or dnd-kit) controls (AC-4.3).
-  - On save, runs `combinePdfsFromStorage(orderedPaths)`, uploads to storage, inserts a `binders` row with `scope='custom'`, `group_label=<name>`, `included_items=[{id, file_name, section_id}]` in chosen order. Order is preserved on export and sharing (AC-4.3).
-- Each binder row supports: **download**, **view (preview)**, **share-link** (reuse `ShareLinkDialog`), **edit** (re-opens dialog and regenerates), **delete** (admin only).
-- **No cap on number of binders** — the user can build as many independent IRCC-style binders as they need (AC-4.1, AC-4.4). Existing one-click "Full binder" / "Grouped binders" buttons are kept as optional shortcuts only.
-
-### 5. Required-docs visibility per binder (AC-5)
-
-In the binder dialog and on each binder card:
-
-- Show a **"Required documents"** strip driven by the workflow template's mandatory items.
-- For each required item, mark ✅ when at least one document in the binder matches that type, otherwise show a red "Missing" pill. Computed live from current `client_documents`, refreshes in real time (AC-5.2).
-
-### 6. Preserve existing features (AC-6) — verified end-to-end
-
-- **Preview**: `openClientDocument` + `InlinePreviewDialog` reused on both section docs and binder rows.
-- **Sharing**: `ShareLinkDialog` entry points kept for both `target_type='document'` and `target_type='binder'`. RLS / `share-resolve` unchanged.
-- **Verification**: section uploader calls `verify-document` after insert; existing `/verification` page links continue to work; verification status persists after extraction and after binder creation.
-- **Optimization**: every upload runs through `processToPdf`; the per-doc optimize button and "Re-optimize all" stay. Output stays viewable, shareable, and verifiable.
-
-### 7. End-to-end flow (AC-7)
-
-```text
-Upload inside section → fields auto-fill in same section ✓
-Create N custom binders, pick docs from any sections ✓
-Reorder docs inside binder → order persisted in included_items ✓
-Preview / share / verify / optimize keep working on docs and binders ✓
+if (PASSPORT_AUTHORITATIVE_FIELDS.includes(field)) {
+  if (incomingIsPassport && !existingIsPassport) {
+    // OVERRIDE
+    toWrite[field] = incoming;
+    sourceMap[field] = { file_name: fileName, document_type: documentType ?? null };
+    written.push(field);
+    overrides.push({ field, previous: current, previous_source: existingSrc, new_source: fileName });
+    continue;
+  }
+  if (!incomingIsPassport && existingIsPassport) {
+    // Passport already won, ignore non-passport
+    continue;
+  }
+}
+// else fall through to today's conflict path
 ```
 
-## Technical Details
+A new activity event `profile.fields_overridden` is logged whenever the override path fires so the audit trail is preserved.
 
-Files to edit / add:
+## Files Edited
+- `src/lib/extractedFields.ts`
+- `src/components/clients/ClientProfileCard.tsx`
+- `src/components/clients/SectionBuilderCard.tsx`
+- `src/components/documents/SmartUploadZone.tsx`
+- `src/pages/ClientDetail.tsx`
 
-- `src/components/clients/SectionBuilderCard.tsx` — wire real upload input, force `section_id`, run extract (scoped to this section's fields) + verify, render in-section "Information" block, replace the "Smart upload only" toast button.
-- `src/pages/ClientDetail.tsx` — add "+ New section" button, wrap `SmartUploadZone` in an "Advanced: split a multi-doc PDF" accordion, swap `FinalBinderPanel` for `CustomBindersPanel`.
-- `src/components/clients/CustomBindersPanel.tsx` (new) — list + create/edit dialog with cross-section picker, reorder, required-docs strip, share/download/delete. **Unlimited binders.**
-- `src/components/clients/AddSectionDialog.tsx` (new) — admin dialog to insert a row into `case_sections`.
-- `src/lib/sections.ts` — add `createSection({ key, label })` helper and a `fieldsForSection(key)` map used to filter extracted fields per section.
-
-No DB schema changes required (sections, binders, included_items already exist). No new edge functions. Existing extract / verify / split / share-resolve functions are reused.
-
-## Out of scope
-
-- No changes to auth, RLS, or storage buckets.
-- No changes to `processToPdf` or `combinePdfsFromStorage`.
-- The flat-list view stays available inside its existing accordion.
+## Out of Scope
+- Existing preview / share-link / verification / PDF-optimisation flows are untouched.
+- Section-scoped extraction logic from the previous refactor is untouched.
+- No DB migration: `source_documents` is already a `jsonb` column and accepts the richer shape.
