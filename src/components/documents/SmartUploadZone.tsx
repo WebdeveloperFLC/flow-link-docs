@@ -100,7 +100,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
-  const [preview, setPreview] = useState<{ url: string; mime: string; name: string } | null>(null);
+  const [preview, setPreview] = useState<{ url: string; mime: string; name: string; pageImages?: string[]; loadingPages?: boolean } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -497,7 +497,23 @@ export const SmartUploadZone = ({
   const previewFile = (file: File) => {
     if (preview?.url) URL.revokeObjectURL(preview.url);
     const built = buildLocalPreviewUrl(file);
-    setPreview({ url: built.url, mime: built.mime, name: file.name });
+    const isPdf = built.mime === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    setPreview({ url: built.url, mime: built.mime, name: file.name, loadingPages: isPdf });
+    if (isPdf) {
+      renderPdfPagesToJpegDataUrls(file, 10, 120, 0.82)
+        .then((pageImages) => {
+          setPreview((current) => {
+            if (!current || current.url !== built.url) return current;
+            return { ...current, pageImages, loadingPages: false };
+          });
+        })
+        .catch(() => {
+          setPreview((current) => {
+            if (!current || current.url !== built.url) return current;
+            return { ...current, loadingPages: false };
+          });
+        });
+    }
   };
 
   /** User picked a document type for an item that came back as "Other". Still require owner review before upload. */
@@ -1118,6 +1134,8 @@ export const SmartUploadZone = ({
         url={preview?.url ?? null}
         mime={preview?.mime ?? "application/octet-stream"}
         fileName={preview?.name}
+        pageImages={preview?.pageImages}
+        loadingPages={preview?.loadingPages}
       />
     </Card>
   );
