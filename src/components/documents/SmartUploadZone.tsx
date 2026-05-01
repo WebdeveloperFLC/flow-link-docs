@@ -1100,6 +1100,17 @@ export const SmartUploadZone = ({
           <Loader2 className="size-3 animate-spin" /> Identifying & processing…
         </div>
       )}
+      <InlinePreviewDialog
+        open={!!preview}
+        onOpenChange={(o) => {
+          if (!o && preview?.url) URL.revokeObjectURL(preview.url);
+          if (!o) setPreview(null);
+        }}
+        title={preview?.name ?? "Preview"}
+        url={preview?.url ?? null}
+        mime={preview?.mime ?? "application/octet-stream"}
+        fileName={preview?.name}
+      />
     </Card>
   );
 };
