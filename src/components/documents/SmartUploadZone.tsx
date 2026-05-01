@@ -516,9 +516,10 @@ export const SmartUploadZone = ({
 
   const confirmOwner = async (idx: number) => {
     const item = queue[idx];
-    if (!item || !item.predictedType || !item.ownerId) return;
+    const ownerId = item?.ownerId ?? applicant?.id ?? null;
+    if (!item || !item.predictedType || !ownerId) return;
     const needsOverride = item.verificationIssue === "owner_not_readable";
-    await uploadOne(idx, item, item.predictedType, item.customType, item.ownerId, client, needsOverride);
+    await uploadOne(idx, item, item.predictedType, item.customType, ownerId, client, needsOverride);
     onUploaded();
   };
 
