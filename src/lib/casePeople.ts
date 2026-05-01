@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type PersonRole = "applicant" | "co_applicant" | "dependant";
+export type PersonRole = "applicant" | "co_applicant" | "dependant" | "sponsor" | "co_sponsor";
 
 export interface CasePerson {
   id: string;
@@ -18,12 +18,16 @@ export const ROLE_LABEL: Record<PersonRole, string> = {
   applicant: "Applicant",
   co_applicant: "Co-applicant",
   dependant: "Dependant",
+  sponsor: "Sponsor",
+  co_sponsor: "Co-sponsor",
 };
 
 export const ROLE_SHORT: Record<PersonRole, string> = {
   applicant: "Applicant",
   co_applicant: "CoApplicant",
   dependant: "Dependant",
+  sponsor: "Sponsor",
+  co_sponsor: "CoSponsor",
 };
 
 export async function fetchCasePeople(clientId: string): Promise<CasePerson[]> {
@@ -38,9 +42,11 @@ export async function fetchCasePeople(clientId: string): Promise<CasePerson[]> {
   return (data ?? []) as CasePerson[];
 }
 
-/** Sort applicant first, then co-applicants, then dependants. */
+/** Sort applicant first, then co-applicants, dependants, sponsor, co-sponsor. */
 export function sortRoster(roster: CasePerson[]): CasePerson[] {
-  const order: Record<PersonRole, number> = { applicant: 0, co_applicant: 1, dependant: 2 };
+  const order: Record<PersonRole, number> = {
+    applicant: 0, co_applicant: 1, dependant: 2, sponsor: 3, co_sponsor: 4,
+  };
   return [...roster].sort((a, b) => order[a.role] - order[b.role] || a.full_name.localeCompare(b.full_name));
 }
 
