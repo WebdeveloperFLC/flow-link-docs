@@ -21,6 +21,7 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { previewLocalFile } from "@/lib/documentPreview";
 
 interface Client { id: string; full_name: string; }
 
@@ -480,22 +481,8 @@ export const SmartUploadZone = ({
   };
 
   /** Open the local file in a new tab so the user can sanity-check it before
-   *  confirming a label / owner. Works for PDFs and images without any
-   *  storage round-trip. */
-  const previewFile = (file: File) => {
-    try {
-      const url = URL.createObjectURL(file);
-      const win = window.open(url, "_blank");
-      if (!win) {
-        const a = document.createElement("a");
-        a.href = url; a.target = "_blank"; a.rel = "noopener";
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      toast.error("Preview unavailable");
-    }
-  };
+   *  confirming a label / owner. */
+  const previewFile = (file: File) => previewLocalFile(file);
 
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
   const confirmType = async (idx: number, newType: string) => {

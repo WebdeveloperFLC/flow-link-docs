@@ -24,6 +24,7 @@ import {
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
+import { openClientDocument } from "@/lib/documentPreview";
 
 function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
@@ -382,12 +383,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   const onView = async (d: SectionDoc) => {
-    const { data } = await supabase.storage.from("client-documents").download(d.storage_path);
-    if (!data) return;
-    const blob = new Blob([await data.arrayBuffer()], { type: d.mime_type || "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    await openClientDocument({
+      storagePath: d.storage_path,
+      fileName: d.file_name,
+      mimeType: d.mime_type,
+    });
   };
 
   const onDownload = async (d: SectionDoc) => {
