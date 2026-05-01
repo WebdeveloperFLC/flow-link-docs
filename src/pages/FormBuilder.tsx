@@ -80,6 +80,18 @@ const STEPS = [
 ] as const;
 type StepId = typeof STEPS[number]["id"];
 
+const GENERIC_DEFAULT_FIELD_IDS = new Set([
+  "full_name", "date_of_birth", "gender", "nationality", "passport_number", "passport_expiry",
+  "marital_status", "address_line1", "address_city", "address_country", "phone_alt", "email_alt",
+  "travel_history", "highest_qualification", "institution_name", "graduation_year", "employer_name",
+  "job_title", "annual_income", "bank_name", "account_balance", "family_members",
+]);
+
+const isGenericDefaultSchema = (sections: Section[] | null | undefined) => {
+  const fields = (sections ?? []).flatMap((s) => s.fields ?? []);
+  return fields.length === GENERIC_DEFAULT_FIELD_IDS.size && fields.every((f) => GENERIC_DEFAULT_FIELD_IDS.has(f.id));
+};
+
 const FormBuilder = () => {
   const { formId } = useParams<{ formId: string }>();
   const navigate = useNavigate();
@@ -119,13 +131,13 @@ const FormBuilder = () => {
     setRequiresVal(row.requires_validation);
     setEmailTemplates((t ?? []) as Array<{ id: string; name: string }>);
 
-    const { data: schema } = await supabase
+    const { data: schemas } = await supabase
       .from("questionnaire_schemas")
       .select("sections")
       .eq("form_id", formId)
       .order("version", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
+    const schema = (schemas ?? []).find((s) => !isGenericDefaultSchema(s.sections as unknown as Section[]));
     if (schema?.sections) setSections(schema.sections as unknown as Section[]);
     else setSections([]);
 
