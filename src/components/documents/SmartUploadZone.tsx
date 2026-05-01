@@ -115,7 +115,7 @@ export const SmartUploadZone = ({
         patch(idx, { status: "identifying" });
         const c = await classifyDocument(
           item.file,
-          templateTypes,
+          allowedDocumentTypes,
           people.map((p) => p.full_name),
         );
         const match = matchPersonRoster(c.ownerName ?? null, people);
@@ -209,7 +209,7 @@ export const SmartUploadZone = ({
         return null;
       }
     },
-    [templateTypes, people, isMulti, applicant, client.id],
+    [allowedDocumentTypes, people, isMulti, applicant, client.id],
   );
 
   const uploadOne = async (
