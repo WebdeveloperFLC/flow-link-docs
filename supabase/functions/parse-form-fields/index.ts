@@ -309,55 +309,6 @@ function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
     .map(([key, fs]) => ({ key, label: labels[key], fields: fs }));
 }
 
-const DEFAULT_SECTIONS: SectionDef[] = [
-  {
-    key: "personal", label: "Personal Information", fields: [
-      { id: "full_name", label: "Full legal name", type: "text", required: true },
-      { id: "date_of_birth", label: "Date of birth", type: "date", required: true, mapping_key: "date_of_birth" },
-      { id: "gender", label: "Gender", type: "dropdown", options: ["Male","Female","Other"], mapping_key: "gender" },
-      { id: "nationality", label: "Nationality", type: "text", mapping_key: "nationality" },
-      { id: "passport_number", label: "Passport number", type: "text", mapping_key: "passport_number" },
-      { id: "passport_expiry", label: "Passport expiry", type: "date", mapping_key: "passport_expiry" },
-      { id: "marital_status", label: "Marital status", type: "dropdown", options: ["Single","Married","Divorced","Widowed"], mapping_key: "marital_status" },
-      { id: "address_line1", label: "Address", type: "text", mapping_key: "address_line1" },
-      { id: "address_city", label: "City", type: "text", mapping_key: "address_city" },
-      { id: "address_country", label: "Country", type: "text", mapping_key: "address_country" },
-      { id: "phone_alt", label: "Phone", type: "text", mapping_key: "phone_alt" },
-      { id: "email_alt", label: "Email", type: "text", mapping_key: "email_alt" },
-    ],
-  },
-  {
-    key: "travel", label: "Travel History", fields: [
-      { id: "travel_history", label: "Previous trips", type: "multi_entry", repeatable: true },
-    ],
-  },
-  {
-    key: "education", label: "Education", fields: [
-      { id: "highest_qualification", label: "Highest qualification", type: "text", mapping_key: "highest_qualification" },
-      { id: "institution_name", label: "Institution", type: "text", mapping_key: "institution_name" },
-      { id: "graduation_year", label: "Graduation year", type: "number", mapping_key: "graduation_year" },
-    ],
-  },
-  {
-    key: "employment", label: "Employment", fields: [
-      { id: "employer_name", label: "Employer", type: "text", mapping_key: "employer_name" },
-      { id: "job_title", label: "Job title", type: "text", mapping_key: "job_title" },
-      { id: "annual_income", label: "Annual income", type: "number", mapping_key: "annual_income" },
-    ],
-  },
-  {
-    key: "financial", label: "Financial Information", fields: [
-      { id: "bank_name", label: "Bank", type: "text", mapping_key: "bank_name" },
-      { id: "account_balance", label: "Account balance", type: "number", mapping_key: "account_balance" },
-    ],
-  },
-  {
-    key: "family", label: "Family Details", fields: [
-      { id: "family_members", label: "Family members", type: "multi_entry", repeatable: true },
-    ],
-  },
-];
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
