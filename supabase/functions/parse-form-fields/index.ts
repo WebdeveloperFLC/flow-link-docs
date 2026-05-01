@@ -411,6 +411,122 @@ function extractFieldsFromVisibleText(text: string): FieldDef[] {
   });
 }
 
+function field(id: string, label: string, type: FieldDef["type"] = "text", required = false, options?: string[]): FieldDef {
+  return { id, pdf_field: id, label, type, required, options, mapping_key: mappingFor(label) };
+}
+
+function knownFormTemplate(form: { name?: string; code?: string | null; file_name?: string | null }): SectionDef[] | null {
+  const key = `${form.code ?? ""} ${form.name ?? ""} ${form.file_name ?? ""}`.toLowerCase();
+  if (!/imm\s*1295|1295|work permit made outside of canada|work permit/.test(key)) return null;
+  return [
+    { key: "personal", label: "Personal Details", fields: [
+      field("uci", "UCI"),
+      field("service_language", "I want service in", "dropdown", true, ["English", "French"]),
+      field("family_name", "Family name (as shown on passport or travel document)", "text", true),
+      field("given_names", "Given name(s) (as shown on passport or travel document)"),
+      field("used_other_name", "Have you ever used any other name?", "yes_no"),
+      field("other_family_name", "Other family name"),
+      field("other_given_names", "Other given name(s)"),
+      field("sex", "Sex", "dropdown", true, ["Female", "Male", "X"]),
+      field("date_of_birth", "Date of birth", "date", true),
+      field("place_of_birth_city", "Place of birth - City/Town", "text", true),
+      field("place_of_birth_country", "Place of birth - Country or Territory", "text", true),
+      field("citizenship", "Citizenship", "text", true),
+      field("current_country", "Current country or territory of residence", "text", true),
+      field("current_status", "Current residence status", "text", true),
+      field("current_status_other", "Current residence status - Other"),
+      field("current_status_from", "Current residence status from", "date"),
+      field("current_status_to", "Current residence status to", "date"),
+      field("previous_residence_over_six_months", "During the past five years, lived in another country for more than six months?", "yes_no"),
+      field("previous_country", "Previous country or territory of residence"),
+      field("previous_status", "Previous residence status"),
+      field("previous_from", "Previous residence from", "date"),
+      field("previous_to", "Previous residence to", "date"),
+      field("applying_same_as_residence", "Country where applying is same as current residence?", "yes_no"),
+      field("marital_status", "Current marital status", "dropdown", true, ["Annulled Marriage", "Common-Law", "Divorced", "Legally Separated", "Married", "Single", "Widowed"]),
+      field("marriage_date", "Date married or entered common-law relationship", "date"),
+      field("spouse_family_name", "Current spouse/common-law partner family name"),
+      field("spouse_given_names", "Current spouse/common-law partner given name(s)"),
+      field("previous_marriage", "Previously married or in a common-law relationship?", "yes_no"),
+    ] },
+    { key: "language_passport", label: "Languages, Passport and ID", fields: [
+      field("native_language", "Native language/Mother tongue", "text", true),
+      field("can_communicate_english_french", "Able to communicate in English and/or French?", "yes_no", true),
+      field("most_at_ease_language", "Language most at ease", "dropdown", false, ["English", "French", "Both", "Neither"]),
+      field("language_test_taken", "Taken a designated English or French language test?", "yes_no"),
+      field("passport_number", "Passport number", "text", true),
+      field("passport_country", "Country or territory of issue", "text", true),
+      field("passport_issue_date", "Passport issue date", "date", true),
+      field("passport_expiry", "Passport expiry date", "date", true),
+      field("taiwan_mofa_passport", "Using a Taiwan Ministry of Foreign Affairs passport with personal ID number?", "yes_no"),
+      field("israeli_national_passport", "Using an Israeli national passport?", "yes_no"),
+      field("has_national_identity_document", "Do you have a national identity document?", "yes_no"),
+      field("national_id_number", "National identity document number"),
+      field("national_id_country", "National identity document country or territory of issue"),
+      field("national_id_issue_date", "National identity document issue date", "date"),
+      field("national_id_expiry_date", "National identity document expiry date", "date"),
+      field("us_pr_card", "Lawful Permanent Resident of the United States with valid green card?", "yes_no"),
+      field("us_pr_document_number", "US PR card document number"),
+      field("us_pr_expiry_date", "US PR card expiry date", "date"),
+    ] },
+    { key: "contact", label: "Contact Information", fields: [
+      field("mailing_po_box", "Mailing address - P.O. box"),
+      field("mailing_apt_unit", "Mailing address - Apt/Unit"),
+      field("mailing_street_no", "Mailing address - Street no."),
+      field("mailing_street_name", "Mailing address - Street name", "text", true),
+      field("mailing_city", "Mailing address - City/Town", "text", true),
+      field("mailing_country", "Mailing address - Country or Territory", "text", true),
+      field("mailing_province_state", "Mailing address - Province/State"),
+      field("mailing_postal_code", "Mailing address - Postal code"),
+      field("residential_same_as_mailing", "Residential address same as mailing address?", "yes_no"),
+      field("residential_address", "Residential address", "textarea"),
+      field("telephone_type", "Telephone type"),
+      field("telephone_country_code", "Telephone country code"),
+      field("telephone_number", "Telephone number"),
+      field("telephone_ext", "Telephone extension"),
+      field("alternate_telephone_number", "Alternate telephone number"),
+      field("fax_number", "Fax number"),
+      field("email_alt", "E-mail address"),
+    ] },
+    { key: "work_education_employment", label: "Work, Education and Employment", fields: [
+      field("work_permit_type", "Type of work permit applying for", "text", true),
+      field("employer_name", "Name of employer"),
+      field("employer_address", "Complete address of employer", "textarea"),
+      field("employment_province", "Intended location of employment - Province"),
+      field("employment_city", "Intended location of employment - City/Town"),
+      field("employment_address", "Intended location of employment - Address"),
+      field("job_title", "Job title in Canada", "text", true),
+      field("job_duties", "Brief description of duties", "textarea", true),
+      field("employment_from", "Duration of expected employment - From", "date"),
+      field("employment_to", "Duration of expected employment - To", "date"),
+      field("lmia_or_offer_number", "LMIA No. or Offer of Employment No."),
+      field("post_secondary_education", "Have you had any post secondary education?", "yes_no"),
+      field("education_from", "Education from", "date"),
+      field("education_to", "Education to", "date"),
+      field("field_level_of_study", "Field and level of study"),
+      field("school_name", "School/Facility name"),
+      field("employment_history", "Employment history for the past 10 years", "multi_entry"),
+    ] },
+    { key: "background_signature", label: "Background Information and Signature", fields: [
+      field("tb_contact", "Tuberculosis or close contact in past two years?", "yes_no"),
+      field("health_services_required", "Physical or mental disorder requiring services during stay in Canada?", "yes_no"),
+      field("health_details", "Health details", "textarea"),
+      field("status_violation", "Remained beyond status, studied or worked without authorization in Canada?", "yes_no"),
+      field("refused_visa_or_entry", "Refused visa/permit, denied entry, or ordered to leave any country?", "yes_no"),
+      field("previously_applied_canada", "Previously applied to enter or remain in Canada?", "yes_no"),
+      field("immigration_details", "Immigration history details", "textarea"),
+      field("criminal_offence", "Committed, arrested for, charged with, or convicted of any criminal offence?", "yes_no"),
+      field("criminal_details", "Criminal offence details", "textarea"),
+      field("military_service", "Served in military, militia, civil defence, security organization or police force?", "yes_no"),
+      field("military_details", "Military/service details", "textarea"),
+      field("political_violence_association", "Member or associated with group advocating violence or criminal activity?", "yes_no"),
+      field("witnessed_ill_treatment", "Witnessed or participated in ill treatment of prisoners/civilians, looting or desecration?", "yes_no"),
+      field("ircc_contact_consent", "Consent to be contacted by IRCC in the future?", "yes_no"),
+      field("signature_date", "Signature date", "date"),
+    ] },
+  ];
+}
+
 function buildSchemaFromFields(fields: FieldDef[]): SectionDef[] {
   const buckets: Record<string, FieldDef[]> = {
     personal: [], travel: [], education: [], employment: [],
@@ -565,7 +681,8 @@ Deno.serve(async (req) => {
     const acro = await extractAcroFields(bytes);
 
     let detectedFields: FieldDef[] = acro;
-    let source: "acroform" | "xfa" | "text" | "ai" | "none" = "acroform";
+    let detectedSections: SectionDef[] | null = null;
+    let source: "acroform" | "xfa" | "text" | "template" | "ai" | "none" = "acroform";
 
     if (detectedFields.length < 3) {
       const xml = await extractXfaTemplateXml(bytes);
@@ -593,6 +710,16 @@ Deno.serve(async (req) => {
     }
 
     if (detectedFields.length < 3) {
+      const templated = knownFormTemplate(form);
+      if (templated) {
+        detectedSections = templated;
+        detectedFields = templated.flatMap((s) => s.fields);
+        source = "template";
+        console.log(`Known template fields detected for ${form.name}: ${detectedFields.length}`);
+      }
+    }
+
+    if (detectedFields.length < 3) {
       console.log(`Falling back to AI vision for ${form.name}`);
       const ai = await extractFieldsWithAI(bytes, form.name);
       console.log(`AI fields detected for ${form.name}: ${ai.length}`);
@@ -609,7 +736,7 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const sections = buildSchemaFromFields(detectedFields);
+    const sections = detectedSections ?? buildSchemaFromFields(detectedFields);
 
     const mappings: Record<string, { table: string; column: string }> = {};
     for (const s of sections) {
