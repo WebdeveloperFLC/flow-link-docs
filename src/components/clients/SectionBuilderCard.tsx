@@ -197,7 +197,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         let docType = seg.preType ?? "Other";
         let customType: string | null = seg.preLabel ?? null;
         try {
-          const c = await classifyDocument(f, DOCUMENT_TYPES);
+          const c = await classifyDocument(f, allowedDocumentTypes);
           if (c?.type) {
             docType = c.type;
             customType = c.type === "Other" ? (c.customType ?? prettyTitle(f.name)) : null;
