@@ -665,6 +665,12 @@ export const SmartUploadZone = ({
         .map((it, i) => ({ it, i }))
         .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
       if (!segs.length) return;
+      // Require preview at least once per segment.
+      const unseen = segs.filter(({ it }) => !it.previewed);
+      if (unseen.length) {
+        toast.error(`Preview each segment before uploading (${unseen.length} not yet previewed).`);
+        return;
+      }
       // Hard guard: a likely binder must never upload as one full-range segment.
       // If that's the only thing in the queue for this binder, explode it into
       // page-level segments first so each page can be classified individually.
