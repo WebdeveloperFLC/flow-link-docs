@@ -417,6 +417,380 @@ function field(id: string, label: string, type: FieldDef["type"] = "text", requi
 
 function knownFormTemplate(form: { name?: string; code?: string | null; file_name?: string | null }): SectionDef[] | null {
   const key = `${form.code ?? ""} ${form.name ?? ""} ${form.file_name ?? ""}`.toLowerCase();
+
+  // ---------- IMM 5257 — Application for Temporary Resident Visa / Visitor Visa ----------
+  if (/imm\s*5257|5257|temporary resident visa|visitor visa|application for temporary residence|schedule 1/.test(key)) {
+    return [
+      { key: "personal", label: "Personal Details", fields: [
+        field("uci", "UCI"),
+        field("service_language", "I want service in", "dropdown", true, ["English", "French"]),
+        field("visa_requested", "Visa requested", "dropdown", true, ["Visitor visa", "Transit visa", "Super visa"]),
+        field("family_name", "Family name (as shown on passport)", "text", true),
+        field("given_names", "Given name(s) (as shown on passport)"),
+        field("used_other_name", "Have you ever used any other name?", "yes_no"),
+        field("other_family_name", "Other family name"),
+        field("other_given_names", "Other given name(s)"),
+        field("sex", "Sex", "dropdown", true, ["Female", "Male", "X"]),
+        field("date_of_birth", "Date of birth", "date", true),
+        field("place_of_birth_city", "Place of birth - City/Town", "text", true),
+        field("place_of_birth_country", "Place of birth - Country or Territory", "text", true),
+        field("citizenship", "Citizenship", "text", true),
+        field("current_country", "Current country or territory of residence", "text", true),
+        field("current_status", "Current residence status", "text", true),
+        field("current_status_from", "Current residence status - From", "date"),
+        field("current_status_to", "Current residence status - To", "date"),
+        field("previous_residence_over_six_months", "Lived in another country for more than six months in past five years?", "yes_no"),
+        field("previous_country", "Previous country or territory of residence"),
+        field("marital_status", "Current marital status", "dropdown", true, ["Annulled Marriage", "Common-Law", "Divorced", "Legally Separated", "Married", "Single", "Widowed"]),
+        field("marriage_date", "Date of marriage / common-law", "date"),
+        field("spouse_family_name", "Spouse family name"),
+        field("spouse_given_names", "Spouse given name(s)"),
+        field("previous_marriage", "Previously married or in a common-law relationship?", "yes_no"),
+      ] },
+      { key: "language_passport", label: "Languages, Passport and ID", fields: [
+        field("native_language", "Native language / Mother tongue", "text", true),
+        field("can_communicate_english_french", "Able to communicate in English and/or French?", "yes_no", true),
+        field("most_at_ease_language", "Language most at ease", "dropdown", false, ["English", "French", "Both", "Neither"]),
+        field("language_test_taken", "Have you taken a designated English or French language test?", "yes_no"),
+        field("passport_number", "Passport number", "text", true),
+        field("passport_country", "Country or territory of issue", "text", true),
+        field("passport_issue_date", "Passport issue date", "date", true),
+        field("passport_expiry", "Passport expiry date", "date", true),
+        field("taiwan_mofa_passport", "Using a Taiwan Ministry of Foreign Affairs passport?", "yes_no"),
+        field("israeli_national_passport", "Using an Israeli national passport?", "yes_no"),
+        field("has_national_identity_document", "Do you have a national identity document?", "yes_no"),
+        field("national_id_number", "National identity document number"),
+        field("national_id_country", "National identity document country of issue"),
+        field("us_pr_card", "Lawful Permanent Resident of the United States with valid green card?", "yes_no"),
+        field("us_pr_document_number", "US PR card document number"),
+        field("us_pr_expiry_date", "US PR card expiry date", "date"),
+      ] },
+      { key: "contact", label: "Contact Information", fields: [
+        field("mailing_po_box", "Mailing address - P.O. box"),
+        field("mailing_apt_unit", "Mailing address - Apt/Unit"),
+        field("mailing_street_no", "Mailing address - Street no."),
+        field("mailing_street_name", "Mailing address - Street name", "text", true),
+        field("mailing_city", "Mailing address - City/Town", "text", true),
+        field("mailing_country", "Mailing address - Country or Territory", "text", true),
+        field("mailing_province_state", "Mailing address - Province/State"),
+        field("mailing_postal_code", "Mailing address - Postal code"),
+        field("residential_same_as_mailing", "Residential address same as mailing address?", "yes_no"),
+        field("residential_address", "Residential address", "textarea"),
+        field("telephone_country_code", "Telephone country code"),
+        field("telephone_number", "Telephone number"),
+        field("alternate_telephone_number", "Alternate telephone number"),
+        field("fax_number", "Fax number"),
+        field("email_alt", "E-mail address"),
+      ] },
+      { key: "details_of_visit", label: "Details of Visit to Canada", fields: [
+        field("purpose_of_visit", "Purpose of visit", "dropdown", true, ["Tourism", "Business", "Visit family", "Study", "Work", "Returning student", "Returning worker", "Other"]),
+        field("purpose_other", "Other purpose details"),
+        field("intended_arrival", "Intended date of arrival", "date"),
+        field("intended_departure", "Intended date of departure", "date"),
+        field("funds_available_cad", "Funds available for stay (CAD)", "number"),
+        field("host_name_in_canada", "Name of host in Canada"),
+        field("host_relationship", "Relationship to host"),
+        field("host_address", "Host address in Canada", "textarea"),
+      ] },
+      { key: "education_employment", label: "Education and Employment", fields: [
+        field("post_secondary_education", "Have you had any post-secondary education?", "yes_no"),
+        field("education_from", "Education from", "date"),
+        field("education_to", "Education to", "date"),
+        field("field_level_of_study", "Field and level of study"),
+        field("school_name", "School / Facility name"),
+        field("current_activity", "Current occupation / activity", "text"),
+        field("current_employer", "Current employer / company name"),
+        field("employer_address", "Employer address", "textarea"),
+        field("employment_from", "Current employment - From", "date"),
+        field("employment_to", "Current employment - To", "date"),
+        field("employment_history", "Employment history (past 10 years)", "multi_entry"),
+      ] },
+      { key: "background", label: "Background Information", fields: [
+        field("tb_contact", "Tuberculosis or close contact in past two years?", "yes_no"),
+        field("health_services_required", "Disorder requiring services during stay in Canada?", "yes_no"),
+        field("status_violation", "Remained beyond status, studied or worked without authorization in Canada?", "yes_no"),
+        field("refused_visa_or_entry", "Refused visa/permit, denied entry, or ordered to leave any country?", "yes_no"),
+        field("previously_applied_canada", "Previously applied to enter or remain in Canada?", "yes_no"),
+        field("immigration_details", "Immigration history details", "textarea"),
+        field("criminal_offence", "Committed, arrested for, charged with, or convicted of any criminal offence?", "yes_no"),
+        field("criminal_details", "Criminal offence details", "textarea"),
+        field("military_service", "Served in any military, militia, civil defence, security or police force?", "yes_no"),
+        field("political_violence_association", "Associated with a group advocating violence?", "yes_no"),
+        field("witnessed_ill_treatment", "Witnessed or participated in ill treatment of prisoners or civilians?", "yes_no"),
+        field("ircc_contact_consent", "Consent to be contacted by IRCC in the future?", "yes_no"),
+        field("signature_date", "Signature date", "date"),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 5645 / 5654 — Family Information ----------
+  if (/imm\s*5645|5645|imm\s*5654|5654|family information/.test(key)) {
+    const personFields = (prefix: string, label: string): FieldDef[] => [
+      field(`${prefix}_full_name`, `${label} - Full name`),
+      field(`${prefix}_dob`, `${label} - Date of birth`, "date"),
+      field(`${prefix}_country_of_birth`, `${label} - Country of birth`),
+      field(`${prefix}_present_address`, `${label} - Present address`, "textarea"),
+      field(`${prefix}_marital_status`, `${label} - Marital status`),
+      field(`${prefix}_present_occupation`, `${label} - Present occupation`),
+      field(`${prefix}_company`, `${label} - Company / employer`),
+      field(`${prefix}_will_accompany`, `${label} - Will accompany you to Canada?`, "yes_no"),
+    ];
+    return [
+      { key: "applicant", label: "Applicant", fields: personFields("applicant", "Applicant") },
+      { key: "spouse", label: "Spouse / Common-law partner", fields: personFields("spouse", "Spouse") },
+      { key: "mother", label: "Mother", fields: personFields("mother", "Mother") },
+      { key: "father", label: "Father", fields: personFields("father", "Father") },
+      { key: "children", label: "Children", fields: [
+        field("children_list", "Children (full name, DOB, address, relationship, accompanying)", "multi_entry"),
+      ] },
+      { key: "siblings", label: "Brothers and Sisters", fields: [
+        field("siblings_list", "Siblings (full name, DOB, address, relationship, accompanying)", "multi_entry"),
+      ] },
+      { key: "signature", label: "Signature", fields: [
+        field("signature_date", "Signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 5707 — Family Information (alternate / Schengen-style) ----------
+  if (/imm\s*5707|5707/.test(key)) {
+    return [
+      { key: "applicant", label: "Applicant Information", fields: [
+        field("family_name", "Family name", "text", true),
+        field("given_names", "Given name(s)", "text", true),
+        field("date_of_birth", "Date of birth", "date", true),
+        field("country_of_birth", "Country of birth", "text", true),
+        field("citizenship", "Citizenship", "text", true),
+        field("present_address", "Present address", "textarea", true),
+        field("marital_status", "Marital status", "dropdown", false, ["Single", "Married", "Common-Law", "Divorced", "Separated", "Widowed"]),
+      ] },
+      { key: "spouse", label: "Spouse / Common-law Partner", fields: [
+        field("spouse_full_name", "Spouse full name"),
+        field("spouse_dob", "Spouse date of birth", "date"),
+        field("spouse_country_of_birth", "Spouse country of birth"),
+        field("spouse_address", "Spouse address", "textarea"),
+      ] },
+      { key: "parents", label: "Parents", fields: [
+        field("mother_full_name", "Mother full name"),
+        field("mother_dob", "Mother date of birth", "date"),
+        field("mother_country_of_birth", "Mother country of birth"),
+        field("mother_address", "Mother present address", "textarea"),
+        field("father_full_name", "Father full name"),
+        field("father_dob", "Father date of birth", "date"),
+        field("father_country_of_birth", "Father country of birth"),
+        field("father_address", "Father present address", "textarea"),
+      ] },
+      { key: "children", label: "Children", fields: [
+        field("children_list", "Children list (name, DOB, country of birth, address, relationship)", "multi_entry"),
+      ] },
+      { key: "siblings", label: "Siblings", fields: [
+        field("siblings_list", "Siblings list (name, DOB, country of birth, address, relationship)", "multi_entry"),
+      ] },
+      { key: "signature", label: "Signature", fields: [
+        field("signature_date", "Signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 5476 — Use of a Representative ----------
+  if (/imm\s*5476|5476|use of (a )?representative/.test(key)) {
+    return [
+      { key: "applicant", label: "Applicant Information", fields: [
+        field("family_name", "Applicant family name", "text", true),
+        field("given_names", "Applicant given name(s)", "text", true),
+        field("date_of_birth", "Applicant date of birth", "date", true),
+        field("uci", "UCI / Client ID"),
+        field("application_number", "Application / file number"),
+      ] },
+      { key: "appoint_representative", label: "Appointment of Representative", fields: [
+        field("appoint_or_cancel", "Appointment or cancellation?", "dropdown", true, ["Appoint", "Cancel"]),
+        field("rep_is_compensated", "Is the representative compensated?", "yes_no", true),
+        field("rep_type", "Representative type", "dropdown", true, ["Lawyer / Notary / Paralegal", "Immigration Consultant", "Friend / Family (uncompensated)", "Other"]),
+        field("rep_family_name", "Representative family name", "text", true),
+        field("rep_given_names", "Representative given name(s)", "text", true),
+        field("rep_organization", "Representative organization / firm"),
+        field("rep_membership_id", "Membership ID number (CICC / Law Society)"),
+        field("rep_province_body", "Province / regulatory body"),
+        field("rep_address", "Representative address", "textarea", true),
+        field("rep_phone", "Representative phone"),
+        field("rep_fax", "Representative fax"),
+        field("rep_email", "Representative email", "text", true),
+      ] },
+      { key: "consent", label: "Disclosure & Signature", fields: [
+        field("disclose_to_representative", "Consent to disclose information to representative?", "yes_no", true),
+        field("disclosure_period", "Period of disclosure"),
+        field("applicant_signature_date", "Applicant signature date", "date", true),
+        field("rep_signature_date", "Representative signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 1294 — Application for Study Permit Made Outside Canada ----------
+  if (/imm\s*1294|1294|study permit/.test(key)) {
+    return [
+      { key: "personal", label: "Personal Details", fields: [
+        field("uci", "UCI"),
+        field("service_language", "I want service in", "dropdown", true, ["English", "French"]),
+        field("family_name", "Family name", "text", true),
+        field("given_names", "Given name(s)", "text", true),
+        field("used_other_name", "Have you ever used any other name?", "yes_no"),
+        field("sex", "Sex", "dropdown", true, ["Female", "Male", "X"]),
+        field("date_of_birth", "Date of birth", "date", true),
+        field("place_of_birth_city", "Place of birth - City"),
+        field("place_of_birth_country", "Place of birth - Country", "text", true),
+        field("citizenship", "Citizenship", "text", true),
+        field("current_country", "Current country of residence", "text", true),
+        field("current_status", "Current residence status"),
+        field("marital_status", "Marital status", "dropdown", true, ["Single", "Married", "Common-Law", "Divorced", "Separated", "Widowed"]),
+      ] },
+      { key: "passport_id", label: "Passport and ID", fields: [
+        field("passport_number", "Passport number", "text", true),
+        field("passport_country", "Passport country of issue", "text", true),
+        field("passport_issue_date", "Passport issue date", "date", true),
+        field("passport_expiry", "Passport expiry date", "date", true),
+        field("native_language", "Native language", "text", true),
+        field("language_test_taken", "Designated language test taken?", "yes_no"),
+      ] },
+      { key: "contact", label: "Contact Information", fields: [
+        field("mailing_address", "Mailing address", "textarea", true),
+        field("residential_same_as_mailing", "Residential same as mailing?", "yes_no"),
+        field("residential_address", "Residential address", "textarea"),
+        field("telephone_number", "Telephone number"),
+        field("email_alt", "E-mail address", "text", true),
+      ] },
+      { key: "study_details", label: "Details of Intended Study in Canada", fields: [
+        field("school_name", "Name of school in Canada", "text", true),
+        field("dli_number", "DLI number"),
+        field("field_of_study", "Field of study", "text", true),
+        field("level_of_study", "Level of study", "dropdown", true, ["Secondary", "College", "Trade", "Bachelor", "Master", "PhD", "Other"]),
+        field("study_duration_from", "Duration - From", "date"),
+        field("study_duration_to", "Duration - To", "date"),
+        field("tuition_amount", "Tuition (CAD)", "number"),
+        field("room_board", "Room and board (CAD)", "number"),
+        field("other_expenses", "Other expenses (CAD)", "number"),
+        field("funds_available", "Funds available (CAD)", "number", true),
+        field("financial_support_source", "Source of financial support"),
+      ] },
+      { key: "education_history", label: "Education History", fields: [
+        field("education_history", "Post-secondary education history", "multi_entry"),
+      ] },
+      { key: "employment", label: "Employment", fields: [
+        field("current_activity", "Current occupation / activity"),
+        field("employer_name", "Current employer"),
+        field("employer_address", "Employer address", "textarea"),
+        field("employment_history", "Employment history (past 10 years)", "multi_entry"),
+      ] },
+      { key: "background", label: "Background Information", fields: [
+        field("tb_contact", "Tuberculosis or close contact?", "yes_no"),
+        field("status_violation", "Remained beyond status in Canada?", "yes_no"),
+        field("refused_visa_or_entry", "Refused visa or denied entry to any country?", "yes_no"),
+        field("criminal_offence", "Any criminal offence?", "yes_no"),
+        field("ircc_contact_consent", "Consent to IRCC contact?", "yes_no"),
+        field("signature_date", "Signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 5709 — Application to Change Conditions / Extend Stay as Student (PGWP) ----------
+  if (/imm\s*5709|5709|pgwp|post[- ]?graduation work permit|change conditions/.test(key)) {
+    return [
+      { key: "personal", label: "Personal Details", fields: [
+        field("uci", "UCI", "text", true),
+        field("family_name", "Family name", "text", true),
+        field("given_names", "Given name(s)", "text", true),
+        field("date_of_birth", "Date of birth", "date", true),
+        field("country_of_birth", "Country of birth", "text", true),
+        field("citizenship", "Citizenship", "text", true),
+        field("sex", "Sex", "dropdown", true, ["Female", "Male", "X"]),
+        field("marital_status", "Marital status"),
+      ] },
+      { key: "application_details", label: "Application Details", fields: [
+        field("application_type", "I am applying for", "dropdown", true, ["Restore my status as a student", "Initial work permit", "Extend my work permit", "Post-Graduation Work Permit", "Change conditions / Other"]),
+        field("date_entered_canada", "Date entered Canada", "date", true),
+        field("entry_status", "Status at entry", "text"),
+        field("status_expiry", "Current status expires on", "date"),
+        field("intended_status_to", "Requested new status to", "date"),
+      ] },
+      { key: "passport", label: "Passport and Contact", fields: [
+        field("passport_number", "Passport number", "text", true),
+        field("passport_country", "Passport country of issue", "text", true),
+        field("passport_issue_date", "Passport issue date", "date", true),
+        field("passport_expiry", "Passport expiry date", "date", true),
+        field("mailing_address", "Mailing address in Canada", "textarea", true),
+        field("telephone_number", "Telephone number"),
+        field("email_alt", "E-mail address", "text", true),
+      ] },
+      { key: "study_employment", label: "Study and Employment Details", fields: [
+        field("school_name", "Name of school last attended"),
+        field("dli_number", "DLI number"),
+        field("program_completed", "Program completed", "text"),
+        field("program_length_months", "Program length (months)", "number"),
+        field("completion_date", "Program completion date", "date"),
+        field("employer_name", "Proposed employer (if any)"),
+        field("job_title", "Job title (if any)"),
+        field("employer_address", "Employer address", "textarea"),
+      ] },
+      { key: "background", label: "Background Information", fields: [
+        field("tb_contact", "Tuberculosis or close contact?", "yes_no"),
+        field("refused_visa_or_entry", "Refused visa or denied entry?", "yes_no"),
+        field("criminal_offence", "Any criminal offence?", "yes_no"),
+        field("status_violation", "Worked or studied without authorization?", "yes_no"),
+        field("signature_date", "Signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 5710 — Application to Change Conditions, Extend Stay or Remain as Worker ----------
+  if (/imm\s*5710|5710|remain in canada as a worker|extend.*worker|change.*worker/.test(key)) {
+    return [
+      { key: "personal", label: "Personal Details", fields: [
+        field("uci", "UCI", "text", true),
+        field("family_name", "Family name", "text", true),
+        field("given_names", "Given name(s)", "text", true),
+        field("date_of_birth", "Date of birth", "date", true),
+        field("country_of_birth", "Country of birth", "text", true),
+        field("citizenship", "Citizenship", "text", true),
+        field("sex", "Sex", "dropdown", true, ["Female", "Male", "X"]),
+        field("marital_status", "Marital status"),
+      ] },
+      { key: "application_details", label: "Application Details", fields: [
+        field("application_type", "I am applying for", "dropdown", true, ["Initial work permit / WHP", "Extend my work permit", "Restore status as worker", "Change conditions / Other"]),
+        field("date_entered_canada", "Date entered Canada", "date", true),
+        field("entry_status", "Status at entry"),
+        field("status_expiry", "Current status expires on", "date"),
+        field("intended_status_to", "Requested new status to", "date"),
+      ] },
+      { key: "passport_contact", label: "Passport and Contact", fields: [
+        field("passport_number", "Passport number", "text", true),
+        field("passport_country", "Passport country of issue", "text", true),
+        field("passport_issue_date", "Passport issue date", "date", true),
+        field("passport_expiry", "Passport expiry date", "date", true),
+        field("mailing_address", "Mailing address in Canada", "textarea", true),
+        field("telephone_number", "Telephone number"),
+        field("email_alt", "E-mail address", "text", true),
+      ] },
+      { key: "employment", label: "Employment Details", fields: [
+        field("employer_name", "Employer name", "text", true),
+        field("employer_address", "Employer address", "textarea", true),
+        field("job_title", "Job title", "text", true),
+        field("noc_code", "NOC code"),
+        field("job_duties", "Brief description of duties", "textarea", true),
+        field("employment_from", "Employment from", "date", true),
+        field("employment_to", "Employment to", "date", true),
+        field("lmia_or_offer_number", "LMIA No. / Offer of Employment No."),
+        field("hourly_wage", "Hourly wage / salary", "text"),
+      ] },
+      { key: "background", label: "Background Information", fields: [
+        field("tb_contact", "Tuberculosis or close contact?", "yes_no"),
+        field("refused_visa_or_entry", "Refused visa or denied entry?", "yes_no"),
+        field("criminal_offence", "Any criminal offence?", "yes_no"),
+        field("status_violation", "Worked or studied without authorization?", "yes_no"),
+        field("signature_date", "Signature date", "date", true),
+      ] },
+    ];
+  }
+
+  // ---------- IMM 1295 — Application for Work Permit Made Outside Canada ----------
   if (!/imm\s*1295|1295|work permit made outside of canada|work permit/.test(key)) return null;
   return [
     { key: "personal", label: "Personal Details", fields: [
