@@ -153,6 +153,8 @@ export async function mergeExtractedFields(
   documentId: string,
   fileName: string,
   extracted: Extracted,
+  documentType?: string | null,
+  customType?: string | null,
 ): Promise<{ written: ProfileField[]; conflicts: { field: ProfileField; existing: unknown; incoming: unknown }[] }> {
   // 1. Sync primary phone to clients.phone (separate from profile)
   const phonePrimary = extracted.phone_primary?.toString().trim();
@@ -186,21 +188,39 @@ export async function mergeExtractedFields(
     .eq("client_id", clientId)
     .maybeSingle();
 
-  const sourceMap: Record<string, string> = (existing?.source_documents as Record<string, string> | null) ?? {};
+  const sourceMap: Record<string, SourceEntry> =
+    (existing?.source_documents as Record<string, SourceEntry> | null) ?? {};
   const toWrite: Record<string, unknown> = {};
   const written: ProfileField[] = [];
   const conflicts: { field: ProfileField; existing: unknown; incoming: unknown }[] = [];
+  const overrides: { field: ProfileField; previous: unknown; previous_source: SourceEntry | undefined; new_source: string }[] = [];
+
+  const incomingIsPassport = isPassportDoc(documentType, customType);
+  const newSourceEntry: SourceEntry = { file_name: fileName, document_type: documentType ?? null };
 
   for (const field of PROFILE_FIELDS) {
     const incoming = extracted[field];
     if (incoming === undefined || incoming === null || incoming === "") continue;
     const current = (existing as Record<string, unknown> | null)?.[field];
+    const isAuthField = (PASSPORT_AUTHORITATIVE_FIELDS as readonly string[]).includes(field);
+    const existingType = readSourceType(sourceMap[field]);
+    const existingIsPassport = isPassportDoc(existingType, null);
+
     if (current === null || current === undefined || current === "") {
       toWrite[field] = incoming;
-      sourceMap[field] = fileName;
+      sourceMap[field] = newSourceEntry;
       written.push(field);
     } else if (normalize(current) === normalize(incoming)) {
       // matches — nothing to do
+    } else if (isAuthField && incomingIsPassport && !existingIsPassport) {
+      // PASSPORT OVERRIDE: passport beats non-passport source for core identity fields
+      toWrite[field] = incoming;
+      overrides.push({ field, previous: current, previous_source: sourceMap[field], new_source: fileName });
+      sourceMap[field] = newSourceEntry;
+      written.push(field);
+    } else if (isAuthField && !incomingIsPassport && existingIsPassport) {
+      // Non-passport tries to overwrite passport-sourced field — silently ignore
+      continue;
     } else {
       conflicts.push({ field, existing: current, incoming });
     }
@@ -225,6 +245,21 @@ export async function mergeExtractedFields(
       document_id: documentId,
       file_name: fileName,
       fields: written,
+    });
+  }
+
+  if (overrides.length > 0) {
+    await logActivity("profile.fields_overridden", "client", clientId, {
+      document_id: documentId,
+      file_name: fileName,
+      document_type: documentType ?? null,
+      reason: "passport_authoritative",
+      overrides: overrides.map((o) => ({
+        field: o.field,
+        previous: o.previous,
+        previous_source: o.previous_source,
+        new_source: o.new_source,
+      })),
     });
   }
 
