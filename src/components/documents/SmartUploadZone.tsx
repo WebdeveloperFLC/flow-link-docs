@@ -468,6 +468,106 @@ export const SmartUploadZone = ({
     onUploaded();
   };
 
+  // ---------- Binder review controls ----------------------------------------
+
+  /** Re-slice the source PDF for an item using its current startPage/endPage. */
+  const rebuildSegmentFile = useCallback(async (item: QueueItem): Promise<File | null> => {
+    if (!item.binderSource || !item.startPage || !item.endPage) return null;
+    const stem = (item.binderSourceName ?? item.binderSource.name).replace(/\.pdf$/i, "");
+    const label = item.predictedType === "Other" ? (item.customType || "Segment") : (item.predictedType || "Segment");
+    const safe = String(label).replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+    const segName = `${stem}__${String((item.segIndex ?? 0) + 1).padStart(2, "0")}_${safe}_p${item.startPage}-${item.endPage}.pdf`;
+    try {
+      return await extractPagesAsPdfFile(item.binderSource, item.startPage, item.endPage, segName);
+    } catch (e) {
+      console.warn("rebuildSegmentFile failed", e);
+      return null;
+    }
+  }, []);
+
+  /** Merge segment at idx with the next segment in the same binder. */
+  const mergeWithNext = useCallback(
+    async (idx: number) => {
+      const cur = queue[idx];
+      if (!cur || !cur.binderId) return;
+      // Find next segment of the same binder (by segIndex order)
+      const peers = queue
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.binderId === cur.binderId && it.status !== "skipped" && it.status !== "done")
+        .sort((a, b) => (a.it.segIndex ?? 0) - (b.it.segIndex ?? 0));
+      const pos = peers.findIndex((p) => p.i === idx);
+      const next = peers[pos + 1];
+      if (!next) {
+        toast.message("No segment after this one to merge with.");
+        return;
+      }
+      const newStart = Math.min(cur.startPage ?? 1, next.it.startPage ?? 1);
+      const newEnd = Math.max(cur.endPage ?? 1, next.it.endPage ?? 1);
+      const merged: QueueItem = {
+        ...cur,
+        startPage: newStart,
+        endPage: newEnd,
+        // Keep the type with the broader confidence — use cur by default.
+        predictedType: cur.predictedType ?? next.it.predictedType,
+        customType: cur.customType ?? next.it.customType,
+        ownerId: cur.ownerId ?? next.it.ownerId,
+      };
+      const rebuiltFile = await rebuildSegmentFile(merged);
+      if (rebuiltFile) merged.file = rebuiltFile;
+      setQueue((q) => q.filter((_, i) => i !== next.i).map((it, i) => (i === idx ? merged : it)));
+      toast.success(`Merged segments → pages ${newStart}-${newEnd}`);
+    },
+    [queue, rebuildSegmentFile],
+  );
+
+  /** Update start/end page of a binder segment and re-slice the source PDF. */
+  const setSegmentRange = useCallback(
+    async (idx: number, startPage: number, endPage: number) => {
+      const cur = queue[idx];
+      if (!cur || !cur.binderId || !cur.totalSourcePages) return;
+      const total = cur.totalSourcePages;
+      const start = Math.max(1, Math.min(total, Math.floor(startPage)));
+      const end = Math.max(start, Math.min(total, Math.floor(endPage)));
+      const next: QueueItem = { ...cur, startPage: start, endPage: end };
+      const rebuiltFile = await rebuildSegmentFile(next);
+      if (rebuiltFile) next.file = rebuiltFile;
+      patch(idx, { startPage: start, endPage: end, file: next.file });
+    },
+    [queue, rebuildSegmentFile],
+  );
+
+  /** Set the predicted document type of a segment (without re-uploading yet). */
+  const setSegmentType = useCallback((idx: number, type: string) => {
+    patch(idx, { predictedType: type, customType: type === "Other" ? queue[idx]?.customType : undefined });
+  }, [queue]);
+
+  /** Remove a segment from the queue without uploading it. */
+  const dropSegment = useCallback((idx: number) => {
+    setQueue((q) => q.filter((_, i) => i !== idx));
+  }, []);
+
+  /** Upload every awaiting_review segment in this binder using the current settings. */
+  const uploadBinder = useCallback(
+    async (binderId: string) => {
+      const segs = queue
+        .map((it, i) => ({ it, i }))
+        .filter(({ it }) => it.binderId === binderId && it.status === "awaiting_review");
+      if (!segs.length) return;
+      setBusy(true);
+      try {
+        for (const { it, i } of segs) {
+          const type = it.predictedType || "Other";
+          const ownerId = it.ownerId ?? applicant?.id ?? null;
+          await uploadOne(i, it, type, it.customType, ownerId);
+        }
+      } finally {
+        setBusy(false);
+        onUploaded();
+      }
+    },
+    [queue, applicant, onUploaded], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const clearQueue = () => setQueue([]);
 
   return (
