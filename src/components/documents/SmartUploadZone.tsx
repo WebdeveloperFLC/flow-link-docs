@@ -172,10 +172,10 @@ export const SmartUploadZone = ({
           !!c.ownerEvidence?.trim() &&
           (c.ownerSource === "document_text" || c.ownerSource === "document_image");
 
+        // Owner not readable from document content/image.
         if (!ownerVerifiedFromContent) {
-          // Multi-person case: let the user pick from the roster instead of hard-blocking.
-          // Default suggestion = best fuzzy candidate, or applicant.
           if (isMulti) {
+            // Multi-person: let user pick the right person.
             const suggested = match.best?.id ?? applicant?.id ?? null;
             patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: suggested });
             await logActivity("document.owner_needs_pick", "client", client.id, {
@@ -186,7 +186,7 @@ export const SmartUploadZone = ({
             });
             return null;
           }
-          // Single-person case: only one possible owner (the applicant) — auto-assign and proceed.
+          // Single-person + no readable name: only one possible owner — auto-assign.
           patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
           await logActivity("document.owner_assumed_applicant", "client", client.id, {
             file_name: item.file.name,
@@ -197,24 +197,29 @@ export const SmartUploadZone = ({
           return { classification: c, ownerId: applicant?.id ?? null };
         }
 
-        const noRosterMatch =
-          !match.best && match.score < 0.6;
+        // Owner WAS readable from document content. If they don't match anyone
+        // on the case, ALWAYS hard-block — for both single- and multi-person
+        // cases. This is the guarantee that prevents cross-case uploads.
+        const noRosterMatch = !match.best && match.score < 0.6;
 
         if (noRosterMatch) {
-          // Multi-person: let user pick the right person from the roster.
-          if (isMulti) {
-            patch(idx, { ...baseUpdate, status: "needs_owner", ownerId: applicant?.id ?? null });
-            await logActivity("document.owner_needs_pick", "client", client.id, {
-              file_name: item.file.name,
-              detected_owner: detectedName,
-              case_people: people.map((p) => p.full_name),
-              score: match.score,
-            });
-            return null;
-          }
-          // Single-person case: assume the applicant is the owner.
-          patch(idx, { ...baseUpdate, ownerId: applicant?.id ?? null });
-          return { classification: c, ownerId: applicant?.id ?? null };
+          patch(idx, {
+            ...baseUpdate,
+            status: "name_mismatch",
+            ownerId: applicant?.id ?? null,
+            verificationIssue: "owner_not_on_case",
+          });
+          await logActivity("document.owner_mismatch_blocked", "client", client.id, {
+            file_name: item.file.name,
+            detected_owner: detectedName,
+            owner_evidence: c.ownerEvidence ?? null,
+            owner_source: c.ownerSource ?? null,
+            owner_confidence: ownerConf,
+            case_people: people.map((p) => p.full_name),
+            score: match.score,
+            is_multi_person: isMulti,
+          });
+          return null;
         }
 
         // Single-person case (no mismatch) → always applicant
@@ -252,6 +257,12 @@ export const SmartUploadZone = ({
     overrideOwner = false,
   ) => {
     try {
+      // Defensive guard: never let a name-mismatched item upload silently.
+      // Only the explicit "Upload anyway" / "Reassign" actions (which pass
+      // overrideOwner=true or a different targetClient) may proceed.
+      if (item.status === "name_mismatch" && !overrideOwner && targetClient.id === client.id) {
+        return;
+      }
       if (type === "Other" && !customType?.trim()) {
         patch(idx, {
           status: "error",
