@@ -24,6 +24,9 @@ import {
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
+import { openClientDocument } from "@/lib/documentPreview";
+import { processToPdf } from "@/lib/processFile";
+import { buildDocumentName, sanitizeName } from "@/lib/constants";
 
 function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
@@ -262,10 +265,25 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           : ((await inferSectionId(customType ?? docType).catch(() => null)) ?? section.id);
         const targetSection = allSections.find((s) => s.id === targetSectionId) ?? section;
 
-        const safe = f.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-        const path = `${clientId}/section/${targetSection.key}/${Date.now()}_${safe}`;
-        const { error: upErr } = await supabase.storage.from("client-documents").upload(path, f, {
-          contentType: f.type || "application/pdf",
+        // Run every file through the same safe pipeline as Smart Upload:
+        // - already-valid small PDFs are kept as-is (no scanner-corrupting
+        //   pdf-lib re-save)
+        // - images and oversize PDFs are converted/compressed to a PDF that
+        //   the browser can render reliably
+        // - the resulting filename uses the structured naming convention so
+        //   files are consistent across upload surfaces
+        const effectiveType = docType === "Other" ? (customType || "Other") : docType;
+        const baseName = buildDocumentName(effectiveType, "Document", 1, "pdf").replace(/\.pdf$/, "");
+        let processed: File;
+        try {
+          processed = await processToPdf(f, baseName);
+        } catch (err) {
+          console.warn("processToPdf failed; uploading original bytes", err);
+          processed = f;
+        }
+        const path = `${clientId}/section/${targetSection.key}/${Date.now()}_${processed.name}`;
+        const { error: upErr } = await supabase.storage.from("client-documents").upload(path, processed, {
+          contentType: processed.type || "application/pdf",
         });
         if (upErr) { toast.error(upErr.message); continue; }
 
@@ -273,10 +291,10 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           client_id: clientId,
           document_type: docType,
           custom_type: customType,
-          file_name: f.name,
+          file_name: processed.name,
           storage_path: path,
-          mime_type: f.type || "application/pdf",
-          size_bytes: f.size,
+          mime_type: processed.type || "application/pdf",
+          size_bytes: processed.size,
           section_id: targetSectionId,
           section_order: baseOrder + (n + 1) * 10,
         });
@@ -382,12 +400,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   const onView = async (d: SectionDoc) => {
-    const { data } = await supabase.storage.from("client-documents").download(d.storage_path);
-    if (!data) return;
-    const blob = new Blob([await data.arrayBuffer()], { type: d.mime_type || "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    await openClientDocument({
+      storagePath: d.storage_path,
+      fileName: d.file_name,
+      mimeType: d.mime_type,
+    });
   };
 
   const onDownload = async (d: SectionDoc) => {

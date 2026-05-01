@@ -27,6 +27,7 @@ import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { openClientDocument } from "@/lib/documentPreview";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -226,25 +227,12 @@ const ClientDetail = () => {
   }, [client?.id]);
 
   const onView = async (d: Doc) => {
-    try {
-      const { data, error } = await supabase.storage.from("client-documents").download(d.storage_path);
-      if (error || !data) { toast.error("Failed to open"); return; }
-      // Force the correct PDF mime type so the browser previews inline instead of downloading.
-      const blob = new Blob([await data.arrayBuffer()], { type: d.mime_type || "application/pdf" });
-      const url = URL.createObjectURL(blob);
-      const win = window.open(url, "_blank");
-      if (!win) {
-        // Popup blocked — fall back to a temp link click
-        const a = document.createElement("a");
-        a.href = url; a.target = "_blank"; a.rel = "noopener";
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-      // Revoke after a delay so the new tab has time to load.
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      await logActivity("document.viewed", "document", d.id);
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to open");
-    }
+    const ok = await openClientDocument({
+      storagePath: d.storage_path,
+      fileName: d.file_name,
+      mimeType: d.mime_type,
+    });
+    if (ok) await logActivity("document.viewed", "document", d.id);
   };
 
   const onDownload = async (d: Doc) => {

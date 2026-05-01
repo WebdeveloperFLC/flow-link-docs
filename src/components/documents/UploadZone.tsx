@@ -4,15 +4,23 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { UploadCloud, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { UploadCloud, Loader2, CheckCircle2, AlertTriangle, Eye, Trash2, Upload } from "lucide-react";
 import { buildDocumentName, sanitizeName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
 import { logActivity } from "@/lib/activity";
+import { previewLocalFile } from "@/lib/documentPreview";
 import { toast } from "sonner";
 
 interface Client { id: string; full_name: string; }
-interface QueueItem { name: string; size: number; status: "pending"|"processing"|"uploading"|"done"|"error"; error?: string; finalName?: string; }
+interface QueueItem {
+  file: File;
+  name: string;
+  size: number;
+  status: "review" | "pending" | "processing" | "uploading" | "done" | "error";
+  error?: string;
+  finalName?: string;
+}
 
 export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded: () => void; }) => {
   const [docType, setDocType] = useState<string>("");
@@ -27,10 +35,27 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
   const updateItem = (i: number, patch: Partial<QueueItem>) =>
     setQueue((q) => q.map((it, idx) => idx === i ? { ...it, ...patch } : it));
 
-  const handleFiles = useCallback(async (files: FileList | File[]) => {
+  /** Stage selected files in a review queue so the user can preview each one
+   *  and remove anything wrong BEFORE we upload. Nothing hits storage here. */
+  const stageFiles = useCallback((files: FileList | File[]) => {
     if (!effectiveType) { toast.error("Select a document type first"); return; }
     const arr = Array.from(files);
     if (!arr.length) return;
+    const staged: QueueItem[] = arr.map((f) => ({
+      file: f, name: f.name, size: f.size, status: "review",
+    }));
+    setQueue((q) => [...q, ...staged]);
+  }, [effectiveType]);
+
+  const removeStaged = (i: number) =>
+    setQueue((q) => q.filter((_, idx) => idx !== i));
+
+  const uploadAll = useCallback(async () => {
+    const reviewItems = queue
+      .map((it, i) => ({ it, i }))
+      .filter(({ it }) => it.status === "review");
+    if (reviewItems.length === 0) return;
+    if (!effectiveType) { toast.error("Select a document type first"); return; }
 
     // Determine starting version for this type
     const { data: existing } = await supabase
@@ -42,12 +67,9 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
     );
     let nextVersion = (sameType.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
 
-    const initial: QueueItem[] = arr.map((f) => ({ name: f.name, size: f.size, status: "pending" }));
-    setQueue(initial);
     setBusy(true);
-
-    for (let i = 0; i < arr.length; i++) {
-      const f = arr[i];
+    for (const { it, i } of reviewItems) {
+      const f = it.file;
       try {
         updateItem(i, { status: "processing" });
         const baseName = buildDocumentName(effectiveType, client.full_name, nextVersion, "pdf").replace(/\.pdf$/, "");
@@ -77,7 +99,9 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
     }
     setBusy(false);
     onUploaded();
-  }, [client.id, client.full_name, customType, docType, effectiveType, onUploaded]);
+  }, [queue, client.id, client.full_name, customType, docType, effectiveType, onUploaded]);
+
+  const reviewCount = queue.filter((it) => it.status === "review").length;
 
   return (
     <Card className="p-5 shadow-elev-sm">
@@ -100,35 +124,61 @@ export const UploadZone = ({ client, onUploaded }: { client: Client; onUploaded:
       <label
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
-        onDrop={(e) => { e.preventDefault(); setDrag(false); handleFiles(e.dataTransfer.files); }}
+        onDrop={(e) => { e.preventDefault(); setDrag(false); stageFiles(e.dataTransfer.files); }}
         className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors
           ${drag ? "border-primary bg-accent/40" : "border-border hover:border-primary/50"}
           ${!effectiveType ? "opacity-60 pointer-events-none" : ""}`}
       >
         <input type="file" multiple className="hidden"
           accept="image/*,application/pdf"
-          onChange={(e) => e.target.files && handleFiles(e.target.files)} />
+          onChange={(e) => { if (e.target.files) stageFiles(e.target.files); e.currentTarget.value = ""; }} />
         <UploadCloud className="size-8 mx-auto text-primary mb-2" />
         <div className="text-sm font-medium">Drop files or click to browse</div>
-        <div className="text-xs text-muted-foreground mt-1">PDF or images · auto-compressed to ~2MB</div>
+        <div className="text-xs text-muted-foreground mt-1">PDF or images · preview each file, then upload</div>
       </label>
 
       {queue.length > 0 && (
-        <div className="mt-4 space-y-1.5 max-h-48 overflow-auto">
-          {queue.map((it, i) => (
-            <div key={i} className="flex items-center gap-2 text-xs p-2 rounded bg-muted/50">
-              {it.status === "done" && <CheckCircle2 className="size-3.5 text-success shrink-0" />}
-              {it.status === "error" && <AlertTriangle className="size-3.5 text-destructive shrink-0" />}
-              {(it.status === "processing" || it.status === "uploading") && <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />}
-              {it.status === "pending" && <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />}
-              <div className="flex-1 truncate">
-                <div className="truncate font-medium">{it.finalName ?? it.name}</div>
-                {it.error && <div className="text-destructive truncate">{it.error}</div>}
+        <>
+          <div className="mt-4 space-y-1.5 max-h-60 overflow-auto">
+            {queue.map((it, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs p-2 rounded bg-muted/50">
+                {it.status === "done" && <CheckCircle2 className="size-3.5 text-success shrink-0" />}
+                {it.status === "error" && <AlertTriangle className="size-3.5 text-destructive shrink-0" />}
+                {(it.status === "processing" || it.status === "uploading") && <Loader2 className="size-3.5 animate-spin text-primary shrink-0" />}
+                {it.status === "pending" && <div className="size-3.5 rounded-full border border-muted-foreground shrink-0" />}
+                {it.status === "review" && <div className="size-3.5 rounded-full border border-primary shrink-0" />}
+                <div className="flex-1 truncate">
+                  <div className="truncate font-medium">{it.finalName ?? it.name}</div>
+                  {it.error && <div className="text-destructive truncate">{it.error}</div>}
+                </div>
+                {it.status === "review" && (
+                  <>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title="Preview"
+                      onClick={() => previewLocalFile(it.file)}>
+                      <Eye className="size-3.5 text-muted-foreground" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-6 w-6" title="Remove"
+                      onClick={() => removeStaged(i)}>
+                      <Trash2 className="size-3.5 text-muted-foreground" />
+                    </Button>
+                  </>
+                )}
+                <div className="text-muted-foreground capitalize">{it.status}</div>
               </div>
-              <div className="text-muted-foreground capitalize">{it.status}</div>
+            ))}
+          </div>
+          {reviewCount > 0 && (
+            <div className="mt-3 flex justify-end gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setQueue((q) => q.filter((it) => it.status !== "review"))}>
+                Clear staged
+              </Button>
+              <Button size="sm" onClick={uploadAll} disabled={busy || !effectiveType}>
+                <Upload className="size-3.5 mr-1.5" />
+                Upload {reviewCount} file{reviewCount === 1 ? "" : "s"}
+              </Button>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       {busy && <div className="mt-3 text-xs text-muted-foreground flex items-center gap-1.5"><Loader2 className="size-3 animate-spin" /> Processing…</div>}
