@@ -1,82 +1,56 @@
-## Problem
+I understand the repeated issue now: the system is trying to be “smart” by reading the owner name before upload. In this resume PDF, the name is clearly visible, but the in-app classifier did not detect it, so it shows the warning. Also the local preview button is using a browser blob/open-new-tab path that can fail in the preview environment.
 
-A document belonging to **Manav Yogesh Patel** was uploaded into **Patel Chintan Rajnikant**'s case without any warning. The classifier *did* read the owner name from the document, but the upload pipeline still accepted it.
+I recommend simplifying the flow instead of continuing to depend on perfect name detection.
 
-## Root cause
+Plan:
 
-In `SmartUploadZone.tsx → classifyAndAssign`, the owner-mismatch check has a hole for **single-person cases** (cases with only the applicant, like Chintan's):
+1. Make Smart Upload a simple safe review queue
+   - Keep auto-detecting document type, because it correctly detected `Resume`.
+   - Stop treating “No name detected” as an error for normal uploads.
+   - For single-person cases, show a clear confirmation card:
+     - File name
+     - Detected type
+     - Assigned person: the applicant
+     - Buttons: `View / Preview`, `Confirm upload`, `Skip`
+   - The system will not auto-save anything until `Confirm upload` is clicked.
+   - This keeps the safety benefit without blocking correct documents when OCR/name detection is imperfect.
 
-```text
-ownerVerifiedFromContent? ── no ──► single-person ──► auto-assign to applicant, upload
-                          │
-                          yes
-                          ▼
-              noRosterMatch (score < 0.6)?
-                          │
-                       yes│            single-person ──► auto-assign to applicant, upload  ◄── BUG
-                          │
-                       no │
-                          ▼
-                  proceed with best match
-```
+2. Keep strict protection for real cross-case mismatches
+   - If the AI clearly reads a different name from the document, keep the hard block.
+   - Example: if it reads `Manav Yogesh Patel` while the case is `patel chintan rajnikant`, it will still show mismatch actions instead of uploading silently.
+   - If the AI reads no name, it becomes “manual confirm required”, not an error.
 
-So when:
-1. The document owner (e.g. "Manav Yogesh Patel") IS clearly read from the document, AND
-2. That name does NOT match anyone on the case roster (Chintan), AND
-3. The case has only 1 person,
+3. Fix the Preview/View button permanently
+   - Replace the current direct `window.open(blobUrl)` preview with a more reliable in-app PDF/image preview dialog.
+   - For local files waiting in Smart Upload, clicking `View / Preview` will open a modal inside the app instead of relying on a browser popup/new tab.
+   - For already-uploaded documents, reuse the same preview helper where possible and keep download fallback.
+   - This avoids popup blockers and blob-tab failures.
 
-the code silently overrides the detected name and assigns the document to the applicant. No prompt, no warning, no block.
+4. Improve the UI layout shown in the screenshot
+   - The current card is horizontally overflowing, hiding part of the `Confirm & upload` button.
+   - I will make the review controls wrap/stack cleanly on the right panel width.
+   - Rename the warning text from scary “No name detected” to something clearer like:
+     `Name could not be auto-read. Please preview and confirm this belongs to this case.`
 
-The same gap also exists in the "owner unreadable" branch for single-person cases — it auto-assigns without showing the user what was detected.
+5. Remove confusing/unused general upload paths
+   - Ensure the page consistently directs new uploads through the simplified Smart Upload review queue.
+   - Avoid having multiple upload behaviours that can bypass the same checks.
 
-## Fix
+Technical details:
 
-Treat a confidently-detected, non-matching owner name as a **hard mismatch** for every case (single-person OR multi-person), and force the user to make an explicit decision before the file is uploaded.
+- Update `src/components/documents/SmartUploadZone.tsx`:
+  - introduce a safer `awaiting_review`/confirm flow for normal single-file uploads;
+  - let `owner_not_readable` proceed only from the explicit confirm button;
+  - keep `name_mismatch` guarded and blocked unless user chooses override/reassign;
+  - fix the button layout in the amber review card.
+- Update `src/lib/documentPreview.ts`:
+  - add an in-app preview URL strategy for local and stored documents instead of only `window.open`.
+- Add/reuse a lightweight preview dialog component in the upload UI for PDFs/images.
+- Leave the auto-generated backend client/types files untouched.
 
-### Changes in `src/components/documents/SmartUploadZone.tsx`
+Expected result:
 
-1. **New status & UX state**: introduce a `name_mismatch` status path that surfaces:
-   - The detected owner name + evidence snippet from the document.
-   - The current case's people.
-   - Three explicit actions:
-     - **Reassign to another case** (existing search-by-name flow).
-     - **Upload anyway as <applicant>** (records `document.uploaded_with_override`, requires a confirm).
-     - **Skip / remove from queue**.
-   - A **Preview** button so the user can verify the file's contents before deciding.
-
-2. **classifyAndAssign — replace the single-person shortcut**:
-   - When `ownerVerifiedFromContent === true` AND `noRosterMatch === true`:
-     - For both single- and multi-person cases, set status `name_mismatch` and STOP. Do not auto-upload.
-   - When `ownerVerifiedFromContent === false` (owner unreadable):
-     - Single-person: keep auto-assigning to applicant (today's behavior is fine here — there's literally no other choice and we can't read a name).
-     - Multi-person: keep current `needs_owner` picker.
-   - Use a stricter "no roster match" threshold: treat `match.score < 0.6` AND `match.best === undefined` as a mismatch (today's logic), but ALSO require the detected name's token overlap with the matched person to be ≥ 0.5 before proceeding silently — otherwise force `name_mismatch`.
-
-3. **Activity logging**: log `document.owner_mismatch_blocked` with `{ detected_owner, case_people, score, file_name }` whenever we surface the mismatch card, and `document.uploaded_with_override` when the user proceeds anyway. This gives an audit trail for incidents like this one.
-
-4. **handleFiles auto-process loop**: items in `name_mismatch` must NOT be picked up by the concurrency worker — only `queued` items are processed. Verify the filter at line 448 already covers this (it does), and add a defensive guard inside `uploadOne` to refuse uploading when an item's status is `name_mismatch` unless `overrideOwner === true`.
-
-### Visual outcome (queue card)
-
-```text
-┌────────────────────────────────────────────────────────────┐
-│  ⚠  Owner mismatch                                         │
-│  File: MANAV_YOGESH_PATEL_-_certificate.pdf                │
-│  Detected on document: "Manav Yogesh Patel"                │
-│  This case: Patel Chintan Rajnikant                        │
-│                                                            │
-│  [ Preview ]  [ Move to another case ]                     │
-│  [ Upload anyway as Patel Chintan Rajnikant ]   [ Skip ]   │
-└────────────────────────────────────────────────────────────┘
-```
-
-## Why this won't keep coming back
-
-- The decision is centralised: the same `name_mismatch` branch runs for single- and multi-person cases, so future single-person cases can't slip through.
-- The hard guard inside `uploadOne` makes it impossible for any other code path (binder split, retry, override type) to bypass the check without going through the explicit "Upload anyway" action.
-- We log both the block and the override, so even if a user clicks through, there's a permanent activity record.
-
-## Out of scope (note for user)
-
-- The wrongly-uploaded Manav certificate already in Chintan's case must be **deleted manually** — this fix is preventative only.
-- This does not change the General/Section upload path's content-OCR step. If you want the same owner-mismatch block in those upload zones too, say so and I'll extend it there in the same change.
+- Chintan’s resume can be previewed and manually confirmed even if the AI misses the visible name.
+- Documents are still not auto-uploaded into the wrong case.
+- The View/Preview action works more reliably because it opens inside the app.
+- The process becomes simpler: review first, confirm, then save.
