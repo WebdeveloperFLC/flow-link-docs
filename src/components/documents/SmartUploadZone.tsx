@@ -22,6 +22,8 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { previewLocalFile } from "@/lib/documentPreview";
+import { buildLocalPreviewUrl } from "@/lib/documentPreview";
+import { InlinePreviewDialog } from "@/components/documents/InlinePreviewDialog";
 
 interface Client { id: string; full_name: string; }
 
@@ -99,6 +101,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const [preview, setPreview] = useState<{ url: string; mime: string; name: string } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -490,9 +493,13 @@ export const SmartUploadZone = ({
     patch(idx, { ownerId });
   };
 
-  /** Open the local file in a new tab so the user can sanity-check it before
-   *  confirming a label / owner. */
-  const previewFile = (file: File) => previewLocalFile(file);
+  /** Open an embedded preview (popup-blocker-safe) for the local file so the
+   *  user can verify it before confirming. */
+  const previewFile = (file: File) => {
+    if (preview?.url) URL.revokeObjectURL(preview.url);
+    const built = buildLocalPreviewUrl(file);
+    setPreview({ url: built.url, mime: built.mime, name: file.name });
+  };
 
   /** User picked a document type for an item that came back as "Other". Still require owner review before upload. */
   const confirmType = async (idx: number, newType: string) => {
