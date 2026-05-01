@@ -435,7 +435,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onDrop={(e) => {
         if (!canEdit) return;
         e.preventDefault(); setDragActive(false);
-        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
+        if (e.dataTransfer.files?.length) toast.message("Use Smart upload so owner detection and preview happen before saving.");
       }}
     >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
@@ -457,10 +457,10 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           {canEdit && (
             <>
               <input ref={fileInputRef} type="file" multiple className="hidden"
-                onChange={(e) => { onUpload(e.target.files); e.target.value = ""; }} />
-              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                onChange={(e) => { e.currentTarget.value = ""; }} />
+              <Button size="sm" variant="outline" onClick={() => toast.message("Use Smart upload on the right panel for all new documents.")} disabled={uploading}>
                 {uploading ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Upload className="size-3.5 mr-1.5" />}
-                Upload
+                Smart upload only
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
