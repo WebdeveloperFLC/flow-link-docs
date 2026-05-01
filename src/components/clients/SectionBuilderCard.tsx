@@ -47,7 +47,7 @@ function buildPageSegments(pageCount: number, pageSnippets: string[], allowedTyp
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
   const base = fileName.replace(/\.[^.]+$/, "");
-  const cleaned = base.replace(/[_\-]+/g, " ").replace(/\s+/g, " ").trim();
+  const cleaned = base.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   if (!cleaned) return base;
   // Title-case words that are all-lowercase; preserve mixed-case tokens like "B.Tech".
   return cleaned
@@ -435,7 +435,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       onDrop={(e) => {
         if (!canEdit) return;
         e.preventDefault(); setDragActive(false);
-        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
+        if (e.dataTransfer.files?.length) toast.message("Use Smart upload so owner detection and preview happen before saving.");
       }}
     >
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-3 flex-wrap">
@@ -457,10 +457,10 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           {canEdit && (
             <>
               <input ref={fileInputRef} type="file" multiple className="hidden"
-                onChange={(e) => { onUpload(e.target.files); e.target.value = ""; }} />
-              <Button size="sm" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                onChange={(e) => { e.currentTarget.value = ""; }} />
+              <Button size="sm" variant="outline" onClick={() => toast.message("Use Smart upload on the right panel for all new documents.")} disabled={uploading}>
                 {uploading ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Upload className="size-3.5 mr-1.5" />}
-                Upload
+                Smart upload only
               </Button>
               <Button size="sm" onClick={onCombine} disabled={combining || items.length === 0} className="gradient-accent text-white">
                 {combining ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Layers className="size-3.5 mr-1.5" />}
@@ -493,9 +493,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       {items.length === 0 ? (
         <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
           {dragActive
-            ? `Drop files into ${section.label}`
+            ? "Use Smart upload on the right panel"
             : (canEdit
-                ? `Drop files here or click Upload — multiple files supported. They'll be added to ${section.label}.`
+                ? "Use Smart upload on the right panel so every file is previewed and owner-checked before saving."
                 : "No documents in this section yet.")}
         </div>
       ) : (
@@ -516,7 +516,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                   onToggleMergePick={() => setMergeMode((m) => {
                     if (!m || m.anchorId === d.id) return m;
                     const next = new Set(m.selected);
-                    next.has(d.id) ? next.delete(d.id) : next.add(d.id);
+                    if (next.has(d.id)) next.delete(d.id);
+                    else next.add(d.id);
                     return { ...m, selected: next };
                   })}
                   onRenameTitle={(t) => onRenameTitle(d, t)}
