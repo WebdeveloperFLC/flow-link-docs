@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 interface Client { id: string; full_name: string; }
 
 type ItemStatus =
-  | "queued" | "identifying" | "needs_owner" | "name_mismatch" | "awaiting_review"
+  | "queued" | "identifying" | "needs_owner" | "needs_type" | "name_mismatch" | "awaiting_review"
   | "processing" | "uploading" | "done" | "error" | "skipped";
 
 interface ClientLite { id: string; full_name: string; application_id: string; }
