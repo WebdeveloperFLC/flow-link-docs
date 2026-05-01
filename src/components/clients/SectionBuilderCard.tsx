@@ -142,12 +142,14 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         let pageCount = 0;
         try { pageCount = await getPdfPageCount(f); } catch { /* ignore */ }
         if (pageCount < 3) { segments.push({ file: f }); continue; }
+        let pageSnippets: string[] = [];
         try {
           const maxPages = Math.min(pageCount, 30);
-          const [pageSnippets, pageImages] = await Promise.all([
+          const [snippets, pageImages] = await Promise.all([
             extractPerPageText(f, maxPages, 1000).catch(() => [] as string[]),
             getBinderPageImages(f, maxPages).catch(() => [] as string[]),
           ]);
+          pageSnippets = snippets;
           const { data, error } = await supabase.functions.invoke("split-binder", {
             body: {
               filename: f.name,
@@ -185,6 +187,18 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           toast.success(`Split "${f.name}" into ${segs.length} documents`);
         } catch (e) {
           console.warn("split-binder failed; uploading as single PDF:", e);
+          if (shouldFallbackToPageRanges(f.name, pageCount, [])) {
+            const baseStem = f.name.replace(/\.pdf$/i, "");
+            for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
+              const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
+              const label = guessed.type === "Other" && guessed.suggested_label ? guessed.suggested_label : guessed.type;
+              const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+              const segFile = await extractPagesAsPdfFile(f, pageIdx + 1, pageIdx + 1, `${baseStem}__${String(pageIdx + 1).padStart(2, "0")}_${safeLabel}_p${pageIdx + 1}-${pageIdx + 1}.pdf`);
+              segments.push({ file: segFile, preType: guessed.type, preLabel: guessed.type === "Other" ? guessed.suggested_label ?? null : null });
+            }
+            toast.message(`Could not auto-read binder boundaries, so "${f.name}" was split page-by-page.`);
+            continue;
+          }
           segments.push({ file: f });
         }
       }
