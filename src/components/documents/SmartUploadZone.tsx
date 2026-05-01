@@ -12,7 +12,7 @@ import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
-import { ROLE_SHORT, type CasePerson } from "@/lib/casePeople";
+import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import { toast } from "sonner";
 
@@ -87,7 +87,7 @@ export const SmartUploadZone = ({
       if (!id) return "Unassigned";
       if (id === SHARED_ID) return "Shared (all)";
       const p = personById(id);
-      return p ? `${p.full_name} · ${p.role === "applicant" ? "Applicant" : p.role === "co_applicant" ? "Co-applicant" : "Dependant"}` : "Unknown";
+      return p ? `${p.full_name} · ${ROLE_LABEL[p.role]}` : "Unknown";
     },
     [personById],
   );
