@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle, Mail, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { FirmProfileCard } from "@/components/settings/FirmProfileCard";
 import { OdooIntegrationCard } from "@/components/settings/OdooIntegrationCard";
+import { Link } from "react-router-dom";
 
 interface ApiKey {
   id: string; label: string; prefix: string; revoked: boolean;
@@ -102,6 +103,30 @@ const Settings = () => {
       />
       <div className="p-8 space-y-6 max-w-4xl">
         <FirmProfileCard />
+
+        <div className="pt-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Questionnaire sharing
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Customise the email your clients receive when you share a visa questionnaire.
+          </p>
+        </div>
+        <Link
+          to="/settings/questionnaire-emails"
+          className="block transition-colors"
+        >
+          <Card className="p-5 shadow-elev-sm flex items-center gap-3 hover:bg-muted/40">
+            <Mail className="size-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold">Questionnaire email templates</div>
+              <div className="text-xs text-muted-foreground">
+                Manage reusable subject lines and email bodies. Each visa form picks one of these as its sharing email.
+              </div>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Card>
+        </Link>
 
         <div className="pt-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">

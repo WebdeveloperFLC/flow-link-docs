@@ -14,11 +14,12 @@ import {
 } from "@/components/ui/select";
 import {
   Loader2, Sparkles, Plus, Trash2, GripVertical, Eye, CheckCircle2,
-  Upload, FileDown, ChevronRight, AlertTriangle,
+  Upload, FileDown, ChevronRight, AlertTriangle, Mail,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMasterItems } from "@/lib/masters";
 import { logActivity } from "@/lib/activity";
+import { Link } from "react-router-dom";
 
 type FieldType =
   | "text" | "textarea" | "date" | "number"
@@ -340,6 +341,56 @@ const FormBuilder = () => {
       />
 
       <div className="p-8">
+        {/* Persistent settings strip — visible on every step */}
+        <Card className="p-4 mb-4 flex flex-wrap items-end gap-4">
+          <div className="space-y-1 min-w-[180px]">
+            <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Country</Label>
+            <Select value={country} onValueChange={setCountry}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {countries.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1 min-w-[180px]">
+            <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">Visa category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1 flex-1 min-w-[240px]">
+            <Label className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+              <Mail className="size-3" /> Email template (used when sharing the questionnaire)
+            </Label>
+            <div className="flex items-center gap-2">
+              <Select value={emailTemplateId} onValueChange={setEmailTemplateId}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__default">Default</SelectItem>
+                  {emailTemplates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Link
+                to="/settings/questionnaire-emails"
+                className="text-xs text-primary hover:underline whitespace-nowrap"
+                title="Create or edit reusable email templates"
+              >
+                Manage
+              </Link>
+            </div>
+            {emailTemplates.length === 0 && (
+              <div className="text-[11px] text-muted-foreground">
+                No custom templates yet — <Link to="/settings/questionnaire-emails" className="text-primary hover:underline">create one</Link> to personalise the email clients receive.
+              </div>
+            )}
+          </div>
+        </Card>
+
         <Tabs value={step} onValueChange={(v) => setStep(v as StepId)}>
           <TabsList className="mb-6">
             {STEPS.map((s, i) => (
@@ -527,35 +578,8 @@ const FormBuilder = () => {
           {/* ---------- Step 3 ---------- */}
           <TabsContent value="settings">
             <Card className="p-6 space-y-5 max-w-2xl">
-              <div>
-                <Label className="text-xs">Country</Label>
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {countries.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Visa category</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => <SelectItem key={c.id} value={c.label}>{c.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Email template (used when sharing the questionnaire)</Label>
-                <Select value={emailTemplateId} onValueChange={setEmailTemplateId}>
-                  <SelectTrigger className="h-9 mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__default">Default</SelectItem>
-                    {emailTemplates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="text-xs text-muted-foreground">
+                Country, visa category and email template are set in the header strip above so you can change them at any step.
               </div>
               <div className="flex items-center justify-between border-t pt-4">
                 <div>

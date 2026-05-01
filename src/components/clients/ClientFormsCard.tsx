@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown } from "lucide-react";
+import { FileText, Eye, Link2, Copy, Check, Loader2, Send, Archive, FileDown, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
@@ -17,6 +17,7 @@ interface VisaForm {
   category: string;
   is_active: boolean;
   is_archived: boolean;
+  email_template_id?: string | null;
 }
 
 interface SchemaRow { id: string; form_id: string; version: number; is_active: boolean; is_draft: boolean; }
@@ -24,6 +25,9 @@ interface InstanceRow {
   id: string; form_id: string | null; schema_id: string;
   status: string; share_token: string | null; submitted_at: string | null;
 }
+interface EmailTpl { id: string; subject: string; body_html: string; is_default: boolean }
+interface ClientLite { full_name: string; email: string | null }
+interface FirmLite { firm_name: string | null }
 
 const randomToken = () => {
   const arr = new Uint8Array(24);
@@ -39,17 +43,24 @@ export const ClientFormsCard = ({
   const [instances, setInstances] = useState<InstanceRow[]>([]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [fillBusyId, setFillBusyId] = useState<string | null>(null);
+  const [emailBusyId, setEmailBusyId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [emailTpls, setEmailTpls] = useState<EmailTpl[]>([]);
+  const [clientInfo, setClientInfo] = useState<ClientLite | null>(null);
+  const [firmInfo, setFirmInfo] = useState<FirmLite | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: f }, { data: i }] = await Promise.all([
+    const [{ data: f }, { data: i }, { data: t }, { data: c }, { data: fp }] = await Promise.all([
       supabase.from("visa_forms").select("*")
         .eq("country", country).eq("category", category).eq("is_archived", false)
         .order("name"),
       supabase.from("questionnaire_instances").select("id, form_id, schema_id, status, share_token, submitted_at")
         .eq("client_id", clientId),
+      supabase.from("questionnaire_email_templates").select("id, subject, body_html, is_default"),
+      supabase.from("clients").select("full_name, email").eq("id", clientId).maybeSingle(),
+      supabase.from("firm_profile").select("firm_name").limit(1).maybeSingle(),
     ]);
     const formIds = (f ?? []).map((x) => x.id);
     let s: SchemaRow[] = [];
@@ -62,6 +73,9 @@ export const ClientFormsCard = ({
     setForms((f ?? []) as VisaForm[]);
     setSchemas(s);
     setInstances((i ?? []) as InstanceRow[]);
+    setEmailTpls((t ?? []) as EmailTpl[]);
+    setClientInfo((c ?? null) as ClientLite | null);
+    setFirmInfo((fp ?? null) as FirmLite | null);
     setLoading(false);
   }, [clientId, country, category]);
 
@@ -132,6 +146,92 @@ export const ClientFormsCard = ({
       toast.error(e instanceof Error ? e.message : "Failed to create link");
     } finally {
       setBusyId(null);
+    }
+  };
+
+  const renderTemplate = (raw: string, vars: Record<string, string>) =>
+    raw.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? "");
+
+  const onSendViaEmail = async (form: VisaForm) => {
+    if (!clientInfo?.email) {
+      toast.error("Add an email address to this client first.");
+      return;
+    }
+    setEmailBusyId(form.id);
+    try {
+      const schema = schemaForForm(form.id);
+      if (!schema) throw new Error("Questionnaire not generated yet for this form.");
+      let inst = instanceForForm(form.id);
+      if (!inst || !inst.share_token) {
+        const token = randomToken();
+        const { data: { user } } = await supabase.auth.getUser();
+        const expires_at = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        if (inst) {
+          await supabase.from("questionnaire_instances")
+            .update({ share_token: token, expires_at }).eq("id", inst.id);
+          inst = { ...inst, share_token: token };
+        } else {
+          const { data, error } = await supabase.from("questionnaire_instances").insert({
+            client_id: clientId,
+            schema_id: schema.id,
+            form_id: form.id,
+            share_token: token,
+            expires_at,
+            status: "draft",
+            answers: {},
+            created_by: user?.id ?? null,
+          }).select("id, form_id, schema_id, status, share_token, submitted_at").single();
+          if (error) throw error;
+          inst = data as InstanceRow;
+        }
+      }
+      const url = `${window.location.origin}/questionnaire/${inst!.share_token}`;
+
+      // Pick template: form-specific → default → built-in fallback
+      const tpl =
+        emailTpls.find((t) => t.id === form.email_template_id) ??
+        emailTpls.find((t) => t.is_default) ??
+        null;
+
+      const vars = {
+        client_name: clientInfo.full_name ?? "",
+        form_name: form.name,
+        questionnaire_link: url,
+        firm_name: firmInfo?.firm_name ?? "",
+      };
+
+      const subject = tpl
+        ? renderTemplate(tpl.subject, vars)
+        : `Your visa questionnaire — ${form.name}`;
+      const bodyHtml = tpl
+        ? renderTemplate(tpl.body_html, vars)
+        : `<p>Hi ${vars.client_name},</p><p>Please complete your questionnaire for <b>${vars.form_name}</b>:</p><p><a href="${url}">${url}</a></p><p>Thanks,<br/>${vars.firm_name}</p>`;
+
+      // Strip simple HTML for the mailto body (most clients open as plain text)
+      const bodyText = bodyHtml
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/(p|div|h\d)>/gi, "\n\n")
+        .replace(/<a [^>]*href="([^"]+)"[^>]*>([^<]*)<\/a>/gi, (_m, href, text) => `${text} (${href})`)
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      const mailto = `mailto:${encodeURIComponent(clientInfo.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`;
+      window.location.href = mailto;
+
+      await logActivity("questionnaire.email_drafted", "client", clientId, {
+        form_id: form.id,
+        template_id: tpl?.id ?? null,
+        recipient: clientInfo.email,
+      });
+      await load();
+      toast.success("Email draft opened in your mail client");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to draft email");
+    } finally {
+      setEmailBusyId(null);
     }
   };
 
@@ -260,6 +360,21 @@ export const ClientFormsCard = ({
                     <Link2 className="size-3.5 mr-1" />
                   )}
                   {copiedId === form.id ? "Copied" : inst?.share_token ? "Copy link" : "Get link"}
+                </Button>
+              )}
+              {canEdit && (
+                <Button size="sm" variant="outline" className="h-7"
+                  onClick={() => onSendViaEmail(form)}
+                  disabled={emailBusyId === form.id || !schema || !clientInfo?.email}
+                  title={
+                    !schema ? "Generate the questionnaire first"
+                    : !clientInfo?.email ? "This client has no email address on file"
+                    : "Open an email draft with the questionnaire link using the configured template"
+                  }>
+                  {emailBusyId === form.id
+                    ? <Loader2 className="size-3.5 mr-1 animate-spin" />
+                    : <Mail className="size-3.5 mr-1" />}
+                  Send via email
                 </Button>
               )}
             </div>
