@@ -22,7 +22,8 @@ import { mergeExtractedFields } from "@/lib/extractedFields";
 import { CasePeopleCard } from "@/components/clients/CasePeopleCard";
 import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
-import { FinalBinderPanel } from "@/components/clients/FinalBinderPanel";
+import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
+import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
 import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
@@ -65,6 +66,7 @@ const ClientDetail = () => {
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [people, setPeople] = useState<CasePerson[]>([]);
   const [sections, setSections] = useState<CaseSection[]>([]);
+  const [addSectionOpen, setAddSectionOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -78,7 +80,7 @@ const ClientDetail = () => {
     setDocs((d ?? []) as Doc[]);
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
-    setSections(await loadSections());
+    setSections(await loadSections(true));
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
