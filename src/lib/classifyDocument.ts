@@ -95,13 +95,18 @@ export async function classifyDocument(
       },
     });
     if (error) throw error;
-    const type = typeof data?.type === "string" && allowed.includes(data.type) ? data.type : (fn?.type ?? "Other");
-    const confidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
+    const aiType = typeof data?.type === "string" && allowed.includes(data.type) ? data.type : "Other";
+    const aiConfidence = typeof data?.confidence === "number" ? Math.min(1, Math.max(0, data.confidence)) : 0.4;
+    // If AI cannot read a scanned/low-signal file, keep a strong filename type hint.
+    // Ownership is still NEVER taken from the filename; only document type falls back.
+    const useFilenameType = !!fn && (aiType === "Other" || aiConfidence < 0.5);
+    const type = useFilenameType ? fn.type : aiType;
+    const confidence = useFilenameType ? Math.max(fn.confidence, aiConfidence) : aiConfidence;
     return {
       type,
       customType: type === "Other" ? (data?.suggested_label as string | undefined) : undefined,
       confidence,
-      source: "ai",
+      source: useFilenameType ? "filename" : "ai",
       ownerName: (data?.owner_name as string | null) ?? null,
       ownerConfidence: typeof data?.owner_confidence === "number" ? data.owner_confidence : 0,
       ownerEvidence: (data?.owner_evidence as string | null) ?? null,

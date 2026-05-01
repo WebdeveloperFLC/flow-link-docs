@@ -63,6 +63,22 @@ interface QueueItem {
 
 const CONCURRENCY = 3;
 
+function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
+  if (pageCount < 3 || segments.length !== 1) return false;
+  const only = segments[0];
+  return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
+}
+
+function buildPageReviewSegments(pageCount: number, pageSnippets: string[], allowedTypes: string[], reason: string): BinderSegment[] {
+  return Array.from({ length: pageCount }, (_, i) => ({
+    start_page: i + 1,
+    end_page: i + 1,
+    ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
+    confidence: 0.35,
+    reason,
+  }));
+}
+
 export const SmartUploadZone = ({
   client,
   templateTypes,
@@ -1009,9 +1025,9 @@ async function expandBinders(
     }
     let pageCount = 0;
     try { pageCount = await getPdfPageCount(file); } catch { pageCount = 0; }
-    // Only attempt to split PDFs with at least 3 pages — most single-document
-    // uploads are 1–2 pages and don't need splitting.
-    if (pageCount < 3) {
+    // Only attempt binder splitting when the filename indicates a binder/package.
+    // Normal multi-page documents (transcripts, bank statements, passports) must stay intact.
+    if (pageCount < 3 || !looksLikeBinderName(file.name)) {
       out.push({ file });
       continue;
     }
@@ -1048,44 +1064,24 @@ async function expandBinders(
         if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
         return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
       });
-      if (shouldFallbackToPageRanges(file.name, pageCount, segments)) {
-        segments = Array.from({ length: pageCount }, (_, i) => ({
-          start_page: i + 1,
-          end_page: i + 1,
-          ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
-          confidence: 0.35,
-          reason: "fallback_page_range",
-        }));
+      const isBinderName = looksLikeBinderName(file.name);
+      if (isBinderName && shouldFallbackToPageRanges(file.name, pageCount, segments)) {
+        segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range");
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
-      // For multi-page PDFs we always want to keep the user in control — never silently
-      // upload the whole file as one "Other" document. If we somehow ended up with a
-      // single segment covering everything for a likely binder, force a per-page split
-      // so the user can manually merge into the right documents.
+      // Normal 3+ page PDFs can be one valid document. Only binder-named PDFs
+      // are forcibly exploded when AI returns one full-document segment.
       if (segments.length < 2) {
-        const isBinder = looksLikeBinderName(file.name);
-        if (isBinder) {
-          segments = Array.from({ length: pageCount }, (_, i) => ({
-            start_page: i + 1,
-            end_page: i + 1,
-            ...inferTypeFromPageText(pageSnippets[i] ?? "", allowedTypes),
-            confidence: 0.35,
-            reason: "binder_single_segment_forced_split",
-          }));
+        if (isBinderName && isOneFullDocumentSegment(pageCount, segments)) {
+          segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
-          const only = segments[0] ?? { start_page: 1, end_page: pageCount, type: "Other", confidence: 0.2 };
-          segments = [{
-            start_page: 1,
-            end_page: pageCount,
-            type: only.type ?? "Other",
-            suggested_label: only.suggested_label ?? null,
-            confidence: only.confidence ?? 0.2,
-            reason: "single_segment_review",
-          }];
+          out.push({ file });
+          console.info("[binder-split]", { file: file.name, pageCount, isBinder: false, segments: 1, action: "kept_as_single_document" });
+          continue;
         }
       }
-      console.info("[binder-split]", { file: file.name, pageCount, isBinder: looksLikeBinderName(file.name), segments: segments.length });
+      console.info("[binder-split]", { file: file.name, pageCount, isBinder: isBinderName, segments: segments.length });
       // Build one File per segment.
       const baseStem = file.name.replace(/\.pdf$/i, "");
       const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -1118,7 +1114,7 @@ async function expandBinders(
       toast.success(`Split "${file.name}" into ${segments.length} document${segments.length === 1 ? "" : "s"}`);
     } catch (e) {
       console.warn("split-binder failed; uploading as single PDF:", e);
-      if (shouldFallbackToPageRanges(file.name, pageCount, [])) {
+      if (looksLikeBinderName(file.name) && shouldFallbackToPageRanges(file.name, pageCount, [])) {
         const binderId = `bndr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
         const baseStem = file.name.replace(/\.pdf$/i, "");
         for (let i = 1; i <= pageCount; i++) {

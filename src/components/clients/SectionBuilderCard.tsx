@@ -19,11 +19,27 @@ import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, getBinderPageImages, extractPagesAsPdfFile,
-  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText,
+  getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
 import { useMasterLabels } from "@/lib/masters";
+
+function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
+  if (pageCount < 3 || segments.length !== 1) return false;
+  const only = segments[0];
+  return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
+}
+
+function buildPageSegments(pageCount: number, pageSnippets: string[], allowedTypes: string[], reason: string): BinderSegment[] {
+  return Array.from({ length: pageCount }, (_, pageIdx) => ({
+    start_page: pageIdx + 1,
+    end_page: pageIdx + 1,
+    ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedTypes),
+    confidence: 0.35,
+    reason,
+  }));
+}
 
 /** Convert a file name like `B.Tech_Year_2_Marksheet.pdf` → `B.Tech Year 2 Marksheet`. */
 function prettyTitle(fileName: string): string {
@@ -142,7 +158,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         if (!isPdfFile(f)) { segments.push({ file: f }); continue; }
         let pageCount = 0;
         try { pageCount = await getPdfPageCount(f); } catch { /* ignore */ }
-        if (pageCount < 3) { segments.push({ file: f }); continue; }
+        if (pageCount < 3 || !looksLikeBinderName(f.name)) { segments.push({ file: f }); continue; }
         let pageSnippets: string[] = [];
         try {
           const maxPages = Math.min(pageCount, 30);
@@ -174,27 +190,15 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
             return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
           });
-          if (shouldFallbackToPageRanges(f.name, pageCount, segs)) {
-            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
-              start_page: pageIdx + 1,
-              end_page: pageIdx + 1,
-              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
-              confidence: 0.35,
-              reason: "fallback_page_range",
-            }));
+          const isBinderName = looksLikeBinderName(f.name);
+          if (isBinderName && shouldFallbackToPageRanges(f.name, pageCount, segs)) {
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "fallback_page_range");
             toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
           }
-          // Never upload a multi-page PDF as one "Other" document. If we ended
-          // up with a single segment, force a per-page split so each page is
-          // classified and routed individually.
-          if (segs.length < 2) {
-            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
-              start_page: pageIdx + 1,
-              end_page: pageIdx + 1,
-              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
-              confidence: 0.35,
-              reason: "single_segment_forced_split",
-            }));
+          // A normal multi-page PDF may be one valid document. Only binder-named
+          // PDFs are exploded when AI returns one full-document segment.
+          if (isBinderName && isOneFullDocumentSegment(pageCount, segs)) {
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "binder_single_segment_forced_split");
             toast.message(`"${f.name}" was split page-by-page for routing.`);
           }
           const baseStem = f.name.replace(/\.pdf$/i, "");
@@ -211,7 +215,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           toast.success(`Split "${f.name}" into ${segs.length} documents`);
         } catch (e) {
           console.warn("split-binder failed; uploading as single PDF:", e);
-          if (shouldFallbackToPageRanges(f.name, pageCount, [])) {
+          if (looksLikeBinderName(f.name) && shouldFallbackToPageRanges(f.name, pageCount, [])) {
             const baseStem = f.name.replace(/\.pdf$/i, "");
             for (let pageIdx = 0; pageIdx < pageCount; pageIdx++) {
               const guessed = inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes);
