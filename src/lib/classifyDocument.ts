@@ -114,6 +114,7 @@ export async function classifyDocument(
 ): Promise<Classification> {
   // Filename is only a type hint. Candidate ownership must come from document content.
   const fn = classifyByFilename(file.name);
+  let fallbackTextGuess: Classification | null = null;
 
   try {
     const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -132,6 +133,7 @@ export async function classifyDocument(
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
     const textGuess = classifyByText(snippet, allowed);
+    fallbackTextGuess = textGuess;
     const { data, error } = await supabase.functions.invoke("classify-document", {
       body: {
         filename: file.name,
@@ -165,7 +167,7 @@ export async function classifyDocument(
       ownerSource: data?.owner_source === "document_text" || data?.owner_source === "document_image" ? data.owner_source : null,
     };
   } catch {
-    return fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
+    return fallbackTextGuess ?? fn ?? { type: "Other", confidence: 0.1, source: "fallback" };
   }
 }
 
