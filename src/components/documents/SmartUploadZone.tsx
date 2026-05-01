@@ -21,7 +21,6 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { previewLocalFile } from "@/lib/documentPreview";
 import { buildLocalPreviewUrl } from "@/lib/documentPreview";
 import { InlinePreviewDialog } from "@/components/documents/InlinePreviewDialog";
 
