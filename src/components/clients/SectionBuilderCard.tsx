@@ -190,27 +190,15 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             if (guess.type !== "Other") return { ...s, type: guess.type, suggested_label: null };
             return { ...s, suggested_label: guess.suggested_label ?? s.suggested_label ?? null };
           });
-          if (shouldFallbackToPageRanges(f.name, pageCount, segs)) {
-            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
-              start_page: pageIdx + 1,
-              end_page: pageIdx + 1,
-              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
-              confidence: 0.35,
-              reason: "fallback_page_range",
-            }));
+          const isBinderName = looksLikeBinderName(f.name);
+          if (isBinderName && shouldFallbackToPageRanges(f.name, pageCount, segs)) {
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "fallback_page_range");
             toast.message(`Binder splitter was unsure, so "${f.name}" was split page-by-page.`);
           }
-          // Never upload a multi-page PDF as one "Other" document. If we ended
-          // up with a single segment, force a per-page split so each page is
-          // classified and routed individually.
-          if (segs.length < 2) {
-            segs = Array.from({ length: pageCount }, (_, pageIdx) => ({
-              start_page: pageIdx + 1,
-              end_page: pageIdx + 1,
-              ...inferTypeFromPageText(pageSnippets[pageIdx] ?? "", allowedDocumentTypes),
-              confidence: 0.35,
-              reason: "single_segment_forced_split",
-            }));
+          // A normal multi-page PDF may be one valid document. Only binder-named
+          // PDFs are exploded when AI returns one full-document segment.
+          if (isBinderName && isOneFullDocumentSegment(pageCount, segs)) {
+            segs = buildPageSegments(pageCount, pageSnippets, allowedDocumentTypes, "binder_single_segment_forced_split");
             toast.message(`"${f.name}" was split page-by-page for routing.`);
           }
           const baseStem = f.name.replace(/\.pdf$/i, "");
