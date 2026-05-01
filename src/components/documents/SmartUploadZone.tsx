@@ -330,8 +330,15 @@ export const SmartUploadZone = ({
       }
       const arr = Array.from(files);
       if (!arr.length) return;
+
+      // Step 1: expand binders. Any multi-page PDF (≥3 pages) is sent to the
+      // AI binder splitter; if multiple segments come back, the original file
+      // is replaced by one File per segment so each is classified, owner-
+      // matched, and routed to its correct section independently.
+      const expanded = await expandBinders(arr, people.map((p) => p.full_name), DOCUMENT_TYPES);
+
       const startIdx = queue.length;
-      const initial: QueueItem[] = arr.map((f) => ({ file: f, status: "queued" as const }));
+      const initial: QueueItem[] = expanded.map((f) => ({ file: f, status: "queued" as const }));
       setQueue((q) => [...q, ...initial]);
       setBusy(true);
 
@@ -354,7 +361,7 @@ export const SmartUploadZone = ({
       setBusy(false);
       onUploaded();
     },
-    [queue.length, classifyAndAssign, applicant, onUploaded] // eslint-disable-line react-hooks/exhaustive-deps
+    [queue.length, classifyAndAssign, applicant, onUploaded, people, DOCUMENT_TYPES] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   const overrideType = async (idx: number, newType: string) => {
