@@ -21,6 +21,7 @@ import {
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Client { id: string; full_name: string; }
 
@@ -101,6 +102,7 @@ export const SmartUploadZone = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<ClientLite[]>([]);
   const [searching, setSearching] = useState(false);
+  const [previewState, setPreviewState] = useState<{ url: string; name: string; mime: string } | null>(null);
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const allowedDocumentTypes = useMemo(
     () => getAllowedDocumentTypes([...(templateTypes ?? []), ...DOCUMENT_TYPES]),
@@ -485,24 +487,27 @@ export const SmartUploadZone = ({
   /** Open the local file in a new tab so the user can sanity-check it before
    *  confirming a label / owner. Works for PDFs and images without any
    *  storage round-trip. */
-  const previewFile = (file: File) => {
-    return previewFileAt(-1, file);
-  };
+  const previewFile = (file: File) => previewFileAt(-1, file);
 
+  /** Open the local file in an in-page modal. We deliberately do NOT use
+   *  window.open() because some browser extensions (ad-blockers, privacy
+   *  shields) block popups to long lovableproject.com URLs with
+   *  ERR_BLOCKED_BY_CLIENT. An inline iframe bypasses that entirely. */
   const previewFileAt = (idx: number, file: File) => {
     try {
+      // Revoke any previous URL before creating a new one.
+      if (previewState?.url) URL.revokeObjectURL(previewState.url);
       const url = URL.createObjectURL(file);
-      const win = window.open(url, "_blank");
-      if (!win) {
-        const a = document.createElement("a");
-        a.href = url; a.target = "_blank"; a.rel = "noopener";
-        document.body.appendChild(a); a.click(); a.remove();
-      }
-      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      setPreviewState({ url, name: file.name, mime: file.type || "application/pdf" });
       if (idx >= 0) patch(idx, { previewed: true });
     } catch {
       toast.error("Preview unavailable");
     }
+  };
+
+  const closePreview = () => {
+    if (previewState?.url) URL.revokeObjectURL(previewState.url);
+    setPreviewState(null);
   };
 
   /** User picked a document type for an item that came back as "Other". Upload immediately. */
