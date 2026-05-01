@@ -150,24 +150,16 @@ export const SmartUploadZone = ({
           alternatives: match.results.slice(0, 4).map((r) => ({ person: r.person, score: r.result.score })),
         };
 
-        // HARD BLOCK: never silently auto-upload an unidentified document into "Other".
-        // Force the user to choose the type. This handles scanned PDFs where AI fails.
-        if (c.needsManualType || c.type === "Other") {
-          const suggestedOwner = isMulti
-            ? (match.best?.id ?? applicant?.id ?? null)
-            : (applicant?.id ?? null);
-          patch(idx, {
-            ...baseUpdate,
-            status: "needs_type",
-            ownerId: suggestedOwner,
-          });
-          await logActivity("document.type_needs_pick", "client", client.id, {
+        // No hard block on "Other": yesterday's working behavior was to always
+        // auto-upload with the best classification we have. The card UI keeps a
+        // dropdown for the user to correct the type post-upload if needed.
+        if (c.type === "Other") {
+          await logActivity("document.classified_other", "client", client.id, {
             file_name: item.file.name,
             is_scanned: c.isScanned ?? null,
             ai_confidence: c.confidence,
             suggested_label: c.customType ?? null,
           });
-          return null;
         }
 
         // HARD BLOCK: owner must be verified from document content/image, never filename.
