@@ -435,9 +435,26 @@ const ClientDetail = () => {
     const cleanName = client.full_name.replace(/[^a-zA-Z0-9]/g, "");
     let made = 0;
     try {
-      for (const group of BINDER_GROUPS) {
-        // Items in this group that have at least one uploaded doc
-        const groupItems = template.items.filter((it) => groupForType(it.name).key === group.key);
+      // Prefer template-defined sections when available; fall back to BINDER_GROUPS.
+      const tplGroups = (template.groups ?? null) as TemplateGroup[] | null;
+      type GroupSpec = { key: string; label: string; items: TemplateItem[] };
+      const itemMap = new Map(template.items.map((it) => [it.id, it]));
+      const groupSpecs: GroupSpec[] = (tplGroups && tplGroups.length > 0)
+        ? [...tplGroups]
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((g) => ({
+              key: g.section_key,
+              label: g.label,
+              items: g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x),
+            }))
+        : BINDER_GROUPS.map((bg) => ({
+            key: bg.key,
+            label: bg.label,
+            items: template.items.filter((it) => groupForType(it.name).key === bg.key),
+          }));
+
+      for (const group of groupSpecs) {
+        const groupItems = group.items;
         const groupHasUploads = groupItems.some((it) => docByType(it.name));
         if (groupItems.length === 0 || !groupHasUploads) continue;
 
