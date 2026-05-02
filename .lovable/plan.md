@@ -1,59 +1,66 @@
-## Goal
+## Root cause found
 
-Reset all client-related data so you can upload fresh documents and confirm whether the passport extraction fix is fully working. No code/schema changes — data only.
+The uploaded passport is a scanned/image-based PDF. The app currently tries to render PDF pages to JPEG in the browser before calling the extraction backend. In this case, the re-extract flow is reaching the document but producing no usable input, so the backend is not receiving text/images to extract from and the UI reports:
 
-## Scope: what gets wiped
+```text
+Re-extracted 0/1 · 0 new fields
+```
 
-All rows tied to clients and their documents/binders/forms/verifications/activity, plus the underlying files in storage.
+I confirmed the attached passport is readable visually/OCR and contains these fields:
 
-Tables to clear (in dependency-safe order):
+```text
+Passport No: W9166345
+Name: CHINTAN RAJNIKANT PATEL
+DOB: 2004-12-20
+Sex: M
+Place of Birth: VADODARA, GUJARAT
+Issue Date: 2023-01-06
+Expiry: 2033-01-05
+Nationality/Country: IND
+Address: PATEL FALIYU NAVI JAMBUVAI NEAR NIMETA, AJWA ROD, VADODARA, GUJARAT, INDIA, PIN 390019
+File No: AH3067379579623 (must not be used as passport number)
+Spouse: blank (must stay empty)
+```
 
-1. `document_fingerprints`
-2. `document_verifications`
-3. `client_documents`
-4. `binders`
-5. `filled_forms`
-6. `questionnaire_instances`
-7. `client_education`
-8. `client_profile`
-9. `client_section_settings`
-10. `case_people`
-11. `share_links` where `target_type` in (`document`, `binder`, `client`)
-12. `activity_logs` where `entity_type` in (`client`, `document`, `binder`, `form`, `questionnaire`)
-13. `clients` (last)
+The current extractor works if it is given OCR/text, but the client-side PDF rendering/text extraction path is the weak link.
 
-Storage buckets to empty:
-- `client-documents` — all objects (uploaded PDFs/images, generated binders, etc.)
+## Fix plan
 
-What is preserved (intentionally untouched):
-- `auth.users`, `profiles`, `user_roles` — your login + team
-- `firm_profile`, `branding` bucket — firm settings/logo
-- `case_sections`, `master_lists`, `master_items` — config
-- `letter_templates`, `letter-templates` bucket
-- `visa_forms`, `visa-forms` bucket, `questionnaire_schemas`, `questionnaire_email_templates`, `workflow_templates`
-- `integration_settings`, `api_keys`
+1. **Move re-extraction to a backend-driven path**
+   - Update `extract-document-data` so it can accept a `document_id`.
+   - The backend function will download the stored PDF directly from private storage using secure server credentials.
+   - This avoids relying on browser-side PDF rendering for scanned documents.
 
-## Execution steps (once approved)
+2. **Add robust scanned-PDF OCR fallback**
+   - If the browser provides no text/images, the backend will send the original PDF bytes to Lovable AI as a PDF data URL.
+   - This follows the already-working pattern used elsewhere in the project for AI PDF reading.
+   - The function will still support the existing `snippet` + `image_data_urls` path, so uploads and other callers keep working.
 
-1. Run a single SQL transaction (via the insert/data tool) that deletes from the tables above in the listed order.
-2. Empty the `client-documents` storage bucket (list + delete all objects).
-3. Verify counts: all listed tables return 0 rows for client-scoped data; `client-documents` bucket is empty.
-4. Report back with a short confirmation summary so you can start fresh uploads.
+3. **Strengthen passport-specific deterministic parsing**
+   - Keep the existing MRZ check-digit validation.
+   - Add a fallback parser for visible passport labels when MRZ OCR is incomplete or unavailable.
+   - Ensure `File No.` and `Old Passport No.` are never written as `passport_number`.
+   - Ensure blank spouse fields do not populate `spouse_name` or `marital_status`.
 
-## After the wipe — how to retest
+4. **Update the Re-extract button flow**
+   - Pass `document_id` to `extract-document-data` during re-extraction.
+   - Do not skip a document just because browser text/image extraction is empty.
+   - Surface clearer errors, e.g. `no_input`, `ai_error`, or `no_credits`, instead of silently counting it as 0.
 
-1. Create a new client.
-2. Upload the passport into the Identity section first.
-3. Click Re-extract.
-4. Verify on the profile card:
-   - DOB, passport number, expiry come from MRZ (validated)
-   - "File No." is not used as passport number
-   - Mother/Father names are not mapped to Spouse
-   - Place of birth is not pulled from address
-5. Upload the rest of the documents and confirm passport-derived fields are not overwritten.
+5. **Apply the same fallback to upload-time extraction**
+   - Section uploads and smart uploads will also pass the inserted `document_id` to the extractor.
+   - If browser OCR fails during the background extraction after upload, the backend can still read the stored file.
 
-## Risks / notes
+6. **Verification after implementation**
+   - Re-run the extraction against the current client/document.
+   - Confirm `client_profile` is populated for the new client with the passport fields above.
+   - Confirm the toast changes from `Re-extracted 0/1 · 0 new fields` to a successful field count.
 
-- This is destructive and not reversible from the app — all existing client records, uploaded files, generated binders, filled forms, questionnaires, and verification history will be permanently deleted.
-- Firm settings, templates, masters, forms library, and user accounts remain intact, so the app is immediately usable for new clients after the wipe.
-- If you want to keep one specific client for comparison, tell me the client ID before approving and I'll exclude it.
+## Files to change
+
+- `supabase/functions/extract-document-data/index.ts`
+- `src/pages/ClientDetail.tsx`
+- `src/components/clients/SectionBuilderCard.tsx`
+- `src/components/documents/SmartUploadZone.tsx`
+
+No database schema changes are needed.

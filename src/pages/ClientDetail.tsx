@@ -171,15 +171,30 @@ const ClientDetail = () => {
         });
       for (const d of pdfs) {
         try {
-          const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
-          if (!blob) { errs++; continue; }
-          const file = new File([blob], d.file_name, { type: d.mime_type || "application/pdf" });
-          const snippet = await extractFirstPageText(file, 12000, 3);
-          const imageDataUrls = await renderPdfPagesToJpegDataUrls(file, 3);
-          if (!snippet && imageDataUrls.length === 0) continue;
+          // Try browser-side text/image extraction first (fast path for digital PDFs).
+          // For scanned PDFs (passport copies, etc.) these will be empty — the backend
+          // function will fall back to reading the original PDF from storage.
+          let snippet = "";
+          let imageDataUrls: string[] = [];
+          try {
+            const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
+            if (blob) {
+              const file = new File([blob], d.file_name, { type: d.mime_type || "application/pdf" });
+              snippet = await extractFirstPageText(file, 12000, 3);
+              imageDataUrls = await renderPdfPagesToJpegDataUrls(file, 3);
+            }
+          } catch (e) {
+            console.warn("client-side pdf extract failed, falling back to server:", e);
+          }
           const effectiveType = d.document_type === "Other" ? (d.custom_type ?? "Other") : d.document_type;
           const { data } = await supabase.functions.invoke("extract-document-data", {
-            body: { document_type: effectiveType, file_name: d.file_name, snippet, image_data_urls: imageDataUrls },
+            body: {
+              document_id: d.id,
+              document_type: effectiveType,
+              file_name: d.file_name,
+              snippet,
+              image_data_urls: imageDataUrls,
+            },
           });
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
@@ -188,11 +203,21 @@ const ClientDetail = () => {
               d.document_type === "Other" ? (d.custom_type ?? null) : null,
             );
             totalWritten += written.length;
+            ok++;
+          } else {
+            // Backend returned no fields — surface reason in console for debugging.
+            console.warn("extract-document-data returned no fields", { document_id: d.id, reason: data?.reason });
+            errs++;
           }
-          ok++;
         } catch { errs++; }
       }
-      toast.success(`Re-extracted ${ok}/${pdfs.length} · ${totalWritten} new fields`);
+      if (ok > 0) {
+        toast.success(`Re-extracted ${ok}/${pdfs.length} · ${totalWritten} new fields`);
+      } else if (pdfs.length > 0) {
+        toast.error(`Re-extract found 0 fields across ${pdfs.length} document${pdfs.length === 1 ? "" : "s"}. Check console for details.`);
+      } else {
+        toast.message("No PDF documents to re-extract");
+      }
       setProfileRefreshKey((k) => k + 1);
     } finally {
       setReExtracting(false);

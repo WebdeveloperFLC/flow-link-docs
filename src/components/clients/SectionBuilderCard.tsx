@@ -314,9 +314,10 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               : isImage
                 ? [await imageFileToJpegDataUrl(processed)].filter(Boolean)
                 : [];
-            if ((snippet || imageDataUrls.length > 0) && insertedId) {
+            if (insertedId) {
               const { data } = await supabase.functions.invoke("extract-document-data", {
                 body: {
+                  document_id: insertedId,
                   document_type: effectiveType,
                   custom_type: docType === "Other" ? (customType ?? null) : null,
                   file_name: processed.name,
