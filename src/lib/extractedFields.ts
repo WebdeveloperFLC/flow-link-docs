@@ -305,7 +305,12 @@ export async function mergeExtractedFields(
     }
   }
 
-  if (written.length > 0) {
+  // Track whether we cleared any stale fields that aren't in `written`
+  const hasStaleClear = Object.keys(toWrite).some(
+    (k) => !written.includes(k as ProfileField) && k !== "source_documents" && k !== "last_extracted_at",
+  );
+
+  if (written.length > 0 || hasStaleClear) {
     toWrite.source_documents = sourceMap;
     toWrite.last_extracted_at = new Date().toISOString();
     if (existing) {
@@ -320,11 +325,13 @@ export async function mergeExtractedFields(
         .insert({ client_id: clientId, ...toWrite } as never);
       if (error) throw error;
     }
-    await logActivity("profile.fields_extracted", "client", clientId, {
-      document_id: documentId,
-      file_name: fileName,
-      fields: written,
-    });
+    if (written.length > 0) {
+      await logActivity("profile.fields_extracted", "client", clientId, {
+        document_id: documentId,
+        file_name: fileName,
+        fields: written,
+      });
+    }
   }
 
   if (overrides.length > 0) {
