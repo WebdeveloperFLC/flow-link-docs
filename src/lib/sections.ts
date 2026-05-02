@@ -122,6 +122,35 @@ export async function createSection(label: string): Promise<CaseSection | null> 
   return data as CaseSection;
 }
 
+/** Rename a section (label only — key is preserved so field mapping keeps working). */
+export async function renameSection(id: string, label: string): Promise<boolean> {
+  const trimmed = label.trim();
+  if (!trimmed) return false;
+  const { error } = await supabase
+    .from("case_sections")
+    .update({ label: trimmed } as never)
+    .eq("id", id);
+  if (error) return false;
+  cachedSections = null;
+  return true;
+}
+
+/** Soft-delete (archive) a section. Refuses if any client document is still in it. */
+export async function archiveSection(id: string): Promise<{ ok: boolean; reason?: string; count?: number }> {
+  const { count } = await supabase
+    .from("client_documents")
+    .select("id", { count: "exact", head: true })
+    .eq("section_id", id);
+  if ((count ?? 0) > 0) return { ok: false, reason: "has_documents", count: count ?? 0 };
+  const { error } = await supabase
+    .from("case_sections")
+    .update({ is_archived: true } as never)
+    .eq("id", id);
+  if (error) return { ok: false, reason: error.message };
+  cachedSections = null;
+  return { ok: true };
+}
+
 /**
  * Field whitelist owned by each section. The extractor's results are filtered
  * to this whitelist so a document uploaded into "Identity" can only auto-fill
