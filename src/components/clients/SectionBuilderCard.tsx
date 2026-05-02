@@ -520,6 +520,27 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             <div className="font-semibold text-sm">{section.label}</div>
             <div className="text-xs text-muted-foreground">{items.length} document{items.length === 1 ? "" : "s"}{binder ? " · binder ready" : ""}</div>
           </div>
+          {isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="size-7 ml-1" aria-label="Section options">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => { setRenameValue(section.label); setRenameOpen(true); }}>
+                  <Pencil className="size-3.5 mr-2" /> Rename section
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setDeleteOpen(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="size-3.5 mr-2" /> Delete section
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Select value={orderMode} onValueChange={(v) => onModeChange(v as "auto" | "manual")} disabled={!canEdit}>
