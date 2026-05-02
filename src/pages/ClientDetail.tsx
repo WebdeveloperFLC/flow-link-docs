@@ -132,6 +132,37 @@ const ClientDetail = () => {
   const completed = checklistItems.filter((it) => docByType(it.name)).length;
   const requiredMissing = checklistItems.filter((it) => it.mandatory && !docByType(it.name));
 
+  /** Sectioned view of the checklist. If the assigned template defines `groups`,
+   *  we honour that hierarchy. Extra items (added per-client) are appended to
+   *  a synthetic "Added requirements" section at the end. Otherwise we fall
+   *  back to a single flat section. */
+  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = (() => {
+    const tplItems = template?.items ?? [];
+    const tplGroups = (template?.groups ?? null) as TemplateGroup[] | null;
+    const itemMap = new Map(tplItems.map((it) => [it.id, it]));
+    const out: Array<{ id: string; label: string; items: TemplateItem[] }> = [];
+    if (tplGroups && tplGroups.length > 0) {
+      const placed = new Set<string>();
+      for (const g of [...tplGroups].sort((a, b) => a.sort_order - b.sort_order)) {
+        const items = g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x);
+        items.forEach((it) => placed.add(it.id));
+        if (items.length > 0) out.push({ id: g.id, label: g.label, items });
+      }
+      const orphans = tplItems.filter((it) => !placed.has(it.id));
+      if (orphans.length > 0) out.push({ id: "_orphans", label: "Other Documents", items: orphans });
+    } else if (tplItems.length > 0) {
+      out.push({ id: "_all", label: "Documents", items: tplItems });
+    }
+    if (extraItems.length > 0) {
+      out.push({
+        id: "_extras",
+        label: "Added requirements",
+        items: extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
+      });
+    }
+    return out;
+  })();
+
   const onDelete = async (d: Doc) => {
     if (!confirm(`Delete ${d.file_name}?`)) return;
     await supabase.storage.from("client-documents").remove([d.storage_path]);
