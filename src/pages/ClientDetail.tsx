@@ -109,6 +109,44 @@ const ClientDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, sections]);
 
+  // Backfill: align custom_type to the matching checklist item name so that
+  // already-uploaded documents (uploaded before the linking pipeline ran, or
+  // classified under a near-alias) flip their checklist row from Pending to
+  // Ready without a re-upload.
+  useEffect(() => {
+    if (!docs.length) return;
+    const items: TemplateItem[] = checklistItems;
+    if (items.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      let changed = 0;
+      for (const d of docs) {
+        const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+        const t2 = d.custom_type ?? "";
+        // Already matches some item by exact name → skip.
+        const exact = items.find((it) => it.name === t1 || it.name === t2);
+        if (exact) continue;
+        // Find an item that is an alias of either label or the file name.
+        const fn = d.file_name ?? "";
+        const aliasItem = items.find(
+          (it) =>
+            (t1 && isChecklistAlias(t1, it.name)) ||
+            (t2 && isChecklistAlias(t2, it.name)) ||
+            (fn && isChecklistAlias(fn, it.name)),
+        );
+        if (!aliasItem) continue;
+        const { error } = await supabase
+          .from("client_documents")
+          .update({ custom_type: aliasItem.name })
+          .eq("id", d.id);
+        if (!error) changed++;
+      }
+      if (!cancelled && changed > 0) load();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docs, template?.id, client?.id]);
+
   const docByType = (typeName: string): Doc | undefined => {
     const matches = docs.filter((d) => {
       // Primary type label on the doc — what the user sees.
@@ -119,6 +157,10 @@ const ClientDetail = () => {
       if (t1 === typeName || t2 === typeName) return true;
       if (t1 && isChecklistAlias(t1, typeName)) return true;
       if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+      // Last resort: filename hints (e.g., 2026-05-01_IELTSLanguageTest_*.pdf)
+      // catches docs that were classified before checklist linking ran.
+      const fn = d.file_name ?? "";
+      if (fn && isChecklistAlias(fn, typeName)) return true;
       return false;
     });
     return matches.sort((a, b) => b.version - a.version)[0];

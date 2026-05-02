@@ -137,8 +137,16 @@ export function isChecklistAlias(uploadedType: string, checklistItemName: string
     if (Math.min(a.length, b.length) >= 3) return true;
   }
   const bucketA = bucketFor(uploadedType);
-  if (!bucketA) return false;
-  return bucketA.some((alias) => norm(alias) === b);
+  if (bucketA && bucketA.some((alias) => norm(alias) === b)) return true;
+  // Symmetric: also try the other direction so a bucket-anchored checklist
+  // name (e.g., "English Language Proficiency Test") matches an uploaded
+  // alias (e.g., "IELTS / Language Test") even when the uploaded type isn't
+  // the bucket's canonical entry.
+  const bucketB = bucketFor(checklistItemName);
+  if (bucketB && bucketB.some((alias) => norm(alias) === a)) return true;
+  // Final attempt: if both names land in the same bucket, treat them as aliases.
+  if (bucketA && bucketB && bucketA === bucketB) return true;
+  return false;
 }
 
 interface TemplateItemLite { id: string; name: string; mandatory?: boolean }
