@@ -24,7 +24,8 @@ export const BINDER_GROUPS: BinderGroup[] = [
       "Offer Letter", "Provincial Attestation Letter", "PAL",
       "APS Certificate", "Medium of Instruction", "MOI",
       "Letter of Recommendation", "LOR",
-      "English Language Proficiency Test", "IELTS / Language Test", "IELTS", "TOEFL", "PTE", "Duolingo",
+      "English Language Proficiency Test", "IELTS / Language Test",
+      "IELTS", "TOEFL", "PTE", "PTE Academic", "Duolingo", "CELPIP",
     ],
   },
   {
