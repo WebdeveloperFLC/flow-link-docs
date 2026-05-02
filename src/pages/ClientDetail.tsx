@@ -157,8 +157,18 @@ const ClientDetail = () => {
     setReExtracting(true);
     let ok = 0, errs = 0, totalWritten = 0;
     try {
-      // Only PDFs can be text-extracted client side
-      const pdfs = docs.filter((d) => (d.mime_type ?? "").includes("pdf") || d.file_name.toLowerCase().endsWith(".pdf"));
+      // Only PDFs can be text-extracted client side. Identity passports must run first
+      // so passport-authoritative fields overwrite any stale values before lower-priority docs run.
+      const pdfs = docs
+        .filter((d) => (d.mime_type ?? "").includes("pdf") || d.file_name.toLowerCase().endsWith(".pdf"))
+        .sort((a, b) => {
+          const passportScore = (d: Doc) => {
+            const type = `${d.document_type ?? ""} ${d.custom_type ?? ""}`.toLowerCase();
+            const inIdentity = d.section_id === "identity" || /\/identity\//i.test(d.storage_path);
+            return inIdentity && type.includes("passport") ? 0 : 1;
+          };
+          return passportScore(a) - passportScore(b);
+        });
       for (const d of pdfs) {
         try {
           const { data: blob } = await supabase.storage.from("client-documents").download(d.storage_path);
