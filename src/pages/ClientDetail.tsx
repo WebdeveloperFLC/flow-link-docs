@@ -527,6 +527,14 @@ const ClientDetail = () => {
               {checklistItems.map((it, i) => {
                 const d = docByType(it.name);
                 const isExtra = extraItems.some((e) => e.id === it.id);
+                // Candidate uploaded docs to link manually — any doc not already
+                // satisfying THIS checklist item. Most useful for renamed/mislabeled
+                // uploads (e.g., "Passport Copy" with no alias hit).
+                const linkableDocs = docs.filter((doc) => {
+                  const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
+                  const t2 = doc.custom_type ?? "";
+                  return t1 !== it.name && t2 !== it.name;
+                });
                 return (
                   <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
                     <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
@@ -545,6 +553,44 @@ const ClientDetail = () => {
                       <span className={`text-xs px-2 py-1 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
                         {it.mandatory ? "Pending" : "Optional"}
                       </span>
+                    )}
+                    {canUpload && !d && linkableDocs.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-7 text-[11px]" title="Link an already-uploaded document to this checklist item">
+                            <Link2 className="size-3 mr-1" /> Link doc
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80 p-0">
+                          <div className="px-3 py-2 border-b text-[11px] text-muted-foreground">
+                            Pick an uploaded document to count for <span className="font-semibold text-foreground">{it.name}</span>
+                          </div>
+                          <div className="max-h-72 overflow-auto divide-y">
+                            {linkableDocs.map((doc) => {
+                              const label = doc.document_type === "Other" ? (doc.custom_type ?? "Other") : doc.document_type;
+                              return (
+                                <button
+                                  key={doc.id}
+                                  onClick={() => linkDocToChecklist(doc.id, it.name)}
+                                  className="w-full text-left px-3 py-2 hover:bg-accent text-xs"
+                                >
+                                  <div className="font-medium truncate">{doc.file_name}</div>
+                                  <div className="text-[10px] text-muted-foreground truncate">{label}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    {canUpload && d && d.custom_type && d.custom_type === it.name && d.document_type !== "Other" && (
+                      <Button
+                        size="icon" variant="ghost" className="size-7 text-muted-foreground"
+                        title="Unlink this document from the checklist item (file stays uploaded)"
+                        onClick={() => unlinkDocFromChecklist(d.id)}
+                      >
+                        <Unlink className="size-3.5" />
+                      </Button>
                     )}
                     {isExtra && canUpload && !d && (
                       <Button size="icon" variant="ghost" className="size-7 text-muted-foreground" title="Remove this requirement"
