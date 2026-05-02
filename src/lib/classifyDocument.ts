@@ -83,8 +83,9 @@ export function normalizeAiType(raw: string | undefined | null, allowed: string[
   if (allowed.includes(t)) return t;
   // Reverse alias map: each allowed type can absorb several aliases.
   const aliasOf: Record<string, string[]> = {
-    "IELTS / Language Test": ["english language proficiency test", "ielts", "toefl", "pte", "duolingo", "language test", "language proficiency test"],
-    "English Language Proficiency Test": ["ielts / language test", "ielts", "toefl", "pte", "duolingo", "language test"],
+    "IELTS / Language Test": ["english language proficiency test", "ielts", "toefl", "pte", "pte academic", "duolingo", "celpip", "language test", "language proficiency test", "english proficiency test", "english test"],
+    "English Language Proficiency Test": ["ielts / language test", "ielts", "ielts result", "toefl", "toefl ibt", "pte", "pte academic", "pte result", "pte score report", "duolingo", "duolingo english test", "celpip", "celpip-general", "language test", "english proficiency test", "english test", "language proficiency test"],
+    "Provincial Attestation Letter": ["pal", "pal letter", "provincial attestation", "attestation letter", "provincial attestation letter"],
     "SOP": ["statement of purpose", "personal statement", "sop"],
     "Statement of Purpose": ["sop", "personal statement"],
     "Resume": ["updated resume", "cv", "curriculum vitae"],
