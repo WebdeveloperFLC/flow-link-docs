@@ -690,6 +690,11 @@ const ClientDetail = () => {
                         runningIdx += 1;
                         const i = runningIdx - 1;
                         const d = docByType(it.name);
+                        const attached = attachedDocByType(it.name);
+                        const attachedStatus = attached?.status ?? "ready";
+                        const isRejected = !d && attached && attachedStatus === "rejected";
+                        const isReissue = !d && attached && attachedStatus === "needs_reissue";
+                        const isVerified = !!d && (d.status === "verified");
                         const isExtra = extraItems.some((e) => e.id === it.id);
                         const linkableDocs = docs.filter((doc) => {
                           const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
@@ -706,7 +711,12 @@ const ClientDetail = () => {
                         {isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
                       </div>
                       {it.notes && <div className="text-xs text-muted-foreground">{it.notes}</div>}
-                      {d && <div className="text-xs text-muted-foreground mt-0.5">{d.file_name}{d.version>1?` · v${d.version}`:""}</div>}
+                      {(d || attached) && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {(d ?? attached)!.file_name}
+                          {(d ?? attached)!.version > 1 ? ` · v${(d ?? attached)!.version}` : ""}
+                        </div>
+                      )}
                     </div>
                     {d ? (
                       <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">Ready</span>
