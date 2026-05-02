@@ -36,6 +36,62 @@ const isPassportDoc = (t?: string | null, c?: string | null): boolean => {
   return /\bpassport\b/.test(s);
 };
 
+const isMarriageCert = (t?: string | null, c?: string | null): boolean => {
+  const s = `${t ?? ""} ${c ?? ""}`.toLowerCase();
+  return /\bmarriage\b/.test(s);
+};
+
+/**
+ * Strip fields that the given document type cannot legitimately provide.
+ * - Passports never carry contact/employment/financial/IELTS info, and never reliably
+ *   provide spouse_name or marital_status — those are populated only from a marriage
+ *   certificate or explicit spouse-labelled field elsewhere.
+ * - Non-passport docs must not write passport_* fields.
+ * - Drop any YYYY-01-01 placeholder dates from passport extractions (Indian passports
+ *   never legitimately issue/expire on Jan 1; this is the AI's partial-date fallback).
+ */
+function sanitizeExtractionByDocType<T extends Record<string, unknown>>(
+  fields: T,
+  documentType?: string | null,
+  customType?: string | null,
+): T {
+  const out: Record<string, unknown> = { ...fields };
+  const isPassport = isPassportDoc(documentType, customType);
+  const isMarriage = isMarriageCert(documentType, customType);
+
+  if (isPassport) {
+    const drop = [
+      "spouse_name", "marital_status",
+      "phone_primary", "phone_alt", "email_alt",
+      "employer_name", "job_title", "annual_income", "currency",
+      "bank_name", "account_balance", "gic_amount", "tuition_paid",
+      "ielts_overall", "ielts_listening", "ielts_reading",
+      "ielts_writing", "ielts_speaking", "ielts_test_date",
+      "highest_qualification", "institution_name", "graduation_year", "gpa_or_percentage",
+      "education_history",
+      "emergency_contact_name", "emergency_contact_phone",
+    ];
+    for (const k of drop) delete out[k];
+    // Reject Jan-1 placeholder dates from passports
+    for (const k of ["date_of_birth", "passport_issue_date", "passport_expiry"]) {
+      const v = out[k];
+      if (typeof v === "string" && /-01-01$/.test(v.trim())) delete out[k];
+    }
+  } else {
+    // Non-passport docs cannot provide passport_* fields
+    for (const k of ["passport_number", "passport_issue_date", "passport_expiry", "passport_country"]) {
+      delete out[k];
+    }
+    // Only marriage certificates may set spouse_name / marital_status
+    if (!isMarriage) {
+      // Allow these only when explicitly extracted from a marriage cert; otherwise be conservative
+      // (other doc types can still legitimately have them, e.g. an ID card with marital status,
+      // so we keep them by default — the merge layer will not overwrite passport-locked values.)
+    }
+  }
+  return out as T;
+}
+
 type SourceEntry = string | { file_name: string; document_type?: string | null };
 function readSourceType(entry: SourceEntry | undefined): string | null {
   if (!entry) return null;
@@ -156,6 +212,9 @@ export async function mergeExtractedFields(
   documentType?: string | null,
   customType?: string | null,
 ): Promise<{ written: ProfileField[]; conflicts: { field: ProfileField; existing: unknown; incoming: unknown }[] }> {
+  // 0. Sanitize by document type before any writes.
+  extracted = sanitizeExtractionByDocType(extracted, documentType, customType);
+
   // 1. Sync primary phone to clients.phone (separate from profile)
   const phonePrimary = extracted.phone_primary?.toString().trim();
   if (phonePrimary) {
@@ -198,6 +257,23 @@ export async function mergeExtractedFields(
   const incomingIsPassport = isPassportDoc(documentType, customType);
   const newSourceEntry: SourceEntry = { file_name: fileName, document_type: documentType ?? null };
 
+  // If incoming is a passport, also clear any stale spouse_name / marital_status that may have
+  // been wrongly written from earlier (mis-)extractions, so the next re-extract resets the slate.
+  if (incomingIsPassport) {
+    const stale: Record<string, null> = {};
+    for (const f of ["spouse_name", "marital_status"] as const) {
+      const cur = (existing as Record<string, unknown> | null)?.[f];
+      const srcType = readSourceType(sourceMap[f]);
+      if (cur !== null && cur !== undefined && cur !== "" && isPassportDoc(srcType, null)) {
+        stale[f] = null;
+        delete sourceMap[f];
+      }
+    }
+    if (Object.keys(stale).length > 0) {
+      Object.assign(toWrite, stale);
+    }
+  }
+
   for (const field of PROFILE_FIELDS) {
     const incoming = extracted[field];
     if (incoming === undefined || incoming === null || incoming === "") continue;
@@ -212,8 +288,11 @@ export async function mergeExtractedFields(
       written.push(field);
     } else if (normalize(current) === normalize(incoming)) {
       // matches — nothing to do
-    } else if (isAuthField && incomingIsPassport && !existingIsPassport) {
-      // PASSPORT OVERRIDE: passport beats non-passport source for core identity fields
+    } else if (isAuthField && incomingIsPassport) {
+      // PASSPORT OVERRIDE: a passport extraction is always the authoritative source for
+      // these identity fields. Overwrite even prior passport-tagged values, because earlier
+      // mis-reads (file no. → passport no., old passport date → issue date, partial-date
+      // YYYY-01-01 fallbacks) need to be correctable via Re-extract.
       toWrite[field] = incoming;
       overrides.push({ field, previous: current, previous_source: sourceMap[field], new_source: fileName });
       sourceMap[field] = newSourceEntry;
