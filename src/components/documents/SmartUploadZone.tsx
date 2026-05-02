@@ -357,7 +357,7 @@ export const SmartUploadZone = ({
           : isImage
             ? [await imageFileToJpegDataUrl(item.file)].filter(Boolean)
             : [];
-        if (snippet || imageDataUrls.length > 0) {
+        {
           const { data } = await supabase.functions.invoke("extract-document-data", {
             body: {
               document_id: ins.id,
