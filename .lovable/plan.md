@@ -1,84 +1,91 @@
-## What's broken
+## Goal
 
-Two related issues, both visible on the client you just uploaded into:
+Restructure Workflow Templates so each template is organized as:
 
-1. **Renames don't flip the checklist.** The merged PDF you split contained a "10th Marksheet" page. You renamed it to "Passport Copy", uploaded it under Academics, and the **Academic Transcripts** checklist row stayed *Pending*. The render-time matcher (`docByType` in `src/pages/ClientDetail.tsx`) requires the document's `document_type` (or `custom_type` when type is "Other") to be **byte-equal** to the checklist item's name. "Passport Copy" / "10th Marksheet" / "PTE Result" never match "Passport" / "Academic Transcripts" / "English Language Proficiency Test", so the row never goes Ready.
-
-2. **Even when names should match, the writeback doesn't help.** `markChecklistItemReady` writes the matched checklist name into `custom_type`, but `docByType` ignores `custom_type` whenever `document_type !== "Other"`. So the alias logic in `src/lib/checklist.ts` is effectively dead for canonical types like "English Language Proficiency Test". (The doc you just uploaded is in the DB with `document_type = "English Language Proficiency Test"` and the checklist has the same name verbatim — it should already match; but if any future rename / type-edit lands here, the writeback is silently useless.)
-
-3. **A separate small bug:** the dropdown on a *done* row (post-upload retype) calls `overrideType` → `uploadOne`, but `uploadOne` early-returns unless status is `needs_owner | name_mismatch | awaiting_review`. So the dropdown silently does nothing after the first successful upload.
-
-## Fix
-
-### 1. Make the render-time matcher alias-aware
-
-`src/pages/ClientDetail.tsx` — replace the strict-equal lookup with one that uses the alias buckets already defined in `src/lib/checklist.ts`.
-
-```ts
-import { isChecklistAlias } from "@/lib/checklist";
-
-const docByType = (typeName: string): Doc | undefined => {
-  const matches = docs.filter((d) => {
-    const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
-    const t2 = d.custom_type ?? "";  // also try custom_type as a "linked checklist name"
-    return (
-      t1 === typeName ||
-      t2 === typeName ||
-      isChecklistAlias(t1, typeName) ||
-      (t2 && isChecklistAlias(t2, typeName))
-    );
-  });
-  return matches.sort((a, b) => b.version - a.version)[0];
-};
+```text
+Country → Application Category → Section (Academics, Experience, Institution Docs,
+   Finance Docs, Sponsor Docs, Other Docs, …) → Document Type
 ```
 
-That alone fixes:
-- 10th/12th Marksheet → matches "Academic Transcripts" via the existing transcripts bucket.
-- PTE/IELTS/TOEFL/Duolingo Result → matches "English Language Proficiency Test".
-- PAL Letter / Allocation of PAL → matches "Provincial Attestation Letter".
-- Resume / CV → "Updated Resume". SOP / personal statement → "Statement of Purpose". Bank statement / ITR → "Financial Documents". Etc.
+Everything (sections, document types, mandatory flag, notes) is fully customizable per template, and the section grouping flows through to the client checklist and grouped binders.
 
-It also makes `markChecklistItemReady`'s writeback (already running on every upload) usable for canonical types, because it now tries `custom_type` regardless of the value of `document_type`.
+## Current state
 
-### 2. Add an explicit "Link to checklist item" action on each uploaded doc card
+- `workflow_templates.items` is a flat list `{id,name,mandatory,notes}[]`.
+- A `groups jsonb` column already exists on `workflow_templates` but is unused.
+- Sections live in `case_sections` (Identity, Academic, Experience, Finance, Institutional, Supporting, Other, Additional, …) — already used by the documents UI.
+- ClientDetail renders the checklist as a single flat list (`checklistItems.map`) and relies on `groupForType()` to assign each item to a binder group at generation time.
 
-The auto-matcher won't always be right — your "Passport Copy" example deliberately has a wrong name. Provide a small dropdown on the section/checklist UI for any uploaded doc that lets you:
+## Plan
 
-- Map the doc to a specific checklist item (writes that item's name into `custom_type`, leaves `document_type` alone). The render-time matcher then picks it up immediately.
-- Or "Unlink" (clears `custom_type` if it was a checklist alias).
+### 1. Data model (no schema change required)
 
-UI placement: on the existing checklist row in `ClientDetail.tsx` next to the Pending badge ("Link existing doc…" popover) and on the section card row (small chain icon with the checklist names that match the bucket). Both call the same Supabase `update({ custom_type })` and then `load()`.
+Reuse the existing `groups` JSONB column on `workflow_templates`:
 
-This is the manual escape hatch for any case the alias map misses — e.g. "Passport Copy" should be linkable to "Passport" with one click.
+```ts
+type TemplateSection = {
+  id: string;          // local id
+  section_key: string; // case_sections.key (e.g. "academic", "finance", or a custom key)
+  label: string;       // editable display label
+  sort_order: number;
+  item_ids: string[];  // ordered ids referencing items[]
+};
+// stored at workflow_templates.groups
+```
 
-### 3. Fix the post-upload retype dropdown
+`items` keeps its existing shape so legacy templates (and the matcher / binder code in `lib/checklist.ts` and `lib/binderGroups.ts`) keep working. A migration helper in code will, on first edit, auto-bucket existing items into sections via `groupForType(item.name)` so no SQL migration is needed.
 
-`src/components/documents/SmartUploadZone.tsx` — `overrideType` currently calls `uploadOne` with status set to `queued`, but `uploadOne` blocks `queued`. Change `overrideType` to update the existing `client_documents` row in place instead of re-uploading: update `document_type` (+ clear/set `custom_type`), then re-run `markChecklistItemReady`, then `onUploaded()`. No new file is needed because the storage object hasn't changed.
+### 2. Template editor — `src/components/templates/TemplateEditorDialog.tsx`
 
-### 4. Improve the auto-rename pre-fill
+Replace the flat document list with a section-based editor:
 
-`splitFileIntoPageSegments` already pre-fills the type via `inferTypeFromPageText`. Tighten it so 10th/12th marksheet pages land on `"Academic Transcripts"` (via the transcripts bucket) instead of `"Other"`, and so PAL pages get `"Provincial Attestation Letter"` directly. This makes the "Split into pages" flow do the right thing without manual renames in the common case.
+- Top: Country + Category selects (unchanged).
+- Body: list of **Sections**, each rendered as a collapsible card containing:
+  - Editable section label.
+  - Section picker / "+ New section" — choose from `case_sections` (Academics, Experience, Institutional Documents, Finance, Supporting, Other, Additional) or create a custom one via `createSection()` from `lib/sections.ts` (also used elsewhere). New labels suggested in the description (Sponsors Docs, Institution Docs, etc.) are added as defaults in the seed list.
+  - Drag-and-drop ordering of items inside the section.
+  - "Add document type" select (master list `document_types`) + a "Custom type…" inline input so any string is allowed.
+  - Per-item: editable name, mandatory toggle, optional note, delete.
+- Drag-and-drop ordering of the sections themselves.
+- "Add section" button at the bottom.
 
-`src/lib/binderSplit.ts` — extend `inferTypeFromPageText`'s rule list:
+On save, write both:
+- `items`: flattened ordered list (preserves the legacy contract used by `ClientDetail`, `lib/checklist.ts`, `binderGroups.ts`).
+- `groups`: the new `TemplateSection[]` describing the hierarchy.
 
-- "10th" / "12th" / "Secondary School Certificate" / "HSC" / "SSC" / "Marksheet" → first allowed type that is `"Academic Transcripts"` or `"Marksheet"`.
-- "Provincial Attestation Letter" / "PAL" → `"Provincial Attestation Letter"`.
-- "Pearson Test of English" / "PTE Academic" / "IELTS" / "TOEFL" / "Duolingo English Test" → `"English Language Proficiency Test"`.
+### 3. Templates list — `src/pages/Templates.tsx`
 
-### 5. Surface the matched checklist item on the section card
+Each template card now shows a compact section breakdown ("Academics · 5 · Finance · 3 · Sponsors · 2") instead of a flat doc count. Hover/expand reveals item names grouped by section. Country grouping unchanged.
 
-Small UX touch: when a doc is auto-linked to a checklist row (via alias or manual link), show a tiny "→ English Language Proficiency Test" badge on the doc tile in the section so you can see what it satisfies.
+### 4. Client checklist — `src/pages/ClientDetail.tsx`
 
-## Files
+Render the checklist grouped by section when `template.groups` is present:
 
-- `src/pages/ClientDetail.tsx` — alias-aware `docByType`; "Link to checklist" action on rows; small badge on section doc tiles.
-- `src/lib/checklist.ts` — already exports `isChecklistAlias`; expand alias buckets to cover "Passport Copy" → "Passport", "10th Marksheet" → "Academic Transcripts", and other common renames seen in the wild.
-- `src/components/documents/SmartUploadZone.tsx` — fix `overrideType` to update in place via Supabase + re-run `markChecklistItemReady` instead of re-running the upload pipeline.
-- `src/lib/binderSplit.ts` — sharper `inferTypeFromPageText` for marksheet / PAL / language-test pages.
+- Section header rows (label + count "3/5 ready").
+- Inside each section, the existing `Pending / Ready / Link doc / Unlink` row UI is kept verbatim (no behaviour change for matching).
+- Fallback: if `groups` is empty (legacy template), keep the current flat list.
 
-## Result
+`completed`, `requiredMissing`, and the `groupForType`-based grouped-binder generation continue to work because `items[]` is still the source of truth. Where `groups` is present, grouped binders use the template's own sections instead of `BINDER_GROUPS` so the user's custom sections are honoured.
 
-- The merged-PDF split now pre-fills the right canonical type on each page; you click Upload all and the matching checklist rows go Ready immediately.
-- If auto-detection still misses, the post-upload "Link to checklist" action is one click to flip Pending → Ready without re-uploading.
-- The retype dropdown after upload now actually persists the change and re-evaluates the checklist.
-- The English Language Proficiency Test doc you just uploaded should already show Ready after a refresh; with the alias-aware matcher it will also continue to show Ready even if a future rename happens.
+### 5. Section seed (one-time, via `data-insert` migration)
+
+Insert a few additional default `case_sections` rows that the user mentioned and don't yet exist:
+
+- `sponsors` → "Sponsor Documents"
+- `institution_docs` → "Institution Documents" (alias for institutional, distinct label)
+
+Existing sections cover Academics, Experience, Finance, Supporting, Other, Additional.
+
+### 6. Files to edit
+
+- `src/components/templates/TemplateEditorDialog.tsx` — full rewrite of the body UI; keeps the same props and save contract.
+- `src/pages/Templates.tsx` — card preview shows section breakdown; `Template` type extended with optional `groups`.
+- `src/pages/ClientDetail.tsx` — checklist render switches to a section-grouped layout when `template.groups` exists; `onGenerateGroupedBinders` prefers `template.groups` over `BINDER_GROUPS` when available.
+- `src/lib/sections.ts` — small helper `seedTemplateSectionsFromItems(items)` that buckets a flat list into `TemplateSection[]` for migration of legacy templates inside the editor.
+- Data insert: add the two new `case_sections` rows.
+
+### 7. Out of scope
+
+- No change to `client_documents`, `binders`, or auto-classification.
+- No change to checklist alias matching (`lib/checklist.ts`) — unchanged contract.
+- No change to `master_items.document_types`; users can still pick from it or type a custom value.
