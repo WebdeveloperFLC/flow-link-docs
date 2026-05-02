@@ -498,8 +498,46 @@ export const SmartUploadZone = ({
   const overrideType = async (idx: number, newType: string) => {
     const item = queue[idx];
     if (!item || item.status === "uploading" || item.status === "processing") return;
-    patch(idx, { predictedType: newType, status: "queued" });
-    await uploadOne(idx, item, newType, item.customType, item.ownerId ?? null);
+    // For already-uploaded ("done") items, the storage object is unchanged —
+    // just update the DB row's type and re-run checklist linking. Re-running
+    // uploadOne would re-upload the file (and was previously a no-op because
+    // uploadOne blocks "queued").
+    if (item.status === "done") {
+      try {
+        const { data: existing } = await supabase
+          .from("client_documents")
+          .select("id, document_type, custom_type")
+          .eq("client_id", client.id)
+          .eq("file_name", item.finalName ?? item.file.name)
+          .order("uploaded_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!existing) {
+          patch(idx, { error: "Couldn't locate uploaded doc to retype." });
+          return;
+        }
+        const isOther = newType === "Other";
+        const customType = isOther ? (item.customType?.trim() || null) : null;
+        const { error: upErr } = await supabase
+          .from("client_documents")
+          .update({ document_type: newType, custom_type: customType })
+          .eq("id", existing.id);
+        if (upErr) {
+          patch(idx, { error: upErr.message });
+          return;
+        }
+        await markChecklistItemReady(existing.id, client.id, newType, customType, item.customType ?? null);
+        patch(idx, { predictedType: newType });
+        toast.success(`Type changed to ${newType}`);
+        onUploaded();
+      } catch (e) {
+        patch(idx, { error: e instanceof Error ? e.message : "Retype failed" });
+      }
+      return;
+    }
+    // Not yet uploaded — re-queue and run the upload pipeline.
+    patch(idx, { predictedType: newType, status: "needs_owner" });
+    await uploadOne(idx, { ...item, status: "needs_owner" }, newType, item.customType, item.ownerId ?? null);
     onUploaded();
   };
 
