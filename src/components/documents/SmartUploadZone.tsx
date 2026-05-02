@@ -7,7 +7,8 @@ import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRigh
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
-import { classifyDocument } from "@/lib/classifyDocument";
+import { classifyDocument, displayTitleFor } from "@/lib/classifyDocument";
+import { markChecklistItemReady } from "@/lib/checklist";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
@@ -17,6 +18,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
+  pageSnippetsLookLikeMixedBinder,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
