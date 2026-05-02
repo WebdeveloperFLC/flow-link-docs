@@ -36,6 +36,7 @@ interface Client {
   id: string; full_name: string; application_id: string; country: string;
   application_type: string; template_id: string | null; status: string;
   extra_items?: ExtraItem[] | null;
+  suppressed_template_items?: string[] | null;
 }
 
 interface Doc {
@@ -121,20 +122,23 @@ const ClientDetail = () => {
     (async () => {
       let changed = 0;
       for (const d of docs) {
+        // Don't override a manual link the user already set.
+        if (d.custom_type && d.custom_type.trim() !== "") continue;
         const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
         const t2 = d.custom_type ?? "";
         // Already matches some item by exact name → skip.
         const exact = items.find((it) => it.name === t1 || it.name === t2);
         if (exact) continue;
-        // Find an item that is an alias of either label or the file name.
-        const fn = d.file_name ?? "";
-        const aliasItem = items.find(
+        // Find items that match by alias on the type labels (NOT the
+        // filename — that caused single uploads to satisfy multiple rows).
+        const aliasItems = items.filter(
           (it) =>
             (t1 && isChecklistAlias(t1, it.name)) ||
-            (t2 && isChecklistAlias(t2, it.name)) ||
-            (fn && isChecklistAlias(fn, it.name)),
+            (t2 && isChecklistAlias(t2, it.name)),
         );
-        if (!aliasItem) continue;
+        // Skip if ambiguous — we'd rather leave it pending than mis-link.
+        if (aliasItems.length !== 1) continue;
+        const aliasItem = aliasItems[0];
         const { error } = await supabase
           .from("client_documents")
           .update({ custom_type: aliasItem.name })
@@ -157,18 +161,22 @@ const ClientDetail = () => {
       if (t1 === typeName || t2 === typeName) return true;
       if (t1 && isChecklistAlias(t1, typeName)) return true;
       if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
-      // Last resort: filename hints (e.g., 2026-05-01_IELTSLanguageTest_*.pdf)
-      // catches docs that were classified before checklist linking ran.
-      const fn = d.file_name ?? "";
-      if (fn && isChecklistAlias(fn, typeName)) return true;
       return false;
     });
     return matches.sort((a, b) => b.version - a.version)[0];
   };
 
-  const extraItems: ExtraItem[] = (client?.extra_items as ExtraItem[] | null | undefined) ?? [];
+  const suppressedIds = new Set<string>(client?.suppressed_template_items ?? []);
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
+  // Hide extras whose name duplicates a template item — those are leftovers
+  // from an earlier "Add document" press and shouldn't show as a separate row.
+  const extraItems: ExtraItem[] = (
+    (client?.extra_items as ExtraItem[] | null | undefined) ?? []
+  ).filter((e) => !tplItemNames.has(norm(e.name)));
+  const visibleTemplateItems = (template?.items ?? []).filter((it) => !suppressedIds.has(it.id));
   const checklistItems: TemplateItem[] = [
-    ...(template?.items ?? []),
+    ...visibleTemplateItems,
     ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
   ];
   const completed = checklistItems.filter((it) => docByType(it.name)).length;
@@ -179,14 +187,16 @@ const ClientDetail = () => {
    *  a synthetic "Added requirements" section at the end. Otherwise we fall
    *  back to a single flat section. */
   const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = (() => {
-    const tplItems = template?.items ?? [];
+    const tplItems = visibleTemplateItems;
     const tplGroups = (template?.groups ?? null) as TemplateGroup[] | null;
     const itemMap = new Map(tplItems.map((it) => [it.id, it]));
     const out: Array<{ id: string; label: string; items: TemplateItem[] }> = [];
     if (tplGroups && tplGroups.length > 0) {
       const placed = new Set<string>();
       for (const g of [...tplGroups].sort((a, b) => a.sort_order - b.sort_order)) {
-        const items = g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x);
+        const items = g.item_ids
+          .map((id) => itemMap.get(id))
+          .filter((x): x is TemplateItem => !!x);
         items.forEach((it) => placed.add(it.id));
         if (items.length > 0) out.push({ id: g.id, label: g.label, items });
       }
