@@ -3,8 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -14,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
-import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, filterExtractedForSection, type CaseSection } from "@/lib/sections";
+import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, filterExtractedForSection, renameSection, archiveSection, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
@@ -95,6 +102,11 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   const [dragActive, setDragActive] = useState(false);
   const [mergeMode, setMergeMode] = useState<{ anchorId: string; selected: Set<string> } | null>(null);
   const [merging, setMerging] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameValue, setRenameValue] = useState(section.label);
+  const [renaming, setRenaming] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const DOCUMENT_TYPES = useMasterLabels("document_types");
@@ -510,6 +522,27 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             <div className="font-semibold text-sm">{section.label}</div>
             <div className="text-xs text-muted-foreground">{items.length} document{items.length === 1 ? "" : "s"}{binder ? " · binder ready" : ""}</div>
           </div>
+          {isAdmin && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost" className="size-7 ml-1" aria-label="Section options">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => { setRenameValue(section.label); setRenameOpen(true); }}>
+                  <Pencil className="size-3.5 mr-2" /> Rename section
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => setDeleteOpen(true)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="size-3.5 mr-2" /> Delete section
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Select value={orderMode} onValueChange={(v) => onModeChange(v as "auto" | "manual")} disabled={!canEdit}>
@@ -617,6 +650,82 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           </Button>
         </div>
       )}
+
+      <Dialog open={renameOpen} onOpenChange={(o) => { if (!renaming) setRenameOpen(o); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename section</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5 py-2">
+            <Label htmlFor="rename-section" className="text-xs">Section name</Label>
+            <Input
+              id="rename-section"
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && renameValue.trim()) {
+                  e.preventDefault();
+                  (async () => {
+                    setRenaming(true);
+                    const ok = await renameSection(section.id, renameValue);
+                    setRenaming(false);
+                    if (ok) { toast.success("Section renamed"); setRenameOpen(false); onChanged(); }
+                    else toast.error("Could not rename section");
+                  })();
+                }
+              }}
+            />
+            <p className="text-[11px] text-muted-foreground">Renaming changes only the displayed name; existing documents stay where they are.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameOpen(false)} disabled={renaming}>Cancel</Button>
+            <Button
+              disabled={renaming || !renameValue.trim() || renameValue.trim() === section.label}
+              onClick={async () => {
+                setRenaming(true);
+                const ok = await renameSection(section.id, renameValue);
+                setRenaming(false);
+                if (ok) { toast.success("Section renamed"); setRenameOpen(false); onChanged(); }
+                else toast.error("Could not rename section");
+              }}
+            >
+              {renaming ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={(o) => { if (!deleting) setDeleteOpen(o); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete section "{section.label}"?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The section will be hidden from every client. {items.length > 0
+                ? `This section still contains ${items.length} document${items.length === 1 ? "" : "s"} — move or delete them first.`
+                : "This section is empty, so it's safe to delete."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting || items.length > 0}
+              onClick={async (e) => {
+                e.preventDefault();
+                setDeleting(true);
+                const res = await archiveSection(section.id);
+                setDeleting(false);
+                if (res.ok) { toast.success("Section deleted"); setDeleteOpen(false); onChanged(); }
+                else if (res.reason === "has_documents") toast.error(`Move or delete the ${res.count} document${res.count === 1 ? "" : "s"} first`);
+                else toast.error(res.reason ?? "Could not delete section");
+              }}
+            >
+              Delete section
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
