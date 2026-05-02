@@ -749,6 +749,56 @@ export const SmartUploadZone = ({
 
   const clearQueue = () => setQueue([]);
 
+  /**
+   * Manual escape hatch: explode the queue item's PDF into one segment per
+   * page and replace the original item with a binder review group. Pre-fills
+   * each page's type via deterministic content rules so PTE / PAL / Passport
+   * etc. show up correctly without needing the AI splitter.
+   */
+  const splitItemIntoPages = useCallback(
+    async (idx: number) => {
+      const item = queue[idx];
+      if (!item) return;
+      if (!isPdfFile(item.file)) {
+        toast.error("Only PDFs can be split into pages.");
+        return;
+      }
+      try {
+        setBusy(true);
+        const segs = await splitFileIntoPageSegments(item.file, allowedDocumentTypes);
+        if (segs.length < 2) {
+          toast.message("This PDF only has one page — nothing to split.");
+          return;
+        }
+        const binderId = `manual_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        const newItems: QueueItem[] = segs.map((s, i) => ({
+          file: s.file,
+          status: "awaiting_review" as const,
+          predictedType: s.type,
+          customType: s.type === "Other" ? (s.suggested_label ?? undefined) : undefined,
+          binderId,
+          binderSource: item.file,
+          binderSourceName: item.file.name,
+          segIndex: i,
+          startPage: s.pageNumber,
+          endPage: s.pageNumber,
+          totalSourcePages: s.totalPages,
+          ownerId: item.ownerId ?? applicant?.id ?? null,
+        }));
+        setQueue((q) => {
+          const without = q.filter((_, i) => i !== idx);
+          return [...without, ...newItems];
+        });
+        toast.success(`Split "${item.file.name}" into ${segs.length} pages — review, rename, or merge before upload.`);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't split this PDF");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [queue, allowedDocumentTypes, applicant],
+  );
+
   return (
     <Card className="p-5 shadow-elev-sm">
       <div className="flex items-center justify-between mb-1">
