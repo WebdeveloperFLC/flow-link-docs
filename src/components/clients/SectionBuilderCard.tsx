@@ -3,8 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors,
   type DragEndEvent,
@@ -14,7 +19,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
-import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, filterExtractedForSection, type CaseSection } from "@/lib/sections";
+import { saveSectionOrder, getSectionOrderMode, setSectionOrderMode, filterExtractedForSection, renameSection, archiveSection, type CaseSection } from "@/lib/sections";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
 import {
