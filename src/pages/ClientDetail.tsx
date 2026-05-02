@@ -25,6 +25,7 @@ import { SectionBuilderCard, type SectionDoc } from "@/components/clients/Sectio
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
 import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
+import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -108,7 +109,17 @@ const ClientDetail = () => {
   }, [docs, sections]);
 
   const docByType = (typeName: string): Doc | undefined => {
-    const matches = docs.filter((d) => (d.document_type === "Other" ? d.custom_type : d.document_type) === typeName);
+    const matches = docs.filter((d) => {
+      // Primary type label on the doc — what the user sees.
+      const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+      // Secondary label — markChecklistItemReady writes the matched checklist
+      // name here so we always check it as a "linked checklist item" hint.
+      const t2 = d.custom_type ?? "";
+      if (t1 === typeName || t2 === typeName) return true;
+      if (t1 && isChecklistAlias(t1, typeName)) return true;
+      if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+      return false;
+    });
     return matches.sort((a, b) => b.version - a.version)[0];
   };
 
