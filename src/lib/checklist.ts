@@ -137,10 +137,10 @@ async function loadChecklistNames(clientId: string): Promise<string[]> {
       .select("items")
       .eq("id", client.template_id)
       .maybeSingle();
-    const items = (tpl?.items ?? []) as TemplateItemLite[];
+    const items = (tpl?.items ?? []) as unknown as TemplateItemLite[];
     for (const it of items) if (it?.name) names.push(it.name);
   }
-  const extras = (client.extra_items ?? []) as ExtraItemLite[];
+  const extras = (client.extra_items ?? []) as unknown as ExtraItemLite[];
   for (const it of extras) if (it?.name) names.push(it.name);
   return names;
 }
