@@ -88,7 +88,7 @@ for (const g of BINDER_GROUPS) {
 /** Keyword fallbacks for unseen / custom doc types. Order matters (most specific first). */
 const KEYWORD_RULES: Array<[RegExp, string]> = [
   [/passport|photo|birth|aadhaar|pan\b|national id|driv(er|ing) lic|marriage|divorce|police|pcc|name affidavit/i, "identity"],
-  [/transcript|marksheet|degree|diploma|provisional|offer|attestation|\bpal\b|aps|moi|medium of instruction|recommend|\blor\b|ielts|toefl|pte|duolingo|english|language test/i, "academic"],
+  [/transcript|marksheet|degree|diploma|provisional|offer|attestation|\bpal\b|provincial[_\s-]?attestation|aps|moi|medium of instruction|recommend|\blor\b|ielts|toefl|\bpte\b|duolingo|celpip|english|language[_\s-]?test|english[_\s-]?proficiency/i, "academic"],
   [/resume|\bcv\b|employ|experience|salary|payslip|pay slip|reference letter|noc|no objection/i, "experience"],
   [/gic|blocked account|tuition|fee receipt|bank|financial|\bitr\b|income tax|sponsor|affidavit of support|invitation letter|property|loan|deposit|\bfd\b/i, "financial"],
   [/visa form|imm[\s-]?\d|sop|statement of purpose|personal statement|cover letter|refusal/i, "forms"],
