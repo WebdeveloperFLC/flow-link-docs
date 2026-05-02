@@ -45,6 +45,7 @@ interface Doc {
   size_bytes: number | null; version: number; uploaded_at: string;
   section_id?: string | null;
   section_order?: number;
+  status?: string | null;
 }
 
 interface BinderRow {
@@ -124,6 +125,8 @@ const ClientDetail = () => {
       for (const d of docs) {
         // Don't override a manual link the user already set.
         if (d.custom_type && d.custom_type.trim() !== "") continue;
+        // Don't auto-link rejected / reissue-pending docs back into checklist.
+        if (d.status === "rejected" || d.status === "needs_reissue") continue;
         const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
         const t2 = d.custom_type ?? "";
         // Already matches some item by exact name → skip.
@@ -151,7 +154,9 @@ const ClientDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, template?.id, client?.id]);
 
-  const docByType = (typeName: string): Doc | undefined => {
+  /** Find any doc attached to this checklist item, regardless of reviewer status.
+   *  Used to render rejected / needs_reissue badges + filename. */
+  const attachedDocByType = (typeName: string): Doc | undefined => {
     const matches = docs.filter((d) => {
       // Primary type label on the doc — what the user sees.
       const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
@@ -164,6 +169,17 @@ const ClientDetail = () => {
       return false;
     });
     return matches.sort((a, b) => b.version - a.version)[0];
+  };
+
+  /** Find a doc that satisfies a checklist item — only "ready" or
+   *  reviewer-"verified" docs count. Rejected / needs_reissue docs do NOT
+   *  satisfy the requirement (the row stays Pending with a Rejected badge). */
+  const docByType = (typeName: string): Doc | undefined => {
+    const d = attachedDocByType(typeName);
+    if (!d) return undefined;
+    const s = d.status ?? "ready";
+    if (s === "rejected" || s === "needs_reissue") return undefined;
+    return d;
   };
 
   const suppressedIds = new Set<string>(client?.suppressed_template_items ?? []);
@@ -674,6 +690,11 @@ const ClientDetail = () => {
                         runningIdx += 1;
                         const i = runningIdx - 1;
                         const d = docByType(it.name);
+                        const attached = attachedDocByType(it.name);
+                        const attachedStatus = attached?.status ?? "ready";
+                        const isRejected = !d && attached && attachedStatus === "rejected";
+                        const isReissue = !d && attached && attachedStatus === "needs_reissue";
+                        const isVerified = !!d && (d.status === "verified");
                         const isExtra = extraItems.some((e) => e.id === it.id);
                         const linkableDocs = docs.filter((doc) => {
                           const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
@@ -690,10 +711,21 @@ const ClientDetail = () => {
                         {isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
                       </div>
                       {it.notes && <div className="text-xs text-muted-foreground">{it.notes}</div>}
-                      {d && <div className="text-xs text-muted-foreground mt-0.5">{d.file_name}{d.version>1?` · v${d.version}`:""}</div>}
+                      {(d || attached) && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {(d ?? attached)!.file_name}
+                          {(d ?? attached)!.version > 1 ? ` · v${(d ?? attached)!.version}` : ""}
+                        </div>
+                      )}
                     </div>
                     {d ? (
-                      <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">Ready</span>
+                      <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">
+                        {isVerified ? "Verified" : "Ready"}
+                      </span>
+                    ) : isRejected ? (
+                      <span className="text-xs px-2 py-1 rounded bg-destructive/10 text-destructive font-semibold uppercase tracking-wide">Rejected</span>
+                    ) : isReissue ? (
+                      <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600 font-semibold uppercase tracking-wide">Reissue</span>
                     ) : (
                       <span className={`text-xs px-2 py-1 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
                         {it.mandatory ? "Pending" : "Optional"}
