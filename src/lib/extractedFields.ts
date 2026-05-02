@@ -77,6 +77,13 @@ function sanitizeExtractionByDocType<T extends Record<string, unknown>>(
       const v = out[k];
       if (typeof v === "string" && /-01-01$/.test(v.trim())) delete out[k];
     }
+    // Reject passport_number values that look like an Indian "File No." (e.g. "AH3076602281022").
+    // Real Indian passport numbers are 1 letter + 7 digits.
+    const pp = typeof out.passport_number === "string" ? out.passport_number.trim() : "";
+    if (pp) {
+      const looksLikeFileNo = /^[A-Z]{2}\d{8,}$/i.test(pp) || pp.length > 12;
+      if (looksLikeFileNo) delete out.passport_number;
+    }
   } else {
     // Non-passport docs cannot provide passport_* fields
     for (const k of ["passport_number", "passport_issue_date", "passport_expiry", "passport_country"]) {
