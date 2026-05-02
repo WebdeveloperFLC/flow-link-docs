@@ -11,6 +11,47 @@ const json = (b: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+/** Fetch a stored client document by id. Returns { storage_path, file_name, mime_type, document_type, custom_type } or null. */
+async function fetchDocumentRow(documentId: string): Promise<{
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  document_type: string | null;
+  custom_type: string | null;
+} | null> {
+  if (!SUPABASE_URL || !SERVICE_ROLE) return null;
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/client_documents?id=eq.${documentId}&select=storage_path,file_name,mime_type,document_type,custom_type`,
+    { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } },
+  );
+  if (!r.ok) return null;
+  const arr = await r.json().catch(() => []);
+  return Array.isArray(arr) && arr[0] ? arr[0] : null;
+}
+
+/** Download original bytes from the client-documents storage bucket. */
+async function downloadStoredFile(storagePath: string): Promise<Uint8Array | null> {
+  if (!SUPABASE_URL || !SERVICE_ROLE) return null;
+  const r = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/client-documents/${storagePath}`,
+    { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } },
+  );
+  if (!r.ok) return null;
+  return new Uint8Array(await r.arrayBuffer());
+}
+
 // ===== Deterministic ICAO 9303 TD3 (passport) MRZ parsing =====
 function mrzCheckDigit(input: string): number {
   const w = [7, 3, 1];
