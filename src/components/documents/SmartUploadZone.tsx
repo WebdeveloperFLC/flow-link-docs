@@ -18,7 +18,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
-  pageSnippetsLookLikeMixedBinder,
+  pageSnippetsLookLikeMixedBinder, splitFileIntoPageSegments,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
