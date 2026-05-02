@@ -1,66 +1,55 @@
-## Root cause found
+## Root cause
 
-The uploaded passport is a scanned/image-based PDF. The app currently tries to render PDF pages to JPEG in the browser before calling the extraction backend. In this case, the re-extract flow is reaching the document but producing no usable input, so the backend is not receiving text/images to extract from and the UI reports:
+The uploaded grade-12 marksheet is a **scanned, AES-encrypted PDF** (Producer: iOS Quartz PDFContext). I confirmed this with `pdfinfo`:
 
-```text
-Re-extracted 0/1 · 0 new fields
+```
+Pages: 1
+Encrypted: yes (algorithm: AES)
 ```
 
-I confirmed the attached passport is readable visually/OCR and contains these fields:
+In the browser:
 
-```text
-Passport No: W9166345
-Name: CHINTAN RAJNIKANT PATEL
-DOB: 2004-12-20
-Sex: M
-Place of Birth: VADODARA, GUJARAT
-Issue Date: 2023-01-06
-Expiry: 2033-01-05
-Nationality/Country: IND
-Address: PATEL FALIYU NAVI JAMBUVAI NEAR NIMETA, AJWA ROD, VADODARA, GUJARAT, INDIA, PIN 390019
-File No: AH3067379579623 (must not be used as passport number)
-Spouse: blank (must stay empty)
-```
+- `pdf.js` (`extractFirstPageText`, `renderPdfPagesToJpegDataUrls`) throws on encrypted PDFs and the wrappers swallow the error, returning empty text and an empty image array.
+- Without text or images, `classify-document` only sees the filename, falls back to "Other" (or low-confidence), and `owner_name` comes back null.
+- The upload zone then forces the queue item into `needs_owner` ("owner not readable"), so the file never gets renamed or stored — exactly the symptom: "couldn't identify the document by reading the content".
 
-The current extractor works if it is given OCR/text, but the client-side PDF rendering/text extraction path is the weak link.
+I verified the classifier itself works perfectly when given a page image of the same document — it returned `Academic Marksheets`, owner "PATEL CHINTAN RAJNIKANT", confidence 1.0. So the only weak link is the browser-side rendering of encrypted/scanned PDFs.
 
 ## Fix plan
 
-1. **Move re-extraction to a backend-driven path**
-   - Update `extract-document-data` so it can accept a `document_id`.
-   - The backend function will download the stored PDF directly from private storage using secure server credentials.
-   - This avoids relying on browser-side PDF rendering for scanned documents.
+1. **Add a server-side PDF fallback to `classify-document`**
+   - Accept an optional `pdf_data_url` (base64 PDF) in the request body.
+   - When present, attach it to the Gemini request as an `image_url` data URL with `mime_type: application/pdf`, the same pattern already used by `extract-document-data` and `parse-form-fields`.
+   - Gemini reads encrypted/scanned PDFs natively, so we get reliable type + owner_name even when pdf.js fails.
+   - Keep all existing inputs (`snippet`, `page_image_data_urls`) intact — pdf_data_url is additive.
 
-2. **Add robust scanned-PDF OCR fallback**
-   - If the browser provides no text/images, the backend will send the original PDF bytes to Lovable AI as a PDF data URL.
-   - This follows the already-working pattern used elsewhere in the project for AI PDF reading.
-   - The function will still support the existing `snippet` + `image_data_urls` path, so uploads and other callers keep working.
+2. **Send the PDF bytes from the browser when text + images are empty**
+   - In `src/lib/classifyDocument.ts` (and the upload-time call sites), if the PDF yielded zero usable text AND zero rendered page images, read the file as base64 and pass it as `pdf_data_url` to `classify-document`.
+   - Cap size at ~12 MB to stay under the AI gateway payload limit.
+   - For non-PDF / image uploads the existing path is unchanged.
 
-3. **Strengthen passport-specific deterministic parsing**
-   - Keep the existing MRZ check-digit validation.
-   - Add a fallback parser for visible passport labels when MRZ OCR is incomplete or unavailable.
-   - Ensure `File No.` and `Old Passport No.` are never written as `passport_number`.
-   - Ensure blank spouse fields do not populate `spouse_name` or `marital_status`.
+3. **Make the upload owner-gate fall back gracefully for scanned PDFs**
+   - In `SmartUploadZone.tsx`, when the case has a single applicant and the PDF is scanned/encrypted (browser saw zero text and zero rendered pages, so the OCR effectively had nothing to read), still allow the upload to proceed for review.
+   - The user already sees a confirm step (`needs_owner`) — keep that, but pre-select the applicant with a clear note "Couldn't read this PDF in the browser (scanned/encrypted) — server is re-checking".
+   - Once the server-side classify returns a valid owner that matches the roster, auto-fill the type/owner so the user just clicks confirm.
 
-4. **Update the Re-extract button flow**
-   - Pass `document_id` to `extract-document-data` during re-extraction.
-   - Do not skip a document just because browser text/image extraction is empty.
-   - Surface clearer errors, e.g. `no_input`, `ai_error`, or `no_credits`, instead of silently counting it as 0.
+4. **Strengthen filename heuristics for marksheets**
+   - Add `12th|grade\s*12|hsc|class\s*12|higher\s*secondary|gseb` aliases to the filename heuristic so even a no-OCR fallback names the file `Academic Marksheets`.
+   - This makes the renamer produce a sensible name even if the AI step is unavailable (rate-limited / no credits).
 
-5. **Apply the same fallback to upload-time extraction**
-   - Section uploads and smart uploads will also pass the inserted `document_id` to the extractor.
-   - If browser OCR fails during the background extraction after upload, the backend can still read the stored file.
+5. **Apply the same encrypted-PDF fallback in `processToPdf`**
+   - The current code already detects encryption and rasterizes. Verify it still works with this specific AES-encrypted PDF; if `pdf.js` refuses to render pages, fall back to keeping the original bytes (which is already the behavior under the IRCC size limit) and rely on the server for OCR.
 
-6. **Verification after implementation**
-   - Re-run the extraction against the current client/document.
-   - Confirm `client_profile` is populated for the new client with the passport fields above.
-   - Confirm the toast changes from `Re-extracted 0/1 · 0 new fields` to a successful field count.
+6. **Deploy and verify**
+   - Deploy `classify-document` with the new `pdf_data_url` path.
+   - Test re-uploading the same marksheet PDF: expect type `Academic Marksheets`, owner `PATEL CHINTAN RAJNIKANT`, and a final filename like `2026-05-02_AcademicMarksheets_Applicant_PatelChintanRajnikant.pdf`.
+   - Confirm the same fix doesn't regress the passport flow (which already works via `extract-document-data`).
 
 ## Files to change
 
-- `supabase/functions/extract-document-data/index.ts`
-- `src/pages/ClientDetail.tsx`
-- `src/components/clients/SectionBuilderCard.tsx`
-- `src/components/documents/SmartUploadZone.tsx`
+- `supabase/functions/classify-document/index.ts` — accept and forward `pdf_data_url`.
+- `src/lib/classifyDocument.ts` — read PDF bytes and send `pdf_data_url` when text + images are empty.
+- `src/components/documents/SmartUploadZone.tsx` — soften the owner-gate when the browser couldn't read the PDF.
+- `src/lib/classifyDocument.ts` (filename heuristics) — add 12th / HSC / GSEB / class-12 aliases.
 
-No database schema changes are needed.
+No database changes required.
