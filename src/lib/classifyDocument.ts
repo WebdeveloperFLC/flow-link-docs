@@ -21,7 +21,9 @@ export interface Classification {
 const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
   { type: "Passport", rx: /passport|^pp[_\s-]?\d|_pp_/i, conf: 0.95 },
   { type: "Birth Certificate", rx: /birth[_\s-]?cert|\bbc\b|nativity/i, conf: 0.92 },
-  { type: "IELTS / Language Test", rx: /ielts|toefl|pte|duolingo|trf|language[_\s-]?test/i, conf: 0.95 },
+  // English Language Proficiency Test — covers IELTS/TOEFL/PTE/CELPIP/Duolingo.
+  { type: "English Language Proficiency Test", rx: /ielts|toefl|\bpte\b|pte[_\s-]?(academic|result|score)|duolingo|celpip|trf|language[_\s-]?test|english[_\s-]?proficiency/i, conf: 0.95 },
+  { type: "Provincial Attestation Letter", rx: /\bpal\b|pal[_\s-]?letter|provincial[_\s-]?attestation|attestation[_\s-]?letter/i, conf: 0.95 },
   { type: "Academic Transcripts", rx: /transcript|marksheet|mark[_\s-]?sheet|gradesheet|degree|diploma|consolidated|\b(10th|12th|hsc|ssc)\b|grade[_\s-]?1[02]|class[_\s-]?1[02]|higher[_\s-]?secondary|gseb|cbse|icse/i, conf: 0.9 },
   { type: "Offer Letter", rx: /offer|loa|letter[_\s-]?of[_\s-]?accept|admission/i, conf: 0.92 },
   { type: "GIC Certificate", rx: /\bgic\b|guaranteed[_\s-]?investment/i, conf: 0.95 },
@@ -36,7 +38,9 @@ const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
 
 const CONTENT_HEURISTICS: { type: string; rx: RegExp; conf: number; suggested?: string }[] = [
   { type: "Passport", rx: /passport|republic of|nationality|surname|given names?|passport no|date of expiry|place of birth|[A-Z0-9<]{25,}/i, conf: 0.94 },
-  { type: "IELTS / Language Test", rx: /ielts|international english language testing system|test report form|candidate number|overall band|listening\s+reading\s+writing\s+speaking|toefl|pte|duolingo/i, conf: 0.94 },
+  // English Language Proficiency Test — strong content cues for each major test brand.
+  { type: "English Language Proficiency Test", rx: /international english language testing system|test report form|candidate number|overall band|listening\s+reading\s+writing\s+speaking|pearson test of english|pte\s+academic|score report|communicative skills|enabling skills|test of english as a foreign language|toefl\s+ibt|canadian english language proficiency|celpip-?general|duolingo english test|\bdet\s+score|ielts|toefl|\bpte\b|celpip|duolingo/i, conf: 0.94 },
+  { type: "Provincial Attestation Letter", rx: /provincial\s+attestation\s+letter|allocation\s+of\s+pal|\bpal\s+(number|reference|id)|attestation\s+letter\s+(issued|number)|ministry of colleges and universities|designated learning institution/i, conf: 0.94 },
   { type: "Academic Transcripts", rx: /transcript|marksheet|mark sheet|statement of marks|consolidated|semester|university|college|degree|diploma|provisional certificate|grade point|cgpa|gpa/i, conf: 0.9 },
   { type: "Offer Letter", rx: /offer letter|letter of acceptance|admission|accepted to|program of study|student id/i, conf: 0.9 },
   { type: "GIC Certificate", rx: /guaranteed investment certificate|\bgic\b|investment account|blocked account/i, conf: 0.94 },
@@ -56,7 +60,9 @@ const CONTENT_HEURISTICS: { type: string; rx: RegExp; conf: number; suggested?: 
 function pickAllowedType(preferred: string, allowed: string[]): string | null {
   if (allowed.includes(preferred)) return preferred;
   const aliases: Record<string, string[]> = {
-    "IELTS / Language Test": ["English Language Proficiency Test", "IELTS", "TOEFL", "PTE", "Duolingo"],
+    "English Language Proficiency Test": ["IELTS / Language Test", "IELTS", "TOEFL", "PTE", "PTE Academic", "Duolingo", "CELPIP", "Language Test", "English Test", "English Proficiency Test"],
+    "IELTS / Language Test": ["English Language Proficiency Test", "IELTS", "TOEFL", "PTE", "Duolingo", "CELPIP"],
+    "Provincial Attestation Letter": ["PAL", "PAL Letter", "Attestation Letter"],
     "Academic Transcripts": ["Academic Marksheets", "Marksheets", "Degree Certificate", "Diploma", "Provisional Certificate"],
     "Resume": ["Updated Resume", "CV"],
     "Financial Documents": ["Bank Statement", "Bank Statements"],
@@ -77,8 +83,9 @@ export function normalizeAiType(raw: string | undefined | null, allowed: string[
   if (allowed.includes(t)) return t;
   // Reverse alias map: each allowed type can absorb several aliases.
   const aliasOf: Record<string, string[]> = {
-    "IELTS / Language Test": ["english language proficiency test", "ielts", "toefl", "pte", "duolingo", "language test", "language proficiency test"],
-    "English Language Proficiency Test": ["ielts / language test", "ielts", "toefl", "pte", "duolingo", "language test"],
+    "IELTS / Language Test": ["english language proficiency test", "ielts", "toefl", "pte", "pte academic", "duolingo", "celpip", "language test", "language proficiency test", "english proficiency test", "english test"],
+    "English Language Proficiency Test": ["ielts / language test", "ielts", "ielts result", "toefl", "toefl ibt", "pte", "pte academic", "pte result", "pte score report", "duolingo", "duolingo english test", "celpip", "celpip-general", "language test", "english proficiency test", "english test", "language proficiency test"],
+    "Provincial Attestation Letter": ["pal", "pal letter", "provincial attestation", "attestation letter", "provincial attestation letter"],
     "SOP": ["statement of purpose", "personal statement", "sop"],
     "Statement of Purpose": ["sop", "personal statement"],
     "Resume": ["updated resume", "cv", "curriculum vitae"],
@@ -124,6 +131,42 @@ export function classifyByFilename(name: string): Classification | null {
     if (h.rx.test(name)) return { type: h.type, confidence: h.conf, source: "filename" };
   }
   return null;
+}
+
+/** Detect which English test brand a document belongs to (PTE, IELTS, TOEFL,
+ *  CELPIP, Duolingo). Looks at both the filename and the extracted text snippet.
+ *  Returns null when no specific brand can be identified. */
+export function detectLanguageTestBrand(
+  snippet: string,
+  filename: string,
+): "PTE" | "IELTS" | "TOEFL" | "CELPIP" | "Duolingo" | null {
+  const blob = `${filename} ${snippet}`.toLowerCase();
+  if (/pearson test of english|pte\s+academic|\bpte\b/.test(blob)) return "PTE";
+  if (/international english language testing system|\bielts\b|test report form/.test(blob)) return "IELTS";
+  if (/test of english as a foreign|\btoefl\b|toefl\s+ibt/.test(blob)) return "TOEFL";
+  if (/canadian english language proficiency|\bcelpip\b/.test(blob)) return "CELPIP";
+  if (/duolingo english test|\bduolingo\b|\bdet\s+score/.test(blob)) return "Duolingo";
+  return null;
+}
+
+/** Compute a friendly visible title for a document — used both as `custom_type`
+ *  in the DB (so it shows on cards) and as the `Type` segment of the filename.
+ *  Returns null when the canonical document_type itself is already the right
+ *  visible label. */
+export function displayTitleFor(
+  documentType: string,
+  customType: string | null | undefined,
+  snippet: string,
+  filename: string,
+): string | null {
+  if (documentType === "English Language Proficiency Test") {
+    const brand = detectLanguageTestBrand(snippet, filename);
+    return brand ? `${brand} Result` : "English Proficiency Test";
+  }
+  if (documentType === "Provincial Attestation Letter") {
+    return "PAL Letter";
+  }
+  return customType?.trim() || null;
 }
 
 async function imageFileToJpegDataUrl(file: File, maxSide = 1800, quality = 0.82): Promise<string> {

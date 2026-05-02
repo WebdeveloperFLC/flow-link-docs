@@ -7,7 +7,8 @@ import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRigh
 import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
-import { classifyDocument } from "@/lib/classifyDocument";
+import { classifyDocument, displayTitleFor } from "@/lib/classifyDocument";
+import { markChecklistItemReady } from "@/lib/checklist";
 import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
@@ -17,6 +18,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
+  pageSnippetsLookLikeMixedBinder,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
@@ -343,6 +345,17 @@ export const SmartUploadZone = ({
         person_name: ownerPerson?.full_name ?? (isShared ? "Shared" : null),
         person_role: ownerPerson?.role ?? (isShared ? "shared" : null),
       });
+      // Align custom_type to a matching checklist item name so the
+      // client-detail render-time checklist flips to "ready".
+      try {
+        await markChecklistItemReady(
+          ins.id,
+          targetClient.id,
+          type,
+          type === "Other" ? customType?.trim() ?? null : null,
+          item.customType ?? null,
+        );
+      } catch { /* best effort */ }
       patch(idx, { status: "done" });
 
       // Background field extraction (per-person where possible)
@@ -1191,19 +1204,26 @@ async function expandBinders(
     try { pageCount = await getPdfPageCount(file); } catch { pageCount = 0; }
     // Only attempt binder splitting when the filename indicates a binder/package.
     // Normal multi-page documents (transcripts, bank statements, passports) must stay intact.
-    if (pageCount < 3 || !looksLikeBinderName(file.name)) {
+    if (pageCount < 2) {
       out.push({ file });
       continue;
     }
+    // Pre-read snippets so we can also detect content-based binders (a PDF that
+    // mixes e.g. PTE + PAL but isn't named "merged"/"binder").
     let pageSnippets: string[] = [];
+    try {
+      pageSnippets = await extractPerPageText(file, Math.min(pageCount, 30), 1000);
+    } catch { /* ignore */ }
+    const isBinder = looksLikeBinderName(file.name) || pageSnippetsLookLikeMixedBinder(pageSnippets);
+    if (pageCount < 3 || !isBinder) {
+      out.push({ file });
+      continue;
+    }
     try {
       // Cap to 30 pages of input (large binders → still useful, costs bounded).
       const maxPages = Math.min(pageCount, 30);
-      const [snippets, pageImages] = await Promise.all([
-        extractPerPageText(file, maxPages, 1000).catch(() => [] as string[]),
-        getBinderPageImages(file, maxPages).catch(() => [] as string[]),
-      ]);
-      pageSnippets = snippets;
+      const pageImages = await getBinderPageImages(file, maxPages).catch(() => [] as string[]);
+      // Reuse the snippets we already extracted above for binder detection.
       const { data, error } = await supabase.functions.invoke("split-binder", {
         body: {
           filename: file.name,
