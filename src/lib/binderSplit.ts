@@ -104,9 +104,18 @@ export function shouldFallbackToPageRanges(fileName: string, pageCount: number, 
 
 export function inferTypeFromPageText(text: string, allowedTypes: string[]): { type: string; suggested_label?: string | null } {
   const allowed = new Set(getAllowedDocumentTypes(allowedTypes));
+  // Run language-test brand detection first so the picked label is specific.
+  let langBrand: string | null = null;
+  if (/pearson test of english|pte\s+academic|\bpte\b/i.test(text)) langBrand = "PTE Result";
+  else if (/international english language testing system|test report form|\bielts\b/i.test(text)) langBrand = "IELTS Result";
+  else if (/test of english as a foreign|\btoefl\b/i.test(text)) langBrand = "TOEFL Result";
+  else if (/canadian english language proficiency|\bcelpip\b/i.test(text)) langBrand = "CELPIP Result";
+  else if (/duolingo english test|\bduolingo\b/i.test(text)) langBrand = "Duolingo Result";
+
   const rules: Array<[RegExp, string, string?]> = [
     [/passport|republic of|nationality|surname|given names|mrz|date of expiry/i, "Passport"],
-    [/ielts|toefl|pte|duolingo|test report form|candidate details|language proficiency/i, "English Language Proficiency Test"],
+    [/ielts|toefl|\bpte\b|duolingo|celpip|test report form|candidate details|language proficiency|pearson test of english/i, "English Language Proficiency Test"],
+    [/provincial attestation letter|allocation of pal|\bpal\s+(number|reference|id)|attestation letter\s+(issued|number)/i, "Provincial Attestation Letter"],
     [/transcript|marksheet|statement of marks|degree|diploma|provisional certificate|semester|university/i, "Academic Transcripts"],
     [/offer letter|letter of acceptance|admission|accepted to|program of study/i, "Offer Letter"],
     [/bank statement|statement of account|account balance|closing balance|available balance/i, "Financial Documents"],
@@ -123,11 +132,15 @@ export function inferTypeFromPageText(text: string, allowedTypes: string[]): { t
   ];
   for (const [rx, preferred] of rules) {
     if (!rx.test(text)) continue;
-    if (allowed.has(preferred)) return { type: preferred };
+    if (allowed.has(preferred)) {
+      if (preferred === "English Language Proficiency Test") return { type: preferred, suggested_label: langBrand };
+      if (preferred === "Provincial Attestation Letter") return { type: preferred, suggested_label: "PAL Letter" };
+      return { type: preferred };
+    }
     if (preferred === "English Language Proficiency Test" && allowed.has("IELTS / Language Test")) return { type: "IELTS / Language Test" };
     if (preferred === "Statement of Purpose" && allowed.has("SOP")) return { type: "SOP" };
     if (preferred === "Updated Resume" && allowed.has("Resume")) return { type: "Resume" };
-    return { type: "Other", suggested_label: preferred };
+    return { type: "Other", suggested_label: preferred === "English Language Proficiency Test" ? (langBrand ?? preferred) : preferred };
   }
   return { type: "Other", suggested_label: null };
 }
