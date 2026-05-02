@@ -119,6 +119,10 @@ const ClientDetail = () => {
       if (t1 === typeName || t2 === typeName) return true;
       if (t1 && isChecklistAlias(t1, typeName)) return true;
       if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+      // Last resort: filename hints (e.g., 2026-05-01_IELTSLanguageTest_*.pdf)
+      // catches docs that were classified before checklist linking ran.
+      const fn = d.file_name ?? "";
+      if (fn && isChecklistAlias(fn, typeName)) return true;
       return false;
     });
     return matches.sort((a, b) => b.version - a.version)[0];
