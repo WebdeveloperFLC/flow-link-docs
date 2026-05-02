@@ -737,9 +737,22 @@ const ClientDetail = () => {
                         <Unlink className="size-3.5" />
                       </Button>
                     )}
-                    {isExtra && canUpload && !d && (
-                      <Button size="icon" variant="ghost" className="size-7 text-muted-foreground" title="Remove this requirement"
-                        onClick={() => onRemoveExtraItem(it.id)}>
+                    {canUpload && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-muted-foreground hover:text-destructive"
+                        title={
+                          isExtra
+                            ? "Remove this requirement (uploaded files stay)"
+                            : "Remove from this client's checklist (does not delete uploaded files)"
+                        }
+                        onClick={() =>
+                          isExtra
+                            ? onRemoveExtraItem(it.id)
+                            : onSuppressTemplateItem(it.id, it.name, !!it.mandatory)
+                        }
+                      >
                         <X className="size-3.5" />
                       </Button>
                     )}
