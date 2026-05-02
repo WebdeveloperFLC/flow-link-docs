@@ -151,6 +151,25 @@ async function imageFileToJpegDataUrl(file: File, maxSide = 1800, quality = 0.82
   }
 }
 
+/** Read a file (PDF) as a base64 data URL, capped at ~12 MB to stay under
+ *  the AI gateway payload limit. Returns "" on failure or oversize. */
+async function fileToPdfDataUrl(file: File, maxBytes = 12 * 1024 * 1024): Promise<string> {
+  try {
+    if (file.size > maxBytes) return "";
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)) as unknown as number[]);
+    }
+    const b64 = btoa(binary);
+    return `data:application/pdf;base64,${b64}`;
+  } catch {
+    return "";
+  }
+}
+
 export async function classifyDocument(
   file: File,
   candidateTypes?: string[],
@@ -175,6 +194,11 @@ export async function classifyDocument(
       pageImages = img ? [img] : [];
     }
     const isScanned = isPdf && snippet.replace(/\s+/g, "").length < 30;
+    // If pdf.js couldn't read text AND couldn't render images (encrypted /
+    // scanner-output PDFs), send the original PDF bytes to the server so
+    // Gemini can OCR them directly. Same pattern as extract-document-data.
+    const browserCouldNotRead = isPdf && isScanned && pageImages.length === 0;
+    const pdfDataUrl = browserCouldNotRead ? await fileToPdfDataUrl(file) : "";
 
     const allowed = Array.from(new Set([...DOCUMENT_TYPES, ...(candidateTypes ?? [])]));
     const textGuess = classifyByText(snippet, allowed);
@@ -186,6 +210,7 @@ export async function classifyDocument(
         is_image: isImage,
         page_image_data_url: pageImages[0] ?? "",
         page_image_data_urls: pageImages,
+        pdf_data_url: pdfDataUrl,
         size_bytes: file.size,
         allowed_types: allowed,
         case_people: (peopleNames ?? []).filter((n) => n && n.trim()).slice(0, 10),
@@ -220,6 +245,7 @@ export async function classifyDocument(
           isScanned,
           textLen: snippet.length,
           imagesSent: pageImages.length,
+          pdfBytesSent: !!pdfDataUrl,
           rawAiType,
           aiType,
           aiConfidence,
