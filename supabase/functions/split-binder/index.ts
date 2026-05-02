@@ -71,7 +71,14 @@ Deno.serve(async (req) => {
       "4. owner_name must come from the visible content of THAT segment (passport MRZ, transcript header, IELTS Candidate Details, bank account holder). NEVER infer from filename. Return null if not visible.\n" +
       "5. Prefer fewer, longer segments over over-splitting. Do not split a single multi-page document (e.g. a 4-page transcript or 12-page bank statement).\n" +
       "6. Boundary signals: change of letterhead, change of person name, page-1 indicators (\"Page 1 of N\", new title/heading, fresh MRZ block, new logo).\n" +
-      "7. Keep accompanying photos/cover pages with their parent document when clearly part of it.";
+      "7. Keep accompanying photos/cover pages with their parent document when clearly part of it.\n" +
+      "8. If consecutive pages show DIFFERENT letterheads, brand marks, or document formats, return them as SEPARATE segments — even when the PDF only has 2 pages. A merged PDF that contains e.g. a Pearson PTE score report on page 1 and a Provincial Attestation Letter on page 2 MUST come back as two segments.\n" +
+      "9. Canonical type hints (use these exact values when present in allowed_types):\n" +
+      "   - English Language Proficiency Test → PTE Academic / Pearson Test of English / IELTS / TOEFL / CELPIP / Duolingo English Test (suggested_label: \"PTE Result\", \"IELTS Result\", \"TOEFL Result\", \"CELPIP Result\", or \"Duolingo Result\").\n" +
+      "   - Provincial Attestation Letter → any \"Provincial Attestation Letter\" / \"PAL\" / \"Allocation of PAL\" issued by a Canadian province (suggested_label: \"PAL Letter\").\n" +
+      "   - Passport → biographic page with MRZ.\n" +
+      "   - Academic Transcripts → marksheets, transcripts, consolidated grade reports.\n" +
+      "   - Offer Letter → letter of acceptance / admission letter.";
 
     const rosterLine = casePeople.length
       ? `\nPeople expected on this case (roster): ${JSON.stringify(casePeople)}. owner_name should match one of these when the document genuinely belongs to that person; otherwise return the actual name from the document.`

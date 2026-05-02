@@ -18,7 +18,7 @@ import { inferSectionId } from "@/lib/sections";
 import {
   isPdfFile, getPdfPageCount, extractPerPageText, extractPagesAsPdfFile, getBinderPageImages,
   getAllowedDocumentTypes, shouldFallbackToPageRanges, inferTypeFromPageText, looksLikeBinderName,
-  pageSnippetsLookLikeMixedBinder,
+  pageSnippetsLookLikeMixedBinder, splitFileIntoPageSegments,
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { toast } from "sonner";
@@ -67,7 +67,7 @@ interface QueueItem {
 
 const CONCURRENCY = 3;
 
-function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
+function _isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
   const only = segments[0];
   return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
@@ -749,6 +749,56 @@ export const SmartUploadZone = ({
 
   const clearQueue = () => setQueue([]);
 
+  /**
+   * Manual escape hatch: explode the queue item's PDF into one segment per
+   * page and replace the original item with a binder review group. Pre-fills
+   * each page's type via deterministic content rules so PTE / PAL / Passport
+   * etc. show up correctly without needing the AI splitter.
+   */
+  const splitItemIntoPages = useCallback(
+    async (idx: number) => {
+      const item = queue[idx];
+      if (!item) return;
+      if (!isPdfFile(item.file)) {
+        toast.error("Only PDFs can be split into pages.");
+        return;
+      }
+      try {
+        setBusy(true);
+        const segs = await splitFileIntoPageSegments(item.file, allowedDocumentTypes);
+        if (segs.length < 2) {
+          toast.message("This PDF only has one page — nothing to split.");
+          return;
+        }
+        const binderId = `manual_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        const newItems: QueueItem[] = segs.map((s, i) => ({
+          file: s.file,
+          status: "awaiting_review" as const,
+          predictedType: s.type,
+          customType: s.type === "Other" ? (s.suggested_label ?? undefined) : undefined,
+          binderId,
+          binderSource: item.file,
+          binderSourceName: item.file.name,
+          segIndex: i,
+          startPage: s.pageNumber,
+          endPage: s.pageNumber,
+          totalSourcePages: s.totalPages,
+          ownerId: item.ownerId ?? applicant?.id ?? null,
+        }));
+        setQueue((q) => {
+          const without = q.filter((_, i) => i !== idx);
+          return [...without, ...newItems];
+        });
+        toast.success(`Split "${item.file.name}" into ${segs.length} pages — review, rename, or merge before upload.`);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't split this PDF");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [queue, allowedDocumentTypes, applicant],
+  );
+
   return (
     <Card className="p-5 shadow-elev-sm">
       <div className="flex items-center justify-between mb-1">
@@ -970,6 +1020,16 @@ export const SmartUploadZone = ({
                   >
                     <Eye className="size-3.5 text-muted-foreground" />
                   </Button>
+                  {isPdfFile(it.file) && (it.status === "needs_owner" || it.status === "name_mismatch" || it.status === "needs_type" || it.status === "queued") && (
+                    <Button
+                      size="sm" variant="outline" className="h-7 text-[11px] shrink-0"
+                      onClick={() => splitItemIntoPages(i)}
+                      disabled={busy}
+                      title="Split this PDF into one document per page so you can rename/delete/merge before upload"
+                    >
+                      <Scissors className="size-3 mr-1" /> Split into pages
+                    </Button>
+                  )}
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
                       <SelectTrigger className="h-7 w-[140px] text-[11px]"><SelectValue /></SelectTrigger>
@@ -1215,7 +1275,7 @@ async function expandBinders(
       pageSnippets = await extractPerPageText(file, Math.min(pageCount, 30), 1000);
     } catch { /* ignore */ }
     const isBinder = looksLikeBinderName(file.name) || pageSnippetsLookLikeMixedBinder(pageSnippets);
-    if (pageCount < 3 || !isBinder) {
+    if (pageCount < 2 || !isBinder) {
       out.push({ file });
       continue;
     }
@@ -1253,10 +1313,12 @@ async function expandBinders(
         segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range");
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
-      // Normal 3+ page PDFs can be one valid document. Only binder-named PDFs
-      // are forcibly exploded when AI returns one full-document segment.
+      // Any likely binder that the AI returns as 1 segment must be exploded
+      // page-by-page so the user can review/merge. This applies to 2-page
+      // merges (PTE+PAL) too — not only 3+ page binders.
       if (segments.length < 2) {
-        if (isBinderName && isOneFullDocumentSegment(pageCount, segments)) {
+        const isLikelyBinder = isBinderName || pageSnippetsLookLikeMixedBinder(pageSnippets);
+        if (isLikelyBinder) {
           segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
