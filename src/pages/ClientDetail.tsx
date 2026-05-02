@@ -637,6 +637,16 @@ const ClientDetail = () => {
                     <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
                   </div>
                 )}
+                {suppressedIds.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={onRestoreSuppressed}
+                    className="text-[11px] text-muted-foreground underline hover:text-foreground"
+                    title="Restore checklist items removed for this client"
+                  >
+                    Restore {suppressedIds.size} hidden
+                  </button>
+                )}
                 {canUpload && (
                   <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
                     <Plus className="size-3.5 mr-1" /> Add document
