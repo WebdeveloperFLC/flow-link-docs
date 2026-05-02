@@ -22,6 +22,47 @@ export function looksLikeBinderName(fileName: string): boolean {
   return /\b(binder|combined|merged|bundle|package|compiled|applicant\s+docs?|applicant\s+documents?|student\s+docs?|student\s+documents?|all\s+docs|all\s+documents?|complete\s+(file|binder|docs?|documents?)|full\s+(file|binder|docs?|documents?)|visa\s+(file|docs?|documents?)|case\s+(file|docs?|documents?)|documents?\s+package)\b/i.test(fileName);
 }
 
+/** Document "family" detected from a single page's text. Used by
+ *  {@link pageSnippetsLookLikeMixedBinder} to spot multi-doc PDFs that don't
+ *  carry a binder-like filename (e.g. raw scanner output named `scan.pdf`). */
+const FAMILY_RULES: Array<[RegExp, string]> = [
+  [/passport|republic of|mrz|surname.*given names|date of expiry/i, "passport"],
+  [/pearson test of english|pte\s+academic|test report form|overall band|ielts|toefl|celpip|duolingo english test|communicative skills|enabling skills/i, "language_test"],
+  [/provincial attestation letter|allocation of pal|\bpal\s+(number|reference)|attestation letter\s+(issued|number)/i, "pal"],
+  [/transcript|marksheet|consolidated|semester|cgpa|grade point|provisional certificate/i, "transcript"],
+  [/letter of acceptance|offer letter|admission letter|program of study/i, "offer_letter"],
+  [/bank statement|statement of account|account balance|closing balance/i, "bank_statement"],
+  [/guaranteed investment certificate|\bgic\b|blocked account/i, "gic"],
+  [/tuition|fee receipt|fees paid|payment receipt/i, "tuition"],
+  [/statement of purpose|personal statement|\bsop\b/i, "sop"],
+  [/curriculum vitae|\bcv\b|work experience|professional experience/i, "resume"],
+  [/employment letter|experience letter|salary slip|pay slip|no objection certificate/i, "employment"],
+  [/birth certificate|registration of birth/i, "birth_cert"],
+  [/marriage certificate/i, "marriage_cert"],
+  [/police clearance|\bpcc\b|criminal record/i, "police"],
+  [/medical report|emedical|panel physician/i, "medical"],
+  [/imm\s?\d{4}|application for|visa application/i, "visa_form"],
+];
+
+function familyForPage(text: string): string | null {
+  if (!text) return null;
+  for (const [rx, fam] of FAMILY_RULES) if (rx.test(text)) return fam;
+  return null;
+}
+
+/** Content-based binder detector — returns true when the per-page snippets
+ *  show ≥2 distinct document families. Pairs with {@link looksLikeBinderName}
+ *  so we also split PDFs whose filename gives no hint. */
+export function pageSnippetsLookLikeMixedBinder(snippets: string[]): boolean {
+  const seen = new Set<string>();
+  for (const s of snippets) {
+    const fam = familyForPage(s ?? "");
+    if (fam) seen.add(fam);
+    if (seen.size >= 2) return true;
+  }
+  return false;
+}
+
 /**
  * Decide whether the AI splitter result is unreliable and we should split the
  * PDF into page-range segments for manual review instead of uploading it whole.
