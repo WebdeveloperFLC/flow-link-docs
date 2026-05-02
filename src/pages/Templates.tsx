@@ -11,9 +11,17 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 
 export interface TemplateItem { id: string; name: string; mandatory: boolean; notes?: string; }
+export interface TemplateGroup {
+  id: string;
+  section_key: string;
+  label: string;
+  sort_order: number;
+  item_ids: string[];
+}
 export interface Template {
   id: string; name: string; country: string; category: string; version: number;
   items: TemplateItem[]; created_at: string;
+  groups?: TemplateGroup[] | null;
 }
 
 const Templates = () => {
@@ -32,6 +40,7 @@ const Templates = () => {
     const { error } = await supabase.from("workflow_templates").insert({
       name: `${t.name} (copy)`, country: t.country, category: t.category, version: 1,
       items: t.items as never,
+      groups: (t.groups ?? []) as never,
     });
     if (error) toast.error(error.message);
     else { toast.success("Duplicated"); load(); }
@@ -95,17 +104,34 @@ const Templates = () => {
                     )}
                   </div>
                   <div className="mt-3 pt-3 border-t">
-                    <div className="text-xs text-muted-foreground mb-1.5">{t.items.length} document{t.items.length === 1 ? "" : "s"}</div>
-                    <div className="space-y-0.5 max-h-32 overflow-hidden">
-                      {t.items.slice(0, 5).map((it, i) => (
-                        <div key={it.id} className="text-xs flex gap-1.5">
-                          <span className="text-muted-foreground tabular-nums">{i+1}.</span>
-                          <span className="truncate">{it.name}</span>
-                          {it.mandatory && <span className="text-secondary text-[10px]">*</span>}
-                        </div>
-                      ))}
-                      {t.items.length > 5 && <div className="text-xs text-muted-foreground">+{t.items.length - 5} more…</div>}
+                    <div className="text-xs text-muted-foreground mb-1.5">
+                      {t.items.length} document{t.items.length === 1 ? "" : "s"}
+                      {t.groups && t.groups.length > 0 ? ` · ${t.groups.length} section${t.groups.length === 1 ? "" : "s"}` : ""}
                     </div>
+                    {t.groups && t.groups.length > 0 ? (
+                      <div className="space-y-1 max-h-40 overflow-hidden">
+                        {t.groups.slice(0, 4).map((g) => (
+                          <div key={g.id} className="text-xs">
+                            <span className="font-semibold">{g.label}</span>
+                            <span className="text-muted-foreground"> · {g.item_ids.length}</span>
+                          </div>
+                        ))}
+                        {t.groups.length > 4 && (
+                          <div className="text-xs text-muted-foreground">+{t.groups.length - 4} more section{t.groups.length - 4 === 1 ? "" : "s"}…</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-0.5 max-h-32 overflow-hidden">
+                        {t.items.slice(0, 5).map((it, i) => (
+                          <div key={it.id} className="text-xs flex gap-1.5">
+                            <span className="text-muted-foreground tabular-nums">{i+1}.</span>
+                            <span className="truncate">{it.name}</span>
+                            {it.mandatory && <span className="text-secondary text-[10px]">*</span>}
+                          </div>
+                        ))}
+                        {t.items.length > 5 && <div className="text-xs text-muted-foreground">+{t.items.length - 5} more…</div>}
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}

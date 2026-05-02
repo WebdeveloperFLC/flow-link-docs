@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
-import type { Template, TemplateItem } from "@/pages/Templates";
+import type { Template, TemplateItem, TemplateGroup } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
@@ -131,6 +131,37 @@ const ClientDetail = () => {
   ];
   const completed = checklistItems.filter((it) => docByType(it.name)).length;
   const requiredMissing = checklistItems.filter((it) => it.mandatory && !docByType(it.name));
+
+  /** Sectioned view of the checklist. If the assigned template defines `groups`,
+   *  we honour that hierarchy. Extra items (added per-client) are appended to
+   *  a synthetic "Added requirements" section at the end. Otherwise we fall
+   *  back to a single flat section. */
+  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = (() => {
+    const tplItems = template?.items ?? [];
+    const tplGroups = (template?.groups ?? null) as TemplateGroup[] | null;
+    const itemMap = new Map(tplItems.map((it) => [it.id, it]));
+    const out: Array<{ id: string; label: string; items: TemplateItem[] }> = [];
+    if (tplGroups && tplGroups.length > 0) {
+      const placed = new Set<string>();
+      for (const g of [...tplGroups].sort((a, b) => a.sort_order - b.sort_order)) {
+        const items = g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x);
+        items.forEach((it) => placed.add(it.id));
+        if (items.length > 0) out.push({ id: g.id, label: g.label, items });
+      }
+      const orphans = tplItems.filter((it) => !placed.has(it.id));
+      if (orphans.length > 0) out.push({ id: "_orphans", label: "Other Documents", items: orphans });
+    } else if (tplItems.length > 0) {
+      out.push({ id: "_all", label: "Documents", items: tplItems });
+    }
+    if (extraItems.length > 0) {
+      out.push({
+        id: "_extras",
+        label: "Added requirements",
+        items: extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
+      });
+    }
+    return out;
+  })();
 
   const onDelete = async (d: Doc) => {
     if (!confirm(`Delete ${d.file_name}?`)) return;
@@ -404,9 +435,26 @@ const ClientDetail = () => {
     const cleanName = client.full_name.replace(/[^a-zA-Z0-9]/g, "");
     let made = 0;
     try {
-      for (const group of BINDER_GROUPS) {
-        // Items in this group that have at least one uploaded doc
-        const groupItems = template.items.filter((it) => groupForType(it.name).key === group.key);
+      // Prefer template-defined sections when available; fall back to BINDER_GROUPS.
+      const tplGroups = (template.groups ?? null) as TemplateGroup[] | null;
+      type GroupSpec = { key: string; label: string; items: TemplateItem[] };
+      const itemMap = new Map(template.items.map((it) => [it.id, it]));
+      const groupSpecs: GroupSpec[] = (tplGroups && tplGroups.length > 0)
+        ? [...tplGroups]
+            .sort((a, b) => a.sort_order - b.sort_order)
+            .map((g) => ({
+              key: g.section_key,
+              label: g.label,
+              items: g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x),
+            }))
+        : BINDER_GROUPS.map((bg) => ({
+            key: bg.key,
+            label: bg.label,
+            items: template.items.filter((it) => groupForType(it.name).key === bg.key),
+          }));
+
+      for (const group of groupSpecs) {
+        const groupItems = group.items;
         const groupHasUploads = groupItems.some((it) => docByType(it.name));
         if (groupItems.length === 0 || !groupHasUploads) continue;
 
@@ -524,20 +572,29 @@ const ClientDetail = () => {
               </div>
             )}
             <div className="divide-y">
-              {checklistItems.map((it, i) => {
-                const d = docByType(it.name);
-                const isExtra = extraItems.some((e) => e.id === it.id);
-                // Candidate uploaded docs to link manually — any doc not already
-                // satisfying THIS checklist item. Most useful for renamed/mislabeled
-                // uploads (e.g., "Passport Copy" with no alias hit).
-                const linkableDocs = docs.filter((doc) => {
-                  const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
-                  const t2 = doc.custom_type ?? "";
-                  return t1 !== it.name && t2 !== it.name;
-                });
-                return (
-                  <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
-                    <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
+              {(() => {
+                let runningIdx = 0;
+                return checklistSections.map((sec) => {
+                  const secReady = sec.items.filter((it) => docByType(it.name)).length;
+                  return (
+                    <div key={sec.id}>
+                      <div className="px-6 py-2.5 bg-muted/40 flex items-center justify-between">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div>
+                        <div className="text-[11px] text-muted-foreground tabular-nums">{secReady}/{sec.items.length} ready</div>
+                      </div>
+                      {sec.items.map((it) => {
+                        runningIdx += 1;
+                        const i = runningIdx - 1;
+                        const d = docByType(it.name);
+                        const isExtra = extraItems.some((e) => e.id === it.id);
+                        const linkableDocs = docs.filter((doc) => {
+                          const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
+                          const t2 = doc.custom_type ?? "";
+                          return t1 !== it.name && t2 !== it.name;
+                        });
+                        return (
+                          <div key={it.id} className="px-6 py-3.5 flex items-center gap-4 border-t">
+                            <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm flex items-center gap-1.5">
                         {it.name}
@@ -598,9 +655,13 @@ const ClientDetail = () => {
                         <X className="size-3.5" />
                       </Button>
                     )}
-                  </div>
-                );
-              })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </Card>
 
