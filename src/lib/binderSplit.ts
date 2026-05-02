@@ -74,7 +74,7 @@ export function pageSnippetsLookLikeMixedBinder(snippets: string[]): boolean {
  *  - segments don't cover all pages or are otherwise incomplete
  */
 export function shouldFallbackToPageRanges(fileName: string, pageCount: number, segments: BinderSegment[]): boolean {
-  if (pageCount < 3) return false;
+  if (pageCount < 2) return false;
   const looksLikeBinder = looksLikeBinderName(fileName);
 
   // No usable AI output → must fall back for any multi-page PDF that looks like a binder,
@@ -234,4 +234,49 @@ export async function extractPagesAsPdfFile(
 export async function getBinderPageImages(file: File, maxPages = 30): Promise<string[]> {
   // Low DPI / quality on purpose — payload is sent to the edge function.
   return renderPdfPagesToJpegDataUrls(file, maxPages, 90, 0.55);
+}
+
+/**
+ * Manual escape hatch: split a PDF File into one one-page File per page,
+ * pre-typed using deterministic content rules. Used by the upload card's
+ * "Split into pages" button when auto-detection treated a binder as a
+ * single document.
+ */
+export async function splitFileIntoPageSegments(
+  file: File,
+  allowedTypes: string[],
+): Promise<Array<{
+  file: File;
+  pageNumber: number;
+  totalPages: number;
+  type: string;
+  suggested_label?: string | null;
+}>> {
+  const pageCount = await getPdfPageCount(file);
+  if (pageCount < 2) return [];
+  let snippets: string[] = [];
+  try {
+    snippets = await extractPerPageText(file, Math.min(pageCount, 60), 1200);
+  } catch { /* ignore */ }
+  const stem = file.name.replace(/\.pdf$/i, "");
+  const out: Array<{ file: File; pageNumber: number; totalPages: number; type: string; suggested_label?: string | null }> = [];
+  for (let p = 1; p <= pageCount; p++) {
+    const guess = inferTypeFromPageText(snippets[p - 1] ?? "", allowedTypes);
+    const label = guess.type === "Other" && guess.suggested_label ? guess.suggested_label : guess.type;
+    const safeLabel = String(label || "Segment").replace(/[^\w\- ]+/g, "").slice(0, 40) || "Segment";
+    const segName = `${stem}__${String(p).padStart(2, "0")}_${safeLabel}_p${p}-${p}.pdf`;
+    try {
+      const segFile = await extractPagesAsPdfFile(file, p, p, segName);
+      out.push({
+        file: segFile,
+        pageNumber: p,
+        totalPages: pageCount,
+        type: guess.type,
+        suggested_label: guess.suggested_label ?? null,
+      });
+    } catch (e) {
+      console.warn("splitFileIntoPageSegments: failed to extract page", p, e);
+    }
+  }
+  return out;
 }
