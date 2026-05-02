@@ -1,58 +1,74 @@
-## Problem
+## Goal
 
-On the Document Verification page, when a reviewer clicks **Reject** (or Mark verified / Request reissue) after running an authenticity check, the decision is only saved to the `document_verifications` row. It is never propagated to the underlying `client_documents` record, so:
+Connect TeleCMI to the system by securely storing your API credentials and exposing a webhook endpoint URL you can paste into the TeleCMI dashboard. No call UI yet — this lays the foundation so we can later add call history (auto-matched by phone with manual fallback) and click-to-call.
 
-- The document checklist on the client page still shows the document as **Ready** (green).
-- There is no visible "Rejected" / "Verified" indicator anywhere outside the Verification page itself.
-- The auto-backfill effect on ClientDetail can even re-link a rejected document to a checklist row.
+## What you'll see after this is done
 
-## Fix
+In **Settings**, a new card "TeleCMI (Cloud Telephony)" with:
+- Status: Connected / Not connected
+- Fields: App ID, App Secret (write-only, masked), Webhook auth token (auto-generated, copy button)
+- A read-only **Webhook URL** to paste into the TeleCMI dashboard:
+  `https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/telecmi-webhook?token=<auth-token>`
+- "Test connection" button (calls TeleCMI API to verify credentials)
+- Last received-event timestamp + last sync status
 
-### 1. Persist reviewer decision on the document itself
+Nothing changes for non-admin users; the card is admin-only.
 
-In `src/pages/Verification.tsx` → `setReviewerStatus(...)`:
+## Scope of this step
 
-After updating `document_verifications`, also update `client_documents.status` for `active.document_id`:
+In scope:
+1. Save TeleCMI App ID + App Secret as backend secrets (server-only).
+2. Store non-secret config (enabled flag, webhook auth token, last-event timestamp) in the existing `integration_settings` table under `key = 'telecmi'`.
+3. Build a public webhook edge function `telecmi-webhook` that:
+   - Validates the `?token=` query against the stored auth token.
+   - Accepts both GET and POST (TeleCMI supports either).
+   - Logs every received payload into a new `call_events` table for now (raw JSON kept). Auto-matching to clients comes in the next step.
+   - Updates `integration_settings.last_sync_at` / `last_sync_status`.
+4. Build a `telecmi-test` edge function that uses the stored secrets to hit a TeleCMI API endpoint and confirm the credentials work; surfaced via the "Test connection" button.
+5. Settings UI card (admin-only) to enable/disable, save config, copy webhook URL, and run the test.
 
-| Reviewer action     | `client_documents.status` |
-|---------------------|---------------------------|
-| Mark verified       | `"verified"`              |
-| Request reissue     | `"needs_reissue"`         |
-| Reject              | `"rejected"`              |
+Out of scope (next step, to be planned separately):
+- Showing calls on the client profile.
+- Click-to-call button.
+- Phone-number → client auto-matching + manual attach inbox.
 
-(`"ready"` remains the default after a successful upload + extraction; the reviewer decision overrides it.)
+## Technical details
 
-### 2. Render the new statuses in the checklist
+### Secrets to add (via secret tool, you'll be prompted)
+- `TELECMI_APP_ID`
+- `TELECMI_APP_SECRET`
 
-In `src/pages/ClientDetail.tsx` (around line 695, where the green "Ready" badge is rendered):
+I'll request these via the secret prompt only after you approve this plan.
 
-Replace the single `Ready` branch with a status-aware badge:
+### Database (one migration)
+New table `call_events` (raw inbox of every TeleCMI webhook hit; client linkage added later):
+- `id uuid pk`, `received_at timestamptz`, `event_type text` (cdr / live), `direction text`, `from_number text`, `to_number text`, `duration_seconds int`, `recording_url text`, `call_id text`, `status text`, `raw jsonb`, `client_id uuid null`, `matched_at timestamptz null`
+- RLS: select for authenticated; insert only via service role (edge function); update for admin/counselor/documentation (so we can attach to client later).
 
-- `verified` → green "Verified"
-- `ready` → green "Ready" (unchanged default)
-- `needs_reissue` → amber "Reissue"
-- `rejected` → red "Rejected"
+No changes to `integration_settings` schema — it already has `key`, `enabled`, `config jsonb`, `last_sync_at`, `last_sync_status`, `last_sync_message`. We'll store `{ webhook_token, app_id_last4 }` in `config`.
 
-Also: when a document is `rejected` or `needs_reissue`, it should **not** count toward `secReady` in the section progress, and should **not** suppress the "Pending" state. Treat such a document as "attached but not satisfying the requirement" — show the rejected badge plus the file name, and keep the "Link doc" / re-upload affordances available. The simplest implementation is to make `docByType` only return docs whose status is `ready` or `verified`, and add a separate lookup for "any attached doc (including rejected)" used purely for displaying the rejected badge + filename.
+### Edge functions
+- `supabase/functions/telecmi-webhook/index.ts` — `verify_jwt = false`, validates `?token` against `integration_settings.config->>webhook_token`, normalizes payload, inserts into `call_events`, updates last-sync fields. Returns 200 quickly.
+- `supabase/functions/telecmi-test/index.ts` — `verify_jwt = true`, admin only. Reads `TELECMI_APP_ID` / `TELECMI_APP_SECRET`, calls a TeleCMI authenticated endpoint (e.g. account/call-list) and returns ok/fail with message.
 
-### 3. Don't re-link rejected docs automatically
+`supabase/config.toml` gets one new block: `[functions.telecmi-webhook] verify_jwt = false`.
 
-In the retroactive-repair `useEffect` in `ClientDetail.tsx` (the alias/filename backfill that writes `custom_type`), skip documents whose `status` is `rejected` or `needs_reissue` so a rejected scan isn't auto-attached back to the checklist row.
+### Frontend
+- New `src/components/settings/TelecmiIntegrationCard.tsx` modeled after the existing `OdooIntegrationCard`.
+- Mounted in `src/pages/Settings.tsx` (admin-only, same pattern as Odoo).
+- "Generate webhook token" creates a random 32-char token, saves it to `integration_settings.config.webhook_token`, then displays the assembled webhook URL with copy button.
 
-### 4. Optional but consistent: auto-set on Run verification
+### Files to add / edit
+- add: `supabase/migrations/<ts>_call_events.sql`
+- add: `supabase/functions/telecmi-webhook/index.ts`
+- add: `supabase/functions/telecmi-test/index.ts`
+- edit: `supabase/config.toml` (add telecmi-webhook function block)
+- add: `src/components/settings/TelecmiIntegrationCard.tsx`
+- edit: `src/pages/Settings.tsx`
 
-When `verify-document` returns `risk_level === "high_risk"`, we currently leave `client_documents.status` untouched. Leave this behavior as-is — only the explicit reviewer click should change document status, matching the existing UX where humans make the final call.
+## After approval
 
-## Files to edit
-
-- `src/pages/Verification.tsx` — extend `setReviewerStatus` to also update `client_documents.status`.
-- `src/pages/ClientDetail.tsx` — status-aware badge, `docByType` filtering, backfill skip for rejected docs.
-
-No DB migration is required (`client_documents.status` already exists as a free-form text column).
-
-## Verification
-
-1. Run verification on the 12th Marksheet → it shows "Needs review".
-2. Click **Reject** → on the client page, the 12th Marksheet checklist row now shows a red **Rejected** badge instead of green Ready, and the section progress decrements.
-3. Click **Mark verified** on a different doc → checklist shows green **Verified**.
-4. Reload the client page — the rejected doc is not silently re-linked by the backfill effect.
+1. I'll prompt you to paste `TELECMI_APP_ID` and `TELECMI_APP_SECRET`.
+2. Run the migration, deploy the two edge functions, ship the Settings card.
+3. You copy the webhook URL from Settings into the TeleCMI dashboard, click "Test connection", and we confirm green.
+4. Then we plan step 2: showing/attaching calls on client profiles.
