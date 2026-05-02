@@ -190,6 +190,17 @@ const Verification = () => {
       .update({ reviewer_status: status, reviewer_note: reviewerNote, reviewed_at: new Date().toISOString() })
       .eq("id", active.id);
     if (error) { toast.error(error.message); return; }
+    // Propagate the reviewer's decision to the underlying document so that the
+    // client checklist + document list reflect the verified / rejected / reissue
+    // state — not just this verification page.
+    const { error: docErr } = await supabase
+      .from("client_documents")
+      .update({ status })
+      .eq("id", active.document_id);
+    if (docErr) {
+      toast.error(`Saved review, but failed to update document status: ${docErr.message}`);
+    }
+    await logActivity("document.review_decision", "document", active.document_id, { reviewer_status: status });
     toast.success(`Marked as ${status.replace("_", " ")}`);
     setActive({ ...active, reviewer_status: status, reviewer_note: reviewerNote });
     setHistory((prev) => prev.map((v) => v.id === active.id ? { ...v, reviewer_status: status, reviewer_note: reviewerNote } : v));
