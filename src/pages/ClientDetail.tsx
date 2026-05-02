@@ -5,7 +5,8 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch, Unlink } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
@@ -25,6 +26,7 @@ import { SectionBuilderCard, type SectionDoc } from "@/components/clients/Sectio
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
 import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
+import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -108,7 +110,17 @@ const ClientDetail = () => {
   }, [docs, sections]);
 
   const docByType = (typeName: string): Doc | undefined => {
-    const matches = docs.filter((d) => (d.document_type === "Other" ? d.custom_type : d.document_type) === typeName);
+    const matches = docs.filter((d) => {
+      // Primary type label on the doc — what the user sees.
+      const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+      // Secondary label — markChecklistItemReady writes the matched checklist
+      // name here so we always check it as a "linked checklist item" hint.
+      const t2 = d.custom_type ?? "";
+      if (t1 === typeName || t2 === typeName) return true;
+      if (t1 && isChecklistAlias(t1, typeName)) return true;
+      if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+      return false;
+    });
     return matches.sort((a, b) => b.version - a.version)[0];
   };
 
@@ -125,6 +137,31 @@ const ClientDetail = () => {
     await supabase.storage.from("client-documents").remove([d.storage_path]);
     await supabase.from("client_documents").delete().eq("id", d.id);
     await logActivity("document.deleted", "document", d.id, { file_name: d.file_name });
+    load();
+  };
+
+  /** Manually link an uploaded doc to a checklist item by writing the item's
+   *  exact name into custom_type. The render-time matcher then flips Pending → Ready. */
+  const linkDocToChecklist = async (docId: string, checklistName: string) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ custom_type: checklistName })
+      .eq("id", docId);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.linked_to_checklist", "document", docId, { checklist_item: checklistName });
+    toast.success(`Linked to "${checklistName}"`);
+    load();
+  };
+
+  /** Unlink: clear custom_type so the doc is no longer counted under the
+   *  current checklist item. Document stays uploaded — only the link is removed. */
+  const unlinkDocFromChecklist = async (docId: string) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ custom_type: null })
+      .eq("id", docId);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.unlinked_from_checklist", "document", docId);
     load();
   };
 
@@ -490,6 +527,14 @@ const ClientDetail = () => {
               {checklistItems.map((it, i) => {
                 const d = docByType(it.name);
                 const isExtra = extraItems.some((e) => e.id === it.id);
+                // Candidate uploaded docs to link manually — any doc not already
+                // satisfying THIS checklist item. Most useful for renamed/mislabeled
+                // uploads (e.g., "Passport Copy" with no alias hit).
+                const linkableDocs = docs.filter((doc) => {
+                  const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
+                  const t2 = doc.custom_type ?? "";
+                  return t1 !== it.name && t2 !== it.name;
+                });
                 return (
                   <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
                     <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
@@ -508,6 +553,44 @@ const ClientDetail = () => {
                       <span className={`text-xs px-2 py-1 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
                         {it.mandatory ? "Pending" : "Optional"}
                       </span>
+                    )}
+                    {canUpload && !d && linkableDocs.length > 0 && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button size="sm" variant="outline" className="h-7 text-[11px]" title="Link an already-uploaded document to this checklist item">
+                            <Link2 className="size-3 mr-1" /> Link doc
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent align="end" className="w-80 p-0">
+                          <div className="px-3 py-2 border-b text-[11px] text-muted-foreground">
+                            Pick an uploaded document to count for <span className="font-semibold text-foreground">{it.name}</span>
+                          </div>
+                          <div className="max-h-72 overflow-auto divide-y">
+                            {linkableDocs.map((doc) => {
+                              const label = doc.document_type === "Other" ? (doc.custom_type ?? "Other") : doc.document_type;
+                              return (
+                                <button
+                                  key={doc.id}
+                                  onClick={() => linkDocToChecklist(doc.id, it.name)}
+                                  className="w-full text-left px-3 py-2 hover:bg-accent text-xs"
+                                >
+                                  <div className="font-medium truncate">{doc.file_name}</div>
+                                  <div className="text-[10px] text-muted-foreground truncate">{label}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    {canUpload && d && d.custom_type && d.custom_type === it.name && d.document_type !== "Other" && (
+                      <Button
+                        size="icon" variant="ghost" className="size-7 text-muted-foreground"
+                        title="Unlink this document from the checklist item (file stays uploaded)"
+                        onClick={() => unlinkDocFromChecklist(d.id)}
+                      >
+                        <Unlink className="size-3.5" />
+                      </Button>
                     )}
                     {isExtra && canUpload && !d && (
                       <Button size="icon" variant="ghost" className="size-7 text-muted-foreground" title="Remove this requirement"
