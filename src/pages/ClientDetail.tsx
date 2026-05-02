@@ -272,6 +272,32 @@ const ClientDetail = () => {
     load();
   };
 
+  /** Hide a template-defined checklist item for THIS client only. The
+   *  underlying workflow_template stays untouched. */
+  const onSuppressTemplateItem = async (itemId: string, itemName: string, mandatory: boolean) => {
+    if (!client) return;
+    if (mandatory && !confirm(`Remove required item "${itemName}" from this client's checklist?`)) return;
+    const next = Array.from(new Set([...(client.suppressed_template_items ?? []), itemId]));
+    const { error } = await supabase
+      .from("clients")
+      .update({ suppressed_template_items: next as never })
+      .eq("id", client.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("client.template_item_suppressed", "client", client.id, { item: itemName });
+    toast.success(`Removed "${itemName}" from this client`);
+    load();
+  };
+
+  const onRestoreSuppressed = async () => {
+    if (!client) return;
+    const { error } = await supabase
+      .from("clients")
+      .update({ suppressed_template_items: [] as never })
+      .eq("id", client.id);
+    if (error) { toast.error(error.message); return; }
+    load();
+  };
+
   const onReExtract = async () => {
     if (!client) return;
     setReExtracting(true);
