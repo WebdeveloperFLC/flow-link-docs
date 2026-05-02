@@ -1215,7 +1215,7 @@ async function expandBinders(
       pageSnippets = await extractPerPageText(file, Math.min(pageCount, 30), 1000);
     } catch { /* ignore */ }
     const isBinder = looksLikeBinderName(file.name) || pageSnippetsLookLikeMixedBinder(pageSnippets);
-    if (pageCount < 3 || !isBinder) {
+    if (pageCount < 2 || !isBinder) {
       out.push({ file });
       continue;
     }
@@ -1253,10 +1253,12 @@ async function expandBinders(
         segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "fallback_page_range");
         toast.message(`Binder splitter was unsure, so "${file.name}" was prepared as page-by-page segments for review.`);
       }
-      // Normal 3+ page PDFs can be one valid document. Only binder-named PDFs
-      // are forcibly exploded when AI returns one full-document segment.
+      // Any likely binder that the AI returns as 1 segment must be exploded
+      // page-by-page so the user can review/merge. This applies to 2-page
+      // merges (PTE+PAL) too — not only 3+ page binders.
       if (segments.length < 2) {
-        if (isBinderName && isOneFullDocumentSegment(pageCount, segments)) {
+        const isLikelyBinder = isBinderName || pageSnippetsLookLikeMixedBinder(pageSnippets);
+        if (isLikelyBinder) {
           segments = buildPageReviewSegments(pageCount, pageSnippets, allowedTypes, "binder_single_segment_forced_split");
           toast.message(`AI couldn't find boundaries in "${file.name}" — split page-by-page for review. Use Merge to combine related pages.`);
         } else {
