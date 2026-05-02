@@ -14,12 +14,27 @@ import { supabase } from "@/integrations/supabase/client";
  * row we just inserted. The actual checklist state is derived at render time.
  */
 
-/** Lower-cased aliases for each canonical checklist concept. Order doesn't
- *  matter; the first concept whose alias set contains BOTH the uploaded type
- *  and a checklist item wins. */
-const ALIAS_BUCKETS: string[][] = [
+/** Lower-cased aliases for each canonical checklist concept. Buckets list
+ *  strings that mean the SAME specific concept. Two strings are aliases iff
+ *  they share a specific bucket OR one is a generic-bucket label whose
+ *  generic_for[] includes a specific bucket the other belongs to.
+ *
+ *  IMPORTANT: do not mix distinct concepts (10th vs 12th, transcripts vs
+ *  specific marksheets) into one bucket — that caused a single 12th-marksheet
+ *  upload to satisfy every academic checklist row. */
+interface Bucket {
+  /** Stable id used for cross-bucket relationships. */
+  id: string;
+  aliases: string[];
+  /** If set, this bucket is a CATCH-ALL checklist label (e.g. "Academic
+   *  Transcripts") — uploads from any listed specific bucket id satisfy it,
+   *  but the catch-all does NOT satisfy a more specific row. Match is
+   *  asymmetric. */
+  generic_for?: string[];
+}
+const BUCKETS: Bucket[] = [
   // English language tests — IELTS, TOEFL, PTE, CELPIP, Duolingo all roll up.
-  [
+  { id: "english_test", aliases: [
     "english language proficiency test",
     "english proficiency test",
     "english test",
@@ -39,49 +54,71 @@ const ALIAS_BUCKETS: string[][] = [
     "duolingo",
     "duolingo english test",
     "duolingo result",
-  ],
+  ] },
   // Provincial Attestation Letter (Canada SDS).
-  [
+  { id: "pal", aliases: [
     "provincial attestation letter",
     "attestation letter",
     "pal",
     "pal letter",
     "allocation of pal",
-  ],
-  // Academic transcripts / marksheets / degrees.
-  [
-    "academic transcripts",
-    "academic marksheets",
-    "marksheet",
-    "marksheets",
-    "transcript",
-    "transcripts",
-    "degree certificate",
-    "diploma",
-    "provisional certificate",
-    "consolidated marksheet",
+  ] },
+  // 10th / SSC marksheet — KEEP separate from 12th and from transcripts.
+  { id: "marksheet_10", aliases: [
     "10th",
     "10th marksheet",
     "10th certificate",
     "10th passing certificate",
+    "ssc",
+    "ssc marksheet",
+    "secondary school certificate",
+  ] },
+  // 12th / HSC marksheet — KEEP separate from 10th and from transcripts.
+  { id: "marksheet_12", aliases: [
     "12th",
     "12th marksheet",
     "12th certificate",
     "12th passing certificate",
     "hsc",
-    "ssc",
-    "secondary school certificate",
+    "hsc marksheet",
     "higher secondary certificate",
     "higher secondary certificate examination",
-    "ssc marksheet",
-    "hsc marksheet",
-    "graduation marksheet",
+  ] },
+  // Bachelor's degree.
+  { id: "bachelors", aliases: [
     "bachelor degree",
     "bachelors degree",
+    "bachelor's degree",
+    "graduation marksheet",
+    "graduation certificate",
+    "provisional certificate",
+    "consolidated marksheet",
+    "degree certificate",
+    "diploma",
+  ] },
+  // Master's degree.
+  { id: "masters", aliases: [
     "masters degree",
-  ],
+    "master's degree",
+    "post graduation marksheet",
+    "post graduation certificate",
+  ] },
+  // Generic "Academic Transcripts / Marksheets" bucket — catch-all checklist
+  // label that ANY specific academic upload should satisfy, but uploading a
+  // generic "transcript" should NOT satisfy a specific row like "12th
+  // Marksheet".
+  { id: "transcripts_generic", aliases: [
+    "academic transcripts",
+    "academic marksheets",
+    "transcript",
+    "transcripts",
+    "marksheet",
+    "marksheets",
+    "all marksheets",
+    "all transcripts",
+  ], generic_for: ["marksheet_10", "marksheet_12", "bachelors", "masters"] },
   // Passport — common renames.
-  [
+  { id: "passport", aliases: [
     "passport",
     "passport copy",
     "passport bio page",
@@ -89,39 +126,52 @@ const ALIAS_BUCKETS: string[][] = [
     "passport biodata",
     "passport first page",
     "passport front page",
-  ],
+  ] },
   // Resume / CV.
-  ["resume", "updated resume", "cv", "curriculum vitae"],
+  { id: "resume", aliases: ["resume", "updated resume", "cv", "curriculum vitae"] },
   // Statement of purpose.
-  ["sop", "statement of purpose", "personal statement"],
+  { id: "sop", aliases: ["sop", "statement of purpose", "personal statement"] },
   // Police clearance.
-  ["police clearance", "police clearance certificate", "pcc", "police certificate"],
+  { id: "pcc", aliases: ["police clearance", "police clearance certificate", "pcc", "police certificate"] },
   // Employment / experience.
-  ["employment letter", "experience letter", "work experience letter"],
+  { id: "experience_letter", aliases: ["employment letter", "experience letter", "work experience letter"] },
   // Visa forms.
-  ["visa forms", "visa form", "imm forms", "imm form"],
+  { id: "visa_forms", aliases: ["visa forms", "visa form", "imm forms", "imm form"] },
   // Bank / financial.
-  [
+  { id: "financials", aliases: [
     "financial documents",
     "bank statement",
     "bank statements",
     "statement of account",
     "itr",
     "income tax return",
-  ],
+  ] },
 ];
 
 const norm = (s: string) =>
   s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-/** Find a bucket that contains the given normalised string. */
-function bucketFor(s: string): string[] | null {
+/** Find the bucket whose aliases include the given normalised string. */
+function bucketFor(s: string): Bucket | null {
   const n = norm(s);
   if (!n) return null;
-  for (const bucket of ALIAS_BUCKETS) {
-    if (bucket.some((alias) => norm(alias) === n)) return bucket;
+  for (const b of BUCKETS) {
+    if (b.aliases.some((alias) => norm(alias) === n)) return b;
   }
   return null;
+}
+
+/** Whole-word single-token containment, e.g. "PTE" inside "PTE Result".
+ *  Both sides must be ≥3 chars and the contained side must be a single token
+ *  (no spaces) to avoid leaking across multi-word names. */
+function singleTokenWholeWordMatch(a: string, b: string): boolean {
+  if (a.length < 3 || b.length < 3) return false;
+  const tokenize = (s: string) => s.split(" ").filter(Boolean);
+  const aTokens = tokenize(a);
+  const bTokens = tokenize(b);
+  if (aTokens.length === 1 && bTokens.includes(a)) return true;
+  if (bTokens.length === 1 && aTokens.includes(b)) return true;
+  return false;
 }
 
 /** Two strings are aliases iff they share a bucket OR are byte-equal after
@@ -131,21 +181,15 @@ export function isChecklistAlias(uploadedType: string, checklistItemName: string
   const b = norm(checklistItemName);
   if (!a || !b) return false;
   if (a === b) return true;
-  // Substring match for cases like "PTE" vs "PTE Result" or "IELTS" vs "IELTS Result".
-  if (a.includes(b) || b.includes(a)) {
-    // Avoid false positives with very short strings — require at least 3 chars.
-    if (Math.min(a.length, b.length) >= 3) return true;
-  }
+  // Tight whole-word, single-token containment (PTE ↔ PTE Result).
+  if (singleTokenWholeWordMatch(a, b)) return true;
   const bucketA = bucketFor(uploadedType);
-  if (bucketA && bucketA.some((alias) => norm(alias) === b)) return true;
-  // Symmetric: also try the other direction so a bucket-anchored checklist
-  // name (e.g., "English Language Proficiency Test") matches an uploaded
-  // alias (e.g., "IELTS / Language Test") even when the uploaded type isn't
-  // the bucket's canonical entry.
   const bucketB = bucketFor(checklistItemName);
-  if (bucketB && bucketB.some((alias) => norm(alias) === a)) return true;
-  // Final attempt: if both names land in the same bucket, treat them as aliases.
-  if (bucketA && bucketB && bucketA === bucketB) return true;
+  // Same specific bucket → aliases.
+  if (bucketA && bucketB && bucketA.id === bucketB.id) return true;
+  // Asymmetric: a generic CHECKLIST label is satisfied by any specific
+  // upload it claims to cover. Reverse direction is intentionally NOT true.
+  if (bucketA && bucketB && bucketB.generic_for?.includes(bucketA.id)) return true;
   return false;
 }
 
