@@ -11,6 +11,54 @@ export interface CaseSection {
   is_archived: boolean;
 }
 
+/** Shape of a single template section stored in `workflow_templates.groups`. */
+export interface TemplateSection {
+  id: string;
+  section_key: string; // matches case_sections.key when possible
+  label: string;
+  sort_order: number;
+  item_ids: string[];
+}
+
+/** Bucket a flat list of template items into TemplateSections using
+ *  `groupForType`. Used to migrate legacy templates the first time they're
+ *  edited in the new section-aware editor. */
+export function seedTemplateSectionsFromItems(
+  items: Array<{ id: string; name: string }>,
+): TemplateSection[] {
+  // Map binderGroups key -> case_sections.key fallback used for display label.
+  const KEY_MAP: Record<string, { key: string; label: string }> = {
+    identity: { key: "identity", label: "Identity & Personal" },
+    academic: { key: "academic", label: "Academics" },
+    experience: { key: "experience", label: "Experience" },
+    financial: { key: "finance", label: "Finance Documents" },
+    forms: { key: "forms", label: "Visa Forms & Statements" },
+    family: { key: "family", label: "Family" },
+    supporting: { key: "supporting", label: "Supporting Documents" },
+    other: { key: "other", label: "Other Documents" },
+  };
+  const buckets = new Map<string, TemplateSection>();
+  let order = 10;
+  for (const it of items) {
+    const g = groupForType(it.name);
+    const meta = KEY_MAP[g.key] ?? { key: g.key, label: g.label };
+    let s = buckets.get(meta.key);
+    if (!s) {
+      s = {
+        id: Math.random().toString(36).slice(2, 10),
+        section_key: meta.key,
+        label: meta.label,
+        sort_order: order,
+        item_ids: [],
+      };
+      buckets.set(meta.key, s);
+      order += 10;
+    }
+    s.item_ids.push(it.id);
+  }
+  return Array.from(buckets.values()).sort((a, b) => a.sort_order - b.sort_order);
+}
+
 /** Map a binderGroups key to one of the seeded case_sections.key values.
  *  Multiple keys are tried in order — the first that exists in the DB wins. */
 const GROUP_TO_SECTION: Record<string, string[]> = {
