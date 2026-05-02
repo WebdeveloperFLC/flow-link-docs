@@ -228,20 +228,44 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
-    const docType = String(body?.document_type ?? "").slice(0, 80);
-    const customType = String(body?.custom_type ?? "").slice(0, 80);
+    let docType = String(body?.document_type ?? "").slice(0, 80);
+    let customType = String(body?.custom_type ?? "").slice(0, 80);
     const snippet = String(body?.snippet ?? "").slice(0, 30000);
-    const fileName = String(body?.file_name ?? "").slice(0, 200);
+    let fileName = String(body?.file_name ?? "").slice(0, 200);
     const imageDataUrls: string[] = Array.isArray(body?.image_data_urls)
       ? body.image_data_urls.filter((s: unknown) => typeof s === "string" && s.startsWith("data:image")).slice(0, 6)
       : [];
-
-    if (!snippet && imageDataUrls.length === 0) {
-      return json({ fields: {}, reason: "no_input" });
-    }
+    const documentId = typeof body?.document_id === "string" ? body.document_id.slice(0, 80) : "";
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) return json({ fields: {}, reason: "no_api_key" });
+
+    // ===== Server-side PDF fallback =====
+    // If the caller provided a document_id (or has insufficient input), download the
+    // original file from storage and attach it directly to the AI request as a PDF data
+    // URL. This bypasses the browser PDF rendering / text extraction step that fails
+    // for scanned passport copies.
+    let pdfDataUrl: string | null = null;
+    if (documentId) {
+      const row = await fetchDocumentRow(documentId);
+      if (row) {
+        if (!docType) docType = String(row.document_type ?? "");
+        if (!customType) customType = String(row.custom_type ?? "");
+        if (!fileName) fileName = String(row.file_name ?? "");
+        const mime = (row.mime_type ?? "application/pdf").toLowerCase();
+        const isPdf = mime.includes("pdf") || /\.pdf$/i.test(row.file_name ?? "");
+        if (isPdf) {
+          const bytes = await downloadStoredFile(row.storage_path);
+          if (bytes && bytes.byteLength > 0 && bytes.byteLength < 18 * 1024 * 1024) {
+            pdfDataUrl = `data:application/pdf;base64,${bytesToBase64(bytes)}`;
+          }
+        }
+      }
+    }
+
+    if (!snippet && imageDataUrls.length === 0 && !pdfDataUrl) {
+      return json({ fields: {}, reason: "no_input" });
+    }
 
     const sys =
       "You are an expert extractor for immigration / study-abroad case documents. " +
@@ -281,10 +305,15 @@ Deno.serve(async (req) => {
       `Document type: ${typeLabel}\n` +
       `File name: ${fileName}\n` +
       `Page images attached: ${imageDataUrls.length}\n` +
+      `Original PDF attached: ${pdfDataUrl ? "yes" : "no"}\n` +
       `Document text (may be empty or garbled if scanned — rely on the images then):\n"""${snippet}"""`;
     const userContent: unknown[] = [{ type: "text", text: userText }];
     for (const url of imageDataUrls) {
       userContent.push({ type: "image_url", image_url: { url } });
+    }
+    if (pdfDataUrl) {
+      // Lovable AI gateway accepts PDFs as image_url data URLs (same pattern used by parse-form-fields).
+      userContent.push({ type: "image_url", image_url: { url: pdfDataUrl } });
     }
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
