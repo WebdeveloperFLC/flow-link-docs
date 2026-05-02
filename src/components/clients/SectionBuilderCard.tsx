@@ -405,6 +405,10 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
     if (!trimmed || trimmed === (d.custom_type ?? "")) return;
     const { error } = await supabase.from("client_documents").update({ custom_type: trimmed }).eq("id", d.id);
     if (error) { toast.error(error.message); return; }
+    // Rename may now match a different checklist item — re-run linking.
+    try {
+      await markChecklistItemReady(d.id, clientId, d.document_type, trimmed, trimmed);
+    } catch { /* best effort */ }
     onChanged();
   };
 
