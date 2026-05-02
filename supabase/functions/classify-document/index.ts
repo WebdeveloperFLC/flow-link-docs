@@ -29,6 +29,14 @@ Deno.serve(async (req) => {
           .filter((u: unknown) => typeof u === "string" && (u as string).startsWith("data:image/") && (u as string).length < 4_500_000)
           .slice(0, 3)
       : (legacyPageImage ? [legacyPageImage] : []);
+    // Server-side fallback for scanned/encrypted PDFs that pdf.js cannot render
+    // in the browser. When present, attach the original PDF bytes so Gemini can
+    // OCR them directly (same pattern as extract-document-data).
+    const pdfDataUrl = typeof body?.pdf_data_url === "string"
+        && body.pdf_data_url.startsWith("data:application/pdf")
+        && body.pdf_data_url.length < 14_000_000
+      ? String(body.pdf_data_url)
+      : "";
     const allowed: string[] = Array.isArray(body?.allowed_types) ? body.allowed_types.slice(0, 50) : [];
     const casePeople: string[] = Array.isArray(body?.case_people)
       ? body.case_people.filter((n: unknown) => typeof n === "string" && n.trim()).slice(0, 10)
@@ -44,17 +52,19 @@ Deno.serve(async (req) => {
     const rosterLine = casePeople.length
       ? `\nPeople expected on this case (roster): ${JSON.stringify(casePeople)}. If the document's owner is clearly NOT one of these people, still return the actual name found on the document — do NOT guess one of the listed names. Only return a roster name if the document genuinely matches that person.`
       : "";
-    const isScanned = pageImageDataUrls.length > 0 && snippet.replace(/\s+/g, "").length < 30;
-    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename} (use only as a document-type hint, NEVER for owner/candidate name)\nFilename type hint: ${filenameTypeHint ?? "none"}\nIs image upload: ${isImage}\nDocument images provided: ${pageImageDataUrls.length}\nLooks like a scanned PDF (no text layer): ${isScanned}${rosterLine}\nExtracted text from first pages (may be empty/garbled for scans):\n"""${snippet}"""\n\nReturn only JSON. If owner_name is not supported by document text or image, return owner_name:null, owner_confidence:0, owner_evidence:null, owner_source:null. If you choose \"Other\", confidence MUST be ≤ 0.4 and reason MUST explain why no allowed type matches.`;
-    const userContent = pageImageDataUrls.length
-      ? [
-          { type: "text", text: user },
-          ...pageImageDataUrls.flatMap((url, idx) => [
-            { type: "text", text: `Image of page ${idx + 1}:` },
-            { type: "image_url", image_url: { url } },
-          ]),
-        ]
-      : user;
+    const hasPdfBytes = !!pdfDataUrl;
+    const isScanned = (pageImageDataUrls.length > 0 || hasPdfBytes) && snippet.replace(/\s+/g, "").length < 30;
+    const user = `Allowed types: ${JSON.stringify(allowed)}\nFilename: ${filename} (use only as a document-type hint, NEVER for owner/candidate name)\nFilename type hint: ${filenameTypeHint ?? "none"}\nIs image upload: ${isImage}\nDocument images provided: ${pageImageDataUrls.length}\nOriginal PDF bytes attached: ${hasPdfBytes}\nLooks like a scanned PDF (no text layer): ${isScanned}${rosterLine}\nExtracted text from first pages (may be empty/garbled for scans):\n"""${snippet}"""\n\nReturn only JSON. If owner_name is not supported by document text or image, return owner_name:null, owner_confidence:0, owner_evidence:null, owner_source:null. If you choose \"Other\", confidence MUST be ≤ 0.4 and reason MUST explain why no allowed type matches.`;
+    const parts: unknown[] = [{ type: "text", text: user }];
+    if (hasPdfBytes) {
+      parts.push({ type: "text", text: "Original PDF (read directly, OCR if scanned):" });
+      parts.push({ type: "image_url", image_url: { url: pdfDataUrl } });
+    }
+    for (let i = 0; i < pageImageDataUrls.length; i++) {
+      parts.push({ type: "text", text: `Image of page ${i + 1}:` });
+      parts.push({ type: "image_url", image_url: { url: pageImageDataUrls[i] } });
+    }
+    const userContent = parts.length > 1 ? parts : user;
 
     const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
