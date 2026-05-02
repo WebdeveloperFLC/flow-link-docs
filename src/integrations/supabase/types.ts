@@ -557,6 +557,7 @@ export type Database = {
           odoo_synced_at: string | null
           phone: string | null
           status: string
+          suppressed_template_items: string[]
           template_id: string | null
           updated_at: string
         }
@@ -576,6 +577,7 @@ export type Database = {
           odoo_synced_at?: string | null
           phone?: string | null
           status?: string
+          suppressed_template_items?: string[]
           template_id?: string | null
           updated_at?: string
         }
@@ -595,6 +597,7 @@ export type Database = {
           odoo_synced_at?: string | null
           phone?: string | null
           status?: string
+          suppressed_template_items?: string[]
           template_id?: string | null
           updated_at?: string
         }
