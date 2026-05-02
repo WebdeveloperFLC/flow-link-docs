@@ -311,6 +311,20 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         }).select().single();
         if (insErr) { toast.error(insErr.message); continue; }
         n++;
+        // Align custom_type with any matching checklist item name so the
+        // checklist on the client page flips to "ready" automatically.
+        try {
+          const insertedId = (insRow as { id: string } | null)?.id;
+          if (insertedId) {
+            await markChecklistItemReady(
+              insertedId,
+              clientId,
+              docType,
+              customType,
+              null,
+            );
+          }
+        } catch { /* best effort */ }
 
         // Background: same-section field extraction + authenticity verification.
         // Both are best-effort and never block the upload UX. Extracted fields
