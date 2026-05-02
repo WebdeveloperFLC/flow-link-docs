@@ -11,6 +11,103 @@ const json = (b: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+// ===== Deterministic ICAO 9303 TD3 (passport) MRZ parsing =====
+function mrzCheckDigit(input: string): number {
+  const w = [7, 3, 1];
+  let sum = 0;
+  for (let i = 0; i < input.length; i++) {
+    const c = input[i];
+    let v = 0;
+    if (c >= "0" && c <= "9") v = c.charCodeAt(0) - 48;
+    else if (c >= "A" && c <= "Z") v = c.charCodeAt(0) - 55;
+    else if (c === "<") v = 0;
+    else return -1;
+    sum += v * w[i % 3];
+  }
+  return sum % 10;
+}
+
+function expandYY(yy: number): number {
+  // ICAO does not specify; use a 20-year window for DOB/expiry hybrid: 00-49 -> 2000s, 50-99 -> 1900s.
+  return yy <= 49 ? 2000 + yy : 1900 + yy;
+}
+
+function parseMrzDate(yymmdd: string): string | null {
+  if (!/^\d{6}$/.test(yymmdd)) return null;
+  const yy = Number(yymmdd.slice(0, 2));
+  const mm = Number(yymmdd.slice(2, 4));
+  const dd = Number(yymmdd.slice(4, 6));
+  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+  const yyyy = expandYY(yy);
+  return `${yyyy.toString().padStart(4, "0")}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+}
+
+interface MrzParsed {
+  passport_number?: string;
+  nationality?: string;
+  date_of_birth?: string;
+  gender?: string;
+  passport_expiry?: string;
+  given_names?: string;
+  surname?: string;
+  full_name?: string;
+  passport_country?: string;
+  ok: boolean;
+  reason: string;
+}
+
+function parseMrz(line1Raw?: string | null, line2Raw?: string | null): MrzParsed | null {
+  if (!line1Raw || !line2Raw) return null;
+  const l1 = line1Raw.toUpperCase().replace(/[^A-Z0-9<]/g, "").padEnd(44, "<").slice(0, 44);
+  const l2 = line2Raw.toUpperCase().replace(/[^A-Z0-9<]/g, "").padEnd(44, "<").slice(0, 44);
+  if (!l1.startsWith("P<")) return null;
+
+  const issuingCountry = l1.slice(2, 5).replace(/</g, "");
+  const namePart = l1.slice(5).replace(/<+$/g, "");
+  const [surnameRaw, givenRaw = ""] = namePart.split("<<");
+  const surname = surnameRaw.replace(/</g, " ").trim();
+  const given = givenRaw.replace(/</g, " ").trim();
+  const fullName = [given, surname].filter(Boolean).join(" ");
+
+  const passportNumber = l2.slice(0, 9).replace(/<+$/g, "");
+  const passportCheck = l2[9];
+  const nationality = l2.slice(10, 13).replace(/</g, "");
+  const dobRaw = l2.slice(13, 19);
+  const dobCheck = l2[19];
+  const sex = l2[20];
+  const expRaw = l2.slice(21, 27);
+  const expCheck = l2[27];
+
+  const c1 = mrzCheckDigit(l2.slice(0, 9));
+  const c2 = mrzCheckDigit(dobRaw);
+  const c3 = mrzCheckDigit(expRaw);
+  const okPp = String(c1) === passportCheck;
+  const okDob = String(c2) === dobCheck;
+  const okExp = String(c3) === expCheck;
+  const allOk = okPp && okDob && okExp;
+
+  const dob = parseMrzDate(dobRaw);
+  const exp = parseMrzDate(expRaw);
+
+  return {
+    passport_number: okPp && passportNumber ? passportNumber : undefined,
+    nationality: nationality || undefined,
+    passport_country: issuingCountry || undefined,
+    date_of_birth: okDob && dob ? dob : undefined,
+    passport_expiry: okExp && exp ? exp : undefined,
+    gender: sex === "M" || sex === "F" ? (sex === "M" ? "M" : "F") : undefined,
+    given_names: given || undefined,
+    surname: surname || undefined,
+    full_name: fullName || undefined,
+    ok: allOk,
+    reason: `passport=${okPp}, dob=${okDob}, expiry=${okExp}`,
+  };
+}
+
+function looksLikePassportDoc(t?: string, c?: string): boolean {
+  return /\bpassport\b/i.test(`${t ?? ""} ${c ?? ""}`);
+}
+
 // Schema of fields we want extracted. Kept in sync with src/lib/extractedFields.ts
 const FIELD_SCHEMA = {
   type: "object",
