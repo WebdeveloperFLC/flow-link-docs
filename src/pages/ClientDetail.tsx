@@ -140,6 +140,31 @@ const ClientDetail = () => {
     load();
   };
 
+  /** Manually link an uploaded doc to a checklist item by writing the item's
+   *  exact name into custom_type. The render-time matcher then flips Pending → Ready. */
+  const linkDocToChecklist = async (docId: string, checklistName: string) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ custom_type: checklistName })
+      .eq("id", docId);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.linked_to_checklist", "document", docId, { checklist_item: checklistName });
+    toast.success(`Linked to "${checklistName}"`);
+    load();
+  };
+
+  /** Unlink: clear custom_type so the doc is no longer counted under the
+   *  current checklist item. Document stays uploaded — only the link is removed. */
+  const unlinkDocFromChecklist = async (docId: string) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ custom_type: null })
+      .eq("id", docId);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.unlinked_from_checklist", "document", docId);
+    load();
+  };
+
   const onAddExtraItem = async (item: ExtraItem) => {
     if (!client) return;
     const next = [...extraItems, item];
