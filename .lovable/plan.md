@@ -1,140 +1,61 @@
 ## Problem
 
-The user uploaded `ilovepdf_merged_1.pdf` — one PDF containing **two academic documents** (a PTE score report and a PAL / Provincial Attestation Letter). What we need from the system:
+A merged PDF (any number of pages, any combination of document types) is being saved as a single document because:
 
-1. **Always split** any merged/combined PDF into its constituent documents.
-2. **Classify each segment** to a canonical type — and recognise that IELTS / TOEFL / PTE / CELPIP / Duolingo are all **English Language Proficiency Test**, while PAL / Provincial Attestation Letter is its own academic type.
-3. **Rename each split file** with a clean human title (`PTE_Result`, `IELTS_Result`, `PAL_Letter`, …).
-4. **Place each split document into the correct section** (both belong to **Academics**).
-5. **Mark the matching item on the client's document checklist as "ready"** the moment the document lands.
+1. `expandBinders` skips splitting when `pageCount < 3`, so 2-page merges (e.g. PTE + PAL) bypass the splitter entirely.
+2. When the AI splitter returns 1 segment for a binder-named PDF, the "force page-by-page" fallback only triggers on a narrow condition; otherwise the whole file goes through as one document and the page-1 letterhead wins the classification.
+3. There's no manual "split this PDF" action once the file is in the review queue, so the user has no escape hatch when auto-detection misses.
 
-Today's gaps:
+Result in your screenshot: `ilovepdf_merged (1).pdf` containing PTE Result + PAL Letter is classified as a single Provincial Attestation Letter and saved that way; the PTE half is lost.
 
-| Gap | Where |
-|---|---|
-| `English Language Proficiency Test` and `Provincial Attestation Letter` are not in `DOCUMENT_TYPES`, so PTE/PAL fall through to `IELTS / Language Test` or `Other` | `src/lib/constants.ts` |
-| Classifier has no PTE/PAL filename or content heuristics | `src/lib/classifyDocument.ts` |
-| Splitter only runs when the filename matches `binder|merged|combined|…`. A PDF the user knows is multi-doc but is named `scan.pdf` is uploaded as one document | `src/lib/binderSplit.ts` → `looksLikeBinderName` |
-| The splitter's edge function prompt doesn't list PTE/CELPIP/Duolingo/PAL cues | `supabase/functions/split-binder/index.ts` |
-| The split file name is the AI label only when `type === "Other"`. For known types the brand (PTE/IELTS/TOEFL) is lost | `SmartUploadZone.tsx` segment naming |
-| There is no checklist-status side effect after upload — the workflow item ("English Proficiency Test", "PAL", …) stays marked as missing even when the document is filed | none |
+## Fix — generic, works for any number/mix of documents
 
-## Plan
+### 1. Always split multi-page binders, regardless of page count
 
-### 1. Add the two missing types
+**`src/components/documents/SmartUploadZone.tsx`** (`expandBinders`)
+- Replace the `pageCount < 3` guard with `pageCount < 2`. Any PDF with ≥ 2 pages whose filename matches `looksLikeBinderName` OR whose page snippets show ≥ 2 document families gets sent to the splitter.
+- After the splitter returns: if the result is `< 2` segments for a likely binder, always fall through to per-page review segments (`buildPageReviewSegments`). Drop the narrower `isOneFullDocumentSegment` check.
 
-`src/lib/constants.ts` — extend `DOCUMENT_TYPES`:
+**`src/lib/binderSplit.ts`** (`shouldFallbackToPageRanges`)
+- Lower its `pageCount < 3` guard to `pageCount < 2` so the fallback also catches 2-page binders.
 
-- `"English Language Proficiency Test"`
-- `"Provincial Attestation Letter"`
+### 2. Per-segment retype using deterministic content rules
 
-Keep `"IELTS / Language Test"` as a legacy alias so old rows stay valid; new uploads get steered to the new canonical types via the alias map.
+After the AI returns segments, run `inferTypeFromPageText` on each segment's joined snippets and override the type when the AI said "Other" / low confidence. The brand detection already covers PTE / IELTS / TOEFL / CELPIP / Duolingo → "English Language Proficiency Test", and PAL → "Provincial Attestation Letter". This already exists; we just keep it on every fallback path (page-by-page, manual split, AI-ambiguous) — not only the AI-success path.
 
-### 2. Classifier: PTE, IELTS, TOEFL, CELPIP, Duolingo, PAL
+### 3. Manual "Split into pages" action on the review card
 
-`src/lib/classifyDocument.ts`:
+A guaranteed escape hatch on the upload card: visible when the queue item is a multi-page PDF in any review state (`needs_owner`, `name_mismatch`, `awaiting_review`, `queued`).
 
-- **Filename heuristics** — add:
-  - `/pte\b|pte[_\s-]?(academic|result|score)/i` → `English Language Proficiency Test` (brand: PTE)
-  - `/ielts/i` → `English Language Proficiency Test` (brand: IELTS)
-  - `/toefl/i` → English Language Proficiency Test (brand: TOEFL)
-  - `/celpip/i` → English Language Proficiency Test (brand: CELPIP)
-  - `/duolingo/i` → English Language Proficiency Test (brand: Duolingo)
-  - `/\bpal\b|provincial[_\s-]?attestation|attestation[_\s-]?letter/i` → `Provincial Attestation Letter`
-- **Content heuristics** (CONTENT_HEURISTICS):
-  - PTE: `/pearson\s+test\s+of\s+english|pte\s+academic|score\s+report|communicative\s+skills|enabling\s+skills/i`
-  - IELTS: `/international\s+english\s+language\s+testing\s+system|test\s+report\s+form|overall\s+band/i`
-  - TOEFL: `/test\s+of\s+english\s+as\s+a\s+foreign|toefl\s+ibt|ets/i`
-  - CELPIP: `/canadian\s+english\s+language\s+proficiency|celpip-?general/i`
-  - Duolingo: `/duolingo\s+english\s+test|det\s+score/i`
-  - PAL: `/provincial\s+attestation\s+letter|allocation\s+of\s+pal|pal\s+(number|reference)|attestation\s+letter\s+issued/i`
-- **Alias map** in `pickAllowedType` — `English Language Proficiency Test` absorbs `IELTS / Language Test`, `IELTS`, `TOEFL`, `PTE`, `CELPIP`, `Duolingo`. `Provincial Attestation Letter` absorbs `PAL`, `Attestation Letter`.
-- **`normalizeAiType`** — same aliases, so freeform AI strings snap to the canonical types.
-- **Brand detection helper** — `detectLanguageTestBrand(snippet, filename)` returns `"PTE" | "IELTS" | "TOEFL" | "CELPIP" | "Duolingo" | null`. Used by the renamer.
+Click → for each page of the source PDF:
+- Slice with `extractPagesAsPdfFile` into a one-page segment.
+- Run `inferTypeFromPageText` on that page's text to pre-fill the type / suggested label (PTE Result, PAL Letter, Passport, Transcript, …).
+- Push as an `awaiting_review` segment under a new `binderId`.
 
-### 3. Always split merged PDFs (not just by filename)
+The existing binder review group then takes over: each segment shows a type dropdown (rename), a trash icon (delete), Merge with next (combine consecutive pages that belong to the same logical doc), and "Upload all" saves them as separate `client_documents` rows, each with its own type, owner, file name, section, and checklist sync.
 
-`src/lib/binderSplit.ts` — replace the filename-only `looksLikeBinderName` gate with a **two-signal heuristic**:
+### 4. Stronger splitter prompt
 
-- Keep the existing filename match (`merged|combined|binder|…`).
-- Also trigger when **per-page snippets show ≥2 distinct document fingerprints** (e.g., one page with `Pearson Test of English` and another with `Provincial Attestation Letter`, or any 2 of the rule families above).
-- Implementation: a cheap `detectDistinctDocFamilies(pageSnippets)` that scans each page for hits in the heuristic regex set; if ≥2 different families show up, treat as a binder.
+**`supabase/functions/split-binder/index.ts`**
+- Add explicit canonical-type examples to the system prompt: `English Language Proficiency Test` (PTE / IELTS / TOEFL / CELPIP / Duolingo) and `Provincial Attestation Letter`.
+- Add: "If consecutive pages have different letterheads, brand marks, or document formats, return them as separate segments — even a 2-page PDF can be two distinct documents."
+- Same examples added to `supabase/functions/classify-document/index.ts` so single-page scans get the right type too.
 
-This means `ilovepdf_merged_1.pdf` (matches `merged`) AND a hypothetical `scan.pdf` containing PTE+PAL both get split.
+### 5. Re-classify each segment after split
 
-### 4. Splitter prompt: more cues, finer boundaries
+`SmartUploadZone` already runs the regular `classifyDocument` flow on segments at upload time (owner verification, etc.). We keep that, but we seed the predicted type from `inferTypeFromPageText` so the user sees the right label immediately in the review group rather than "Other".
 
-`supabase/functions/split-binder/index.ts` — extend the system prompt:
+## Files
 
-- List PTE / IELTS / TOEFL / CELPIP / Duolingo / PAL as named cues with the same regex hints.
-- Note that PTE results are 1–2 pages and PAL letters are 1 page, so the splitter should not glue them together.
-- Ask the model to return `suggested_label` with the brand (`"PTE Result"`, `"IELTS Result"`, …) whenever `type === "English Language Proficiency Test"` and `"PAL Letter"` whenever `type === "Provincial Attestation Letter"`.
+- `src/components/documents/SmartUploadZone.tsx` — gate lowered to ≥ 2 pages; new "Split into pages" button on the queue card; per-segment seed type via `inferTypeFromPageText`
+- `src/lib/binderSplit.ts` — `shouldFallbackToPageRanges` allows 2-page binders; export a small `splitFileIntoPageSegments(file, allowedTypes)` helper for the manual action
+- `supabase/functions/split-binder/index.ts` — sharper prompt with canonical examples and the "different letterheads → separate segments" rule
+- `supabase/functions/classify-document/index.ts` — same canonical examples for single-page scans
 
-### 5. Clean filenames per segment
+## Result
 
-In `SmartUploadZone.tsx` and `SectionBuilderCard.tsx`:
-
-- After classification, compute `displayTitle`:
-  - `English Language Proficiency Test` + brand → `"PTE Result"` / `"IELTS Result"` / etc.
-  - `Provincial Attestation Letter` → `"PAL Letter"`.
-  - Otherwise the type itself.
-- Persist `displayTitle` to `client_documents.custom_type` (the binder/section UI already prefers `custom_type` for the visible card title — `CustomBindersPanel.tsx` line 420, `SectionBuilderCard.tsx` line 782).
-- Use `displayTitle` (sanitised) as the type segment in `buildDocumentName` / `buildPersonDocumentName`, so the file lands as `2026-05-02_PTE_Result_<Person>.pdf` and `2026-05-02_PAL_Letter_<Person>.pdf`.
-- For binder splits, also feed `displayTitle` into the segment filename instead of the raw `type`.
-
-### 6. Section routing — Academics
-
-`src/lib/binderGroups.ts` — add the two new type names verbatim to `BINDER_GROUPS.academic.types`:
-
-- `English Language Proficiency Test`
-- `Provincial Attestation Letter`
-
-Then `inferSectionId` (in `src/lib/sections.ts`) routes them to the Academics section using the existing `GROUP_TO_SECTION.academic` mapping. PTE and PAL both land in **Academics** automatically.
-
-### 7. Mark the checklist item ready after upload
-
-Today, when a document is uploaded the workflow checklist (`workflow_templates.items` rendered in `ClientFormsCard` / sections) is not updated. Add a small post-upload reconciliation:
-
-- New helper `src/lib/checklist.ts` → `markChecklistItemReady(clientId, documentType, customType)`:
-  1. Read the client's effective workflow (template_id → `workflow_templates.items` / `groups`).
-  2. Match the uploaded document against checklist item names using the same alias logic from `normalizeAiType`. The match accepts:
-     - Exact `document_type` match.
-     - `custom_type` match.
-     - Alias match (`PTE Result` ↔ `English Language Proficiency Test` ↔ `Language Test` ↔ etc.).
-  3. Persist the "ready" state. Two options depending on how the checklist is currently stored — pick whichever the existing UI already reads:
-     - If the client carries an `extra_items` JSON of `{name, status}` rows on `clients.extra_items` / `clients.template_id`-derived state, update the matching entry's `status` to `"ready"`.
-     - If status is computed at render time from `client_documents` (i.e. an item is "ready" iff a doc of that type exists), simply ensure the new alias is included in the lookup so the existing UI flips to ready on its own. (Inspect `ClientFormsCard.tsx` to confirm; whichever is used, only that path is updated.)
-- Call `markChecklistItemReady` from both upload entry points after a successful insert into `client_documents`:
-  - `SmartUploadZone.tsx` `uploadOne` (after the row is inserted).
-  - `SectionBuilderCard.tsx` upload path.
-  - `UploadZone.tsx` (the legacy single-type upload).
-
-The same helper handles **English Language Proficiency Test** mapping to a checklist item named "IELTS", "TOEFL", "PTE", "Language Test", "English Test", "English Proficiency Test", etc., so any wording on the checklist gets ticked off.
-
-### 8. Toast feedback so the user sees what happened
-
-After a binder upload finishes, surface a single grouped toast:
-
-> Split "ilovepdf_merged_1.pdf" into 2 documents · PTE Result and PAL Letter saved to Academics · Checklist updated.
-
-This wires up cleanly to the existing `toast.success` calls in `SmartUploadZone` and gives the user immediate confirmation that the split + classification + section + checklist all completed.
-
-## Files to change
-
-- `src/lib/constants.ts` — add `English Language Proficiency Test`, `Provincial Attestation Letter`.
-- `src/lib/classifyDocument.ts` — filename + content heuristics, brand detection helper, alias map, `normalizeAiType` updates.
-- `src/lib/binderSplit.ts` — content-based binder detection on top of `looksLikeBinderName`.
-- `src/lib/binderGroups.ts` — add the two new type names to the academic group; keep keyword fallbacks.
-- `src/lib/checklist.ts` (new) — `markChecklistItemReady` with alias-aware matching.
-- `src/components/documents/SmartUploadZone.tsx` — display-title naming for both single uploads and binder segments; call `markChecklistItemReady` after each successful insert; richer post-binder toast.
-- `src/components/clients/SectionBuilderCard.tsx` — same display-title naming + checklist update on the in-section upload path.
-- `src/components/documents/UploadZone.tsx` — checklist update on the legacy upload path.
-- `supabase/functions/classify-document/index.ts` — prompt: PTE/CELPIP/Duolingo/PAL cues, brand label expectation.
-- `supabase/functions/split-binder/index.ts` — prompt: same cues + boundary hints.
-
-## Out of scope
-
-- Backfilling old `IELTS / Language Test` rows to the new canonical type. The alias map handles them at read time, no migration is required.
-- Adding per-test sub-types (separate `IELTS Result`, `TOEFL Result` types). Brand stays in `custom_type`.
-- Re-classifying or re-splitting documents already in the database.
-- Editing the workflow templates themselves; we only update per-client checklist state.
+For any merged PDF (PTE + PAL, passport + transcript + IELTS, marriage cert + birth cert + photos, etc.):
+- It enters the **Binder split** review group, not the single-doc queue.
+- One card per detected document, each with its own pre-filled type, owner, suggested filename.
+- You can rename, delete, merge consecutive pages, and click **Upload all**. Each piece saves as a separate `client_documents` row in the correct section, and the matching checklist rows flip to ready.
+- If auto-split misses, the **Split into pages** button on the original queue card explodes the PDF page-by-page so you keep full manual control.
