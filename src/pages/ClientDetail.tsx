@@ -154,7 +154,9 @@ const ClientDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, template?.id, client?.id]);
 
-  const docByType = (typeName: string): Doc | undefined => {
+  /** Find any doc attached to this checklist item, regardless of reviewer status.
+   *  Used to render rejected / needs_reissue badges + filename. */
+  const attachedDocByType = (typeName: string): Doc | undefined => {
     const matches = docs.filter((d) => {
       // Primary type label on the doc — what the user sees.
       const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
@@ -167,6 +169,17 @@ const ClientDetail = () => {
       return false;
     });
     return matches.sort((a, b) => b.version - a.version)[0];
+  };
+
+  /** Find a doc that satisfies a checklist item — only "ready" or
+   *  reviewer-"verified" docs count. Rejected / needs_reissue docs do NOT
+   *  satisfy the requirement (the row stays Pending with a Rejected badge). */
+  const docByType = (typeName: string): Doc | undefined => {
+    const d = attachedDocByType(typeName);
+    if (!d) return undefined;
+    const s = d.status ?? "ready";
+    if (s === "rejected" || s === "needs_reissue") return undefined;
+    return d;
   };
 
   const suppressedIds = new Set<string>(client?.suppressed_template_items ?? []);
