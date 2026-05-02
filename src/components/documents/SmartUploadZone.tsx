@@ -1193,11 +1193,21 @@ async function expandBinders(
     try { pageCount = await getPdfPageCount(file); } catch { pageCount = 0; }
     // Only attempt binder splitting when the filename indicates a binder/package.
     // Normal multi-page documents (transcripts, bank statements, passports) must stay intact.
-    if (pageCount < 3 || !looksLikeBinderName(file.name)) {
+    if (pageCount < 2) {
       out.push({ file });
       continue;
     }
+    // Pre-read snippets so we can also detect content-based binders (a PDF that
+    // mixes e.g. PTE + PAL but isn't named "merged"/"binder").
     let pageSnippets: string[] = [];
+    try {
+      pageSnippets = await extractPerPageText(file, Math.min(pageCount, 30), 1000);
+    } catch { /* ignore */ }
+    const isBinder = looksLikeBinderName(file.name) || pageSnippetsLookLikeMixedBinder(pageSnippets);
+    if (pageCount < 3 || !isBinder) {
+      out.push({ file });
+      continue;
+    }
     try {
       // Cap to 30 pages of input (large binders → still useful, costs bounded).
       const maxPages = Math.min(pageCount, 30);
