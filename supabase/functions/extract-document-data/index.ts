@@ -113,6 +113,24 @@ Deno.serve(async (req) => {
       "Dates MUST be ISO YYYY-MM-DD. Numbers must be plain numbers (no currency symbols, commas removed). " +
       "Always call the save_fields tool exactly once with the full result.";
 
+    const passportRules =
+      "\n\nPASSPORT-SPECIFIC RULES (apply when document type is passport, or when you detect MRZ lines beginning with 'P<'):\n" +
+      "- The TWO MRZ lines at the bottom are the AUTHORITATIVE source. Parse them strictly:\n" +
+      "  * Line 1: 'P<{ISSUING_COUNTRY}{SURNAME}<<{GIVEN_NAMES}...'\n" +
+      "  * Line 2: '{PASSPORT_NUMBER:9}{check}{NATIONALITY:3}{DOB:YYMMDD}{check}{SEX}{EXPIRY:YYMMDD}{check}...'\n" +
+      "  * Two-digit years: years 00-49 → 2000-2049; years 50-99 → 1950-1999. So '02' = 2002, '32' = 2032.\n" +
+      "  * Use MRZ values for passport_number, nationality, date_of_birth, gender, passport_expiry whenever MRZ is legible. Cross-check with the visual fields; if they conflict, prefer MRZ.\n" +
+      "- 'File No.' / 'फाइल न.' is NOT the passport number. It is usually a longer alphanumeric like 'AH3076602281022'. NEVER place it in passport_number.\n" +
+      "- 'Old Passport No.' / 'पुराने पासपोर्ट का न.' / 'Previous Passport' refers to a PREVIOUS booklet. NEVER use its number, issue date, place, or expiry for the current passport_* fields.\n" +
+      "- place_of_birth must be taken ONLY from the labelled 'Place of Birth' / 'जन्म स्थान' field. NEVER copy from the address block.\n" +
+      "- spouse_name: ONLY populate if there is an explicit non-empty value next to a label like 'Name of Spouse' / 'पति या पत्नी का नाम' / 'Wife' / 'Husband'. " +
+      "  NEVER copy the Mother's name ('माता का नाम' / 'Name of Mother') or Father's name ('पिता' / 'Name of Father / Legal Guardian') into spouse_name. If the spouse field is blank, return spouse_name: null.\n" +
+      "- marital_status: do NOT infer from the presence of mother/father fields. Set null unless an explicit marital status is stated, OR a clearly named spouse exists in the labelled spouse field.\n" +
+      "- Dates: if any part of a date is unreadable, return null. NEVER pad missing day/month with '01' (no YYYY-01-01 fallbacks).\n" +
+      "- For NON-passport documents, return null for passport_number, passport_country, passport_issue_date, and passport_expiry — those belong to the passport only.";
+
+    const finalSys = sys + passportRules;
+
     const typeLabel = customType || docType || "unknown";
     const userText =
       `Document type: ${typeLabel}\n` +
@@ -130,7 +148,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-pro",
         messages: [
-          { role: "system", content: sys },
+          { role: "system", content: finalSys },
           { role: "user", content: userContent },
         ],
         tools: [
