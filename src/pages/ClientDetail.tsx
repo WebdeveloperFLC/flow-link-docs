@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
-import type { Template, TemplateItem } from "@/pages/Templates";
+import type { Template, TemplateItem, TemplateGroup } from "@/pages/Templates";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
