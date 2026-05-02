@@ -345,6 +345,17 @@ export const SmartUploadZone = ({
         person_name: ownerPerson?.full_name ?? (isShared ? "Shared" : null),
         person_role: ownerPerson?.role ?? (isShared ? "shared" : null),
       });
+      // Align custom_type to a matching checklist item name so the
+      // client-detail render-time checklist flips to "ready".
+      try {
+        await markChecklistItemReady(
+          ins.id,
+          targetClient.id,
+          type,
+          type === "Other" ? customType?.trim() ?? null : null,
+          item.customType ?? null,
+        );
+      } catch { /* best effort */ }
       patch(idx, { status: "done" });
 
       // Background field extraction (per-person where possible)
