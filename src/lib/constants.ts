@@ -26,6 +26,8 @@ export const DOCUMENT_TYPES = [
   "Tuition Fee Receipt",
   "Medical Report",
   "IELTS / Language Test",
+  "English Language Proficiency Test",
+  "Provincial Attestation Letter",
   "Photograph",
   "Marriage Certificate",
   "Divorce Certificate",
