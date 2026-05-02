@@ -1,61 +1,84 @@
-## Problem
+## What's broken
 
-A merged PDF (any number of pages, any combination of document types) is being saved as a single document because:
+Two related issues, both visible on the client you just uploaded into:
 
-1. `expandBinders` skips splitting when `pageCount < 3`, so 2-page merges (e.g. PTE + PAL) bypass the splitter entirely.
-2. When the AI splitter returns 1 segment for a binder-named PDF, the "force page-by-page" fallback only triggers on a narrow condition; otherwise the whole file goes through as one document and the page-1 letterhead wins the classification.
-3. There's no manual "split this PDF" action once the file is in the review queue, so the user has no escape hatch when auto-detection misses.
+1. **Renames don't flip the checklist.** The merged PDF you split contained a "10th Marksheet" page. You renamed it to "Passport Copy", uploaded it under Academics, and the **Academic Transcripts** checklist row stayed *Pending*. The render-time matcher (`docByType` in `src/pages/ClientDetail.tsx`) requires the document's `document_type` (or `custom_type` when type is "Other") to be **byte-equal** to the checklist item's name. "Passport Copy" / "10th Marksheet" / "PTE Result" never match "Passport" / "Academic Transcripts" / "English Language Proficiency Test", so the row never goes Ready.
 
-Result in your screenshot: `ilovepdf_merged (1).pdf` containing PTE Result + PAL Letter is classified as a single Provincial Attestation Letter and saved that way; the PTE half is lost.
+2. **Even when names should match, the writeback doesn't help.** `markChecklistItemReady` writes the matched checklist name into `custom_type`, but `docByType` ignores `custom_type` whenever `document_type !== "Other"`. So the alias logic in `src/lib/checklist.ts` is effectively dead for canonical types like "English Language Proficiency Test". (The doc you just uploaded is in the DB with `document_type = "English Language Proficiency Test"` and the checklist has the same name verbatim — it should already match; but if any future rename / type-edit lands here, the writeback is silently useless.)
 
-## Fix — generic, works for any number/mix of documents
+3. **A separate small bug:** the dropdown on a *done* row (post-upload retype) calls `overrideType` → `uploadOne`, but `uploadOne` early-returns unless status is `needs_owner | name_mismatch | awaiting_review`. So the dropdown silently does nothing after the first successful upload.
 
-### 1. Always split multi-page binders, regardless of page count
+## Fix
 
-**`src/components/documents/SmartUploadZone.tsx`** (`expandBinders`)
-- Replace the `pageCount < 3` guard with `pageCount < 2`. Any PDF with ≥ 2 pages whose filename matches `looksLikeBinderName` OR whose page snippets show ≥ 2 document families gets sent to the splitter.
-- After the splitter returns: if the result is `< 2` segments for a likely binder, always fall through to per-page review segments (`buildPageReviewSegments`). Drop the narrower `isOneFullDocumentSegment` check.
+### 1. Make the render-time matcher alias-aware
 
-**`src/lib/binderSplit.ts`** (`shouldFallbackToPageRanges`)
-- Lower its `pageCount < 3` guard to `pageCount < 2` so the fallback also catches 2-page binders.
+`src/pages/ClientDetail.tsx` — replace the strict-equal lookup with one that uses the alias buckets already defined in `src/lib/checklist.ts`.
 
-### 2. Per-segment retype using deterministic content rules
+```ts
+import { isChecklistAlias } from "@/lib/checklist";
 
-After the AI returns segments, run `inferTypeFromPageText` on each segment's joined snippets and override the type when the AI said "Other" / low confidence. The brand detection already covers PTE / IELTS / TOEFL / CELPIP / Duolingo → "English Language Proficiency Test", and PAL → "Provincial Attestation Letter". This already exists; we just keep it on every fallback path (page-by-page, manual split, AI-ambiguous) — not only the AI-success path.
+const docByType = (typeName: string): Doc | undefined => {
+  const matches = docs.filter((d) => {
+    const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+    const t2 = d.custom_type ?? "";  // also try custom_type as a "linked checklist name"
+    return (
+      t1 === typeName ||
+      t2 === typeName ||
+      isChecklistAlias(t1, typeName) ||
+      (t2 && isChecklistAlias(t2, typeName))
+    );
+  });
+  return matches.sort((a, b) => b.version - a.version)[0];
+};
+```
 
-### 3. Manual "Split into pages" action on the review card
+That alone fixes:
+- 10th/12th Marksheet → matches "Academic Transcripts" via the existing transcripts bucket.
+- PTE/IELTS/TOEFL/Duolingo Result → matches "English Language Proficiency Test".
+- PAL Letter / Allocation of PAL → matches "Provincial Attestation Letter".
+- Resume / CV → "Updated Resume". SOP / personal statement → "Statement of Purpose". Bank statement / ITR → "Financial Documents". Etc.
 
-A guaranteed escape hatch on the upload card: visible when the queue item is a multi-page PDF in any review state (`needs_owner`, `name_mismatch`, `awaiting_review`, `queued`).
+It also makes `markChecklistItemReady`'s writeback (already running on every upload) usable for canonical types, because it now tries `custom_type` regardless of the value of `document_type`.
 
-Click → for each page of the source PDF:
-- Slice with `extractPagesAsPdfFile` into a one-page segment.
-- Run `inferTypeFromPageText` on that page's text to pre-fill the type / suggested label (PTE Result, PAL Letter, Passport, Transcript, …).
-- Push as an `awaiting_review` segment under a new `binderId`.
+### 2. Add an explicit "Link to checklist item" action on each uploaded doc card
 
-The existing binder review group then takes over: each segment shows a type dropdown (rename), a trash icon (delete), Merge with next (combine consecutive pages that belong to the same logical doc), and "Upload all" saves them as separate `client_documents` rows, each with its own type, owner, file name, section, and checklist sync.
+The auto-matcher won't always be right — your "Passport Copy" example deliberately has a wrong name. Provide a small dropdown on the section/checklist UI for any uploaded doc that lets you:
 
-### 4. Stronger splitter prompt
+- Map the doc to a specific checklist item (writes that item's name into `custom_type`, leaves `document_type` alone). The render-time matcher then picks it up immediately.
+- Or "Unlink" (clears `custom_type` if it was a checklist alias).
 
-**`supabase/functions/split-binder/index.ts`**
-- Add explicit canonical-type examples to the system prompt: `English Language Proficiency Test` (PTE / IELTS / TOEFL / CELPIP / Duolingo) and `Provincial Attestation Letter`.
-- Add: "If consecutive pages have different letterheads, brand marks, or document formats, return them as separate segments — even a 2-page PDF can be two distinct documents."
-- Same examples added to `supabase/functions/classify-document/index.ts` so single-page scans get the right type too.
+UI placement: on the existing checklist row in `ClientDetail.tsx` next to the Pending badge ("Link existing doc…" popover) and on the section card row (small chain icon with the checklist names that match the bucket). Both call the same Supabase `update({ custom_type })` and then `load()`.
 
-### 5. Re-classify each segment after split
+This is the manual escape hatch for any case the alias map misses — e.g. "Passport Copy" should be linkable to "Passport" with one click.
 
-`SmartUploadZone` already runs the regular `classifyDocument` flow on segments at upload time (owner verification, etc.). We keep that, but we seed the predicted type from `inferTypeFromPageText` so the user sees the right label immediately in the review group rather than "Other".
+### 3. Fix the post-upload retype dropdown
+
+`src/components/documents/SmartUploadZone.tsx` — `overrideType` currently calls `uploadOne` with status set to `queued`, but `uploadOne` blocks `queued`. Change `overrideType` to update the existing `client_documents` row in place instead of re-uploading: update `document_type` (+ clear/set `custom_type`), then re-run `markChecklistItemReady`, then `onUploaded()`. No new file is needed because the storage object hasn't changed.
+
+### 4. Improve the auto-rename pre-fill
+
+`splitFileIntoPageSegments` already pre-fills the type via `inferTypeFromPageText`. Tighten it so 10th/12th marksheet pages land on `"Academic Transcripts"` (via the transcripts bucket) instead of `"Other"`, and so PAL pages get `"Provincial Attestation Letter"` directly. This makes the "Split into pages" flow do the right thing without manual renames in the common case.
+
+`src/lib/binderSplit.ts` — extend `inferTypeFromPageText`'s rule list:
+
+- "10th" / "12th" / "Secondary School Certificate" / "HSC" / "SSC" / "Marksheet" → first allowed type that is `"Academic Transcripts"` or `"Marksheet"`.
+- "Provincial Attestation Letter" / "PAL" → `"Provincial Attestation Letter"`.
+- "Pearson Test of English" / "PTE Academic" / "IELTS" / "TOEFL" / "Duolingo English Test" → `"English Language Proficiency Test"`.
+
+### 5. Surface the matched checklist item on the section card
+
+Small UX touch: when a doc is auto-linked to a checklist row (via alias or manual link), show a tiny "→ English Language Proficiency Test" badge on the doc tile in the section so you can see what it satisfies.
 
 ## Files
 
-- `src/components/documents/SmartUploadZone.tsx` — gate lowered to ≥ 2 pages; new "Split into pages" button on the queue card; per-segment seed type via `inferTypeFromPageText`
-- `src/lib/binderSplit.ts` — `shouldFallbackToPageRanges` allows 2-page binders; export a small `splitFileIntoPageSegments(file, allowedTypes)` helper for the manual action
-- `supabase/functions/split-binder/index.ts` — sharper prompt with canonical examples and the "different letterheads → separate segments" rule
-- `supabase/functions/classify-document/index.ts` — same canonical examples for single-page scans
+- `src/pages/ClientDetail.tsx` — alias-aware `docByType`; "Link to checklist" action on rows; small badge on section doc tiles.
+- `src/lib/checklist.ts` — already exports `isChecklistAlias`; expand alias buckets to cover "Passport Copy" → "Passport", "10th Marksheet" → "Academic Transcripts", and other common renames seen in the wild.
+- `src/components/documents/SmartUploadZone.tsx` — fix `overrideType` to update in place via Supabase + re-run `markChecklistItemReady` instead of re-running the upload pipeline.
+- `src/lib/binderSplit.ts` — sharper `inferTypeFromPageText` for marksheet / PAL / language-test pages.
 
 ## Result
 
-For any merged PDF (PTE + PAL, passport + transcript + IELTS, marriage cert + birth cert + photos, etc.):
-- It enters the **Binder split** review group, not the single-doc queue.
-- One card per detected document, each with its own pre-filled type, owner, suggested filename.
-- You can rename, delete, merge consecutive pages, and click **Upload all**. Each piece saves as a separate `client_documents` row in the correct section, and the matching checklist rows flip to ready.
-- If auto-split misses, the **Split into pages** button on the original queue card explodes the PDF page-by-page so you keep full manual control.
+- The merged-PDF split now pre-fills the right canonical type on each page; you click Upload all and the matching checklist rows go Ready immediately.
+- If auto-detection still misses, the post-upload "Link to checklist" action is one click to flip Pending → Ready without re-uploading.
+- The retype dropdown after upload now actually persists the change and re-evaluates the checklist.
+- The English Language Proficiency Test doc you just uploaded should already show Ready after a refresh; with the alias-aware matcher it will also continue to show Ready even if a future rename happens.
