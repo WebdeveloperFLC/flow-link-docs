@@ -22,7 +22,7 @@ const HEURISTICS: { type: string; rx: RegExp; conf: number }[] = [
   { type: "Passport", rx: /passport|^pp[_\s-]?\d|_pp_/i, conf: 0.95 },
   { type: "Birth Certificate", rx: /birth[_\s-]?cert|\bbc\b|nativity/i, conf: 0.92 },
   { type: "IELTS / Language Test", rx: /ielts|toefl|pte|duolingo|trf|language[_\s-]?test/i, conf: 0.95 },
-  { type: "Academic Transcripts", rx: /transcript|marksheet|mark[_\s-]?sheet|gradesheet|degree|diploma|consolidated/i, conf: 0.9 },
+  { type: "Academic Transcripts", rx: /transcript|marksheet|mark[_\s-]?sheet|gradesheet|degree|diploma|consolidated|\b(10th|12th|hsc|ssc)\b|grade[_\s-]?1[02]|class[_\s-]?1[02]|higher[_\s-]?secondary|gseb|cbse|icse/i, conf: 0.9 },
   { type: "Offer Letter", rx: /offer|loa|letter[_\s-]?of[_\s-]?accept|admission/i, conf: 0.92 },
   { type: "GIC Certificate", rx: /\bgic\b|guaranteed[_\s-]?investment/i, conf: 0.95 },
   { type: "Tuition Fee Receipt", rx: /tuition|fee[_\s-]?receipt|fees[_\s-]?paid/i, conf: 0.92 },
