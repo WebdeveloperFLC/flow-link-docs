@@ -1211,11 +1211,8 @@ async function expandBinders(
     try {
       // Cap to 30 pages of input (large binders → still useful, costs bounded).
       const maxPages = Math.min(pageCount, 30);
-      const [snippets, pageImages] = await Promise.all([
-        extractPerPageText(file, maxPages, 1000).catch(() => [] as string[]),
-        getBinderPageImages(file, maxPages).catch(() => [] as string[]),
-      ]);
-      pageSnippets = snippets;
+      const pageImages = await getBinderPageImages(file, maxPages).catch(() => [] as string[]);
+      // Reuse the snippets we already extracted above for binder detection.
       const { data, error } = await supabase.functions.invoke("split-binder", {
         body: {
           filename: file.name,
