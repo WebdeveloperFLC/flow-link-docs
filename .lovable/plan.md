@@ -1,109 +1,59 @@
-I confirmed the issue is still present in the current database for this client: the profile is still storing passport-sourced but wrong values such as DOB `1982-01-29`, passport number `Z6678112`, issue date `2015-05-28`, expiry `2026-05-01`, and place of birth `BHATPUR`. The previous fix made passport fields override other document types, but it still trusted the AI’s extracted passport values. Because the AI is still misreading the passport itself, the merge layer is faithfully saving incorrect passport-tagged data.
+## Goal
 
-## Plan
+Reset all client-related data so you can upload fresh documents and confirm whether the passport extraction fix is fully working. No code/schema changes — data only.
 
-### 1. Replace prompt-only passport extraction with deterministic passport validation
-Update `supabase/functions/extract-document-data/index.ts` so passport handling does not rely on the AI’s final interpreted values alone.
+## Scope: what gets wiped
 
-For passport documents, the function will:
-- Ask the AI to return raw, evidence-level values separately, including:
-  - MRZ line 1
-  - MRZ line 2
-  - current passport number label/value
-  - current date of issue label/value
-  - current place of birth label/value
-  - visible name fields
-  - old/previous passport block values separately, if present
-  - file number separately, if present
-- Add deterministic server-side parsing for TD3 passport MRZ lines:
-  - validate passport number check digit
-  - validate DOB check digit
-  - validate expiry check digit
-  - parse nationality and sex
-  - expand years correctly (`02 -> 2002`, `32 -> 2032`)
-- Only accept MRZ-derived DOB, expiry, passport number, nationality, gender, and name when MRZ check digits pass.
-- If MRZ cannot be validated, mark the relevant fields as `needs_review` instead of saving guessed values.
+All rows tied to clients and their documents/binders/forms/verifications/activity, plus the underlying files in storage.
 
-Important correction: MRZ does not contain passport issue date. The issue date will be accepted only from the labelled current passport field such as `Date of Issue`, never from `Old Passport No.`, `Previous Passport`, `File No.`, or validity calculations.
+Tables to clear (in dependency-safe order):
 
-### 2. Add hard validators before profile merge
-Update `src/lib/extractedFields.ts` with passport-specific guards so bad passport fields cannot be saved even if the AI returns them.
+1. `document_fingerprints`
+2. `document_verifications`
+3. `client_documents`
+4. `binders`
+5. `filled_forms`
+6. `questionnaire_instances`
+7. `client_education`
+8. `client_profile`
+9. `client_section_settings`
+10. `case_people`
+11. `share_links` where `target_type` in (`document`, `binder`, `client`)
+12. `activity_logs` where `entity_type` in (`client`, `document`, `binder`, `form`, `questionnaire`)
+13. `clients` (last)
 
-Rules to enforce:
-- Passport number must match a current passport format and must not equal:
-  - File No.
-  - Old Passport No.
-  - Previous Passport No.
-  - any long application/file reference
-- DOB, issue date, and expiry must be full valid dates.
-- Reject obvious inferred dates and impossible passport combinations.
-- Reject issue/expiry dates that are detected as old/previous passport fields.
-- Reject place of birth if it appears to come from the address block rather than the labelled `Place of Birth` field.
-- Passport documents must never write `spouse_name` or `marital_status`.
-- Parent fields (`Mother`, `Father`, `Legal Guardian`) must never be mapped to spouse fields.
+Storage buckets to empty:
+- `client-documents` — all objects (uploaded PDFs/images, generated binders, etc.)
 
-### 3. Enforce passport-first authority across the whole identity section
-Extend `PASSPORT_AUTHORITATIVE_FIELDS` and merge behavior so the Identity section treats passport data as authoritative for:
-- Full name
-- Date of birth
-- Passport number
-- Issue date
-- Expiry date
-- Nationality / country
-- Gender
-- Place of birth
+What is preserved (intentionally untouched):
+- `auth.users`, `profiles`, `user_roles` — your login + team
+- `firm_profile`, `branding` bucket — firm settings/logo
+- `case_sections`, `master_lists`, `master_items` — config
+- `letter_templates`, `letter-templates` bucket
+- `visa_forms`, `visa-forms` bucket, `questionnaire_schemas`, `questionnaire_email_templates`, `workflow_templates`
+- `integration_settings`, `api_keys`
 
-Implementation detail:
-- `client_profile` does not currently contain `full_name`; full name lives on the `clients` row and applicant record. I will update passport-derived full name handling so validated passport name can correct the client/applicant name only when it is confidently extracted from a validated MRZ/visible passport name, otherwise it will be marked for review.
+## Execution steps (once approved)
 
-### 4. Add confidence/source state display for passport-derived fields
-Currently the UI only shows the source document chip. I will add per-field confidence/source state using the existing `source_documents` JSON structure, without needing a broad schema redesign.
+1. Run a single SQL transaction (via the insert/data tool) that deletes from the tables above in the listed order.
+2. Empty the `client-documents` storage bucket (list + delete all objects).
+3. Verify counts: all listed tables return 0 rows for client-scoped data; `client-documents` bucket is empty.
+4. Report back with a short confirmation summary so you can start fresh uploads.
 
-Each extracted field source entry will support:
-- source document name
-- document type
-- source authority, e.g. `passport_mrz`, `passport_label`, `ai_extracted`, `manual`
-- confidence state:
-  - `Extracted`
-  - `Needs Review`
-  - `Confirmed`
+## After the wipe — how to retest
 
-Update `ClientProfileCard.tsx` so every passport-derived field displays:
-- source document
-- confidence state
-- authority/source type where useful
+1. Create a new client.
+2. Upload the passport into the Identity section first.
+3. Click Re-extract.
+4. Verify on the profile card:
+   - DOB, passport number, expiry come from MRZ (validated)
+   - "File No." is not used as passport number
+   - Mother/Father names are not mapped to Spouse
+   - Place of birth is not pulled from address
+5. Upload the rest of the documents and confirm passport-derived fields are not overwritten.
 
-Manual edits/saves will mark edited fields as `Confirmed`.
+## Risks / notes
 
-### 5. Prioritize the Identity-section passport during re-extraction
-Update `ClientDetail.tsx` re-extraction flow so it processes passport documents in the Identity section first, then other documents.
-
-Behavior:
-- If any Passport exists in the Identity section, process it first.
-- Passport authoritative identity fields overwrite stale values from all other documents and previous bad passport extracts.
-- Non-passport documents cannot overwrite passport-locked identity values after that.
-- Relationship fields remain strict: spouse/marital status only from explicit spouse keywords or a Marriage Certificate.
-
-### 6. Repair the currently affected client data after the code fix
-After implementation, I will run the fixed extraction against the existing passport document for this client and clear/replace stale values.
-
-Expected outcome for the current passport case:
-- wrong DOB is replaced only if validated from MRZ/current passport field
-- wrong passport number is replaced only if validated as current passport number, not file number or old passport number
-- wrong issue/expiry dates are replaced only from current passport evidence
-- place of birth is not taken from the address block
-- spouse name and marital status remain empty unless a valid marriage/spouse document provides them
-
-If the uploaded passport image/text is too ambiguous for a field, the app will leave the field unset or mark it `Needs Review` rather than saving a wrong value.
-
-### 7. Preserve existing functionality
-This fix will not remove or break:
-- document preview
-- document sharing links
-- binder sharing links
-- document verification
-- file size optimization with quality retention
-- custom/unlimited binder support
-- section-specific auto-fill behavior
-
-No destructive database migration is planned. If a small metadata migration becomes necessary for confidence state, it will be additive and backward-compatible.
+- This is destructive and not reversible from the app — all existing client records, uploaded files, generated binders, filled forms, questionnaires, and verification history will be permanently deleted.
+- Firm settings, templates, masters, forms library, and user accounts remain intact, so the app is immediately usable for new clients after the wipe.
+- If you want to keep one specific client for comparison, tell me the client ID before approving and I'll exclude it.
