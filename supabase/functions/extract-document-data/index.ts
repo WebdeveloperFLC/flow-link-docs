@@ -220,18 +220,17 @@ Deno.serve(async (req) => {
 
     const passportRules =
       "\n\nPASSPORT-SPECIFIC RULES (apply when document type is passport, or when you detect MRZ lines beginning with 'P<'):\n" +
-      "- The TWO MRZ lines at the bottom are the AUTHORITATIVE source. Parse them strictly:\n" +
-      "  * Line 1: 'P<{ISSUING_COUNTRY}{SURNAME}<<{GIVEN_NAMES}...'\n" +
-      "  * Line 2: '{PASSPORT_NUMBER:9}{check}{NATIONALITY:3}{DOB:YYMMDD}{check}{SEX}{EXPIRY:YYMMDD}{check}...'\n" +
-      "  * Two-digit years: years 00-49 → 2000-2049; years 50-99 → 1950-1999. So '02' = 2002, '32' = 2032.\n" +
-      "  * Use MRZ values for passport_number, nationality, date_of_birth, gender, passport_expiry whenever MRZ is legible. Cross-check with the visual fields; if they conflict, prefer MRZ.\n" +
+      "- ALWAYS return the EXACT OCR of the two MRZ lines in `mrz_line1` and `mrz_line2`. Do NOT try to parse them yourself; just return the literal characters you see (including '<' fillers). The server validates them with check digits and will overwrite passport_number/date_of_birth/passport_expiry/nationality/passport_country/gender from MRZ when valid.\n" +
+      "- Also return `full_name_visible` (full name as printed on the bio page), `file_number` (the 'File No.' value, NOT the passport number), `old_passport_number` and `old_passport_issue_date` (if a Previous/Old Passport block is present), and `mother_name` and `father_name` (so the server can verify they were never confused with spouse_name).\n" +
       "- 'File No.' / 'फाइल न.' is NOT the passport number. It is usually a longer alphanumeric like 'AH3076602281022'. NEVER place it in passport_number.\n" +
       "- 'Old Passport No.' / 'पुराने पासपोर्ट का न.' / 'Previous Passport' refers to a PREVIOUS booklet. NEVER use its number, issue date, place, or expiry for the current passport_* fields.\n" +
       "- place_of_birth must be taken ONLY from the labelled 'Place of Birth' / 'जन्म स्थान' field. NEVER copy from the address block.\n" +
       "- spouse_name: ONLY populate if there is an explicit non-empty value next to a label like 'Name of Spouse' / 'पति या पत्नी का नाम' / 'Wife' / 'Husband'. " +
       "  NEVER copy the Mother's name ('माता का नाम' / 'Name of Mother') or Father's name ('पिता' / 'Name of Father / Legal Guardian') into spouse_name. If the spouse field is blank, return spouse_name: null.\n" +
       "- marital_status: do NOT infer from the presence of mother/father fields. Set null unless an explicit marital status is stated, OR a clearly named spouse exists in the labelled spouse field.\n" +
-      "- Dates: if any part of a date is unreadable, return null. NEVER pad missing day/month with '01' (no YYYY-01-01 fallbacks).\n" +
+      "- Dates: if any part of a date is unreadable, return null. NEVER pad missing day/month with '01' (no YYYY-01-01 fallbacks). Two-digit years in MRZ: 00-49 = 2000s, 50-99 = 1900s.\n" +
+      "- Date of Issue (passport_issue_date): take ONLY from the CURRENT passport's 'Date of Issue / जारी करने की तारीख' field. NEVER from 'Old Passport No.' / 'Previous Passport'. NEVER infer from the expiry minus 10 years.\n" +
+      "- Date of Expiry (passport_expiry): take from the CURRENT passport's 'Date of Expiry' or from MRZ. NEVER from a previous passport.\n" +
       "- For NON-passport documents, return null for passport_number, passport_country, passport_issue_date, and passport_expiry — those belong to the passport only.";
 
     const finalSys = sys + passportRules;
