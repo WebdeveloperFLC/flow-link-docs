@@ -133,6 +133,42 @@ export function classifyByFilename(name: string): Classification | null {
   return null;
 }
 
+/** Detect which English test brand a document belongs to (PTE, IELTS, TOEFL,
+ *  CELPIP, Duolingo). Looks at both the filename and the extracted text snippet.
+ *  Returns null when no specific brand can be identified. */
+export function detectLanguageTestBrand(
+  snippet: string,
+  filename: string,
+): "PTE" | "IELTS" | "TOEFL" | "CELPIP" | "Duolingo" | null {
+  const blob = `${filename} ${snippet}`.toLowerCase();
+  if (/pearson test of english|pte\s+academic|\bpte\b/.test(blob)) return "PTE";
+  if (/international english language testing system|\bielts\b|test report form/.test(blob)) return "IELTS";
+  if (/test of english as a foreign|\btoefl\b|toefl\s+ibt/.test(blob)) return "TOEFL";
+  if (/canadian english language proficiency|\bcelpip\b/.test(blob)) return "CELPIP";
+  if (/duolingo english test|\bduolingo\b|\bdet\s+score/.test(blob)) return "Duolingo";
+  return null;
+}
+
+/** Compute a friendly visible title for a document — used both as `custom_type`
+ *  in the DB (so it shows on cards) and as the `Type` segment of the filename.
+ *  Returns null when the canonical document_type itself is already the right
+ *  visible label. */
+export function displayTitleFor(
+  documentType: string,
+  customType: string | null | undefined,
+  snippet: string,
+  filename: string,
+): string | null {
+  if (documentType === "English Language Proficiency Test") {
+    const brand = detectLanguageTestBrand(snippet, filename);
+    return brand ? `${brand} Result` : "English Proficiency Test";
+  }
+  if (documentType === "Provincial Attestation Letter") {
+    return "PAL Letter";
+  }
+  return customType?.trim() || null;
+}
+
 async function imageFileToJpegDataUrl(file: File, maxSide = 1800, quality = 0.82): Promise<string> {
   try {
     const url = URL.createObjectURL(file);
