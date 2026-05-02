@@ -125,6 +125,8 @@ const ClientDetail = () => {
       for (const d of docs) {
         // Don't override a manual link the user already set.
         if (d.custom_type && d.custom_type.trim() !== "") continue;
+        // Don't auto-link rejected / reissue-pending docs back into checklist.
+        if (d.status === "rejected" || d.status === "needs_reissue") continue;
         const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
         const t2 = d.custom_type ?? "";
         // Already matches some item by exact name → skip.
