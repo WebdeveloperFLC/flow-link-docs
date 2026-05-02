@@ -1020,6 +1020,16 @@ export const SmartUploadZone = ({
                   >
                     <Eye className="size-3.5 text-muted-foreground" />
                   </Button>
+                  {isPdfFile(it.file) && (it.status === "needs_owner" || it.status === "name_mismatch" || it.status === "needs_type" || it.status === "queued") && (
+                    <Button
+                      size="sm" variant="outline" className="h-7 text-[11px] shrink-0"
+                      onClick={() => splitItemIntoPages(i)}
+                      disabled={busy}
+                      title="Split this PDF into one document per page so you can rename/delete/merge before upload"
+                    >
+                      <Scissors className="size-3 mr-1" /> Split into pages
+                    </Button>
+                  )}
                   {(it.status === "done" || it.status === "error") && it.predictedType && (
                     <Select value={it.predictedType} onValueChange={(v) => overrideType(i, v)}>
                       <SelectTrigger className="h-7 w-[140px] text-[11px]"><SelectValue /></SelectTrigger>
