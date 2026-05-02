@@ -719,7 +719,13 @@ const ClientDetail = () => {
                       )}
                     </div>
                     {d ? (
-                      <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">Ready</span>
+                      <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">
+                        {isVerified ? "Verified" : "Ready"}
+                      </span>
+                    ) : isRejected ? (
+                      <span className="text-xs px-2 py-1 rounded bg-destructive/10 text-destructive font-semibold uppercase tracking-wide">Rejected</span>
+                    ) : isReissue ? (
+                      <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600 font-semibold uppercase tracking-wide">Reissue</span>
                     ) : (
                       <span className={`text-xs px-2 py-1 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
                         {it.mandatory ? "Pending" : "Optional"}
