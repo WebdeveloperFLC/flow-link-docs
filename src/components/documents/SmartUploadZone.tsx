@@ -67,7 +67,7 @@ interface QueueItem {
 
 const CONCURRENCY = 3;
 
-function isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
+function _isOneFullDocumentSegment(pageCount: number, segments: BinderSegment[]): boolean {
   if (pageCount < 3 || segments.length !== 1) return false;
   const only = segments[0];
   return (only.start_page ?? 1) <= 1 && (only.end_page ?? 0) >= pageCount;
