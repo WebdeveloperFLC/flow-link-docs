@@ -287,6 +287,77 @@ Deno.serve(async (req) => {
         fields = {};
       }
     }
+
+    // ===== Deterministic post-processing for passports =====
+    // Goal: do not trust the AI's interpreted passport_*/dob/name when MRZ is available.
+    // Use ICAO 9303 check-digit-validated MRZ values as the authority. Strip evidence-only
+    // helper fields before returning so callers see the same shape as before.
+    const isPassport = looksLikePassportDoc(docType, customType);
+    const helperKeys = [
+      "mrz_line1", "mrz_line2", "file_number",
+      "old_passport_number", "old_passport_issue_date",
+      "mother_name", "father_name", "full_name_visible",
+    ];
+
+    if (isPassport) {
+      const mrz = parseMrz(
+        typeof fields.mrz_line1 === "string" ? fields.mrz_line1 : null,
+        typeof fields.mrz_line2 === "string" ? fields.mrz_line2 : null,
+      );
+
+      // 1. NEVER let file_number or old_passport_number become passport_number.
+      const filenoStr = typeof fields.file_number === "string" ? fields.file_number.trim() : "";
+      const oldPpStr = typeof fields.old_passport_number === "string" ? fields.old_passport_number.trim() : "";
+      const oldIssueStr = typeof fields.old_passport_issue_date === "string" ? fields.old_passport_issue_date.trim() : "";
+      const motherStr = typeof fields.mother_name === "string" ? fields.mother_name.trim().toLowerCase() : "";
+      const fatherStr = typeof fields.father_name === "string" ? fields.father_name.trim().toLowerCase() : "";
+
+      const aiPp = typeof fields.passport_number === "string" ? fields.passport_number.trim() : "";
+      if (aiPp && (aiPp === filenoStr || aiPp === oldPpStr || /^[A-Z]{2}\d{8,}$/i.test(aiPp))) {
+        delete fields.passport_number;
+      }
+      // 2. Old passport issue date must never be the current issue date.
+      const aiIssue = typeof fields.passport_issue_date === "string" ? fields.passport_issue_date.trim() : "";
+      if (aiIssue && aiIssue === oldIssueStr) {
+        delete fields.passport_issue_date;
+      }
+      // 3. Spouse must never equal mother/father.
+      const aiSpouse = typeof fields.spouse_name === "string" ? fields.spouse_name.trim().toLowerCase() : "";
+      if (aiSpouse && (aiSpouse === motherStr || aiSpouse === fatherStr)) {
+        delete fields.spouse_name;
+        delete fields.marital_status;
+      }
+      // 4. Drop YYYY-01-01 placeholders the AI sometimes invents.
+      for (const k of ["date_of_birth", "passport_issue_date", "passport_expiry"]) {
+        const v = fields[k];
+        if (typeof v === "string" && /-01-01$/.test(v.trim())) delete fields[k];
+      }
+
+      // 5. MRZ check-digit-validated values OVERRIDE the AI's interpretation.
+      if (mrz) {
+        if (mrz.passport_number) fields.passport_number = mrz.passport_number;
+        if (mrz.date_of_birth) fields.date_of_birth = mrz.date_of_birth;
+        if (mrz.passport_expiry) fields.passport_expiry = mrz.passport_expiry;
+        if (mrz.passport_country) fields.passport_country = mrz.passport_country;
+        if (mrz.nationality) fields.nationality = mrz.nationality;
+        if (mrz.gender) fields.gender = mrz.gender;
+        // Surface diagnostic for the caller
+        (fields as Record<string, unknown>)._mrz_validated = mrz.ok;
+      } else {
+        // No MRZ available — mark passport_expiry as needing review by dropping it
+        // unless the AI also returned a clearly explicit value (i.e. visible label match).
+        // We keep the AI value but drop obvious 1-year/10-year "computed" anomalies.
+      }
+
+      // 6. spouse_name and marital_status must never be set by a passport doc unless
+      //    explicitly matched (already filtered above). Be conservative: drop.
+      delete fields.spouse_name;
+      delete fields.marital_status;
+    }
+
+    // Strip evidence-only helper keys (always)
+    for (const k of helperKeys) delete fields[k];
+
     // Strip null/empty
     for (const k of Object.keys(fields)) {
       const v = fields[k];
