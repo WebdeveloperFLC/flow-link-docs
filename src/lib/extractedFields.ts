@@ -84,6 +84,14 @@ function sanitizeExtractionByDocType<T extends Record<string, unknown>>(
       const looksLikeFileNo = /^[A-Z]{2}\d{8,}$/i.test(pp) || pp.length > 12;
       if (looksLikeFileNo) delete out.passport_number;
     }
+    // Reject place_of_birth if it equals the extracted address city/state — that means
+    // the AI grabbed it from the address block instead of the labelled "Place of Birth".
+    const pob = typeof out.place_of_birth === "string" ? out.place_of_birth.trim().toLowerCase() : "";
+    const city = typeof out.address_city === "string" ? out.address_city.trim().toLowerCase() : "";
+    const line1 = typeof out.address_line1 === "string" ? out.address_line1.trim().toLowerCase() : "";
+    if (pob && (pob === city || (line1 && line1.includes(pob) && pob.length <= 12))) {
+      delete out.place_of_birth;
+    }
   } else {
     // Non-passport docs cannot provide passport_* fields
     for (const k of ["passport_number", "passport_issue_date", "passport_expiry", "passport_country"]) {
