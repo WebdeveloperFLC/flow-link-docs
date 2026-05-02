@@ -45,6 +45,7 @@ interface Doc {
   size_bytes: number | null; version: number; uploaded_at: string;
   section_id?: string | null;
   section_order?: number;
+  status?: string | null;
 }
 
 interface BinderRow {
