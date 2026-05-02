@@ -30,6 +30,7 @@ import {
   type BinderSegment,
 } from "@/lib/binderSplit";
 import { classifyDocument } from "@/lib/classifyDocument";
+import { markChecklistItemReady } from "@/lib/checklist";
 import { useMasterLabels } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
