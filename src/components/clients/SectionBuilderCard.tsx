@@ -321,7 +321,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
               clientId,
               docType,
               customType,
-              null,
+              processed.name,
             );
           }
         } catch { /* best effort */ }
