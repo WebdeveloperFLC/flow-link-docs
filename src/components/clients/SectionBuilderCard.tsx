@@ -648,6 +648,8 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
           </Button>
         </div>
       )}
+
+      <Dialog open={renameOpen} onOpenChange={(o) => { if (!renaming) setRenameOpen(o); }} />
     </Card>
   );
 };
