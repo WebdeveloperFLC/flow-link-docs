@@ -140,6 +140,54 @@ export type Database = {
           },
         ]
       }
+      call_events: {
+        Row: {
+          call_id: string | null
+          client_id: string | null
+          direction: string | null
+          duration_seconds: number | null
+          event_type: string | null
+          from_number: string | null
+          id: string
+          matched_at: string | null
+          raw: Json
+          received_at: string
+          recording_url: string | null
+          status: string | null
+          to_number: string | null
+        }
+        Insert: {
+          call_id?: string | null
+          client_id?: string | null
+          direction?: string | null
+          duration_seconds?: number | null
+          event_type?: string | null
+          from_number?: string | null
+          id?: string
+          matched_at?: string | null
+          raw?: Json
+          received_at?: string
+          recording_url?: string | null
+          status?: string | null
+          to_number?: string | null
+        }
+        Update: {
+          call_id?: string | null
+          client_id?: string | null
+          direction?: string | null
+          duration_seconds?: number | null
+          event_type?: string | null
+          from_number?: string | null
+          id?: string
+          matched_at?: string | null
+          raw?: Json
+          received_at?: string
+          recording_url?: string | null
+          status?: string | null
+          to_number?: string | null
+        }
+        Relationships: []
+      }
       case_people: {
         Row: {
           client_id: string
