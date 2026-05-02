@@ -555,20 +555,29 @@ const ClientDetail = () => {
               </div>
             )}
             <div className="divide-y">
-              {checklistItems.map((it, i) => {
-                const d = docByType(it.name);
-                const isExtra = extraItems.some((e) => e.id === it.id);
-                // Candidate uploaded docs to link manually — any doc not already
-                // satisfying THIS checklist item. Most useful for renamed/mislabeled
-                // uploads (e.g., "Passport Copy" with no alias hit).
-                const linkableDocs = docs.filter((doc) => {
-                  const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
-                  const t2 = doc.custom_type ?? "";
-                  return t1 !== it.name && t2 !== it.name;
-                });
-                return (
-                  <div key={it.id} className="px-6 py-3.5 flex items-center gap-4">
-                    <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
+              {(() => {
+                let runningIdx = 0;
+                return checklistSections.map((sec) => {
+                  const secReady = sec.items.filter((it) => docByType(it.name)).length;
+                  return (
+                    <div key={sec.id}>
+                      <div className="px-6 py-2.5 bg-muted/40 flex items-center justify-between">
+                        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div>
+                        <div className="text-[11px] text-muted-foreground tabular-nums">{secReady}/{sec.items.length} ready</div>
+                      </div>
+                      {sec.items.map((it) => {
+                        runningIdx += 1;
+                        const i = runningIdx - 1;
+                        const d = docByType(it.name);
+                        const isExtra = extraItems.some((e) => e.id === it.id);
+                        const linkableDocs = docs.filter((doc) => {
+                          const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
+                          const t2 = doc.custom_type ?? "";
+                          return t1 !== it.name && t2 !== it.name;
+                        });
+                        return (
+                          <div key={it.id} className="px-6 py-3.5 flex items-center gap-4 border-t">
+                            <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm flex items-center gap-1.5">
                         {it.name}
@@ -629,9 +638,13 @@ const ClientDetail = () => {
                         <X className="size-3.5" />
                       </Button>
                     )}
-                  </div>
-                );
-              })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </Card>
 
