@@ -296,6 +296,41 @@ Deno.serve(async (req) => {
     const pushClientToLead = async (clientId: string): Promise<number> => {
       const { data: c } = await admin.from("clients").select("*").eq("id", clientId).maybeSingle();
       if (!c) throw new Error("client not found");
+      const { data: prof } = await admin.from("client_profile").select("*").eq("client_id", clientId).maybeSingle();
+
+      // --- Upsert res.partner so the lead is searchable by email/phone in Odoo CRM ---
+      const partnerVals: Record<string, unknown> = {
+        name: c.full_name || "Unknown",
+        email: c.email || prof?.email_alt || false,
+        phone: c.phone || prof?.phone_alt || false,
+        ref: c.application_id,
+        is_company: false,
+        customer_rank: 1,
+        street: prof?.address_line1 || false,
+        city: prof?.address_city || false,
+        zip: prof?.address_postal || false,
+        comment: `Fovel application: ${c.application_id}\nStatus: ${c.status}`,
+      };
+      for (const k of Object.keys(partnerVals)) if (partnerVals[k] === undefined) delete partnerVals[k];
+
+      let partnerId: number | null = (c as { odoo_partner_id: number | null }).odoo_partner_id ?? null;
+      if (!partnerId) {
+        // Try to find by ref first, then by email, then by phone.
+        const candidates: Array<Array<unknown>> = [[["ref", "=", c.application_id]]];
+        if (c.email) candidates.push([["email", "=", c.email]]);
+        if (c.phone) candidates.push([["phone", "=", c.phone]]);
+        for (const dom of candidates) {
+          const found = await execute(ODOO_URL, ODOO_DB, uid, ODOO_API_KEY, "res.partner", "search", [dom], { limit: 1 });
+          if (Array.isArray(found) && found.length > 0) { partnerId = found[0] as number; break; }
+        }
+      }
+      if (partnerId) {
+        await execute(ODOO_URL, ODOO_DB, uid, ODOO_API_KEY, "res.partner", "write", [[partnerId], partnerVals]);
+      } else {
+        const created = await execute(ODOO_URL, ODOO_DB, uid, ODOO_API_KEY, "res.partner", "create", [partnerVals]);
+        partnerId = created as number;
+      }
+
       const { first_name, last_name } = splitName(c.full_name);
       const vals: Record<string, unknown> = {
         name: `${c.full_name} – ${c.application_type} (${c.country})`,
@@ -305,6 +340,7 @@ Deno.serve(async (req) => {
         contact_name: c.full_name,
         email_from: c.email || false,
         phone: c.phone || false,
+        partner_id: partnerId,
         description: `Fovel application: ${c.application_id}\nStatus: ${c.status}`,
       };
       let leadId: number | null = (c as { odoo_lead_id: number | null }).odoo_lead_id ?? null;
@@ -327,6 +363,7 @@ Deno.serve(async (req) => {
       }
       await admin.from("clients").update({
         odoo_lead_id: leadId,
+        odoo_partner_id: partnerId,
         odoo_synced_at: new Date().toISOString(),
       }).eq("id", clientId);
       return leadId!;
@@ -427,10 +464,11 @@ Deno.serve(async (req) => {
       // PUSH: clients updated since last sync
       if (mode === "push" || mode === "two_way") {
         try {
+          // Include: updated since last sync, OR missing odoo_lead_id, OR missing odoo_partner_id (backfill).
           const { data: dirty } = await admin
             .from("clients")
-            .select("id, updated_at")
-            .gt("updated_at", since)
+            .select("id, updated_at, odoo_lead_id, odoo_partner_id")
+            .or(`updated_at.gt.${since},odoo_lead_id.is.null,odoo_partner_id.is.null`)
             .order("updated_at", { ascending: false })
             .limit(200);
           for (const row of dirty ?? []) {

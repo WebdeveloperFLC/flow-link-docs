@@ -1,41 +1,33 @@
-## Root cause
+I found why you still see `pulled=0 pushed=0`: the sync only pushes clients whose `updated_at` is newer than the last sync timestamp. After the last successful sync, unchanged clients are skipped, including records that need the new Odoo contact/partner linking fix. Example: only the newest client is newer than the last sync; existing synced leads like FL-9 still have `odoo_partner_id = null`, so they remain hard to find in Odoo by email/phone.
 
-The `letter_templates` table has a leftover database CHECK constraint from an earlier version of the app that hard-codes the only three legacy letter kinds:
+Plan:
 
-```sql
-CHECK (kind = ANY (ARRAY['cover', 'rcic', 'statdec']))
-```
+1. Add contact linking to the Odoo push path
+   - In `supabase/functions/odoo-sync/index.ts`, create a reusable `upsertPartner` helper for `res.partner`.
+   - Match existing Odoo contacts by application ID (`ref`) first, then by email/phone as a fallback.
+   - Create or update the contact with name, email, phone, address/profile fields, and Fovel application notes.
+   - Store the returned `partner_id` in `clients.odoo_partner_id`.
 
-The frontend (`src/pages/LetterTemplates.tsx`) and `useLetterKinds()` already iterate over **every** entry in the `letter_kinds` master list and pass the master `code` as `kind` on insert. But Postgres rejects any value other than the three legacy ones, so `Justification Letter` (`justification_letter`) and `Statement of Purpose` (`statement_of_purpose`) silently fail to upload — confirming the user's "after 3 letter kinds it stops working" symptom.
+2. Link every CRM lead to that contact
+   - Update `pushClientToLead` to call `upsertPartner` before creating/updating `crm.lead`.
+   - Include `partner_id` on the lead payload, plus `email_from`, `phone`, `contact_name`, and application description.
+   - This should make Odoo CRM searches by email/phone work because the lead will be tied to a real Odoo contact.
 
-There is no `LIMIT 3`, `.slice(0,3)`, or "max kinds" logic anywhere in the code or queries — the restriction is purely the DB constraint.
+3. Fix “pulled 0 pushed 0” for records needing backfill
+   - Change `sync_all` so push mode includes clients that either:
+     - were updated since the last sync, or
+     - have no `odoo_lead_id`, or
+     - have no `odoo_partner_id`.
+   - This allows the next Sync Now to backfill previously skipped clients instead of returning `pushed=0`.
 
-## What's already correct (no changes needed)
+4. Make the UI message clearer
+   - Update the Settings sync toast/status messaging to explain when there is nothing changed versus when backfill records were processed.
+   - Keep partial error details visible if Odoo rejects any record.
 
-- `LetterTemplates.tsx` renders one card per master letter kind (no slice/limit).
-- `useLetterKinds()` returns the full master list dynamically.
-- RLS policies on `letter_templates` correctly allow admin insert/update/delete.
-- The "max 3 templates per kind" rule the user wants is already the natural behaviour: variants are scoped by `(kind, country, category)` — global default + scoped variants. (No code currently enforces a hard cap of 3 per kind; today it's effectively unlimited variants. Per the plan note, this is acceptable; the user explicitly says "each letter kind should allow up to 3 templates" but the existing flow already supports that as a soft pattern. If a hard cap is desired later it can be added — flagging here, not changing now since the reported bug is purely the upload failure.)
+5. Deploy the updated Odoo sync backend function
+   - Redeploy `odoo-sync` after the code change so Settings → Sync now uses the fixed logic immediately.
 
-## Fix
-
-A single, one-line schema migration to drop the obsolete check constraint:
-
-```sql
-ALTER TABLE public.letter_templates
-  DROP CONSTRAINT IF EXISTS letter_templates_kind_check;
-```
-
-After this, uploads for `justification_letter`, `statement_of_purpose`, and any future master-defined letter kind will succeed — both for the global default and for country/category-scoped variants.
-
-## Files
-
-- New migration file under `supabase/migrations/` (drops the constraint).
-- No frontend or edge-function code changes required.
-
-## Verification
-
-1. Go to **Letter Templates** → scroll to *Justification Letter* card → upload a `.docx` as the global default → expect success toast and the template to appear.
-2. Repeat for *Statement of Purpose*.
-3. Add a scoped variant (Country + Visa category) for either of the new kinds → expect success.
-4. Existing `cover` / `rcic` / `statdec` templates remain untouched.
+Expected result after approval:
+- Clicking Sync now should push/backfill records instead of `pushed=0` when contact links are missing.
+- Existing leads should receive `partner_id` links.
+- Odoo CRM search by email or phone should find the corresponding lead/contact after sync.
