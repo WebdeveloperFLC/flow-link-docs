@@ -274,6 +274,51 @@ export type Database = {
         }
         Relationships: []
       }
+      client_access: {
+        Row: {
+          client_id: string
+          granted_at: string
+          granted_by: string | null
+          id: string
+          permission: Database["public"]["Enums"]["client_permission"]
+          team_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["client_permission"]
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["client_permission"]
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_access_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_documents: {
         Row: {
           client_id: string
@@ -603,6 +648,7 @@ export type Database = {
           odoo_lead_id: number | null
           odoo_partner_id: number | null
           odoo_synced_at: string | null
+          owner_id: string | null
           phone: string | null
           status: string
           suppressed_template_items: string[]
@@ -623,6 +669,7 @@ export type Database = {
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
+          owner_id?: string | null
           phone?: string | null
           status?: string
           suppressed_template_items?: string[]
@@ -643,6 +690,7 @@ export type Database = {
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
+          owner_id?: string | null
           phone?: string | null
           status?: string
           suppressed_template_items?: string[]
@@ -1018,21 +1066,39 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          deleted_at: string | null
           email: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
+          phone: string | null
+          status: string
+          suspended_at: string | null
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
+          phone?: string | null
+          status?: string
+          suspended_at?: string | null
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
+          phone?: string | null
+          status?: string
+          suspended_at?: string | null
         }
         Relationships: []
       }
@@ -1239,6 +1305,53 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          added_at: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1393,6 +1506,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_client: {
+        Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
+      can_upload_client: {
+        Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
+      can_view_client: {
+        Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1400,9 +1525,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_team_member: {
+        Args: { _team: string; _uid: string }
+        Returns: boolean
+      }
+      user_client_permission: {
+        Args: { _cid: string; _uid: string }
+        Returns: Database["public"]["Enums"]["client_permission"]
+      }
     }
     Enums: {
       app_role: "admin" | "counselor" | "documentation" | "viewer"
+      client_permission: "view" | "edit" | "upload" | "full"
       person_role:
         | "applicant"
         | "co_applicant"
@@ -1537,6 +1671,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "counselor", "documentation", "viewer"],
+      client_permission: ["view", "edit", "upload", "full"],
       person_role: [
         "applicant",
         "co_applicant",
