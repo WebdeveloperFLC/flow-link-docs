@@ -31,6 +31,7 @@ import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { openClientDocument } from "@/lib/documentPreview";
+import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -71,6 +72,7 @@ const ClientDetail = () => {
   const [people, setPeople] = useState<CasePerson[]>([]);
   const [sections, setSections] = useState<CaseSection[]>([]);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -620,6 +622,11 @@ const ClientDetail = () => {
         actions={
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
+            {isAdmin && (
+              <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
+                <ShieldCheck className="size-4 mr-1.5" /> Manage access
+              </Button>
+            )}
             {canUpload && (
               <>
                 <Button onClick={onGenerateGroupedBinders} disabled={generatingGroups || !template} variant="outline" size="sm">
