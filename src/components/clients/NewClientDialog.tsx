@@ -58,6 +58,7 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
         application_type: parsed.data.application_type,
         template_id: parsed.data.template_id || null,
         created_by: user?.id ?? null,
+        owner_id: user?.id ?? null,
       }).select().single();
       if (error) throw error;
       await logActivity("client.created", "client", data.id, { application_id: data.application_id });
