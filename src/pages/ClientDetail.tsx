@@ -1043,6 +1043,14 @@ const ClientDetail = () => {
         existingTypes={checklistItems.map((it) => it.name)}
         onAdd={onAddExtraItem}
       />
+      {client && (
+        <ClientAccessDialog
+          open={accessOpen}
+          onOpenChange={setAccessOpen}
+          clientId={client.id}
+          clientName={client.full_name}
+        />
+      )}
     </AppLayout>
   );
 };
