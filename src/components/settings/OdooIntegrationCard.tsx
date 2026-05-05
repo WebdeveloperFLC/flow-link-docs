@@ -67,7 +67,13 @@ export const OdooIntegrationCard = () => {
       const { data, error } = await supabase.functions.invoke("odoo-sync", { body: { action: "sync_all" } });
       if (error) throw error;
       if (!data?.ok) throw new Error(data?.error || "Sync failed");
-      toast.success(`Synced · pulled ${data.pulled ?? 0}, pushed ${data.pushed ?? 0}`);
+      const errs = Array.isArray(data?.errors_detail) ? data.errors_detail : [];
+      const errCount = typeof data?.errors === "number" ? data.errors : errs.length;
+      if (errCount > 0 || data?.partial) {
+        toast.warning(`Sync completed with ${errCount} error${errCount === 1 ? "" : "s"}: ${errs[0] ?? data?.error ?? "see logs"}`);
+      } else {
+        toast.success(`Synced · pulled ${data.pulled ?? 0}, pushed ${data.pushed ?? 0}`);
+      }
       load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Sync failed");

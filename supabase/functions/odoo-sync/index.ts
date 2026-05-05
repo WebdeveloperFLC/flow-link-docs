@@ -161,6 +161,14 @@ async function execute(url: string, db: string, uid: number, password: string, m
   return await odooCall(url, "/xmlrpc/2/object", "execute_kw", [db, uid, password, model, method, args, kwargs]);
 }
 
+function splitName(full: string | null | undefined) {
+  const t = (full ?? "").trim();
+  if (!t) return { first_name: "Unknown", last_name: "" };
+  const parts = t.split(/\s+/);
+  if (parts.length === 1) return { first_name: parts[0], last_name: "" };
+  return { first_name: parts[0], last_name: parts.slice(1).join(" ") };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
@@ -191,6 +199,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "ping");
+    (globalThis as { __odooAction?: string }).__odooAction = action;
 
     // Service role client (used by most actions)
     const admin = createClient(
@@ -287,8 +296,11 @@ Deno.serve(async (req) => {
     const pushClientToLead = async (clientId: string): Promise<number> => {
       const { data: c } = await admin.from("clients").select("*").eq("id", clientId).maybeSingle();
       if (!c) throw new Error("client not found");
+      const { first_name, last_name } = splitName(c.full_name);
       const vals: Record<string, unknown> = {
         name: `${c.full_name} – ${c.application_type} (${c.country})`,
+        first_name,
+        last_name,
         partner_name: c.full_name,
         contact_name: c.full_name,
         email_from: c.email || false,
@@ -455,6 +467,10 @@ Deno.serve(async (req) => {
         last_sync_message: msg.slice(0, 500),
       }).eq("key", "odoo");
     } catch { /* ignore */ }
+    const action = (globalThis as { __odooAction?: string }).__odooAction;
+    if (action === "sync_all" || action === "sync_one") {
+      return json({ ok: true, partial: true, error: msg, errors: 1, errors_detail: [msg.slice(0, 240)] });
+    }
     return json({ ok: false, error: msg }, 500);
   }
 });
