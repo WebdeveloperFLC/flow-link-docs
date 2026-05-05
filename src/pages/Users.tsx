@@ -28,6 +28,13 @@ const ROLE_HELP: Record<AppRole, string> = {
   viewer: "View-only access",
 };
 
+const ROLE_SHORT: Record<AppRole, string> = {
+  admin: "Full system access",
+  counselor: "Edit access",
+  documentation: "Edit access",
+  viewer: "View-only access",
+};
+
 const roleOptionLabel = (role: AppRole) => {
   if (role === "counselor") return "Edit - Counselor";
   if (role === "documentation") return "Edit - Documentation";
@@ -116,12 +123,12 @@ const Users = () => {
           </Button>
         </div>
         <Card className="overflow-hidden shadow-elev-sm">
-          <div className="grid grid-cols-12 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
-            <div className="col-span-4">User</div>
-            <div className="col-span-2">Status</div>
-            <div className="col-span-2">Role</div>
-            <div className="col-span-3">Access level</div>
-            <div className="col-span-1 text-right">Actions</div>
+          <div className="grid grid-cols-[minmax(0,3fr)_110px_160px_minmax(0,2fr)_60px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
+            <div>User</div>
+            <div>Status</div>
+            <div>Role</div>
+            <div>Access level</div>
+            <div className="text-right">Actions</div>
           </div>
           <div className="divide-y">
             {profiles.length === 0 && (
@@ -135,21 +142,28 @@ const Users = () => {
               const isMe = p.id === user?.id;
               const status = p.status ?? "active";
               return (
-                <div key={p.id} className="grid grid-cols-12 px-6 py-3.5 items-center">
-                  <div className="col-span-4 min-w-0">
-                    <div className="font-medium text-sm truncate">{p.full_name ?? p.email}</div>
+                <div key={p.id} className="grid grid-cols-[minmax(0,3fr)_110px_160px_minmax(0,2fr)_60px] gap-4 px-6 py-3.5 items-center">
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm truncate flex items-center gap-1.5">
+                      <span className="truncate">{p.full_name ?? p.email}</span>
+                      {isMe && <span className="text-[10px] text-muted-foreground shrink-0">(you)</span>}
+                    </div>
                     <div className="text-xs text-muted-foreground truncate">{p.email}</div>
                   </div>
-                  <div className="col-span-2">{statusBadge(status)}</div>
-                  <div className="col-span-2">
-                    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primary])}>
-                      <Shield className="size-2.5" />
-                      {roleOptionLabel(primary)}
+                  <div>{statusBadge(status)}</div>
+                  <div className="min-w-0">
+                    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider max-w-full truncate", ROLE_COLORS[primary])}>
+                      <Shield className="size-2.5 shrink-0" />
+                      <span className="truncate">{roleOptionLabel(primary)}</span>
                     </span>
                   </div>
-                  <div className="col-span-3 flex items-center gap-2">
+                  <div className="min-w-0">
                     <Select value={primary} onValueChange={(v) => setRole(p.id, v as AppRole)} disabled={busy === p.id}>
-                      <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-xs w-full">
+                        <SelectValue>
+                          <span className="truncate block text-left">{ROLE_SHORT[primary]}</span>
+                        </SelectValue>
+                      </SelectTrigger>
                       <SelectContent>
                         {ALL_ROLES.map((r) => (
                           <SelectItem key={r} value={r}>
@@ -161,9 +175,8 @@ const Users = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    {isMe && <span className="text-[10px] text-muted-foreground">(you)</span>}
                   </div>
-                  <div className="col-span-1 flex justify-end">
+                  <div className="flex justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="size-4" /></Button>
