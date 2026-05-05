@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FileText, Lock, Sparkles } from "lucide-react";
 import { z } from "zod";
@@ -13,13 +13,15 @@ import { z } from "zod";
 const schema = z.object({
   email: z.string().email("Invalid email").max(255),
   password: z.string().min(8, "Min 8 characters").max(72),
-  fullName: z.string().trim().min(2).max(100).optional(),
 });
 
 const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate("/", { replace: true });
@@ -40,25 +42,17 @@ const Auth = () => {
     else toast.success("Welcome back");
   };
 
-  const onSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+  const onForgot = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const parsed = schema.safeParse({
-      email: fd.get("email"), password: fd.get("password"), fullName: fd.get("fullName"),
+    const parsed = z.string().email().safeParse(forgotEmail);
+    if (!parsed.success) { toast.error("Enter a valid email"); return; }
+    setForgotBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
     });
-    if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
-    setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email: parsed.data.email,
-      password: parsed.data.password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: { full_name: parsed.data.fullName },
-      },
-    });
-    setBusy(false);
+    setForgotBusy(false);
     if (error) toast.error(error.message);
-    else toast.success("Account created — you can sign in now");
+    else { toast.success("Reset link sent — check your email"); setForgotOpen(false); }
   };
 
   return (
@@ -111,51 +105,45 @@ const Auth = () => {
           </div>
 
           <h1 className="text-2xl font-bold tracking-tight">Sign in to your workspace</h1>
-          <p className="text-sm text-muted-foreground mt-1 mb-6">First user to register becomes the administrator.</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-6">Enter your credentials to continue.</p>
 
-          <Tabs defaultValue="signin">
-            <TabsList className="grid grid-cols-2 w-full">
-              <TabsTrigger value="signin">Sign in</TabsTrigger>
-              <TabsTrigger value="signup">Create account</TabsTrigger>
-            </TabsList>
+          <form onSubmit={onSignIn} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="si-email">Email</Label>
+              <Input id="si-email" name="email" type="email" required autoComplete="email" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="si-pw">Password</Label>
+                <button type="button" onClick={() => setForgotOpen(true)} className="text-xs text-primary hover:underline">Forgot password?</button>
+              </div>
+              <Input id="si-pw" name="password" type="password" required autoComplete="current-password" />
+            </div>
+            <Button type="submit" disabled={busy} className="w-full gradient-brand text-primary-foreground">
+              {busy ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
 
-            <TabsContent value="signin">
-              <form onSubmit={onSignIn} className="space-y-4 mt-4">
+          <p className="text-xs text-muted-foreground mt-6 text-center">
+            Need an account? Ask your administrator to invite you.
+          </p>
+
+          <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader><DialogTitle>Reset password</DialogTitle></DialogHeader>
+              <form onSubmit={onForgot} className="space-y-4">
+                <p className="text-sm text-muted-foreground">We'll email you a secure reset link. The link expires in 15 minutes.</p>
                 <div className="space-y-1.5">
-                  <Label htmlFor="si-email">Email</Label>
-                  <Input id="si-email" name="email" type="email" required autoComplete="email" />
+                  <Label htmlFor="fp-email">Email</Label>
+                  <Input id="fp-email" type="email" required value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="si-pw">Password</Label>
-                  <Input id="si-pw" name="password" type="password" required autoComplete="current-password" />
-                </div>
-                <Button type="submit" disabled={busy} className="w-full gradient-brand text-primary-foreground">
-                  {busy ? "Signing in…" : "Sign in"}
-                </Button>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>Cancel</Button>
+                  <Button type="submit" disabled={forgotBusy}>{forgotBusy ? "Sending…" : "Send reset link"}</Button>
+                </DialogFooter>
               </form>
-            </TabsContent>
-
-            <TabsContent value="signup">
-              <form onSubmit={onSignUp} className="space-y-4 mt-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-name">Full name</Label>
-                  <Input id="su-name" name="fullName" required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-email">Email</Label>
-                  <Input id="su-email" name="email" type="email" required autoComplete="email" />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-pw">Password</Label>
-                  <Input id="su-pw" name="password" type="password" required minLength={8} autoComplete="new-password" />
-                  <p className="text-xs text-muted-foreground">Minimum 8 characters.</p>
-                </div>
-                <Button type="submit" disabled={busy} className="w-full gradient-brand text-primary-foreground">
-                  {busy ? "Creating…" : "Create account"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
