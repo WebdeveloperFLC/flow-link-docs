@@ -1,0 +1,1 @@
+ALTER TABLE public.letter_templates DROP CONSTRAINT IF EXISTS letter_templates_kind_check;
