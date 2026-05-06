@@ -79,25 +79,39 @@ Deno.serve(async (req) => {
     const action = body.action as string;
 
     if (action === "create") {
-      const { first_name, last_name, email, phone, role } = body as Record<string, string>;
-      if (!first_name || !last_name || !email || !phone || !role) return json({ error: "Missing fields" }, 400);
+      const { first_name, last_name, email, phone, role, password } = body as Record<string, string>;
+      if (!first_name || !last_name || !email || !phone || !role || !password) return json({ error: "Missing fields" }, 400);
       if (!VALID_ROLES.includes(role as Role)) return json({ error: "Invalid role" }, 400);
+      if (password.length < 8 || password.length > 72) return json({ error: "Password must be 8–72 characters" }, 400);
 
       const existing = await findUserByEmail(svc, email);
       if (existing) return json({ error: "Email already registered" }, 409);
 
-      const redirectTo = `${req.headers.get("origin") ?? ""}/reset-password`;
-      const { data: invited, error: invErr } = await svc.auth.admin.inviteUserByEmail(email, {
-        data: { full_name: `${first_name} ${last_name}` },
-        redirectTo,
+      const fullName = `${first_name} ${last_name}`;
+      // Create the account with admin-supplied password (unconfirmed — user must verify email).
+      const { data: created, error: createErr } = await svc.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: false,
+        user_metadata: { full_name: fullName },
       });
-      if (invErr || !invited?.user) return json({ error: invErr?.message ?? "Invite failed" }, 400);
-      const newId = invited.user.id;
+      if (createErr || !created?.user) return json({ error: createErr?.message ?? "Create failed" }, 400);
+      const newId = created.user.id;
+
+      // Send a verification (signup confirmation) email — NOT a password reset.
+      const redirectTo = `${req.headers.get("origin") ?? ""}/`;
+      const { error: linkErr } = await svc.auth.admin.generateLink({
+        type: "signup",
+        email,
+        password,
+        options: { redirectTo },
+      });
+      if (linkErr) console.warn("generateLink (signup) failed:", linkErr.message);
 
       await svc.from("profiles").upsert({
         id: newId,
         email,
-        full_name: `${first_name} ${last_name}`,
+        full_name: fullName,
         first_name, last_name, phone,
         status: "active",
       });
