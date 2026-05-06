@@ -49,17 +49,18 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     try {
-      const { data, error } = await supabase.from("clients").insert({
-        full_name: parsed.data.full_name,
-        email: parsed.data.email || null,
-        phone: parsed.data.phone || null,
-        country: parsed.data.country,
-        application_type: parsed.data.application_type,
-        template_id: parsed.data.template_id || null,
-      }).select().single();
+      const { data, error } = await supabase.rpc("create_client", {
+        _full_name: parsed.data.full_name,
+        _country: parsed.data.country,
+        _application_type: parsed.data.application_type,
+        _email: parsed.data.email || null,
+        _phone: parsed.data.phone || null,
+        _template_id: parsed.data.template_id || null,
+      });
       if (error) throw error;
-      await logActivity("client.created", "client", data.id, { application_id: data.application_id });
-      toast.success(`Created ${data.application_id}`);
+      const row = data as unknown as { id: string; application_id: string };
+      await logActivity("client.created", "client", row.id, { application_id: row.application_id });
+      toast.success(`Created ${row.application_id}`);
       onOpenChange(false);
       setCountry(""); setAppType(""); setTemplateId("");
       onCreated();
