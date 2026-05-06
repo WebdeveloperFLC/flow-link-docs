@@ -141,12 +141,20 @@ Deno.serve(async (req) => {
     }
 
     if (action === "reset_password") {
-      const { email } = body;
-      if (!email) return json({ error: "email required" }, 400);
-      const redirectTo = `${req.headers.get("origin") ?? ""}/reset-password`;
-      const { error } = await svc.auth.resetPasswordForEmail(email, { redirectTo });
+      const { user_id, email, password } = body as Record<string, string>;
+      if (!password || password.length < 8 || password.length > 72) {
+        return json({ error: "Password must be 8–72 characters" }, 400);
+      }
+      let targetId = user_id;
+      if (!targetId && email) {
+        const found = await findUserByEmail(svc, email);
+        if (!found) return json({ error: "User not found" }, 404);
+        targetId = found.id;
+      }
+      if (!targetId) return json({ error: "user_id or email required" }, 400);
+      const { error } = await svc.auth.admin.updateUserById(targetId, { password });
       if (error) return json({ error: error.message }, 400);
-      await logActivity(svc, callerId, "user.password_reset", null, { email });
+      await logActivity(svc, callerId, "user.password_reset", targetId, {});
       return json({ ok: true });
     }
 
