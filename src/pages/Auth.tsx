@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { FileText, Lock, Sparkles } from "lucide-react";
 import { z } from "zod";
@@ -19,9 +18,6 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   const [busy, setBusy] = useState(false);
-  const [forgotOpen, setForgotOpen] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotBusy, setForgotBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && user) navigate("/", { replace: true });
@@ -40,19 +36,6 @@ const Auth = () => {
     setBusy(false);
     if (error) toast.error(error.message);
     else toast.success("Welcome back");
-  };
-
-  const onForgot = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const parsed = z.string().email().safeParse(forgotEmail);
-    if (!parsed.success) { toast.error("Enter a valid email"); return; }
-    setForgotBusy(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    setForgotBusy(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Reset link sent — check your email"); setForgotOpen(false); }
   };
 
   return (
@@ -113,10 +96,7 @@ const Auth = () => {
               <Input id="si-email" name="email" type="email" required autoComplete="email" />
             </div>
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="si-pw">Password</Label>
-                <button type="button" onClick={() => setForgotOpen(true)} className="text-xs text-primary hover:underline">Forgot password?</button>
-              </div>
+              <Label htmlFor="si-pw">Password</Label>
               <Input id="si-pw" name="password" type="password" required autoComplete="current-password" />
             </div>
             <Button type="submit" disabled={busy} className="w-full gradient-brand text-primary-foreground">
@@ -125,25 +105,8 @@ const Auth = () => {
           </form>
 
           <p className="text-xs text-muted-foreground mt-6 text-center">
-            Need an account? Ask your administrator to invite you.
+            Need an account or forgot your password? Contact your administrator.
           </p>
-
-          <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
-            <DialogContent className="sm:max-w-sm">
-              <DialogHeader><DialogTitle>Reset password</DialogTitle></DialogHeader>
-              <form onSubmit={onForgot} className="space-y-4">
-                <p className="text-sm text-muted-foreground">We'll email you a secure reset link. The link expires in 15 minutes.</p>
-                <div className="space-y-1.5">
-                  <Label htmlFor="fp-email">Email</Label>
-                  <Input id="fp-email" type="email" required value={forgotEmail} onChange={(e) => setForgotEmail(e.target.value)} />
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setForgotOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={forgotBusy}>{forgotBusy ? "Sending…" : "Send reset link"}</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
     </div>
