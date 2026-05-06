@@ -45,8 +45,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
-      if (s?.user) loadRoles(s.user.id).finally(() => setLoading(false));
-      else setLoading(false);
+      if (s?.user) {
+        // Validate the session is actually live (refresh token may be invalid)
+        supabase.auth.getUser().then(({ error }) => {
+          if (error) {
+            supabase.auth.signOut().finally(() => {
+              setSession(null);
+              setUser(null);
+              setRoles([]);
+              setLoading(false);
+            });
+          } else {
+            loadRoles(s.user.id).finally(() => setLoading(false));
+          }
+        });
+      } else {
+        setLoading(false);
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, []);
