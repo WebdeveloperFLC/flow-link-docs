@@ -31,43 +31,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
-      // If a token refresh resolved with no session, force a clean signout.
-      if (event === "TOKEN_REFRESHED" && !s) {
-        supabase.auth.signOut();
-        setSession(null);
-        setUser(null);
-        setRoles([]);
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        setTimeout(() => loadRoles(s.user.id).finally(() => setLoading(false)), 0);
+        setTimeout(() => loadRoles(s.user.id), 0);
       } else {
         setRoles([]);
-        setLoading(false);
       }
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
-        // Validate the session is actually live (refresh token may be invalid)
-        supabase.auth.getUser().then(({ error }) => {
-          if (error) {
-            supabase.auth.signOut().finally(() => {
-              setSession(null);
-              setUser(null);
-              setRoles([]);
-              setLoading(false);
-            });
-          } else {
-            loadRoles(s.user.id).finally(() => setLoading(false));
-          }
-        });
+        loadRoles(s.user.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
