@@ -1,66 +1,42 @@
-## Problem
+## Root cause
 
-Non-admin users with edit rights get an RLS violation when creating a new client. The current `clients insert scoped` RLS policy restricts inserts to users who hold one of these roles: `admin`, `counselor`, `documentation`. Any other role (e.g. `viewer`, or a custom edit-permission role granted via `client_access`) is blocked at the database level — even though the UI's `canCreateClient` flag may be true for them in some flows.
+Postgres logs confirm 4 inserts on `public.clients` were rejected with `new row violates row-level security policy`. The current `WITH CHECK` requires `owner_id = auth.uid() AND created_by = auth.uid()` when those fields are present in the request body — and the frontend always sends them.
 
-Additionally, the request is that whoever creates a client automatically becomes the **full-authority owner** of that file.
+When the user-supplied `owner_id` / `created_by` doesn't match `auth.uid()` exactly at evaluation time (stale session uid, or a non-admin where the client sent the wrong id), the equality check fails and the row is rejected. The `BEFORE INSERT` trigger we added doesn't help because triggers run *before* RLS `WITH CHECK` re-evaluates the row's submitted values — and the policy already failed by then in some flows.
 
 ## Fix
 
-### 1. Database — relax `clients` insert RLS
+Make the policy trust the trigger: allow any authenticated user to insert, and have the trigger **forcibly overwrite** `owner_id` and `created_by` with `auth.uid()`. This is safe because the trigger always wins, and the creator becomes the owner with `full` permission via existing `user_client_permission`.
 
-Replace the existing `clients insert scoped` policy with one that allows **any authenticated user** to create a client, as long as they set themselves as `owner_id` (or leave it null, in which case a trigger sets it). This guarantees the creator owns the record.
+### Migration
 
 ```sql
+-- 1. Simplify RLS: any signed-in user may insert
 DROP POLICY "clients insert scoped" ON public.clients;
-
 CREATE POLICY "clients insert scoped"
-ON public.clients
-FOR INSERT
-TO authenticated
-WITH CHECK (
-  auth.uid() IS NOT NULL
-  AND (owner_id IS NULL OR owner_id = auth.uid())
-  AND (created_by IS NULL OR created_by = auth.uid())
-);
-```
+ON public.clients FOR INSERT TO authenticated
+WITH CHECK (auth.uid() IS NOT NULL);
 
-### 2. Database — trigger to default ownership to the creator
-
-To guarantee "full authority" without relying on the client to send `owner_id`:
-
-```sql
+-- 2. Trigger forces ownership to the caller (no longer "if null")
 CREATE OR REPLACE FUNCTION public.set_client_owner_defaults()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  IF NEW.owner_id IS NULL THEN NEW.owner_id := auth.uid(); END IF;
-  IF NEW.created_by IS NULL THEN NEW.created_by := auth.uid(); END IF;
+  NEW.owner_id   := auth.uid();
+  NEW.created_by := auth.uid();
   RETURN NEW;
 END $$;
-
-CREATE TRIGGER trg_set_client_owner_defaults
-BEFORE INSERT ON public.clients
-FOR EACH ROW EXECUTE FUNCTION public.set_client_owner_defaults();
 ```
 
-Because `user_client_permission` already returns `'full'` when `owner_id = auth.uid() OR created_by = auth.uid()`, the creator automatically receives full edit/upload/view rights — no extra `client_access` row needed.
+The existing `BEFORE INSERT` trigger `trg_set_client_owner_defaults` stays attached and will now overwrite client-sent values, guaranteeing the creator is the owner regardless of what the frontend sends.
 
-### 3. Frontend — show "New client" to all authenticated users
+### Why this resolves it
 
-Update `src/contexts/AuthContext.tsx`:
+- Any authenticated user passes the new `WITH CHECK`.
+- Trigger sets `owner_id = created_by = auth.uid()`, so `user_client_permission(auth.uid(), id) = 'full'` — creator has full authority immediately.
+- Admins keep full access via `has_role` branch.
 
-```ts
-canCreateClient: !!user,  // any signed-in user can create
-```
+## Files
 
-This makes the **New client** button in `src/pages/Clients.tsx` visible to viewers and any other roles, matching the new RLS.
+- New migration: `supabase/migrations/<ts>_clients_insert_open_v2.sql` with the two statements above.
 
-## Files changed
-
-- New migration: `supabase/migrations/<timestamp>_clients_insert_open.sql` (policy + trigger above)
-- `src/contexts/AuthContext.tsx` — broaden `canCreateClient`
-
-## Result
-
-- Any signed-in user can create a client.
-- The creator is automatically the owner and has `full` permission on that client file.
-- Admins retain full access to everything as before.
+No frontend changes needed — `NewClientDialog.tsx` and `AuthContext.canCreateClient` already send the right shape and expose the button.
