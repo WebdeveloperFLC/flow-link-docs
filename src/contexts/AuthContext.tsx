@@ -31,7 +31,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // If a token refresh resolved with no session, force a clean signout.
+      if (event === "TOKEN_REFRESHED" && !s) {
+        supabase.auth.signOut();
+        setSession(null);
+        setUser(null);
+        setRoles([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setSession(s);
       setUser(s?.user ?? null);
