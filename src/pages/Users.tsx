@@ -9,7 +9,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { Navigate } from "react-router-dom";
-import { Shield, UserCog, Plus, MoreHorizontal } from "lucide-react";
+import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
@@ -48,6 +51,10 @@ const Users = () => {
   const [busy, setBusy] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [lifecycle, setLifecycle] = useState<{ action: LifecycleAction; user: Profile } | null>(null);
+  const [resetUser, setResetUser] = useState<Profile | null>(null);
+  const [newPw, setNewPw] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
 
   const load = async () => {
     const [{ data: p }, { data: r }] = await Promise.all([
@@ -183,8 +190,7 @@ const Users = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => p.email && callAction({ action: "reset_password", email: p.email }, "Reset email sent")}
-                          disabled={!p.email}
+                          onClick={() => { setResetUser(p); setNewPw(""); setShowNewPw(false); }}
                         >Reset password</DropdownMenuItem>
                         {status === "active" ? (
                           <DropdownMenuItem disabled={isMe} onClick={() => setLifecycle({ action: "suspend", user: p })}>
@@ -217,6 +223,47 @@ const Users = () => {
           <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit</b> users can add clients, upload documents and fill all details · <b>Viewer</b> is read-only. Users only see clients they own, are assigned to, or have been shared via team or per-client access.</p>
         </div>
       </div>
+      <Dialog open={!!resetUser} onOpenChange={(o) => { if (!o) setResetUser(null); }}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>Reset password</DialogTitle></DialogHeader>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!resetUser) return;
+              if (newPw.length < 8 || newPw.length > 72) { toast.error("Password must be 8–72 characters"); return; }
+              setResetBusy(true);
+              const { data, error } = await supabase.functions.invoke("admin-users", {
+                body: { action: "reset_password", user_id: resetUser.id, password: newPw },
+              });
+              setResetBusy(false);
+              if (error || (data as { error?: string })?.error) {
+                toast.error((data as { error?: string })?.error ?? error?.message ?? "Failed");
+                return;
+              }
+              toast.success("Password updated");
+              setResetUser(null);
+            }}
+            className="space-y-4"
+          >
+            <p className="text-sm text-muted-foreground">
+              Set a new password for <b>{resetUser?.full_name ?? resetUser?.email}</b>. The user will need to sign in with this password.
+            </p>
+            <div className="space-y-1.5">
+              <Label htmlFor="rp-pw">New password</Label>
+              <div className="relative">
+                <Input id="rp-pw" type={showNewPw ? "text" : "password"} required minLength={8} maxLength={72} value={newPw} onChange={(e) => setNewPw(e.target.value)} autoComplete="new-password" />
+                <button type="button" onClick={() => setShowNewPw((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                  {showNewPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setResetUser(null)}>Cancel</Button>
+              <Button type="submit" disabled={resetBusy}>{resetBusy ? "Updating…" : "Update password"}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <AddUserDialog open={addOpen} onOpenChange={setAddOpen} onCreated={load} />
       {lifecycle && (
         <HandleUserDataDialog
