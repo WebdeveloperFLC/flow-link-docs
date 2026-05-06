@@ -1,42 +1,44 @@
-## Root cause
+# Why the previous three fixes didn't work
 
-Postgres logs confirm 4 inserts on `public.clients` were rejected with `new row violates row-level security policy`. The current `WITH CHECK` requires `owner_id = auth.uid() AND created_by = auth.uid()` when those fields are present in the request body — and the frontend always sends them.
+All prior attempts changed RLS / triggers on `public.clients`. I verified the current state directly against the database:
 
-When the user-supplied `owner_id` / `created_by` doesn't match `auth.uid()` exactly at evaluation time (stale session uid, or a non-admin where the client sent the wrong id), the equality check fails and the row is rejected. The `BEFORE INSERT` trigger we added doesn't help because triggers run *before* RLS `WITH CHECK` re-evaluates the row's submitted values — and the policy already failed by then in some flows.
+- Policy `clients insert scoped` = `WITH CHECK (auth.uid() IS NOT NULL)` ✅
+- Trigger `trg_set_client_owner_defaults` forces `owner_id = auth.uid()`, `created_by = auth.uid()` ✅
+- RLS is enabled, no other restrictive policies ✅
 
-## Fix
+So the policy is permissive. Yet Postgres logs still show:
+`new row violates row-level security policy for table "clients"` at the moment of the click.
 
-Make the policy trust the trigger: allow any authenticated user to insert, and have the trigger **forcibly overwrite** `owner_id` and `created_by` with `auth.uid()`. This is safe because the trigger always wins, and the creator becomes the owner with `full` permission via existing `user_client_permission`.
+The only way that policy can fail is if **`auth.uid()` is `NULL`** — i.e. the request reached PostgREST **without a valid user JWT**. Auth logs confirm a `refresh_token_not_found` 400 just before the failure. The React `AuthContext` still held the `user` object in memory (so the dialog rendered and the button was enabled), but the supabase-js client had no usable session, so the `from('clients').insert(...)` call went out as the anonymous role.
 
-### Migration
+**New root-cause hypothesis:** the bug is client-side, not database-side. The Supabase JS client lost its session (expired/invalid refresh token), but our `AuthContext` did not react, so the app kept making "authenticated" calls that were actually anonymous. RLS correctly rejected them.
 
-```sql
--- 1. Simplify RLS: any signed-in user may insert
-DROP POLICY "clients insert scoped" ON public.clients;
-CREATE POLICY "clients insert scoped"
-ON public.clients FOR INSERT TO authenticated
-WITH CHECK (auth.uid() IS NOT NULL);
+# Fix (code only — no DB changes)
 
--- 2. Trigger forces ownership to the caller (no longer "if null")
-CREATE OR REPLACE FUNCTION public.set_client_owner_defaults()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  NEW.owner_id   := auth.uid();
-  NEW.created_by := auth.uid();
-  RETURN NEW;
-END $$;
-```
+### 1. `src/contexts/AuthContext.tsx`
+- Subscribe to `onAuthStateChange` events `TOKEN_REFRESHED`, `SIGNED_OUT`, and `USER_UPDATED`. On `SIGNED_OUT` or when a refresh yields no session, clear `user` / `session` / `roles` immediately so guarded UI disappears.
+- After `getSession()` on mount, also `getUser()`. If it returns an error (invalid refresh token), call `supabase.auth.signOut()` and clear state so the user is bounced to `/auth` instead of seeing a stale "logged-in" UI.
 
-The existing `BEFORE INSERT` trigger `trg_set_client_owner_defaults` stays attached and will now overwrite client-sent values, guaranteeing the creator is the owner regardless of what the frontend sends.
+### 2. `src/components/clients/NewClientDialog.tsx`
+- Before the insert, call `const { data: { session } } = await supabase.auth.getSession();`
+- If `!session?.access_token`, show toast `Your session expired — please sign in again`, close the dialog, redirect to `/auth`, and abort.
+- Drop the manual `created_by` / `owner_id` from the insert payload — the `trg_set_client_owner_defaults` trigger sets them. Sending nulls is harmless but misleading.
+- On error, surface the real Supabase message (`error.message`) in the toast so the next failure (if any) is self-diagnosing instead of the generic "Failed to create client".
 
-### Why this resolves it
+### 3. `src/App.tsx` (or existing `ProtectedRoute`)
+- Verify the route guard redirects to `/auth` when `session` is `null` (not just when `user` is null). Add the missing branch if needed. This prevents authenticated screens from ever rendering with a dead session.
 
-- Any authenticated user passes the new `WITH CHECK`.
-- Trigger sets `owner_id = created_by = auth.uid()`, so `user_client_permission(auth.uid(), id) = 'full'` — creator has full authority immediately.
-- Admins keep full access via `has_role` branch.
+# What is explicitly NOT changing
 
-## Files
+- No new migration. Re-touching the `clients` policies or trigger will not fix this — they are already correct.
+- No changes to roles, permissions, or `user_client_permission`.
 
-- New migration: `supabase/migrations/<ts>_clients_insert_open_v2.sql` with the two statements above.
+# Verification I will run after the edit
 
-No frontend changes needed — `NewClientDialog.tsx` and `AuthContext.canCreateClient` already send the right shape and expose the button.
+1. `code--exec` build check passes.
+2. Re-read `AuthContext.tsx` and `NewClientDialog.tsx` to confirm the session pre-flight is on the click path.
+3. Query Postgres logs again after you retry once; expect zero new `row-level security` errors on `clients`.
+
+# What you do after I apply it
+
+Sign in once on `/auth` (your previous session is dead — that's why this is happening). Then "New client" → fill → Create. The dialog will now refuse to even attempt the insert without a live JWT, and with a live JWT the trigger stamps you as owner and RLS passes.

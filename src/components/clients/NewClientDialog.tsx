@@ -49,7 +49,14 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        toast.error("Your session expired — please sign in again");
+        await supabase.auth.signOut();
+        onOpenChange(false);
+        window.location.assign("/auth");
+        return;
+      }
       const { data, error } = await supabase.from("clients").insert({
         full_name: parsed.data.full_name,
         email: parsed.data.email || null,
@@ -57,8 +64,6 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
         country: parsed.data.country,
         application_type: parsed.data.application_type,
         template_id: parsed.data.template_id || null,
-        created_by: user?.id ?? null,
-        owner_id: user?.id ?? null,
       }).select().single();
       if (error) throw error;
       await logActivity("client.created", "client", data.id, { application_id: data.application_id });
@@ -67,9 +72,9 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
       setCountry(""); setAppType(""); setTemplateId("");
       onCreated();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Failed to create client";
+      const msg = err instanceof Error ? err.message : (typeof err === "object" && err && "message" in err ? String((err as { message: unknown }).message) : "Failed to create client");
       console.error("Create client failed:", err);
-      toast.error(msg);
+      toast.error(`Failed to create client: ${msg}`);
     } finally {
       setBusy(false);
     }
