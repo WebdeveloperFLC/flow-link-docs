@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { AppRole } from "@/contexts/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 
 const schema = z.object({
   first_name: z.string().trim().min(1).max(50),
@@ -15,6 +16,7 @@ const schema = z.object({
   email: z.string().trim().email().max(255),
   phone: z.string().trim().min(5).max(40),
   role: z.enum(["admin", "counselor", "documentation", "viewer"]),
+  password: z.string().min(8, "Password must be at least 8 characters").max(72),
 });
 
 const ROLE_LABEL: Record<AppRole, string> = {
@@ -27,6 +29,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
 export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; }) => {
   const [busy, setBusy] = useState(false);
   const [role, setRole] = useState<AppRole>("viewer");
+  const [showPw, setShowPw] = useState(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,6 +37,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
     const parsed = schema.safeParse({
       first_name: fd.get("first_name"), last_name: fd.get("last_name"),
       email: fd.get("email"), phone: fd.get("phone"), role,
+      password: fd.get("password"),
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
@@ -45,7 +49,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
       toast.error((data as { error?: string })?.error ?? error?.message ?? "Failed to add user");
       return;
     }
-    toast.success("Invitation sent");
+    toast.success("Account created — verification email sent");
     onOpenChange(false);
     onCreated();
   };
@@ -84,10 +88,19 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
               </SelectContent>
             </Select>
           </div>
-          <p className="text-xs text-muted-foreground">An invitation email will be sent so they can set their password.</p>
+          <div className="space-y-1.5">
+            <Label htmlFor="password">Password *</Label>
+            <div className="relative">
+              <Input id="password" name="password" type={showPw ? "text" : "password"} required minLength={8} maxLength={72} autoComplete="new-password" />
+              <button type="button" onClick={() => setShowPw((s) => !s)} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" tabIndex={-1}>
+                {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">A verification email will be sent. The user will sign in with the password you set above. Only admins can change passwords later.</p>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">{busy ? "Sending…" : "Send invite"}</Button>
+            <Button type="submit" disabled={busy} className="gradient-brand text-primary-foreground">{busy ? "Creating…" : "Create account"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
