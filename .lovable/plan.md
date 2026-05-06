@@ -1,40 +1,21 @@
-## Root cause (new hypothesis, confirmed by data)
+## Root cause
 
-Both reported problems are the **same bug**, not two:
-
-The admin "Create user" flow in `supabase/functions/admin-users/index.ts` calls `auth.admin.createUser({ email_confirm: false, ... })`. This deliberately marks every new internal user as **unconfirmed**, so:
-
-1. They cannot sign in → "Email not confirmed" toast (the second issue you reported).
-2. Because they can never log in, they can never create a client → which looks like "only admins can add clients" (the first issue). 
-
-**Evidence from the live database:**
-- Every user created through the admin flow has `email_confirmed_at = NULL` and `last_sign_in_at = NULL` (krishna, namrata, insia, meena, ankita, trainer, counselor10/11, manjalpur, flc.trv4, santosh@futurelinkconsultants.ca, etc.).
-- The one counselor who *is* confirmed (`trv@futurelinkconsultants.com`) successfully created client FL-10 — proving RLS, triggers, and `user_client_permission` already work correctly for non-admins. No DB changes are needed.
+The PGRST202 error proves the `create_client` RPC was never actually applied to the database — querying `pg_proc` returns zero rows for it. The previous migration file exists in the repo but was not executed against the live DB. PostgREST has no function in its schema cache, so the call 404s.
 
 ## Fix
 
-### 1. `supabase/functions/admin-users/index.ts`
-- Change `email_confirm: false` → `email_confirm: true` in the `create` action so admin-created internal users can sign in immediately.
-- Remove the now-misleading comment about confirmation emails.
+Create a NEW migration (fresh timestamp) with the same `create_client` function so it will actually be applied this time. No frontend changes needed — `NewClientDialog.tsx` already calls `supabase.rpc("create_client", ...)` with the right argument names.
 
-### 2. One-shot SQL migration to unblock existing users
-Confirm every currently-unconfirmed user so they can log in without re-creation:
-```sql
-UPDATE auth.users
-   SET email_confirmed_at = COALESCE(email_confirmed_at, now()),
-       confirmed_at       = COALESCE(confirmed_at, now())
- WHERE email_confirmed_at IS NULL;
-```
+### New migration content
+- `CREATE OR REPLACE FUNCTION public.create_client(_full_name text, _country text, _application_type text, _email text DEFAULT NULL, _phone text DEFAULT NULL, _template_id uuid DEFAULT NULL)` returning `public.clients`, `SECURITY DEFINER`, `search_path = public`.
+- Validates `auth.uid()` is not null (else raises `Not authenticated`).
+- Inserts into `public.clients` with `owner_id = auth.uid()` and `created_by = auth.uid()`.
+- `REVOKE ALL ... FROM PUBLIC; GRANT EXECUTE ... TO authenticated;`
+- `NOTIFY pgrst, 'reload schema';` to force PostgREST to refresh its schema cache immediately.
 
-### 3. Frontend cleanup — `src/components/clients/NewClientDialog.tsx`
-The `whoami` pre-flight added in earlier rounds is no longer needed (it was diagnosing a non-issue). Remove it; keep the verbose error toast for any future failure.
+## Files
+- New: `supabase/migrations/<new-timestamp>_create_client_rpc_v2.sql`
 
-### 4. Optional: drop `public.whoami()` 
-It served its diagnostic purpose. Remove via migration to keep the schema clean.
-
-## Files touched
-- `supabase/functions/admin-users/index.ts`
-- `src/components/clients/NewClientDialog.tsx`
-- New migration: confirm existing users, drop `whoami`.
-
-After approval I will apply the changes and verify by re-querying `auth.users` to confirm no rows remain unconfirmed.
+## Verification after apply
+- Query `pg_proc` to confirm the function exists.
+- Confirm a non-admin counselor can create a client end-to-end.

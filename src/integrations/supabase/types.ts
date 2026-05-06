@@ -1518,6 +1518,43 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      create_client: {
+        Args: {
+          _application_type: string
+          _country: string
+          _email?: string
+          _full_name: string
+          _phone?: string
+          _template_id?: string
+        }
+        Returns: {
+          application_id: string
+          application_type: string
+          country: string
+          created_at: string
+          created_by: string | null
+          email: string | null
+          extra_items: Json
+          full_name: string
+          id: string
+          notes: string | null
+          odoo_lead_id: number | null
+          odoo_partner_id: number | null
+          odoo_synced_at: string | null
+          owner_id: string | null
+          phone: string | null
+          status: string
+          suppressed_template_items: string[]
+          template_id: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
