@@ -100,7 +100,7 @@ const Masters = () => {
         actions={
           activeList && (
             <Button onClick={() => { setEditing(null); setOpen(true); }} className="gradient-brand text-primary-foreground">
-              <Plus className="size-4 mr-1.5" /> New {activeList.label.toLowerCase().replace(/s$/, "")}
+              <Plus className="size-4 mr-1.5" /> New {singularize(activeList.label).toLowerCase()}
             </Button>
           )
         }
