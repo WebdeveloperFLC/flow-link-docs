@@ -95,7 +95,13 @@ Deno.serve(async (req) => {
         email_confirm: true,
         user_metadata: { full_name: fullName },
       });
-      if (createErr || !created?.user) return json({ error: createErr?.message ?? "Create failed" }, 400);
+      if (createErr || !created?.user) {
+        const raw = createErr?.message ?? "Create failed";
+        const friendly = /weak|known to be|pwned|leaked/i.test(raw)
+          ? "Password is too weak or has appeared in a known data breach. Use a longer password mixing upper/lowercase letters, numbers, and symbols."
+          : raw;
+        return json({ error: friendly }, 400);
+      }
       const newId = created.user.id;
 
       await svc.from("profiles").upsert({
