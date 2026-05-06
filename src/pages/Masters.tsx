@@ -21,6 +21,15 @@ interface MasterList { key: string; label: string; description: string | null; }
 const slugify = (s: string) =>
   s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60);
 
+const singularize = (label: string) => {
+  const trimmed = label.trim();
+  if (/ies$/i.test(trimmed)) return trimmed.replace(/ies$/i, "y");
+  if (/uses$/i.test(trimmed)) return trimmed.replace(/uses$/i, "us");
+  if (/sses$/i.test(trimmed)) return trimmed.replace(/es$/i, "");
+  if (/s$/i.test(trimmed)) return trimmed.replace(/s$/i, "");
+  return trimmed;
+};
+
 const Masters = () => {
   const { isAdmin } = useAuth();
   const [lists, setLists] = useState<MasterList[]>([]);
@@ -100,7 +109,7 @@ const Masters = () => {
         actions={
           activeList && (
             <Button onClick={() => { setEditing(null); setOpen(true); }} className="gradient-brand text-primary-foreground">
-              <Plus className="size-4 mr-1.5" /> New {activeList.label.toLowerCase().replace(/s$/, "")}
+              <Plus className="size-4 mr-1.5" /> New {singularize(activeList.label).toLowerCase()}
             </Button>
           )
         }
