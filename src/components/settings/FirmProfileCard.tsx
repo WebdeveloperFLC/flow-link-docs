@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Upload, Loader2 } from "lucide-react";
+import { Building2, Upload, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface FirmProfile {
@@ -87,6 +87,27 @@ export const FirmProfileCard = () => {
     } finally { setUploading(null); }
   };
 
+  const remove = async (kind: "logo" | "signature") => {
+    const field = kind === "logo" ? "logo_path" : "signature_path";
+    const oldPath = p[field];
+    if (!oldPath) return;
+    if (!confirm(`Remove ${kind}?`)) return;
+    try {
+      const next = { ...p, [field]: null };
+      setP(next);
+      if (p.id) {
+        const { error } = await supabase.from("firm_profile").update({ [field]: null } as never).eq("id", p.id);
+        if (error) throw error;
+      }
+      // best-effort delete from storage
+      await supabase.storage.from("branding").remove([oldPath]).catch(() => {});
+      await refreshUrls(next.logo_path, next.signature_path);
+      toast.success(`${kind} removed`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Remove failed");
+    }
+  };
+
   return (
     <Card className="p-5 shadow-elev-sm space-y-4">
       <div>
@@ -112,8 +133,8 @@ export const FirmProfileCard = () => {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4">
-        <AssetSlot label="Logo" url={logoUrl} uploading={uploading === "logo"} onPick={(f) => upload("logo", f)} />
-        <AssetSlot label="Signature image" url={sigUrl} uploading={uploading === "signature"} onPick={(f) => upload("signature", f)} />
+        <AssetSlot label="Logo" url={logoUrl} uploading={uploading === "logo"} onPick={(f) => upload("logo", f)} onRemove={p.logo_path ? () => remove("logo") : undefined} />
+        <AssetSlot label="Signature image" url={sigUrl} uploading={uploading === "signature"} onPick={(f) => upload("signature", f)} onRemove={p.signature_path ? () => remove("signature") : undefined} />
       </div>
 
       <div className="flex justify-end">
@@ -130,7 +151,7 @@ const Field = ({ label, v, on }: { label: string; v: string | null; on: (v: stri
   </div>
 );
 
-const AssetSlot = ({ label, url, uploading, onPick }: { label: string; url: string | null; uploading: boolean; onPick: (f: File) => void }) => (
+const AssetSlot = ({ label, url, uploading, onPick, onRemove }: { label: string; url: string | null; uploading: boolean; onPick: (f: File) => void; onRemove?: () => void }) => (
   <div className="space-y-2">
     <Label className="text-xs">{label}</Label>
     <div className="flex items-center gap-3 border rounded-md p-3 bg-muted/30">
@@ -146,6 +167,16 @@ const AssetSlot = ({ label, url, uploading, onPick }: { label: string; url: stri
           {url ? "Replace" : "Upload"}
         </span>
       </label>
+      {url && onRemove && !uploading && (
+        <button
+          type="button"
+          onClick={onRemove}
+          className="inline-flex items-center gap-1.5 rounded-md border border-destructive/30 bg-background hover:bg-destructive/10 text-destructive px-3 py-1.5 text-sm"
+        >
+          <Trash2 className="size-3.5" />
+          Remove
+        </button>
+      )}
     </div>
   </div>
 );
