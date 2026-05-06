@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin: roles.includes("admin"),
     canEdit: hasRole(["admin", "counselor", "documentation"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
-    canCreateClient: hasRole(["admin", "counselor", "documentation"]),
+    canCreateClient: !!user,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
