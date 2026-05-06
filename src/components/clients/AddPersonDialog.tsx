@@ -32,6 +32,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
   const hasApplicant = roster.some((p) => p.role === "applicant" && !p.is_archived);
   const RELATIONSHIP_PRESETS = useMasterLabels("relationships");
   const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState<PersonRole>(hasApplicant ? "co_applicant" : "applicant");
   const [relationshipPreset, setRelationshipPreset] = useState<string>("Spouse");
@@ -41,7 +42,7 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
   const [saving, setSaving] = useState(false);
 
   const reset = () => {
-    setFirstName(""); setLastName("");
+    setFirstName(""); setMiddleName(""); setLastName("");
     setRole(hasApplicant ? "co_applicant" : "applicant");
     setRelationshipPreset("Spouse"); setRelationshipOther("");
     setDob(""); setPassport("");
@@ -57,9 +58,10 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
 
   const onSave = async () => {
     const fn = firstName.trim();
+    const mn = middleName.trim();
     const ln = lastName.trim();
     if (!fn || !ln) { toast.error("First and last name are required"); return; }
-    const fullName = `${fn} ${ln}`.trim();
+    const fullName = [fn, mn, ln].filter(Boolean).join(" ");
     const isApplicant = role === "applicant";
     const relationship = isApplicant
       ? null
@@ -105,10 +107,14 @@ export const AddPersonDialog = ({ open, onOpenChange, clientId, onAdded, roster 
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label>First name *</Label>
               <Input autoFocus value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="Anjali" />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Middle name</Label>
+              <Input value={middleName} onChange={(e) => setMiddleName(e.target.value)} placeholder="optional" />
             </div>
             <div className="space-y-1.5">
               <Label>Last name *</Label>
