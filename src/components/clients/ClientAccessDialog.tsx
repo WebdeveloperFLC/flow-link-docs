@@ -52,10 +52,15 @@ export function ClientAccessDialog({
   const grantUser = async () => {
     if (!newUserId) return;
     setBusy(true);
-    const { error } = await supabase.from("client_access").upsert(
-      { client_id: clientId, user_id: newUserId, permission: newUserPerm },
-      { onConflict: "client_id,user_id" }
-    );
+    const { data: existing } = await supabase
+      .from("client_access")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("user_id", newUserId)
+      .maybeSingle();
+    const { error } = existing
+      ? await supabase.from("client_access").update({ permission: newUserPerm }).eq("id", existing.id)
+      : await supabase.from("client_access").insert({ client_id: clientId, user_id: newUserId, permission: newUserPerm });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_granted", "client", clientId, { user_id: newUserId, permission: newUserPerm });
@@ -67,10 +72,15 @@ export function ClientAccessDialog({
   const grantTeam = async () => {
     if (!newTeamId) return;
     setBusy(true);
-    const { error } = await supabase.from("client_access").upsert(
-      { client_id: clientId, team_id: newTeamId, permission: newTeamPerm },
-      { onConflict: "client_id,team_id" }
-    );
+    const { data: existing } = await supabase
+      .from("client_access")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("team_id", newTeamId)
+      .maybeSingle();
+    const { error } = existing
+      ? await supabase.from("client_access").update({ permission: newTeamPerm }).eq("id", existing.id)
+      : await supabase.from("client_access").insert({ client_id: clientId, team_id: newTeamId, permission: newTeamPerm });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_granted", "client", clientId, { team_id: newTeamId, permission: newTeamPerm });
