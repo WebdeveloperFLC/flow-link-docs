@@ -49,8 +49,8 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
+      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+      if (refreshErr || !refreshed.session?.access_token) {
         toast.error("Your session expired — please sign in again");
         await supabase.auth.signOut();
         onOpenChange(false);
