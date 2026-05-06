@@ -49,12 +49,12 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     try {
-      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
-      if (refreshErr || !refreshed.session?.access_token) {
-        toast.error("Your session expired — please sign in again");
-        await supabase.auth.signOut();
-        onOpenChange(false);
-        window.location.assign("/auth");
+      // Server-side identity probe: confirms the JWT is reaching PostgREST as the logged-in user.
+      const { data: who, error: whoErr } = await supabase.rpc("whoami");
+      console.log("[NewClient] whoami =", who, "err =", whoErr);
+      const uid = (who as { uid?: string | null } | null)?.uid ?? null;
+      if (whoErr || !uid) {
+        toast.error("Auth token not reaching server — please sign out and back in");
         return;
       }
       const { data, error } = await supabase.from("clients").insert({
@@ -72,8 +72,9 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
       setCountry(""); setAppType(""); setTemplateId("");
       onCreated();
     } catch (err) {
-      const msg = err instanceof Error ? err.message : (typeof err === "object" && err && "message" in err ? String((err as { message: unknown }).message) : "Failed to create client");
+      const e = err as { code?: string; message?: string; details?: string; hint?: string } | null;
       console.error("Create client failed:", err);
+      const msg = [e?.code && `[${e.code}]`, e?.message, e?.details, e?.hint].filter(Boolean).join(" — ") || "Failed to create client";
       toast.error(`Failed to create client: ${msg}`);
     } finally {
       setBusy(false);
