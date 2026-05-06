@@ -1,34 +1,66 @@
-# Plan — Admin-created accounts with password
+## Problem
 
-Change the "Add new user" flow so admins create the account directly with a password they choose, and the invitee only receives an email-verification link (no password-reset rights for end users).
+Non-admin users with edit rights get an RLS violation when creating a new client. The current `clients insert scoped` RLS policy restricts inserts to users who hold one of these roles: `admin`, `counselor`, `documentation`. Any other role (e.g. `viewer`, or a custom edit-permission role granted via `client_access`) is blocked at the database level — even though the UI's `canCreateClient` flag may be true for them in some flows.
 
-## 1. `src/components/users/AddUserDialog.tsx`
-- Add a **Password** field (and a visibility toggle) right after the Role select.
-  - Validation: min 8, max 72 chars; show inline error from zod.
-- Rename the submit button from "Send invite" → **"Create account"** (busy label "Creating…").
-- Update helper text below Role: "A verification email will be sent. The user will sign in with the password you set here."
-- Send `password` to the `admin-users` edge function as part of the `create` action.
+Additionally, the request is that whoever creates a client automatically becomes the **full-authority owner** of that file.
 
-## 2. `supabase/functions/admin-users/index.ts` — `create` action
-Replace the current `inviteUserByEmail` flow with:
-- `svc.auth.admin.createUser({ email, password, email_confirm: false, user_metadata: { full_name } })` — creates the account with the admin-supplied password, unconfirmed.
-- Then call `svc.auth.admin.generateLink({ type: 'signup', email, password })` — this triggers Supabase to send the standard **confirmation email** (verify-account link), not a password-reset link. The redirect target stays `${origin}/` so after verifying they land on the app and sign in normally.
-- Continue to upsert the profile row and insert `user_roles` row exactly as today.
-- Validation: reject if password missing or shorter than 8 / longer than 72.
-- All other actions (`update`, `suspend`, `restore`, `delete`, `transfer_data`) stay unchanged.
-- Keep the existing `reset_password` action available, but it will only be callable by admins (current behavior — gated by `has_role(admin)`).
+## Fix
 
-## 3. Remove self-serve password reset for end users
-To enforce "only admin controls passwords":
-- `src/pages/Auth.tsx`: remove the **"Forgot password?"** link and the entire reset dialog/handler. Users who forget their password must ask an admin (admin uses the existing "Reset password" item in the user row's "..." menu, which sends a reset email on demand).
-- `src/pages/ResetPassword.tsx`: keep the page (still used when an admin triggers a reset for someone), no changes needed.
+### 1. Database — relax `clients` insert RLS
 
-## Technical notes
-- `generateLink({ type: 'signup' })` is the supported Supabase admin path to (re)send a confirmation email for a freshly created user; the link points at `/auth/v1/verify` which redirects back to the app once clicked.
-- Because `email_confirm` is false on creation, the user cannot sign in until they click the verification link — exactly the requested behavior.
-- Password is transmitted only between the authenticated admin's browser and the edge function over HTTPS; it is never stored in `profiles` or logged in `activity_logs` (we'll log only `{ email, role }` as today).
+Replace the existing `clients insert scoped` policy with one that allows **any authenticated user** to create a client, as long as they set themselves as `owner_id` (or leave it null, in which case a trigger sets it). This guarantees the creator owns the record.
 
-## Files touched
-- `src/components/users/AddUserDialog.tsx` (UI + payload)
-- `src/pages/Auth.tsx` (remove forgot-password UI)
-- `supabase/functions/admin-users/index.ts` (create action rewrite + password validation)
+```sql
+DROP POLICY "clients insert scoped" ON public.clients;
+
+CREATE POLICY "clients insert scoped"
+ON public.clients
+FOR INSERT
+TO authenticated
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND (owner_id IS NULL OR owner_id = auth.uid())
+  AND (created_by IS NULL OR created_by = auth.uid())
+);
+```
+
+### 2. Database — trigger to default ownership to the creator
+
+To guarantee "full authority" without relying on the client to send `owner_id`:
+
+```sql
+CREATE OR REPLACE FUNCTION public.set_client_owner_defaults()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF NEW.owner_id IS NULL THEN NEW.owner_id := auth.uid(); END IF;
+  IF NEW.created_by IS NULL THEN NEW.created_by := auth.uid(); END IF;
+  RETURN NEW;
+END $$;
+
+CREATE TRIGGER trg_set_client_owner_defaults
+BEFORE INSERT ON public.clients
+FOR EACH ROW EXECUTE FUNCTION public.set_client_owner_defaults();
+```
+
+Because `user_client_permission` already returns `'full'` when `owner_id = auth.uid() OR created_by = auth.uid()`, the creator automatically receives full edit/upload/view rights — no extra `client_access` row needed.
+
+### 3. Frontend — show "New client" to all authenticated users
+
+Update `src/contexts/AuthContext.tsx`:
+
+```ts
+canCreateClient: !!user,  // any signed-in user can create
+```
+
+This makes the **New client** button in `src/pages/Clients.tsx` visible to viewers and any other roles, matching the new RLS.
+
+## Files changed
+
+- New migration: `supabase/migrations/<timestamp>_clients_insert_open.sql` (policy + trigger above)
+- `src/contexts/AuthContext.tsx` — broaden `canCreateClient`
+
+## Result
+
+- Any signed-in user can create a client.
+- The creator is automatically the owner and has `full` permission on that client file.
+- Admins retain full access to everything as before.
