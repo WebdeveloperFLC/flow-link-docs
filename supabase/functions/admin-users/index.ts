@@ -98,15 +98,10 @@ Deno.serve(async (req) => {
       if (createErr || !created?.user) return json({ error: createErr?.message ?? "Create failed" }, 400);
       const newId = created.user.id;
 
-      // Send a verification (signup confirmation) email — NOT a password reset.
-      const redirectTo = `${req.headers.get("origin") ?? ""}/`;
-      const { error: linkErr } = await svc.auth.admin.generateLink({
-        type: "signup",
-        email,
-        password,
-        options: { redirectTo },
-      });
-      if (linkErr) console.warn("generateLink (signup) failed:", linkErr.message);
+      // Note: admin.createUser with email_confirm:false automatically triggers
+      // the standard signup confirmation email when "Confirm email" is enabled
+      // in auth settings. We do NOT call generateLink here because it would
+      // duplicate the email and hit the per-address rate limit.
 
       await svc.from("profiles").upsert({
         id: newId,
