@@ -88,20 +88,15 @@ Deno.serve(async (req) => {
       if (existing) return json({ error: "Email already registered" }, 409);
 
       const fullName = `${first_name} ${last_name}`;
-      // Create the account with admin-supplied password (unconfirmed — user must verify email).
+      // Internal team accounts are provisioned by an administrator — auto-confirm so they can sign in immediately.
       const { data: created, error: createErr } = await svc.auth.admin.createUser({
         email,
         password,
-        email_confirm: false,
+        email_confirm: true,
         user_metadata: { full_name: fullName },
       });
       if (createErr || !created?.user) return json({ error: createErr?.message ?? "Create failed" }, 400);
       const newId = created.user.id;
-
-      // Note: admin.createUser with email_confirm:false automatically triggers
-      // the standard signup confirmation email when "Confirm email" is enabled
-      // in auth settings. We do NOT call generateLink here because it would
-      // duplicate the email and hit the per-address rate limit.
 
       await svc.from("profiles").upsert({
         id: newId,

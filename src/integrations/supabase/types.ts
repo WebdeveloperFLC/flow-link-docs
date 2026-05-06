@@ -1533,7 +1533,6 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: Database["public"]["Enums"]["client_permission"]
       }
-      whoami: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "counselor" | "documentation" | "viewer"

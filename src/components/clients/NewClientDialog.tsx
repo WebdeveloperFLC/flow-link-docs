@@ -49,14 +49,6 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
     try {
-      // Server-side identity probe: confirms the JWT is reaching PostgREST as the logged-in user.
-      const { data: who, error: whoErr } = await supabase.rpc("whoami");
-      console.log("[NewClient] whoami =", who, "err =", whoErr);
-      const uid = (who as { uid?: string | null } | null)?.uid ?? null;
-      if (whoErr || !uid) {
-        toast.error("Auth token not reaching server — please sign out and back in");
-        return;
-      }
       const { data, error } = await supabase.from("clients").insert({
         full_name: parsed.data.full_name,
         email: parsed.data.email || null,
