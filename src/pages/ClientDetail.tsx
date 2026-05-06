@@ -38,6 +38,8 @@ interface Client {
   application_type: string; template_id: string | null; status: string;
   extra_items?: ExtraItem[] | null;
   suppressed_template_items?: string[] | null;
+  owner_id?: string | null;
+  created_by?: string | null;
 }
 
 interface Doc {
@@ -55,7 +57,7 @@ interface BinderRow {
 
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { canUpload, isAdmin } = useAuth();
+  const { canUpload, isAdmin, user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -622,7 +624,7 @@ const ClientDetail = () => {
         actions={
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
-            {isAdmin && (
+            {(isAdmin || (!!user && (client.owner_id === user.id || client.created_by === user.id))) && (
               <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
                 <ShieldCheck className="size-4 mr-1.5" /> Manage access
               </Button>

@@ -15,6 +15,7 @@ import LetterTemplates from "./pages/LetterTemplates";
 import Activity from "./pages/Activity";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import TeamAccess from "./pages/TeamAccess";
 import Masters from "./pages/Masters";
 import Verification from "./pages/Verification";
 import FormsLibrary from "./pages/FormsLibrary";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
             <Route path="/verification" element={<ProtectedRoute><Verification /></ProtectedRoute>} />
             <Route path="/forms-library" element={<ProtectedRoute><FormsLibrary /></ProtectedRoute>} />

@@ -707,6 +707,33 @@ export type Database = {
           },
         ]
       }
+      default_team_members: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          owner_id: string
+          permission: Database["public"]["Enums"]["client_permission"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          owner_id: string
+          permission?: Database["public"]["Enums"]["client_permission"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          owner_id?: string
+          permission?: Database["public"]["Enums"]["client_permission"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_fingerprints: {
         Row: {
           client_id: string | null
