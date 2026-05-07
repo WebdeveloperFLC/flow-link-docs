@@ -78,6 +78,8 @@ const ClientDetail = () => {
   const [sections, setSections] = useState<CaseSection[]>([]);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
+  const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
+  const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -88,7 +90,19 @@ const ClientDetail = () => {
       setTemplate(t as unknown as Template | null);
     } else { setTemplate(null); }
     const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
-    setDocs(((d ?? []) as Doc[]));
+    const all = ((d ?? []) as Doc[]);
+    setDocs(all.filter((x) => !x.deleted_at));
+    const trashed = all.filter((x) => !!x.deleted_at);
+    setTrashedDocs(trashed);
+    const uids = Array.from(new Set(trashed.map((x) => x.deleted_by).filter(Boolean) as string[]));
+    if (uids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: { id: string; full_name: string | null; email: string | null }) => {
+        map[p.id] = p.full_name ?? p.email ?? p.id.slice(0, 8);
+      });
+      setTrashUserNames(map);
+    } else { setTrashUserNames({}); }
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
     setSections(await loadSections(true));
