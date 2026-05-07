@@ -596,6 +596,8 @@ export type Database = {
         Row: {
           client_id: string
           custom_type: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           document_type: string
           file_name: string
           id: string
@@ -614,6 +616,8 @@ export type Database = {
         Insert: {
           client_id: string
           custom_type?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           document_type: string
           file_name: string
           id?: string
@@ -632,6 +636,8 @@ export type Database = {
         Update: {
           client_id?: string
           custom_type?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           document_type?: string
           file_name?: string
           id?: string

@@ -50,6 +50,8 @@ interface Doc {
   section_id?: string | null;
   section_order?: number;
   status?: string | null;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
 }
 
 interface BinderRow {
@@ -76,6 +78,8 @@ const ClientDetail = () => {
   const [sections, setSections] = useState<CaseSection[]>([]);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
+  const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
+  const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -86,7 +90,19 @@ const ClientDetail = () => {
       setTemplate(t as unknown as Template | null);
     } else { setTemplate(null); }
     const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
-    setDocs((d ?? []) as Doc[]);
+    const all = ((d ?? []) as Doc[]);
+    setDocs(all.filter((x) => !x.deleted_at));
+    const trashed = all.filter((x) => !!x.deleted_at);
+    setTrashedDocs(trashed);
+    const uids = Array.from(new Set(trashed.map((x) => x.deleted_by).filter(Boolean) as string[]));
+    if (uids.length) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: { id: string; full_name: string | null; email: string | null }) => {
+        map[p.id] = p.full_name ?? p.email ?? p.id.slice(0, 8);
+      });
+      setTrashUserNames(map);
+    } else { setTrashUserNames({}); }
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
     setSections(await loadSections(true));
@@ -237,10 +253,35 @@ const ClientDetail = () => {
   })();
 
   const onDelete = async (d: Doc) => {
-    if (!confirm(`Delete ${d.file_name}?`)) return;
+    if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as never)
+      .eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.trashed", "document", d.id, { file_name: d.file_name });
+    toast.success("Moved to Trash");
+    load();
+  };
+
+  const onRestore = async (d: Doc) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ deleted_at: null, deleted_by: null } as never)
+      .eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.restored", "document", d.id, { file_name: d.file_name });
+    toast.success("Restored");
+    load();
+  };
+
+  const onPermanentDelete = async (d: Doc) => {
+    if (!confirm(`Permanently delete ${d.file_name}? This cannot be undone.`)) return;
     await supabase.storage.from("client-documents").remove([d.storage_path]);
-    await supabase.from("client_documents").delete().eq("id", d.id);
-    await logActivity("document.deleted", "document", d.id, { file_name: d.file_name });
+    const { error } = await supabase.from("client_documents").delete().eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.purged", "document", d.id, { file_name: d.file_name });
+    toast.success("Permanently deleted");
     load();
   };
 
@@ -938,8 +979,8 @@ const ClientDetail = () => {
                       {optimizing === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
                     </Button>
                   )}
-                  {isAdmin && (
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
+                  {canUpload && (
+                    <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Move to Trash" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
                   )}
                 </div>
               ))}
@@ -977,6 +1018,59 @@ const ClientDetail = () => {
                     </Button>
                   </div>
                 ))}
+              </div>
+            </Card>
+          )}
+
+          {trashedDocs.length > 0 && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <div className="font-semibold flex items-center gap-2">
+                    <Trash2 className="size-4 text-destructive" /> Trash · Recycle bin
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Items are kept for 30 days. After that, an admin can permanently delete them.
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">{trashedDocs.length} item{trashedDocs.length === 1 ? "" : "s"}</div>
+              </div>
+              <div className="divide-y">
+                {trashedDocs.map((d) => {
+                  const deletedAt = d.deleted_at ? new Date(d.deleted_at) : null;
+                  const expiresAt = deletedAt ? new Date(deletedAt.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
+                  const expired = expiresAt ? expiresAt.getTime() < Date.now() : false;
+                  const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))) : 0;
+                  const byName = d.deleted_by ? (trashUserNames[d.deleted_by] ?? "Unknown") : "Unknown";
+                  return (
+                    <div key={d.id} className="px-6 py-3 flex items-center gap-3">
+                      <FileText className="size-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate line-through text-muted-foreground">{d.file_name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Deleted by <span className="font-medium">{byName}</span>
+                          {deletedAt ? <> · {deletedAt.toLocaleString()}</> : null}
+                          {" · "}
+                          {expired
+                            ? <span className="text-destructive font-semibold">Eligible for permanent deletion</span>
+                            : <span>Auto-purges in {daysLeft} day{daysLeft === 1 ? "" : "s"}</span>}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => onRestore(d)}>Restore</Button>
+                      {isAdmin && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => onPermanentDelete(d)}
+                          disabled={!expired}
+                          title={expired ? "Permanently delete" : "Available after 30-day retention"}
+                        >
+                          Delete forever
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           )}
