@@ -512,9 +512,15 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
   };
 
   const onDelete = async (d: SectionDoc) => {
-    if (!confirm(`Delete ${d.file_name}?`)) return;
-    await supabase.storage.from("client-documents").remove([d.storage_path]);
-    await supabase.from("client_documents").delete().eq("id", d.id);
+    if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored from the Trash.`)) return;
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: u.user?.id ?? null } as never)
+      .eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.trashed", "document", d.id, { file_name: d.file_name });
+    toast.success("Moved to Trash");
     onChanged();
   };
 
