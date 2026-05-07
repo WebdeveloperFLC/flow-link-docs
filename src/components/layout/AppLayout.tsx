@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2 } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -12,6 +12,7 @@ type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: 
 const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/clients", icon: Users, label: "Clients" },
+  { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
   { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
