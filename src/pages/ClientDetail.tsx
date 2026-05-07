@@ -1021,6 +1021,59 @@ const ClientDetail = () => {
               </div>
             </Card>
           )}
+
+          {trashedDocs.length > 0 && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <div className="font-semibold flex items-center gap-2">
+                    <Trash2 className="size-4 text-destructive" /> Trash · Recycle bin
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Items are kept for 30 days. After that, an admin can permanently delete them.
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground">{trashedDocs.length} item{trashedDocs.length === 1 ? "" : "s"}</div>
+              </div>
+              <div className="divide-y">
+                {trashedDocs.map((d) => {
+                  const deletedAt = d.deleted_at ? new Date(d.deleted_at) : null;
+                  const expiresAt = deletedAt ? new Date(deletedAt.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
+                  const expired = expiresAt ? expiresAt.getTime() < Date.now() : false;
+                  const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))) : 0;
+                  const byName = d.deleted_by ? (trashUserNames[d.deleted_by] ?? "Unknown") : "Unknown";
+                  return (
+                    <div key={d.id} className="px-6 py-3 flex items-center gap-3">
+                      <FileText className="size-4 text-muted-foreground shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate line-through text-muted-foreground">{d.file_name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          Deleted by <span className="font-medium">{byName}</span>
+                          {deletedAt ? <> · {deletedAt.toLocaleString()}</> : null}
+                          {" · "}
+                          {expired
+                            ? <span className="text-destructive font-semibold">Eligible for permanent deletion</span>
+                            : <span>Auto-purges in {daysLeft} day{daysLeft === 1 ? "" : "s"}</span>}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" onClick={() => onRestore(d)}>Restore</Button>
+                      {isAdmin && (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => onPermanentDelete(d)}
+                          disabled={!expired}
+                          title={expired ? "Permanently delete" : "Available after 30-day retention"}
+                        >
+                          Delete forever
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Right: upload */}
