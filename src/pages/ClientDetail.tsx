@@ -239,10 +239,35 @@ const ClientDetail = () => {
   })();
 
   const onDelete = async (d: Doc) => {
-    if (!confirm(`Delete ${d.file_name}?`)) return;
+    if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as never)
+      .eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.trashed", "document", d.id, { file_name: d.file_name });
+    toast.success("Moved to Trash");
+    load();
+  };
+
+  const onRestore = async (d: Doc) => {
+    const { error } = await supabase
+      .from("client_documents")
+      .update({ deleted_at: null, deleted_by: null } as never)
+      .eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.restored", "document", d.id, { file_name: d.file_name });
+    toast.success("Restored");
+    load();
+  };
+
+  const onPermanentDelete = async (d: Doc) => {
+    if (!confirm(`Permanently delete ${d.file_name}? This cannot be undone.`)) return;
     await supabase.storage.from("client-documents").remove([d.storage_path]);
-    await supabase.from("client_documents").delete().eq("id", d.id);
-    await logActivity("document.deleted", "document", d.id, { file_name: d.file_name });
+    const { error } = await supabase.from("client_documents").delete().eq("id", d.id);
+    if (error) { toast.error(error.message); return; }
+    await logActivity("document.purged", "document", d.id, { file_name: d.file_name });
+    toast.success("Permanently deleted");
     load();
   };
 
