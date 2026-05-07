@@ -979,8 +979,8 @@ const ClientDetail = () => {
                       {optimizing === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
                     </Button>
                   )}
-                  {isAdmin && (
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
+                  {canUpload && (
+                    <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Move to Trash" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
                   )}
                 </div>
               ))}
