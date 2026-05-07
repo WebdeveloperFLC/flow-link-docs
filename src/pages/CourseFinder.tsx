@@ -43,6 +43,7 @@ type Course = {
   gpa_min: number | null; backlogs_allowed: number | null; gap_accepted_years: number | null;
   work_experience_required: boolean; applications_open: boolean; employability_score: number | null;
   description: string | null; career_outcomes: string | null;
+  scholarship_info: string | null; pr_visa_notes: string | null;
 };
 type Enriched = Course & { university: University; country: Country };
 
