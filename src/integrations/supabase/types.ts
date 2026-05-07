@@ -274,6 +274,276 @@ export type Database = {
         }
         Relationships: []
       }
+      cf_countries: {
+        Row: {
+          code: string
+          created_at: string
+          flag_emoji: string | null
+          is_pr_friendly: boolean
+          name: string
+          visa_success_rate: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          flag_emoji?: string | null
+          is_pr_friendly?: boolean
+          name: string
+          visa_success_rate?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          flag_emoji?: string | null
+          is_pr_friendly?: boolean
+          name?: string
+          visa_success_rate?: number | null
+        }
+        Relationships: []
+      }
+      cf_courses: {
+        Row: {
+          applications_open: boolean
+          apply_url: string | null
+          backlogs_allowed: number | null
+          career_outcomes: string | null
+          coop_available: boolean
+          created_at: string
+          currency: string | null
+          description: string | null
+          duolingo_accepted: boolean
+          duration_months: number | null
+          employability_score: number | null
+          field_of_study: string
+          gap_accepted_years: number | null
+          gpa_min: number | null
+          id: string
+          ielts_no_band_less_than: number | null
+          ielts_overall: number | null
+          intake_months: string[]
+          intake_year: number | null
+          internship_included: boolean
+          mode: string
+          moi_accepted: boolean
+          name: string
+          pgwp_eligible: boolean
+          pr_friendly: boolean
+          pr_visa_notes: string | null
+          pte_score: number | null
+          scholarship_available: boolean
+          scholarship_info: string | null
+          specialization: string | null
+          stem_eligible: boolean
+          study_level: string
+          toefl_score: number | null
+          tuition_fee: number | null
+          university_id: string
+          updated_at: string
+          visa_success_indicator: string | null
+          work_experience_required: boolean
+        }
+        Insert: {
+          applications_open?: boolean
+          apply_url?: string | null
+          backlogs_allowed?: number | null
+          career_outcomes?: string | null
+          coop_available?: boolean
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          duolingo_accepted?: boolean
+          duration_months?: number | null
+          employability_score?: number | null
+          field_of_study: string
+          gap_accepted_years?: number | null
+          gpa_min?: number | null
+          id?: string
+          ielts_no_band_less_than?: number | null
+          ielts_overall?: number | null
+          intake_months?: string[]
+          intake_year?: number | null
+          internship_included?: boolean
+          mode?: string
+          moi_accepted?: boolean
+          name: string
+          pgwp_eligible?: boolean
+          pr_friendly?: boolean
+          pr_visa_notes?: string | null
+          pte_score?: number | null
+          scholarship_available?: boolean
+          scholarship_info?: string | null
+          specialization?: string | null
+          stem_eligible?: boolean
+          study_level: string
+          toefl_score?: number | null
+          tuition_fee?: number | null
+          university_id: string
+          updated_at?: string
+          visa_success_indicator?: string | null
+          work_experience_required?: boolean
+        }
+        Update: {
+          applications_open?: boolean
+          apply_url?: string | null
+          backlogs_allowed?: number | null
+          career_outcomes?: string | null
+          coop_available?: boolean
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          duolingo_accepted?: boolean
+          duration_months?: number | null
+          employability_score?: number | null
+          field_of_study?: string
+          gap_accepted_years?: number | null
+          gpa_min?: number | null
+          id?: string
+          ielts_no_band_less_than?: number | null
+          ielts_overall?: number | null
+          intake_months?: string[]
+          intake_year?: number | null
+          internship_included?: boolean
+          mode?: string
+          moi_accepted?: boolean
+          name?: string
+          pgwp_eligible?: boolean
+          pr_friendly?: boolean
+          pr_visa_notes?: string | null
+          pte_score?: number | null
+          scholarship_available?: boolean
+          scholarship_info?: string | null
+          specialization?: string | null
+          stem_eligible?: boolean
+          study_level?: string
+          toefl_score?: number | null
+          tuition_fee?: number | null
+          university_id?: string
+          updated_at?: string
+          visa_success_indicator?: string | null
+          work_experience_required?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_courses_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "cf_universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cf_saved_searches: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cf_shortlists: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_shortlists_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "cf_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cf_universities: {
+        Row: {
+          city: string | null
+          country_code: string
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          institution_type: string
+          is_partner: boolean
+          logo_url: string | null
+          name: string
+          province: string | null
+          ranking: number | null
+          slug: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          country_code: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          institution_type?: string
+          is_partner?: boolean
+          logo_url?: string | null
+          name: string
+          province?: string | null
+          ranking?: number | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          country_code?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          institution_type?: string
+          is_partner?: boolean
+          logo_url?: string | null
+          name?: string
+          province?: string | null
+          ranking?: number | null
+          slug?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_universities_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       client_access: {
         Row: {
           client_id: string
