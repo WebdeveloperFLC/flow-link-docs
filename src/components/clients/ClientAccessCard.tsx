@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Crown, UserCog, UserPlus, Users, ArrowRightLeft, LogOut, ShieldCheck, Settings2, Loader2 } from "lucide-react";
+import { Crown, UserCog, UserPlus, Users, ArrowRightLeft, LogOut, ShieldCheck, Settings2, Loader2, Ban, RotateCcw, Trash2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +27,8 @@ const permTone: Record<Perm, string> = {
 };
 
 interface Profile { id: string; full_name: string | null; email: string | null }
-interface DefaultMemberRow { id: string; member_id: string; permission: Perm; profile?: Profile | null }
-interface AccessUserRow { id: string; user_id: string; permission: Perm; profile?: Profile | null }
+interface DefaultMemberRow { id: string; member_id: string; permission: Perm; revoked_at: string | null; profile?: Profile | null }
+interface AccessUserRow { id: string; user_id: string; permission: Perm; revoked_at: string | null; profile?: Profile | null }
 interface AccessTeamRow { id: string; team_id: string; permission: Perm; team_name?: string | null; members: Profile[] }
 
 export function ClientAccessCard({
@@ -50,6 +54,14 @@ export function ClientAccessCard({
   const [exitOpen, setExitOpen] = useState(false);
   const [newOwnerId, setNewOwnerId] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<null | {
+    kind: "revoke" | "restore" | "remove";
+    scope: "client_access" | "default_team_members";
+    rowId: string;
+    subjectId: string;
+    name: string;
+    prevPerm: Perm;
+  }>(null);
 
   const effectiveOwnerId = ownerId ?? createdBy;
   const isPrimary = !!user && (user.id === ownerId || (!ownerId && user.id === createdBy));
@@ -59,13 +71,13 @@ export function ClientAccessCard({
     setLoading(true);
     const [dtmRes, uaRes, taRes] = await Promise.all([
       effectiveOwnerId
-        ? supabase.from("default_team_members").select("id,member_id,permission").eq("owner_id", effectiveOwnerId)
+        ? supabase.from("default_team_members").select("id,member_id,permission,revoked_at").eq("owner_id", effectiveOwnerId)
         : Promise.resolve({ data: [] as any[] }),
-      supabase.from("client_access").select("id,user_id,permission").eq("client_id", clientId).not("user_id", "is", null),
+      supabase.from("client_access").select("id,user_id,permission,revoked_at").eq("client_id", clientId).not("user_id", "is", null),
       supabase.from("client_access").select("id,team_id,permission").eq("client_id", clientId).not("team_id", "is", null),
     ]);
-    const dtmRows = (dtmRes.data ?? []) as Array<{ id: string; member_id: string; permission: Perm }>;
-    const uaRows = (uaRes.data ?? []) as Array<{ id: string; user_id: string; permission: Perm }>;
+    const dtmRows = (dtmRes.data ?? []) as Array<{ id: string; member_id: string; permission: Perm; revoked_at: string | null }>;
+    const uaRows = (uaRes.data ?? []) as Array<{ id: string; user_id: string; permission: Perm; revoked_at: string | null }>;
     const taRows = (taRes.data ?? []) as Array<{ id: string; team_id: string; permission: Perm }>;
 
     // Fetch team names + members
@@ -184,6 +196,33 @@ export function ClientAccessCard({
     load();
   };
 
+  const runConfirmed = async () => {
+    if (!confirm) return;
+    setBusy(true);
+    const { kind, scope, rowId, subjectId, prevPerm } = confirm;
+    let err: any = null;
+    if (kind === "remove") {
+      ({ error: err } = await supabase.from(scope as any).delete().eq("id", rowId));
+    } else if (kind === "revoke") {
+      ({ error: err } = await supabase.from(scope as any).update({ revoked_at: new Date().toISOString() }).eq("id", rowId));
+    } else {
+      ({ error: err } = await supabase.from(scope as any).update({ revoked_at: null }).eq("id", rowId));
+    }
+    setBusy(false);
+    if (err) { toast.error(err.message); return; }
+    const action =
+      kind === "remove" ? "client.access_removed" :
+      kind === "revoke" ? "client.access_revoked" : "client.access_restored";
+    await logActivity(action, "client", clientId, {
+      scope, subject_id: subjectId, previous_permission: prevPerm,
+    });
+    toast.success(
+      kind === "remove" ? "User removed" : kind === "revoke" ? "Access revoked" : "Access restored"
+    );
+    setConfirm(null);
+    load();
+  };
+
   return (
     <Card className="overflow-hidden shadow-elev-sm">
       <div className="px-5 py-3.5 border-b flex items-center justify-between gap-2">
@@ -251,15 +290,39 @@ export function ClientAccessCard({
           ) : (
             <div className="space-y-1.5">
               {defaults.map((d) => (
-                <div key={d.id} className="flex items-center gap-2.5 rounded-md border p-2">
+                <div key={d.id} className={`flex items-center gap-2.5 rounded-md border p-2 ${d.revoked_at ? "bg-muted/40 opacity-80" : ""}`}>
                   <Avatar p={d.profile ?? null} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm truncate">{d.profile?.full_name ?? d.profile?.email ?? d.member_id}</div>
                     <div className="text-[11px] text-muted-foreground truncate">{d.profile?.email}</div>
                   </div>
+                  {d.revoked_at ? (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-destructive/10 text-destructive border-destructive/20">Access Revoked</span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-emerald-500/10 text-emerald-700 border-emerald-500/20">Active</span>
+                  )}
                   <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${permTone[d.permission]}`}>
                     {permLabel(d.permission)}
                   </span>
+                  {canManage && (
+                    <div className="flex items-center gap-1">
+                      {d.revoked_at ? (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-emerald-700 hover:text-emerald-700"
+                          onClick={() => setConfirm({ kind: "restore", scope: "default_team_members", rowId: d.id, subjectId: d.member_id, name: d.profile?.full_name ?? d.profile?.email ?? "user", prevPerm: d.permission })}>
+                          <RotateCcw className="size-3.5 mr-1" />Restore
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-amber-700 hover:text-amber-700"
+                          onClick={() => setConfirm({ kind: "revoke", scope: "default_team_members", rowId: d.id, subjectId: d.member_id, name: d.profile?.full_name ?? d.profile?.email ?? "user", prevPerm: d.permission })}>
+                          <Ban className="size-3.5 mr-1" />Revoke
+                        </Button>
+                      )}
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => setConfirm({ kind: "remove", scope: "default_team_members", rowId: d.id, subjectId: d.member_id, name: d.profile?.full_name ?? d.profile?.email ?? "user", prevPerm: d.permission })}>
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -276,7 +339,7 @@ export function ClientAccessCard({
           ) : (
             <div className="space-y-1.5">
               {users.map((u) => (
-                <div key={u.id} className="flex items-center gap-2.5 rounded-md border p-2">
+                <div key={u.id} className={`flex items-center gap-2.5 rounded-md border p-2 ${u.revoked_at ? "bg-muted/40 opacity-80" : ""}`}>
                   <Avatar p={u.profile ?? null} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm truncate flex items-center gap-1.5">
@@ -285,9 +348,33 @@ export function ClientAccessCard({
                     </div>
                     <div className="text-[11px] text-muted-foreground truncate">{u.profile?.email}</div>
                   </div>
+                  {u.revoked_at ? (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-destructive/10 text-destructive border-destructive/20">Access Revoked</span>
+                  ) : (
+                    <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border bg-emerald-500/10 text-emerald-700 border-emerald-500/20">Active</span>
+                  )}
                   <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${permTone[u.permission]}`}>
                     {permLabel(u.permission)}
                   </span>
+                  {canManage && (
+                    <div className="flex items-center gap-1">
+                      {u.revoked_at ? (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-emerald-700 hover:text-emerald-700"
+                          onClick={() => setConfirm({ kind: "restore", scope: "client_access", rowId: u.id, subjectId: u.user_id, name: u.profile?.full_name ?? u.profile?.email ?? "user", prevPerm: u.permission })}>
+                          <RotateCcw className="size-3.5 mr-1" />Restore
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="ghost" className="h-7 px-2 text-amber-700 hover:text-amber-700"
+                          onClick={() => setConfirm({ kind: "revoke", scope: "client_access", rowId: u.id, subjectId: u.user_id, name: u.profile?.full_name ?? u.profile?.email ?? "user", prevPerm: u.permission })}>
+                          <Ban className="size-3.5 mr-1" />Revoke
+                        </Button>
+                      )}
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={() => setConfirm({ kind: "remove", scope: "client_access", rowId: u.id, subjectId: u.user_id, name: u.profile?.full_name ?? u.profile?.email ?? "user", prevPerm: u.permission })}>
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -382,6 +469,34 @@ export function ClientAccessCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirm?.kind === "remove" && `Remove ${confirm.name}?`}
+              {confirm?.kind === "revoke" && `Revoke access for ${confirm.name}?`}
+              {confirm?.kind === "restore" && `Restore access for ${confirm.name}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirm?.kind === "remove" && "This permanently detaches the user from this client. Activity history is preserved in audit logs."}
+              {confirm?.kind === "revoke" && "Access will be temporarily disabled. The user stays in the list and can be restored later."}
+              {confirm?.kind === "restore" && "The user will regain their previous permission immediately."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); runConfirmed(); }}
+              className={confirm?.kind === "remove" ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" : ""}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="size-4 mr-1.5 animate-spin" />}
+              {confirm?.kind === "remove" ? "Remove permanently" : confirm?.kind === "revoke" ? "Revoke access" : "Restore access"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
