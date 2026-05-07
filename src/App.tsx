@@ -23,6 +23,7 @@ import FormBuilder from "./pages/FormBuilder";
 import QuestionnaireEmailTemplates from "./pages/QuestionnaireEmailTemplates";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
+import CourseFinder from "./pages/CourseFinder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/share/:token" element={<SharedView />} />
             <Route path="/questionnaire/:token" element={<Questionnaire />} />
+            <Route path="/course-finder" element={<CourseFinder />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
