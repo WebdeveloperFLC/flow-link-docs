@@ -50,6 +50,8 @@ interface Doc {
   section_id?: string | null;
   section_order?: number;
   status?: string | null;
+  deleted_at?: string | null;
+  deleted_by?: string | null;
 }
 
 interface BinderRow {
@@ -86,7 +88,7 @@ const ClientDetail = () => {
       setTemplate(t as unknown as Template | null);
     } else { setTemplate(null); }
     const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
-    setDocs((d ?? []) as Doc[]);
+    setDocs(((d ?? []) as Doc[]));
     const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
     setBinders((b ?? []) as BinderRow[]);
     setSections(await loadSections(true));
