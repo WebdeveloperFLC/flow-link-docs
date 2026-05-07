@@ -57,41 +57,56 @@ export function ClientAccessCard({
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: ownerProf }, { data: dtm }, { data: ua }, { data: ta }] = await Promise.all([
+    const [dtmRes, uaRes, taRes] = await Promise.all([
       effectiveOwnerId
-        ? supabase.from("profiles").select("id,full_name,email").eq("id", effectiveOwnerId).maybeSingle()
-        : Promise.resolve({ data: null } as { data: Profile | null }),
-      effectiveOwnerId
-        ? supabase
-            .from("default_team_members")
-            .select("id,member_id,permission,profiles:profiles!default_team_members_member_id_fkey(id,full_name,email)")
-            .eq("owner_id", effectiveOwnerId)
-        : Promise.resolve({ data: [] as unknown[] }),
-      supabase
-        .from("client_access")
-        .select("id,user_id,permission,profiles:profiles!client_access_user_id_fkey(id,full_name,email)")
-        .eq("client_id", clientId)
-        .not("user_id", "is", null),
-      supabase
-        .from("client_access")
-        .select("id,team_id,permission,teams:teams!client_access_team_id_fkey(name,team_members(user_id,profiles:profiles!team_members_user_id_fkey(id,full_name,email)))")
-        .eq("client_id", clientId)
-        .not("team_id", "is", null),
+        ? supabase.from("default_team_members").select("id,member_id,permission").eq("owner_id", effectiveOwnerId)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from("client_access").select("id,user_id,permission").eq("client_id", clientId).not("user_id", "is", null),
+      supabase.from("client_access").select("id,team_id,permission").eq("client_id", clientId).not("team_id", "is", null),
     ]);
+    const dtmRows = (dtmRes.data ?? []) as Array<{ id: string; member_id: string; permission: Perm }>;
+    const uaRows = (uaRes.data ?? []) as Array<{ id: string; user_id: string; permission: Perm }>;
+    const taRows = (taRes.data ?? []) as Array<{ id: string; team_id: string; permission: Perm }>;
 
-    setOwnerProfile((ownerProf as Profile | null) ?? null);
-    setDefaults(((dtm ?? []) as any[]).map((r) => ({
-      id: r.id, member_id: r.member_id, permission: r.permission, profile: r.profiles ?? null,
-    })));
-    setUsers(((ua ?? []) as any[]).map((r) => ({
-      id: r.id, user_id: r.user_id, permission: r.permission, profile: r.profiles ?? null,
-    })));
-    setTeams(((ta ?? []) as any[]).map((r) => ({
+    // Fetch team names + members
+    const teamIds = taRows.map((t) => t.team_id);
+    const [teamsRes, teamMembersRes] = await Promise.all([
+      teamIds.length
+        ? supabase.from("teams").select("id,name").in("id", teamIds)
+        : Promise.resolve({ data: [] as any[] }),
+      teamIds.length
+        ? supabase.from("team_members").select("team_id,user_id").in("team_id", teamIds)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+    const teamNameMap = new Map<string, string>(((teamsRes.data ?? []) as any[]).map((t) => [t.id, t.name]));
+    const teamMemberMap = new Map<string, string[]>();
+    for (const tm of (teamMembersRes.data ?? []) as any[]) {
+      const arr = teamMemberMap.get(tm.team_id) ?? [];
+      arr.push(tm.user_id);
+      teamMemberMap.set(tm.team_id, arr);
+    }
+
+    // Collect all profile ids needed.
+    const ids = new Set<string>();
+    if (effectiveOwnerId) ids.add(effectiveOwnerId);
+    dtmRows.forEach((r) => ids.add(r.member_id));
+    uaRows.forEach((r) => ids.add(r.user_id));
+    teamMemberMap.forEach((arr) => arr.forEach((id) => ids.add(id)));
+    const profMap = new Map<string, Profile>();
+    if (ids.size) {
+      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", Array.from(ids));
+      ((profs ?? []) as Profile[]).forEach((p) => profMap.set(p.id, p));
+    }
+
+    setOwnerProfile(effectiveOwnerId ? profMap.get(effectiveOwnerId) ?? null : null);
+    setDefaults(dtmRows.map((r) => ({ ...r, profile: profMap.get(r.member_id) ?? null })));
+    setUsers(uaRows.map((r) => ({ ...r, profile: profMap.get(r.user_id) ?? null })));
+    setTeams(taRows.map((r) => ({
       id: r.id,
       team_id: r.team_id,
       permission: r.permission,
-      team_name: r.teams?.name ?? null,
-      members: (r.teams?.team_members ?? []).map((tm: any) => tm.profiles).filter(Boolean),
+      team_name: teamNameMap.get(r.team_id) ?? null,
+      members: (teamMemberMap.get(r.team_id) ?? []).map((id) => profMap.get(id)).filter((p): p is Profile => !!p),
     })));
     setLoading(false);
   }, [clientId, effectiveOwnerId]);
