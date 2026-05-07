@@ -32,6 +32,7 @@ import JSZip from "jszip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
+import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -983,6 +984,13 @@ const ClientDetail = () => {
 
         {/* Right: upload */}
         <div className="space-y-4">
+          <ClientAccessCard
+            clientId={client.id}
+            ownerId={client.owner_id ?? null}
+            createdBy={client.created_by ?? null}
+            onOwnerChanged={load}
+            onManageClick={() => setAccessOpen(true)}
+          />
           <CustomBindersPanel
             clientId={client.id}
             clientName={client.full_name}
