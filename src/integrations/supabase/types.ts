@@ -281,6 +281,7 @@ export type Database = {
           granted_by: string | null
           id: string
           permission: Database["public"]["Enums"]["client_permission"]
+          revoked_at: string | null
           team_id: string | null
           user_id: string | null
         }
@@ -290,6 +291,7 @@ export type Database = {
           granted_by?: string | null
           id?: string
           permission?: Database["public"]["Enums"]["client_permission"]
+          revoked_at?: string | null
           team_id?: string | null
           user_id?: string | null
         }
@@ -299,6 +301,7 @@ export type Database = {
           granted_by?: string | null
           id?: string
           permission?: Database["public"]["Enums"]["client_permission"]
+          revoked_at?: string | null
           team_id?: string | null
           user_id?: string | null
         }
@@ -714,6 +717,7 @@ export type Database = {
           member_id: string
           owner_id: string
           permission: Database["public"]["Enums"]["client_permission"]
+          revoked_at: string | null
           updated_at: string
         }
         Insert: {
@@ -722,6 +726,7 @@ export type Database = {
           member_id: string
           owner_id: string
           permission?: Database["public"]["Enums"]["client_permission"]
+          revoked_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -730,6 +735,7 @@ export type Database = {
           member_id?: string
           owner_id?: string
           permission?: Database["public"]["Enums"]["client_permission"]
+          revoked_at?: string | null
           updated_at?: string
         }
         Relationships: []
