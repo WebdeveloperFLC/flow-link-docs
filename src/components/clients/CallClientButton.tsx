@@ -15,7 +15,7 @@ export function CallClientButton({ clientId }: Props) {
   const activeForThis = isActive(clientId);
   const isThisCall = currentCall?.clientId === clientId;
   const startingForThis = startingClientId === clientId;
-  const browserReady = browserPhone.status === "ready";
+  const browserReady = browserPhone.status === "ready" || browserPhone.status === "ended";
   const callDisabled = !browserReady || activeForThis || startingForThis;
 
   const label = (() => {
