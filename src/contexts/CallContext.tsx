@@ -23,6 +23,7 @@ export interface CurrentCall {
 
 interface CallCtx {
   currentCall: CurrentCall | null;
+  startingClientId: string | null;
   isActive: (clientId?: string) => boolean;
   startCall: (clientId: string) => Promise<CurrentCall | null>;
   reset: () => void;
@@ -35,10 +36,16 @@ const ACTIVE: CallStatus[] = ["initiated", "ringing", "answered"];
 
 export const CallProvider = ({ children }: { children: ReactNode }) => {
   const [currentCall, setCurrentCall] = useState<CurrentCall | null>(null);
-  const startingRef = useRef(false);
+  const [startingClientId, setStartingClientId] = useState<string | null>(null);
+  const currentCallRef = useRef<CurrentCall | null>(null);
+  const startingClientIdRef = useRef<string | null>(null);
+  const latestStartTokenRef = useRef(0);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const activeSessionIdRef = useRef<string | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => { currentCallRef.current = currentCall; }, [currentCall]);
+  useEffect(() => { startingClientIdRef.current = startingClientId; }, [startingClientId]);
 
   const cleanupChannel = useCallback(() => {
     if (channelRef.current) {
@@ -47,12 +54,18 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  const reset = useCallback(() => {
+  const clearCurrentCall = useCallback(() => {
     cleanupChannel();
     activeSessionIdRef.current = null;
     if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
     setCurrentCall(null);
   }, [cleanupChannel]);
+
+  const reset = useCallback(() => {
+    latestStartTokenRef.current += 1;
+    setStartingClientId(null);
+    clearCurrentCall();
+  }, [clearCurrentCall]);
 
   useEffect(() => () => { cleanupChannel(); if (timeoutRef.current) clearTimeout(timeoutRef.current); }, [cleanupChannel]);
 
