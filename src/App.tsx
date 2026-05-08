@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CallProvider } from "@/contexts/CallContext";
+import { BrowserPhoneProvider } from "@/contexts/BrowserPhoneContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -38,6 +39,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BrowserPhoneProvider>
           <CallProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -64,6 +66,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CallProvider>
+          </BrowserPhoneProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
