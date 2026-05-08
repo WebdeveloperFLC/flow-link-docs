@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, Phone } from "lucide-react";
+import { Loader2, Phone, PhoneOff } from "lucide-react";
 import { toast } from "sonner";
 import { useCall } from "@/contexts/CallContext";
 import { TelephonyCallError } from "@/lib/telephony/client";
@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function CallClientButton({ clientId }: Props) {
-  const { currentCall, startingClientId, isActive, startCall } = useCall();
+  const { currentCall, startingClientId, isActive, startCall, hangup } = useCall();
   const activeForThis = isActive(clientId);
   const isThisCall = currentCall?.clientId === clientId;
   const startingForThis = startingClientId === clientId;
@@ -43,9 +43,17 @@ export function CallClientButton({ clientId }: Props) {
   };
 
   return (
-    <Button onClick={onClick} disabled={activeForThis || startingForThis} variant="outline" size="sm">
-      {activeForThis || startingForThis ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Phone className="size-4 mr-1.5" />}
-      {label}
-    </Button>
+    <div className="inline-flex items-center gap-2">
+      <Button onClick={onClick} disabled={activeForThis || startingForThis} variant="outline" size="sm">
+        {activeForThis || startingForThis ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Phone className="size-4 mr-1.5" />}
+        {label}
+      </Button>
+      {(activeForThis || (isThisCall && startingForThis)) && (
+        <Button onClick={() => hangup()} variant="destructive" size="sm">
+          <PhoneOff className="size-4 mr-1.5" />
+          Hang up
+        </Button>
+      )}
+    </div>
   );
 }
