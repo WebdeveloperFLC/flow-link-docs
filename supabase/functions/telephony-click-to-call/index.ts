@@ -48,12 +48,20 @@ Deno.serve(async (req) => {
     const clientId = String(body.clientId ?? "");
     const queueItemId = body.queueItemId ? String(body.queueItemId) : null;
     const campaignId = body.campaignId ? String(body.campaignId) : null;
-    log(traceId, "request payload", { clientId, queueItemId, campaignId, hasClientId: !!clientId });
+    const callMode = body.mode === "browser_sdk" ? "browser_sdk" : "click_to_call";
+    log(traceId, "request payload", { clientId, queueItemId, campaignId, mode: callMode, hasClientId: !!clientId });
     if (!clientId) return json({ error: "clientId required" }, 400);
 
     // Permission check via RLS-respecting helper
     const { data: canEdit } = await userClient.rpc("can_edit_client", { _uid: userId, _cid: clientId });
     if (!canEdit) return json({ error: "Forbidden" }, 403);
+    if (callMode === "browser_sdk") {
+      const [{ data: isAdmin }, { data: isCounselor }] = await Promise.all([
+        userClient.rpc("has_role", { _user_id: userId, _role: "admin" }),
+        userClient.rpc("has_role", { _user_id: userId, _role: "counselor" }),
+      ]);
+      if (!isAdmin && !isCounselor) return json({ error: "Browser calling is restricted to counselors and admins" }, 403);
+    }
 
     // Service role for the writes that follow
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SR, { auth: { persistSession: false } });
@@ -71,14 +79,14 @@ Deno.serve(async (req) => {
     // Ensure agent row exists
     let { data: agent } = await adminClient
       .from("telephony_agents")
-      .select("id, role, telecmi_agent_id, is_available, is_on_break")
+      .select("id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
       .eq("user_id", userId)
       .maybeSingle();
     if (!agent) {
       const { data: created, error: aErr } = await adminClient
         .from("telephony_agents")
         .insert({ user_id: userId, role: "counselor", is_available: true })
-        .select("id, role, telecmi_agent_id, is_available, is_on_break")
+        .select("id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
         .single();
       if (aErr) return json({ error: aErr.message, traceId }, 500);
       agent = created;
