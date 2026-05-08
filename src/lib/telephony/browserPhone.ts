@@ -51,6 +51,12 @@ export class BrowserPhone {
       this.piopiy = null;
     }
     this.setStatus("logging_in");
+    // The SDK expects a bare host (e.g. "sbcsg.telecmi.com") and prepends "wss://" itself.
+    // Strip any scheme/path the admin may have entered.
+    const region = (creds.sbc_uri || "sbcsg.telecmi.com")
+      .replace(/^wss?:\/\//i, "")
+      .replace(/\/.*$/, "")
+      .trim();
     return new Promise((resolve, reject) => {
       try {
         const piopiy = new PIOPIY({
@@ -65,7 +71,7 @@ export class BrowserPhone {
           resolve();
         });
         piopiy.on("loginFailed", (data: any) => {
-          const msg = typeof data === "string" ? data : data?.reason ?? data?.message ?? "Login failed";
+          const msg = typeof data === "string" ? data : data?.status ?? data?.reason ?? data?.message ?? "Login failed";
           this.setStatus("failed", msg);
           this.listener.onError(`SBC login failed: ${msg}`);
           reject(new Error(msg));
@@ -81,7 +87,10 @@ export class BrowserPhone {
         });
         piopiy.on("ringing", () => this.setStatus("ringing"));
         piopiy.on("answered", () => this.setStatus("connected"));
-        piopiy.on("callStream", (stream: MediaStream) => {
+        piopiy.on("callStream", (payload: any) => {
+          // SDK emits { code, status: MediaStream }
+          const stream: MediaStream | null =
+            payload instanceof MediaStream ? payload : payload?.status ?? null;
           this.listener.onRemoteStream(stream);
         });
         piopiy.on("ended", () => {
@@ -102,9 +111,14 @@ export class BrowserPhone {
           }, 1500);
         });
         piopiy.on("error", (e: any) => {
-          const msg = typeof e === "string" ? e : e?.message ?? "Telephony error";
+          const msg = typeof e === "string" ? e : e?.status ?? e?.message ?? "Telephony error";
           this.listener.onError(msg);
-          this.setStatus("failed", msg);
+          // Non-fatal SDK errors (e.g. "Please logout before you login", validation
+          // warnings) should not flip the panel into a permanent "failed" state.
+          // Only mark failed if we are not already connected to the SBC.
+          if (this.currentStatus === "logging_in" || this.currentStatus === "logged_out") {
+            this.setStatus("failed", msg);
+          }
         });
         piopiy.on("mediaFailed", () => {
           this.listener.onError("Microphone access failed. Allow mic permission and retry.");
@@ -112,7 +126,7 @@ export class BrowserPhone {
         });
 
         this.piopiy = piopiy;
-        piopiy.login(creds.user_id, creds.password, creds.sbc_uri);
+        piopiy.login(creds.user_id, creds.password, region);
       } catch (e: any) {
         this.setStatus("failed", e?.message ?? "Init failed");
         reject(e instanceof Error ? e : new Error(String(e)));
@@ -124,7 +138,8 @@ export class BrowserPhone {
     if (!this.piopiy) throw new Error("Browser phone not logged in");
     if (this.currentStatus !== "ready") throw new Error(`Not ready (status: ${this.currentStatus})`);
     this.setStatus("dialing");
-    const opts = extra ? { extra_param: extra } : undefined;
+    // SDK requires extra_param to be a string. Serialize.
+    const opts = extra ? { extra_param: JSON.stringify(extra) } : undefined;
     this.piopiy.call(phoneOrExtension, opts);
     try { return this.piopiy.getCallId?.() || null; } catch { return null; }
   }
