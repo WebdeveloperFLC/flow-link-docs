@@ -39,11 +39,25 @@ export async function startCall(req: CallRequest): Promise<CallResult> {
   if (!session?.access_token) {
     throw new TelephonyCallError("You are signed out. Please sign in again.");
   }
-  const { data, error } = await supabase.functions.invoke("telephony-click-to-call", {
-    body: req,
-    headers: { Authorization: `Bearer ${session.access_token}` },
+  // Bypass supabase-js invoke header handling and call the function directly so
+  // our fresh access_token is the Authorization header (not overridden).
+  const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/telephony-click-to-call`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+    },
+    body: JSON.stringify(req),
   });
-  if (error) throw await normalizeFunctionError(error);
+  const data = await res.json().catch(() => null) as
+    | (CallResult & { error?: string; detail?: string; sessionId?: string; traceId?: string })
+    | null;
+  if (!res.ok) {
+    const message = [data?.error, data?.detail].filter(Boolean).join(": ") || `Request failed (${res.status})`;
+    throw new TelephonyCallError(message, { sessionId: data?.sessionId, traceId: data?.traceId });
+  }
   return data as CallResult;
 }
 
