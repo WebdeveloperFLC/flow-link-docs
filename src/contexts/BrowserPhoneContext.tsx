@@ -59,7 +59,12 @@ export const BrowserPhoneProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (audioRef.current) audioRef.current.srcObject = remoteStream;
+    if (!audioRef.current) return;
+    try {
+      audioRef.current.srcObject = remoteStream instanceof MediaStream ? remoteStream : null;
+    } catch {
+      audioRef.current.srcObject = null;
+    }
   }, [remoteStream]);
 
   // Tear down phone on auth change
