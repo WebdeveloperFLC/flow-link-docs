@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { startCall as invokeStartCall } from "@/lib/telephony/client";
+import { TelephonyCallError, startCall as invokeStartCall } from "@/lib/telephony/client";
 
 export type CallStatus =
   | "idle"
@@ -98,16 +98,20 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   }, [cleanupChannel, reset]);
 
   const startCall = useCallback(async (clientId: string): Promise<CurrentCall | null> => {
-    if (startingRef.current) return null;
-    // If there's an active call for the SAME client, ignore duplicate click.
-    if (currentCall && currentCall.clientId === clientId && ACTIVE.includes(currentCall.status)) {
-      return currentCall;
+    const existing = currentCallRef.current;
+    // Prevent duplicates only for the same in-flight/active call.
+    if (startingClientIdRef.current === clientId) return null;
+    if (existing && existing.clientId === clientId && ACTIVE.includes(existing.status)) {
+      return existing;
     }
-    startingRef.current = true;
-    // Clear any prior state (different client, terminal, or stale) BEFORE starting.
-    reset();
+    const startToken = latestStartTokenRef.current + 1;
+    latestStartTokenRef.current = startToken;
+    // Clear previous call state before a fresh backend dial request.
+    clearCurrentCall();
+    setStartingClientId(clientId);
     try {
       const result = await invokeStartCall({ clientId });
+      if (latestStartTokenRef.current !== startToken) return null;
       const next: CurrentCall = {
         sessionId: result.sessionId,
         clientId,
@@ -128,12 +132,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       }, 90_000);
       return next;
     } catch (e) {
-      reset();
+      if (latestStartTokenRef.current === startToken) {
+        const sessionId = e instanceof TelephonyCallError && e.sessionId ? e.sessionId : `failed-${startToken}`;
+        setCurrentCall({ sessionId, clientId, status: "failed", maskedNumber: null, startedAt: Date.now() });
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          if (latestStartTokenRef.current === startToken) clearCurrentCall();
+        }, 1500);
+      }
       throw e;
     } finally {
-      startingRef.current = false;
+      if (latestStartTokenRef.current === startToken) setStartingClientId(null);
     }
-  }, [currentCall, reset, subscribe]);
+  }, [clearCurrentCall, subscribe]);
 
   const isActive = useCallback((clientId?: string) => {
     if (!currentCall) return false;
@@ -141,7 +152,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     return clientId ? currentCall.clientId === clientId : true;
   }, [currentCall]);
 
-  return <Ctx.Provider value={{ currentCall, isActive, startCall, reset }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ currentCall, startingClientId, isActive, startCall, reset }}>{children}</Ctx.Provider>;
 };
 
 export const useCall = () => {
