@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -80,21 +80,60 @@ const ClientDetail = () => {
   const [accessOpen, setAccessOpen] = useState(false);
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
+  const [secondaryLoading, setSecondaryLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  // Critical fetch — only what's needed for the first paint above the fold
+  // (client + template + active documents + sections). Runs in parallel.
+  const loadCritical = useCallback(async () => {
     if (!id) return;
-    const { data: c } = await supabase.from("clients").select("*").eq("id", id).single();
+    const [{ data: c }, sectionsData, { data: activeDocs }] = await Promise.all([
+      supabase.from("clients").select("*").eq("id", id).single(),
+      loadSections(true),
+      supabase
+        .from("client_documents")
+        .select("*")
+        .eq("client_id", id)
+        .is("deleted_at", null)
+        .order("uploaded_at", { ascending: false }),
+    ]);
     setClient(c as unknown as Client | null);
+    setSections(sectionsData);
+    setDocs((activeDocs ?? []) as Doc[]);
     if (c?.template_id) {
-      const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
+      const { data: t } = await supabase
+        .from("workflow_templates")
+        .select("*")
+        .eq("id", c.template_id)
+        .single();
       setTemplate(t as unknown as Template | null);
-    } else { setTemplate(null); }
-    const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
-    const all = ((d ?? []) as Doc[]);
-    setDocs(all.filter((x) => !x.deleted_at));
-    const trashed = all.filter((x) => !!x.deleted_at);
-    setTrashedDocs(trashed);
-    const uids = Array.from(new Set(trashed.map((x) => x.deleted_by).filter(Boolean) as string[]));
+    } else {
+      setTemplate(null);
+    }
+  }, [id]);
+
+  // Secondary fetch — below-the-fold cards (binders, trash, profile names).
+  // Runs after the critical paint. Splitting into a separate query also lets
+  // server-side filtering (deleted_at IS NOT NULL) be index-assisted.
+  const loadSecondary = useCallback(async () => {
+    if (!id) return;
+    setSecondaryLoading(true);
+    const [{ data: trashed }, { data: b }] = await Promise.all([
+      supabase
+        .from("client_documents")
+        .select("*")
+        .eq("client_id", id)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false }),
+      supabase
+        .from("binders")
+        .select("id,file_name,storage_path,generated_at,group_label")
+        .eq("client_id", id)
+        .order("generated_at", { ascending: false }),
+    ]);
+    const trashedRows = (trashed ?? []) as Doc[];
+    setTrashedDocs(trashedRows);
+    setBinders((b ?? []) as BinderRow[]);
+    const uids = Array.from(new Set(trashedRows.map((x) => x.deleted_by).filter(Boolean) as string[]));
     if (uids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
       const map: Record<string, string> = {};
@@ -102,13 +141,26 @@ const ClientDetail = () => {
         map[p.id] = p.full_name ?? p.email ?? p.id.slice(0, 8);
       });
       setTrashUserNames(map);
-    } else { setTrashUserNames({}); }
-    const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
-    setBinders((b ?? []) as BinderRow[]);
-    setSections(await loadSections(true));
+    } else {
+      setTrashUserNames({});
+    }
+    setSecondaryLoading(false);
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  // Compatibility shim — existing handlers call `load()` after mutations.
+  // Keep that contract: refresh both critical + secondary data.
+  const load = useCallback(async () => {
+    await loadCritical();
+    loadSecondary();
+  }, [loadCritical, loadSecondary]);
+
+  // Critical paint first — secondary kicks off right after to avoid serial waterfall.
+  useEffect(() => { loadCritical(); }, [loadCritical]);
+  useEffect(() => {
+    // Defer secondary by a tick so the critical render commits first.
+    const t = setTimeout(() => { loadSecondary(); }, 0);
+    return () => clearTimeout(t);
+  }, [loadSecondary]);
 
   // Backfill: ensure every doc has a section_id so it appears in some section card.
   useEffect(() => {
@@ -175,55 +227,65 @@ const ClientDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, template?.id, client?.id]);
 
-  /** Find any doc attached to this checklist item, regardless of reviewer status.
-   *  Used to render rejected / needs_reissue badges + filename. */
-  const attachedDocByType = (typeName: string): Doc | undefined => {
-    const matches = docs.filter((d) => {
-      // Primary type label on the doc — what the user sees.
-      const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
-      // Secondary label — markChecklistItemReady writes the matched checklist
-      // name here so we always check it as a "linked checklist item" hint.
-      const t2 = d.custom_type ?? "";
-      if (t1 === typeName || t2 === typeName) return true;
-      if (t1 && isChecklistAlias(t1, typeName)) return true;
-      if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
-      return false;
-    });
-    return matches.sort((a, b) => b.version - a.version)[0];
-  };
+  /** Memoized doc-by-type matchers — built once per (docs) change so we don't
+   *  re-scan the full docs array N×items per render. */
+  const { attachedDocByType, docByType } = useMemo(() => {
+    const attached = (typeName: string): Doc | undefined => {
+      const matches = docs.filter((d) => {
+        const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+        const t2 = d.custom_type ?? "";
+        if (t1 === typeName || t2 === typeName) return true;
+        if (t1 && isChecklistAlias(t1, typeName)) return true;
+        if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+        return false;
+      });
+      return matches.sort((a, b) => b.version - a.version)[0];
+    };
+    const ready = (typeName: string): Doc | undefined => {
+      const d = attached(typeName);
+      if (!d) return undefined;
+      const s = d.status ?? "ready";
+      if (s === "rejected" || s === "needs_reissue") return undefined;
+      return d;
+    };
+    return { attachedDocByType: attached, docByType: ready };
+  }, [docs]);
 
-  /** Find a doc that satisfies a checklist item — only "ready" or
-   *  reviewer-"verified" docs count. Rejected / needs_reissue docs do NOT
-   *  satisfy the requirement (the row stays Pending with a Rejected badge). */
-  const docByType = (typeName: string): Doc | undefined => {
-    const d = attachedDocByType(typeName);
-    if (!d) return undefined;
-    const s = d.status ?? "ready";
-    if (s === "rejected" || s === "needs_reissue") return undefined;
-    return d;
-  };
-
-  const suppressedIds = new Set<string>(client?.suppressed_template_items ?? []);
-  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
-  // Hide extras whose name duplicates a template item — those are leftovers
-  // from an earlier "Add document" press and shouldn't show as a separate row.
-  const extraItems: ExtraItem[] = (
-    (client?.extra_items as ExtraItem[] | null | undefined) ?? []
-  ).filter((e) => !tplItemNames.has(norm(e.name)));
-  const visibleTemplateItems = (template?.items ?? []).filter((it) => !suppressedIds.has(it.id));
-  const checklistItems: TemplateItem[] = [
-    ...visibleTemplateItems,
-    ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
-  ];
-  const completed = checklistItems.filter((it) => docByType(it.name)).length;
-  const requiredMissing = checklistItems.filter((it) => it.mandatory && !docByType(it.name));
+  const suppressedIds = useMemo(
+    () => new Set<string>(client?.suppressed_template_items ?? []),
+    [client?.suppressed_template_items],
+  );
+  const extraItems: ExtraItem[] = useMemo(() => {
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
+    return ((client?.extra_items as ExtraItem[] | null | undefined) ?? [])
+      .filter((e) => !tplItemNames.has(norm(e.name)));
+  }, [client?.extra_items, template?.items]);
+  const visibleTemplateItems = useMemo(
+    () => (template?.items ?? []).filter((it) => !suppressedIds.has(it.id)),
+    [template?.items, suppressedIds],
+  );
+  const checklistItems: TemplateItem[] = useMemo(
+    () => [
+      ...visibleTemplateItems,
+      ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
+    ],
+    [visibleTemplateItems, extraItems],
+  );
+  const completed = useMemo(
+    () => checklistItems.filter((it) => docByType(it.name)).length,
+    [checklistItems, docByType],
+  );
+  const requiredMissing = useMemo(
+    () => checklistItems.filter((it) => it.mandatory && !docByType(it.name)),
+    [checklistItems, docByType],
+  );
 
   /** Sectioned view of the checklist. If the assigned template defines `groups`,
    *  we honour that hierarchy. Extra items (added per-client) are appended to
    *  a synthetic "Added requirements" section at the end. Otherwise we fall
    *  back to a single flat section. */
-  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = (() => {
+  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = useMemo(() => {
     const tplItems = visibleTemplateItems;
     const tplGroups = (template?.groups ?? null) as TemplateGroup[] | null;
     const itemMap = new Map(tplItems.map((it) => [it.id, it]));
@@ -250,7 +312,7 @@ const ClientDetail = () => {
       });
     }
     return out;
-  })();
+  }, [visibleTemplateItems, template?.groups, extraItems]);
 
   const onDelete = async (d: Doc) => {
     if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
@@ -989,6 +1051,26 @@ const ClientDetail = () => {
               </AccordionItem>
             </Accordion>
           </Card>
+
+          {secondaryLoading && binders.length === 0 && trashedDocs.length === 0 && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b">
+                <div className="h-4 w-40 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-24 bg-muted rounded animate-pulse mt-2" />
+              </div>
+              <div className="divide-y">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="px-6 py-3 flex items-center gap-3">
+                    <div className="size-4 bg-muted rounded animate-pulse shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-3.5 w-56 bg-muted rounded animate-pulse" />
+                      <div className="h-3 w-32 bg-muted rounded animate-pulse mt-1.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {binders.length > 0 && (
             <Card className="overflow-hidden shadow-elev-sm">
