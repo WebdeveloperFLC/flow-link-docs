@@ -90,9 +90,10 @@ const TelephonySettings = () => {
     field: "is_available" | "is_on_break",
     next: boolean,
   ) => {
+    const update: any = { [field]: next };
     const { error } = await supabase
       .from("telephony_agents")
-      .update({ [field]: next })
+      .update(update)
       .eq("id", row.id);
     if (error) {
       toast.error(error.message);
@@ -106,7 +107,6 @@ const TelephonySettings = () => {
       <PageHeader
         title="Telephony Settings"
         description="Configure each counselor's TeleCMI agent ID and availability."
-        icon={Phone}
       />
       <div className="p-6 space-y-4">
         {loading ? (
