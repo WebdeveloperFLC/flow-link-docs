@@ -132,6 +132,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "binders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "binders_section_id_fkey"
             columns: ["section_id"]
             isOneToOne: false
@@ -139,6 +146,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      call_campaigns: {
+        Row: {
+          active_from: string | null
+          active_to: string | null
+          assigned_team: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          active_from?: string | null
+          active_to?: string | null
+          assigned_team?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          active_from?: string | null
+          active_to?: string | null
+          assigned_team?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       call_events: {
         Row: {
@@ -150,9 +196,12 @@ export type Database = {
           from_number: string | null
           id: string
           matched_at: string | null
+          provider: string | null
+          provider_event_id: string | null
           raw: Json
           received_at: string
           recording_url: string | null
+          session_id: string | null
           status: string | null
           to_number: string | null
         }
@@ -165,9 +214,12 @@ export type Database = {
           from_number?: string | null
           id?: string
           matched_at?: string | null
+          provider?: string | null
+          provider_event_id?: string | null
           raw?: Json
           received_at?: string
           recording_url?: string | null
+          session_id?: string | null
           status?: string | null
           to_number?: string | null
         }
@@ -180,13 +232,169 @@ export type Database = {
           from_number?: string | null
           id?: string
           matched_at?: string | null
+          provider?: string | null
+          provider_event_id?: string | null
           raw?: Json
           received_at?: string
           recording_url?: string | null
+          session_id?: string | null
           status?: string | null
           to_number?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "call_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_queue_items: {
+        Row: {
+          assigned_agent_id: string | null
+          campaign_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          last_called_at: string | null
+          next_call_at: string | null
+          priority: number
+          retry_count: number
+          status: Database["public"]["Enums"]["call_queue_status"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_agent_id?: string | null
+          campaign_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          last_called_at?: string | null
+          next_call_at?: string | null
+          priority?: number
+          retry_count?: number
+          status?: Database["public"]["Enums"]["call_queue_status"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_agent_id?: string | null
+          campaign_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          last_called_at?: string | null
+          next_call_at?: string | null
+          priority?: number
+          retry_count?: number
+          status?: Database["public"]["Enums"]["call_queue_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_queue_items_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "telephony_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "call_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_sessions: {
+        Row: {
+          agent_id: string | null
+          campaign_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          direction: Database["public"]["Enums"]["call_direction"]
+          disposition: string | null
+          duration_seconds: number | null
+          end_time: string | null
+          id: string
+          masked_number_used: string | null
+          notes: string | null
+          provider: string
+          queue_item_id: string | null
+          recording_url: string | null
+          start_time: string | null
+          status: Database["public"]["Enums"]["call_session_status"]
+          telecmi_call_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          campaign_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: Database["public"]["Enums"]["call_direction"]
+          disposition?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          masked_number_used?: string | null
+          notes?: string | null
+          provider?: string
+          queue_item_id?: string | null
+          recording_url?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["call_session_status"]
+          telecmi_call_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          campaign_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: Database["public"]["Enums"]["call_direction"]
+          disposition?: string | null
+          duration_seconds?: number | null
+          end_time?: string | null
+          id?: string
+          masked_number_used?: string | null
+          notes?: string | null
+          provider?: string
+          queue_item_id?: string | null
+          recording_url?: string | null
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["call_session_status"]
+          telecmi_call_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "telephony_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "call_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_queue_item_id_fkey"
+            columns: ["queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "call_queue_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       case_people: {
         Row: {
@@ -240,6 +448,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_people_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -584,6 +799,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "client_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "client_access_team_id_fkey"
             columns: ["team_id"]
             isOneToOne: false
@@ -659,6 +881,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
           {
@@ -1661,6 +1890,83 @@ export type Database = {
         }
         Relationships: []
       }
+      telephony_agents: {
+        Row: {
+          created_at: string
+          current_campaign_id: string | null
+          id: string
+          is_available: boolean
+          is_on_break: boolean
+          last_call_at: string | null
+          role: Database["public"]["Enums"]["telephony_role"]
+          telecmi_agent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_campaign_id?: string | null
+          id?: string
+          is_available?: boolean
+          is_on_break?: boolean
+          last_call_at?: string | null
+          role?: Database["public"]["Enums"]["telephony_role"]
+          telecmi_agent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_campaign_id?: string | null
+          id?: string
+          is_available?: boolean
+          is_on_break?: boolean
+          last_call_at?: string | null
+          role?: Database["public"]["Enums"]["telephony_role"]
+          telecmi_agent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      telephony_audit_logs: {
+        Row: {
+          actor_id: string | null
+          client_id: string | null
+          created_at: string
+          details: Json
+          event_type: string
+          id: string
+          session_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: string
+          id?: string
+          session_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: string
+          id?: string
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telephony_audit_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1812,7 +2118,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_clients_masked: {
+        Row: {
+          application_id: string | null
+          application_type: string | null
+          country: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          has_phone: boolean | null
+          id: string | null
+          phone_display: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          application_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          has_phone?: never
+          id?: string | null
+          phone_display?: never
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          application_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          has_phone?: never
+          id?: string | null
+          phone_display?: never
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_edit_client: {
@@ -1875,13 +2222,35 @@ export type Database = {
         Args: { _team: string; _uid: string }
         Returns: boolean
       }
+      is_telephony_admin: { Args: { _uid: string }; Returns: boolean }
       user_client_permission: {
         Args: { _cid: string; _uid: string }
         Returns: Database["public"]["Enums"]["client_permission"]
       }
+      user_telephony_agent_id: { Args: { _uid: string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "counselor" | "documentation" | "viewer"
+      call_direction: "outbound" | "inbound"
+      call_queue_status:
+        | "queued"
+        | "calling"
+        | "no_answer"
+        | "busy"
+        | "callback"
+        | "connected"
+        | "enrolled"
+        | "failed"
+        | "cancelled"
+      call_session_status:
+        | "initiated"
+        | "ringing"
+        | "answered"
+        | "completed"
+        | "failed"
+        | "no_answer"
+        | "busy"
+        | "cancelled"
       client_permission: "view" | "edit" | "upload" | "full"
       person_role:
         | "applicant"
@@ -1889,6 +2258,7 @@ export type Database = {
         | "dependant"
         | "sponsor"
         | "co_sponsor"
+      telephony_role: "telecaller" | "counselor" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2017,6 +2387,28 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "counselor", "documentation", "viewer"],
+      call_direction: ["outbound", "inbound"],
+      call_queue_status: [
+        "queued",
+        "calling",
+        "no_answer",
+        "busy",
+        "callback",
+        "connected",
+        "enrolled",
+        "failed",
+        "cancelled",
+      ],
+      call_session_status: [
+        "initiated",
+        "ringing",
+        "answered",
+        "completed",
+        "failed",
+        "no_answer",
+        "busy",
+        "cancelled",
+      ],
       client_permission: ["view", "edit", "upload", "full"],
       person_role: [
         "applicant",
@@ -2025,6 +2417,7 @@ export const Constants = {
         "sponsor",
         "co_sponsor",
       ],
+      telephony_role: ["telecaller", "counselor", "admin"],
     },
   },
 } as const
