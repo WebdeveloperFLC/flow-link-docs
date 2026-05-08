@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch, Unlink } from "lucide-react";
+import { CallClientButton } from "@/components/clients/CallClientButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
 import { useAuth } from "@/contexts/AuthContext";
@@ -728,6 +729,7 @@ const ClientDetail = () => {
         actions={
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
+            <CallClientButton clientId={client.id} />
             {(isAdmin || (!!user && (client.owner_id === user.id || client.created_by === user.id))) && (
               <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
                 <ShieldCheck className="size-4 mr-1.5" /> Manage access
