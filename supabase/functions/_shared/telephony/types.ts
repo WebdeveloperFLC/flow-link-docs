@@ -28,6 +28,6 @@ export interface TelephonyProvider {
   name: TelephonyProviderName;
   fromNumber(): string;
   click2Call(req: ProviderCallRequest): Promise<ProviderCallResult>;
-  verifyWebhook(rawBody: string, headers: Headers): { ok: boolean; reason?: string };
+  verifyWebhook(rawBody: string, headers: Headers): Promise<{ ok: boolean; reason?: string }> | { ok: boolean; reason?: string };
   normalizeEvent(payload: unknown): NormalizedEvent | null;
 }
