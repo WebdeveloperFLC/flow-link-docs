@@ -102,7 +102,13 @@ export const telecmi: TelephonyProvider = {
   async verifyAgentReady(agentId: string) {
     const appid = env("TELECMI_APP_ID");
     const secret = env("TELECMI_SECRET");
-    const body = { appid: telecmiAppIdPayloadValue(appid), secret, id: agentId };
+    // TeleCMI's /agent/get expects the agent extension/id only.
+    // Stored values often look like "5005_33337878" (SIP username = ext_appid);
+    // strip the trailing "_<appid>" so we send just the extension ("5005").
+    const normalizedId = agentId.includes("_")
+      ? agentId.split("_")[0]
+      : agentId;
+    const body = { appid: telecmiAppIdPayloadValue(appid), secret, id: normalizedId };
     console.log("[telecmi] TeleCMI agent readiness request body", { endpoint: `${TELECMI_CHUB_BASE}/agent/get`, body: redactTelecmiBody(body) });
     const res = await fetch(`${TELECMI_CHUB_BASE}/agent/get`, {
       method: "POST",
