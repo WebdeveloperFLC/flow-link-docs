@@ -133,7 +133,12 @@ export class BrowserPhone {
             return;
           }
           this.listener.onError(msg);
-          this.setStatus("failed", msg);
+          // Don't strand the UI in "failed" if the SBC session is still alive.
+          if (piopiy.isLogedIn?.()) {
+            this.setStatus("ready", msg);
+          } else {
+            this.setStatus("failed", msg);
+          }
         });
         piopiy.on("mediaFailed", () => {
           this.listener.onError("Microphone access failed. Allow mic permission and retry.");
