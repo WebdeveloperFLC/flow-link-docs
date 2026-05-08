@@ -218,8 +218,15 @@ const TelephonyIntegrationSettings = () => {
                   </div>
                   <Input
                     id={f.key}
+                    name={`telecmi-${f.key}-${Math.random().toString(36).slice(2, 8)}`}
                     type={f.isSecret ? "password" : "text"}
                     autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    data-lpignore="true"
+                    data-1p-ignore="true"
+                    data-form-type="other"
                     placeholder={f.placeholder}
                     value={drafts[f.key]}
                     onChange={(e) => setDrafts((d) => ({ ...d, [f.key]: e.target.value }))}
