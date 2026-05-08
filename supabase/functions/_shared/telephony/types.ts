@@ -5,12 +5,23 @@ export type TelephonyProviderName = "telecmi";
 export interface ProviderCallRequest {
   toNumber: string;
   fromNumber: string;
+  telecmiAgentId: string;
   metadata?: Record<string, unknown>;
 }
 
 export interface ProviderCallResult {
   providerCallId: string | null;
+  status: string | null;
+  message: string | null;
+  endpoint: string;
   raw: unknown;
+}
+
+export interface ProviderAgentReadiness {
+  ok: boolean;
+  reason?: string;
+  status?: string | null;
+  raw?: unknown;
 }
 
 export interface NormalizedEvent {
@@ -27,6 +38,7 @@ export interface NormalizedEvent {
 export interface TelephonyProvider {
   name: TelephonyProviderName;
   fromNumber(): string;
+  verifyAgentReady(agentId: string): Promise<ProviderAgentReadiness>;
   click2Call(req: ProviderCallRequest): Promise<ProviderCallResult>;
   verifyWebhook(rawBody: string, headers: Headers): Promise<{ ok: boolean; reason?: string }> | { ok: boolean; reason?: string };
   normalizeEvent(payload: unknown): NormalizedEvent | null;
