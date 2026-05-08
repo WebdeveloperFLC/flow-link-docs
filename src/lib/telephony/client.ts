@@ -4,11 +4,36 @@ import type { CallRequest, CallResult } from "./types";
 // Browser-side helpers. All calls go through edge functions — the browser
 // never talks to the telephony provider directly.
 
+export class TelephonyCallError extends Error {
+  sessionId?: string;
+  traceId?: string;
+
+  constructor(message: string, meta?: { sessionId?: string; traceId?: string }) {
+    super(message);
+    this.name = "TelephonyCallError";
+    this.sessionId = meta?.sessionId;
+    this.traceId = meta?.traceId;
+  }
+}
+
+async function normalizeFunctionError(error: unknown): Promise<TelephonyCallError> {
+  const maybe = error as { message?: string; context?: unknown };
+  const context = maybe.context;
+  if (context instanceof Response) {
+    const body = await context.json().catch(() => null) as { error?: string; detail?: string; sessionId?: string; traceId?: string } | null;
+    if (body) {
+      const message = [body.error, body.detail].filter(Boolean).join(": ") || maybe.message || "Telephony request failed";
+      return new TelephonyCallError(message, { sessionId: body.sessionId, traceId: body.traceId });
+    }
+  }
+  return new TelephonyCallError(maybe.message ?? "Telephony request failed");
+}
+
 export async function startCall(req: CallRequest): Promise<CallResult> {
   const { data, error } = await supabase.functions.invoke("telephony-click-to-call", {
     body: req,
   });
-  if (error) throw error;
+  if (error) throw await normalizeFunctionError(error);
   return data as CallResult;
 }
 
