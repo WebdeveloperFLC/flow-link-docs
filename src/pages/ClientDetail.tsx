@@ -227,55 +227,65 @@ const ClientDetail = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, template?.id, client?.id]);
 
-  /** Find any doc attached to this checklist item, regardless of reviewer status.
-   *  Used to render rejected / needs_reissue badges + filename. */
-  const attachedDocByType = (typeName: string): Doc | undefined => {
-    const matches = docs.filter((d) => {
-      // Primary type label on the doc — what the user sees.
-      const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
-      // Secondary label — markChecklistItemReady writes the matched checklist
-      // name here so we always check it as a "linked checklist item" hint.
-      const t2 = d.custom_type ?? "";
-      if (t1 === typeName || t2 === typeName) return true;
-      if (t1 && isChecklistAlias(t1, typeName)) return true;
-      if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
-      return false;
-    });
-    return matches.sort((a, b) => b.version - a.version)[0];
-  };
+  /** Memoized doc-by-type matchers — built once per (docs) change so we don't
+   *  re-scan the full docs array N×items per render. */
+  const { attachedDocByType, docByType } = useMemo(() => {
+    const attached = (typeName: string): Doc | undefined => {
+      const matches = docs.filter((d) => {
+        const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+        const t2 = d.custom_type ?? "";
+        if (t1 === typeName || t2 === typeName) return true;
+        if (t1 && isChecklistAlias(t1, typeName)) return true;
+        if (t2 && t2 !== t1 && isChecklistAlias(t2, typeName)) return true;
+        return false;
+      });
+      return matches.sort((a, b) => b.version - a.version)[0];
+    };
+    const ready = (typeName: string): Doc | undefined => {
+      const d = attached(typeName);
+      if (!d) return undefined;
+      const s = d.status ?? "ready";
+      if (s === "rejected" || s === "needs_reissue") return undefined;
+      return d;
+    };
+    return { attachedDocByType: attached, docByType: ready };
+  }, [docs]);
 
-  /** Find a doc that satisfies a checklist item — only "ready" or
-   *  reviewer-"verified" docs count. Rejected / needs_reissue docs do NOT
-   *  satisfy the requirement (the row stays Pending with a Rejected badge). */
-  const docByType = (typeName: string): Doc | undefined => {
-    const d = attachedDocByType(typeName);
-    if (!d) return undefined;
-    const s = d.status ?? "ready";
-    if (s === "rejected" || s === "needs_reissue") return undefined;
-    return d;
-  };
-
-  const suppressedIds = new Set<string>(client?.suppressed_template_items ?? []);
-  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-  const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
-  // Hide extras whose name duplicates a template item — those are leftovers
-  // from an earlier "Add document" press and shouldn't show as a separate row.
-  const extraItems: ExtraItem[] = (
-    (client?.extra_items as ExtraItem[] | null | undefined) ?? []
-  ).filter((e) => !tplItemNames.has(norm(e.name)));
-  const visibleTemplateItems = (template?.items ?? []).filter((it) => !suppressedIds.has(it.id));
-  const checklistItems: TemplateItem[] = [
-    ...visibleTemplateItems,
-    ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
-  ];
-  const completed = checklistItems.filter((it) => docByType(it.name)).length;
-  const requiredMissing = checklistItems.filter((it) => it.mandatory && !docByType(it.name));
+  const suppressedIds = useMemo(
+    () => new Set<string>(client?.suppressed_template_items ?? []),
+    [client?.suppressed_template_items],
+  );
+  const extraItems: ExtraItem[] = useMemo(() => {
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
+    return ((client?.extra_items as ExtraItem[] | null | undefined) ?? [])
+      .filter((e) => !tplItemNames.has(norm(e.name)));
+  }, [client?.extra_items, template?.items]);
+  const visibleTemplateItems = useMemo(
+    () => (template?.items ?? []).filter((it) => !suppressedIds.has(it.id)),
+    [template?.items, suppressedIds],
+  );
+  const checklistItems: TemplateItem[] = useMemo(
+    () => [
+      ...visibleTemplateItems,
+      ...extraItems.map((e) => ({ id: e.id, name: e.name, mandatory: !!e.mandatory, notes: e.notes })),
+    ],
+    [visibleTemplateItems, extraItems],
+  );
+  const completed = useMemo(
+    () => checklistItems.filter((it) => docByType(it.name)).length,
+    [checklistItems, docByType],
+  );
+  const requiredMissing = useMemo(
+    () => checklistItems.filter((it) => it.mandatory && !docByType(it.name)),
+    [checklistItems, docByType],
+  );
 
   /** Sectioned view of the checklist. If the assigned template defines `groups`,
    *  we honour that hierarchy. Extra items (added per-client) are appended to
    *  a synthetic "Added requirements" section at the end. Otherwise we fall
    *  back to a single flat section. */
-  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = (() => {
+  const checklistSections: Array<{ id: string; label: string; items: TemplateItem[] }> = useMemo(() => {
     const tplItems = visibleTemplateItems;
     const tplGroups = (template?.groups ?? null) as TemplateGroup[] | null;
     const itemMap = new Map(tplItems.map((it) => [it.id, it]));
@@ -302,7 +312,7 @@ const ClientDetail = () => {
       });
     }
     return out;
-  })();
+  }, [visibleTemplateItems, template?.groups, extraItems]);
 
   const onDelete = async (d: Doc) => {
     if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
