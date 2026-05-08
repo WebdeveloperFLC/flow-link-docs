@@ -52,10 +52,13 @@ export function BrowserPhonePanel() {
           </div>
         </div>
         <div className="flex gap-2">
-          {status === "logged_out" || status === "failed" ? (
-            <Button size="sm" onClick={onLogin} disabled={status === "logging_in" as any}>
-              {status === "logging_in" as any ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4 mr-1" />}
-              Connect
+          {status === "logging_in" ? (
+            <Button size="sm" disabled>
+              <Loader2 className="h-4 w-4 animate-spin mr-1" /> Connecting…
+            </Button>
+          ) : status === "logged_out" || status === "failed" || status === "ended" ? (
+            <Button size="sm" onClick={onLogin}>
+              <LogIn className="h-4 w-4 mr-1" /> Connect
             </Button>
           ) : (
             <Button size="sm" variant="outline" onClick={logout} disabled={isBusy}>
