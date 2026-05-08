@@ -89,26 +89,7 @@ Deno.serve(async (req) => {
     log(traceId, "masked outbound number", { maskedOutboundNumber: fromNumber ? phoneSummary(fromNumber) : { present: false } });
     if (!fromNumber) return json({ error: "Telephony not configured (missing TELECMI_FROM_NUMBER)", traceId }, 503);
 
-    if (agent.is_on_break) return json({ error: "Counselor is marked on break", traceId }, 409);
-    if (!agent.is_available) return json({ error: "Counselor is not marked available", traceId }, 409);
-    if (!agent.telecmi_agent_id) {
-      log(traceId, "agent readiness failed", { reason: "missing telecmi_agent_id", agentId: agent.id });
-      return json({ error: "TeleCMI agent is not configured for this counselor", traceId }, 503);
-    }
-
-    const readiness = await provider.verifyAgentReady(agent.telecmi_agent_id);
-    log(traceId, "TeleCMI agent readiness", {
-      agentId: agent.id,
-      telecmiAgentId: agent.telecmi_agent_id,
-      ok: readiness.ok,
-      status: readiness.status ?? null,
-      reason: readiness.reason ?? null,
-    });
-    if (!readiness.ok) {
-      return json({ error: "TeleCMI agent is not ready", detail: readiness.reason ?? "Agent readiness check failed", traceId }, 503);
-    }
-
-    // Create session row first so we have an id even if provider call fails
+    // Create a unique session row at source for every valid dial action, before provider checks/call.
     const sessionId = crypto.randomUUID();
     const { data: session, error: sErr } = await adminClient
       .from("call_sessions")
@@ -128,6 +109,24 @@ Deno.serve(async (req) => {
       .single();
     if (sErr) return json({ error: sErr.message, traceId }, 500);
     log(traceId, "returned call_session_id", { callSessionId: session.id, createdAt: session.created_at, insertedNewRow: session.id === sessionId });
+
+    const failSession = async (error: string, detail?: string, status = 503) => {
+      const msg = detail ? `${error}: ${detail}` : error;
+      log(traceId, "returned status/error", { callSessionId: session.id, status: "failed", error: msg });
+      await adminClient.from("call_sessions").update({ status: "failed", end_time: new Date().toISOString(), notes: msg }).eq("id", session.id);
+      return json({ error, detail, sessionId: session.id, traceId }, status);
+    };
+
+    if (agent.is_on_break) return await failSession("Counselor is marked on break", undefined, 409);
+    if (!agent.is_available) return await failSession("Counselor is not marked available", undefined, 409);
+    if (!agent.telecmi_agent_id) {
+      log(traceId, "agent readiness failed", { reason: "missing telecmi_agent_id", agentId: agent.id });
+      return await failSession("TeleCMI agent is not configured for this counselor");
+    }
+
+    const readiness = await provider.verifyAgentReady(agent.telecmi_agent_id);
+    log(traceId, "TeleCMI agent readiness", { agentId: agent.id, telecmiAgentId: agent.telecmi_agent_id, ok: readiness.ok, status: readiness.status ?? null, reason: readiness.reason ?? null });
+    if (!readiness.ok) return await failSession("TeleCMI agent is not ready", readiness.reason ?? "Agent readiness check failed");
 
     try {
       const result = await provider.click2Call({
