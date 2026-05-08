@@ -92,9 +92,11 @@ export const BrowserPhoneProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = useCallback(async () => {
+    if (phoneRef.current && status === "ready") return;
     const creds = await fetchCreds();
     setTestExtension(creds.test_extension);
     setIsAdmin(creds.is_admin);
+    try { phoneRef.current?.logout(); } catch { /* */ }
 
     const phone = new BrowserPhone({
       onStatus: (s, detail) => { setStatus(s); setStatusDetail(detail); },
@@ -110,7 +112,7 @@ export const BrowserPhoneProvider = ({ children }: { children: ReactNode }) => {
       await logAudit("browser_login_failed", { reason: e?.message ?? String(e) });
       throw e;
     }
-  }, [fetchCreds]);
+  }, [fetchCreds, status]);
 
   const logout = useCallback(() => {
     try { phoneRef.current?.logout(); } catch { /* */ }
