@@ -146,7 +146,13 @@ const TelephonySettings = () => {
         description="Configure each counselor's TeleCMI agent ID and availability."
       />
       <div className="p-6 space-y-4">
-        {loading ? (
+        <BrowserPhonePanel />
+        {!isAdmin && (
+          <Card className="p-6 text-sm text-muted-foreground">
+            Use the Browser Calling panel above to connect. Per-counselor configuration is admin-only.
+          </Card>
+        )}
+        {isAdmin && (loading ? (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading agents…
           </div>
@@ -193,6 +199,35 @@ const TelephonySettings = () => {
                       </Button>
                     </div>
                   </div>
+                  <div className="space-y-1 pt-2 border-t">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Browser SDK / SBC Login
+                    </Label>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <Input
+                        placeholder="SBC user_id (e.g. 5005)"
+                        value={sbcUserDrafts[row.id] ?? ""}
+                        onChange={(e) => setSbcUserDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                      />
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder={row.sbc_password_set ? "•••••••• (saved — type to rotate)" : "SBC password"}
+                        value={sbcPwdDrafts[row.id] ?? ""}
+                        onChange={(e) => setSbcPwdDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                      />
+                    </div>
+                    <div className="flex justify-end pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => saveSbcCreds(row)}
+                        disabled={savingId === row.id}
+                      >
+                        {savingId === row.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save SBC creds"}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-3 md:items-end">
                   <label className="flex items-center gap-2 text-sm">
@@ -213,7 +248,7 @@ const TelephonySettings = () => {
               </div>
             </Card>
           ))
-        )}
+        ))}
       </div>
     </AppLayout>
   );
