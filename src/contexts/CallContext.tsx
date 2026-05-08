@@ -117,24 +117,17 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     try {
       // Prefer browser SDK when the counselor's TeleCMI session is ready.
       if (browser.status === "ready") {
-        // Resolve client phone server-side via existing edge function (it returns
-        // maskedNumber + creates a call_session). We then trigger the SDK dial
-        // using the same masked outbound number so audit + UI stay aligned.
-        const result = await invokeStartCall({ clientId });
+        // Resolve client phone and create the call_session server-side, but do
+        // not invoke TeleCMI adminConnect. A ready WebRTC session dials through
+        // the browser SDK, avoiding the legacy /agent/get readiness check.
+        const result = await invokeStartCall({ clientId, mode: "browser_sdk" });
         if (latestStartTokenRef.current !== startToken) return null;
-        try {
-          // Backend already created the session and triggered adminConnect; if
-          // the masked number is returned, also dial via SDK so audio lands in
-          // the browser. If SDK dial fails, the backend leg keeps working.
-          if (result.maskedNumber) {
-            try { browser.dial(result.maskedNumber.replace(/[^\d+*#]/g, ""), { sessionId: result.sessionId, clientId }); }
-            catch (e) { console.warn("[call] SDK dial failed, falling back to backend leg", e); }
-          }
-        } catch (e) { console.warn("[call] SDK dial error", e); }
+        if (!result.maskedNumber) throw new TelephonyCallError("No dialable phone number was returned", { sessionId: result.sessionId, traceId: result.traceId });
+        browser.dial(result.maskedNumber.replace(/[^\d+*#]/g, ""), { sessionId: result.sessionId, clientId });
         const next: CurrentCall = {
           sessionId: result.sessionId,
           clientId,
-          status: (result.status as CallStatus) ?? "initiated",
+          status: "initiated",
           maskedNumber: result.maskedNumber ?? null,
           startedAt: Date.now(),
         };

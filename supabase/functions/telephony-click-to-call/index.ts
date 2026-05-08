@@ -48,12 +48,20 @@ Deno.serve(async (req) => {
     const clientId = String(body.clientId ?? "");
     const queueItemId = body.queueItemId ? String(body.queueItemId) : null;
     const campaignId = body.campaignId ? String(body.campaignId) : null;
-    log(traceId, "request payload", { clientId, queueItemId, campaignId, hasClientId: !!clientId });
+    const callMode = body.mode === "browser_sdk" ? "browser_sdk" : "click_to_call";
+    log(traceId, "request payload", { clientId, queueItemId, campaignId, mode: callMode, hasClientId: !!clientId });
     if (!clientId) return json({ error: "clientId required" }, 400);
 
     // Permission check via RLS-respecting helper
     const { data: canEdit } = await userClient.rpc("can_edit_client", { _uid: userId, _cid: clientId });
     if (!canEdit) return json({ error: "Forbidden" }, 403);
+    if (callMode === "browser_sdk") {
+      const [{ data: isAdmin }, { data: isCounselor }] = await Promise.all([
+        userClient.rpc("has_role", { _user_id: userId, _role: "admin" }),
+        userClient.rpc("has_role", { _user_id: userId, _role: "counselor" }),
+      ]);
+      if (!isAdmin && !isCounselor) return json({ error: "Browser calling is restricted to counselors and admins" }, 403);
+    }
 
     // Service role for the writes that follow
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SR, { auth: { persistSession: false } });
@@ -71,14 +79,14 @@ Deno.serve(async (req) => {
     // Ensure agent row exists
     let { data: agent } = await adminClient
       .from("telephony_agents")
-      .select("id, role, telecmi_agent_id, is_available, is_on_break")
+      .select("id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
       .eq("user_id", userId)
       .maybeSingle();
     if (!agent) {
       const { data: created, error: aErr } = await adminClient
         .from("telephony_agents")
         .insert({ user_id: userId, role: "counselor", is_available: true })
-        .select("id, role, telecmi_agent_id, is_available, is_on_break")
+        .select("id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
         .single();
       if (aErr) return json({ error: aErr.message, traceId }, 500);
       agent = created;
@@ -119,6 +127,30 @@ Deno.serve(async (req) => {
 
     if (agent.is_on_break) return await failSession("Counselor is marked on break", undefined, 409);
     if (!agent.is_available) return await failSession("Counselor is not marked available", undefined, 409);
+    if (callMode === "browser_sdk") {
+      if (!agent.sbc_user_id || !agent.sbc_password) {
+        log(traceId, "browser SDK session failed", { reason: "missing SBC credentials", agentId: agent.id });
+        return await failSession("TeleCMI browser credentials are not configured for this counselor", undefined, 409);
+      }
+
+      log(traceId, "browser SDK session prepared", { callSessionId: session.id, agentId: agent.id });
+      await adminClient.from("telephony_audit_logs").insert({
+        actor_id: userId,
+        session_id: session.id,
+        client_id: clientId,
+        event_type: "browser_call_session_prepared",
+        details: { provider: provider.name },
+      });
+
+      return json({
+        sessionId: session.id,
+        providerCallId: null,
+        status: "initiated",
+        maskedNumber: clientRow.phone,
+        traceId,
+      });
+    }
+
     if (!agent.telecmi_agent_id) {
       log(traceId, "agent readiness failed", { reason: "missing telecmi_agent_id", agentId: agent.id });
       return await failSession("TeleCMI agent is not configured for this counselor");
