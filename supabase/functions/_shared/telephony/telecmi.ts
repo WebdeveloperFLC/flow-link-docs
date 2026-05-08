@@ -1,6 +1,5 @@
 import type { TelephonyProvider, ProviderCallRequest, ProviderCallResult, NormalizedEvent } from "./types.ts";
 
-const TELECMI_BASE = "https://rest.telecmi.com/v2";
 const TELECMI_CHUB_BASE = "https://piopiy.telecmi.com/v1";
 
 function env(name: string, required = true): string {
@@ -36,6 +35,12 @@ function getString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
 }
 
+function parseJsonOrText(text: string): unknown {
+  if (!text) return null;
+  try { return JSON.parse(text); }
+  catch { return { nonJsonBody: text.slice(0, 1000) }; }
+}
+
 export const telecmi: TelephonyProvider = {
   name: "telecmi",
 
@@ -54,7 +59,7 @@ export const telecmi: TelephonyProvider = {
       body: JSON.stringify(body),
     });
     const rawText = await res.text();
-    const raw = rawText ? JSON.parse(rawText) : null;
+    const raw = parseJsonOrText(rawText);
     console.log("[telecmi] agent readiness response", { httpStatus: res.status, body: raw });
     if (!res.ok || !raw) return { ok: false, reason: `agent readiness failed (${res.status})`, raw };
     const status = getString((raw as Record<string, unknown>).status);
@@ -84,7 +89,7 @@ export const telecmi: TelephonyProvider = {
       body: JSON.stringify(body),
     });
     const rawText = await res.text();
-    const raw = rawText ? JSON.parse(rawText) : null;
+    const raw = parseJsonOrText(rawText);
     console.log("[telecmi] click-to-call response", { httpStatus: res.status, body: raw });
     if (!raw) throw new Error(`telecmi click-to-call returned an empty response (${res.status})`);
     if (!res.ok) {
