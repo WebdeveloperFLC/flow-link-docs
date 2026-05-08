@@ -1,39 +1,51 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Phone } from "lucide-react";
 import { toast } from "sonner";
-import { startCall } from "@/lib/telephony/client";
+import { useCall } from "@/contexts/CallContext";
 
 interface Props {
   clientId: string;
 }
 
 export function CallClientButton({ clientId }: Props) {
-  const [loading, setLoading] = useState(false);
+  const { currentCall, isActive, startCall } = useCall();
+  const activeForThis = isActive(clientId);
+  const isThisCall = currentCall?.clientId === clientId;
+
+  const label = (() => {
+    if (!isThisCall) return "Call";
+    switch (currentCall?.status) {
+      case "initiated": return "Dialing…";
+      case "ringing": return "Ringing…";
+      case "answered": return "On call";
+      case "failed": return "Failed";
+      case "no_answer": return "No answer";
+      case "busy": return "Busy";
+      case "completed": return "Ended";
+      case "canceled": return "Canceled";
+      default: return "Call";
+    }
+  })();
 
   const onClick = async () => {
-    setLoading(true);
+    if (activeForThis) return;
     try {
-      const result = await startCall({ clientId });
-      if (result.status === "ringing" || result.status === "initiated") {
+      const r = await startCall(clientId);
+      if (r) {
         toast.success("Calling client…", {
-          description: result.maskedNumber ? `Connecting from ${result.maskedNumber}` : undefined,
+          description: r.maskedNumber ? `Connecting from ${r.maskedNumber}` : undefined,
         });
-      } else {
-        toast.error("Call failed to start");
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast.error("Could not start call", { description: msg });
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <Button onClick={onClick} disabled={loading} variant="outline" size="sm">
-      {loading ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Phone className="size-4 mr-1.5" />}
-      Call
+    <Button onClick={onClick} disabled={activeForThis} variant="outline" size="sm">
+      {activeForThis ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Phone className="size-4 mr-1.5" />}
+      {label}
     </Button>
   );
 }
