@@ -146,28 +146,6 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         return next;
       }
       throw new TelephonyCallError("Connect browser phone before dialing. Legacy TeleCMI click-to-call is disabled for counselor calls.");
-      const result = await invokeStartCall({ clientId });
-      if (latestStartTokenRef.current !== startToken) return null;
-      const next: CurrentCall = {
-        sessionId: result.sessionId,
-        clientId,
-        status: (result.status as CallStatus) ?? "initiated",
-        maskedNumber: result.maskedNumber ?? null,
-        startedAt: Date.now(),
-      };
-      activeSessionIdRef.current = next.sessionId;
-      currentCallRef.current = next;
-      setCurrentCall(next);
-      subscribe(next.sessionId);
-      // Safety timeout: if no terminal event in 90s, auto-reset so user can retry.
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        if (activeSessionIdRef.current === next.sessionId) {
-          setCurrentCall((prev) => prev && prev.sessionId === next.sessionId ? { ...prev, status: "failed" } : prev);
-          setTimeout(() => { if (activeSessionIdRef.current === next.sessionId) reset(); }, 1500);
-        }
-      }, 90_000);
-      return next;
     } catch (e) {
       if (latestStartTokenRef.current === startToken) {
         const sessionId = e instanceof TelephonyCallError && e.sessionId ? e.sessionId : `failed-${startToken}`;
