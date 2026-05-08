@@ -8,6 +8,7 @@ export interface CallRequest {
   // Optional: for queue mode the queue item id is passed so the session can be linked.
   queueItemId?: string;
   campaignId?: string;
+  mode?: "click_to_call" | "browser_sdk";
 }
 
 export interface CallResult {
