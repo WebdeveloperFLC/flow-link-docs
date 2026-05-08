@@ -10,7 +10,7 @@ const cors = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
 };
 
-const FIELDS = ["app_id", "secret", "webhook_secret", "from_number"] as const;
+const FIELDS = ["app_id", "secret", "webhook_secret", "from_number", "sbc_uri", "test_extension"] as const;
 type Field = typeof FIELDS[number];
 
 function mask(value: string | null | undefined): { set: boolean; preview: string | null; length: number } {
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
   if (req.method === "GET") {
     const { data, error } = await admin
       .from("telephony_provider_settings")
-      .select("provider, app_id, secret, webhook_secret, from_number, updated_at, updated_by")
+      .select("provider, app_id, secret, webhook_secret, from_number, sbc_uri, test_extension, updated_at, updated_by")
       .eq("id", "global")
       .maybeSingle();
     if (error) return json(500, { error: error.message });
@@ -71,6 +71,8 @@ Deno.serve(async (req) => {
         secret: mask(row.secret),
         webhook_secret: mask(row.webhook_secret),
         from_number: mask(row.from_number),
+        sbc_uri: mask(row.sbc_uri),
+        test_extension: mask(row.test_extension),
       },
     });
   }
@@ -108,6 +110,12 @@ Deno.serve(async (req) => {
     }
     if (typeof update.from_number === "string" && update.from_number && !/^\+?[0-9 ()-]{4,20}$/.test(update.from_number as string)) {
       return json(400, { error: "Invalid from_number format" });
+    }
+    if (typeof update.sbc_uri === "string" && update.sbc_uri && !/^[A-Za-z0-9_.-]{4,128}$/.test(update.sbc_uri as string)) {
+      return json(400, { error: "Invalid sbc_uri format (host only, e.g. sbcind.telecmi.com)" });
+    }
+    if (typeof update.test_extension === "string" && update.test_extension && !/^[A-Za-z0-9_+*#]{1,32}$/.test(update.test_extension as string)) {
+      return json(400, { error: "Invalid test_extension format" });
     }
 
     const { error } = await admin
