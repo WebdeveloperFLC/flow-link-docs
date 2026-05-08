@@ -2174,6 +2174,28 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      claim_next_queue_item: {
+        Args: { _agent_id: string; _campaign_id?: string }
+        Returns: {
+          assigned_agent_id: string | null
+          campaign_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          last_called_at: string | null
+          next_call_at: string | null
+          priority: number
+          retry_count: number
+          status: Database["public"]["Enums"]["call_queue_status"]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "call_queue_items"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_client: {
         Args: {
           _application_type: string
@@ -2223,6 +2245,7 @@ export type Database = {
         Returns: boolean
       }
       is_telephony_admin: { Args: { _uid: string }; Returns: boolean }
+      recover_stale_calling_items: { Args: never; Returns: number }
       user_client_permission: {
         Args: { _cid: string; _uid: string }
         Returns: Database["public"]["Enums"]["client_permission"]
