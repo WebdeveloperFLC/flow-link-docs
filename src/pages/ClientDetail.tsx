@@ -80,21 +80,60 @@ const ClientDetail = () => {
   const [accessOpen, setAccessOpen] = useState(false);
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
+  const [secondaryLoading, setSecondaryLoading] = useState(true);
 
-  const load = useCallback(async () => {
+  // Critical fetch — only what's needed for the first paint above the fold
+  // (client + template + active documents + sections). Runs in parallel.
+  const loadCritical = useCallback(async () => {
     if (!id) return;
-    const { data: c } = await supabase.from("clients").select("*").eq("id", id).single();
+    const [{ data: c }, sectionsData, { data: activeDocs }] = await Promise.all([
+      supabase.from("clients").select("*").eq("id", id).single(),
+      loadSections(true),
+      supabase
+        .from("client_documents")
+        .select("*")
+        .eq("client_id", id)
+        .is("deleted_at", null)
+        .order("uploaded_at", { ascending: false }),
+    ]);
     setClient(c as unknown as Client | null);
+    setSections(sectionsData);
+    setDocs((activeDocs ?? []) as Doc[]);
     if (c?.template_id) {
-      const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
+      const { data: t } = await supabase
+        .from("workflow_templates")
+        .select("*")
+        .eq("id", c.template_id)
+        .single();
       setTemplate(t as unknown as Template | null);
-    } else { setTemplate(null); }
-    const { data: d } = await supabase.from("client_documents").select("*").eq("client_id", id).order("uploaded_at", { ascending: false });
-    const all = ((d ?? []) as Doc[]);
-    setDocs(all.filter((x) => !x.deleted_at));
-    const trashed = all.filter((x) => !!x.deleted_at);
-    setTrashedDocs(trashed);
-    const uids = Array.from(new Set(trashed.map((x) => x.deleted_by).filter(Boolean) as string[]));
+    } else {
+      setTemplate(null);
+    }
+  }, [id]);
+
+  // Secondary fetch — below-the-fold cards (binders, trash, profile names).
+  // Runs after the critical paint. Splitting into a separate query also lets
+  // server-side filtering (deleted_at IS NOT NULL) be index-assisted.
+  const loadSecondary = useCallback(async () => {
+    if (!id) return;
+    setSecondaryLoading(true);
+    const [{ data: trashed }, { data: b }] = await Promise.all([
+      supabase
+        .from("client_documents")
+        .select("*")
+        .eq("client_id", id)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false }),
+      supabase
+        .from("binders")
+        .select("id,file_name,storage_path,generated_at,group_label")
+        .eq("client_id", id)
+        .order("generated_at", { ascending: false }),
+    ]);
+    const trashedRows = (trashed ?? []) as Doc[];
+    setTrashedDocs(trashedRows);
+    setBinders((b ?? []) as BinderRow[]);
+    const uids = Array.from(new Set(trashedRows.map((x) => x.deleted_by).filter(Boolean) as string[]));
     if (uids.length) {
       const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", uids);
       const map: Record<string, string> = {};
@@ -102,13 +141,26 @@ const ClientDetail = () => {
         map[p.id] = p.full_name ?? p.email ?? p.id.slice(0, 8);
       });
       setTrashUserNames(map);
-    } else { setTrashUserNames({}); }
-    const { data: b } = await supabase.from("binders").select("id,file_name,storage_path,generated_at,group_label").eq("client_id", id).order("generated_at", { ascending: false });
-    setBinders((b ?? []) as BinderRow[]);
-    setSections(await loadSections(true));
+    } else {
+      setTrashUserNames({});
+    }
+    setSecondaryLoading(false);
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  // Compatibility shim — existing handlers call `load()` after mutations.
+  // Keep that contract: refresh both critical + secondary data.
+  const load = useCallback(async () => {
+    await loadCritical();
+    loadSecondary();
+  }, [loadCritical, loadSecondary]);
+
+  // Critical paint first — secondary kicks off right after to avoid serial waterfall.
+  useEffect(() => { loadCritical(); }, [loadCritical]);
+  useEffect(() => {
+    // Defer secondary by a tick so the critical render commits first.
+    const t = setTimeout(() => { loadSecondary(); }, 0);
+    return () => clearTimeout(t);
+  }, [loadSecondary]);
 
   // Backfill: ensure every doc has a section_id so it appears in some section card.
   useEffect(() => {
