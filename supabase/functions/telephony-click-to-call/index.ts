@@ -89,10 +89,31 @@ Deno.serve(async (req) => {
     log(traceId, "masked outbound number", { maskedOutboundNumber: fromNumber ? phoneSummary(fromNumber) : { present: false } });
     if (!fromNumber) return json({ error: "Telephony not configured (missing TELECMI_FROM_NUMBER)", traceId }, 503);
 
+    if (agent.is_on_break) return json({ error: "Counselor is marked on break", traceId }, 409);
+    if (!agent.is_available) return json({ error: "Counselor is not marked available", traceId }, 409);
+    if (!agent.telecmi_agent_id) {
+      log(traceId, "agent readiness failed", { reason: "missing telecmi_agent_id", agentId: agent.id });
+      return json({ error: "TeleCMI agent is not configured for this counselor", traceId }, 503);
+    }
+
+    const readiness = await provider.verifyAgentReady(agent.telecmi_agent_id);
+    log(traceId, "TeleCMI agent readiness", {
+      agentId: agent.id,
+      telecmiAgentId: agent.telecmi_agent_id,
+      ok: readiness.ok,
+      status: readiness.status ?? null,
+      reason: readiness.reason ?? null,
+    });
+    if (!readiness.ok) {
+      return json({ error: "TeleCMI agent is not ready", detail: readiness.reason ?? "Agent readiness check failed", traceId }, 503);
+    }
+
     // Create session row first so we have an id even if provider call fails
+    const sessionId = crypto.randomUUID();
     const { data: session, error: sErr } = await adminClient
       .from("call_sessions")
       .insert({
+        id: sessionId,
         agent_id: agent.id,
         client_id: clientId,
         campaign_id: campaignId,
@@ -103,15 +124,24 @@ Deno.serve(async (req) => {
         masked_number_used: fromNumber,
         created_by: userId,
       })
-      .select("id")
+      .select("id, created_at")
       .single();
-    if (sErr) return json({ error: sErr.message }, 500);
+    if (sErr) return json({ error: sErr.message, traceId }, 500);
+    log(traceId, "returned call_session_id", { callSessionId: session.id, createdAt: session.created_at, insertedNewRow: session.id === sessionId });
 
     try {
       const result = await provider.click2Call({
         toNumber: clientRow.phone,
         fromNumber,
+        telecmiAgentId: agent.telecmi_agent_id,
         metadata: { sessionId: session.id, clientId },
+      });
+      log(traceId, "returned status/error", {
+        callSessionId: session.id,
+        providerCallId: result.providerCallId,
+        providerStatus: result.status,
+        providerMessage: result.message,
+        error: null,
       });
       await adminClient
         .from("call_sessions")
@@ -131,19 +161,21 @@ Deno.serve(async (req) => {
         sessionId: session.id,
         providerCallId: result.providerCallId,
         status: "ringing",
-        maskedNumber: fromNumber,
+        maskedNumber: null,
+        traceId,
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      log(traceId, "returned status/error", { callSessionId: session.id, status: "failed", error: msg });
       await adminClient
         .from("call_sessions")
         .update({ status: "failed", end_time: new Date().toISOString(), notes: msg })
         .eq("id", session.id);
-      return json({ error: "Provider call failed", detail: msg, sessionId: session.id }, 502);
+      return json({ error: "Provider call failed", detail: msg, sessionId: session.id, traceId }, 502);
     }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.error("telephony-click-to-call error", msg);
-    return json({ error: msg }, 500);
+    console.error("telephony-click-to-call error", { traceId, error: msg });
+    return json({ error: msg, traceId }, 500);
   }
 });
