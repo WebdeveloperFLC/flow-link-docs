@@ -1967,6 +1967,42 @@ export type Database = {
           },
         ]
       }
+      telephony_provider_settings: {
+        Row: {
+          app_id: string | null
+          created_at: string
+          from_number: string | null
+          id: string
+          provider: string
+          secret: string | null
+          updated_at: string
+          updated_by: string | null
+          webhook_secret: string | null
+        }
+        Insert: {
+          app_id?: string | null
+          created_at?: string
+          from_number?: string | null
+          id?: string
+          provider?: string
+          secret?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_secret?: string | null
+        }
+        Update: {
+          app_id?: string | null
+          created_at?: string
+          from_number?: string | null
+          id?: string
+          provider?: string
+          secret?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          webhook_secret?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
