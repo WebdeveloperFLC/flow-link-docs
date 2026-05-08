@@ -14,8 +14,19 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function log(traceId: string, message: string, data?: Record<string, unknown>) {
+  console.log(`[telephony-click-to-call] ${message}`, { traceId, ...(data ?? {}) });
+}
+
+function phoneSummary(value: unknown) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  return { hidden: true, present: digits.length > 0, digitCount: digits.length };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const traceId = crypto.randomUUID();
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
@@ -37,6 +48,7 @@ Deno.serve(async (req) => {
     const clientId = String(body.clientId ?? "");
     const queueItemId = body.queueItemId ? String(body.queueItemId) : null;
     const campaignId = body.campaignId ? String(body.campaignId) : null;
+    log(traceId, "request payload", { clientId, queueItemId, campaignId, hasClientId: !!clientId });
     if (!clientId) return json({ error: "clientId required" }, 400);
 
     // Permission check via RLS-respecting helper
@@ -52,28 +64,30 @@ Deno.serve(async (req) => {
       .select("id, phone, full_name")
       .eq("id", clientId)
       .maybeSingle();
-    if (cErr || !clientRow) return json({ error: "Client not found" }, 404);
-    if (!clientRow.phone) return json({ error: "Client has no phone number on file" }, 422);
+    if (cErr || !clientRow) return json({ error: "Client not found", traceId }, 404);
+    log(traceId, "resolved client phone", { clientId, phone: phoneSummary(clientRow.phone) });
+    if (!clientRow.phone) return json({ error: "Client has no phone number on file", traceId }, 422);
 
     // Ensure agent row exists
     let { data: agent } = await adminClient
       .from("telephony_agents")
-      .select("id, role")
+      .select("id, role, telecmi_agent_id, is_available, is_on_break")
       .eq("user_id", userId)
       .maybeSingle();
     if (!agent) {
       const { data: created, error: aErr } = await adminClient
         .from("telephony_agents")
         .insert({ user_id: userId, role: "counselor", is_available: true })
-        .select("id, role")
+        .select("id, role, telecmi_agent_id, is_available, is_on_break")
         .single();
-      if (aErr) return json({ error: aErr.message }, 500);
+      if (aErr) return json({ error: aErr.message, traceId }, 500);
       agent = created;
     }
 
     const provider = getProvider("telecmi");
     const fromNumber = provider.fromNumber();
-    if (!fromNumber) return json({ error: "Telephony not configured (missing TELECMI_FROM_NUMBER)" }, 503);
+    log(traceId, "masked outbound number", { maskedOutboundNumber: fromNumber ? phoneSummary(fromNumber) : { present: false } });
+    if (!fromNumber) return json({ error: "Telephony not configured (missing TELECMI_FROM_NUMBER)", traceId }, 503);
 
     // Create session row first so we have an id even if provider call fails
     const { data: session, error: sErr } = await adminClient
