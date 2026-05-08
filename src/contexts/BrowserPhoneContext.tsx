@@ -33,7 +33,7 @@ async function logAudit(eventType: string, details: Record<string, unknown> = {}
     const { data: u } = await supabase.auth.getUser();
     const actor = u?.user?.id ?? null;
     if (!actor) return;
-    await supabase.from("telephony_audit_logs").insert([{ actor_id: actor, event_type: eventType, details }]);
+    await supabase.from("telephony_audit_logs").insert([{ actor_id: actor, event_type: eventType, details: details as any }]);
   } catch { /* best-effort */ }
 }
 
