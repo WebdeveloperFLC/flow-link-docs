@@ -1899,6 +1899,8 @@ export type Database = {
           is_on_break: boolean
           last_call_at: string | null
           role: Database["public"]["Enums"]["telephony_role"]
+          sbc_password: string | null
+          sbc_user_id: string | null
           telecmi_agent_id: string | null
           updated_at: string
           user_id: string
@@ -1911,6 +1913,8 @@ export type Database = {
           is_on_break?: boolean
           last_call_at?: string | null
           role?: Database["public"]["Enums"]["telephony_role"]
+          sbc_password?: string | null
+          sbc_user_id?: string | null
           telecmi_agent_id?: string | null
           updated_at?: string
           user_id: string
@@ -1923,6 +1927,8 @@ export type Database = {
           is_on_break?: boolean
           last_call_at?: string | null
           role?: Database["public"]["Enums"]["telephony_role"]
+          sbc_password?: string | null
+          sbc_user_id?: string | null
           telecmi_agent_id?: string | null
           updated_at?: string
           user_id?: string
@@ -1974,7 +1980,9 @@ export type Database = {
           from_number: string | null
           id: string
           provider: string
+          sbc_uri: string | null
           secret: string | null
+          test_extension: string | null
           updated_at: string
           updated_by: string | null
           webhook_secret: string | null
@@ -1985,7 +1993,9 @@ export type Database = {
           from_number?: string | null
           id?: string
           provider?: string
+          sbc_uri?: string | null
           secret?: string | null
+          test_extension?: string | null
           updated_at?: string
           updated_by?: string | null
           webhook_secret?: string | null
@@ -1996,7 +2006,9 @@ export type Database = {
           from_number?: string | null
           id?: string
           provider?: string
+          sbc_uri?: string | null
           secret?: string | null
+          test_extension?: string | null
           updated_at?: string
           updated_by?: string | null
           webhook_secret?: string | null

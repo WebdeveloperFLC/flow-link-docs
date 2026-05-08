@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { TelephonyCallError, startCall as invokeStartCall } from "@/lib/telephony/client";
+import { useBrowserPhone } from "@/contexts/BrowserPhoneContext";
 
 export type CallStatus =
   | "idle"
@@ -35,6 +36,7 @@ const TERMINAL: CallStatus[] = ["completed", "failed", "no_answer", "busy", "can
 const ACTIVE: CallStatus[] = ["initiated", "ringing", "answered"];
 
 export const CallProvider = ({ children }: { children: ReactNode }) => {
+  const browser = useBrowserPhone();
   const [currentCall, setCurrentCall] = useState<CurrentCall | null>(null);
   const [startingClientId, setStartingClientId] = useState<string | null>(null);
   const currentCallRef = useRef<CurrentCall | null>(null);
@@ -113,6 +115,42 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     startingClientIdRef.current = clientId;
     setStartingClientId(clientId);
     try {
+      // Prefer browser SDK when the counselor's TeleCMI session is ready.
+      if (browser.status === "ready") {
+        // Resolve client phone server-side via existing edge function (it returns
+        // maskedNumber + creates a call_session). We then trigger the SDK dial
+        // using the same masked outbound number so audit + UI stay aligned.
+        const result = await invokeStartCall({ clientId });
+        if (latestStartTokenRef.current !== startToken) return null;
+        try {
+          // Backend already created the session and triggered adminConnect; if
+          // the masked number is returned, also dial via SDK so audio lands in
+          // the browser. If SDK dial fails, the backend leg keeps working.
+          if (result.maskedNumber) {
+            try { browser.dial(result.maskedNumber.replace(/[^\d+*#]/g, ""), { sessionId: result.sessionId, clientId }); }
+            catch (e) { console.warn("[call] SDK dial failed, falling back to backend leg", e); }
+          }
+        } catch (e) { console.warn("[call] SDK dial error", e); }
+        const next: CurrentCall = {
+          sessionId: result.sessionId,
+          clientId,
+          status: (result.status as CallStatus) ?? "initiated",
+          maskedNumber: result.maskedNumber ?? null,
+          startedAt: Date.now(),
+        };
+        activeSessionIdRef.current = next.sessionId;
+        currentCallRef.current = next;
+        setCurrentCall(next);
+        subscribe(next.sessionId);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          if (activeSessionIdRef.current === next.sessionId) {
+            setCurrentCall((prev) => prev && prev.sessionId === next.sessionId ? { ...prev, status: "failed" } : prev);
+            setTimeout(() => { if (activeSessionIdRef.current === next.sessionId) reset(); }, 1500);
+          }
+        }, 90_000);
+        return next;
+      }
       const result = await invokeStartCall({ clientId });
       if (latestStartTokenRef.current !== startToken) return null;
       const next: CurrentCall = {
@@ -153,7 +191,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         setStartingClientId(null);
       }
     }
-  }, [clearCurrentCall, subscribe]);
+  }, [clearCurrentCall, subscribe, browser, reset]);
 
   const isActive = useCallback((clientId?: string) => {
     if (!currentCall) return false;

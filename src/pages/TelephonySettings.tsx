@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -11,12 +10,15 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { BrowserPhonePanel } from "@/components/telephony/BrowserPhonePanel";
 
 interface AgentRow {
   id: string;
   user_id: string;
   role: string;
   telecmi_agent_id: string | null;
+  sbc_user_id: string | null;
+  sbc_password_set: boolean;
   is_available: boolean;
   is_on_break: boolean;
   profile?: { full_name: string | null; email: string | null } | null;
@@ -27,13 +29,15 @@ const TelephonySettings = () => {
   const [rows, setRows] = useState<AgentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [sbcUserDrafts, setSbcUserDrafts] = useState<Record<string, string>>({});
+  const [sbcPwdDrafts, setSbcPwdDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
     const { data: agents, error } = await supabase
       .from("telephony_agents")
-      .select("id, user_id, role, telecmi_agent_id, is_available, is_on_break")
+      .select("id, user_id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
       .order("created_at", { ascending: true });
     if (error) {
       toast.error(error.message);
@@ -52,20 +56,30 @@ const TelephonySettings = () => {
       });
     }
     const merged: AgentRow[] = (agents ?? []).map((a: any) => ({
-      ...a,
+      id: a.id,
+      user_id: a.user_id,
+      role: a.role,
+      telecmi_agent_id: a.telecmi_agent_id,
+      sbc_user_id: a.sbc_user_id ?? null,
+      sbc_password_set: !!a.sbc_password,
+      is_available: a.is_available,
+      is_on_break: a.is_on_break,
       profile: profiles[a.user_id] ?? null,
     }));
     setRows(merged);
     setDrafts(Object.fromEntries(merged.map((a) => [a.id, a.telecmi_agent_id ?? ""])));
+    setSbcUserDrafts(Object.fromEntries(merged.map((a) => [a.id, a.sbc_user_id ?? ""])));
+    setSbcPwdDrafts(Object.fromEntries(merged.map((a) => [a.id, ""])));
     setLoading(false);
   };
 
   useEffect(() => {
-    if (isAdmin) load();
+    load();
   }, [isAdmin]);
 
   if (authLoading) return null;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  // Page is open to any signed-in user so counselors can see the browser-phone panel.
+  // Per-counselor management cards below are gated to admins only.
 
   const saveAgentId = async (row: AgentRow) => {
     const value = (drafts[row.id] ?? "").trim();
@@ -83,6 +97,29 @@ const TelephonySettings = () => {
     setRows((prev) =>
       prev.map((r) => (r.id === row.id ? { ...r, telecmi_agent_id: value || null } : r)),
     );
+  };
+
+  const saveSbcCreds = async (row: AgentRow) => {
+    const userId = (sbcUserDrafts[row.id] ?? "").trim();
+    const pwd = (sbcPwdDrafts[row.id] ?? "").trim();
+    const update: { sbc_user_id?: string | null; sbc_password?: string } = {};
+    if (userId !== (row.sbc_user_id ?? "")) update.sbc_user_id = userId || null;
+    if (pwd.length > 0) update.sbc_password = pwd;
+    if (Object.keys(update).length === 0) {
+      toast.message("Nothing to save");
+      return;
+    }
+    setSavingId(row.id);
+    const { error } = await supabase.from("telephony_agents").update(update as any).eq("id", row.id);
+    setSavingId(null);
+    if (error) { toast.error(error.message); return; }
+    toast.success("SBC credentials saved");
+    setSbcPwdDrafts((d) => ({ ...d, [row.id]: "" }));
+    setRows((prev) => prev.map((r) =>
+      r.id === row.id
+        ? { ...r, sbc_user_id: userId || null, sbc_password_set: pwd.length > 0 ? true : r.sbc_password_set }
+        : r,
+    ));
   };
 
   const toggleField = async (
@@ -109,7 +146,13 @@ const TelephonySettings = () => {
         description="Configure each counselor's TeleCMI agent ID and availability."
       />
       <div className="p-6 space-y-4">
-        {loading ? (
+        <BrowserPhonePanel />
+        {!isAdmin && (
+          <Card className="p-6 text-sm text-muted-foreground">
+            Use the Browser Calling panel above to connect. Per-counselor configuration is admin-only.
+          </Card>
+        )}
+        {isAdmin && (loading ? (
           <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading agents…
           </div>
@@ -156,6 +199,35 @@ const TelephonySettings = () => {
                       </Button>
                     </div>
                   </div>
+                  <div className="space-y-1 pt-2 border-t">
+                    <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                      Browser SDK / SBC Login
+                    </Label>
+                    <div className="grid gap-2 md:grid-cols-2">
+                      <Input
+                        placeholder="SBC user_id (e.g. 5005)"
+                        value={sbcUserDrafts[row.id] ?? ""}
+                        onChange={(e) => setSbcUserDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                      />
+                      <Input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder={row.sbc_password_set ? "•••••••• (saved — type to rotate)" : "SBC password"}
+                        value={sbcPwdDrafts[row.id] ?? ""}
+                        onChange={(e) => setSbcPwdDrafts((d) => ({ ...d, [row.id]: e.target.value }))}
+                      />
+                    </div>
+                    <div className="flex justify-end pt-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => saveSbcCreds(row)}
+                        disabled={savingId === row.id}
+                      >
+                        {savingId === row.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save SBC creds"}
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-3 md:items-end">
                   <label className="flex items-center gap-2 text-sm">
@@ -176,7 +248,7 @@ const TelephonySettings = () => {
               </div>
             </Card>
           ))
-        )}
+        ))}
       </div>
     </AppLayout>
   );
