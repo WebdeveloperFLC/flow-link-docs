@@ -15,6 +15,7 @@ export interface CallResult {
   providerCallId: string | null;
   status: "initiated" | "ringing" | "failed";
   maskedNumber: string | null;
+  traceId?: string;
 }
 
 export interface NormalizedEvent {

@@ -1,6 +1,6 @@
 import type { TelephonyProvider, ProviderCallRequest, ProviderCallResult, NormalizedEvent } from "./types.ts";
 
-const TELECMI_BASE = "https://rest.telecmi.com/v2";
+const TELECMI_CHUB_BASE = "https://piopiy.telecmi.com/v1";
 
 function env(name: string, required = true): string {
   const v = Deno.env.get(name) ?? "";
@@ -27,6 +27,41 @@ function timingSafeEqual(a: string, b: string): boolean {
   return r === 0;
 }
 
+function redactTelecmiBody(body: Record<string, unknown>) {
+  const redacted = { ...body };
+  for (const key of ["secret", "token"]) if (redacted[key]) redacted[key] = "[redacted]";
+  for (const key of ["to", "from", "caller_id", "phone", "number"]) {
+    if (redacted[key]) redacted[key] = { hidden: true, digitCount: String(redacted[key]).replace(/\D/g, "").length };
+  }
+  return redacted;
+}
+
+function redactTelecmiPayload(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactTelecmiPayload);
+  if (!value || typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    if (["to", "from", "caller_id", "phone", "number"].includes(key) && val) {
+      out[key] = { hidden: true, digitCount: String(val).replace(/\D/g, "").length };
+    } else if (["secret", "token", "password"].includes(key) && val) {
+      out[key] = "[redacted]";
+    } else {
+      out[key] = redactTelecmiPayload(val);
+    }
+  }
+  return out;
+}
+
+function getString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function parseJsonOrText(text: string): unknown {
+  if (!text) return null;
+  try { return JSON.parse(text); }
+  catch { return { nonJsonBody: text.slice(0, 1000) }; }
+}
+
 export const telecmi: TelephonyProvider = {
   name: "telecmi",
 
@@ -34,32 +69,68 @@ export const telecmi: TelephonyProvider = {
     return env("TELECMI_FROM_NUMBER");
   },
 
-  async click2Call(req: ProviderCallRequest): Promise<ProviderCallResult> {
+  async verifyAgentReady(agentId: string) {
     const appid = env("TELECMI_APP_ID");
     const secret = env("TELECMI_SECRET");
-    // PIOPIY click-to-call. If your TeleCMI plan uses a different endpoint, swap it here.
-    const body = {
-      appid,
-      secret,
-      from: req.fromNumber,
-      to: req.toNumber,
-      caller_id: req.fromNumber,
-    };
-    const res = await fetch(`${TELECMI_BASE}/ind_pcmo_make_call`, {
+    const body = { appid, secret, id: agentId };
+    console.log("[telecmi] TeleCMI agent readiness request body", { endpoint: `${TELECMI_CHUB_BASE}/agent/get`, body: redactTelecmiBody(body) });
+    const res = await fetch(`${TELECMI_CHUB_BASE}/agent/get`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const raw = await res.json().catch(() => ({}));
+    const rawText = await res.text();
+    const raw = parseJsonOrText(rawText);
+    console.log("[telecmi] TeleCMI agent readiness response body", { httpStatus: res.status, body: redactTelecmiPayload(raw) });
+    if (!res.ok || !raw) return { ok: false, reason: `agent readiness failed (${res.status})`, raw };
+    const status = getString((raw as Record<string, unknown>).status);
+    const code = String((raw as Record<string, unknown>).code ?? "");
+    const agent = (raw as Record<string, unknown>).agent;
+    return {
+      ok: status === "success" && code === "cmi-2000" && !!agent,
+      reason: status === "success" && code === "cmi-2000" && !!agent ? undefined : "agent not ready or not found",
+      status,
+      raw,
+    };
+  },
+
+  async click2Call(req: ProviderCallRequest): Promise<ProviderCallResult> {
+    const secret = env("TELECMI_SECRET");
+    // CHUB click-to-call: calls the counselor/agent first, then connects the client.
+    const body = {
+      agent_id: req.telecmiAgentId,
+      token: secret,
+      to: req.toNumber,
+      custom: JSON.stringify(req.metadata ?? {}),
+    };
+    console.log("[telecmi] TeleCMI API request body", { endpoint: `${TELECMI_CHUB_BASE}/adminConnect`, body: redactTelecmiBody(body) });
+    const res = await fetch(`${TELECMI_CHUB_BASE}/adminConnect`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const rawText = await res.text();
+    const raw = parseJsonOrText(rawText);
+    console.log("[telecmi] TeleCMI API response body", { httpStatus: res.status, body: redactTelecmiPayload(raw) });
+    if (!raw) throw new Error(`telecmi click-to-call returned an empty response (${res.status})`);
     if (!res.ok) {
       throw new Error(`telecmi click-to-call failed (${res.status}): ${JSON.stringify(raw)}`);
     }
+    const rawCode = (raw as Record<string, unknown>).code;
+    if (rawCode !== undefined && String(rawCode) !== "200") {
+      throw new Error(`telecmi click-to-call returned error code ${String(rawCode)}: ${JSON.stringify(raw)}`);
+    }
     // TeleCMI typically returns a request_id / call_id. Support both shapes.
+    const data = (raw as Record<string, unknown>).data as Record<string, unknown> | undefined;
     const providerCallId =
       (raw as Record<string, unknown>).call_id as string ??
       (raw as Record<string, unknown>).request_id as string ??
+      data?.request_id as string ??
       null;
-    return { providerCallId, raw };
+    const status = getString((raw as Record<string, unknown>).status) ?? getString(data?.status) ?? getString((raw as Record<string, unknown>).msg);
+    const message = getString((raw as Record<string, unknown>).msg) ?? getString((raw as Record<string, unknown>).message);
+    if (!providerCallId) throw new Error(`telecmi click-to-call did not return a request id: ${JSON.stringify(raw)}`);
+    return { providerCallId, status, message, endpoint: `${TELECMI_CHUB_BASE}/adminConnect`, raw };
   },
 
   async verifyWebhook(rawBody: string, headers: Headers) {
