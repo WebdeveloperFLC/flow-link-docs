@@ -28,7 +28,12 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 function redactTelecmiBody(body: Record<string, unknown>) {
-  return { ...body, secret: body.secret ? "[redacted]" : undefined, token: body.token ? "[redacted]" : undefined };
+  const redacted = { ...body };
+  for (const key of ["secret", "token"]) if (redacted[key]) redacted[key] = "[redacted]";
+  for (const key of ["to", "from", "caller_id", "phone", "number"]) {
+    if (redacted[key]) redacted[key] = { hidden: true, digitCount: String(redacted[key]).replace(/\D/g, "").length };
+  }
+  return redacted;
 }
 
 function getString(value: unknown): string | null {
