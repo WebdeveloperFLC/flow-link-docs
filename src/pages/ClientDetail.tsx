@@ -1052,6 +1052,26 @@ const ClientDetail = () => {
             </Accordion>
           </Card>
 
+          {secondaryLoading && binders.length === 0 && trashedDocs.length === 0 && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b">
+                <div className="h-4 w-40 bg-muted rounded animate-pulse" />
+                <div className="h-3 w-24 bg-muted rounded animate-pulse mt-2" />
+              </div>
+              <div className="divide-y">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="px-6 py-3 flex items-center gap-3">
+                    <div className="size-4 bg-muted rounded animate-pulse shrink-0" />
+                    <div className="flex-1">
+                      <div className="h-3.5 w-56 bg-muted rounded animate-pulse" />
+                      <div className="h-3 w-32 bg-muted rounded animate-pulse mt-1.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {binders.length > 0 && (
             <Card className="overflow-hidden shadow-elev-sm">
               <div className="px-6 py-4 border-b flex items-center justify-between">
