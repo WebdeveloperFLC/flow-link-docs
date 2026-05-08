@@ -143,7 +143,7 @@ export class BrowserPhone {
     if (!this.piopiy) throw new Error("Browser phone not logged in");
     if (this.currentStatus !== "ready") throw new Error(`Not ready (status: ${this.currentStatus})`);
     this.setStatus("dialing");
-    const opts = extra ? { extra_param: extra } : undefined;
+    const opts = extra ? { extra_param: JSON.stringify(extra) } : undefined;
     this.piopiy.call(phoneOrExtension, opts);
     try { return this.piopiy.getCallId?.() || null; } catch { return null; }
   }
