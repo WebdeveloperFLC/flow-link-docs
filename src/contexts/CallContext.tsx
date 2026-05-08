@@ -145,6 +145,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         }, 90_000);
         return next;
       }
+      throw new TelephonyCallError("Connect browser phone before dialing. Legacy TeleCMI click-to-call is disabled for counselor calls.");
       const result = await invokeStartCall({ clientId });
       if (latestStartTokenRef.current !== startToken) return null;
       const next: CurrentCall = {
