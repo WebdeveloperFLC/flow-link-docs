@@ -30,6 +30,7 @@ export interface BrowserPhoneCredentials {
 export class BrowserPhone {
   private piopiy: any | null = null;
   private listener: BrowserPhoneListener;
+  private loginSettled = false;
 
   constructor(listener: BrowserPhoneListener) {
     this.listener = listener;
@@ -46,6 +47,7 @@ export class BrowserPhone {
   }
 
   async login(creds: BrowserPhoneCredentials): Promise<void> {
+    this.loginSettled = false;
     if (this.piopiy) {
       try { this.piopiy.logout?.(); } catch { /* ignore */ }
       this.piopiy = null;
@@ -61,11 +63,15 @@ export class BrowserPhone {
         });
 
         piopiy.on("login", () => {
+          if (this.loginSettled) return;
+          this.loginSettled = true;
           this.setStatus("ready");
           resolve();
         });
         piopiy.on("loginFailed", (data: any) => {
-          const msg = typeof data === "string" ? data : data?.reason ?? data?.message ?? "Login failed";
+          if (this.loginSettled) return;
+          this.loginSettled = true;
+          const msg = typeof data === "string" ? data : data?.reason ?? data?.message ?? data?.status ?? "Login failed";
           this.setStatus("failed", msg);
           this.listener.onError(`SBC login failed: ${msg}`);
           reject(new Error(msg));
@@ -102,7 +108,20 @@ export class BrowserPhone {
           }, 1500);
         });
         piopiy.on("error", (e: any) => {
-          const msg = typeof e === "string" ? e : e?.message ?? "Telephony error";
+          const msg = typeof e === "string" ? e : e?.message ?? e?.status ?? e?.reason ?? "Telephony error";
+          if (!this.loginSettled) {
+            if (e?.code === 1001 && piopiy.isLogedIn?.()) {
+              this.loginSettled = true;
+              this.setStatus("ready");
+              resolve();
+              return;
+            }
+            this.loginSettled = true;
+            this.setStatus("failed", msg);
+            this.listener.onError(`SBC login failed: ${msg}`);
+            reject(new Error(msg));
+            return;
+          }
           this.listener.onError(msg);
           this.setStatus("failed", msg);
         });
