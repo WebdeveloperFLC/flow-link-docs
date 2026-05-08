@@ -27,6 +27,7 @@ interface CallCtx {
   startingClientId: string | null;
   isActive: (clientId?: string) => boolean;
   startCall: (clientId: string) => Promise<CurrentCall | null>;
+  hangup: () => void;
   reset: () => void;
 }
 
@@ -192,7 +193,19 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     return clientId ? currentCall.clientId === clientId : true;
   }, [currentCall]);
 
-  return <Ctx.Provider value={{ currentCall, startingClientId, isActive, startCall, reset }}>{children}</Ctx.Provider>;
+  const hangup = useCallback(() => {
+    try { browser.hangup(); } catch { /* */ }
+    const cur = currentCallRef.current;
+    if (cur) {
+      setCurrentCall({ ...cur, status: "canceled" });
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => reset(), 800);
+    } else {
+      reset();
+    }
+  }, [browser, reset]);
+
+  return <Ctx.Provider value={{ currentCall, startingClientId, isActive, startCall, hangup, reset }}>{children}</Ctx.Provider>;
 };
 
 export const useCall = () => {
