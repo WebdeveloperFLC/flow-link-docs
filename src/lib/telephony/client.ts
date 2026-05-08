@@ -30,12 +30,17 @@ async function normalizeFunctionError(error: unknown): Promise<TelephonyCallErro
 }
 
 export async function startCall(req: CallRequest): Promise<CallResult> {
-  // Ensure we have a fresh, valid JWT before invoking — stale tokens cause 401s.
+  // Ensure we have a fresh, server-valid JWT. getSession() returns cached
+  // tokens without contacting the server, so a session that was invalidated
+  // remotely (logout elsewhere, password change) still looks valid locally
+  // and produces "session_not_found" 401s. Always refresh first.
   let { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    const refreshed = await supabase.auth.refreshSession();
-    session = refreshed.data.session;
+  const refreshed = await supabase.auth.refreshSession();
+  if (refreshed.error) {
+    await supabase.auth.signOut().catch(() => undefined);
+    throw new TelephonyCallError("Your session expired. Please sign in again.");
   }
+  session = refreshed.data.session ?? session;
   if (!session?.access_token) {
     throw new TelephonyCallError("You are signed out. Please sign in again.");
   }
