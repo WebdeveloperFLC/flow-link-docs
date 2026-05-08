@@ -56,6 +56,36 @@ function getString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
 }
 
+function telecmiAppIdPayloadValue(appid: string): string | number {
+  // TeleCMI validates appid as a numeric JSON value on some CHUB endpoints.
+  return /^\d+$/.test(appid) ? Number(appid) : appid;
+}
+
+function describeTelecmiError(raw: unknown, fallback: string): string {
+  if (!raw || typeof raw !== "object") return fallback;
+  const body = raw as Record<string, unknown>;
+  const msg = body.msg;
+  if (typeof msg === "string" && msg.trim()) return msg;
+  if (msg && typeof msg === "object") {
+    const validationBody = (msg as Record<string, unknown>).body;
+    if (Array.isArray(validationBody)) {
+      const validationMessages = validationBody
+        .map((item) => {
+          if (!item || typeof item !== "object") return null;
+          const row = item as Record<string, unknown>;
+          const property = getString(row.property) ?? "request body";
+          const messages = Array.isArray(row.messages)
+            ? row.messages.map(String).filter(Boolean).join(", ")
+            : null;
+          return messages ? `${property}: ${messages}` : property;
+        })
+        .filter(Boolean);
+      if (validationMessages.length) return validationMessages.join("; ");
+    }
+  }
+  return fallback;
+}
+
 function parseJsonOrText(text: string): unknown {
   if (!text) return null;
   try { return JSON.parse(text); }
@@ -72,7 +102,7 @@ export const telecmi: TelephonyProvider = {
   async verifyAgentReady(agentId: string) {
     const appid = env("TELECMI_APP_ID");
     const secret = env("TELECMI_SECRET");
-    const body = { appid, secret, id: agentId };
+    const body = { appid: telecmiAppIdPayloadValue(appid), secret, id: agentId };
     console.log("[telecmi] TeleCMI agent readiness request body", { endpoint: `${TELECMI_CHUB_BASE}/agent/get`, body: redactTelecmiBody(body) });
     const res = await fetch(`${TELECMI_CHUB_BASE}/agent/get`, {
       method: "POST",
@@ -82,7 +112,9 @@ export const telecmi: TelephonyProvider = {
     const rawText = await res.text();
     const raw = parseJsonOrText(rawText);
     console.log("[telecmi] TeleCMI agent readiness response body", { httpStatus: res.status, body: redactTelecmiPayload(raw) });
-    if (!res.ok || !raw) return { ok: false, reason: `agent readiness failed (${res.status})`, raw };
+    if (!res.ok || !raw) {
+      return { ok: false, reason: describeTelecmiError(raw, `agent readiness failed (${res.status})`), raw };
+    }
     const status = getString((raw as Record<string, unknown>).status);
     const code = String((raw as Record<string, unknown>).code ?? "");
     const agent = (raw as Record<string, unknown>).agent;
