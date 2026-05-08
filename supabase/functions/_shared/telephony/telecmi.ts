@@ -36,6 +36,22 @@ function redactTelecmiBody(body: Record<string, unknown>) {
   return redacted;
 }
 
+function redactTelecmiPayload(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(redactTelecmiPayload);
+  if (!value || typeof value !== "object") return value;
+  const out: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
+    if (["to", "from", "caller_id", "phone", "number"].includes(key) && val) {
+      out[key] = { hidden: true, digitCount: String(val).replace(/\D/g, "").length };
+    } else if (["secret", "token", "password"].includes(key) && val) {
+      out[key] = "[redacted]";
+    } else {
+      out[key] = redactTelecmiPayload(val);
+    }
+  }
+  return out;
+}
+
 function getString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value : null;
 }
@@ -65,7 +81,7 @@ export const telecmi: TelephonyProvider = {
     });
     const rawText = await res.text();
     const raw = parseJsonOrText(rawText);
-    console.log("[telecmi] TeleCMI agent readiness response body", { httpStatus: res.status, body: raw });
+    console.log("[telecmi] TeleCMI agent readiness response body", { httpStatus: res.status, body: redactTelecmiPayload(raw) });
     if (!res.ok || !raw) return { ok: false, reason: `agent readiness failed (${res.status})`, raw };
     const status = getString((raw as Record<string, unknown>).status);
     const code = String((raw as Record<string, unknown>).code ?? "");
@@ -95,7 +111,7 @@ export const telecmi: TelephonyProvider = {
     });
     const rawText = await res.text();
     const raw = parseJsonOrText(rawText);
-    console.log("[telecmi] TeleCMI API response body", { httpStatus: res.status, body: raw });
+    console.log("[telecmi] TeleCMI API response body", { httpStatus: res.status, body: redactTelecmiPayload(raw) });
     if (!raw) throw new Error(`telecmi click-to-call returned an empty response (${res.status})`);
     if (!res.ok) {
       throw new Error(`telecmi click-to-call failed (${res.status}): ${JSON.stringify(raw)}`);
