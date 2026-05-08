@@ -102,7 +102,7 @@ const TelephonySettings = () => {
   const saveSbcCreds = async (row: AgentRow) => {
     const userId = (sbcUserDrafts[row.id] ?? "").trim();
     const pwd = (sbcPwdDrafts[row.id] ?? "").trim();
-    const update: Record<string, unknown> = {};
+    const update: { sbc_user_id?: string | null; sbc_password?: string } = {};
     if (userId !== (row.sbc_user_id ?? "")) update.sbc_user_id = userId || null;
     if (pwd.length > 0) update.sbc_password = pwd;
     if (Object.keys(update).length === 0) {
@@ -110,7 +110,7 @@ const TelephonySettings = () => {
       return;
     }
     setSavingId(row.id);
-    const { error } = await supabase.from("telephony_agents").update(update).eq("id", row.id);
+    const { error } = await supabase.from("telephony_agents").update(update as any).eq("id", row.id);
     setSavingId(null);
     if (error) { toast.error(error.message); return; }
     toast.success("SBC credentials saved");
