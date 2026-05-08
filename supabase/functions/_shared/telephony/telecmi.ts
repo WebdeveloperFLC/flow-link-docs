@@ -57,7 +57,7 @@ export const telecmi: TelephonyProvider = {
     const appid = env("TELECMI_APP_ID");
     const secret = env("TELECMI_SECRET");
     const body = { appid, secret, id: agentId };
-    console.log("[telecmi] agent readiness request", { endpoint: `${TELECMI_CHUB_BASE}/agent/get`, body: redactTelecmiBody(body) });
+    console.log("[telecmi] TeleCMI agent readiness request body", { endpoint: `${TELECMI_CHUB_BASE}/agent/get`, body: redactTelecmiBody(body) });
     const res = await fetch(`${TELECMI_CHUB_BASE}/agent/get`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ export const telecmi: TelephonyProvider = {
     });
     const rawText = await res.text();
     const raw = parseJsonOrText(rawText);
-    console.log("[telecmi] agent readiness response", { httpStatus: res.status, body: raw });
+    console.log("[telecmi] TeleCMI agent readiness response body", { httpStatus: res.status, body: raw });
     if (!res.ok || !raw) return { ok: false, reason: `agent readiness failed (${res.status})`, raw };
     const status = getString((raw as Record<string, unknown>).status);
     const code = String((raw as Record<string, unknown>).code ?? "");
@@ -87,7 +87,7 @@ export const telecmi: TelephonyProvider = {
       to: req.toNumber,
       custom: JSON.stringify(req.metadata ?? {}),
     };
-    console.log("[telecmi] click-to-call request", { endpoint: `${TELECMI_CHUB_BASE}/adminConnect`, body: redactTelecmiBody(body) });
+    console.log("[telecmi] TeleCMI API request body", { endpoint: `${TELECMI_CHUB_BASE}/adminConnect`, body: redactTelecmiBody(body) });
     const res = await fetch(`${TELECMI_CHUB_BASE}/adminConnect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -95,10 +95,14 @@ export const telecmi: TelephonyProvider = {
     });
     const rawText = await res.text();
     const raw = parseJsonOrText(rawText);
-    console.log("[telecmi] click-to-call response", { httpStatus: res.status, body: raw });
+    console.log("[telecmi] TeleCMI API response body", { httpStatus: res.status, body: raw });
     if (!raw) throw new Error(`telecmi click-to-call returned an empty response (${res.status})`);
     if (!res.ok) {
       throw new Error(`telecmi click-to-call failed (${res.status}): ${JSON.stringify(raw)}`);
+    }
+    const rawCode = (raw as Record<string, unknown>).code;
+    if (rawCode !== undefined && String(rawCode) !== "200") {
+      throw new Error(`telecmi click-to-call returned error code ${String(rawCode)}: ${JSON.stringify(raw)}`);
     }
     // TeleCMI typically returns a request_id / call_id. Support both shapes.
     const data = (raw as Record<string, unknown>).data as Record<string, unknown> | undefined;
