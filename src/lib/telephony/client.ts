@@ -30,8 +30,18 @@ async function normalizeFunctionError(error: unknown): Promise<TelephonyCallErro
 }
 
 export async function startCall(req: CallRequest): Promise<CallResult> {
+  // Ensure we have a fresh, valid JWT before invoking — stale tokens cause 401s.
+  let { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    const refreshed = await supabase.auth.refreshSession();
+    session = refreshed.data.session;
+  }
+  if (!session?.access_token) {
+    throw new TelephonyCallError("You are signed out. Please sign in again.");
+  }
   const { data, error } = await supabase.functions.invoke("telephony-click-to-call", {
     body: req,
+    headers: { Authorization: `Bearer ${session.access_token}` },
   });
   if (error) throw await normalizeFunctionError(error);
   return data as CallResult;
