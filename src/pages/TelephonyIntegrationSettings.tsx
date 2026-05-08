@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, ShieldCheck, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
-type FieldKey = "app_id" | "secret" | "webhook_secret" | "from_number";
+type FieldKey = "app_id" | "secret" | "webhook_secret" | "from_number" | "sbc_uri" | "test_extension";
 
 interface FieldStatus {
   set: boolean;
@@ -56,6 +56,20 @@ const FIELD_META: { key: FieldKey; label: string; placeholder: string; descripti
     description: "Caller ID used for outbound click-to-call.",
     isSecret: false,
   },
+  {
+    key: "sbc_uri",
+    label: "SBC URI (Browser SDK)",
+    placeholder: "e.g. sbcind.telecmi.com",
+    description: "Shared TeleCMI SBC host used by the browser SDK to log in. Region examples: sbcind / sbcsg / sbcuk / sbcus.telecmi.com.",
+    isSecret: false,
+  },
+  {
+    key: "test_extension",
+    label: "Admin test extension/number",
+    placeholder: "e.g. 5006 or 13158050050",
+    description: "Number dialed by the admin Test-call button to verify the SDK end-to-end.",
+    isSecret: false,
+  },
 ];
 
 const schema = z.object({
@@ -68,6 +82,8 @@ const schema = z.object({
     .max(20)
     .regex(/^(\+?[0-9 ()-]{4,20})?$/, "Invalid phone format")
     .optional(),
+  sbc_uri: z.string().trim().max(128).regex(/^[A-Za-z0-9_.-]*$/, "Host only, no scheme/path").optional(),
+  test_extension: z.string().trim().max(32).regex(/^[A-Za-z0-9_+*#]*$/, "Digits or extension only").optional(),
 });
 
 const TelephonyIntegrationSettings = () => {
@@ -80,6 +96,8 @@ const TelephonyIntegrationSettings = () => {
     secret: "",
     webhook_secret: "",
     from_number: "",
+    sbc_uri: "",
+    test_extension: "",
   });
 
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID as string;
@@ -150,7 +168,7 @@ const TelephonyIntegrationSettings = () => {
       const body = await res.json();
       if (!res.ok) throw new Error(body?.error ?? "Save failed");
       toast.success("Provider settings saved");
-      setDrafts({ app_id: "", secret: "", webhook_secret: "", from_number: "" });
+      setDrafts({ app_id: "", secret: "", webhook_secret: "", from_number: "", sbc_uri: "", test_extension: "" });
       await load();
     } catch (e: any) {
       toast.error(e.message ?? "Save failed");
