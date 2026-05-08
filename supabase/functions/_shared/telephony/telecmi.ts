@@ -62,21 +62,16 @@ export const telecmi: TelephonyProvider = {
     return { providerCallId, raw };
   },
 
-  verifyWebhook(rawBody: string, headers: Headers) {
+  async verifyWebhook(rawBody: string, headers: Headers) {
     const secret = env("TELECMI_WEBHOOK_SECRET", false);
     if (!secret) {
       console.warn("[telecmi] TELECMI_WEBHOOK_SECRET not set — skipping signature verification");
       return { ok: true, reason: "no-secret-configured" };
     }
-    // TeleCMI does not have a fixed signature header convention across plans.
-    // Accept either "X-TeleCMI-Signature" or "X-Signature". Both are HMAC-SHA256 hex of the raw body.
     const provided = headers.get("x-telecmi-signature") ?? headers.get("x-signature") ?? "";
     if (!provided) return { ok: false, reason: "missing-signature-header" };
-    return hmacHex(secret, rawBody).then((expected) => ({
-      ok: timingSafeEqual(expected, provided.trim()),
-      reason: undefined,
-    })) as unknown as { ok: boolean; reason?: string };
-    // Note: returns a Promise — the webhook handler awaits it.
+    const expected = await hmacHex(secret, rawBody);
+    return { ok: timingSafeEqual(expected, provided.trim()) };
   },
 
   normalizeEvent(payload: unknown): NormalizedEvent | null {
