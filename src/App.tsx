@@ -22,6 +22,7 @@ import Verification from "./pages/Verification";
 import FormsLibrary from "./pages/FormsLibrary";
 import FormBuilder from "./pages/FormBuilder";
 import QuestionnaireEmailTemplates from "./pages/QuestionnaireEmailTemplates";
+import TelephonySettings from "./pages/TelephonySettings";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/forms-library" element={<ProtectedRoute><FormsLibrary /></ProtectedRoute>} />
             <Route path="/forms-library/:formId/build" element={<ProtectedRoute><FormBuilder /></ProtectedRoute>} />
             <Route path="/settings/questionnaire-emails" element={<ProtectedRoute><QuestionnaireEmailTemplates /></ProtectedRoute>} />
+            <Route path="/settings/telephony" element={<ProtectedRoute><TelephonySettings /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CallProvider>
