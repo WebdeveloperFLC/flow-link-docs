@@ -58,11 +58,13 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     cleanupChannel();
     activeSessionIdRef.current = null;
     if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    currentCallRef.current = null;
     setCurrentCall(null);
   }, [cleanupChannel]);
 
   const reset = useCallback(() => {
     latestStartTokenRef.current += 1;
+    startingClientIdRef.current = null;
     setStartingClientId(null);
     clearCurrentCall();
   }, [clearCurrentCall]);
@@ -108,6 +110,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     latestStartTokenRef.current = startToken;
     // Clear previous call state before a fresh backend dial request.
     clearCurrentCall();
+    startingClientIdRef.current = clientId;
     setStartingClientId(clientId);
     try {
       const result = await invokeStartCall({ clientId });
@@ -120,6 +123,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
         startedAt: Date.now(),
       };
       activeSessionIdRef.current = next.sessionId;
+      currentCallRef.current = next;
       setCurrentCall(next);
       subscribe(next.sessionId);
       // Safety timeout: if no terminal event in 90s, auto-reset so user can retry.
@@ -134,7 +138,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     } catch (e) {
       if (latestStartTokenRef.current === startToken) {
         const sessionId = e instanceof TelephonyCallError && e.sessionId ? e.sessionId : `failed-${startToken}`;
-        setCurrentCall({ sessionId, clientId, status: "failed", maskedNumber: null, startedAt: Date.now() });
+        const failedCall = { sessionId, clientId, status: "failed" as CallStatus, maskedNumber: null, startedAt: Date.now() };
+        currentCallRef.current = failedCall;
+        setCurrentCall(failedCall);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
           if (latestStartTokenRef.current === startToken) clearCurrentCall();
@@ -142,7 +148,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
       }
       throw e;
     } finally {
-      if (latestStartTokenRef.current === startToken) setStartingClientId(null);
+      if (latestStartTokenRef.current === startToken) {
+        startingClientIdRef.current = null;
+        setStartingClientId(null);
+      }
     }
   }, [clearCurrentCall, subscribe]);
 
