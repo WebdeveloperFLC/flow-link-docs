@@ -127,6 +127,30 @@ Deno.serve(async (req) => {
 
     if (agent.is_on_break) return await failSession("Counselor is marked on break", undefined, 409);
     if (!agent.is_available) return await failSession("Counselor is not marked available", undefined, 409);
+    if (callMode === "browser_sdk") {
+      if (!agent.sbc_user_id || !agent.sbc_password) {
+        log(traceId, "browser SDK session failed", { reason: "missing SBC credentials", agentId: agent.id });
+        return await failSession("TeleCMI browser credentials are not configured for this counselor", undefined, 409);
+      }
+
+      log(traceId, "browser SDK session prepared", { callSessionId: session.id, agentId: agent.id });
+      await adminClient.from("telephony_audit_logs").insert({
+        actor_id: userId,
+        session_id: session.id,
+        client_id: clientId,
+        event_type: "browser_call_session_prepared",
+        details: { provider: provider.name },
+      });
+
+      return json({
+        sessionId: session.id,
+        providerCallId: null,
+        status: "initiated",
+        maskedNumber: clientRow.phone,
+        traceId,
+      });
+    }
+
     if (!agent.telecmi_agent_id) {
       log(traceId, "agent readiness failed", { reason: "missing telecmi_agent_id", agentId: agent.id });
       return await failSession("TeleCMI agent is not configured for this counselor");
