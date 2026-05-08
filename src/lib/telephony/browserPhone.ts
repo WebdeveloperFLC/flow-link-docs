@@ -87,7 +87,17 @@ export class BrowserPhone {
         });
         piopiy.on("ringing", () => this.setStatus("ringing"));
         piopiy.on("answered", () => this.setStatus("connected"));
-        piopiy.on("callStream", (stream: MediaStream) => {
+        piopiy.on("callStream", (data: any) => {
+          let stream: MediaStream | null = null;
+          if (data instanceof MediaStream) {
+            stream = data;
+          } else if (data?.stream instanceof MediaStream) {
+            stream = data.stream;
+          } else if (data instanceof MediaStreamTrack) {
+            try { stream = new MediaStream([data]); } catch { stream = null; }
+          } else if (Array.isArray(data?.tracks)) {
+            try { stream = new MediaStream(data.tracks); } catch { stream = null; }
+          }
           this.listener.onRemoteStream(stream);
         });
         piopiy.on("ended", () => {
