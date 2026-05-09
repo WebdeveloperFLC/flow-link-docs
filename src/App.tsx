@@ -32,6 +32,18 @@ import Messages from "./pages/Messages";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
+import PortalAuth from "./pages/portal/PortalAuth";
+import PortalDashboard from "./pages/portal/PortalDashboard";
+import PortalApplication from "./pages/portal/PortalApplication";
+import PortalFiles from "./pages/portal/PortalFiles";
+import PortalChat from "./pages/portal/PortalChat";
+import PortalOffers from "./pages/portal/PortalOffers";
+import PortalRefer from "./pages/portal/PortalRefer";
+import PortalPayments from "./pages/portal/PortalPayments";
+import PortalAppointments from "./pages/portal/PortalAppointments";
+import PortalNotifications from "./pages/portal/PortalNotifications";
+import PortalSettings from "./pages/portal/PortalSettings";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +62,17 @@ const App = () => (
             <Route path="/share/:token" element={<SharedView />} />
             <Route path="/questionnaire/:token" element={<Questionnaire />} />
             <Route path="/course-finder" element={<CourseFinder />} />
+            <Route path="/portal/auth" element={<PortalAuth />} />
+            <Route path="/portal" element={<PortalProtectedRoute><PortalDashboard /></PortalProtectedRoute>} />
+            <Route path="/portal/application" element={<PortalProtectedRoute><PortalApplication /></PortalProtectedRoute>} />
+            <Route path="/portal/files" element={<PortalProtectedRoute><PortalFiles /></PortalProtectedRoute>} />
+            <Route path="/portal/chat" element={<PortalProtectedRoute><PortalChat /></PortalProtectedRoute>} />
+            <Route path="/portal/offers" element={<PortalProtectedRoute><PortalOffers /></PortalProtectedRoute>} />
+            <Route path="/portal/refer" element={<PortalProtectedRoute><PortalRefer /></PortalProtectedRoute>} />
+            <Route path="/portal/payments" element={<PortalProtectedRoute><PortalPayments /></PortalProtectedRoute>} />
+            <Route path="/portal/appointments" element={<PortalProtectedRoute><PortalAppointments /></PortalProtectedRoute>} />
+            <Route path="/portal/notifications" element={<PortalProtectedRoute><PortalNotifications /></PortalProtectedRoute>} />
+            <Route path="/portal/settings" element={<PortalProtectedRoute><PortalSettings /></PortalProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
