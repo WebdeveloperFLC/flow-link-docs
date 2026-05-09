@@ -35,6 +35,7 @@ import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
 import { HandoffDialog } from "@/components/clients/HandoffDialog";
+import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
 import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
 import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
 
@@ -83,6 +84,7 @@ const ClientDetail = () => {
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [handoffOpen, setHandoffOpen] = useState(false);
+  const [remarkOpen, setRemarkOpen] = useState(false);
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
   const [secondaryLoading, setSecondaryLoading] = useState(true);
@@ -737,6 +739,9 @@ const ClientDetail = () => {
             <Button onClick={() => setHandoffOpen(true)} variant="outline" size="sm">
               <ArrowRightLeft className="size-4 mr-1.5" /> Hand off
             </Button>
+            <Button onClick={() => setRemarkOpen(true)} variant="outline" size="sm">
+              <FileText className="size-4 mr-1.5" /> Add remark
+            </Button>
             {(isAdmin || (!!user && (client.owner_id === user.id || client.created_by === user.id))) && (
               <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
                 <ShieldCheck className="size-4 mr-1.5" /> Manage access
@@ -1258,6 +1263,13 @@ const ClientDetail = () => {
           onOpenChange={setHandoffOpen}
           clientId={client.id}
           clientName={client.full_name}
+        />
+      )}
+      {client && (
+        <AddRemarkDialog
+          open={remarkOpen}
+          onOpenChange={setRemarkOpen}
+          clientId={client.id}
         />
       )}
     </AppLayout>
