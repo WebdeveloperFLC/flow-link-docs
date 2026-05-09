@@ -45,6 +45,7 @@ export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrator",
   counselor: "Edit",
   documentation: "Edit",
+  telecaller: "Telecaller",
   viewer: "Viewer",
 };
 
@@ -52,6 +53,7 @@ export const ROLE_COLORS: Record<string, string> = {
   admin: "bg-secondary text-secondary-foreground",
   counselor: "bg-primary text-primary-foreground",
   documentation: "bg-accent text-accent-foreground border border-primary/20",
+  telecaller: "bg-amber-500/15 text-amber-700 border border-amber-500/30 dark:text-amber-300",
   viewer: "bg-muted text-muted-foreground",
 };
 
