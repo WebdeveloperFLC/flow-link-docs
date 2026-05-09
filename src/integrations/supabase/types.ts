@@ -467,6 +467,20 @@ export type Database = {
             referencedRelation: "vw_campaign_performance"
             referencedColumns: ["campaign_id"]
           },
+          {
+            foreignKeyName: "call_queue_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_queue_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
         ]
       }
       call_sessions: {

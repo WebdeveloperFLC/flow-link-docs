@@ -7,7 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { parseCsv, importRows, type PreviewRow, type DedupeAction, type ImportResult } from "@/lib/leadImport";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload, Download } from "lucide-react";
+
+const SAMPLE_CSV = `full_name,phone,email,country,service,academics,ielts,status,assigned_telecaller,assigned_counselor,campaign,notes
+Aman Verma,+919876543210,aman@example.com,Canada,Student Visa (SDS),B.Tech CSE 2023,7.0,hot,tc1@example.com,co1@example.com,Spring2026,Wants Sept intake
+Priya Singh,+919812345678,priya@example.com,UK,Student Visa,BBA 2022,6.5,warm,tc2@example.com,,Spring2026,Budget 25L
+Rahul Mehta,+919900112233,,Australia,Tourist Visa,,,cold,,,,Family trip Dec
+`;
+
+function downloadSampleCsv() {
+  const blob = new Blob([SAMPLE_CSV], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "leads_sample.csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
   open: boolean;
@@ -52,6 +67,11 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>Import telecaller leads (CSV / Excel)</DialogTitle></DialogHeader>
         <div className="space-y-4">
+          <div className="flex justify-end">
+            <Button variant="outline" size="sm" onClick={downloadSampleCsv}>
+              <Download className="size-4 mr-1.5" />Download sample CSV
+            </Button>
+          </div>
           {!rows.length && (
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Upload className="size-8 mx-auto text-muted-foreground mb-2" />
