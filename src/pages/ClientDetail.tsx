@@ -1231,6 +1231,12 @@ const ClientDetail = () => {
         </div>
       </div>
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
+      {client && (
+        <div className="px-8 pb-8 space-y-6">
+          <ClientChatWorkspace clientId={client.id} />
+          <ClientTimelineCard clientId={client.id} />
+        </div>
+      )}
       <AddSectionDialog open={addSectionOpen} onOpenChange={setAddSectionOpen} onCreated={load} />
       <AddDocTypeDialog
         open={addDocOpen}
