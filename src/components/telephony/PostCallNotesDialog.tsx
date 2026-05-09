@@ -100,7 +100,7 @@ export function PostCallNotesDialog() {
     const draft = savedDrafts[pinned.sessionId];
     setPresetId(draft?.presetId ?? ""); setNewPreset(""); setOutcome(draft?.outcome ?? "");
     setRemark(draft?.remark ?? ""); setLeadStatus(draft?.leadStatus ?? ""); setCallbackAt(draft?.callbackAt ?? "");
-  }, [pinned?.sessionId, savedDrafts]);
+  }, [pinned?.sessionId, pinned?.phase, savedDrafts]);
 
   const presetLabel = useMemo(
     () => presets.find((p) => p.id === presetId)?.label,
