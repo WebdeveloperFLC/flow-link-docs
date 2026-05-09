@@ -44,7 +44,7 @@ const Telecaller = () => {
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <PageHeader title="Telecaller workspace" subtitle="Operate the call queue, log remarks, and hand off leads" />
+        <PageHeader title="Telecaller workspace" description="Operate the call queue, log remarks, and hand off leads" />
 
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="outline" className={STATUS_TONE[status]}>{status.toUpperCase()}</Badge>
