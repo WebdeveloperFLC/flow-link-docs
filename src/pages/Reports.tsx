@@ -91,7 +91,7 @@ export default function Reports() {
 
   return (
     <AppLayout>
-      <PageHeader title="Reports & Analytics" subtitle="Operational and conversion metrics — last 30 days" />
+        <PageHeader title="Reports & Analytics" description="Operational and conversion metrics — last 30 days" />
       <div className="p-6 space-y-6">
         {/* KPI tiles */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
