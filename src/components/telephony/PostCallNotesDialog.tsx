@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Minus, Plus, X, MessageSquarePlus } from "lucide-react";
+import { Minus, Plus, MessageSquarePlus } from "lucide-react";
 import type { LeadStatus } from "@/lib/telecallerQueue";
 
 interface Preset { id: string; label: string; category: string; }
@@ -145,8 +145,9 @@ export function PostCallNotesDialog() {
   if (!pinned) return null;
 
   const headerLabel = pinned.phase === "live" ? "Live call · add notes" : "Call ended · add notes";
+  const canMinimize = pinned.phase === "live";
 
-  if (minimized) {
+  if (minimized && canMinimize) {
     return (
       <div className="fixed bottom-4 right-4 z-50">
         <Button
@@ -175,12 +176,11 @@ export function PostCallNotesDialog() {
           {headerLabel}
         </div>
         <div className="flex gap-1">
-          <Button variant="ghost" size="icon" className="size-7" onClick={() => setMinimized(true)} title="Minimize">
-            <Minus className="size-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="size-7" onClick={close} title="Close">
-            <X className="size-3.5" />
-          </Button>
+          {canMinimize && (
+            <Button variant="ghost" size="icon" className="size-7" onClick={() => setMinimized(true)} title="Minimize">
+              <Minus className="size-3.5" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -245,9 +245,14 @@ export function PostCallNotesDialog() {
         </div>
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button variant="outline" size="sm" onClick={close}>Cancel</Button>
+          {pinned.phase === "live" && (
+            <Button variant="outline" size="sm" onClick={() => setMinimized(true)}>Minimize</Button>
+          )}
           <Button size="sm" onClick={submit} disabled={busy}>Save remark</Button>
         </div>
+        {pinned.phase === "ended" && (
+          <p className="text-[10px] text-muted-foreground text-center">A remark is required before this panel can close.</p>
+        )}
       </div>
     </Card>
   );
