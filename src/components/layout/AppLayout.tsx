@@ -1,17 +1,19 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
+import { HandoffBell } from "@/components/notifications/HandoffBell";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean };
 
 const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/clients", icon: Users, label: "Clients" },
+  { to: "/messages", icon: MessageSquare, label: "Messages" },
   { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
@@ -63,12 +65,15 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
-          <div className="px-3 py-2">
-            <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
-            <div className={cn("inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primaryRole])}>
-              <Shield className="size-2.5 inline mr-1" />
-              {ROLE_LABELS[primaryRole]}
+          <div className="px-3 py-2 flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
+              <div className={cn("inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primaryRole])}>
+                <Shield className="size-2.5 inline mr-1" />
+                {ROLE_LABELS[primaryRole]}
+              </div>
             </div>
+            <HandoffBell />
           </div>
           <Button
             variant="ghost"
