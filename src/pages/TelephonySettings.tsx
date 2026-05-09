@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { BrowserPhonePanel } from "@/components/telephony/BrowserPhonePanel";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AgentRow {
   id: string;
@@ -32,6 +34,11 @@ const TelephonySettings = () => {
   const [sbcUserDrafts, setSbcUserDrafts] = useState<Record<string, string>>({});
   const [sbcPwdDrafts, setSbcPwdDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [eligible, setEligible] = useState<{ id: string; full_name: string | null; email: string | null; role: string }[]>([]);
+  const [selectedUser, setSelectedUser] = useState<string>("");
+  const [selectedRole, setSelectedRole] = useState<string>("counselor");
+  const [adding, setAdding] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -71,6 +78,43 @@ const TelephonySettings = () => {
     setSbcUserDrafts(Object.fromEntries(merged.map((a) => [a.id, a.sbc_user_id ?? ""])));
     setSbcPwdDrafts(Object.fromEntries(merged.map((a) => [a.id, ""])));
     setLoading(false);
+  };
+
+  const loadEligible = async () => {
+    const existingIds = new Set(rows.map((r) => r.user_id));
+    const { data: profs } = await supabase.from("profiles").select("id, full_name, email");
+    const { data: rolesData } = await supabase.from("user_roles").select("user_id, role");
+    const roleByUser: Record<string, string> = {};
+    (rolesData ?? []).forEach((r: any) => { if (!roleByUser[r.user_id]) roleByUser[r.user_id] = r.role; });
+    const list = (profs ?? [])
+      .filter((p: any) => !existingIds.has(p.id))
+      .map((p: any) => ({ id: p.id, full_name: p.full_name, email: p.email, role: roleByUser[p.id] ?? "viewer" }));
+    setEligible(list);
+  };
+
+  const openAdd = async () => {
+    setSelectedUser("");
+    setSelectedRole("counselor");
+    await loadEligible();
+    setAddOpen(true);
+  };
+
+  const addAgent = async () => {
+    if (!selectedUser) { toast.error("Select a user"); return; }
+    setAdding(true);
+    const tRole = ["telecaller", "counselor", "admin", "documentation", "viewer", "client"].includes(selectedRole)
+      ? selectedRole : "counselor";
+    const { error } = await supabase.from("telephony_agents").insert({
+      user_id: selectedUser,
+      role: tRole as any,
+      is_available: true,
+      is_on_break: false,
+    } as any);
+    setAdding(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Agent added");
+    setAddOpen(false);
+    await load();
   };
 
   useEffect(() => {
@@ -147,6 +191,13 @@ const TelephonySettings = () => {
       />
       <div className="p-6 space-y-4">
         <BrowserPhonePanel />
+        {isAdmin && (
+          <div className="flex justify-end">
+            <Button onClick={openAdd} size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Add user
+            </Button>
+          </div>
+        )}
         {!isAdmin && (
           <Card className="p-6 text-sm text-muted-foreground">
             Use the Browser Calling panel above to connect. Per-counselor configuration is admin-only.
@@ -250,6 +301,47 @@ const TelephonySettings = () => {
           ))
         ))}
       </div>
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add telephony user</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>User</Label>
+              <Select value={selectedUser} onValueChange={setSelectedUser}>
+                <SelectTrigger><SelectValue placeholder="Select a user…" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {eligible.length === 0 ? (
+                    <div className="px-3 py-2 text-sm text-muted-foreground">No eligible users</div>
+                  ) : eligible.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {(u.full_name || u.email || u.id)} · {u.role}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Telephony role</Label>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="telecaller">Telecaller</SelectItem>
+                  <SelectItem value="counselor">Counselor</SelectItem>
+                  <SelectItem value="documentation">Documentation</SelectItem>
+                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button onClick={addAgent} disabled={adding || !selectedUser}>
+              {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

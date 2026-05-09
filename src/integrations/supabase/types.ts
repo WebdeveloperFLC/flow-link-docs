@@ -4301,7 +4301,13 @@ export type Database = {
         | "dependant"
         | "sponsor"
         | "co_sponsor"
-      telephony_role: "telecaller" | "counselor" | "admin"
+      telephony_role:
+        | "telecaller"
+        | "counselor"
+        | "admin"
+        | "documentation"
+        | "viewer"
+        | "client"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4467,7 +4473,14 @@ export const Constants = {
         "sponsor",
         "co_sponsor",
       ],
-      telephony_role: ["telecaller", "counselor", "admin"],
+      telephony_role: [
+        "telecaller",
+        "counselor",
+        "admin",
+        "documentation",
+        "viewer",
+        "client",
+      ],
     },
   },
 } as const
