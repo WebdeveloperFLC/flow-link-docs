@@ -22,12 +22,13 @@ import { HandleUserDataDialog, LifecycleAction } from "@/components/users/Handle
 interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
 
-const ALL_ROLES: AppRole[] = ["admin", "counselor", "documentation", "viewer"];
+const ALL_ROLES: AppRole[] = ["admin", "counselor", "documentation", "telecaller", "viewer"];
 
 const ROLE_HELP: Record<AppRole, string> = {
   admin: "Full system access, settings and team role management",
   counselor: "Edit access: add clients, upload documents and fill client details",
   documentation: "Edit access: add clients, upload documents and fill client details",
+  telecaller: "Lead calling and remarks; can hand leads to counselors",
   viewer: "View-only access",
 };
 
@@ -35,12 +36,14 @@ const ROLE_SHORT: Record<AppRole, string> = {
   admin: "Full system access",
   counselor: "Edit access",
   documentation: "Edit access",
+  telecaller: "Telecaller",
   viewer: "View-only access",
 };
 
 const roleOptionLabel = (role: AppRole) => {
   if (role === "counselor") return "Edit - Counselor";
   if (role === "documentation") return "Edit - Documentation";
+  if (role === "telecaller") return "Telecaller";
   return ROLE_LABELS[role];
 };
 

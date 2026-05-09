@@ -759,6 +759,97 @@ export type Database = {
           },
         ]
       }
+      chat_channel_members: {
+        Row: {
+          added_at: string
+          channel_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          channel_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          channel_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_channels: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string | null
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name?: string | null
+          type: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          channel_id: string | null
+          channel_type: string
+          client_id: string | null
+          created_at: string
+          id: string
+          message: string
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          channel_id?: string | null
+          channel_type: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          sender_id: string
+          sender_type?: string
+        }
+        Update: {
+          channel_id?: string | null
+          channel_type?: string
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_access: {
         Row: {
           client_id: string
@@ -1141,6 +1232,36 @@ export type Database = {
           },
         ]
       }
+      client_timeline: {
+        Row: {
+          actor_id: string | null
+          client_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          summary: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          summary?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          summary?: string | null
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           application_id: string
@@ -1488,6 +1609,45 @@ export type Database = {
           last_sync_status?: string | null
           mode?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      lead_handoffs: {
+        Row: {
+          client_id: string
+          created_at: string
+          direction: string
+          from_role: string | null
+          from_user: string
+          id: string
+          note: string | null
+          task_label: string | null
+          to_role: string | null
+          to_user: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          direction: string
+          from_role?: string | null
+          from_user: string
+          id?: string
+          note?: string | null
+          task_label?: string | null
+          to_role?: string | null
+          to_user: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          direction?: string
+          from_role?: string | null
+          from_user?: string
+          id?: string
+          note?: string | null
+          task_label?: string | null
+          to_role?: string | null
+          to_user?: string
         }
         Relationships: []
       }
@@ -2288,6 +2448,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_chat_channel_member: {
+        Args: { _channel: string; _uid: string }
+        Returns: boolean
+      }
       is_team_member: {
         Args: { _team: string; _uid: string }
         Returns: boolean
@@ -2301,7 +2465,12 @@ export type Database = {
       user_telephony_agent_id: { Args: { _uid: string }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "counselor" | "documentation" | "viewer"
+      app_role:
+        | "admin"
+        | "counselor"
+        | "documentation"
+        | "viewer"
+        | "telecaller"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -2457,7 +2626,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "counselor", "documentation", "viewer"],
+      app_role: ["admin", "counselor", "documentation", "viewer", "telecaller"],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
         "queued",
