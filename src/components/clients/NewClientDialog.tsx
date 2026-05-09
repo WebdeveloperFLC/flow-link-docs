@@ -9,6 +9,7 @@ import { useMasterLabels } from "@/lib/masters";
 import { logActivity } from "@/lib/activity";
 import { toast } from "sonner";
 import { z } from "zod";
+import { COUNTRY_OPTIONS, dialCodeFor } from "@/lib/countryCodes";
 
 interface Template { id: string; name: string; country: string; category: string; }
 
@@ -25,9 +26,6 @@ const schema = z.object({
   template_id: z.string().optional(),
 });
 
-const PHONE_CODES = [
-  "+1","+44","+91","+61","+64","+33","+49","+971","+86","+81","+92","+880","+27","+39","+34","+55","+52","+7","+82","+65",
-];
 const GENDERS = ["Male","Female","Other","Prefer not to say"];
 
 export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; }) => {
@@ -36,7 +34,8 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   const [appType, setAppType] = useState<string>("");
   const [templateId, setTemplateId] = useState<string>("");
   const [gender, setGender] = useState<string>("");
-  const [phoneCode, setPhoneCode] = useState<string>("+1");
+  const [phoneCountry, setPhoneCountry] = useState<string>("India");
+  const phoneCode = dialCodeFor(phoneCountry) || "91";
   const [templates, setTemplates] = useState<Template[]>([]);
   const COUNTRIES = useMasterLabels("countries");
   const APPLICATION_TYPES = useMasterLabels("application_types");
@@ -47,6 +46,12 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   }, [open]);
 
   const matchingTemplates = templates.filter((t) => (!country || t.country === country));
+
+  // Auto-sync phone country when the client country changes (still editable).
+  useEffect(() => {
+    if (!country) return;
+    if (dialCodeFor(country)) setPhoneCountry(country);
+  }, [country]);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +70,7 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     const fullName = [parsed.data.first_name, parsed.data.middle_name, parsed.data.last_name]
       .map((s) => (s ?? "").trim()).filter(Boolean).join(" ");
-    const fullPhone = parsed.data.phone ? `${phoneCode} ${parsed.data.phone}`.trim() : null;
+    const fullPhone = parsed.data.phone ? `+${phoneCode} ${parsed.data.phone}`.trim() : null;
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("create_client", {
@@ -85,7 +90,7 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
       await logActivity("client.created", "client", row.id, { application_id: row.application_id });
       toast.success(`Created ${row.application_id}`);
       onOpenChange(false);
-      setCountry(""); setAppType(""); setTemplateId(""); setGender(""); setPhoneCode("+1");
+      setCountry(""); setAppType(""); setTemplateId(""); setGender(""); setPhoneCountry("India");
       onCreated();
     } catch (err) {
       const e = err as { code?: string; message?: string; details?: string; hint?: string } | null;
@@ -133,9 +138,19 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
             <div className="space-y-1.5">
               <Label htmlFor="phone">Phone</Label>
               <div className="flex gap-2">
-                <Select value={phoneCode} onValueChange={setPhoneCode}>
-                  <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-                  <SelectContent>{PHONE_CODES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                <Select value={phoneCountry} onValueChange={setPhoneCountry}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue>
+                      <span className="truncate">+{phoneCode} · {phoneCountry}</span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRY_OPTIONS.map((o) => (
+                      <SelectItem key={`${o.name}-${o.code}`} value={o.name}>
+                        +{o.code} · {o.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
                 <Input id="phone" name="phone" className="flex-1" />
               </div>

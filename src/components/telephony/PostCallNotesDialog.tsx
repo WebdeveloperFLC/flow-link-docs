@@ -48,15 +48,18 @@ export function PostCallNotesDialog() {
   const [callbackAt, setCallbackAt] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Pin the call as soon as it's answered (connected).
+  // Pin the call as soon as it's live so notes can be taken mid-call.
+  // We open on any active state (initiated/ringing/answered) — provider
+  // status updates can be delayed, and the user wants the panel up the
+  // moment the call is in progress.
   useEffect(() => {
     if (!currentCall) return;
-    if (currentCall.status === "answered") {
-      setPinned((prev) => {
-        if (prev && prev.sessionId === currentCall.sessionId) return prev;
-        return { sessionId: currentCall.sessionId, clientId: currentCall.clientId, phase: "live" };
-      });
-    }
+    const live = ["initiated", "ringing", "answered"].includes(currentCall.status);
+    if (!live) return;
+    setPinned((prev) => {
+      if (prev && prev.sessionId === currentCall.sessionId) return prev;
+      return { sessionId: currentCall.sessionId, clientId: currentCall.clientId, phase: "live" };
+    });
   }, [currentCall]);
 
   // When the call disconnects, force the panel back open in "ended" phase.
