@@ -5,7 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch, Unlink } from "lucide-react";
+import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch, Unlink, ArrowRightLeft } from "lucide-react";
 import { CallClientButton } from "@/components/clients/CallClientButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
@@ -34,6 +34,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
+import { HandoffDialog } from "@/components/clients/HandoffDialog";
+import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
+import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -730,6 +733,9 @@ const ClientDetail = () => {
           <div className="flex gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
             <CallClientButton clientId={client.id} />
+            <Button onClick={() => setHandoffOpen(true)} variant="outline" size="sm">
+              <ArrowRightLeft className="size-4 mr-1.5" /> Hand off
+            </Button>
             {(isAdmin || (!!user && (client.owner_id === user.id || client.created_by === user.id))) && (
               <Button onClick={() => setAccessOpen(true)} variant="outline" size="sm">
                 <ShieldCheck className="size-4 mr-1.5" /> Manage access
@@ -1235,6 +1241,14 @@ const ClientDetail = () => {
         <ClientAccessDialog
           open={accessOpen}
           onOpenChange={setAccessOpen}
+          clientId={client.id}
+          clientName={client.full_name}
+        />
+      )}
+      {client && (
+        <HandoffDialog
+          open={handoffOpen}
+          onOpenChange={setHandoffOpen}
           clientId={client.id}
           clientName={client.full_name}
         />
