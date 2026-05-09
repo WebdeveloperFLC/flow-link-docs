@@ -22,7 +22,7 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
   callSessionId?: string | null;
   onSaved?: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [presetId, setPresetId] = useState<string>("");
   const [newPreset, setNewPreset] = useState("");
@@ -106,12 +106,16 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
                 {presets.map((p) => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
               </SelectContent>
             </Select>
-            <div className="flex gap-2 pt-1">
-              <Input value={newPreset} onChange={(e) => setNewPreset(e.target.value)} placeholder="Add new option (e.g. Wants scholarship info)" className="h-8" />
-              <Button type="button" size="sm" variant="outline" onClick={addPreset} disabled={addingPreset || !newPreset.trim()}>
-                <Plus className="size-3.5 mr-1" />Add
-              </Button>
-            </div>
+            {isAdmin ? (
+              <div className="flex gap-2 pt-1">
+                <Input value={newPreset} onChange={(e) => setNewPreset(e.target.value)} placeholder="Add new option (admin only)" className="h-8" />
+                <Button type="button" size="sm" variant="outline" onClick={addPreset} disabled={addingPreset || !newPreset.trim()}>
+                  <Plus className="size-3.5 mr-1" />Add
+                </Button>
+              </div>
+            ) : (
+              <p className="text-[10px] text-muted-foreground pt-1">Only admins can add new predefined remarks.</p>
+            )}
           </div>
           <div className="space-y-1.5">
             <Label>Custom remark</Label>

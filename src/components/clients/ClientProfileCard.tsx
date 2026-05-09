@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, RefreshCw, Save, Sparkles, Upload, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
+import { dialCodeFor } from "@/lib/countryCodes";
 
 interface Props {
   clientId: string;
@@ -95,18 +96,22 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
   const [loading, setLoading] = useState(true);
   const [primaryPhone, setPrimaryPhone] = useState<string>("");
   const [primaryPhoneEdit, setPrimaryPhoneEdit] = useState<string | null>(null);
+  const [countryCode, setCountryCode] = useState<string>("");
+  const [countryCodeEdit, setCountryCodeEdit] = useState<string | null>(null);
   const [education, setEducation] = useState<Array<Record<string, unknown>>>([]);
 
   const load = async () => {
     setLoading(true);
     const [{ data }, { data: clientRow }, { data: edu }] = await Promise.all([
       supabase.from("client_profile").select("*").eq("client_id", clientId).maybeSingle(),
-      supabase.from("clients").select("phone").eq("id", clientId).maybeSingle(),
+      supabase.from("clients").select("phone, country_code, country").eq("id", clientId).maybeSingle(),
       supabase.from("client_education").select("*").eq("client_id", clientId).order("end_year", { ascending: false }),
     ]);
     setProfile(data as Record<string, unknown> | null);
     setPrimaryPhone(clientRow?.phone ?? "");
     setPrimaryPhoneEdit(null);
+    setCountryCode((clientRow as { country_code?: string } | null)?.country_code ?? "");
+    setCountryCodeEdit(null);
     setEducation((edu as Array<Record<string, unknown>>) ?? []);
     setEdits({});
     setLoading(false);
@@ -127,7 +132,19 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
     return String(v);
   };
 
-  const dirty = Object.keys(edits).length > 0 || primaryPhoneEdit !== null;
+  const dirty = Object.keys(edits).length > 0 || primaryPhoneEdit !== null || countryCodeEdit !== null;
+
+  // Auto-suggest country code when address_country / nationality changes and
+  // the user hasn't explicitly set one yet.
+  useEffect(() => {
+    if (countryCode || countryCodeEdit !== null) return;
+    const candidate = (edits.address_country as string | undefined)
+      ?? (profile?.address_country as string | undefined)
+      ?? (edits.nationality as string | undefined)
+      ?? (profile?.nationality as string | undefined);
+    const cc = dialCodeFor(candidate);
+    if (cc) setCountryCodeEdit(cc);
+  }, [edits.address_country, edits.nationality, profile, countryCode, countryCodeEdit]);
 
   const save = async () => {
     setSaving(true);
@@ -156,6 +173,14 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
           .update({ phone: primaryPhoneEdit || null } as never)
           .eq("id", clientId);
         if (phErr) throw phErr;
+      }
+      if (countryCodeEdit !== null) {
+        const cleaned = countryCodeEdit.replace(/\D/g, "") || null;
+        const { error: ccErr } = await supabase
+          .from("clients")
+          .update({ country_code: cleaned } as never)
+          .eq("id", clientId);
+        if (ccErr) throw ccErr;
       }
       toast.success("Profile saved");
       load();
@@ -236,15 +261,32 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
               <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">{g.title}</div>
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {g.title === "Contact & address" && (
-                  <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">Phone (primary)</Label>
-                    <Input
-                      value={primaryPhoneEdit ?? primaryPhone}
-                      readOnly={!canEdit}
-                      onChange={(e) => setPrimaryPhoneEdit(e.target.value)}
-                      className="h-8 text-sm"
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Country code</Label>
+                      <div className="flex gap-1.5">
+                        <Input
+                          value={countryCodeEdit ?? countryCode}
+                          readOnly={!canEdit}
+                          onChange={(e) => setCountryCodeEdit(e.target.value.replace(/[^\d]/g, ""))}
+                          placeholder="e.g. 1, 91, 44"
+                          className="h-8 text-sm w-24"
+                        />
+                        <span className="text-[10px] text-muted-foreground self-center">
+                          dialed without “+”
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Phone (primary)</Label>
+                      <Input
+                        value={primaryPhoneEdit ?? primaryPhone}
+                        readOnly={!canEdit}
+                        onChange={(e) => setPrimaryPhoneEdit(e.target.value)}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </>
                 )}
                 {g.fields.map((f) => {
                   const src = sourceMap[f.key];

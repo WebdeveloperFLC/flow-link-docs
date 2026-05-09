@@ -65,12 +65,21 @@ Deno.serve(async (req) => {
     // Look up client phone (admin client bypasses masking view; we never return it to caller)
     const { data: clientRow, error: cErr } = await adminClient
       .from("clients")
-      .select("id, phone, full_name")
+      .select("id, phone, country_code, full_name")
       .eq("id", clientId)
       .maybeSingle();
     if (cErr || !clientRow) return json({ error: "Client not found", traceId }, 404);
-    log(traceId, "resolved client phone", { clientId, phone: phoneSummary(clientRow.phone) });
-    if (!clientRow.phone) return json({ error: "Client has no phone number on file", traceId }, 422);
+    // Compose dialable number = country_code + phone digits (no plus). The
+    // country code is editable per-client in the Contact & address card.
+    const ccDigits = String(clientRow.country_code ?? "").replace(/\D/g, "");
+    const phoneDigits = String(clientRow.phone ?? "").replace(/\D/g, "");
+    const dialNumber = !phoneDigits
+      ? ""
+      : ccDigits && !phoneDigits.startsWith(ccDigits)
+      ? `${ccDigits}${phoneDigits}`
+      : phoneDigits;
+    log(traceId, "resolved client phone", { clientId, phone: phoneSummary(dialNumber), countryCodePresent: !!ccDigits });
+    if (!dialNumber) return json({ error: "Client has no phone number on file", traceId }, 422);
 
     // Ensure agent row exists
     let { data: agent } = await adminClient
@@ -142,7 +151,7 @@ Deno.serve(async (req) => {
         sessionId: session.id,
         providerCallId: null,
         status: "initiated",
-        maskedNumber: clientRow.phone,
+        maskedNumber: dialNumber,
         traceId,
       });
     }
@@ -158,7 +167,7 @@ Deno.serve(async (req) => {
 
     try {
       const result = await provider.click2Call({
-        toNumber: clientRow.phone,
+        toNumber: dialNumber,
         fromNumber,
         telecmiAgentId: agent.telecmi_agent_id,
         metadata: { sessionId: session.id, clientId },
