@@ -460,6 +460,13 @@ export type Database = {
             referencedRelation: "call_campaigns"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "call_queue_items_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "vw_campaign_performance"
+            referencedColumns: ["campaign_id"]
+          },
         ]
       }
       call_sessions: {
@@ -540,6 +547,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "call_campaigns"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "vw_campaign_performance"
+            referencedColumns: ["campaign_id"]
           },
           {
             foreignKeyName: "call_sessions_queue_item_id_fkey"
@@ -1436,14 +1450,18 @@ export type Database = {
           created_at: string
           currency: string | null
           date_of_birth: string | null
+          duolingo_score: number | null
           email_alt: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           employer_name: string | null
+          gap_years: number | null
           gender: string | null
           gic_amount: number | null
+          gmat_score: number | null
           gpa_or_percentage: string | null
           graduation_year: number | null
+          gre_score: number | null
           highest_qualification: string | null
           ielts_listening: number | null
           ielts_overall: number | null
@@ -1457,6 +1475,7 @@ export type Database = {
           marital_status: string | null
           nationality: string | null
           notes_extracted: string | null
+          passport_available: boolean | null
           passport_country: string | null
           passport_expiry: string | null
           passport_issue_date: string | null
@@ -1464,10 +1483,14 @@ export type Database = {
           person_id: string | null
           phone_alt: string | null
           place_of_birth: string | null
+          pte_score: number | null
           source_documents: Json
           spouse_name: string | null
+          toefl_score: number | null
           tuition_paid: number | null
           updated_at: string
+          visa_refusal_history: boolean | null
+          work_experience_years: number | null
         }
         Insert: {
           account_balance?: number | null
@@ -1482,14 +1505,18 @@ export type Database = {
           created_at?: string
           currency?: string | null
           date_of_birth?: string | null
+          duolingo_score?: number | null
           email_alt?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_name?: string | null
+          gap_years?: number | null
           gender?: string | null
           gic_amount?: number | null
+          gmat_score?: number | null
           gpa_or_percentage?: string | null
           graduation_year?: number | null
+          gre_score?: number | null
           highest_qualification?: string | null
           ielts_listening?: number | null
           ielts_overall?: number | null
@@ -1503,6 +1530,7 @@ export type Database = {
           marital_status?: string | null
           nationality?: string | null
           notes_extracted?: string | null
+          passport_available?: boolean | null
           passport_country?: string | null
           passport_expiry?: string | null
           passport_issue_date?: string | null
@@ -1510,10 +1538,14 @@ export type Database = {
           person_id?: string | null
           phone_alt?: string | null
           place_of_birth?: string | null
+          pte_score?: number | null
           source_documents?: Json
           spouse_name?: string | null
+          toefl_score?: number | null
           tuition_paid?: number | null
           updated_at?: string
+          visa_refusal_history?: boolean | null
+          work_experience_years?: number | null
         }
         Update: {
           account_balance?: number | null
@@ -1528,14 +1560,18 @@ export type Database = {
           created_at?: string
           currency?: string | null
           date_of_birth?: string | null
+          duolingo_score?: number | null
           email_alt?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           employer_name?: string | null
+          gap_years?: number | null
           gender?: string | null
           gic_amount?: number | null
+          gmat_score?: number | null
           gpa_or_percentage?: string | null
           graduation_year?: number | null
+          gre_score?: number | null
           highest_qualification?: string | null
           ielts_listening?: number | null
           ielts_overall?: number | null
@@ -1549,6 +1585,7 @@ export type Database = {
           marital_status?: string | null
           nationality?: string | null
           notes_extracted?: string | null
+          passport_available?: boolean | null
           passport_country?: string | null
           passport_expiry?: string | null
           passport_issue_date?: string | null
@@ -1556,10 +1593,14 @@ export type Database = {
           person_id?: string | null
           phone_alt?: string | null
           place_of_birth?: string | null
+          pte_score?: number | null
           source_documents?: Json
           spouse_name?: string | null
+          toefl_score?: number | null
           tuition_paid?: number | null
           updated_at?: string
+          visa_refusal_history?: boolean | null
+          work_experience_years?: number | null
         }
         Relationships: [
           {
@@ -1686,67 +1727,124 @@ export type Database = {
       }
       clients: {
         Row: {
+          alternate_phone: string | null
           application_id: string
           application_type: string
+          budget: number | null
           country: string
           created_at: string
           created_by: string | null
           email: string | null
+          enrollment_probability: number | null
           extra_items: Json
           full_name: string
           id: string
+          intake: string | null
+          interested_country: string | null
+          interested_course: string | null
+          lead_score: number
+          lead_score_reasons: Json
+          lead_source: string | null
+          lead_stage: string | null
+          lead_temperature: string | null
+          next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
           odoo_partner_id: number | null
           odoo_synced_at: string | null
           owner_id: string | null
+          parent_contact: string | null
           phone: string | null
+          preferred_contact_time: string | null
+          preferred_language: string | null
+          priority: string | null
           status: string
           suppressed_template_items: string[]
+          tags: string[]
           template_id: string | null
+          timezone: string | null
           updated_at: string
+          whatsapp: string | null
         }
         Insert: {
+          alternate_phone?: string | null
           application_id?: string
           application_type: string
+          budget?: number | null
           country: string
           created_at?: string
           created_by?: string | null
           email?: string | null
+          enrollment_probability?: number | null
           extra_items?: Json
           full_name: string
           id?: string
+          intake?: string | null
+          interested_country?: string | null
+          interested_course?: string | null
+          lead_score?: number
+          lead_score_reasons?: Json
+          lead_source?: string | null
+          lead_stage?: string | null
+          lead_temperature?: string | null
+          next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
           owner_id?: string | null
+          parent_contact?: string | null
           phone?: string | null
+          preferred_contact_time?: string | null
+          preferred_language?: string | null
+          priority?: string | null
           status?: string
           suppressed_template_items?: string[]
+          tags?: string[]
           template_id?: string | null
+          timezone?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Update: {
+          alternate_phone?: string | null
           application_id?: string
           application_type?: string
+          budget?: number | null
           country?: string
           created_at?: string
           created_by?: string | null
           email?: string | null
+          enrollment_probability?: number | null
           extra_items?: Json
           full_name?: string
           id?: string
+          intake?: string | null
+          interested_country?: string | null
+          interested_course?: string | null
+          lead_score?: number
+          lead_score_reasons?: Json
+          lead_source?: string | null
+          lead_stage?: string | null
+          lead_temperature?: string | null
+          next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
           owner_id?: string | null
+          parent_contact?: string | null
           phone?: string | null
+          preferred_contact_time?: string | null
+          preferred_language?: string | null
+          priority?: string | null
           status?: string
           suppressed_template_items?: string[]
+          tags?: string[]
           template_id?: string | null
+          timezone?: string | null
           updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {
@@ -1787,6 +1885,137 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      distribution_rule_members: {
+        Row: {
+          created_at: string
+          daily_cap: number | null
+          id: string
+          rule_id: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          daily_cap?: number | null
+          id?: string
+          rule_id: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          daily_cap?: number | null
+          id?: string
+          rule_id?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_rule_members_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "distribution_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distribution_rules: {
+        Row: {
+          active: boolean
+          campaign_id: string | null
+          created_at: string
+          created_by: string | null
+          fixed_qty: number | null
+          id: string
+          mode: string
+          name: string
+          team_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          fixed_qty?: number | null
+          id?: string
+          mode: string
+          name: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          fixed_qty?: number | null
+          id?: string
+          mode?: string
+          name?: string
+          team_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_rules_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "call_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "distribution_rules_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "vw_campaign_performance"
+            referencedColumns: ["campaign_id"]
+          },
+          {
+            foreignKeyName: "distribution_rules_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distribution_runs: {
+        Row: {
+          executed_at: string
+          executed_by: string | null
+          id: string
+          lead_count: number
+          rule_id: string | null
+          summary: Json
+        }
+        Insert: {
+          executed_at?: string
+          executed_by?: string | null
+          id?: string
+          lead_count?: number
+          rule_id?: string | null
+          summary?: Json
+        }
+        Update: {
+          executed_at?: string
+          executed_by?: string | null
+          id?: string
+          lead_count?: number
+          rule_id?: string | null
+          summary?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_runs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "distribution_rules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       document_fingerprints: {
         Row: {
@@ -2783,6 +3012,13 @@ export type Database = {
             referencedRelation: "call_campaigns"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "telecaller_status_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "vw_campaign_performance"
+            referencedColumns: ["campaign_id"]
+          },
         ]
       }
       telephony_agents: {
@@ -3198,6 +3434,75 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_call_stats_daily: {
+        Row: {
+          agent_id: string | null
+          answered: number | null
+          avg_duration: number | null
+          day: string | null
+          total_calls: number | null
+          unanswered: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "telephony_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_campaign_performance: {
+        Row: {
+          callbacks_pending: number | null
+          campaign_id: string | null
+          cold: number | null
+          converted: number | null
+          hot: number | null
+          leads: number | null
+          name: string | null
+          warm: number | null
+        }
+        Relationships: []
+      }
+      vw_counselor_productivity: {
+        Row: {
+          enrollments: number | null
+          handoffs_accepted: number | null
+          name: string | null
+          tasks_done: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      vw_country_intake_trends: {
+        Row: {
+          country: string | null
+          intake: string | null
+          leads: number | null
+        }
+        Relationships: []
+      }
+      vw_lead_funnel: {
+        Row: {
+          leads: number | null
+          stage: string | null
+          temperature: string | null
+        }
+        Relationships: []
+      }
+      vw_telecaller_productivity: {
+        Row: {
+          answered: number | null
+          callbacks_pending: number | null
+          calls: number | null
+          name: string | null
+          talk_seconds: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_edit_client: {
@@ -3247,25 +3552,44 @@ export type Database = {
           _template_id?: string
         }
         Returns: {
+          alternate_phone: string | null
           application_id: string
           application_type: string
+          budget: number | null
           country: string
           created_at: string
           created_by: string | null
           email: string | null
+          enrollment_probability: number | null
           extra_items: Json
           full_name: string
           id: string
+          intake: string | null
+          interested_country: string | null
+          interested_course: string | null
+          lead_score: number
+          lead_score_reasons: Json
+          lead_source: string | null
+          lead_stage: string | null
+          lead_temperature: string | null
+          next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
           odoo_partner_id: number | null
           odoo_synced_at: string | null
           owner_id: string | null
+          parent_contact: string | null
           phone: string | null
+          preferred_contact_time: string | null
+          preferred_language: string | null
+          priority: string | null
           status: string
           suppressed_template_items: string[]
+          tags: string[]
           template_id: string | null
+          timezone: string | null
           updated_at: string
+          whatsapp: string | null
         }
         SetofOptions: {
           from: "*"
@@ -3273,6 +3597,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      distribute_leads: {
+        Args: { _lead_ids: string[]; _rule_id: string }
+        Returns: Json
       }
       has_role: {
         Args: {
@@ -3299,6 +3627,10 @@ export type Database = {
         }
         Returns: Json
       }
+      import_lead_v2: {
+        Args: { _dedupe?: string; payload: Json }
+        Returns: Json
+      }
       is_chat_channel_member: {
         Args: { _channel: string; _uid: string }
         Returns: boolean
@@ -3308,6 +3640,10 @@ export type Database = {
         Returns: boolean
       }
       is_telephony_admin: { Args: { _uid: string }; Returns: boolean }
+      reassign_leads: {
+        Args: { _lead_ids: string[]; _to_user: string }
+        Returns: number
+      }
       recover_stale_calling_items: { Args: never; Returns: number }
       user_client_permission: {
         Args: { _cid: string; _uid: string }
