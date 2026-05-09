@@ -36,8 +36,8 @@ export async function listMyQueue(opts: { agentId?: string | null; limit?: numbe
   return (data ?? []) as unknown as QueueItemWithClient[];
 }
 
-export async function updateQueueItem(id: string, patch: Partial<QueueItem>) {
-  const { error } = await supabase.from("call_queue_items").update(patch).eq("id", id);
+export async function updateQueueItem(id: string, patch: Record<string, unknown>) {
+  const { error } = await supabase.from("call_queue_items").update(patch as never).eq("id", id);
   if (error) throw error;
 }
 
