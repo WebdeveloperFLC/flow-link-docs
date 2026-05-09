@@ -1639,6 +1639,48 @@ export type Database = {
           },
         ]
       }
+      client_notification_prefs: {
+        Row: {
+          client_id: string
+          email_documents: boolean
+          email_messages: boolean
+          email_payments: boolean
+          email_status_updates: boolean
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          email_documents?: boolean
+          email_messages?: boolean
+          email_payments?: boolean
+          email_status_updates?: boolean
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          email_documents?: boolean
+          email_messages?: boolean
+          email_payments?: boolean
+          email_status_updates?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notification_prefs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notification_prefs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_notifications: {
         Row: {
           body: string | null
@@ -1735,6 +1777,60 @@ export type Database = {
             columns: ["offer_id"]
             isOneToOne: false
             referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_invites: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          revoked_at: string | null
+          token: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          token: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          revoked_at?: string | null
+          token?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_invites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -3062,9 +3158,124 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_audience_targets: {
+        Row: {
+          client_id: string | null
+          group_id: string | null
+          id: string
+          offer_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          group_id?: string | null
+          id?: string
+          offer_id: string
+        }
+        Update: {
+          client_id?: string | null
+          group_id?: string | null
+          id?: string
+          offer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_audience_targets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_audience_targets_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_audience_targets_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "offer_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_audience_targets_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_group_members: {
+        Row: {
+          added_at: string
+          client_id: string
+          group_id: string
+        }
+        Insert: {
+          added_at?: string
+          client_id: string
+          group_id: string
+        }
+        Update: {
+          added_at?: string
+          client_id?: string
+          group_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_group_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_group_members_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "offer_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       offers: {
         Row: {
           applicable_services: string[] | null
+          audience: string
           created_at: string
           created_by: string | null
           description: string | null
@@ -3082,6 +3293,7 @@ export type Database = {
         }
         Insert: {
           applicable_services?: string[] | null
+          audience?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -3099,6 +3311,7 @@ export type Database = {
         }
         Update: {
           applicable_services?: string[] | null
+          audience?: string
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -4264,6 +4477,10 @@ export type Database = {
         Returns: number
       }
       recover_stale_calling_items: { Args: never; Returns: number }
+      user_can_see_offer: {
+        Args: { _offer_id: string; _uid: string }
+        Returns: boolean
+      }
       user_client_permission: {
         Args: { _cid: string; _uid: string }
         Returns: Database["public"]["Enums"]["client_permission"]
