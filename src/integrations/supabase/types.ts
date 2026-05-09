@@ -44,6 +44,151 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_summaries: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string
+          client_intent: string | null
+          created_at: string
+          created_by: string | null
+          follow_up_role: string | null
+          generated_by_model: string | null
+          id: string
+          key_points: Json
+          next_action: string | null
+          scope: string
+          source_id: string | null
+          status: string
+          summary_md: string
+          title: string
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id: string
+          client_intent?: string | null
+          created_at?: string
+          created_by?: string | null
+          follow_up_role?: string | null
+          generated_by_model?: string | null
+          id?: string
+          key_points?: Json
+          next_action?: string | null
+          scope?: string
+          source_id?: string | null
+          status?: string
+          summary_md?: string
+          title?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string
+          client_intent?: string | null
+          created_at?: string
+          created_by?: string | null
+          follow_up_role?: string | null
+          generated_by_model?: string | null
+          id?: string
+          key_points?: Json
+          next_action?: string | null
+          scope?: string
+          source_id?: string | null
+          status?: string
+          summary_md?: string
+          title?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_summaries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_summaries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_summary_feedback: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          note: string | null
+          summary_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          summary_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          note?: string | null
+          summary_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_summary_feedback_summary_id_fkey"
+            columns: ["summary_id"]
+            isOneToOne: false
+            referencedRelation: "ai_summaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_summary_sources: {
+        Row: {
+          created_at: string
+          id: string
+          source_id: string
+          source_type: string
+          summary_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          source_id: string
+          source_type: string
+          summary_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          source_id?: string
+          source_type?: string
+          summary_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_summary_sources_summary_id_fkey"
+            columns: ["summary_id"]
+            isOneToOne: false
+            referencedRelation: "ai_summaries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           created_at: string
@@ -1183,6 +1328,100 @@ export type Database = {
         }
         Relationships: []
       }
+      client_emails: {
+        Row: {
+          bcc_addresses: string[]
+          body_html: string | null
+          body_text: string | null
+          cc_addresses: string[]
+          client_id: string
+          created_at: string
+          direction: string
+          error_message: string | null
+          from_address: string
+          id: string
+          in_reply_to: string | null
+          internal_only: boolean
+          metadata: Json
+          provider_message_id: string | null
+          received_at: string | null
+          sender_user_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          thread_id: string
+          to_addresses: string[]
+        }
+        Insert: {
+          bcc_addresses?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[]
+          client_id: string
+          created_at?: string
+          direction: string
+          error_message?: string | null
+          from_address: string
+          id?: string
+          in_reply_to?: string | null
+          internal_only?: boolean
+          metadata?: Json
+          provider_message_id?: string | null
+          received_at?: string | null
+          sender_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          thread_id: string
+          to_addresses?: string[]
+        }
+        Update: {
+          bcc_addresses?: string[]
+          body_html?: string | null
+          body_text?: string | null
+          cc_addresses?: string[]
+          client_id?: string
+          created_at?: string
+          direction?: string
+          error_message?: string | null
+          from_address?: string
+          id?: string
+          in_reply_to?: string | null
+          internal_only?: boolean
+          metadata?: Json
+          provider_message_id?: string | null
+          received_at?: string | null
+          sender_user_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          thread_id?: string
+          to_addresses?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_emails_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_emails_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_profile: {
         Row: {
           account_balance: number | null
@@ -1635,6 +1874,189 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      email_attachments: {
+        Row: {
+          created_at: string
+          email_id: string
+          file_name: string
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "client_emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_events: {
+        Row: {
+          email_id: string | null
+          event_type: string
+          id: string
+          occurred_at: string
+          payload: Json
+        }
+        Insert: {
+          email_id?: string | null
+          event_type: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+        }
+        Update: {
+          email_id?: string | null
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          payload?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_events_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "client_emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_read_receipts: {
+        Row: {
+          last_read_at: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          last_read_at?: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          last_read_at?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_read_receipts_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_templates: {
+        Row: {
+          body_html: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          scope: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_html?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          scope?: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          scope?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_threads: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          internal_only: boolean
+          last_message_at: string | null
+          message_count: number
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          internal_only?: boolean
+          last_message_at?: string | null
+          message_count?: number
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          internal_only?: boolean
+          last_message_at?: string | null
+          message_count?: number
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_threads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_threads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       filled_forms: {
         Row: {
@@ -2594,6 +3016,101 @@ export type Database = {
             columns: ["email_template_id"]
             isOneToOne: false
             referencedRelation: "questionnaire_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_note_transcripts: {
+        Row: {
+          created_at: string
+          id: string
+          language: string | null
+          model: string | null
+          status: string
+          text: string
+          voice_note_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language?: string | null
+          model?: string | null
+          status?: string
+          text?: string
+          voice_note_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string | null
+          model?: string | null
+          status?: string
+          text?: string
+          voice_note_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_note_transcripts_voice_note_id_fkey"
+            columns: ["voice_note_id"]
+            isOneToOne: false
+            referencedRelation: "voice_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_notes: {
+        Row: {
+          author_id: string | null
+          client_id: string
+          context_id: string | null
+          context_type: string
+          created_at: string
+          duration_ms: number | null
+          id: string
+          mime_type: string | null
+          size_bytes: number | null
+          status: string
+          storage_path: string
+        }
+        Insert: {
+          author_id?: string | null
+          client_id: string
+          context_id?: string | null
+          context_type?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path: string
+        }
+        Update: {
+          author_id?: string | null
+          client_id?: string
+          context_id?: string | null
+          context_type?: string
+          created_at?: string
+          duration_ms?: number | null
+          id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_notes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
