@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Phone, MessageCircle, Mail, StickyNote, ListTodo, ArrowRightLeft, Upload, Flame, Snowflake, Thermometer } from "lucide-react";
+import { MessageCircle, Mail, StickyNote, ListTodo, ArrowRightLeft, Upload, Flame, Snowflake, Thermometer, Sparkles } from "lucide-react";
 import { CallClientButton } from "./CallClientButton";
 import { HandoffDialog } from "./HandoffDialog";
 import { AddRemarkDialog } from "./AddRemarkDialog";
@@ -11,13 +11,16 @@ import { applyContactMask } from "@/lib/masking";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { VoiceRecorderButton } from "@/components/voice/VoiceRecorderButton";
+import { generateSummary } from "@/lib/aiSummaries";
 
-export function QuickActionsBar({ clientId, clientName, phone, email, onUpload }: {
+export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, onEmail }: {
   clientId: string;
   clientName?: string;
   phone?: string | null;
   email?: string | null;
   onUpload?: () => void;
+  onEmail?: () => void;
 }) {
   const { hasRole } = useAuth();
   const isTelecaller = hasRole("telecaller") && !hasRole(["admin","counselor","documentation"]);
@@ -27,6 +30,7 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload }
   const [handoff, setHandoff] = useState(false);
   const [remark, setRemark] = useState(false);
   const [task, setTask] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
 
   const setLeadStatus = async (status: "hot" | "warm" | "cold") => {
     const { data: queue } = await supabase
@@ -59,8 +63,8 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload }
         </Button>
       )}
       {!isTelecaller && email && (
-        <Button asChild size="sm" variant="outline">
-          <a href={`mailto:${email}`}><Mail className="size-3.5 mr-1" /> Email</a>
+        <Button size="sm" variant="outline" onClick={() => onEmail ? onEmail() : window.open(`mailto:${email}`)}>
+          <Mail className="size-3.5 mr-1" /> Email
         </Button>
       )}
       {isTelecaller && (
@@ -71,6 +75,10 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload }
       <Button size="sm" variant="outline" onClick={() => setRemark(true)}><StickyNote className="size-3.5 mr-1" /> Note</Button>
       <Button size="sm" variant="outline" onClick={() => setTask(true)}><ListTodo className="size-3.5 mr-1" /> Task</Button>
       <Button size="sm" variant="outline" onClick={() => setHandoff(true)}><ArrowRightLeft className="size-3.5 mr-1" /> Hand off</Button>
+      <VoiceRecorderButton clientId={clientId} contextType="timeline" />
+      <Button size="sm" variant="outline" disabled={aiBusy} onClick={async () => { setAiBusy(true); try { await generateSummary({ clientId, scope: "client_overview" }); toast.success("AI summary generated"); } catch (e) { const m = String((e as Error).message ?? e); toast.error(m.includes("402") ? "AI credits exhausted" : m.includes("429") ? "Rate limited" : m); } finally { setAiBusy(false); } }}>
+        <Sparkles className="size-3.5 mr-1" /> Summarize
+      </Button>
       {onUpload && (
         <Button size="sm" variant="outline" onClick={onUpload}><Upload className="size-3.5 mr-1" /> Upload</Button>
       )}
