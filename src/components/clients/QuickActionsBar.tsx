@@ -13,7 +13,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorderButton";
 import { generateSummary } from "@/lib/aiSummaries";
-import { useState as useStateReact } from "react";
 
 export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, onEmail }: {
   clientId: string;

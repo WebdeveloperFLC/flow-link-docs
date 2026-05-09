@@ -41,6 +41,9 @@ import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
 import { ClientTasksCard } from "@/components/clients/ClientTasksCard";
 import { HandoffHistoryCard } from "@/components/clients/HandoffHistoryCard";
 import { QuickActionsBar } from "@/components/clients/QuickActionsBar";
+import { ClientEmailCard } from "@/components/clients/ClientEmailCard";
+import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard";
+import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -1247,9 +1250,14 @@ const ClientDetail = () => {
             phone={(client as Client & { phone?: string | null }).phone ?? null}
             email={(client as Client & { email?: string | null }).email ?? null}
           />
+          <AiSummaryPanel clientId={client.id} />
           <div className="grid lg:grid-cols-2 gap-6">
             <ClientTasksCard clientId={client.id} />
             <HandoffHistoryCard clientId={client.id} />
+          </div>
+          <div className="grid lg:grid-cols-2 gap-6">
+            <ClientEmailCard clientId={client.id} defaultTo={(client as Client & { email?: string | null }).email ?? null} />
+            <ClientVoiceNotesCard clientId={client.id} />
           </div>
           <ClientChatWorkspace clientId={client.id} />
           <ClientTimelineCard clientId={client.id} />
