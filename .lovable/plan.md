@@ -1,147 +1,135 @@
-# Email + Voice Notes + AI Summaries
+# Phase 1 Build Plan — Reports, Distribution, Excel Import
 
-Additive build on top of the existing client workspace. No changes to telephony, telecaller queue, chat, tasks, or timeline core — only new tables, new edge functions, new UI tabs, plus trigger inserts into `client_timeline`.
-
----
-
-## Phase 1 — Email Integration
-
-### Data model (new tables, all RLS-scoped via `can_view_client` / `can_edit_client`)
-
-- `email_threads` — `client_id, subject, last_message_at, message_count, status (open|archived), created_by`
-- `client_emails` — `thread_id, client_id, direction (inbound|outbound), from_address, to_addresses[], cc[], bcc[], subject, body_html, body_text, in_reply_to (msg-id), provider_message_id, status (queued|sent|delivered|opened|bounced|failed), sent_at, received_at, sender_user_id`
-- `email_attachments` — `email_id, storage_path, file_name, mime_type, size_bytes`
-- `email_events` — `email_id, event_type, payload jsonb, occurred_at` (provider webhook log)
-- `email_read_receipts` — `thread_id, user_id, last_read_at`
-- `email_templates` — `name, subject, body_html, scope (global|user), created_by`
-
-Triggers:
-- `fn_log_email_to_timeline()` on `client_emails` INSERT → `client_timeline` event_type `email`.
-
-Storage: reuse `client-documents` bucket under `email/{clientId}/{emailId}/...`.
-
-### Provider-agnostic architecture
-
-- New edge function `email-send` — accepts `{ client_id, thread_id?, to, cc?, bcc?, subject, body_html, attachments[] }`, validates ACL via `can_edit_client`, persists row, dispatches to provider adapter.
-- New edge function `email-inbound` — generic webhook receiver (parses MIME, finds thread by `In-Reply-To` or subject hash, persists `client_emails` + attachments).
-- Provider adapter layer in `supabase/functions/_shared/email/provider.ts` with default Resend implementation. Swap by env var `EMAIL_PROVIDER`.
-- Required secrets (request only when first send is triggered): `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_INBOUND_SECRET`.
-
-### Frontend
-
-- `src/lib/email.ts` — list threads, list messages, send, mark-read, search.
-- `src/components/clients/ClientEmailCard.tsx` — thread list + message viewer + composer with attachments, CC/BCC toggles, template picker, search box, unread badges.
-- `src/components/clients/EmailComposerDialog.tsx` — reusable composer; opened from quick actions, task dialog, handoff dialog.
-- Wire into `ClientDetail.tsx` as a new tab in the existing right column.
-- Apply `applyContactMask` for telecaller role on displayed addresses.
+Strictly additive. Existing chat, telephony, timeline, tasks, AI summary, and client workspace stay untouched.
 
 ---
 
-## Phase 2 — Voice Notes
+## 1) Reports & Analytics Dashboard
 
-### Data model
+New route `/reports` (admin + manager + counselor scoped views).
 
-- `voice_notes` — `client_id, context_type (timeline|chat|task|handoff|remark), context_id, author_id, storage_path, duration_ms, mime_type, size_bytes, status, created_at`
-- `voice_note_transcripts` — `voice_note_id, language, text, model, status (pending|done|failed)` (architecture only — generation deferred until AI phase enables it)
-- Reuse `email_attachments`-style approach for chat/task linkage via `context_type` + `context_id`.
+### Data layer
+- Add Postgres views (read-only, RLS-respecting via `SECURITY INVOKER`):
+  - `vw_call_stats_daily` — calls, answered, unanswered, avg duration per agent/day
+  - `vw_lead_funnel` — counts by `lead_status` × `lead_temperature` × `campaign_id`
+  - `vw_telecaller_productivity` — calls/day, talk time, callbacks completed, conversions handed off
+  - `vw_counselor_productivity` — handoffs accepted, tasks closed, status moves to enrolled
+  - `vw_campaign_performance` — leads, hot/warm/cold, callbacks pending, converted, enrolled
+  - `vw_country_intake_trends` — leads by `country` and intake month
+  - `vw_visa_outcomes` — approvals/rejections from `clients.status` history (uses `client_timeline` status_change events)
+- Add helper RPC `report_response_times(_from date, _to date)` for first-call latency and callback completion %.
 
-Storage: new bucket `voice-notes` (private) with RLS via `can_view_client` on the `client_id` prefix.
+### UI
+- `src/pages/Reports.tsx` with tabs:
+  - **Overview** — KPI tiles + 30-day trend (calls, leads, conversions, enrollments)
+  - **Telecallers** — per-agent table, sortable
+  - **Counselors** — per-counselor table
+  - **Campaigns** — per-campaign performance + ROI placeholder
+  - **Funnel & Geo** — funnel chart + country/intake trends
+- Charts via existing `recharts` already in project. Date range picker, export-to-CSV.
 
-Trigger: `fn_log_voice_note_to_timeline()` → timeline event_type `voice`.
-
-### Frontend
-
-- `src/lib/voiceNotes.ts` — record (MediaRecorder), upload, list, signed URL helper.
-- `src/components/voice/VoiceRecorderButton.tsx` — push-to-record, waveform preview.
-- `src/components/voice/VoiceNotePlayer.tsx` — playable audio chip used in timeline rows, chat messages, task cards.
-- Hook recorder into:
-  - `QuickActionsBar` (record → timeline).
-  - `UnifiedChat` paperclip menu (record → chat attachment).
-  - `AddTaskDialog` and `HandoffDialog` (optional voice note).
-  - `AddRemarkDialog` (optional voice note).
-
----
-
-## Phase 3 — AI Summaries / Auto-Notes
-
-### Data model
-
-- `ai_summaries` — `client_id, scope (call|email_thread|voice_note|chat_burst|client_overview), source_id, status (suggested|approved|rejected|edited), title, summary_md, key_points jsonb, next_action text, follow_up_role (counselor|telecaller|none), client_intent text, urgency (hot|warm|cold), generated_by_model, created_by, approved_by, approved_at`
-- `ai_summary_sources` — `summary_id, source_type, source_id` (many-to-one back-refs to call_sessions, emails, voice_notes, chat_messages)
-- `ai_summary_feedback` — `summary_id, user_id, action (approve|edit|reject), note, created_at`
-
-Audit: every action also writes to existing `activity_logs` and inserts a `client_timeline` row of event_type `ai_summary`.
-
-### Edge function
-
-- `ai-summarize` — uses **Lovable AI Gateway** (`google/gemini-3-flash-preview`) with tool-calling for structured output (`key_points`, `next_action`, `urgency`, etc.). Triggered:
-  - on call_session status → `completed` (Postgres trigger calls `pg_net` → function, or client-side after-call hook — we'll use client-side hook to avoid pg_net dependency).
-  - on email thread activity (debounced client-side).
-  - on voice note upload (client-side after upload).
-  - manual "Summarize" button on the AI summary panel.
-
-ACL: function checks `can_view_client` for the requesting user before generating.
-
-### Frontend
-
-- `src/lib/aiSummaries.ts` — list, generate, approve, edit, reject.
-- `src/components/clients/AiSummaryPanel.tsx` — top-of-detail card showing latest approved summary + suggested summaries with Approve / Edit / Reject buttons. Realtime subscribed.
-- "Use as note" / "Use as task" actions on a suggested summary that prefill the existing dialogs.
+### Files
+- `supabase/migrations/<ts>_reports_views.sql`
+- `src/pages/Reports.tsx`, `src/lib/reports.ts`
+- `src/components/reports/{KpiTile,FunnelChart,AgentTable,CampaignTable}.tsx`
+- Sidebar entry in `src/components/layout/AppLayout.tsx`
 
 ---
 
-## Timeline wiring (new event types added — renderers extended)
+## 2) Bulk Lead Distribution Engine
 
-`email`, `voice`, `ai_summary` added to `ClientTimelineCard` filter set and icon map. Existing renderer pattern reused.
+New tables + RPC; reuses existing `client_access`, `call_queue_items`, `telephony_agents`.
 
----
+### Schema
+- `distribution_rules` — `name, mode (round_robin|random|fixed_qty|team), campaign_id?, team_id?, fixed_qty int?, active bool`
+- `distribution_rule_members` — `rule_id, user_id, weight int default 1, daily_cap int?`
+- `distribution_runs` — audit row per execution: `rule_id, executed_by, lead_count, summary jsonb, executed_at`
 
-## Permissions / Security
+### RPC
+- `distribute_leads(_lead_ids uuid[], _rule_id uuid)` — assigns telecallers (writes `client_access` + `call_queue_items.assigned_agent_id`), respects caps, returns per-user counts.
+- `rebalance_leads(_campaign_id uuid, _rule_id uuid)` — re-spreads queued/uncalled leads.
+- `reassign_leads(_lead_ids uuid[], _to_user uuid)` — manual override.
 
-- All new tables enable RLS using existing `can_view_client` / `can_edit_client` helpers.
-- Storage buckets use folder-prefix policies keyed on `client_id`.
-- Telecaller role: addresses masked in UI via `applyContactMask`; AI summaries hide raw phone/email fields.
-- Internal-only emails flagged with `internal_only` boolean (default false) — hidden from any future client portal.
-- Audit: every send, generate, approve, reject writes to `activity_logs`.
+All `SECURITY DEFINER`, admin/manager only, writes `activity_logs`.
 
----
-
-## Out of scope (kept as hooks)
-
-- Real-time IMAP polling — webhook-only inbound.
-- Voice transcription model wiring (table exists, generation off).
-- Omnichannel inbox page.
-
----
-
-## File list
-
-**Database**: one new migration `<ts>_email_voice_ai.sql`.
-
-**Edge functions**: `email-send`, `email-inbound`, `ai-summarize`.
-
-**New code**:
-- `src/lib/email.ts`, `src/lib/voiceNotes.ts`, `src/lib/aiSummaries.ts`
-- `src/components/clients/ClientEmailCard.tsx`, `EmailComposerDialog.tsx`, `AiSummaryPanel.tsx`
-- `src/components/voice/VoiceRecorderButton.tsx`, `VoiceNotePlayer.tsx`
-- `supabase/functions/_shared/email/provider.ts`
-
-**Edited (additive only)**:
-- `src/pages/ClientDetail.tsx` — add Email + Voice + AI Summary panels/tabs.
-- `src/components/clients/ClientTimelineCard.tsx` — extend filter chips and icon map.
-- `src/components/clients/QuickActionsBar.tsx` — add Email + Voice Note actions.
-- `src/components/chat/UnifiedChat.tsx` — add voice attachment.
-- `src/components/clients/AddTaskDialog.tsx`, `HandoffDialog.tsx`, `AddRemarkDialog.tsx` — optional voice attachment.
-
-No telephony or telecaller files modified.
+### UI
+- `src/components/leads/DistributionRulesCard.tsx` on a new `/admin/distribution` page.
+- Inline "Distribute now" + "Rebalance" actions inside `ImportLeadsDialog` Step 5.
+- Per-row "Reassign" in telecaller `ListsTab`.
 
 ---
 
-## Risks called out
+## 3) Excel + Column Mapping Importer (rebuild `ImportLeadsDialog`)
 
-- **Inbound email** requires the email provider to forward to the `email-inbound` webhook. User must paste the webhook URL into their provider after we deploy. We'll surface this clearly when secrets are added.
-- **AI summary generation** uses Lovable AI credits — rate limits (429) and credit exhaustion (402) are surfaced as toasts.
-- **Voice recording** depends on `MediaRecorder` browser support (modern Chromium/Firefox/Safari OK; iOS Safari 14+).
-- The migration is large; it will be applied in one transaction. Existing data is untouched.
+Replace single-CSV form with a 4-step wizard. Existing `import_lead` RPC is extended with new optional fields.
 
-Order: Phase 1 (email tables + send/receive + UI) → Phase 2 (voice tables + recorder + players) → Phase 3 (AI tables + edge fn + panel) → Timeline wiring + audit polish.
+### Step 1 — Upload
+- Accept CSV and XLSX. Use `xlsx` (SheetJS) — already common; `bun add xlsx`.
+- "Download sample template" button → emits XLSX with all default fields below.
+
+### Step 2 — Map columns
+- Drag-to-map UI matching detected headers to canonical fields. Auto-suggest by fuzzy match.
+- Required: `first_name`, `last_name`, `phone`. All others optional.
+
+### Step 3 — Duplicate preview
+- Dedupe by phone / email / passport / whatsapp.
+- Show new vs duplicate counts. Per-duplicate action: skip / merge / update.
+- "Download duplicates as XLSX" before import.
+
+### Step 4 — Distribute & confirm
+- Pick campaign, distribution rule (from Phase-2), preview per-user counts.
+- Import → calls extended `import_lead_v2` RPC in batches; shows progress.
+
+### Default field set (recommended)
+Basic: first_name, last_name, gender, dob, mobile, whatsapp, email, city, state, country
+Study: interested_country, interested_course, intake, education_level, passing_year, percentage_or_cgpa, ielts, pte, duolingo, gre, gmat, toefl, gap_years, work_experience, budget, passport_available, visa_refusal_history, preferred_language, preferred_contact_time
+Sales/CRM: lead_source, campaign, assigned_telecaller, assigned_counselor, priority, lead_temperature, lead_stage, next_followup_date, callback_time, last_remark, enrollment_probability, notes
+Operational: documents_pending, parent_contact, alternate_number, timezone, tags
+
+Storage: extend `clients` and `client_profile` with the missing scalar columns; spec-only fields like `tags` go to `clients.tags text[]`. Test scores not yet in `client_profile` are added there.
+
+### Files
+- `src/components/telecaller/ImportLeadsDialog.tsx` — rewritten (replaces existing single-form)
+- `src/lib/leadImport.ts` — extended with mapping + XLSX parser
+- `supabase/migrations/<ts>_lead_fields_and_distribution.sql`
+
+---
+
+## 4) Smart Lead Scoring (lightweight, deterministic v1)
+
+To unblock Hot/Warm/Cold without immediate AI cost.
+
+- New column `clients.lead_score int` + `clients.lead_score_reasons jsonb`.
+- Trigger `fn_recalc_lead_score()` on insert/update of relevant fields and on related `lead_remarks`/`call_sessions` insert.
+- Rules engine in SQL: IELTS ≥ 6.5 (+20), passport available (+15), budget set (+10), recent positive remark (+15), 2+ unanswered calls (-15), etc. Caps Hot ≥70, Warm 40–69, Cold <40.
+- AI re-scoring deferred — hook left in `ai-summarize` for future.
+
+Surfaced in queue rows + client header chip. No retraining needed — pure rules.
+
+---
+
+## Out of scope for this phase (called out from spec but deferred)
+- Enrollment pipeline page (data already exists via `clients.status`; needs UI).
+- Live team performance dashboard (extends Reports later with `telecaller_status` realtime).
+- Counselor Workspace dedicated route.
+
+---
+
+## Risks
+- The new `clients` columns require a careful migration; defaults are NULL so existing rows are safe.
+- `xlsx` adds ~400KB to bundle — code-split inside `ImportLeadsDialog` (dynamic import).
+- Distribution RPCs run inside a transaction; large imports (>5k) batched at 500 rows.
+- Reports views use `SECURITY INVOKER` so RLS still applies — counselors only see their assigned clients in reports.
+
+---
+
+## Build order
+1. Schema migration (lead fields + distribution tables + score column + reports views).
+2. `import_lead_v2` RPC + distribution RPCs.
+3. New `ImportLeadsDialog` wizard (uses both above).
+4. Distribution rules admin page.
+5. Reports page + charts.
+6. Lead score trigger + UI chip.
+7. Sidebar wiring + permission gates.
+
+This will land across 2–3 follow-up turns. After your approval I'll start with the migration.
