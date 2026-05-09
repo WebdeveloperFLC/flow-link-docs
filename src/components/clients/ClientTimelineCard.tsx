@@ -4,19 +4,23 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { listTimeline, subscribeTimeline, type TimelineRow } from "@/lib/timeline";
 import { supabase } from "@/integrations/supabase/client";
-import { Phone, ArrowRightLeft, MessageSquare, FileText, StickyNote, CheckCircle2, Mic, History, Search, Activity, UserCog, Bell } from "lucide-react";
+import { Phone, ArrowRightLeft, MessageSquare, FileText, StickyNote, CheckCircle2, Mic, History, Search, Activity, UserCog, Bell, Mail, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, React.ElementType> = {
   call: Phone, handoff: ArrowRightLeft, chat: MessageSquare, file: FileText,
   note: StickyNote, task: CheckCircle2, recording: Mic, remark: History,
   status_change: Activity, assignment: UserCog, reminder: Bell,
+  email: Mail, voice: Mic, ai_summary: Sparkles,
 };
 
 const FILTERS: Array<{ key: string; label: string; types: string[] }> = [
   { key: "all", label: "All", types: [] },
   { key: "call", label: "Calls", types: ["call", "recording"] },
+  { key: "email", label: "Email", types: ["email"] },
   { key: "chat", label: "Chat", types: ["chat"] },
+  { key: "voice", label: "Voice", types: ["voice"] },
+  { key: "ai", label: "AI", types: ["ai_summary"] },
   { key: "handoff", label: "Handoffs", types: ["handoff", "assignment"] },
   { key: "task", label: "Tasks", types: ["task", "reminder"] },
   { key: "file", label: "Documents", types: ["file"] },
