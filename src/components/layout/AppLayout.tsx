@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -22,6 +22,7 @@ const nav: NavItem[] = [
   { to: "/activity", icon: ScrollText, label: "Activity" },
   { to: "/team-access", icon: Share2, label: "Team access" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
+  { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
   { to: "/masters", icon: Database, label: "Masters", adminOnly: true },
   { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
   { to: "/settings/telephony", icon: Phone, label: "Phone connect" },
