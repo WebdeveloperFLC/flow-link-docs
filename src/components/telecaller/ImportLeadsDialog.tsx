@@ -8,20 +8,30 @@ import { parseCsv, importRows, type PreviewRow, type DedupeAction, type ImportRe
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Upload, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 
-const SAMPLE_CSV = `full_name,phone,email,country,service,academics,ielts,status,assigned_telecaller,assigned_counselor,campaign,notes
-Aman Verma,+919876543210,aman@example.com,Canada,Student Visa (SDS),B.Tech CSE 2023,7.0,hot,tc1@example.com,co1@example.com,Spring2026,Wants Sept intake
-Priya Singh,+919812345678,priya@example.com,UK,Student Visa,BBA 2022,6.5,warm,tc2@example.com,,Spring2026,Budget 25L
-Rahul Mehta,+919900112233,,Australia,Tourist Visa,,,cold,,,,Family trip Dec
-`;
+const SAMPLE_HEADERS = ["full_name","phone","email","country","service","academics","ielts","status","assigned_telecaller","assigned_counselor","campaign","notes"];
+const SAMPLE_ROWS = [
+  ["Aman Verma","+919876543210","aman@example.com","Canada","Student Visa (SDS)","B.Tech CSE 2023","7.0","hot","tc1@example.com","co1@example.com","Spring2026","Wants Sept intake"],
+  ["Priya Singh","+919812345678","priya@example.com","UK","Student Visa","BBA 2022","6.5","warm","tc2@example.com","","Spring2026","Budget 25L"],
+  ["Rahul Mehta","+919900112233","","Australia","Tourist Visa","","","cold","","","","Family trip Dec"],
+];
 
 function downloadSampleCsv() {
-  const blob = new Blob([SAMPLE_CSV], { type: "text/csv;charset=utf-8" });
+  const csv = [SAMPLE_HEADERS.join(","), ...SAMPLE_ROWS.map((r) => r.map((c) => /[",\n]/.test(c) ? `"${c.replace(/"/g,'""')}"` : c).join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = "leads_sample.csv";
   document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
+}
+
+function downloadSampleXlsx() {
+  const ws = XLSX.utils.aoa_to_sheet([SAMPLE_HEADERS, ...SAMPLE_ROWS]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Leads");
+  XLSX.writeFile(wb, "leads_sample.xlsx");
 }
 
 export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
@@ -67,9 +77,12 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>Import telecaller leads (CSV / Excel)</DialogTitle></DialogHeader>
         <div className="space-y-4">
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" size="sm" onClick={downloadSampleCsv}>
-              <Download className="size-4 mr-1.5" />Download sample CSV
+              <Download className="size-4 mr-1.5" />Sample CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={downloadSampleXlsx}>
+              <Download className="size-4 mr-1.5" />Sample Excel
             </Button>
           </div>
           {!rows.length && (
@@ -78,10 +91,10 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
               <Label htmlFor="csv-file" className="cursor-pointer text-sm">
                 <span className="text-primary font-medium">Click to upload</span> a CSV file
               </Label>
-              <Input id="csv-file" type="file" accept=".csv,text/csv" className="hidden"
+              <Input id="csv-file" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" className="hidden"
                      onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
               <div className="text-xs text-muted-foreground mt-2">
-                Required: phone, full name. Optional: email, country, service, academics, ielts, status, assigned_telecaller (email), assigned_counselor (email), notes
+                CSV or Excel (.xlsx). Required: phone, full name. Optional: email, country, service, academics, ielts, status, assigned_telecaller (email), assigned_counselor (email), notes
               </div>
             </div>
           )}
