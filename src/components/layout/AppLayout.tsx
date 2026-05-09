@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -8,12 +8,13 @@ import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 
-type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean };
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[] };
 
 const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
   { to: "/clients", icon: Users, label: "Clients" },
   { to: "/messages", icon: MessageSquare, label: "Messages" },
+  { to: "/telecaller", icon: Headphones, label: "Telecaller", roles: ["telecaller", "admin", "counselor"] },
   { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
@@ -28,7 +29,7 @@ const nav: NavItem[] = [
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, roles, signOut, isAdmin } = useAuth();
+  const { user, roles, signOut, isAdmin, hasRole } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
 
@@ -44,7 +45,9 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
 
         <nav className="flex-1 p-3 space-y-1">
-          {nav.filter((i) => !i.adminOnly || isAdmin).map((item) => (
+          {nav
+            .filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)))
+            .map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
