@@ -38,6 +38,9 @@ import { HandoffDialog } from "@/components/clients/HandoffDialog";
 import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
 import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
 import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
+import { ClientTasksCard } from "@/components/clients/ClientTasksCard";
+import { HandoffHistoryCard } from "@/components/clients/HandoffHistoryCard";
+import { QuickActionsBar } from "@/components/clients/QuickActionsBar";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -1238,6 +1241,16 @@ const ClientDetail = () => {
       <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
       {client && (
         <div className="px-8 pb-8 space-y-6">
+          <QuickActionsBar
+            clientId={client.id}
+            clientName={client.full_name}
+            phone={(client as Client & { phone?: string | null }).phone ?? null}
+            email={(client as Client & { email?: string | null }).email ?? null}
+          />
+          <div className="grid lg:grid-cols-2 gap-6">
+            <ClientTasksCard clientId={client.id} />
+            <HandoffHistoryCard clientId={client.id} />
+          </div>
           <ClientChatWorkspace clientId={client.id} />
           <ClientTimelineCard clientId={client.id} />
         </div>

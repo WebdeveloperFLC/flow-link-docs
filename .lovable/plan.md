@@ -1,139 +1,167 @@
-# Telecaller Workspace — fill the gaps
+# Operationalize Client Workspace
 
-The current pass added roles, handoffs, chat and timeline plumbing, but a telecaller logging in today still has nowhere to **see their leads**, **dial them**, **log a remark**, or **import a list**. This plan adds the actual day-to-day workspace on top of the tables that already exist (`call_queue_items`, `call_campaigns`, `call_sessions`, `lead_handoffs`, `client_timeline`, `chat_messages`).
+Additive enhancements to the existing client workspace. No rebuild — every change layers on top of `ClientChatWorkspace`, `UnifiedChat`, `ClientTimelineCard`, and the documents panel already on `/clients/:id`.
 
-No new tables — we reuse what's there. One new column only.
+---
 
-## 1. New page: `/telecaller` (Telecaller workspace)
+## 1. Database (one migration)
 
-Tabs:
+New tables (all RLS-scoped via `can_view_client` / `can_edit_client`):
 
-1. **My Queue** — leads assigned to me, ready to dial
-2. **Today's Calls** — `call_sessions` I made today + remarks
-3. **Inbox** — handoffs received from counselors / other telecallers (badge count)
-4. **Lists** — campaigns I'm assigned to + bulk import
+- **`client_tasks`** — `client_id, title, description, assigned_to, created_by, due_at, priority (low|normal|high|urgent), status (open|in_progress|done|cancelled), kind (task|callback|reminder), completed_at, completed_by`.
+- **`chat_message_meta`** — extends `chat_messages` without altering it: `message_id (unique), parent_id (reply thread), pinned, edited_at, deleted_at`.
+- **`chat_message_reactions`** — `message_id, user_id, emoji` (unique triple).
+- **`chat_message_mentions`** — `message_id, mentioned_user_id, read_at`.
+- **`chat_message_attachments`** — `message_id, storage_path, file_name, mime_type, size_bytes`.
+- **`chat_read_receipts`** — `channel_key (text), user_id, last_read_at` for unread indicators.
 
-Sidebar entry "Telecaller" visible only to users with `telecaller` or `admin` role.
+Extend existing tables:
+- `chat_messages`: nothing changed (we use `chat_message_meta` for additive fields → safe).
+- `lead_handoffs`: add `status` (`pending|accepted|completed|rejected`) and `responded_at` if not present.
 
-### My Queue (primary view)
+Trigger / function additions:
+- `fn_log_call_session_to_timeline()` → on INSERT/UPDATE of `call_sessions` insert into `client_timeline` (event_type `call`, summary built from direction + status + duration, metadata includes recording_url, disposition).
+- `fn_log_handoff_to_timeline()` → on INSERT of `lead_handoffs`.
+- `fn_log_document_to_timeline()` → on INSERT of `client_documents`.
+- `fn_log_task_to_timeline()` → on INSERT/UPDATE of `client_tasks` (created/completed).
+- `fn_log_status_change()` → on UPDATE of `clients.status`.
+- `fn_log_access_change()` → on INSERT of `client_access`.
 
+Realtime publication: add `client_tasks`, `chat_message_meta`, `chat_message_reactions`, `chat_message_mentions`, `chat_message_attachments`, `lead_handoffs` (if not already), `client_timeline` (already).
+
+Storage bucket: reuse existing `client-documents` bucket for chat attachments under prefix `chat/{clientId}/...`.
+
+---
+
+## 2. Activity Timeline expansion
+
+Edit `src/components/clients/ClientTimelineCard.tsx`:
+- Add filter chips (All / Calls / Chat / Handoffs / Tasks / Documents / Notes / Status).
+- Add search input (debounced, filters client-side over loaded rows).
+- Add cursor pagination ("Load more") via `created_at < cursor` query.
+- Realtime already wired — extend to render new event types: `task`, `status_change`, `assignment`, `reminder`, `recording`.
+- New row renderers per event type with proper icon + colored badge.
+
+Backend triggers (above) ensure all events auto-populate. No frontend code needs to insert manually for those flows.
+
+---
+
+## 3. Internal team thread upgrade
+
+New file `src/components/chat/EnhancedChat.tsx` — wraps `UnifiedChat` behavior but adds:
+- **Mentions**: `@` triggers a popover listing profiles (filter by name/email). Selected mention writes `<@uuid>` token; renderer resolves to `@Name` chip. On send, insert rows into `chat_message_mentions`.
+- **Reply threads**: each message has a "Reply" action → opens a side drawer showing parent + child messages (filtered by `parent_id`).
+- **Reactions**: emoji picker on hover; toggles row in `chat_message_reactions`.
+- **Pinned notes**: pin toggle on message; pinned strip rendered at top of thread.
+- **File sharing**: paperclip → uploads to `client-documents/chat/{clientId}/...`, inserts attachment row, sends a message with attachment chip.
+- **Search**: search bar filters messages by `ilike` over `message`.
+- **Quick client actions**: in internal thread only, slash menu (`/call`, `/task`, `/handoff`, `/note`) opens existing dialogs prefilled.
+- **Task from message**: "Create task" action on a message → opens task dialog with message excerpt prefilled.
+
+Used only by internal thread (`channelType="staff_internal"`) initially; client chat uses the same component with limited features (no slash menu, no internal-only pin).
+
+---
+
+## 4. Client chat upgrade (shared inbox)
+
+Same `EnhancedChat` component reused with `channelType="staff_client"`:
+- Sender name + role chip rendered on every message (already partial).
+- Typing indicators (already wired via broadcast — keep).
+- Unread badge: based on `chat_read_receipts`; on mount, update `last_read_at`. Sidebar nav can read aggregate unread later.
+- File sharing: same attachment flow.
+- Voice notes: scaffold a record button that uploads `audio/webm` to bucket and posts as attachment (UI present, recording stub OK).
+- Search: same component-level search.
+- All authorized staff (via `can_view_client`) can reply — RLS already permits.
+
+---
+
+## 5. Tasks + Callbacks panel
+
+New file `src/components/clients/ClientTasksCard.tsx` — rendered on client detail page next to chat:
+- List grouped by `Open / Today / Upcoming / Overdue / Done`.
+- Create task dialog (`AddTaskDialog`) — title, due_at picker, assignee (telecallers + counselors with access), priority, kind (task/callback/reminder).
+- Quick complete checkbox; reschedule action.
+- Realtime via `client_tasks` channel.
+- Overdue rows highlighted in destructive tone.
+
+Hooks: `src/lib/clientTasks.ts` (list, create, update, complete, subscribe).
+
+---
+
+## 6. Quick Actions sticky panel
+
+New file `src/components/clients/QuickActionsBar.tsx` rendered as a sticky right-rail or top toolbar on `ClientDetail.tsx`:
+- Call (reuses `CallClientButton`).
+- WhatsApp (`https://wa.me/{phone}` deep link, masked for telecallers).
+- Email (`mailto:` deep link, masked for telecallers).
+- Add note (opens `AddRemarkDialog`).
+- Create task (opens new `AddTaskDialog`).
+- Push to counselor / Push to telecaller (opens existing `HandoffDialog` with role preset).
+- Upload document (opens existing `SmartUploadZone`).
+- Mark hot / warm / cold (updates active `call_queue_items.lead_status` + writes timeline).
+
+---
+
+## 7. Handoff history card
+
+New file `src/components/clients/HandoffHistoryCard.tsx`:
+- Lists `lead_handoffs` for the client with from→to (resolved names + role chips), note, task_label, status, timestamp.
+- Shows current owner banner at top (latest accepted handoff, else `clients.owner_id`).
+- Accept / Reject buttons for the receiving user (updates `status`, writes timeline).
+
+---
+
+## 8. Performance + role-based security
+
+- Timeline + chat use `limit + cursor` pagination (default 50).
+- Subscriptions are per-card with cleanup on unmount.
+- Telecaller masking: `QuickActionsBar` uses `applyContactMask` from `src/lib/masking.ts` based on `useAuth().role === 'telecaller'`.
+- Internal thread already RLS-protected (`channel_type=staff_internal` + `can_view_client`); client cannot ever be granted that view.
+- Audit: every action goes through `logActivity()` (already present) or timeline trigger.
+
+---
+
+## 9. Wiring on `ClientDetail.tsx`
+
+Layout becomes:
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ Next up: Rahul Sharma  •  +91 98xxx  •  Campaign: NZ-Aug │
-│ Last remark: "Asked to call after exams" (2 days ago)    │
-│ [ Call ]  [ Skip ]  [ Reschedule ]  [ Hand off ]         │
-├─────────────────────────────────────────────────────────┤
-│ Up next (12)                                             │
-│  • Priya M. — never contacted — priority High            │
-│  • Arjun K. — callback due today 3pm                     │
-│  ...                                                     │
-└─────────────────────────────────────────────────────────┘
+┌─ PageHeader + QuickActionsBar (sticky) ─┐
+├─ left: ClientProfileCard, CasePeople,   │
+│        Documents, Forms, Binders        │
+├─ right: Tabs                            │
+│   ├─ Activity (ClientTimelineCard)      │
+│   ├─ Internal thread (EnhancedChat int.)│
+│   ├─ Client chat (EnhancedChat client)  │
+│   ├─ Tasks (ClientTasksCard)            │
+│   └─ Handoffs (HandoffHistoryCard)      │
+└──────────────────────────────────────────┘
 ```
+Existing cards remain — only additive imports + a new tab/section grid.
 
-Behavior:
-- Pulls `call_queue_items` where `assigned_agent_id = me` and `status in ('queued','retry')`, ordered by `priority desc, next_call_at asc`.
-- "Call" → opens a **CallDrawer** (right-side sheet) with the client mini-profile and the existing `CallClientButton` flow (browser SDK). Same drawer hosts the remark form so the rep never leaves the queue.
-- "Skip" → bumps `next_call_at` +1h, status `queued`.
-- "Reschedule" → date/time picker, sets `next_call_at`, status `scheduled`.
-- "Hand off" → opens existing `HandoffDialog`.
+---
 
-### CallDrawer (the in-call panel)
+## 10. Out of scope (kept as architecture hooks)
 
-While dialing or after hangup the rep fills:
+- Real WhatsApp / Email API send — link-out only for now.
+- AI summaries / sentiment — schema leaves room (`client_timeline.metadata`, `chat_message_meta` extensible).
+- Voice note transcription.
+- Omnichannel unified inbox page.
 
-- **Disposition** (single-select dropdown, seeded list, editable in Masters): `connected`, `no_answer`, `busy`, `wrong_number`, `not_interested`, `callback`, `converted_to_lead`.
-- **Remark** (free text, required if disposition = connected / callback).
-- **Next action** dropdown (reuses `TASK_LABELS` from `handoffs.ts`).
-- **Callback at** (only when disposition = callback).
-- **Hand off to counselor** checkbox → opens HandoffDialog pre-filled.
+---
 
-On Save:
-- writes `call_sessions` row (already supported)
-- writes `client_timeline` events: `call` (with disposition + duration) and `remark` (with the note)
-- updates `call_queue_items`: status → `done` / `callback` / `retry`, sets `last_called_at`, `next_call_at`, increments `retry_count`
-- if "Hand off" was ticked → `lead_handoffs` row + timeline event (already wired in `pushHandoff`)
+## Files
 
-### Inbox tab
+**New**
+- `supabase/migrations/<ts>_workspace_ops.sql`
+- `src/lib/clientTasks.ts`, `src/lib/chatEnhanced.ts`, `src/lib/mentions.ts`
+- `src/components/chat/EnhancedChat.tsx`, `MentionInput.tsx`, `MessageActions.tsx`, `ReactionBar.tsx`, `ReplyThreadDrawer.tsx`, `AttachmentChip.tsx`
+- `src/components/clients/ClientTasksCard.tsx`, `AddTaskDialog.tsx`, `QuickActionsBar.tsx`, `HandoffHistoryCard.tsx`
 
-Lists `lead_handoffs where to_user = me` with task label + note + originating user. Click → opens client. Marks "seen" by writing a tiny `client_timeline` event `handoff_acknowledged` (no schema change needed — timeline is free-form).
+**Edited**
+- `src/pages/ClientDetail.tsx` (add tabs + sticky bar)
+- `src/components/clients/ClientTimelineCard.tsx` (filters, search, pagination)
+- `src/components/clients/ClientChatWorkspace.tsx` (swap UnifiedChat → EnhancedChat)
+- `src/lib/chat.ts` (mention parse helper, attachment helpers, read-receipt write)
+- `src/integrations/supabase/types.ts` (auto-regenerated after migration)
 
-### Today's Calls tab
-
-Simple table from `call_sessions` joined to `clients` for today, with disposition and the latest remark from `client_timeline`. Lets the rep edit a remark if they fat-fingered it.
-
-## 2. Lists tab — bulk lead upload
-
-This is the missing "upload data" piece.
-
-UI:
-- "Import leads" button → CSV drop zone.
-- Required columns: `full_name, phone, country`. Optional: `email, notes, campaign, priority, assigned_to_email`.
-- Preview table with row-level errors (missing phone, duplicate phone).
-- "Import N rows" button.
-
-Implementation:
-- Parse CSV client-side with `papaparse`.
-- For each valid row, in a single batched call:
-  - upsert `clients` (match by `phone` to avoid dupes; create if new — reuses existing `clients insert scoped` policy)
-  - insert `call_queue_items` with `assigned_agent_id` (resolved from email) and `campaign_id` (resolved/created)
-  - grant `client_access` to the assigned telecaller so RLS lets them see the client (this is the key glue)
-- Show progress + per-row result.
-- Visible to admins and any user holding `is_telephony_admin` (already a function). Telecallers see only campaigns where they're assigned.
-
-Campaigns:
-- Reuse `call_campaigns` table. Add a tiny "New campaign" inline form (name + assigned_team).
-- Bulk reassign: select rows in the queue table → "Reassign to…" dropdown.
-
-## 3. Comments / remarks / team sharing — one consistent surface
-
-Today the pieces exist but aren't surfaced together. We'll standardize on the **client_timeline** as the single source of truth for "what happened on this lead", and the **chat workspace** as the discussion surface:
-
-| Need | Where it lives | Surfaced on |
-|---|---|---|
-| Per-call remark | `client_timeline` (`event_type='remark'`) + `call_sessions.notes` | CallDrawer + ClientDetail timeline |
-| Internal team chat about a lead | `chat_messages` (`channel_type='staff_internal'`) | ClientDetail "Chat" tab (already built) |
-| Quick @mention to a teammate | `chat_messages` + a notification row | HandoffBell popover |
-| Push lead to counselor | `lead_handoffs` via HandoffDialog (already built) | "Hand off" button on queue + ClientDetail |
-| Receive lead from counselor | `lead_handoffs where to_user = me` | Inbox tab + HandoffBell |
-
-Add a **"Add remark" quick action** to ClientDetail that writes a timeline `remark` event without requiring a call session — useful when a rep talks to a lead over WhatsApp etc.
-
-## 4. One DB change only
-
-```sql
-ALTER TABLE call_queue_items
-  ADD COLUMN IF NOT EXISTS notes text,
-  ADD COLUMN IF NOT EXISTS source text;          -- 'manual' | 'csv' | 'odoo' | 'campaign'
-```
-
-Everything else fits existing tables. Realtime is already enabled for `lead_handoffs`, `chat_messages`, `client_timeline`. We'll add `call_queue_items` to the realtime publication so the queue updates live as admins reassign.
-
-## Files to add / edit
-
-New:
-- `src/pages/Telecaller.tsx` (tabs container)
-- `src/components/telecaller/MyQueueTab.tsx`
-- `src/components/telecaller/CallDrawer.tsx` (call + remark + disposition)
-- `src/components/telecaller/InboxTab.tsx`
-- `src/components/telecaller/TodayCallsTab.tsx`
-- `src/components/telecaller/ListsTab.tsx`
-- `src/components/telecaller/ImportLeadsDialog.tsx` (CSV)
-- `src/components/clients/AddRemarkDialog.tsx`
-- `src/lib/telecallerQueue.ts` (queue helpers)
-- `src/lib/leadImport.ts` (CSV → upsert client + queue + access grant)
-
-Edit:
-- `src/App.tsx` — add `/telecaller` route, gated by `telecaller` or `admin` role
-- `src/components/layout/AppLayout.tsx` — sidebar link
-- `src/pages/ClientDetail.tsx` — "Add remark" button next to Hand off
-
-Migration: the small `ALTER TABLE` above + add `call_queue_items` to `supabase_realtime`.
-
-## Out of scope for this pass
-
-- Auto-dialer (sequential auto-call) — manual click-to-call is enough for v1
-- WhatsApp / SMS templates from the queue
-- KPI dashboard for telecallers (calls/day, conversion) — easy follow-up once timeline data exists
-- Counselor-side mirror page (their inbox is already the HandoffBell + ClientDetail; we can add a `/counselor` page later if they ask)
-
-If this matches what you had in mind, approve and I'll ship it as one migration + the files above.
+No telephony or telecaller files are modified.

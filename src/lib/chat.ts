@@ -13,6 +13,17 @@ export interface ChatMessage {
   created_at: string;
 }
 
+export interface ChatMessageMeta {
+  message_id: string;
+  parent_id: string | null;
+  pinned: boolean;
+  edited_at: string | null;
+  deleted_at: string | null;
+}
+
+export interface ChatReaction { id: string; message_id: string; user_id: string; emoji: string; }
+export interface ChatAttachment { id: string; message_id: string; storage_path: string; file_name: string; mime_type: string | null; size_bytes: number | null; }
+
 export interface ChatChannel {
   id: string;
   type: "direct" | "team_group";
@@ -40,9 +51,12 @@ export async function sendMessage(opts: {
   clientId?: string | null;
   channelId?: string | null;
   message: string;
+  parentId?: string | null;
+  mentionUserIds?: string[];
+  attachments?: Array<{ storage_path: string; file_name: string; mime_type?: string | null; size_bytes?: number | null }>;
 }) {
   const text = opts.message.trim();
-  if (!text) return;
+  if (!text && !(opts.attachments && opts.attachments.length)) return;
   const { data: u } = await supabase.auth.getUser();
   const sender = u?.user?.id;
   if (!sender) throw new Error("Not signed in");
@@ -52,9 +66,26 @@ export async function sendMessage(opts: {
     channel_id: opts.channelId ?? null,
     sender_id: sender,
     sender_type: "staff",
-    message: text,
+    message: text || "(attachment)",
   }).select().single();
   if (error) throw error;
+
+  if (opts.parentId) {
+    await supabase.from("chat_message_meta" as never).insert({ message_id: data.id, parent_id: opts.parentId } as never);
+  }
+  if (opts.mentionUserIds?.length) {
+    await supabase.from("chat_message_mentions" as never).insert(
+      opts.mentionUserIds.map((uid) => ({ message_id: data.id, mentioned_user_id: uid })) as never,
+    );
+  }
+  if (opts.attachments?.length) {
+    await supabase.from("chat_message_attachments" as never).insert(
+      opts.attachments.map((a) => ({
+        message_id: data.id, storage_path: a.storage_path, file_name: a.file_name,
+        mime_type: a.mime_type ?? null, size_bytes: a.size_bytes ?? null,
+      })) as never,
+    );
+  }
 
   // Mirror to client timeline for per-client channels (best-effort)
   if (opts.clientId && (opts.channelType === "staff_internal" || opts.channelType === "staff_client")) {
@@ -72,6 +103,90 @@ export async function sendMessage(opts: {
 export function channelKey(channelType: ChannelType, clientId?: string | null, channelId?: string | null) {
   if (clientId) return `client:${clientId}:${channelType}`;
   return `${channelType}:${channelId}`;
+}
+
+// ============ Enhanced helpers ============
+
+export async function listReactions(messageIds: string[]): Promise<ChatReaction[]> {
+  if (!messageIds.length) return [];
+  const { data } = await supabase.from("chat_message_reactions" as never).select("*").in("message_id", messageIds);
+  return (data ?? []) as ChatReaction[];
+}
+
+export async function toggleReaction(messageId: string, emoji: string) {
+  const { data: u } = await supabase.auth.getUser();
+  const me = u?.user?.id; if (!me) return;
+  const { data: existing } = await supabase
+    .from("chat_message_reactions" as never)
+    .select("id")
+    .eq("message_id", messageId).eq("user_id", me).eq("emoji", emoji)
+    .maybeSingle();
+  if (existing) {
+    await supabase.from("chat_message_reactions" as never).delete().eq("id", (existing as { id: string }).id);
+  } else {
+    await supabase.from("chat_message_reactions" as never).insert({ message_id: messageId, user_id: me, emoji } as never);
+  }
+}
+
+export async function listMeta(messageIds: string[]): Promise<ChatMessageMeta[]> {
+  if (!messageIds.length) return [];
+  const { data } = await supabase.from("chat_message_meta" as never).select("*").in("message_id", messageIds);
+  return (data ?? []) as ChatMessageMeta[];
+}
+
+export async function togglePin(messageId: string, pinned: boolean) {
+  const { data: existing } = await supabase.from("chat_message_meta" as never).select("message_id").eq("message_id", messageId).maybeSingle();
+  if (existing) {
+    await supabase.from("chat_message_meta" as never).update({ pinned } as never).eq("message_id", messageId);
+  } else {
+    await supabase.from("chat_message_meta" as never).insert({ message_id: messageId, pinned } as never);
+  }
+}
+
+export async function listAttachments(messageIds: string[]): Promise<ChatAttachment[]> {
+  if (!messageIds.length) return [];
+  const { data } = await supabase.from("chat_message_attachments" as never).select("*").in("message_id", messageIds);
+  return (data ?? []) as ChatAttachment[];
+}
+
+export async function uploadChatAttachment(clientId: string | null | undefined, file: File) {
+  const { data: u } = await supabase.auth.getUser();
+  const me = u?.user?.id; if (!me) throw new Error("Not signed in");
+  const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+  const path = `${clientId ?? "shared"}/chat/${Date.now()}_${safe}`;
+  const { error } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
+  if (error) throw error;
+  return { storage_path: path, file_name: file.name, mime_type: file.type, size_bytes: file.size };
+}
+
+export async function getAttachmentUrl(path: string): Promise<string | null> {
+  const { data } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60);
+  return data?.signedUrl ?? null;
+}
+
+export async function markRead(channelKey: string) {
+  const { data: u } = await supabase.auth.getUser();
+  const me = u?.user?.id; if (!me) return;
+  await supabase.from("chat_read_receipts" as never).upsert(
+    { user_id: me, channel_key: channelKey, last_read_at: new Date().toISOString() } as never,
+    { onConflict: "user_id,channel_key" } as never,
+  );
+}
+
+export async function searchProfiles(query: string, limit = 8) {
+  if (!query) return [];
+  const { data } = await supabase
+    .from("profiles")
+    .select("id,full_name,email")
+    .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .limit(limit);
+  return data ?? [];
+}
+
+export function parseMentions(text: string): { cleanText: string; mentionUserIds: string[] } {
+  const ids: string[] = [];
+  const cleanText = text.replace(/<@([0-9a-fA-F-]{36})>/g, (_, id) => { ids.push(id); return `@${id.slice(0, 6)}`; });
+  return { cleanText: text, mentionUserIds: Array.from(new Set(ids)) };
 }
 
 export function subscribeChat(opts: {
