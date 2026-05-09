@@ -1,0 +1,146 @@
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { parseCsv, importRows, type PreviewRow, type DedupeAction, type ImportResult } from "@/lib/leadImport";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { Loader2, Upload } from "lucide-react";
+
+export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  campaigns: { id: string; name: string }[];
+  onDone?: () => void;
+}) {
+  const [rows, setRows] = useState<PreviewRow[]>([]);
+  const [campaignId, setCampaignId] = useState<string>("");
+  const [action, setAction] = useState<DedupeAction>("skip");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<ImportResult | null>(null);
+
+  const onFile = async (file: File) => {
+    setBusy(true); setResult(null);
+    try {
+      const r = await parseCsv(file);
+      setRows(r);
+      if (!r.length) toast.error("No rows detected");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to parse CSV");
+    } finally { setBusy(false); }
+  };
+
+  const valid = rows.filter((r) => !r._errors.length).length;
+  const dups = rows.filter((r) => r._duplicate).length;
+
+  const runImport = async () => {
+    setBusy(true);
+    try {
+      const res = await importRows(rows, action, campaignId || null);
+      setResult(res);
+      toast.success(`Imported: ${res.created} new, ${res.updated} updated, ${res.skipped} skipped, ${res.failed} failed`);
+      onDone?.();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Import failed");
+    } finally { setBusy(false); }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader><DialogTitle>Import telecaller leads (CSV / Excel)</DialogTitle></DialogHeader>
+        <div className="space-y-4">
+          {!rows.length && (
+            <div className="border-2 border-dashed rounded-lg p-8 text-center">
+              <Upload className="size-8 mx-auto text-muted-foreground mb-2" />
+              <Label htmlFor="csv-file" className="cursor-pointer text-sm">
+                <span className="text-primary font-medium">Click to upload</span> a CSV file
+              </Label>
+              <Input id="csv-file" type="file" accept=".csv,text/csv" className="hidden"
+                     onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
+              <div className="text-xs text-muted-foreground mt-2">
+                Required: phone, full name. Optional: email, country, service, academics, ielts, status, assigned_telecaller (email), assigned_counselor (email), notes
+              </div>
+            </div>
+          )}
+
+          {rows.length > 0 && (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Campaign</Label>
+                  <Select value={campaignId} onValueChange={setCampaignId}>
+                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                    <SelectContent>
+                      {campaigns.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Duplicate action</Label>
+                  <Select value={action} onValueChange={(v) => setAction(v as DedupeAction)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="skip">Skip duplicates</SelectItem>
+                      <SelectItem value="update">Update existing</SelectItem>
+                      <SelectItem value="merge">Merge notes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end gap-2 text-sm">
+                  <Badge variant="secondary">{rows.length} rows</Badge>
+                  <Badge variant="outline" className="text-emerald-700 border-emerald-500/30">{valid} valid</Badge>
+                  {dups > 0 && <Badge variant="outline" className="text-amber-700 border-amber-500/30">{dups} dup</Badge>}
+                </div>
+              </div>
+
+              <div className="border rounded max-h-72 overflow-auto">
+                <table className="text-xs w-full">
+                  <thead className="bg-muted sticky top-0">
+                    <tr>
+                      <th className="p-2 text-left">#</th>
+                      <th className="p-2 text-left">Name</th>
+                      <th className="p-2 text-left">Phone</th>
+                      <th className="p-2 text-left">Email</th>
+                      <th className="p-2 text-left">Status</th>
+                      <th className="p-2 text-left">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r._row} className={r._errors.length ? "bg-destructive/10" : r._duplicate ? "bg-amber-500/10" : ""}>
+                        <td className="p-2 font-mono">{r._row}</td>
+                        <td className="p-2">{r.full_name}</td>
+                        <td className="p-2 font-mono">{r.phone}</td>
+                        <td className="p-2">{r.email}</td>
+                        <td className="p-2">{r.status} {r._duplicate && <Badge variant="outline" className="ml-1 text-[10px]">dup</Badge>}</td>
+                        <td className="p-2 text-muted-foreground truncate max-w-[180px]">{r._errors.join(", ") || r.notes}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {result && (
+                <div className="border rounded p-3 text-sm bg-muted/30 space-y-1">
+                  <div>Created: <b>{result.created}</b> · Updated: <b>{result.updated}</b> · Skipped: <b>{result.skipped}</b> · Failed: <b>{result.failed}</b></div>
+                  {result.errors.slice(0, 5).map((er) => <div key={er.row} className="text-xs text-destructive">Row {er.row}: {er.error}</div>)}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        <DialogFooter>
+          {rows.length > 0 && <Button variant="ghost" onClick={() => { setRows([]); setResult(null); }}>Reset</Button>}
+          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          {rows.length > 0 && <Button onClick={runImport} disabled={busy || !valid}>
+            {busy ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : null}
+            Import {valid} rows
+          </Button>}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
