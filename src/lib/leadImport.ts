@@ -1,4 +1,5 @@
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface CsvRow {
@@ -52,9 +53,20 @@ function normalize(row: Record<string, string>): CsvRow {
 }
 
 export async function parseCsv(file: File): Promise<PreviewRow[]> {
-  const text = await file.text();
-  const parsed = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true });
-  const rows = parsed.data.map(normalize);
+  const isXlsx = /\.(xlsx|xls)$/i.test(file.name);
+  let raw: Record<string, string>[];
+  if (isXlsx) {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(ws, { defval: "" })
+      .map((r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, String(v ?? "")])));
+  } else {
+    const text = await file.text();
+    const parsed = Papa.parse<Record<string, string>>(text, { header: true, skipEmptyLines: true });
+    raw = parsed.data;
+  }
+  const rows = raw.map(normalize);
 
   // Duplicate detection in DB
   const phones = rows.map((r) => r.phone?.replace(/\s+/g, "") || "").filter(Boolean);

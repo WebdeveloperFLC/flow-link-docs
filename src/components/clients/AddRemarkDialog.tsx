@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { appendTimeline } from "@/lib/timeline";
 import type { LeadStatus } from "@/lib/telecallerQueue";
+import { Plus } from "lucide-react";
 
 interface Preset { id: string; label: string; category: string; }
 
@@ -24,16 +25,35 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
   const { user } = useAuth();
   const [presets, setPresets] = useState<Preset[]>([]);
   const [presetId, setPresetId] = useState<string>("");
+  const [newPreset, setNewPreset] = useState("");
+  const [addingPreset, setAddingPreset] = useState(false);
   const [outcome, setOutcome] = useState<string>("");
   const [remark, setRemark] = useState("");
   const [leadStatus, setLeadStatus] = useState<LeadStatus | "">("");
   const [callbackAt, setCallbackAt] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
+  const loadPresets = () =>
     supabase.from("remark_presets").select("id,label,category").eq("active", true).order("sort_order").then(({ data }) => setPresets(data ?? []));
-  }, [open]);
+  useEffect(() => { if (open) loadPresets(); }, [open]);
+
+  const addPreset = async () => {
+    const label = newPreset.trim();
+    if (!label) return;
+    setAddingPreset(true);
+    try {
+      const { data, error } = await supabase.from("remark_presets")
+        .insert({ label, category: "custom", sort_order: 999 })
+        .select("id,label,category").single();
+      if (error) throw error;
+      setPresets((p) => [...p, data as Preset]);
+      setPresetId(data.id);
+      setNewPreset("");
+      toast.success("Preset added");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to add preset");
+    } finally { setAddingPreset(false); }
+  };
 
   const submit = async () => {
     if (!user) return;
@@ -86,6 +106,12 @@ export function AddRemarkDialog({ open, onOpenChange, clientId, queueItemId, cal
                 {presets.map((p) => <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>)}
               </SelectContent>
             </Select>
+            <div className="flex gap-2 pt-1">
+              <Input value={newPreset} onChange={(e) => setNewPreset(e.target.value)} placeholder="Add new option (e.g. Wants scholarship info)" className="h-8" />
+              <Button type="button" size="sm" variant="outline" onClick={addPreset} disabled={addingPreset || !newPreset.trim()}>
+                <Plus className="size-3.5 mr-1" />Add
+              </Button>
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label>Custom remark</Label>

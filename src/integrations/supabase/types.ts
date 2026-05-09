@@ -1945,6 +1945,7 @@ export type Database = {
           id: string
           mode: string
           name: string
+          target_role: string
           team_id: string | null
           updated_at: string
         }
@@ -1957,6 +1958,7 @@ export type Database = {
           id?: string
           mode: string
           name: string
+          target_role?: string
           team_id?: string | null
           updated_at?: string
         }
@@ -1969,6 +1971,7 @@ export type Database = {
           id?: string
           mode?: string
           name?: string
+          target_role?: string
           team_id?: string | null
           updated_at?: string
         }

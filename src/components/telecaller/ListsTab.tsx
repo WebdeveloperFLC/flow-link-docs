@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, Megaphone, Plus } from "lucide-react";
+import { Upload, Megaphone, Plus, Shuffle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ImportLeadsDialog } from "./ImportLeadsDialog";
+import { BulkDistributeDialog } from "./BulkDistributeDialog";
 import { listCampaigns } from "@/lib/telecallerQueue";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +16,7 @@ export function ListsTab() {
   const canImport = isAdmin || hasRole(["counselor"]);
   const [campaigns, setCampaigns] = useState<{ id: string; name: string; status: string }[]>([]);
   const [open, setOpen] = useState(false);
+  const [distOpen, setDistOpen] = useState(false);
   const [newName, setNewName] = useState("");
 
   const load = async () => setCampaigns(await listCampaigns());
@@ -36,7 +38,10 @@ export function ListsTab() {
             <div className="text-xs text-muted-foreground">CSV with phone, name, email, status, assigned counselor/telecaller. Duplicates auto-detected.</div>
           </div>
           {canImport ? (
-            <Button onClick={() => setOpen(true)}><Upload className="size-4 mr-1.5" />Import leads</Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setOpen(true)}><Upload className="size-4 mr-1.5" />Import leads</Button>
+              {isAdmin && <Button variant="outline" onClick={() => setDistOpen(true)}><Shuffle className="size-4 mr-1.5" />Bulk distribute</Button>}
+            </div>
           ) : (
             <Badge variant="outline">Telecallers cannot bulk import — ask an admin or counselor.</Badge>
           )}
@@ -65,6 +70,7 @@ export function ListsTab() {
       </Card>
 
       <ImportLeadsDialog open={open} onOpenChange={setOpen} campaigns={campaigns} />
+      <BulkDistributeDialog open={distOpen} onOpenChange={setDistOpen} />
     </div>
   );
 }
