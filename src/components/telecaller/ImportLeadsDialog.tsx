@@ -89,7 +89,7 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
             <div className="border-2 border-dashed rounded-lg p-8 text-center">
               <Upload className="size-8 mx-auto text-muted-foreground mb-2" />
               <Label htmlFor="csv-file" className="cursor-pointer text-sm">
-                <span className="text-primary font-medium">Click to upload</span> a CSV file
+                <span className="text-primary font-medium">Click to upload</span> a CSV or Excel file
               </Label>
               <Input id="csv-file" type="file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" className="hidden"
                      onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
