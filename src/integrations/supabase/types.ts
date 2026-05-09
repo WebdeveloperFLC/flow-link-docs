@@ -3675,6 +3675,7 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "telecaller"
+        | "client"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -3830,7 +3831,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "counselor", "documentation", "viewer", "telecaller"],
+      app_role: [
+        "admin",
+        "counselor",
+        "documentation",
+        "viewer",
+        "telecaller",
+        "client",
+      ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
         "queued",
