@@ -30,7 +30,7 @@ export default function OffersAdmin() {
   if (!isAdmin) return <Navigate to="/" replace />;
   return (
     <AppLayout>
-      <PageHeader title="Offers & Discounts" subtitle="Create and target offers for your clients" />
+        <PageHeader title="Offers & Discounts" />
       <div className="p-6 max-w-7xl mx-auto">
         <Tabs defaultValue="offers">
           <TabsList>
