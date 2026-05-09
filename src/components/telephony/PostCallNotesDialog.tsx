@@ -57,6 +57,7 @@ export function PostCallNotesDialog() {
   const [callbackAt, setCallbackAt] = useState("");
   const [busy, setBusy] = useState(false);
   const [savedDrafts, setSavedDrafts] = useState<Record<string, CallRemarkDraft>>({});
+  const [closedLiveSessions, setClosedLiveSessions] = useState<Record<string, true>>({});
 
   // Pin the call as soon as it's live so notes can be taken mid-call.
   // We open on any active state (initiated/ringing/answered) — provider
@@ -66,11 +67,12 @@ export function PostCallNotesDialog() {
     if (!currentCall) return;
     const live = ["initiated", "ringing", "answered"].includes(currentCall.status);
     if (!live) return;
+    if (closedLiveSessions[currentCall.sessionId]) return;
     setPinned((prev) => {
       if (prev && prev.sessionId === currentCall.sessionId) return prev;
       return { sessionId: currentCall.sessionId, clientId: currentCall.clientId, phase: "live" };
     });
-  }, [currentCall]);
+  }, [currentCall, closedLiveSessions]);
 
   // When the call disconnects, force the panel back open in "ended" phase.
   useEffect(() => {
@@ -168,6 +170,9 @@ export function PostCallNotesDialog() {
         });
       }
       toast.success("Remark saved");
+      if (pinned.phase === "live") {
+        setClosedLiveSessions((prev) => ({ ...prev, [pinned.sessionId]: true }));
+      }
       close();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save");
