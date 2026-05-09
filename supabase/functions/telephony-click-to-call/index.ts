@@ -55,13 +55,9 @@ Deno.serve(async (req) => {
     // Permission check via RLS-respecting helper
     const { data: canEdit } = await userClient.rpc("can_edit_client", { _uid: userId, _cid: clientId });
     if (!canEdit) return json({ error: "Forbidden" }, 403);
-    if (callMode === "browser_sdk") {
-      const [{ data: isAdmin }, { data: isCounselor }] = await Promise.all([
-        userClient.rpc("has_role", { _user_id: userId, _role: "admin" }),
-        userClient.rpc("has_role", { _user_id: userId, _role: "counselor" }),
-      ]);
-      if (!isAdmin && !isCounselor) return json({ error: "Browser calling is restricted to counselors and admins" }, 403);
-    }
+    // Browser calling is open to any signed-in staff member with edit rights
+    // on the client. Per-user calling readiness is enforced by SBC credentials
+    // (set per-user in Telephony Settings) and the can_edit_client check above.
 
     // Service role for the writes that follow
     const adminClient = createClient(SUPABASE_URL, SUPABASE_SR, { auth: { persistSession: false } });
