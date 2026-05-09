@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CallProvider } from "@/contexts/CallContext";
 import { BrowserPhoneProvider } from "@/contexts/BrowserPhoneContext";
+import { PostCallNotesDialog } from "@/components/telephony/PostCallNotesDialog";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -56,6 +57,7 @@ const App = () => (
         <AuthProvider>
           <BrowserPhoneProvider>
           <CallProvider>
+          <PostCallNotesDialog />
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
