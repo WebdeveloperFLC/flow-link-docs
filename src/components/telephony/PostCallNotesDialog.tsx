@@ -22,6 +22,15 @@ interface PinnedCall {
   phase: "live" | "ended";
 }
 
+interface CallRemarkDraft {
+  remarkId?: string;
+  presetId: string;
+  outcome: string;
+  remark: string;
+  leadStatus: LeadStatus | "";
+  callbackAt: string;
+}
+
 /**
  * Floating call-notes panel.
  * - Pops up the moment a call is answered (connected).
@@ -47,6 +56,7 @@ export function PostCallNotesDialog() {
   const [leadStatus, setLeadStatus] = useState<LeadStatus | "">("");
   const [callbackAt, setCallbackAt] = useState("");
   const [busy, setBusy] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<Record<string, CallRemarkDraft>>({});
 
   // Pin the call as soon as it's live so notes can be taken mid-call.
   // We open on any active state (initiated/ringing/answered) — provider
@@ -81,11 +91,14 @@ export function PostCallNotesDialog() {
       .then(({ data }) => setPresets(data ?? []));
   }, [pinned?.sessionId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset form when the pinned call session changes.
+  // Reset form when the pinned call session changes, or restore the already-saved live note
+  // when the same call disconnects and the mandatory final panel opens again.
   useEffect(() => {
-    setPresetId(""); setNewPreset(""); setOutcome("");
-    setRemark(""); setLeadStatus(""); setCallbackAt("");
-  }, [pinned?.sessionId]);
+    if (!pinned) return;
+    const draft = savedDrafts[pinned.sessionId];
+    setPresetId(draft?.presetId ?? ""); setNewPreset(""); setOutcome(draft?.outcome ?? "");
+    setRemark(draft?.remark ?? ""); setLeadStatus(draft?.leadStatus ?? ""); setCallbackAt(draft?.callbackAt ?? "");
+  }, [pinned?.sessionId, savedDrafts]);
 
   const presetLabel = useMemo(
     () => presets.find((p) => p.id === presetId)?.label,
@@ -120,21 +133,40 @@ export function PostCallNotesDialog() {
     setBusy(true);
     try {
       const finalRemark = [presetLabel, remark.trim()].filter(Boolean).join(" — ");
-      const { error } = await supabase.from("lead_remarks").insert({
-        client_id: pinned.clientId,
-        call_session_id: pinned.sessionId,
-        author_id: user.id,
-        outcome: outcome || null,
-        remark: finalRemark,
-        lead_status: leadStatus || null,
-        next_callback_at: callbackAt || null,
-      });
-      if (error) throw error;
-      await appendTimeline({
-        clientId: pinned.clientId, eventType: "remark",
-        summary: finalRemark.slice(0, 140),
-        metadata: { outcome, leadStatus, callbackAt, presetId, callPhase: pinned.phase },
-      });
+      const existingRemarkId = savedDrafts[pinned.sessionId]?.remarkId;
+      let remarkId = existingRemarkId;
+      if (existingRemarkId) {
+        const { error } = await supabase.from("lead_remarks").update({
+          outcome: outcome || null,
+          remark: finalRemark,
+          lead_status: leadStatus || null,
+          next_callback_at: callbackAt || null,
+        }).eq("id", existingRemarkId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from("lead_remarks").insert({
+          client_id: pinned.clientId,
+          call_session_id: pinned.sessionId,
+          author_id: user.id,
+          outcome: outcome || null,
+          remark: finalRemark,
+          lead_status: leadStatus || null,
+          next_callback_at: callbackAt || null,
+        }).select("id").single();
+        if (error) throw error;
+        remarkId = data.id;
+      }
+      setSavedDrafts((prev) => ({
+        ...prev,
+        [pinned.sessionId]: { remarkId, presetId, outcome, remark, leadStatus, callbackAt },
+      }));
+      if (!existingRemarkId) {
+        await appendTimeline({
+          clientId: pinned.clientId, eventType: "remark",
+          summary: finalRemark.slice(0, 140),
+          metadata: { outcome, leadStatus, callbackAt, presetId, callPhase: pinned.phase },
+        });
+      }
       toast.success("Remark saved");
       close();
     } catch (e) {
