@@ -1,167 +1,147 @@
-# Operationalize Client Workspace
+# Email + Voice Notes + AI Summaries
 
-Additive enhancements to the existing client workspace. No rebuild — every change layers on top of `ClientChatWorkspace`, `UnifiedChat`, `ClientTimelineCard`, and the documents panel already on `/clients/:id`.
-
----
-
-## 1. Database (one migration)
-
-New tables (all RLS-scoped via `can_view_client` / `can_edit_client`):
-
-- **`client_tasks`** — `client_id, title, description, assigned_to, created_by, due_at, priority (low|normal|high|urgent), status (open|in_progress|done|cancelled), kind (task|callback|reminder), completed_at, completed_by`.
-- **`chat_message_meta`** — extends `chat_messages` without altering it: `message_id (unique), parent_id (reply thread), pinned, edited_at, deleted_at`.
-- **`chat_message_reactions`** — `message_id, user_id, emoji` (unique triple).
-- **`chat_message_mentions`** — `message_id, mentioned_user_id, read_at`.
-- **`chat_message_attachments`** — `message_id, storage_path, file_name, mime_type, size_bytes`.
-- **`chat_read_receipts`** — `channel_key (text), user_id, last_read_at` for unread indicators.
-
-Extend existing tables:
-- `chat_messages`: nothing changed (we use `chat_message_meta` for additive fields → safe).
-- `lead_handoffs`: add `status` (`pending|accepted|completed|rejected`) and `responded_at` if not present.
-
-Trigger / function additions:
-- `fn_log_call_session_to_timeline()` → on INSERT/UPDATE of `call_sessions` insert into `client_timeline` (event_type `call`, summary built from direction + status + duration, metadata includes recording_url, disposition).
-- `fn_log_handoff_to_timeline()` → on INSERT of `lead_handoffs`.
-- `fn_log_document_to_timeline()` → on INSERT of `client_documents`.
-- `fn_log_task_to_timeline()` → on INSERT/UPDATE of `client_tasks` (created/completed).
-- `fn_log_status_change()` → on UPDATE of `clients.status`.
-- `fn_log_access_change()` → on INSERT of `client_access`.
-
-Realtime publication: add `client_tasks`, `chat_message_meta`, `chat_message_reactions`, `chat_message_mentions`, `chat_message_attachments`, `lead_handoffs` (if not already), `client_timeline` (already).
-
-Storage bucket: reuse existing `client-documents` bucket for chat attachments under prefix `chat/{clientId}/...`.
+Additive build on top of the existing client workspace. No changes to telephony, telecaller queue, chat, tasks, or timeline core — only new tables, new edge functions, new UI tabs, plus trigger inserts into `client_timeline`.
 
 ---
 
-## 2. Activity Timeline expansion
+## Phase 1 — Email Integration
 
-Edit `src/components/clients/ClientTimelineCard.tsx`:
-- Add filter chips (All / Calls / Chat / Handoffs / Tasks / Documents / Notes / Status).
-- Add search input (debounced, filters client-side over loaded rows).
-- Add cursor pagination ("Load more") via `created_at < cursor` query.
-- Realtime already wired — extend to render new event types: `task`, `status_change`, `assignment`, `reminder`, `recording`.
-- New row renderers per event type with proper icon + colored badge.
+### Data model (new tables, all RLS-scoped via `can_view_client` / `can_edit_client`)
 
-Backend triggers (above) ensure all events auto-populate. No frontend code needs to insert manually for those flows.
+- `email_threads` — `client_id, subject, last_message_at, message_count, status (open|archived), created_by`
+- `client_emails` — `thread_id, client_id, direction (inbound|outbound), from_address, to_addresses[], cc[], bcc[], subject, body_html, body_text, in_reply_to (msg-id), provider_message_id, status (queued|sent|delivered|opened|bounced|failed), sent_at, received_at, sender_user_id`
+- `email_attachments` — `email_id, storage_path, file_name, mime_type, size_bytes`
+- `email_events` — `email_id, event_type, payload jsonb, occurred_at` (provider webhook log)
+- `email_read_receipts` — `thread_id, user_id, last_read_at`
+- `email_templates` — `name, subject, body_html, scope (global|user), created_by`
 
----
+Triggers:
+- `fn_log_email_to_timeline()` on `client_emails` INSERT → `client_timeline` event_type `email`.
 
-## 3. Internal team thread upgrade
+Storage: reuse `client-documents` bucket under `email/{clientId}/{emailId}/...`.
 
-New file `src/components/chat/EnhancedChat.tsx` — wraps `UnifiedChat` behavior but adds:
-- **Mentions**: `@` triggers a popover listing profiles (filter by name/email). Selected mention writes `<@uuid>` token; renderer resolves to `@Name` chip. On send, insert rows into `chat_message_mentions`.
-- **Reply threads**: each message has a "Reply" action → opens a side drawer showing parent + child messages (filtered by `parent_id`).
-- **Reactions**: emoji picker on hover; toggles row in `chat_message_reactions`.
-- **Pinned notes**: pin toggle on message; pinned strip rendered at top of thread.
-- **File sharing**: paperclip → uploads to `client-documents/chat/{clientId}/...`, inserts attachment row, sends a message with attachment chip.
-- **Search**: search bar filters messages by `ilike` over `message`.
-- **Quick client actions**: in internal thread only, slash menu (`/call`, `/task`, `/handoff`, `/note`) opens existing dialogs prefilled.
-- **Task from message**: "Create task" action on a message → opens task dialog with message excerpt prefilled.
+### Provider-agnostic architecture
 
-Used only by internal thread (`channelType="staff_internal"`) initially; client chat uses the same component with limited features (no slash menu, no internal-only pin).
+- New edge function `email-send` — accepts `{ client_id, thread_id?, to, cc?, bcc?, subject, body_html, attachments[] }`, validates ACL via `can_edit_client`, persists row, dispatches to provider adapter.
+- New edge function `email-inbound` — generic webhook receiver (parses MIME, finds thread by `In-Reply-To` or subject hash, persists `client_emails` + attachments).
+- Provider adapter layer in `supabase/functions/_shared/email/provider.ts` with default Resend implementation. Swap by env var `EMAIL_PROVIDER`.
+- Required secrets (request only when first send is triggered): `EMAIL_PROVIDER_API_KEY`, `EMAIL_FROM_ADDRESS`, `EMAIL_INBOUND_SECRET`.
 
----
+### Frontend
 
-## 4. Client chat upgrade (shared inbox)
-
-Same `EnhancedChat` component reused with `channelType="staff_client"`:
-- Sender name + role chip rendered on every message (already partial).
-- Typing indicators (already wired via broadcast — keep).
-- Unread badge: based on `chat_read_receipts`; on mount, update `last_read_at`. Sidebar nav can read aggregate unread later.
-- File sharing: same attachment flow.
-- Voice notes: scaffold a record button that uploads `audio/webm` to bucket and posts as attachment (UI present, recording stub OK).
-- Search: same component-level search.
-- All authorized staff (via `can_view_client`) can reply — RLS already permits.
+- `src/lib/email.ts` — list threads, list messages, send, mark-read, search.
+- `src/components/clients/ClientEmailCard.tsx` — thread list + message viewer + composer with attachments, CC/BCC toggles, template picker, search box, unread badges.
+- `src/components/clients/EmailComposerDialog.tsx` — reusable composer; opened from quick actions, task dialog, handoff dialog.
+- Wire into `ClientDetail.tsx` as a new tab in the existing right column.
+- Apply `applyContactMask` for telecaller role on displayed addresses.
 
 ---
 
-## 5. Tasks + Callbacks panel
+## Phase 2 — Voice Notes
 
-New file `src/components/clients/ClientTasksCard.tsx` — rendered on client detail page next to chat:
-- List grouped by `Open / Today / Upcoming / Overdue / Done`.
-- Create task dialog (`AddTaskDialog`) — title, due_at picker, assignee (telecallers + counselors with access), priority, kind (task/callback/reminder).
-- Quick complete checkbox; reschedule action.
-- Realtime via `client_tasks` channel.
-- Overdue rows highlighted in destructive tone.
+### Data model
 
-Hooks: `src/lib/clientTasks.ts` (list, create, update, complete, subscribe).
+- `voice_notes` — `client_id, context_type (timeline|chat|task|handoff|remark), context_id, author_id, storage_path, duration_ms, mime_type, size_bytes, status, created_at`
+- `voice_note_transcripts` — `voice_note_id, language, text, model, status (pending|done|failed)` (architecture only — generation deferred until AI phase enables it)
+- Reuse `email_attachments`-style approach for chat/task linkage via `context_type` + `context_id`.
 
----
+Storage: new bucket `voice-notes` (private) with RLS via `can_view_client` on the `client_id` prefix.
 
-## 6. Quick Actions sticky panel
+Trigger: `fn_log_voice_note_to_timeline()` → timeline event_type `voice`.
 
-New file `src/components/clients/QuickActionsBar.tsx` rendered as a sticky right-rail or top toolbar on `ClientDetail.tsx`:
-- Call (reuses `CallClientButton`).
-- WhatsApp (`https://wa.me/{phone}` deep link, masked for telecallers).
-- Email (`mailto:` deep link, masked for telecallers).
-- Add note (opens `AddRemarkDialog`).
-- Create task (opens new `AddTaskDialog`).
-- Push to counselor / Push to telecaller (opens existing `HandoffDialog` with role preset).
-- Upload document (opens existing `SmartUploadZone`).
-- Mark hot / warm / cold (updates active `call_queue_items.lead_status` + writes timeline).
+### Frontend
+
+- `src/lib/voiceNotes.ts` — record (MediaRecorder), upload, list, signed URL helper.
+- `src/components/voice/VoiceRecorderButton.tsx` — push-to-record, waveform preview.
+- `src/components/voice/VoiceNotePlayer.tsx` — playable audio chip used in timeline rows, chat messages, task cards.
+- Hook recorder into:
+  - `QuickActionsBar` (record → timeline).
+  - `UnifiedChat` paperclip menu (record → chat attachment).
+  - `AddTaskDialog` and `HandoffDialog` (optional voice note).
+  - `AddRemarkDialog` (optional voice note).
 
 ---
 
-## 7. Handoff history card
+## Phase 3 — AI Summaries / Auto-Notes
 
-New file `src/components/clients/HandoffHistoryCard.tsx`:
-- Lists `lead_handoffs` for the client with from→to (resolved names + role chips), note, task_label, status, timestamp.
-- Shows current owner banner at top (latest accepted handoff, else `clients.owner_id`).
-- Accept / Reject buttons for the receiving user (updates `status`, writes timeline).
+### Data model
 
----
+- `ai_summaries` — `client_id, scope (call|email_thread|voice_note|chat_burst|client_overview), source_id, status (suggested|approved|rejected|edited), title, summary_md, key_points jsonb, next_action text, follow_up_role (counselor|telecaller|none), client_intent text, urgency (hot|warm|cold), generated_by_model, created_by, approved_by, approved_at`
+- `ai_summary_sources` — `summary_id, source_type, source_id` (many-to-one back-refs to call_sessions, emails, voice_notes, chat_messages)
+- `ai_summary_feedback` — `summary_id, user_id, action (approve|edit|reject), note, created_at`
 
-## 8. Performance + role-based security
+Audit: every action also writes to existing `activity_logs` and inserts a `client_timeline` row of event_type `ai_summary`.
 
-- Timeline + chat use `limit + cursor` pagination (default 50).
-- Subscriptions are per-card with cleanup on unmount.
-- Telecaller masking: `QuickActionsBar` uses `applyContactMask` from `src/lib/masking.ts` based on `useAuth().role === 'telecaller'`.
-- Internal thread already RLS-protected (`channel_type=staff_internal` + `can_view_client`); client cannot ever be granted that view.
-- Audit: every action goes through `logActivity()` (already present) or timeline trigger.
+### Edge function
 
----
+- `ai-summarize` — uses **Lovable AI Gateway** (`google/gemini-3-flash-preview`) with tool-calling for structured output (`key_points`, `next_action`, `urgency`, etc.). Triggered:
+  - on call_session status → `completed` (Postgres trigger calls `pg_net` → function, or client-side after-call hook — we'll use client-side hook to avoid pg_net dependency).
+  - on email thread activity (debounced client-side).
+  - on voice note upload (client-side after upload).
+  - manual "Summarize" button on the AI summary panel.
 
-## 9. Wiring on `ClientDetail.tsx`
+ACL: function checks `can_view_client` for the requesting user before generating.
 
-Layout becomes:
-```text
-┌─ PageHeader + QuickActionsBar (sticky) ─┐
-├─ left: ClientProfileCard, CasePeople,   │
-│        Documents, Forms, Binders        │
-├─ right: Tabs                            │
-│   ├─ Activity (ClientTimelineCard)      │
-│   ├─ Internal thread (EnhancedChat int.)│
-│   ├─ Client chat (EnhancedChat client)  │
-│   ├─ Tasks (ClientTasksCard)            │
-│   └─ Handoffs (HandoffHistoryCard)      │
-└──────────────────────────────────────────┘
-```
-Existing cards remain — only additive imports + a new tab/section grid.
+### Frontend
+
+- `src/lib/aiSummaries.ts` — list, generate, approve, edit, reject.
+- `src/components/clients/AiSummaryPanel.tsx` — top-of-detail card showing latest approved summary + suggested summaries with Approve / Edit / Reject buttons. Realtime subscribed.
+- "Use as note" / "Use as task" actions on a suggested summary that prefill the existing dialogs.
 
 ---
 
-## 10. Out of scope (kept as architecture hooks)
+## Timeline wiring (new event types added — renderers extended)
 
-- Real WhatsApp / Email API send — link-out only for now.
-- AI summaries / sentiment — schema leaves room (`client_timeline.metadata`, `chat_message_meta` extensible).
-- Voice note transcription.
-- Omnichannel unified inbox page.
+`email`, `voice`, `ai_summary` added to `ClientTimelineCard` filter set and icon map. Existing renderer pattern reused.
 
 ---
 
-## Files
+## Permissions / Security
 
-**New**
-- `supabase/migrations/<ts>_workspace_ops.sql`
-- `src/lib/clientTasks.ts`, `src/lib/chatEnhanced.ts`, `src/lib/mentions.ts`
-- `src/components/chat/EnhancedChat.tsx`, `MentionInput.tsx`, `MessageActions.tsx`, `ReactionBar.tsx`, `ReplyThreadDrawer.tsx`, `AttachmentChip.tsx`
-- `src/components/clients/ClientTasksCard.tsx`, `AddTaskDialog.tsx`, `QuickActionsBar.tsx`, `HandoffHistoryCard.tsx`
+- All new tables enable RLS using existing `can_view_client` / `can_edit_client` helpers.
+- Storage buckets use folder-prefix policies keyed on `client_id`.
+- Telecaller role: addresses masked in UI via `applyContactMask`; AI summaries hide raw phone/email fields.
+- Internal-only emails flagged with `internal_only` boolean (default false) — hidden from any future client portal.
+- Audit: every send, generate, approve, reject writes to `activity_logs`.
 
-**Edited**
-- `src/pages/ClientDetail.tsx` (add tabs + sticky bar)
-- `src/components/clients/ClientTimelineCard.tsx` (filters, search, pagination)
-- `src/components/clients/ClientChatWorkspace.tsx` (swap UnifiedChat → EnhancedChat)
-- `src/lib/chat.ts` (mention parse helper, attachment helpers, read-receipt write)
-- `src/integrations/supabase/types.ts` (auto-regenerated after migration)
+---
 
-No telephony or telecaller files are modified.
+## Out of scope (kept as hooks)
+
+- Real-time IMAP polling — webhook-only inbound.
+- Voice transcription model wiring (table exists, generation off).
+- Omnichannel inbox page.
+
+---
+
+## File list
+
+**Database**: one new migration `<ts>_email_voice_ai.sql`.
+
+**Edge functions**: `email-send`, `email-inbound`, `ai-summarize`.
+
+**New code**:
+- `src/lib/email.ts`, `src/lib/voiceNotes.ts`, `src/lib/aiSummaries.ts`
+- `src/components/clients/ClientEmailCard.tsx`, `EmailComposerDialog.tsx`, `AiSummaryPanel.tsx`
+- `src/components/voice/VoiceRecorderButton.tsx`, `VoiceNotePlayer.tsx`
+- `supabase/functions/_shared/email/provider.ts`
+
+**Edited (additive only)**:
+- `src/pages/ClientDetail.tsx` — add Email + Voice + AI Summary panels/tabs.
+- `src/components/clients/ClientTimelineCard.tsx` — extend filter chips and icon map.
+- `src/components/clients/QuickActionsBar.tsx` — add Email + Voice Note actions.
+- `src/components/chat/UnifiedChat.tsx` — add voice attachment.
+- `src/components/clients/AddTaskDialog.tsx`, `HandoffDialog.tsx`, `AddRemarkDialog.tsx` — optional voice attachment.
+
+No telephony or telecaller files modified.
+
+---
+
+## Risks called out
+
+- **Inbound email** requires the email provider to forward to the `email-inbound` webhook. User must paste the webhook URL into their provider after we deploy. We'll surface this clearly when secrets are added.
+- **AI summary generation** uses Lovable AI credits — rate limits (429) and credit exhaustion (402) are surfaced as toasts.
+- **Voice recording** depends on `MediaRecorder` browser support (modern Chromium/Firefox/Safari OK; iOS Safari 14+).
+- The migration is large; it will be applied in one transaction. Existing data is untouched.
+
+Order: Phase 1 (email tables + send/receive + UI) → Phase 2 (voice tables + recorder + players) → Phase 3 (AI tables + edge fn + panel) → Timeline wiring + audit polish.
