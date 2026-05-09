@@ -259,9 +259,12 @@ export type Database = {
           created_at: string
           id: string
           last_called_at: string | null
+          lead_status: string | null
           next_call_at: string | null
+          notes: string | null
           priority: number
           retry_count: number
+          source: string | null
           status: Database["public"]["Enums"]["call_queue_status"]
           updated_at: string
         }
@@ -272,9 +275,12 @@ export type Database = {
           created_at?: string
           id?: string
           last_called_at?: string | null
+          lead_status?: string | null
           next_call_at?: string | null
+          notes?: string | null
           priority?: number
           retry_count?: number
+          source?: string | null
           status?: Database["public"]["Enums"]["call_queue_status"]
           updated_at?: string
         }
@@ -285,9 +291,12 @@ export type Database = {
           created_at?: string
           id?: string
           last_called_at?: string | null
+          lead_status?: string | null
           next_call_at?: string | null
+          notes?: string | null
           priority?: number
           retry_count?: number
+          source?: string | null
           status?: Database["public"]["Enums"]["call_queue_status"]
           updated_at?: string
         }
@@ -1651,6 +1660,74 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_remarks: {
+        Row: {
+          author_id: string
+          call_session_id: string | null
+          client_id: string
+          created_at: string
+          id: string
+          lead_status: string | null
+          next_callback_at: string | null
+          outcome: string | null
+          queue_item_id: string | null
+          remark: string
+        }
+        Insert: {
+          author_id: string
+          call_session_id?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          lead_status?: string | null
+          next_callback_at?: string | null
+          outcome?: string | null
+          queue_item_id?: string | null
+          remark: string
+        }
+        Update: {
+          author_id?: string
+          call_session_id?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          lead_status?: string | null
+          next_callback_at?: string | null
+          outcome?: string | null
+          queue_item_id?: string | null
+          remark?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_remarks_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_remarks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_remarks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_remarks_queue_item_id_fkey"
+            columns: ["queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "call_queue_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       letter_templates: {
         Row: {
           category: string | null
@@ -1964,6 +2041,33 @@ export type Database = {
           },
         ]
       }
+      remark_presets: {
+        Row: {
+          active: boolean
+          category: string
+          created_at: string
+          id: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           created_at: string
@@ -2049,6 +2153,35 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      telecaller_status: {
+        Row: {
+          campaign_id: string | null
+          changed_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          changed_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          changed_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "telecaller_status_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "call_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       telephony_agents: {
         Row: {
@@ -2391,9 +2524,12 @@ export type Database = {
           created_at: string
           id: string
           last_called_at: string | null
+          lead_status: string | null
           next_call_at: string | null
+          notes: string | null
           priority: number
           retry_count: number
+          source: string | null
           status: Database["public"]["Enums"]["call_queue_status"]
           updated_at: string
         }
@@ -2447,6 +2583,24 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      import_lead: {
+        Args: {
+          _academics?: string
+          _assigned_counselor_email?: string
+          _assigned_telecaller_email?: string
+          _campaign_id?: string
+          _country?: string
+          _dedupe_action?: string
+          _email?: string
+          _full_name: string
+          _ielts?: string
+          _lead_status?: string
+          _notes?: string
+          _phone: string
+          _service?: string
+        }
+        Returns: Json
       }
       is_chat_channel_member: {
         Args: { _channel: string; _uid: string }
