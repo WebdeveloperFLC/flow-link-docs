@@ -24,7 +24,7 @@ const nav: NavItem[] = [
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/masters", icon: Database, label: "Masters", adminOnly: true },
   { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
-  { to: "/settings/telephony", icon: Phone, label: "Telephony", adminOnly: true },
+  { to: "/settings/telephony", icon: Phone, label: "Phone connect" },
   { to: "/settings/telephony-integration", icon: KeyRound, label: "Telephony Integration", adminOnly: true },
 ];
 
