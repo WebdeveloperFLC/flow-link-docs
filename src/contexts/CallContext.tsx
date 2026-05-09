@@ -29,6 +29,8 @@ interface CallCtx {
   startCall: (clientId: string) => Promise<CurrentCall | null>;
   hangup: () => void;
   reset: () => void;
+  lastCompletedCall: { sessionId: string; clientId: string; status: CallStatus } | null;
+  clearLastCompletedCall: () => void;
 }
 
 const Ctx = createContext<CallCtx | undefined>(undefined);
@@ -40,6 +42,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
   const browser = useBrowserPhone();
   const [currentCall, setCurrentCall] = useState<CurrentCall | null>(null);
   const [startingClientId, setStartingClientId] = useState<string | null>(null);
+  const [lastCompletedCall, setLastCompletedCall] = useState<{ sessionId: string; clientId: string; status: CallStatus } | null>(null);
   const currentCallRef = useRef<CurrentCall | null>(null);
   const startingClientIdRef = useRef<string | null>(null);
   const latestStartTokenRef = useRef(0);
@@ -90,6 +93,10 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
             prev && prev.sessionId === sessionId ? { ...prev, status } : prev,
           );
           if (TERMINAL.includes(status)) {
+            const cur = currentCallRef.current;
+            if (cur && cur.sessionId === sessionId && !String(sessionId).startsWith("failed-")) {
+              setLastCompletedCall({ sessionId, clientId: cur.clientId, status });
+            }
             // Auto-clear terminal state shortly after so a fresh call is allowed.
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
             timeoutRef.current = setTimeout(() => {
@@ -176,6 +183,9 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     try { browser.hangup(); } catch { /* */ }
     const cur = currentCallRef.current;
     if (cur) {
+      if (!String(cur.sessionId).startsWith("failed-")) {
+        setLastCompletedCall({ sessionId: cur.sessionId, clientId: cur.clientId, status: "canceled" });
+      }
       setCurrentCall({ ...cur, status: "canceled" });
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => reset(), 800);
@@ -184,7 +194,7 @@ export const CallProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [browser, reset]);
 
-  return <Ctx.Provider value={{ currentCall, startingClientId, isActive, startCall, hangup, reset }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ currentCall, startingClientId, isActive, startCall, hangup, reset, lastCompletedCall, clearLastCompletedCall: () => setLastCompletedCall(null) }}>{children}</Ctx.Provider>;
 };
 
 export const useCall = () => {
