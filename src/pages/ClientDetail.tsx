@@ -34,6 +34,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { openClientDocument } from "@/lib/documentPreview";
 import { ClientAccessDialog } from "@/components/clients/ClientAccessDialog";
 import { ClientAccessCard } from "@/components/clients/ClientAccessCard";
+import { InviteClientCard } from "@/components/clients/InviteClientCard";
 import { HandoffDialog } from "@/components/clients/HandoffDialog";
 import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
 import { ClientChatWorkspace } from "@/components/clients/ClientChatWorkspace";
@@ -1187,6 +1188,7 @@ const ClientDetail = () => {
             onOwnerChanged={load}
             onManageClick={() => setAccessOpen(true)}
           />
+          <InviteClientCard clientId={client.id} defaultEmail={(client as any).email ?? null} />
           <CustomBindersPanel
             clientId={client.id}
             clientName={client.full_name}
