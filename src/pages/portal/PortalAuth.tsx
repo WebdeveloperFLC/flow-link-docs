@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { lovable } from "@/integrations/lovable";
 
 export default function PortalAuth() {
   const { user, roles, loading } = useAuth();
@@ -42,7 +43,8 @@ export default function PortalAuth() {
     else toast.success("Account created. Please check your email if confirmation is required.");
   };
   const google = async () => {
-    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/portal` } });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/portal` });
+    if (result.error) toast.error(result.error.message ?? "Google sign-in failed");
   };
   const reset = async () => {
     if (!email) { toast.error("Enter your email first"); return; }
