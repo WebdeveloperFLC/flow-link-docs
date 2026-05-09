@@ -349,23 +349,3 @@ export function UnifiedChat({ channelType, clientId, channelId, title, className
     </Card>
   );
 }
-              </div>
-            </div>
-          );
-        })}
-        {typing.length > 0 && (
-          <div className="text-[11px] text-muted-foreground italic">{typing.join(", ")} typing…</div>
-        )}
-      </div>
-      <div className="border-t p-2 flex gap-2">
-        <Input
-          value={input}
-          onChange={(e) => { setInput(e.target.value); onType(); }}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder="Type a message…"
-        />
-        <Button onClick={send} disabled={busy || !input.trim()} size="icon"><Send className="size-4" /></Button>
-      </div>
-    </Card>
-  );
-}
