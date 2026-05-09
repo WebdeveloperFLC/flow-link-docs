@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller";
+export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller" | "client";
 
 interface AuthCtx {
   user: User | null;
@@ -15,6 +15,7 @@ interface AuthCtx {
   canUpload: boolean;
   canCreateClient: boolean;
   isAdmin: boolean;
+  isClient: boolean;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -65,6 +66,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut: async () => { await supabase.auth.signOut(); },
     hasRole,
     isAdmin: roles.includes("admin"),
+    isClient: roles.includes("client") && !roles.some((r) => ["admin","counselor","documentation","telecaller","viewer"].includes(r)),
     canEdit: hasRole(["admin", "counselor", "documentation"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
     canCreateClient: !!user,
@@ -88,6 +90,7 @@ export const useAuth = () => {
       canUpload: false,
       canCreateClient: false,
       isAdmin: false,
+      isClient: false,
     } as AuthCtx;
   }
   return c;

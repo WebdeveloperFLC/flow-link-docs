@@ -1210,6 +1210,66 @@ export type Database = {
           },
         ]
       }
+      client_appointments: {
+        Row: {
+          client_id: string
+          created_at: string
+          created_by: string | null
+          duration_min: number
+          id: string
+          mode: string
+          notes: string | null
+          scheduled_at: string
+          status: string
+          title: string
+          updated_at: string
+          with_user_id: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          id?: string
+          mode?: string
+          notes?: string | null
+          scheduled_at: string
+          status?: string
+          title: string
+          updated_at?: string
+          with_user_id?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          duration_min?: number
+          id?: string
+          mode?: string
+          notes?: string | null
+          scheduled_at?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          with_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_documents: {
         Row: {
           client_id: string
@@ -1446,6 +1506,277 @@ export type Database = {
             columns: ["thread_id"]
             isOneToOne: false
             referencedRelation: "email_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_files: {
+        Row: {
+          client_id: string
+          created_at: string
+          document_type: string
+          file_name: string | null
+          file_path: string | null
+          id: string
+          remarks: string | null
+          status: string
+          updated_at: string
+          uploaded_at: string | null
+          uploaded_by: string | null
+          verified_at: string | null
+          verified_by: string | null
+          version: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          document_type: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          remarks?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          document_type?: string
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          remarks?: string | null
+          status?: string
+          updated_at?: string
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_files_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_files_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoices: {
+        Row: {
+          amount: number
+          client_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          due_date: string | null
+          id: string
+          invoice_number: string
+          line_items: Json
+          paid_at: string | null
+          points_redeemed: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          line_items?: Json
+          paid_at?: string | null
+          points_redeemed?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          line_items?: Json
+          paid_at?: string | null
+          points_redeemed?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_notifications: {
+        Row: {
+          body: string | null
+          client_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          title: string
+          type?: string
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_offers: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          offer_id: string
+          status: string
+          used_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          offer_id: string
+          status?: string
+          used_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          offer_id?: string
+          status?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_offers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offers_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_offers_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_portal_links: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          relation: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          relation?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          relation?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -1866,6 +2197,48 @@ export type Database = {
             columns: ["template_id"]
             isOneToOne: false
             referencedRelation: "workflow_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_wallet: {
+        Row: {
+          available_points: number
+          client_id: string
+          id: string
+          last_updated: string
+          points_value_rate: number
+          total_points: number
+        }
+        Insert: {
+          available_points?: number
+          client_id: string
+          id?: string
+          last_updated?: string
+          points_value_rate?: number
+          total_points?: number
+        }
+        Update: {
+          available_points?: number
+          client_id?: string
+          id?: string
+          last_updated?: string
+          points_value_rate?: number
+          total_points?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_wallet_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_wallet_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: true
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -2686,6 +3059,162 @@ export type Database = {
         }
         Relationships: []
       }
+      offers: {
+        Row: {
+          applicable_services: string[] | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          promo_code: string | null
+          terms_conditions: string | null
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          applicable_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          promo_code?: string | null
+          terms_conditions?: string | null
+          title: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          applicable_services?: string[] | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          promo_code?: string | null
+          terms_conditions?: string | null
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
+      point_redemptions: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_id: string
+          created_at: string
+          id: string
+          points_redeemed: number
+          service_id: string | null
+          status: string
+          usd_value: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id: string
+          created_at?: string
+          id?: string
+          points_redeemed: number
+          service_id?: string | null
+          status?: string
+          usd_value: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_id?: string
+          created_at?: string
+          id?: string
+          points_redeemed?: number
+          service_id?: string | null
+          status?: string
+          usd_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_redemptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_redemptions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      point_transactions: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          points: number
+          points_value_rate: number
+          reference_id: string | null
+          type: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          points: number
+          points_value_rate?: number
+          reference_id?: string | null
+          type: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          points?: number
+          points_value_rate?: number
+          reference_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "point_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "point_transactions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -2885,6 +3414,71 @@ export type Database = {
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "visa_forms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          friend_email: string | null
+          friend_name: string | null
+          friend_phone: string | null
+          id: string
+          joined_client_id: string | null
+          points_earned: number
+          referrer_client_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          friend_email?: string | null
+          friend_name?: string | null
+          friend_phone?: string | null
+          id?: string
+          joined_client_id?: string | null
+          points_earned?: number
+          referrer_client_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          friend_email?: string | null
+          friend_name?: string | null
+          friend_phone?: string | null
+          id?: string
+          joined_client_id?: string | null
+          points_earned?: number
+          referrer_client_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_joined_client_id_fkey"
+            columns: ["joined_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_joined_client_id_fkey"
+            columns: ["joined_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_client_id_fkey"
+            columns: ["referrer_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_client_id_fkey"
+            columns: ["referrer_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
             referencedColumns: ["id"]
           },
         ]
@@ -3652,6 +4246,10 @@ export type Database = {
         Args: { _channel: string; _uid: string }
         Returns: boolean
       }
+      is_portal_user_for: {
+        Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
       is_team_member: {
         Args: { _team: string; _uid: string }
         Returns: boolean
@@ -3675,6 +4273,7 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "telecaller"
+        | "client"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -3830,7 +4429,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "counselor", "documentation", "viewer", "telecaller"],
+      app_role: [
+        "admin",
+        "counselor",
+        "documentation",
+        "viewer",
+        "telecaller",
+        "client",
+      ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
         "queued",

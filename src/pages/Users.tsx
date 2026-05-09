@@ -30,6 +30,7 @@ const ROLE_HELP: Record<AppRole, string> = {
   documentation: "Edit access: add clients, upload documents and fill client details",
   telecaller: "Lead calling and remarks; can hand leads to counselors",
   viewer: "View-only access",
+  client: "Client portal access only",
 };
 
 const ROLE_SHORT: Record<AppRole, string> = {
@@ -38,6 +39,7 @@ const ROLE_SHORT: Record<AppRole, string> = {
   documentation: "Edit access",
   telecaller: "Telecaller",
   viewer: "View-only access",
+  client: "Client portal access only",
 };
 
 const roleOptionLabel = (role: AppRole) => {

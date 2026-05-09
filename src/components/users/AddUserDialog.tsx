@@ -25,6 +25,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
   documentation: "Edit – Documentation",
   telecaller: "Telecaller",
   viewer: "Viewer",
+  client: "Client (Portal)",
 };
 
 export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; }) => {
