@@ -1,0 +1,77 @@
+import { useState } from "react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Phone, Mail, MapPin, Briefcase, FileText, ArrowRightLeft, History } from "lucide-react";
+import { CallClientButton } from "@/components/clients/CallClientButton";
+import { AddRemarkDialog } from "@/components/clients/AddRemarkDialog";
+import { HandoffDialog } from "@/components/clients/HandoffDialog";
+import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
+import { Link } from "react-router-dom";
+import { applyContactMask } from "@/lib/masking";
+import type { QueueItemWithClient } from "@/lib/telecallerQueue";
+import { Badge } from "@/components/ui/badge";
+
+export function CallDrawer({ item, mask, open, onOpenChange, onChanged }: {
+  item: QueueItemWithClient | null;
+  mask: boolean;
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  onChanged?: () => void;
+}) {
+  const [remarkOpen, setRemarkOpen] = useState(false);
+  const [handoffOpen, setHandoffOpen] = useState(false);
+
+  if (!item) return null;
+  const c = item.client;
+  const masked = applyContactMask({ phone: c.phone, email: c.email, mask });
+
+  const STATUS_TONES: Record<string, string> = {
+    hot: "bg-red-500/15 text-red-700 border-red-500/30",
+    warm: "bg-amber-500/15 text-amber-700 border-amber-500/30",
+    cold: "bg-blue-500/15 text-blue-700 border-blue-500/30",
+    not_interested: "bg-muted text-muted-foreground",
+    converted: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetHeader className="mb-4">
+          <SheetTitle className="flex items-center gap-3">
+            {c.full_name}
+            {item.lead_status && <Badge variant="outline" className={STATUS_TONES[item.lead_status] ?? ""}>{item.lead_status}</Badge>}
+          </SheetTitle>
+        </SheetHeader>
+        <div className="space-y-4">
+          <Card className="p-4 space-y-2 text-sm">
+            <div className="flex items-center gap-2"><Phone className="size-4 text-muted-foreground" /> <span className="font-mono">{masked.phone || "—"}</span></div>
+            <div className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" /> {masked.email || "—"}</div>
+            <div className="flex items-center gap-2"><MapPin className="size-4 text-muted-foreground" /> {c.country}</div>
+            <div className="flex items-center gap-2"><Briefcase className="size-4 text-muted-foreground" /> {c.application_type}</div>
+            {item.notes && (
+              <div className="flex items-start gap-2 text-muted-foreground"><FileText className="size-4 mt-0.5" /> <span className="text-xs">{item.notes}</span></div>
+            )}
+          </Card>
+
+          <div className="flex flex-wrap gap-2">
+            <CallClientButton clientId={c.id} />
+            <Button variant="outline" size="sm" onClick={() => setRemarkOpen(true)}>
+              <FileText className="size-4 mr-1.5" />Add remark
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setHandoffOpen(true)}>
+              <ArrowRightLeft className="size-4 mr-1.5" />Push to counselor
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to={`/clients/${c.id}`}><History className="size-4 mr-1.5" />Open client</Link>
+            </Button>
+          </div>
+
+          <ClientTimelineCard clientId={c.id} />
+        </div>
+        <AddRemarkDialog open={remarkOpen} onOpenChange={setRemarkOpen} clientId={c.id} queueItemId={item.id} onSaved={onChanged} />
+        <HandoffDialog open={handoffOpen} onOpenChange={setHandoffOpen} clientId={c.id} clientName={c.full_name} />
+      </SheetContent>
+    </Sheet>
+  );
+}
