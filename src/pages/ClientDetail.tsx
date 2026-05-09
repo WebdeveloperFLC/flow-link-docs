@@ -82,6 +82,7 @@ const ClientDetail = () => {
   const [sections, setSections] = useState<CaseSection[]>([]);
   const [addSectionOpen, setAddSectionOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
+  const [handoffOpen, setHandoffOpen] = useState(false);
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
   const [secondaryLoading, setSecondaryLoading] = useState(true);
