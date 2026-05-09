@@ -2077,6 +2077,7 @@ export type Database = {
           application_type: string
           budget: number | null
           country: string
+          country_code: string | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -2117,6 +2118,7 @@ export type Database = {
           application_type: string
           budget?: number | null
           country: string
+          country_code?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -2157,6 +2159,7 @@ export type Database = {
           application_type?: string
           budget?: number | null
           country?: string
+          country_code?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -4168,6 +4171,7 @@ export type Database = {
           application_type: string
           budget: number | null
           country: string
+          country_code: string | null
           created_at: string
           created_by: string | null
           email: string | null
