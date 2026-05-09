@@ -1265,6 +1265,13 @@ const ClientDetail = () => {
           clientName={client.full_name}
         />
       )}
+      {client && (
+        <AddRemarkDialog
+          open={remarkOpen}
+          onOpenChange={setRemarkOpen}
+          clientId={client.id}
+        />
+      )}
     </AppLayout>
   );
 };
