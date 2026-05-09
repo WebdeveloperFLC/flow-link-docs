@@ -16,7 +16,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const VALID_ROLES = ["admin", "counselor", "documentation", "viewer"] as const;
+const VALID_ROLES = ["admin", "counselor", "documentation", "telecaller", "viewer"] as const;
 type Role = typeof VALID_ROLES[number];
 
 async function findUserByEmail(svc: ReturnType<typeof createClient>, email: string) {
