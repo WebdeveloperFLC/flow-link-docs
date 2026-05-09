@@ -45,6 +45,8 @@ import PortalPayments from "./pages/portal/PortalPayments";
 import PortalAppointments from "./pages/portal/PortalAppointments";
 import PortalNotifications from "./pages/portal/PortalNotifications";
 import PortalSettings from "./pages/portal/PortalSettings";
+import PortalInviteRedeem from "./pages/portal/PortalInviteRedeem";
+import OffersAdmin from "./pages/OffersAdmin";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +67,7 @@ const App = () => (
             <Route path="/questionnaire/:token" element={<Questionnaire />} />
             <Route path="/course-finder" element={<CourseFinder />} />
             <Route path="/portal/auth" element={<PortalAuth />} />
+            <Route path="/portal/invite" element={<PortalInviteRedeem />} />
             <Route path="/portal" element={<PortalProtectedRoute><PortalDashboard /></PortalProtectedRoute>} />
             <Route path="/portal/application" element={<PortalProtectedRoute><PortalApplication /></PortalProtectedRoute>} />
             <Route path="/portal/files" element={<PortalProtectedRoute><PortalFiles /></PortalProtectedRoute>} />
@@ -85,6 +88,7 @@ const App = () => (
             <Route path="/letter-templates" element={<ProtectedRoute><LetterTemplates /></ProtectedRoute>} />
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+            <Route path="/offers-admin" element={<ProtectedRoute><OffersAdmin /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />

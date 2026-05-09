@@ -1,110 +1,81 @@
-## Client Portal — Full Build (10 Modules)
+# Client Portal: Invitations, Offers, and Notifications
 
-A separate `/portal/*` shell inside this app for end-clients (the people whose cases the staff manage). Auth uses the existing Supabase auth with a new `client` role; staff CRM remains untouched. Points & payments are tracked internally (no gateway yet).
+## 1. Client Invitation System (counselors/team → clients)
 
-### 1. Database (one migration)
+**Where:** New "Invite to Portal" button on the client detail page (visible to admin, counselor, telecaller). Also bulk action on Clients list.
 
-New enum: `app_role` gets `'client'` added.
+**Flow:**
+- Counselor clicks "Invite to Portal" → enters/confirms client email.
+- Backend creates a row in new `client_portal_invites` table with a one-time token (expires in 14 days), and sends email with link `/portal/invite?token=XYZ`.
+- Client clicks link → lands on `/portal/invite/:token` page → sees their name + email pre-filled → sets a password → account created with `client` role + automatically linked to the case via `client_portal_links` (no admin step needed).
+- If account already exists for that email, the link just attaches the existing user to the case and signs them in.
+- Token is marked `used_at` after redemption.
 
-New tables (all with RLS, all FK to `public.clients`):
+**Resend / revoke:** Card on the client page lists pending invites with "Resend" and "Revoke" actions.
 
-| Table | Purpose / key fields |
-|---|---|
-| `client_portal_links` | Links an `auth.users.id` to a `clients.id` (one client record may have multiple portal users — applicant, parent). Fields: `user_id`, `client_id`, `relation` ('self' / 'parent' / 'guardian'), `is_primary`. |
-| `client_files` | Document checklist row per client. Fields: `document_type`, `file_name`, `file_path` (storage), `status` ('verified'/'pending'/'action_required'/'rejected'/'not_uploaded'), `remarks`, `version`, `uploaded_by`, `verified_by`, `verified_at`. |
-| `offers` | Master offers. Fields: `title`, `description`, `discount_type` ('percentage'/'flat'), `discount_value`, `max_discount_amount`, `promo_code`, `valid_from`, `valid_to`, `applicable_services` (text[]), `terms_conditions`, `is_active`. |
-| `client_offers` | Offers visible to a specific client. Fields: `client_id`, `offer_id`, `status` ('active'/'used'/'expired'), `used_at`. |
-| `referrals` | Fields: `referrer_client_id`, `friend_name`, `friend_email`, `friend_phone`, `status` ('joined'/'pending'/'invalid'), `points_earned`, `joined_client_id`. |
-| `credit_wallet` | One row per client. Fields: `client_id` (unique), `total_points`, `available_points`, `points_value_rate` (1.0 normal, 1.5 during offers), `last_updated`. |
-| `point_transactions` | Ledger. Fields: `client_id`, `type` ('earned'/'redeemed'/'expired'/'adjusted'), `points`, `points_value_rate`, `description`, `reference_id`, `expires_at`. |
-| `point_redemptions` | Fields: `client_id`, `points_redeemed`, `usd_value`, `service_id`, `status` ('pending'/'approved'/'rejected'), `approved_by`, `approved_at`. |
-| `client_appointments` | Fields: `client_id`, `title`, `scheduled_at`, `duration_min`, `mode` ('in_person'/'video'/'phone'), `status`, `with_user_id`, `notes`. |
-| `client_invoices` | Fields: `client_id`, `invoice_number`, `amount`, `currency`, `status` ('draft'/'sent'/'paid'/'overdue'), `due_date`, `paid_at`, `points_redeemed`, `line_items` (jsonb). |
-| `client_notifications` | Fields: `client_id`, `type`, `title`, `body`, `link`, `is_read`, `created_at`. |
+## 2. Offers & Discounts (admin-managed, audience targeting)
 
-Reused existing tables: `client_timeline`, `chat_messages` (`staff_client` channel), `clients`, `client_documents`, `profiles`.
+**Tables:**
+- `offers` — title, description, code, discount_type, discount_value, valid_from, valid_to, audience (`global` | `group` | `individual`), is_active.
+- `offer_groups` — named groups (e.g. "Canada PR leads") with description.
+- `offer_group_members` — group_id ↔ client_id.
+- `offer_audience` — for `group`/`individual` offers: links offer to group_id or client_id.
 
-Storage: reuse `client-documents` bucket with new RLS policy allowing the linked portal user to read/write their own folder.
+**Admin UI:** New `/admin/offers` page (admin only) with two tabs:
+- **Offers** — list, create/edit/delete; pick audience type and select groups or individual clients.
+- **Groups** — create groups, add/remove client members.
 
-RLS pattern (no recursion):
-- Helper: `is_portal_user_for(_uid, _cid)` security-definer function checks `client_portal_links`.
-- Clients can `SELECT/INSERT/UPDATE` their own rows; staff (admin/counselor/telecaller) keep full visibility through existing helpers.
-- Redemption rules enforced in a `validate_redemption()` trigger: min 50 pts, max 50% of invoice amount, points must not be expired.
+**Client view:** Existing `/portal/offers` page reads offers visible to the logged-in client (global + groups they're in + individually targeted), filtered by date and `is_active`.
 
-Auto-create wallet trigger: on first insert into `client_portal_links`, create `credit_wallet` row.
+**RLS:** Admins manage; clients read only via a security-definer function `client_can_see_offer(client_id, offer_id)`.
 
-Point expiry: a SQL function `expire_old_points()` callable from a daily cron (12-month rule).
+## 3. Notification System
 
-### 2. Auth & access
+**Triggers (auto):**
+- Stage/status change on a client → notify the linked portal user.
+- Document status change (request/upload/approve/reject) — there's already a `fn_notify_file_status` trigger on documents; extend it to also send email.
+- Payment events: insert/update on invoices/payments table → notify on created (due) and paid.
+- Manual: counselor "Send notification" composer on the client page (title + body + optional link).
 
-- Add `'client'` to `app_role` enum.
-- New `/portal/auth` page (sign up + login + Google + forgot password). Signup creates `auth.users` → trigger assigns `client` role (not admin/viewer).
-- Staff invites client from `ClientDetail` → "Invite to Portal" button → creates a magic invite that on accept inserts into `client_portal_links` and sets the `client` role.
-- Add `/reset-password` route (already required).
-- New `<PortalProtectedRoute>` wrapper: requires `client` role, otherwise redirects to `/portal/auth`. Existing `<ProtectedRoute>` should reject `client` role from staff routes.
-- New `PortalLayout` with sidebar matching the screenshot's 10 modules.
+**Delivery:**
+- Always insert into existing `client_notifications` table (powers bell + Notifications page).
+- If client preference allows, also send email via `send-transactional-email`.
 
-### 3. Routes & pages (`/portal/*`)
+**Preferences:**
+- New `client_notification_prefs` table: `client_id`, `email_status_updates bool`, `email_documents bool`, `email_payments bool`, `email_messages bool` (defaults true).
+- Surface toggles in `/portal/settings`.
 
-```
-/portal/auth                 Login / Signup
-/portal                      Dashboard (KPIs + progress + activity + offers + actions)
-/portal/application          Application progress & timeline
-/portal/files                File Status (checklist, upload, version history)
-/portal/chat                 UnifiedChat reused (staff_client channel)
-/portal/offers               Active offers + promo codes
-/portal/refer                Referral link, friend status, points earned
-/portal/payments             Invoices, history, dues
-/portal/appointments         Book / view appointments
-/portal/notifications        Alerts list
-/portal/settings             Profile, password, prefs
-```
+**Implementation:** A SECURITY DEFINER function `notify_client(client_id, type, title, body, link)` that:
+1. Inserts into `client_notifications`.
+2. Looks up the linked portal user's email + prefs.
+3. If pref allows, calls `send-transactional-email` via pg_net (or marks a row that an edge function picks up).
 
-### 4. Component breakdown (frontend)
+To keep it simple and reliable, use a small dispatcher edge function `client-notification-dispatch` invoked by client code (and from the admin "send notification" composer); DB triggers will insert the in-portal notification synchronously and call the edge function via `pg_net` for email.
 
-- **Layout**: `PortalLayout`, `PortalSidebar`, `PortalHeader` (avatar + bell with unread count from `client_notifications`).
-- **Dashboard**: `PortalKpiTile`, `ApplicationProgressStepper`, `FileStatusDonut` (recharts), `RecentActivityList`, `ActiveOffersStrip`, `CreditPointsCard`, `QuickActionsBar`.
-- **Files**: `FileChecklistTable`, `UploadFileDialog`, `FileVersionHistoryDialog`. Drives `client_files`.
-- **Offers**: `OfferCard`, `RedeemPromoDialog`.
-- **Refer & Earn**: `ReferralLinkCard`, `InviteFriendDialog`, `FriendsList`, `EarningRulesPanel`.
-- **Payments**: `InvoicesTable`, `InvoiceDetailDialog`, `RedeemPointsAtCheckoutDialog`. Staff marks paid manually from a new `Admin > Invoices` tab on `ClientDetail`.
-- **Appointments**: `BookAppointmentDialog`, `UpcomingAppointmentsList`.
-- **Notifications**: `NotificationsList`. Realtime via `postgres_changes` on `client_notifications`.
-- **Settings**: profile edit, password change, language/timezone.
+## 4. Email infrastructure
 
-### 5. Staff-side additions (small, additive)
+The project doesn't have an email domain set up yet. I'll show the email setup dialog so the user can configure a sender domain. Once that's in place, the invite email and notification emails work end-to-end. Until then, invitations still work — the invite link is shown to the counselor (copy-to-clipboard) so they can share it manually.
 
-A new "Client Portal" section on `ClientDetail` (admin/counselor):
-- "Invite to Portal" button (creates portal link + invite email).
-- Verify document buttons on `client_files` rows (sets status verified/rejected with remark).
-- Invoice tab: create/edit/mark paid.
-- Offers admin page (`/admin/offers`) for creating offers and assigning to clients.
-- Points admin: approve `point_redemptions`, manual adjustments.
+## Technical Details
 
-### 6. Communication flow
+### New tables
+- `client_portal_invites(id, client_id, email, token, invited_by, expires_at, used_at, used_by)`
+- `offers`, `offer_groups`, `offer_group_members`, `offer_audience`
+- `client_notification_prefs`
 
-Reuse existing `UnifiedChat` with `channelType="staff_client"` on `/portal/chat`. Internal staff-only notes already use `staff_internal` and stay hidden — no changes needed. Every new file upload, invoice issued, offer assigned, etc., writes to `client_timeline` so the existing case timeline stays the source of truth.
+### Edge functions
+- `client-portal-invite-create` — generates token, inserts row, sends email.
+- `client-portal-invite-redeem` — validates token, creates/links account, signs in.
+- `client-notification-dispatch` — inserts notification + sends email per prefs.
 
-### 7. Deliverable order (single build pass)
+### DB triggers added
+- `clients` AFTER UPDATE on stage/status → `notify_client(...)`.
+- `documents` (extend existing) → also dispatch email.
+- Payment table (if/when invoices exist) — wire similarly; if no payment table yet, only the manual "send notification" composer covers payments for now.
 
-```text
-1  Migration: enum + 11 tables + RLS + helper fn + triggers
-2  Portal auth (/portal/auth, PortalProtectedRoute, role gate)
-3  PortalLayout + sidebar + dashboard shell
-4  File Status module
-5  Chat module (route wrapper around UnifiedChat)
-6  Offers module
-7  Refer & Earn module
-8  Payments + Invoices
-9  Appointments
-10 Notifications + bell
-11 Settings
-12 Staff-side: Invite to Portal, verify docs, manage offers, approve redemptions
-```
-
-### Open assumptions (will proceed unless you flag)
-
-- Sender domain for invite emails is already configured; if not, staff can copy-share the invite link.
-- "Application Progress %" is computed from existing `clients.lead_stage` mapped to the 6 stages in the diagram (Enquiry → Decision).
-- Credit Points conversion uses USD as in the screenshot; can switch to INR by changing `points_value_rate` defaults.
-- Realtime is enabled for `client_notifications` and chat (chat already enabled).
+### UI changes
+- `src/components/clients/InviteClientCard.tsx` — invite button, pending invites list, copy link.
+- `src/pages/admin/OffersAdmin.tsx` — admin CRUD for offers + groups.
+- `src/pages/portal/PortalSettings.tsx` — notification preference toggles.
+- `src/pages/portal/PortalInviteRedeem.tsx` — token redemption page.
+- Update sidebar/Users page with link to "Offers & Discounts" admin.
