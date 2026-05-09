@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2, RefreshCw, Save, Sparkles, Upload, Trash2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE_FIELDS } from "@/lib/extractedFields";
-import { dialCodeFor } from "@/lib/countryCodes";
+import { dialCodeFor, COUNTRY_OPTIONS } from "@/lib/countryCodes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Props {
   clientId: string;
@@ -263,19 +264,40 @@ export const ClientProfileCard = ({ clientId, canEdit, onReExtract, reExtracting
                 {g.title === "Contact & address" && (
                   <>
                     <div className="space-y-1">
-                      <Label className="text-[11px] text-muted-foreground">Country code</Label>
-                      <div className="flex gap-1.5">
-                        <Input
-                          value={countryCodeEdit ?? countryCode}
-                          readOnly={!canEdit}
-                          onChange={(e) => setCountryCodeEdit(e.target.value.replace(/[^\d]/g, ""))}
-                          placeholder="e.g. 1, 91, 44"
-                          className="h-8 text-sm w-24"
-                        />
-                        <span className="text-[10px] text-muted-foreground self-center">
-                          dialed without “+”
-                        </span>
-                      </div>
+                      <Label className="text-[11px] text-muted-foreground">Country (for phone code)</Label>
+                      <Select
+                        value={(() => {
+                          const cur = countryCodeEdit ?? countryCode;
+                          const match = COUNTRY_OPTIONS.find((o) => o.code === cur);
+                          return match?.name ?? "";
+                        })()}
+                        onValueChange={(name) => {
+                          const opt = COUNTRY_OPTIONS.find((o) => o.name === name);
+                          if (opt) setCountryCodeEdit(opt.code);
+                        }}
+                        disabled={!canEdit}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COUNTRY_OPTIONS.map((o) => (
+                            <SelectItem key={`${o.name}-${o.code}`} value={o.name}>
+                              +{o.code} · {o.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-[11px] text-muted-foreground">Country code (editable)</Label>
+                      <Input
+                        value={countryCodeEdit ?? countryCode}
+                        readOnly={!canEdit}
+                        onChange={(e) => setCountryCodeEdit(e.target.value.replace(/[^\d]/g, ""))}
+                        placeholder="e.g. 1, 91, 44"
+                        className="h-8 text-sm"
+                      />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-[11px] text-muted-foreground">Phone (primary)</Label>
