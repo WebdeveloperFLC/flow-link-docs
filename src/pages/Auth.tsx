@@ -107,6 +107,16 @@ const Auth = () => {
           <p className="text-xs text-muted-foreground mt-6 text-center">
             Need an account or forgot your password? Contact your administrator.
           </p>
+
+          <div className="mt-4 pt-4 border-t text-center">
+            <p className="text-xs text-muted-foreground mb-2">Are you a client?</p>
+            <a
+              href="/portal/auth"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Sign in or create a client account →
+            </a>
+          </div>
         </div>
       </div>
     </div>
