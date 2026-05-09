@@ -818,6 +818,111 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          message_id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          message_id: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+        }
+        Relationships: []
+      }
+      chat_message_mentions: {
+        Row: {
+          created_at: string
+          id: string
+          mentioned_user_id: string
+          message_id: string
+          read_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentioned_user_id: string
+          message_id: string
+          read_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentioned_user_id?: string
+          message_id?: string
+          read_at?: string | null
+        }
+        Relationships: []
+      }
+      chat_message_meta: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          edited_at: string | null
+          message_id: string
+          parent_id: string | null
+          pinned: boolean
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          message_id: string
+          parent_id?: string | null
+          pinned?: boolean
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
+          message_id?: string
+          parent_id?: string | null
+          pinned?: boolean
+        }
+        Relationships: []
+      }
+      chat_message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           channel_id: string | null
@@ -858,6 +963,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      chat_read_receipts: {
+        Row: {
+          channel_key: string
+          last_read_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_key: string
+          last_read_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_key?: string
+          last_read_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       client_access: {
         Row: {
@@ -1240,6 +1363,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      client_tasks: {
+        Row: {
+          assigned_to: string | null
+          client_id: string
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_at: string | null
+          id: string
+          kind: string
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          client_id: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: string
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          client_id?: string
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_at?: string | null
+          id?: string
+          kind?: string
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       client_timeline: {
         Row: {
@@ -1630,6 +1804,8 @@ export type Database = {
           from_user: string
           id: string
           note: string | null
+          responded_at: string | null
+          status: string
           task_label: string | null
           to_role: string | null
           to_user: string
@@ -1642,6 +1818,8 @@ export type Database = {
           from_user: string
           id?: string
           note?: string | null
+          responded_at?: string | null
+          status?: string
           task_label?: string | null
           to_role?: string | null
           to_user: string
@@ -1654,6 +1832,8 @@ export type Database = {
           from_user?: string
           id?: string
           note?: string | null
+          responded_at?: string | null
+          status?: string
           task_label?: string | null
           to_role?: string | null
           to_user?: string
