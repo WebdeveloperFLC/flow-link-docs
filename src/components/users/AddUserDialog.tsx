@@ -15,7 +15,7 @@ const schema = z.object({
   last_name: z.string().trim().min(1).max(50),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().min(5).max(40),
-  role: z.enum(["admin", "counselor", "documentation", "viewer"]),
+  role: z.enum(["admin", "counselor", "documentation", "telecaller", "viewer"]),
   password: z.string().min(8, "Password must be at least 8 characters").max(72),
 });
 
@@ -23,6 +23,7 @@ const ROLE_LABEL: Record<AppRole, string> = {
   admin: "Administrator",
   counselor: "Edit – Counselor",
   documentation: "Edit – Documentation",
+  telecaller: "Telecaller",
   viewer: "Viewer",
 };
 
@@ -82,7 +83,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
             <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {(["admin", "counselor", "documentation", "viewer"] as AppRole[]).map((r) => (
+                {(["admin", "counselor", "documentation", "telecaller", "viewer"] as AppRole[]).map((r) => (
                   <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
                 ))}
               </SelectContent>
