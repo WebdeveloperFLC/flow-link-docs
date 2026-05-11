@@ -97,3 +97,79 @@
   .shadow-elev-md { box-shadow: var(--shadow-md); }
   .shadow-elev-lg { box-shadow: var(--shadow-lg); }
 }
+
+/* ============ Future Link premium assessment shell ============ */
+/* Scoped to the assessment module so the rest of the DMS chrome
+   is untouched. Activated by wrapping a route in `.flc-shell`. */
+.flc-shell {
+  --flc-ivory: 36 33% 97%;
+  --flc-ink: 220 18% 11%;
+  --flc-ink-soft: 220 14% 28%;
+  --flc-coral: 8 75% 60%;
+  --flc-coral-hover: 8 75% 54%;
+  --flc-card: 0 0% 100%;
+  --flc-border: 30 12% 88%;
+  --flc-muted: 36 20% 94%;
+  background: hsl(var(--flc-ivory));
+  color: hsl(var(--flc-ink));
+  font-family: "Inter", system-ui, sans-serif;
+}
+.flc-shell .flc-display {
+  font-family: "Instrument Serif", "Fraunces", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-card {
+  background: hsl(var(--flc-card));
+  border: 1px solid hsl(var(--flc-border));
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px hsl(220 15% 10% / 0.04), 0 8px 24px -16px hsl(220 15% 10% / 0.08);
+}
+.flc-shell .flc-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.3rem 0.65rem; border-radius: 999px;
+  background: hsl(var(--flc-muted));
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: hsl(var(--flc-ink-soft));
+}
+.flc-shell .flc-cta {
+  background: hsl(var(--flc-coral));
+  color: white;
+  border-radius: 999px;
+  padding: 0.85rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  transition: background .15s ease, transform .15s ease;
+}
+.flc-shell .flc-cta:hover { background: hsl(var(--flc-coral-hover)); }
+.flc-shell .flc-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+.flc-shell .flc-pill {
+  display: inline-flex; padding: 0.25rem; border-radius: 999px;
+  background: hsl(var(--flc-ink)); color: white;
+}
+.flc-shell .flc-pill > button {
+  padding: 0.45rem 0.95rem; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  color: hsl(36 20% 80%);
+}
+.flc-shell .flc-pill > button[data-active="true"] {
+  background: white; color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-input {
+  width: 100%; height: 2.5rem; border-radius: 0.75rem;
+  border: 1px solid hsl(var(--flc-border));
+  background: hsl(var(--flc-card)); padding: 0 0.85rem;
+  font-size: 0.9rem; color: hsl(var(--flc-ink));
+}
+.flc-shell .flc-input:focus { outline: none; border-color: hsl(var(--flc-ink)); }
+.flc-shell .flc-divider { border-top: 1px solid hsl(var(--flc-border)); }
+.flc-shell .flc-progress {
+  height: 4px; border-radius: 999px; background: hsl(36 15% 90%); overflow: hidden;
+}
+.flc-shell .flc-progress > div {
+  height: 100%; background: hsl(var(--flc-coral)); transition: width .3s ease;
+}
