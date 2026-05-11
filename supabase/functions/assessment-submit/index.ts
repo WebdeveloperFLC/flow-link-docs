@@ -181,9 +181,30 @@ Deno.serve(async (req) => {
     if (!sessionId) return json({ error: "Missing sessionId" }, 400);
 
     const { data: session } = await admin.from("assessment_sessions")
-      .select("*, lead:assessment_leads(*)").eq("id", sessionId).maybeSingle();
+      .select("*, lead:assessment_leads(*), client:clients(id, full_name, email, phone, country)")
+      .eq("id", sessionId).maybeSingle();
     if (!session) return json({ error: "Session not found" }, 404);
-    if (session.lead.auth_user_id !== user.data.user.id) return json({ error: "Forbidden" }, 403);
+
+    // Authorisation:
+    //  - Email-flow sessions: the lead's auth_user_id must match.
+    //  - Counselor-initiated sessions (no lead): admin/counselor role.
+    const uid = user.data.user.id;
+    let allowed = false;
+    if (session.lead?.auth_user_id === uid) allowed = true;
+    if (!allowed) {
+      const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", uid);
+      if ((roles ?? []).some((r) => ["admin", "counselor"].includes(r.role))) allowed = true;
+    }
+    if (!allowed) return json({ error: "Forbidden" }, 403);
+
+    // Build a "subject" object for the PDF & email — works for either path.
+    const subject = session.lead ?? (session.client ? {
+      first_name: (session.client.full_name ?? "").split(" ")[0] ?? "",
+      middle_name: "",
+      last_name: (session.client.full_name ?? "").split(" ").slice(1).join(" "),
+      email: session.client.email,
+      phone: session.client.phone,
+    } : { first_name: "", middle_name: "", last_name: "", email: "", phone: "" });
 
     const finalAnswers = { ...(session.answers ?? {}), ...(answers ?? {}) };
     const { data: programs } = await admin.from("assessment_programs").select("*").eq("is_active", true).order("order_index");
@@ -194,7 +215,7 @@ Deno.serve(async (req) => {
 
     const { data: wrapper } = await admin.from("assessment_pdf_wrapper").select("*").maybeSingle();
 
-    const pdfBytes = await buildPdf({ lead: session.lead, session, matches, flags, missing, wrapper, crs });
+    const pdfBytes = await buildPdf({ lead: subject, session, matches, flags, missing, wrapper, crs });
     const path = `${sessionId}/report.pdf`;
     await admin.storage.from("assessment-pdf-assets").upload(path, pdfBytes, { contentType: "application/pdf", upsert: true });
 
@@ -210,16 +231,18 @@ Deno.serve(async (req) => {
     }).eq("id", sessionId);
 
     // Email report to client
-    try {
-      await admin.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "assessment-report",
-          recipientEmail: session.lead.email,
-          idempotencyKey: `assessment-report-${sessionId}`,
-          templateData: { firstName: session.lead.first_name, reportUrl: signed?.signedUrl ?? "" },
-        },
-      });
-    } catch (_) { /* queued */ }
+    if (subject.email) {
+      try {
+        await admin.functions.invoke("send-transactional-email", {
+          body: {
+            templateName: "assessment-report",
+            recipientEmail: subject.email,
+            idempotencyKey: `assessment-report-${sessionId}`,
+            templateData: { firstName: subject.first_name, reportUrl: signed?.signedUrl ?? "" },
+          },
+        });
+      } catch (_) { /* queued */ }
+    }
 
     return json({ ok: true, sessionId, matches, flags, missing, crs });
   } catch (e) {
