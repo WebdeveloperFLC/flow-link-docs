@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { Home, FileText, FolderCheck, MessageCircle, Tag, Users as UsersIcon, CreditCard, Calendar, Bell, Settings, LogOut } from "lucide-react";
+import { Home, FileText, FolderCheck, MessageCircle, Tag, Users as UsersIcon, CreditCard, Calendar, Bell, Settings, LogOut, ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ const NAV = [
   { to: "/portal", icon: Home, label: "Dashboard", end: true },
   { to: "/portal/application", icon: FileText, label: "My Application" },
   { to: "/portal/files", icon: FolderCheck, label: "File Status" },
+  { to: "/portal/assessment", icon: ClipboardCheck, label: "Assessment" },
   { to: "/portal/chat", icon: MessageCircle, label: "Chat" },
   { to: "/portal/offers", icon: Tag, label: "Offers & Discounts" },
   { to: "/portal/refer", icon: UsersIcon, label: "Refer & Earn" },
