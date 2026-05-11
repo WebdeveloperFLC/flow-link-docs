@@ -13,7 +13,7 @@ import { Loader2, Mail, Download, Send, Copy } from "lucide-react";
 export default function AssessmentAdmin() {
   return (
     <AppLayout>
-      <PageHeader title="Canada Assessment" subtitle="Send invitations, review submissions, and manage the question bank" />
+      <PageHeader title="Canada Assessment" description="Send invitations, review submissions, and manage the question bank" />
       <div className="p-6 max-w-6xl mx-auto">
         <Tabs defaultValue="invite">
           <TabsList>
