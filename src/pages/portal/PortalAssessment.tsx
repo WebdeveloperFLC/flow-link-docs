@@ -69,6 +69,12 @@ export default function PortalAssessment() {
             </div>
             {s.status === "submitted" && s.output?.matches && (
               <div className="space-y-1.5 pt-2 border-t">
+                {s.output?.crs && (
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <div className="text-3xl font-bold text-primary">{s.output.crs.total}</div>
+                    <div className="text-xs text-muted-foreground">Estimated CRS score</div>
+                  </div>
+                )}
                 <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Matched programs</div>
                 {s.output.matches.slice(0, 5).map((m: any) => (
                   <div key={m.code} className="flex items-center justify-between text-sm">
