@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.assessment-pdf-download]
 verify_jwt = true
+
+[functions.assessment-crs]
+verify_jwt = false
