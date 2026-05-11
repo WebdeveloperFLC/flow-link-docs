@@ -20,8 +20,8 @@ function Inner({ clientId }: { clientId: string }) {
   const load = async () => {
     const { data } = await supabase.from("client_offers").select("id,status,offer:offers(*)").eq("client_id", clientId);
     setOffers((data ?? []) as Off[]);
-    // Offers visible via RLS (global + group + individual targeting)
-    const { data: e } = await supabase.from("offers").select("*").eq("is_active", true);
+    // Offers visible via RLS (global + group + individual targeting, date-windowed)
+    const { data: e } = await supabase.from("offers").select("*");
     setEligible((e ?? []) as O[]);
   };
   useEffect(() => { load(); }, [clientId]);
