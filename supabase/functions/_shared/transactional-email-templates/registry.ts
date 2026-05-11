@@ -10,7 +10,13 @@ export interface TemplateEntry {
 }
 
 import { template as portalInvite } from './portal-invite.tsx'
+import { template as assessmentInvite } from './assessment-invite.tsx'
+import { template as assessmentVerifyEmail } from './assessment-verify-email.tsx'
+import { template as assessmentReport } from './assessment-report.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'portal-invite': portalInvite,
+  'assessment-invite': assessmentInvite,
+  'assessment-verify-email': assessmentVerifyEmail,
+  'assessment-report': assessmentReport,
 }
