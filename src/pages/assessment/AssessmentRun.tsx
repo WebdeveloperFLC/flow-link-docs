@@ -10,14 +10,18 @@ type Q = {
   help_text: string | null; options: any; required: boolean; conditional_on: any; order_index: number;
 };
 
-const SECTIONS: { key: string; label: string }[] = [
-  { key: "personal", label: "Personal" },
-  { key: "education", label: "Education" },
-  { key: "language", label: "Language" },
-  { key: "work", label: "Work experience" },
-  { key: "canada", label: "Family & location" },
-  { key: "compliance", label: "Compliance" },
-];
+const SECTION_LABELS: Record<string, string> = {
+  personal: "Personal",
+  education: "Education",
+  language: "Language",
+  work: "Work experience",
+  canada: "Family & location",
+  province: "Province preference",
+  funds: "Settlement funds",
+  compliance: "Compliance",
+  documents: "Documents",
+};
+const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "Permanent Residence",
@@ -76,6 +80,11 @@ export default function AssessmentRun() {
     return out;
   }, [questions]);
 
+  const sections = useMemo(() => {
+    const keys = SECTION_ORDER.filter((k) => (bySection[k]?.length ?? 0) > 0);
+    return keys.map((k) => ({ key: k, label: SECTION_LABELS[k] ?? k }));
+  }, [bySection]);
+
   const set = (code: string, v: any) => setAnswers((a) => ({ ...a, [code]: v }));
 
   const showQ = (q: Q) => {
@@ -89,9 +98,9 @@ export default function AssessmentRun() {
     return true;
   };
 
-  const currentSection = SECTIONS[step];
+  const currentSection = sections[step] ?? sections[0];
   const currentQuestions = (bySection[currentSection?.key] ?? []).filter(showQ);
-  const isLast = step === SECTIONS.length - 1;
+  const isLast = step >= sections.length - 1;
 
   const save = async () => {
     if (!sessionId) return;
@@ -154,7 +163,7 @@ export default function AssessmentRun() {
             <div className="font-semibold mt-1">{GOAL_LABELS[goal] ?? "Assessment"}</div>
           </div>
           <ol className="space-y-1">
-            {SECTIONS.map((s, i) => {
+            {sections.map((s, i) => {
               const active = i === step;
               const done = i < step;
               return (
@@ -183,7 +192,7 @@ export default function AssessmentRun() {
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
-              Section {step + 1} of {SECTIONS.length} · answer what you can, skip what you can&apos;t.
+              Section {step + 1} of {sections.length} · answer what you can, skip what you can&apos;t.
             </p>
           </div>
 
