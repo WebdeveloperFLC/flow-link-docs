@@ -1,55 +1,160 @@
-## Root causes found
 
-**1. Invitation email never sent**
-The `client-portal-invite-create` edge function tries to call a function named `send-transactional-email` — but that function does not exist in this project (only `email-send` exists, which is wired to per-client email threads, not generic transactional sends). The call silently fails inside a try/catch, so the UI shows "link copied" but no email ever leaves the system.
+# Canada Immigration Assessment — Phase 1 (Standalone Foundation)
 
-Additionally, the email domain `notify.dms.futurelinkconsultants.com` is still in **Pending** DNS state, so even once we wire a sender, mail won't actually deliver until DNS is verified.
+The full spec is huge. This plan delivers the **foundation + PR branch + access/delivery rules you specified**. Later phases will layer on Work/Study/Visit/Family/Business branches, CRS engine, OCR, AI matching, payments, audit logs, multi-country.
 
-**2. Offers not visible to clients**
-- The current RLS policy on `offers` is `auth.uid() IS NOT NULL` for SELECT — meaning *any* authenticated user sees *all* active offers, including staff-only or other-client offers. Conversely, the `PortalOffers` page does no audience filtering, so once a client logs in, group/individual targeting is meaningless.
-- More importantly: **zero clients have ever logged into the portal** (the `client_portal_links` table is empty). So nobody is actually seeing the portal at all yet — which ties back to issue #1 (no invite emails delivered → no client signups → no one to view offers).
-- The one existing offer ("Summer Bonus Dhamaka 2026") has `valid_from = 2026-05-21` (10 days from now). The portal page does not filter by date, so it would show up — but a properly fixed system should respect the date window.
+## Scope of Phase 1
 
----
+**In:** Access gating, lead registration with email verification, admin-editable questions, PR branch questionnaire, advisory report, branded PDF wrapper, email delivery, counselor view & download.
 
-## Fix plan
-
-### Step 1 — Scaffold the built-in transactional email function
-Use Lovable's built-in transactional email infra (`scaffold_transactional_email`). This creates a real `send-transactional-email` edge function backed by the existing `notify.dms.futurelinkconsultants.com` domain and the email queue we already deployed. No third-party API key needed.
-
-### Step 2 — Add a "portal-invite" template + wire it in
-Add a small HTML template inside the scaffolded transactional sender for the `portal-invite` template (subject: "You've been invited to your client portal", body with the activation link + expiry). Then redeploy `client-portal-invite-create` — it already calls `send-transactional-email` with `templateName: "portal-invite"`, so once the function exists it will start sending.
-
-Until DNS verifies, the function will accept the request and queue it; the UI will still show "link copied" as a fallback so counselors can paste manually. After DNS verifies (handled in Cloud → Emails), real email delivery starts automatically — no further code change needed.
-
-### Step 3 — Tighten offer RLS so audience targeting actually works
-Replace the `offers_select` policy with one that uses the existing `user_can_see_offer(auth.uid(), id)` SECURITY DEFINER function. That function already enforces:
-- `is_active = true`
-- date window (`valid_from`/`valid_to`)
-- audience match (global OR individual-target OR group-member)
-
-Staff (admin/counselor/telecaller) keep full visibility via a separate policy so they can still manage offers from the admin page.
-
-### Step 4 — Filter `PortalOffers` query for safety
-Even with RLS, simplify the page to read all rows it can see (RLS does the work) and drop the client-side `is_active` re-filter (which would mask any future date-gated logic).
+**Out (later phases):** CRS scoring engine, AI matching, OCR auto-fill, Work/Study/Visit/Family/Business branches, payments, spouse-adjusted scoring, audit logs, multi-country.
 
 ---
 
-## Files to change
+## 1. Access Rules (your hard requirements)
 
-- **NEW** `supabase/functions/send-transactional-email/index.ts` — scaffolded transactional sender with a `portal-invite` template
-- **MIGRATION** — drop `offers_select`, add new policies:
-  - `offers_select_client` USING `user_can_see_offer(auth.uid(), id)`
-  - `offers_select_staff` USING `has_role(auth.uid(),'admin') OR has_role(auth.uid(),'counselor') OR has_role(auth.uid(),'telecaller')`
-- **EDIT** `src/pages/portal/PortalOffers.tsx` — remove `.eq("is_active", true)` (RLS already filters)
-- No change needed to `client-portal-invite-create` — it's already calling the right function name
+Three entry paths to `/assessment`:
+
+| Path | Who | Gate |
+|---|---|---|
+| **Invitation link** | Counselor invites a new lead or existing client by email | Signed token in email link, expires in 14 days |
+| **Referral code** | Anyone with a valid referral code from an existing client/partner | Code lookup at landing page |
+| **Existing client** | Already-registered portal client | Direct link in their email, auto-recognized when logged in |
+
+**No one** can reach the assessment without one of these. Public landing page asks: "Do you have an invitation email?" → if no → "Enter referral code".
+
+**Registration step (every new entrant):** First name, middle name, last name, email, phone → "Register" → verification email sent → click link to start assessment. Existing clients skip registration.
+
+## 2. Delivery Rules
+
+- On submit, report is emailed to client automatically using the branded PDF wrapper.
+- **Client portal: no download button.** Only "Email me a copy" button (re-sends the same email).
+- **Counselor / staff view:** full download button + "Resend to client" + "Open in browser".
+- PDF wrapper is admin-editable: cover page, company header/footer, optional extra pages (company brochure, services, testimonials, etc.) uploaded once and auto-bundled to every report.
+
+## 3. PR Branch (only branch in Phase 1)
+
+Admin-editable question bank, grouped into sections:
+- Account & Access (captured at registration)
+- Personal (age, marital status, dependents)
+- Education + ECA
+- Language (English IELTS/CELPIP/PTE, French TEF/TCF)
+- Work experience + NOC/TEER
+- Canadian connections (relatives, prior CA stay)
+- Funds / settlement
+- Province preference
+- Compliance (criminal, medical, refusals)
+- Document availability checklist
+
+**Output (Phase 1 = advisory only, no numeric CRS):** list of likely program names (Express Entry, PNP, Atlantic, Rural, Francophone, Quebec, Caregiver), risk flags, missing-info list, suggested next steps, "book a consultation" CTA. Rule matching is admin-editable JSON — when CRS engine ships in Phase 2 it replaces this.
+
+## 4. Admin Panel additions
+
+New routes under existing admin area:
+- `/admin/assessment/questions` — edit question text, type, options, order, which section, conditional show/hide
+- `/admin/assessment/programs` — edit program list + match rules (JSON)
+- `/admin/assessment/pdf-wrapper` — upload cover, header logo, footer, extra brochure PDFs, configure ordering
+- `/admin/assessment/invitations` — list, resend, revoke invites
+- `/admin/assessment/sessions` — list all assessments, filter by status, view/download any
+
+## 5. Counselor / Staff UI
+
+- New "Assessment" tab on `ClientDetail` → shows all sessions for that client, status, "Run assessment for client", "Send invitation", download PDF
+- New top-level `/assessment` page in staff app showing all incoming assessments (queue), filter by counselor, hot/warm/cold tag (manual in Phase 1)
+- New "Send Assessment Invite" button on `Clients` list and `Telecaller` inbox
+
+## 6. Client Portal
+
+- New `/portal/assessment` route — resume in-progress, view completed, **"Email me my report"** button (no download)
+- Notification when staff sends an invite or when assessment is reviewed by counselor
 
 ---
 
-## What the user must do (one-time)
-Finish DNS verification for `notify.dms.futurelinkconsultants.com` in **Cloud → Emails**. Until that completes, invites can be sent by **copy-pasting the link** (already working in the UI). After verification, the email goes out automatically.
+## Technical section
 
-## What will work after this plan ships
-- Counselor clicks **Invite** → email is queued and (once DNS verified) delivered to the client; link is also copied to clipboard as a fallback.
-- Client redeems the link → account is created and linked → on login, they see only the offers their counselor has targeted to them (global / their group / them individually), within the active date window.
-- Admin can still manage and preview every offer from the admin offers page.
+### New DB tables (RLS on all)
+
+- `assessment_invitations` — token, email, phone, first/middle/last name, expires_at, status (pending/registered/expired/revoked), invited_by, client_id (nullable, for existing clients)
+- `assessment_leads` — pre-client lead created from registration: first/middle/last name, email, phone, email_verified_at, referral_code_used, source (invite/referral/existing_client), linked client_id (nullable)
+- `assessment_sessions` — lead_id, client_id (nullable), country='Canada', goal='PR', status (draft/in_progress/submitted/counselor_reviewed), answers (JSONB), output (JSONB), submitted_at, last_emailed_at
+- `assessment_questions` — admin-managed: code, section, type, label, options (JSONB), required, conditional_on (JSONB), order_index, is_active
+- `assessment_programs` — code, label, match_rules (JSONB), is_active
+- `assessment_pdf_wrapper` — single-row config table: header_url, footer_url, cover_pdf_path, extra_pdfs (JSONB array of paths), updated_by
+- Storage bucket `assessment-pdf-assets` (private; staff write, signed-url read for emails)
+
+### RLS summary (plain English)
+
+- **Invitations:** staff (admin/counselor/telecaller) can create and view. Public can validate a token via edge function only.
+- **Leads:** staff can view all. A registered lead can view their own row when logged in with the matching email.
+- **Sessions:** staff can view/edit all. Lead/client can view and edit only their own session. Submitted sessions become read-only for the lead/client.
+- **Questions / Programs / PDF wrapper:** admin write; everyone authenticated read (needed to render the questionnaire).
+
+### Edge functions (new)
+
+- `assessment-invite-create` — counselor calls; stores invite, emails via `send-transactional-email` with new `assessment-invite` template
+- `assessment-register` — public; validates invite token OR referral code, creates lead, sends verification email (`assessment-verify-email` template) with magic-link token
+- `assessment-verify-email` — public; consumes verification token, marks lead verified, returns signed start link
+- `assessment-submit` — authenticated lead/client; finalizes session, runs rule match (read-only over `assessment_programs.match_rules`), generates PDF (HTML → PDF via puppeteer-less approach: server-side render with @react-pdf/renderer), uploads to storage, emails to client via `assessment-report` template
+- `assessment-resend-report` — re-emails the latest PDF for a given session (client-callable for their own session, staff-callable for any)
+- `assessment-pdf-download` — staff-only; returns signed URL valid for 5 minutes
+
+### Email templates (new transactional)
+
+- `assessment-invite` — "You've been invited to take your Canada immigration assessment" + activation link
+- `assessment-verify-email` — "Verify your email to start your assessment"
+- `assessment-report` — "Your Canada immigration assessment report" + the PDF as a download link (Lovable email infra doesn't support attachments, so the email contains a signed Storage URL valid 7 days; the PDF itself is delivered via that link). Client portal's "Email me my report" reuses this template.
+
+### PDF generation
+
+Server-side in `assessment-submit` using `@react-pdf/renderer` (Deno-compatible) or fallback to `pdf-lib` + html-to-pdf:
+1. Render cover (from `assessment_pdf_wrapper.cover_pdf_path` if set, else generated from header config)
+2. Render assessment results pages (programs matched, risks, next steps)
+3. Append each PDF in `extra_pdfs[]` in configured order
+4. Upload merged PDF to `assessment-pdf-assets/{session_id}/report.pdf`
+
+### Routes added
+
+```
+Public:
+/assessment/invite/:token       → validate + register
+/assessment/start?code=XYZ      → referral code landing
+/assessment/verify/:token       → email verification landing
+/assessment/run/:sessionId      → questionnaire (auth required)
+/assessment/done/:sessionId     → "report on its way" page
+
+Portal:
+/portal/assessment              → list + resume + email-me button
+
+Staff:
+/assessment                     → queue
+/clients/:id (new tab)          → per-client assessments
+/admin/assessment/questions
+/admin/assessment/programs
+/admin/assessment/pdf-wrapper
+/admin/assessment/invitations
+/admin/assessment/sessions
+```
+
+### Files to create (high level)
+
+- 1 migration (tables + RLS + seed of PR questions + default programs)
+- 6 edge functions
+- 3 email templates + registry update
+- ~15 React pages/components (admin pages, public pages, portal page, staff queue, client-detail tab, PDF preview)
+- `src/lib/assessment.ts` — rule matcher + types
+
+---
+
+## What you must do (one-time, before email starts flowing)
+
+- DNS for `notify.dms.futurelinkconsultants.com` must be verified in **Cloud → Emails** (already pending from earlier work). Until verified, invites and reports queue but don't deliver — copy-paste fallback link will appear in staff UI.
+
+## After approval I will
+
+1. Confirm scope and call `email_domain--scaffold_transactional_email` if not yet done for the new templates.
+2. Run the migration (tables, RLS, seed).
+3. Build edge functions + email templates.
+4. Build admin pages, public flow, portal page, staff queue, and ClientDetail tab.
+5. Add a smoke-test path: staff sends invite → register → verify → fill PR questionnaire → submit → PDF in inbox.
+
+Phases 2+ (CRS engine, other branches, OCR, payments, audit, multi-country) ship in follow-up requests so we don't ship one giant unreviewable change.

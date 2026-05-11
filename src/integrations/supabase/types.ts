@@ -225,6 +225,394 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_email_verifications: {
+        Row: {
+          consumed_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          lead_id: string
+          token: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          lead_id: string
+          token: string
+        }
+        Update: {
+          consumed_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          lead_id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_email_verifications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_invitations: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          first_name: string | null
+          id: string
+          invited_by: string | null
+          last_name: string | null
+          middle_name: string | null
+          phone: string | null
+          redeemed_at: string | null
+          redeemed_lead_id: string | null
+          status: Database["public"]["Enums"]["assessment_invite_status"]
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invited_by?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          phone?: string | null
+          redeemed_at?: string | null
+          redeemed_lead_id?: string | null
+          status?: Database["public"]["Enums"]["assessment_invite_status"]
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          first_name?: string | null
+          id?: string
+          invited_by?: string | null
+          last_name?: string | null
+          middle_name?: string | null
+          phone?: string | null
+          redeemed_at?: string | null
+          redeemed_lead_id?: string | null
+          status?: Database["public"]["Enums"]["assessment_invite_status"]
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_invitations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_leads: {
+        Row: {
+          auth_user_id: string | null
+          client_id: string | null
+          created_at: string
+          email: string
+          email_verified_at: string | null
+          first_name: string
+          id: string
+          invitation_id: string | null
+          last_name: string
+          middle_name: string | null
+          phone: string
+          referral_code_used: string | null
+          source: Database["public"]["Enums"]["assessment_lead_source"]
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          email: string
+          email_verified_at?: string | null
+          first_name: string
+          id?: string
+          invitation_id?: string | null
+          last_name: string
+          middle_name?: string | null
+          phone: string
+          referral_code_used?: string | null
+          source: Database["public"]["Enums"]["assessment_lead_source"]
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          email?: string
+          email_verified_at?: string | null
+          first_name?: string
+          id?: string
+          invitation_id?: string | null
+          last_name?: string
+          middle_name?: string | null
+          phone?: string
+          referral_code_used?: string | null
+          source?: Database["public"]["Enums"]["assessment_lead_source"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_leads_invitation_id_fkey"
+            columns: ["invitation_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_pdf_wrapper: {
+        Row: {
+          company_name: string | null
+          cover_pdf_path: string | null
+          extra_pdfs: Json
+          footer_text: string | null
+          header_text: string | null
+          id: number
+          primary_color: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          cover_pdf_path?: string | null
+          extra_pdfs?: Json
+          footer_text?: string | null
+          header_text?: string | null
+          id?: number
+          primary_color?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          cover_pdf_path?: string | null
+          extra_pdfs?: Json
+          footer_text?: string | null
+          header_text?: string | null
+          id?: number
+          primary_color?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      assessment_programs: {
+        Row: {
+          code: string
+          country: string
+          created_at: string
+          description: string | null
+          goal: string
+          id: string
+          is_active: boolean
+          label: string
+          match_rules: Json
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          goal?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          match_rules?: Json
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          goal?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          match_rules?: Json
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      assessment_questions: {
+        Row: {
+          code: string
+          conditional_on: Json | null
+          country: string
+          created_at: string
+          goal: string
+          help_text: string | null
+          id: string
+          is_active: boolean
+          label: string
+          options: Json | null
+          order_index: number
+          q_type: string
+          required: boolean
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          conditional_on?: Json | null
+          country?: string
+          created_at?: string
+          goal?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          options?: Json | null
+          order_index?: number
+          q_type: string
+          required?: boolean
+          section: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          conditional_on?: Json | null
+          country?: string
+          created_at?: string
+          goal?: string
+          help_text?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          options?: Json | null
+          order_index?: number
+          q_type?: string
+          required?: boolean
+          section?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      assessment_sessions: {
+        Row: {
+          answers: Json
+          assigned_counselor_id: string | null
+          client_id: string | null
+          country: string
+          created_at: string
+          goal: string
+          id: string
+          last_emailed_at: string | null
+          lead_id: string | null
+          output: Json
+          pdf_path: string | null
+          status: Database["public"]["Enums"]["assessment_session_status"]
+          submitted_at: string | null
+          temperature: string | null
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          assigned_counselor_id?: string | null
+          client_id?: string | null
+          country?: string
+          created_at?: string
+          goal?: string
+          id?: string
+          last_emailed_at?: string | null
+          lead_id?: string | null
+          output?: Json
+          pdf_path?: string | null
+          status?: Database["public"]["Enums"]["assessment_session_status"]
+          submitted_at?: string | null
+          temperature?: string | null
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          assigned_counselor_id?: string | null
+          client_id?: string | null
+          country?: string
+          created_at?: string
+          goal?: string
+          id?: string
+          last_emailed_at?: string | null
+          lead_id?: string | null
+          output?: Json
+          pdf_path?: string | null
+          status?: Database["public"]["Enums"]["assessment_session_status"]
+          submitted_at?: string | null
+          temperature?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_sessions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_sessions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       binders: {
         Row: {
           client_id: string
@@ -4631,6 +5019,14 @@ export type Database = {
         | "viewer"
         | "telecaller"
         | "client"
+      assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
+      assessment_lead_source: "invite" | "referral" | "existing_client"
+      assessment_session_status:
+        | "draft"
+        | "in_progress"
+        | "submitted"
+        | "counselor_reviewed"
+        | "archived"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -4799,6 +5195,15 @@ export const Constants = {
         "viewer",
         "telecaller",
         "client",
+      ],
+      assessment_invite_status: ["pending", "registered", "expired", "revoked"],
+      assessment_lead_source: ["invite", "referral", "existing_client"],
+      assessment_session_status: [
+        "draft",
+        "in_progress",
+        "submitted",
+        "counselor_reviewed",
+        "archived",
       ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
