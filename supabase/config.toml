@@ -50,3 +50,6 @@ verify_jwt = true
 
 [functions.assessment-crs]
 verify_jwt = false
+
+[functions.assessment-session-create]
+verify_jwt = true

@@ -1,93 +1,126 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
+import { Leaf, Info, ArrowRight, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { Loader2, MapPin } from "lucide-react";
 
 export default function AssessmentLanding() {
   const nav = useNavigate();
-  const [referralCode, setReferralCode] = useState("");
-  const [firstName, setFirst] = useState("");
-  const [middleName, setMiddle] = useState("");
-  const [lastName, setLast] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [code, setCode] = useState("");
+  const [consent, setConsent] = useState(false);
 
-  const register = async () => {
-    if (!firstName || !lastName || !email || !phone || !referralCode) {
-      toast.error("Please fill all required fields and your referral code");
+  const start = () => {
+    if (!consent) {
+      toast.error("Please confirm you understand the advisory notice.");
       return;
     }
-    setBusy(true);
-    const { data, error } = await supabase.functions.invoke("assessment-register", {
-      body: { firstName, middleName, lastName, email, phone, referralCode },
-    });
-    setBusy(false);
-    if (error || (data as any)?.error) {
-      toast.error(error?.message ?? (data as any)?.error ?? "Could not register");
-      return;
-    }
-    toast.success("Check your email — we sent you a verification link.");
+    if (code.trim()) sessionStorage.setItem("flc_referral_code", code.trim());
+    nav("/assessment/goal");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/5 to-background py-10 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
-            <MapPin className="size-3.5" /> Canada Immigration
+    <div className="flc-shell min-h-screen">
+      <AssessmentHeader mode="client" />
+
+      <main className="max-w-6xl mx-auto px-4 pb-16 pt-4 grid lg:grid-cols-[1.2fr_1fr] gap-10">
+        <section className="space-y-6">
+          <div className="flc-chip">
+            <Leaf className="size-3.5" /> Client self-assessment
           </div>
-          <h1 className="text-3xl font-bold">Free Eligibility Assessment</h1>
-          <p className="text-muted-foreground">Discover your pathways to Canadian Permanent Residence. Takes about 8 minutes.</p>
-        </div>
 
-        <Card className="p-6 space-y-4">
-          <Tabs defaultValue="register">
-            <TabsList className="grid grid-cols-2 w-full">
-              <TabsTrigger value="register">New — register</TabsTrigger>
-              <TabsTrigger value="invite">I have an invitation</TabsTrigger>
-            </TabsList>
+          <h1 className="flc-display text-6xl sm:text-7xl">Find your most likely path to Canada.</h1>
 
-            <TabsContent value="register" className="space-y-3 pt-4">
-              <p className="text-sm text-muted-foreground">
-                Enter your referral code (provided by your counselor or referrer) and your details. We'll email you a link to begin.
-              </p>
-              <div className="space-y-1.5">
-                <Label>Referral code *</Label>
-                <Input value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. FLC2026" />
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="space-y-1.5"><Label>First name *</Label><Input value={firstName} onChange={(e) => setFirst(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label>Middle name</Label><Input value={middleName} onChange={(e) => setMiddle(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label>Last name *</Label><Input value={lastName} onChange={(e) => setLast(e.target.value)} /></div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1.5"><Label>Email *</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-                <div className="space-y-1.5"><Label>Phone *</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555 0123" /></div>
-              </div>
-              <Button onClick={register} disabled={busy} className="w-full">
-                {busy ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : null}
-                Register & email me the link
-              </Button>
-            </TabsContent>
+          <p className="text-[hsl(220_14%_28%)] text-base leading-relaxed max-w-xl">
+            A guided eligibility assessment across permanent residence, work, study, visit, family sponsorship,
+            and business immigration. Built by Future Link Consultants.
+          </p>
 
-            <TabsContent value="invite" className="space-y-3 pt-4">
-              <p className="text-sm">
-                If you've received an invitation email from Futurelink Consultants, please open the link from that email to begin.
-              </p>
-              <p className="text-sm text-muted-foreground">No invitation? Switch to the "New — register" tab and use a referral code.</p>
-            </TabsContent>
-          </Tabs>
-        </Card>
+          <div className="space-y-4 max-w-xl pt-2">
+            <Row icon={Leaf} title="Seven immigration goals" body='PR, Work, Study, Visit, Family, Business — and a guided "I&apos;m not sure" path.' />
+            <Row icon={Info} title="Advisory only" body="We never replace IRCC's official tools or a counselor's review." />
+          </div>
 
-        <p className="text-xs text-center text-muted-foreground">By proceeding you consent to be contacted about your assessment. We do not share your data.</p>
+          <div className="flc-card p-5 flex gap-3 max-w-xl bg-[hsl(8_75%_60%/0.06)] border-[hsl(8_75%_60%/0.25)]">
+            <AlertCircle className="size-4 mt-0.5 text-[hsl(8_75%_50%)] shrink-0" />
+            <div className="text-sm text-[hsl(220_18%_11%)]">
+              <span className="font-semibold">Advisory only.</span> This assessment is not a final immigration decision and does
+              not constitute legal advice. Results help your counselor identify the most likely Canadian pathways for your profile.
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 text-sm cursor-pointer max-w-xl pt-1">
+            <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="size-4 rounded accent-[hsl(8_75%_60%)]" />
+            <span className="text-[hsl(220_18%_11%)]">I understand this assessment is advisory and not a final immigration decision.</span>
+          </label>
+
+          <button onClick={start} disabled={!consent} className="flc-cta">
+            Start assessment <ArrowRight className="size-4" />
+          </button>
+        </section>
+
+        <aside className="flc-card p-6 h-fit space-y-5 lg:sticky lg:top-6">
+          <div>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">Promo / Referral code</div>
+            <div className="flex gap-2 mt-2">
+              <input className="flc-input flex-1" placeholder="e.g. FLC2026" value={code} onChange={(e) => setCode(e.target.value)} />
+              <button
+                onClick={() => code.trim() && toast.success(`Referral code "${code.trim()}" applied`)}
+                className="px-4 rounded-xl border border-[hsl(30_12%_88%)] bg-white hover:bg-[hsl(36_20%_94%)] text-sm font-medium"
+              >
+                Apply
+              </button>
+            </div>
+            <div className="text-xs text-[hsl(220_14%_28%)] mt-2">Codes can unlock fee discounts and counselor priority.</div>
+          </div>
+
+          <div className="flc-divider" />
+
+          <div className="grid grid-cols-3 gap-3">
+            <Stat value="7" label="Goal paths" />
+            <Stat value="20+" label="Programs" />
+            <Stat value="<5 min" label="To finish" />
+          </div>
+
+          <div className="flc-divider" />
+
+          <ul className="space-y-2 text-sm">
+            <Bullet>Branching, profile-aware questions</Bullet>
+            <Bullet>Live CRS estimate (PR pathway)</Bullet>
+            <Bullet>Risk flagging for refusals &amp; admissibility</Bullet>
+            <Bullet>Downloadable advisory PDF report</Bullet>
+          </ul>
+        </aside>
+      </main>
+    </div>
+  );
+}
+
+function Row({ icon: Icon, title, body }: { icon: React.ElementType; title: string; body: string }) {
+  return (
+    <div className="flex gap-3">
+      <div className="size-9 rounded-lg bg-[hsl(36_20%_94%)] flex items-center justify-center shrink-0">
+        <Icon className="size-4 text-[hsl(220_18%_11%)]" />
+      </div>
+      <div>
+        <div className="font-semibold text-[hsl(220_18%_11%)] text-sm">{title}</div>
+        <div className="text-sm text-[hsl(220_14%_28%)]" dangerouslySetInnerHTML={{ __html: body }} />
       </div>
     </div>
+  );
+}
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div className="flc-display text-3xl">{value}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)] mt-0.5">{label}</div>
+    </div>
+  );
+}
+function Bullet({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex gap-2 items-start">
+      <span className="size-1.5 rounded-full bg-[hsl(8_75%_60%)] mt-2 shrink-0" />
+      <span className="text-[hsl(220_18%_11%)]">{children}</span>
+    </li>
   );
 }
