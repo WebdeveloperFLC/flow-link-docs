@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
+import { calculateCrs, type CrsBreakdown } from "../_shared/crs/calculator.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -57,7 +58,7 @@ function missingInfo(a: Answers) {
   return m;
 }
 
-async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: string[]; missing: string[]; wrapper: any | null; }) {
+async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: string[]; missing: string[]; wrapper: any | null; crs: CrsBreakdown; }) {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -81,6 +82,35 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   page.drawText(`Date: ${new Date().toLocaleDateString()}`, { x: 36, y: H - 250, size: 11, font });
   page.drawText("This advisory report summarises programs you may qualify for based on your responses.", { x: 36, y: H - 290, size: 11, font, color: rgb(0.3,0.3,0.3), maxWidth: W - 72 });
   page.drawText("It is not a legal opinion. Final eligibility is determined by IRCC.", { x: 36, y: H - 305, size: 11, font, color: rgb(0.3,0.3,0.3) });
+  drawFooter(page);
+
+  // CRS Breakdown
+  page = pdf.addPage([W, H]);
+  drawHeader(page, "CRS Score Breakdown");
+  let yc = H - 110;
+  page.drawText(`Total CRS Score: ${opts.crs.total}`, { x: 36, y: yc, size: 20, font: bold, color: rgb(0.07,0.16,0.32) });
+  yc -= 24;
+  page.drawText(opts.crs.withSpouse ? "Calculated with accompanying spouse" : "Calculated as single applicant", { x: 36, y: yc, size: 10, font, color: rgb(0.4,0.4,0.4) });
+  yc -= 24;
+  const sec = (label: string, total: number, max: number, items: Record<string, number>) => {
+    if (yc < 140) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "CRS Breakdown (cont.)"); yc = H - 110; }
+    page.drawText(`${label} — ${total} / ${max}`, { x: 36, y: yc, size: 13, font: bold }); yc -= 16;
+    for (const [k, v] of Object.entries(items)) {
+      page.drawText(`• ${k.replace(/_/g," ")}`, { x: 44, y: yc, size: 10, font, color: rgb(0.25,0.25,0.25) });
+      page.drawText(String(v), { x: W - 80, y: yc, size: 10, font });
+      yc -= 12;
+    }
+    yc -= 8;
+  };
+  sec("Core / Human Capital", opts.crs.sections.core.total, opts.crs.sections.core.max, opts.crs.sections.core.items);
+  if (opts.crs.withSpouse) sec("Spouse factors", opts.crs.sections.spouse.total, opts.crs.sections.spouse.max, opts.crs.sections.spouse.items);
+  sec("Skill transferability", opts.crs.sections.transferability.total, opts.crs.sections.transferability.max, opts.crs.sections.transferability.items);
+  sec("Additional points", opts.crs.sections.additional.total, opts.crs.sections.additional.max, opts.crs.sections.additional.items);
+  if (opts.crs.notes.length) {
+    if (yc < 80) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "CRS Notes"); yc = H - 110; }
+    page.drawText("Notes", { x: 36, y: yc, size: 12, font: bold }); yc -= 14;
+    for (const n of opts.crs.notes) { for (const ln of wrap(n, 95)) { page.drawText(`• ${ln}`, { x: 44, y: yc, size: 10, font }); yc -= 12; } }
+  }
   drawFooter(page);
 
   // Programs
@@ -160,10 +190,11 @@ Deno.serve(async (req) => {
     const matches = matchPrograms(finalAnswers, programs ?? []);
     const flags = riskFlags(finalAnswers);
     const missing = missingInfo(finalAnswers);
+    const crs = calculateCrs(finalAnswers);
 
     const { data: wrapper } = await admin.from("assessment_pdf_wrapper").select("*").maybeSingle();
 
-    const pdfBytes = await buildPdf({ lead: session.lead, session, matches, flags, missing, wrapper });
+    const pdfBytes = await buildPdf({ lead: session.lead, session, matches, flags, missing, wrapper, crs });
     const path = `${sessionId}/report.pdf`;
     await admin.storage.from("assessment-pdf-assets").upload(path, pdfBytes, { contentType: "application/pdf", upsert: true });
 
@@ -172,7 +203,7 @@ Deno.serve(async (req) => {
     await admin.from("assessment_sessions").update({
       status: "submitted",
       answers: finalAnswers,
-      output: { matches, flags, missing },
+      output: { matches, flags, missing, crs },
       pdf_path: path,
       submitted_at: new Date().toISOString(),
       last_emailed_at: new Date().toISOString(),
@@ -190,7 +221,7 @@ Deno.serve(async (req) => {
       });
     } catch (_) { /* queued */ }
 
-    return json({ ok: true, sessionId, matches, flags, missing });
+    return json({ ok: true, sessionId, matches, flags, missing, crs });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

@@ -101,7 +101,7 @@ function SessionsTab() {
       <table className="w-full text-sm">
         <thead className="bg-muted/50"><tr>
           <th className="text-left p-2 px-3">Client</th><th className="text-left p-2">Email</th>
-          <th className="text-left p-2">Status</th><th className="text-left p-2">Submitted</th><th></th>
+          <th className="text-left p-2">Status</th><th className="text-left p-2">CRS</th><th className="text-left p-2">Submitted</th><th></th>
         </tr></thead>
         <tbody>
           {rows.map((r) => (
@@ -109,6 +109,7 @@ function SessionsTab() {
               <td className="p-2 px-3">{r.lead?.first_name} {r.lead?.last_name}</td>
               <td className="p-2">{r.lead?.email}</td>
               <td className="p-2"><span className="text-xs">{r.status}</span></td>
+              <td className="p-2 text-xs font-mono">{r.output?.crs?.total ?? "—"}</td>
               <td className="p-2 text-xs">{r.submitted_at ? new Date(r.submitted_at).toLocaleString() : "—"}</td>
               <td className="p-2 text-right">
                 {r.status === "submitted" && (
@@ -120,7 +121,7 @@ function SessionsTab() {
               </td>
             </tr>
           ))}
-          {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No submissions yet</td></tr>}
+          {rows.length === 0 && <tr><td colSpan={6} className="p-6 text-center text-muted-foreground">No submissions yet</td></tr>}
         </tbody>
       </table>
     </Card>

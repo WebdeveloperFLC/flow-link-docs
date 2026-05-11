@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, Save, Send, CheckCircle2, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
 type Q = {
@@ -28,6 +28,8 @@ export default function AssessmentRun() {
   const [status, setStatus] = useState<string>("draft");
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [crs, setCrs] = useState<any | null>(null);
+  const crsTimer = useRef<number | null>(null);
 
   const load = useCallback(async () => {
     if (!sessionId) return;
@@ -43,6 +45,18 @@ export default function AssessmentRun() {
   }, [sessionId]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Live CRS recompute, debounced
+  useEffect(() => {
+    if (crsTimer.current) window.clearTimeout(crsTimer.current);
+    crsTimer.current = window.setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("assessment-crs", { body: { answers } });
+        if (!error && !(data as any)?.error) setCrs(data);
+      } catch (_) { /* ignore */ }
+    }, 400);
+    return () => { if (crsTimer.current) window.clearTimeout(crsTimer.current); };
+  }, [answers]);
 
   const bySection = useMemo(() => {
     const out: Record<string, Q[]> = {};
@@ -99,7 +113,8 @@ export default function AssessmentRun() {
 
   return (
     <div className="min-h-screen bg-muted/30 py-8 px-4">
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-[1fr_320px] gap-5">
+        <div className="space-y-5">
         <div>
           <div className="text-xs uppercase tracking-wider text-primary font-semibold">Canada Immigration</div>
           <h1 className="text-2xl font-bold mt-1">Eligibility Questionnaire</h1>
@@ -161,6 +176,47 @@ export default function AssessmentRun() {
             Submit assessment
           </Button>
         </div>
+        </div>
+        <aside className="hidden lg:block">
+          <div className="sticky top-4 space-y-3">
+            <Card className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-primary" />
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Live CRS estimate</div>
+              </div>
+              <div className="text-4xl font-bold text-primary">{crs?.total ?? "—"}</div>
+              <div className="text-xs text-muted-foreground">{crs?.withSpouse ? "With accompanying spouse" : "Single applicant"}</div>
+              {crs && (
+                <div className="space-y-2 pt-2 border-t">
+                  {[
+                    ["Core", crs.sections.core],
+                    ["Spouse", crs.sections.spouse],
+                    ["Transferability", crs.sections.transferability],
+                    ["Additional", crs.sections.additional],
+                  ].map(([label, s]: any) => (
+                    <div key={label}>
+                      <div className="flex justify-between text-xs"><span>{label}</span><span className="font-mono">{s.total}/{s.max}</span></div>
+                      <div className="h-1.5 bg-muted rounded-full overflow-hidden mt-0.5">
+                        <div className="h-full bg-primary" style={{ width: `${Math.min(100, (s.total / Math.max(1,s.max)) * 100)}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-2 text-[11px] text-muted-foreground">
+                    English CLB: <span className="font-mono">{crs.clb.english}</span> · French CLB: <span className="font-mono">{crs.clb.french}</span>
+                  </div>
+                  {crs.notes?.length > 0 && (
+                    <ul className="pt-1 space-y-1">
+                      {crs.notes.map((n: string, i: number) => (
+                        <li key={i} className="text-[11px] text-amber-600">• {n}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+              <div className="text-[10px] text-muted-foreground pt-2 border-t">Estimate based on self-reported answers. Final CRS is confirmed by IRCC.</div>
+            </Card>
+          </div>
+        </aside>
       </div>
     </div>
   );
