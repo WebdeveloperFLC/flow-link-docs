@@ -29,3 +29,21 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+
+[functions.assessment-register]
+verify_jwt = false
+
+[functions.assessment-verify-email]
+verify_jwt = false
+
+[functions.assessment-invite-create]
+verify_jwt = true
+
+[functions.assessment-submit]
+verify_jwt = true
+
+[functions.assessment-resend-report]
+verify_jwt = true
+
+[functions.assessment-pdf-download]
+verify_jwt = true
