@@ -51,6 +51,7 @@ import AssessmentLanding from "./pages/assessment/AssessmentLanding";
 import AssessmentInvite from "./pages/assessment/AssessmentInvite";
 import AssessmentVerify from "./pages/assessment/AssessmentVerify";
 import AssessmentRun from "./pages/assessment/AssessmentRun";
+import AssessmentGoal from "./pages/assessment/AssessmentGoal";
 import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/portal/auth" element={<PortalAuth />} />
             <Route path="/portal/invite" element={<PortalInviteRedeem />} />
             <Route path="/assessment" element={<AssessmentLanding />} />
+            <Route path="/assessment/goal" element={<AssessmentGoal />} />
             <Route path="/assessment/invite/:token" element={<AssessmentInvite />} />
             <Route path="/assessment/verify/:token" element={<AssessmentVerify />} />
             <Route path="/assessment/run/:sessionId" element={<ProtectedRoute><AssessmentRun /></ProtectedRoute>} />
