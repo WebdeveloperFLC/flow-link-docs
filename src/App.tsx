@@ -47,6 +47,12 @@ import PortalNotifications from "./pages/portal/PortalNotifications";
 import PortalSettings from "./pages/portal/PortalSettings";
 import PortalInviteRedeem from "./pages/portal/PortalInviteRedeem";
 import OffersAdmin from "./pages/OffersAdmin";
+import AssessmentLanding from "./pages/assessment/AssessmentLanding";
+import AssessmentInvite from "./pages/assessment/AssessmentInvite";
+import AssessmentVerify from "./pages/assessment/AssessmentVerify";
+import AssessmentRun from "./pages/assessment/AssessmentRun";
+import PortalAssessment from "./pages/portal/PortalAssessment";
+import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +74,10 @@ const App = () => (
             <Route path="/course-finder" element={<CourseFinder />} />
             <Route path="/portal/auth" element={<PortalAuth />} />
             <Route path="/portal/invite" element={<PortalInviteRedeem />} />
+            <Route path="/assessment" element={<AssessmentLanding />} />
+            <Route path="/assessment/invite/:token" element={<AssessmentInvite />} />
+            <Route path="/assessment/verify/:token" element={<AssessmentVerify />} />
+            <Route path="/assessment/run/:sessionId" element={<ProtectedRoute><AssessmentRun /></ProtectedRoute>} />
             <Route path="/portal" element={<PortalProtectedRoute><PortalDashboard /></PortalProtectedRoute>} />
             <Route path="/portal/application" element={<PortalProtectedRoute><PortalApplication /></PortalProtectedRoute>} />
             <Route path="/portal/files" element={<PortalProtectedRoute><PortalFiles /></PortalProtectedRoute>} />
@@ -78,6 +88,7 @@ const App = () => (
             <Route path="/portal/appointments" element={<PortalProtectedRoute><PortalAppointments /></PortalProtectedRoute>} />
             <Route path="/portal/notifications" element={<PortalProtectedRoute><PortalNotifications /></PortalProtectedRoute>} />
             <Route path="/portal/settings" element={<PortalProtectedRoute><PortalSettings /></PortalProtectedRoute>} />
+            <Route path="/portal/assessment" element={<PortalProtectedRoute><PortalAssessment /></PortalProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
@@ -89,6 +100,7 @@ const App = () => (
             <Route path="/activity" element={<ProtectedRoute><Activity /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/offers-admin" element={<ProtectedRoute><OffersAdmin /></ProtectedRoute>} />
+            <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
