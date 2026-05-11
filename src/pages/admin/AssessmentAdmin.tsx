@@ -11,16 +11,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Mail, Download, Send, Copy, Search, ExternalLink,
-  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw,
+  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play,
 } from "lucide-react";
+import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
 
 const PUBLIC_ASSESSMENT_URL = `${window.location.origin}/assessment`;
 
 export default function AssessmentAdmin() {
+  const [startOpen, setStartOpen] = useState(false);
   return (
     <AppLayout>
       <PageHeader title="Canada Assessment" description="Console for invitations, submissions, CRS, and question/program management" />
       <div className="p-6 max-w-7xl mx-auto space-y-5">
+        <Card className="p-5 flex flex-wrap items-center gap-4 bg-gradient-to-r from-primary/5 to-transparent border-primary/20">
+          <div className="flex-1 min-w-[220px]">
+            <div className="font-semibold text-base">Start a new assessment</div>
+            <div className="text-sm text-muted-foreground">
+              Add a new client or pick an existing one — runs immediately, no email needed.
+            </div>
+          </div>
+          <Button size="lg" onClick={() => setStartOpen(true)}>
+            <Play className="size-4 mr-2" /> Start new assessment
+          </Button>
+        </Card>
+        <StartAssessmentDialog open={startOpen} onOpenChange={setStartOpen} />
+
         <StatsRow />
         <PublicLinkCard />
         <Tabs defaultValue="submissions">
