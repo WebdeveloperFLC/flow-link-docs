@@ -33,7 +33,15 @@ export default function AssessmentAdmin() {
   const [startOpen, setStartOpen] = useState(false);
   return (
     <AppLayout>
-      <PageHeader title="Canada Assessment" description="Console for invitations, submissions, CRS, and question/program management" />
+      <PageHeader
+        title="Canada Assessment"
+        description="Console for invitations, submissions, CRS, and question/program management"
+        actions={
+          <Button variant="outline" size="sm" onClick={() => (window.location.href = "/noc-admin")}>
+            NOC management
+          </Button>
+        }
+      />
       <div className="p-6 max-w-7xl mx-auto space-y-5">
         <Card className="p-5 flex flex-wrap items-center gap-4 bg-gradient-to-r from-primary/5 to-transparent border-primary/20">
           <div className="flex-1 min-w-[220px]">
