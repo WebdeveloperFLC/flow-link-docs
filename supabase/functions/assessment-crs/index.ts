@@ -1,4 +1,5 @@
 import { calculateCrs } from "../_shared/crs/calculator.ts";
+import { calculateFsw67 } from "../_shared/crs/fsw67.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,8 +10,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const { answers } = await req.json();
-    const result = calculateCrs(answers ?? {});
-    return new Response(JSON.stringify(result), {
+    const a = answers ?? {};
+    const result = calculateCrs(a);
+    const fsw = calculateFsw67(a);
+    return new Response(JSON.stringify({ ...result, fsw67: fsw }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
