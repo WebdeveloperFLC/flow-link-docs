@@ -32,6 +32,8 @@ export interface FamilyAnswers {
   other_relative_type?: "sibling" | "aunt_uncle" | "cousin" | "niece_nephew" | "other";
   other_in_canada?: boolean;
   exceptional_case?: boolean;
+  // Income / LICO
+  family_size?: number;
   // Documents readiness — keyed by doc id
   documents?: Record<string, boolean>;
 }

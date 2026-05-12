@@ -160,6 +160,16 @@ export function FamilyReunificationFlow({ value, onChange }: Props) {
             <Field label="Can you show a legal/immigration barrier to marrying or living together?"><YesNo value={v.conjugal_barrier} onChange={(b) => set("conjugal_barrier", b)} /></Field>
           )}
           <Field label="Do you and your partner have dependent children together?"><YesNo value={v.has_children_together} onChange={(b) => set("has_children_together", b)} /></Field>
+          <Field label="Family unit size (sponsor + dependants + partner)" hint="Used to look up the IRCC LICO minimum income.">
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={(v as any).family_size ?? ""}
+              onChange={(e) => set("family_size" as any, e.target.value === "" ? undefined : Number(e.target.value))}
+              className="w-32 rounded-lg border border-[hsl(30_12%_82%)] bg-white px-3 py-1.5 text-sm"
+            />
+          </Field>
         </section>
       )}
 
@@ -253,6 +263,16 @@ export function FamilyReunificationFlow({ value, onChange }: Props) {
           {v.pathway_preference === "super_visa" && (
             <Field label="Do you have or plan to arrange 1-year medical insurance ($100K)?"><YesNo value={v.has_medical_insurance} onChange={(b) => set("has_medical_insurance", b)} /></Field>
           )}
+          <Field label="Family unit size (sponsor + dependants + sponsored persons)" hint="Used to look up the IRCC LICO minimum income.">
+            <input
+              type="number"
+              min={1}
+              max={20}
+              value={(v as any).family_size ?? ""}
+              onChange={(e) => set("family_size" as any, e.target.value === "" ? undefined : Number(e.target.value))}
+              className="w-32 rounded-lg border border-[hsl(30_12%_82%)] bg-white px-3 py-1.5 text-sm"
+            />
+          </Field>
         </section>
       )}
 
