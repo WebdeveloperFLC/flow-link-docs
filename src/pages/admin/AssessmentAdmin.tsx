@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
 import { useNavigate } from "react-router-dom";
+import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "PR",
@@ -242,7 +243,7 @@ function SessionsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, goal, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), client:clients(first_name, last_name, email, phone), output")
+      .select("id, status, goal, answers, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
       .order("created_at", { ascending: false }).limit(200);
     setRows(data ?? []); setLoading(false);
   };
@@ -253,14 +254,32 @@ function SessionsTab() {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (!t) return true;
       const p = r.client ?? r.lead ?? {};
-      const hay = `${p.first_name ?? ""} ${p.last_name ?? ""} ${p.email ?? ""}`.toLowerCase();
+      const hay = `${p.full_name ?? ""} ${p.first_name ?? ""} ${p.last_name ?? ""} ${p.email ?? ""}`.toLowerCase();
       return hay.includes(t);
     });
   }, [rows, q, statusFilter]);
-  const download = async (id: string) => {
+  const downloadServer = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-pdf-download", { body: { sessionId: id } });
     if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
     window.open((data as any).url, "_blank");
+  };
+  const downloadClient = async (r: any) => {
+    try {
+      const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
+      const p = r.client ?? r.lead ?? {};
+      const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "");
+      await downloadAssessmentPdf({
+        sessionId: r.id,
+        clientName: name,
+        clientEmail: p.email,
+        goal: r.goal,
+        answers: r.answers ?? {},
+        questions: (qs.data ?? []) as any[],
+        crs: r.output?.crs,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "PDF failed");
+    }
   };
   const resend = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
@@ -291,7 +310,7 @@ function SessionsTab() {
         <tbody>
           {filtered.map((r) => {
             const p = r.client ?? r.lead ?? {};
-            const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
+            const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
             const isOpen = r.status === "draft" || r.status === "in_progress";
             const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
             return (
@@ -305,14 +324,17 @@ function SessionsTab() {
               <td className="p-2 text-right">
                 <div className="inline-flex gap-1">
                   {isOpen && (
-                    <Button size="sm" variant="default" onClick={() => nav(`/assessment/run/${r.id}`)} title="Open / Resume">
-                      <PlayCircle className="size-3.5 mr-1" />Resume
-                    </Button>
+                    <>
+                      <Button size="sm" variant="default" onClick={() => nav(`/assessment/run/${r.id}`)} title="Open / Resume">
+                        <PlayCircle className="size-3.5 mr-1" />Resume
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
+                    </>
                   )}
                   {isDone && (
                     <>
                       <Button size="sm" variant="outline" onClick={() => nav(`/assessment/run/${r.id}`)} title="View"><ExternalLink className="size-3.5" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => download(r.id)} title="Download PDF"><Download className="size-3.5" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
                     </>
                   )}

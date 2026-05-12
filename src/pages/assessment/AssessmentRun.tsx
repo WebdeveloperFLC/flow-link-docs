@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
-import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save } from "lucide-react";
+import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save, Download } from "lucide-react";
 import { toast } from "sonner";
+import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
 
 type Q = {
   id: string; code: string; section: string; q_type: string; label: string;
@@ -46,18 +47,28 @@ export default function AssessmentRun() {
   const [submitting, setSubmitting] = useState(false);
   const [crs, setCrs] = useState<any | null>(null);
   const crsTimer = useRef<number | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [subject, setSubject] = useState<{ name?: string; email?: string }>({});
 
   const load = useCallback(async () => {
     if (!sessionId) return;
     setLoading(true);
     const [qs, ses] = await Promise.all([
       supabase.from("assessment_questions").select("*").eq("is_active", true).order("order_index"),
-      supabase.from("assessment_sessions").select("answers, status, goal").eq("id", sessionId).maybeSingle(),
+      supabase.from("assessment_sessions")
+        .select("answers, status, goal, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)")
+        .eq("id", sessionId).maybeSingle(),
     ]);
     setQuestions((qs.data ?? []) as Q[]);
     setAnswers((ses.data?.answers as any) ?? {});
     setStatus(ses.data?.status ?? "draft");
     setGoal((ses.data as any)?.goal ?? "permanent_residence");
+    const c: any = (ses.data as any)?.client;
+    const l: any = (ses.data as any)?.lead;
+    setSubject({
+      name: c?.full_name ?? ([l?.first_name, l?.last_name].filter(Boolean).join(" ") || undefined),
+      email: c?.email ?? l?.email ?? undefined,
+    });
     setLoading(false);
   }, [sessionId]);
 
@@ -102,20 +113,37 @@ export default function AssessmentRun() {
   const currentQuestions = (bySection[currentSection?.key] ?? []).filter(showQ);
   const isLast = step >= sections.length - 1;
 
-  const save = async () => {
+  const save = async (silent = false) => {
     if (!sessionId) return;
     setSaving(true);
     try {
       const { error } = await supabase.from("assessment_sessions").update({ answers, status: "in_progress" }).eq("id", sessionId);
       if (error) throw error;
-      toast.success("Progress saved — find it under Submissions in the admin console");
+      if (!silent) toast.success("Progress saved — find it under Submissions in the admin console");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
     finally { setSaving(false); }
   };
 
   const next = async () => {
-    await save();
+    await save(true);
     if (!isLast) setStep((s) => s + 1);
+  };
+
+  const downloadPdf = async () => {
+    setDownloading(true);
+    try {
+      await downloadAssessmentPdf({
+        clientName: subject.name,
+        clientEmail: subject.email,
+        goal,
+        answers,
+        questions,
+        crs,
+        sessionId,
+      });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "PDF failed");
+    } finally { setDownloading(false); }
   };
 
   const submit = async () => {
@@ -221,7 +249,11 @@ export default function AssessmentRun() {
               <ArrowLeft className="size-4" /> Back
             </button>
             <div className="flex items-center gap-2">
-              <button onClick={save} disabled={saving} className="px-4 py-2 rounded-full border border-[hsl(30_12%_82%)] text-sm font-medium hover:bg-[hsl(36_20%_94%)]">
+              <button onClick={downloadPdf} disabled={downloading} className="px-4 py-2 rounded-full border border-[hsl(30_12%_82%)] text-sm font-medium hover:bg-[hsl(36_20%_94%)]">
+                {downloading ? <Loader2 className="size-3.5 inline mr-1.5 animate-spin" /> : <Download className="size-3.5 inline mr-1.5" />}
+                PDF
+              </button>
+              <button onClick={() => save(false)} disabled={saving} className="px-4 py-2 rounded-full border border-[hsl(30_12%_82%)] text-sm font-medium hover:bg-[hsl(36_20%_94%)]">
                 {saving ? <Loader2 className="size-3.5 inline mr-1.5 animate-spin" /> : <Save className="size-3.5 inline mr-1.5" />}
                 Save
               </button>
