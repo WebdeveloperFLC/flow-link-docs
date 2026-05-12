@@ -424,11 +424,11 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         pdf.text("Suggestions to improve your CRS", margin, y); y += 16;
         pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
         for (const t of tips) {
-          const head = `${t.area}: ${t.action}`;
+          const head = safe(`${t.area}: ${t.action}`);
           const bulletIndent = 12;
           const wrapped = pdf.splitTextToSize(head, W - margin * 2 - bulletIndent) as string[];
           const gainLines = t.potentialGain
-            ? (pdf.splitTextToSize(t.potentialGain, W - margin * 2 - bulletIndent - 4) as string[])
+            ? (pdf.splitTextToSize(safe(t.potentialGain), W - margin * 2 - bulletIndent - 4) as string[])
             : [];
           newPageIfNeeded(wrapped.length * 13 + gainLines.length * 13 + 6);
           wrapped.forEach((w2, i) => {
