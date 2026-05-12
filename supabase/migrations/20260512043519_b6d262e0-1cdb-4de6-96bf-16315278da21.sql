@@ -1,0 +1,1 @@
+UPDATE country_pathways SET is_active = false WHERE country_code='CA' AND pathway_code <> 'permanent_residence';
