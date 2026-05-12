@@ -3633,6 +3633,71 @@ export type Database = {
         }
         Relationships: []
       }
+      noc_category_mappings: {
+        Row: {
+          category: string
+          created_at: string
+          noc_code: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          noc_code: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          noc_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "noc_category_mappings_noc_code_fkey"
+            columns: ["noc_code"]
+            isOneToOne: false
+            referencedRelation: "noc_occupations"
+            referencedColumns: ["noc_code"]
+          },
+        ]
+      }
+      noc_occupations: {
+        Row: {
+          broad_category: string | null
+          created_at: string
+          is_active: boolean
+          keywords: string[]
+          noc_code: string
+          notes: string | null
+          search_tsv: unknown
+          teer: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          broad_category?: string | null
+          created_at?: string
+          is_active?: boolean
+          keywords?: string[]
+          noc_code: string
+          notes?: string | null
+          search_tsv?: unknown
+          teer: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          broad_category?: string | null
+          created_at?: string
+          is_active?: boolean
+          keywords?: string[]
+          noc_code?: string
+          notes?: string | null
+          search_tsv?: unknown
+          teer?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offer_audience_targets: {
         Row: {
           client_id: string | null
@@ -3804,6 +3869,60 @@ export type Database = {
         }
         Relationships: []
       }
+      pathway_rules: {
+        Row: {
+          allowed_teers: number[] | null
+          created_at: string
+          description: string | null
+          extra: Json
+          id: string
+          is_active: boolean
+          label: string
+          min_canadian_experience_years: number | null
+          min_clb: number | null
+          min_foreign_experience_years: number | null
+          min_teer: number | null
+          pathway: string
+          requires_job_offer: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          allowed_teers?: number[] | null
+          created_at?: string
+          description?: string | null
+          extra?: Json
+          id?: string
+          is_active?: boolean
+          label: string
+          min_canadian_experience_years?: number | null
+          min_clb?: number | null
+          min_foreign_experience_years?: number | null
+          min_teer?: number | null
+          pathway: string
+          requires_job_offer?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          allowed_teers?: number[] | null
+          created_at?: string
+          description?: string | null
+          extra?: Json
+          id?: string
+          is_active?: boolean
+          label?: string
+          min_canadian_experience_years?: number | null
+          min_clb?: number | null
+          min_foreign_experience_years?: number | null
+          min_teer?: number | null
+          pathway?: string
+          requires_job_offer?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       point_redemptions: {
         Row: {
           approved_at: string | null
@@ -3944,6 +4063,56 @@ export type Database = {
           suspended_at?: string | null
         }
         Relationships: []
+      }
+      provincial_noc_targets: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          noc_code: string | null
+          notes: string | null
+          province_code: string
+          province_name: string
+          stream_name: string
+          teer: number | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          noc_code?: string | null
+          notes?: string | null
+          province_code: string
+          province_name: string
+          stream_name: string
+          teer?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          noc_code?: string | null
+          notes?: string | null
+          province_code?: string
+          province_name?: string
+          stream_name?: string
+          teer?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provincial_noc_targets_noc_code_fkey"
+            columns: ["noc_code"]
+            isOneToOne: false
+            referencedRelation: "noc_occupations"
+            referencedColumns: ["noc_code"]
+          },
+        ]
       }
       questionnaire_email_templates: {
         Row: {
@@ -5001,6 +5170,8 @@ export type Database = {
         Returns: number
       }
       recover_stale_calling_items: { Args: never; Returns: number }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       user_can_see_offer: {
         Args: { _offer_id: string; _uid: string }
         Returns: boolean
