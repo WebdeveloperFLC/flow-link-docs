@@ -42,10 +42,10 @@ export function buildRecommendation(
     improvements.push({ area: "Qualification recognition", action: "Submit ZAB Statement of Comparability (Anabin) — up to 4 points and unlocks Skilled Worker.", impactPts: 4 });
   }
   if (Number(answers.de_skilled_experience_years ?? 0) < 2) {
-    improvements.push({ area: "Work experience", action: "Document ≥ 2 years of skilled work in the last 7 years — adds 2 points." });
+    improvements.push({ area: "Work experience", action: "Document >= 2 years of skilled work in the last 7 years — adds 2 points." });
   }
   if (Number(answers.de_blocked_account_eur ?? 0) < 12324 && answers.de_sponsor_support !== true) {
-    improvements.push({ area: "Funds", action: "Open a German blocked account (Sperrkonto) with ≥ €12,324 or secure a sponsor." });
+    improvements.push({ area: "Funds", action: "Open a German blocked account (Sperrkonto) with >= €12,324 or secure a sponsor." });
   }
 
   // Pathway notes
@@ -67,7 +67,7 @@ export function buildRecommendation(
 
   // Next actions checklist
   const nextActions: string[] = [];
-  if (answers.de_passport_valid !== true) nextActions.push("Renew passport (valid ≥ 12 months).");
+  if (answers.de_passport_valid !== true) nextActions.push("Renew passport (valid >= 12 months).");
   if (!["full"].includes(String(answers.de_recognition_status)) && String(answers.de_anabin_status) !== "H+") {
     nextActions.push("Start ZAB / Anabin recognition for your qualification.");
   }
