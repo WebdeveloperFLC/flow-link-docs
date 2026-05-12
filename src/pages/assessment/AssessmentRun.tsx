@@ -122,6 +122,24 @@ export default function AssessmentRun() {
 
   const set = (code: string, v: any) => setAnswers((a) => ({ ...a, [code]: v }));
 
+  // Auto-derive age from de_dob for Germany scoring.
+  const setWithDerived = (code: string, v: any) => {
+    setAnswers((a) => {
+      const next: Record<string, any> = { ...a, [code]: v };
+      if (code === "de_dob" && typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        const dob = new Date(v);
+        if (!isNaN(dob.getTime())) {
+          const now = new Date();
+          let age = now.getFullYear() - dob.getFullYear();
+          const m = now.getMonth() - dob.getMonth();
+          if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
+          if (age >= 0 && age < 120) next.de_age = age;
+        }
+      }
+      return next;
+    });
+  };
+
   const setOccupation = (v: OccupationValue) => {
     setAnswers((a) => ({
       ...a,
