@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
 
     const { sessionId } = await req.json();
     const { data: session } = await admin.from("assessment_sessions").select("pdf_path").eq("id", sessionId).maybeSingle();
-    if (!session?.pdf_path) return json({ error: "No PDF" }, 404);
+    if (!session?.pdf_path) return json({ error: "Report not generated yet — complete the assessment first." }, 404);
     const { data: signed } = await admin.storage.from("assessment-pdf-assets").createSignedUrl(session.pdf_path, 60 * 15);
     return json({ url: signed?.signedUrl });
   } catch (e) {

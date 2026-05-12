@@ -14,6 +14,7 @@ import {
   Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle,
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
+import { invokeError } from "@/lib/invokeError";
 import { useNavigate } from "react-router-dom";
 import { downloadAssessmentPdf, openAssessmentPdf } from "@/lib/assessmentPdf";
 
@@ -156,7 +157,7 @@ function InviteTab() {
       body: { firstName: first, middleName: mid, lastName: last, email, phone },
     });
     setBusy(false);
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Failed");
     setLink((data as any).link);
     toast.success((data as any).emailed ? "Invitation emailed" : "Invitation created — email queued");
   };
@@ -256,7 +257,7 @@ function SessionsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, goal, answers, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
+      .select("id, status, goal, answers, submitted_at, created_at, pdf_path, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
       .order("created_at", { ascending: false }).limit(200);
     setRows(data ?? []); setLoading(false);
   };
@@ -273,7 +274,7 @@ function SessionsTab() {
   }, [rows, q, statusFilter]);
   const downloadServer = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-pdf-download", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Download failed");
     window.open((data as any).url, "_blank");
   };
   const pdfInput = async (r: any) => {
@@ -300,7 +301,7 @@ function SessionsTab() {
   };
   const resend = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Resend failed");
     toast.success("Report re-sent");
   };
   if (loading) return <Loader2 className="animate-spin" />;
@@ -330,6 +331,8 @@ function SessionsTab() {
             const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
             const isOpen = r.status === "draft" || r.status === "in_progress";
             const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
+            const hasPdf = !!r.pdf_path;
+            const hasEmail = !!p.email;
             return (
             <tr key={r.id} className="border-t">
               <td className="p-2 px-3">{name}</td>
@@ -352,7 +355,9 @@ function SessionsTab() {
                     <>
                       <Button size="sm" variant="outline" onClick={() => viewClient(r)} title="View report"><ExternalLink className="size-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
+                      {hasPdf && hasEmail && (
+                        <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
+                      )}
                     </>
                   )}
                 </div>
