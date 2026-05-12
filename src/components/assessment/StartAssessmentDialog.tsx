@@ -28,7 +28,9 @@ export function StartAssessmentDialog({
   const [picked, setPicked] = useState<string | null>(null);
 
   // new
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("India");
@@ -63,8 +65,17 @@ export function StartAssessmentDialog({
         if (!picked) { toast.error("Pick a client"); setBusy(false); return; }
         body.clientId = picked;
       } else {
-        if (!name.trim()) { toast.error("Client name is required"); setBusy(false); return; }
-        body.newClient = { full_name: name.trim(), email: email.trim() || null, phone: phone.trim() || null, country: country.trim() || "India", application_type: `${countryNameFor(countryCode)} — assessment` };
+        if (!firstName.trim() || !lastName.trim()) {
+          toast.error("First and last name are required"); setBusy(false); return;
+        }
+        const fullName = [firstName.trim(), middleName.trim(), lastName.trim()].filter(Boolean).join(" ");
+        body.newClient = {
+          full_name: fullName,
+          email: email.trim() || null,
+          phone: phone.trim() || null,
+          country: country.trim() || "India",
+          application_type: `${countryNameFor(countryCode)} — assessment`,
+        };
       }
       const { data, error } = await supabase.functions.invoke("assessment-session-create", { body });
       if (error || (data as any)?.error) {
@@ -132,7 +143,11 @@ export function StartAssessmentDialog({
             </TabsContent>
 
             <TabsContent value="new" className="space-y-3 pt-3">
-              <div className="space-y-1.5"><Label>Full name *</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1.5"><Label>First name *</Label><Input value={firstName} onChange={(e) => setFirstName(e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Middle name</Label><Input value={middleName} onChange={(e) => setMiddleName(e.target.value)} placeholder="Optional" /></div>
+                <div className="space-y-1.5"><Label>Last name *</Label><Input value={lastName} onChange={(e) => setLastName(e.target.value)} /></div>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
