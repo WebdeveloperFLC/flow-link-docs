@@ -1,65 +1,58 @@
-# Fix: Citizenship/residence gating, DOB → age, Back button in all sections
+## Goal
+Fix the Family Reunification PDF: tidy alignment, add the Future Link Consultants brand banner, hide CRS-only question sections that don't apply to family sponsorship, and add the official IRCC LICO table sized to the sponsor's family.
 
-## Problems
-1. There is no "Country of citizenship" or "Country of residence" question on the Canada PR assessment. The Family Reunification flow only triggers off `current_status_canada` (PR holder), so a Canadian **citizen** living abroad is never routed there.
-2. "Current immigration status in Canada" is always shown — it should only appear when the applicant is **not** Canadian and currently lives in Canada.
-3. Age is asked as a free number; there's no date of birth, so the score cannot be tied to an exact age.
-4. The **Back** button is disabled the moment the Family Reunification flow opens (`disabled={step === 0 || isFamilyFlow}`), so the user is trapped. Back also feels disabled on section 1 even when the family flow is reachable.
+## Changes (UI/presentation only — no business logic, no schema changes)
 
-## Scope
-Frontend + assessment question seed only. No CRS/FSW engine changes, no PDF changes, no auth/role changes, no Germany flow changes.
+### 1. `src/lib/assessmentPdf.ts`
 
-## Plan
+**Alignment fixes**
+- In the "Answers grouped by section" block, the question label and answer collide when answers are long. Switch from right-aligned answers to a two-line layout: bold label on top, answer indented below, with proper `splitTextToSize` widths using full content width (`W - margin*2`).
+- Same fix for the "Age (derived)" sub-row.
+- Tighten line spacing (12 → 14 for blocks, 4pt gap between Q/A) and ensure `newPageIfNeeded` accounts for the new block height.
 
-### 1. New / updated questions (single migration on `assessment_questions`)
-Insert (or upsert by `code`) three Canada-pack questions in the `personal` section, all with `is_active=true` and `country='Canada'`:
+**Brand banner**
+- Import `Future_Link_Banner.jpg` (copy from `user-uploads://Future_Link_Banner.jpg` to `src/assets/flc-banner.jpg`).
+- Load once with the same canvas-based `loadDataUrl()` helper (refactor `loadLogoDataUrl` to be generic).
+- Render the banner full-width on the **last page** as a closing brand block: `pdf.addPage()`, then `pdf.addImage(banner, "JPEG", margin, margin, W - margin*2, scaledHeight)` preserving aspect ratio. Add a thin caption "Trusted Since 2001 — futurelinkconsultants.com" beneath.
 
-| code | type | label | order | conditional_on |
-|---|---|---|---|---|
-| `citizenship_country` | country | Country of citizenship (passport) | 1 | — |
-| `country_residence` | country | Country you currently live in | 2 | — |
-| `date_of_birth` | date | Date of birth | 8 | — |
+**Family flow — hide irrelevant Q/A sections**
+- When `isFamilyFlow` is true, restrict the section loop to only the relevant sections:
+  - `personal_info` (name, citizenship, residence, DOB, contact)
+  - `family` / family-branch answers (already rendered above via `evaluateFamily`)
+- Skip CRS-oriented sections: `language`, `education`, `work_experience`, `spouse`, `canadian_experience`, `adaptability`, `arranged_employment`, `provincial_nomination`, `additional`, etc.
+- Implement via an allow-list constant `FAMILY_SECTIONS = ["personal_info", "contact", "sponsor"]` used only when `isFamilyFlow`.
+- Within `personal_info`, also filter out CRS-only question codes (e.g., `ielts_*`, `noc_*`, `work_*`, `education_level` unless explicitly part of family proofs).
 
-Update existing rows:
-- `current_status_canada.conditional_on = {"country_residence":"Canada","citizenship_country__not":"Canada"}` — UI will evaluate the `__not` suffix as inequality. Falls back to existing equality for other keys (backward compatible).
-- `age.required = false` and label stays — age becomes a derived/optional override of DOB.
+**LICO table (Family flow only)**
+- Add a new section after "Next actions" titled "Income requirement — IRCC LICO 2024 (Low Income Cut-Off)".
+- Render a simple 2-column table:
 
-No new columns; the `__not` convention lives in `options.conditional_on` JSON only.
-
-### 2. `src/pages/assessment/AssessmentRun.tsx`
-- **`showQ`**: extend to handle keys with `__not` suffix (not-equal match) alongside existing equality / array-includes logic. Keep current behaviour for all other questions.
-- **`setWithDerived`**: when `date_of_birth` is set to a valid `YYYY-MM-DD`, auto-compute and write `answers.age` (the existing CRS engine input). Mirror logic already used for `de_dob → de_age`.
-- **Family flow gate (`isFamilyFlow`)** — extend to:
   ```
-  isCanada(country) && (
-    goal === "family_sponsorship" ||
-    answers.citizenship_country === "Canada" ||
-    answers.current_status_canada === "pr_holder" ||
-    answers.current_status_canada === "citizen"
-  )
+  Family unit size     | Minimum Necessary Income (Gross / yr)
+  1 person             | CAD 27,514
+  2 persons            | CAD 34,254
+  3 persons            | CAD 42,100
+  4 persons            | CAD 51,128
+  5 persons            | CAD 57,988
+  6 persons            | CAD 65,400
+  7 persons            | CAD 72,814
+  Each additional      | + CAD 7,412
   ```
-  So a Canadian citizen (regardless of residence) is routed straight to family reunification.
-- **Back button** — replace `disabled={step === 0 || isFamilyFlow}` with a smarter handler:
-  - If `isFamilyFlow` is active: clicking Back clears the triggers (`citizenship_country` family route + `current_status_canada` if it was `pr_holder/citizen`, and `family.sponsor_status`) so the user returns to the regular questionnaire at the current step. Button is enabled whenever a flow-trigger is set or `step > 0`.
-  - Else: existing behaviour (decrement step, disabled only at `step === 0`).
-- The disabled state is removed for every section — Back works in section 1 if family flow is active (to exit it), and works in every other section by decrementing step.
+  (Values per IRCC LICO table 2024 — Family Class / PGP minimum income.)
+- If `family.family_size` is provided, highlight that row (bold + light background rect) and add a one-liner below: "Your declared family unit size: N → CAD X required."
+- For Super Visa branch, render the **LICO-only** version (same numbers, different heading note: "Super Visa: sponsor must meet LICO; no 3-year MNI requirement").
+- Render only when `branch === "parent"` or `branch === "spouse"` (income proof relevant); skip for "child" / "other".
+- Add a small footnote: "Source: IRCC — figures advisory; confirm latest at canada.ca."
 
-### 3. `src/components/assessment/FamilyReunificationFlow.tsx`
-- The sponsor-status block at the top stays as a safety net but is **prefilled** from the parent gate (`citizenship_country === "Canada"` → `citizen`, else `pr_holder` if `current_status_canada` says so). No UI restructure.
+### 2. `src/components/assessment/FamilyReunificationFlow.tsx`
+- Add a single optional input `Family unit size (including sponsor + dependants)` under the Parent and Spouse branches that writes `family.family_size` (number). This is what feeds the LICO highlight. Pure presentation/UI; no business logic change.
 
-### 4. Out of scope (explicitly untouched)
-- CRS / FSW / PDF / Germany / family evaluation engine
-- Existing client records, sessions, leads
-- Auth, roles, billing, telephony
-- Other working sections — only the Back button condition is touched, behaviour for forward navigation is unchanged
+### 3. Assets
+- Copy `user-uploads://Future_Link_Banner.jpg` → `src/assets/flc-banner.jpg`.
 
-## Files to change
-- `supabase/migrations/<new>.sql` — upsert 3 questions, update conditional_on on `current_status_canada`
-- `src/pages/assessment/AssessmentRun.tsx` — `showQ`, `setWithDerived`, `isFamilyFlow`, Back button handler
-- `src/components/assessment/FamilyReunificationFlow.tsx` — prefill sponsor_status from parent gate (minor)
+## Out of scope
+- CRS/FSW math, family eligibility logic, Germany flow, schema/migrations, auth, edge functions.
+- LICO values are hard-coded constants in the PDF module (no DB) — easy to update later.
 
-## Acceptance
-- Citizenship = India, residence = Canada → "Current immigration status in Canada" appears.
-- Citizenship = Canada (any residence) → Family Reunification flow opens immediately, CRS hidden.
-- Entering DOB auto-fills age and the CRS advisory updates.
-- Back works on every section, and from the Family Reunification screen it returns to the regular questionnaire by clearing the citizen/PR trigger.
+## Verification
+- Generate PDF for: (a) Family / Parent branch with family_size = 4 — banner present on last page, LICO row 4 highlighted, no CRS sections, no overlapping text. (b) Family / Spouse branch — LICO appears, child-only fields hidden. (c) Canada PR (non-family) — banner shown, CRS + FSW retained, layout fixed.
