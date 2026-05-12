@@ -283,14 +283,16 @@ export function calculateCrs(a: Answers): CrsBreakdown {
   const cdnYears = Math.max(0, Math.floor(Number(a.canadian_work_experience ?? 0)));
   const foreignYears = Math.max(0, Math.floor(Number(a.work_experience_years ?? 0)));
 
-  const coreItems = {
+  const coreItemsRaw = {
     age: ageScore(age, withSpouse),
     education: eduScore(edu, withSpouse),
     first_language: firstLangScore(firstSkills, withSpouse),
     second_language: secondLangScore(secondSkills, withSpouse),
     canadian_work: cdnWorkScore(cdnYears, withSpouse),
   };
-  const coreTotal = Object.values(coreItems).reduce((s, n) => s + n, 0);
+  const coreItems = coreItemsRaw;
+  const coreMax = withSpouse ? 460 : 500;
+  const coreTotal = Math.min(coreMax, Object.values(coreItems).reduce((s, n) => s + n, 0));
 
   // Spouse
   const spouseItems: Record<string, number> = { education: 0, language: 0, canadian_work: 0 };
@@ -306,7 +308,7 @@ export function calculateCrs(a: Answers): CrsBreakdown {
     spouseItems.language = spouseLangScore(sCLB);
     spouseItems.canadian_work = spouseCdnWorkScore(Number(a.spouse_canadian_work_years ?? 0));
   }
-  const spouseTotal = Object.values(spouseItems).reduce((s, n) => s + n, 0);
+  const spouseTotal = Math.min(40, Object.values(spouseItems).reduce((s, n) => s + n, 0));
 
   // Transferability
   const transItems = {
@@ -321,7 +323,8 @@ export function calculateCrs(a: Answers): CrsBreakdown {
   // Additional
   const additional = additionalPoints(a, enOverall, frOverall);
 
-  const total = coreTotal + spouseTotal + transTotal + additional.total;
+  // Grand-total cap: IRCC official maximum is 1200.
+  const total = Math.min(1200, coreTotal + spouseTotal + transTotal + additional.total);
 
   if (firstClb < 7) notes.push("Most Express Entry programs require first-language CLB 7+.");
   if (foreignYears < 1 && cdnYears < 1) notes.push("At least 1 year of skilled work experience is required for FSW/CEC.");
@@ -331,7 +334,7 @@ export function calculateCrs(a: Answers): CrsBreakdown {
     total,
     withSpouse,
     sections: {
-      core: { total: coreTotal, max: withSpouse ? 460 : 500, items: coreItems },
+      core: { total: coreTotal, max: coreMax, items: coreItems },
       spouse: { total: spouseTotal, max: 40, items: spouseItems },
       transferability: { total: transTotal, max: 100, items: transItems },
       additional: { total: additional.total, max: 600, items: additional.items },
