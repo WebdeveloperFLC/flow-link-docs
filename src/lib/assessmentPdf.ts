@@ -565,7 +565,15 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   // Answers grouped by section — fully skipped for Family Reunification PDFs.
   const bySection: Record<string, AssessmentQuestion[]> = {};
   if (!isFamilyFlow) {
+    const seen = new Set<string>();
     for (const q of questions) {
+      // Defensive: skip duplicates (same code) and obvious cross-country leaks.
+      if (seen.has(q.code)) continue;
+      if (isCanada && /^de_/i.test(q.code)) continue;
+      if (isGermany && !/^de_/i.test(q.code) && !["personal","documents","compliance"].includes(q.section)) {
+        // allow shared sections; otherwise skip Canada-only codes in Germany PDF
+      }
+      seen.add(q.code);
       (bySection[q.section] ??= []).push(q);
     }
   }
