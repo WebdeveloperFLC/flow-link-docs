@@ -1,144 +1,117 @@
 ## Goal
-Rebrand "Canada Assessment" → **Settle Abroad**, and refactor the assessment engine into a country-agnostic, modular rule-pack framework. Ship Canada + Germany as the first two packs; keep the same shared profile, CRM, and PDF/portal plumbing.
+Add an independent Germany assessment engine inside Settle Abroad. Canada (CRS) code is untouched. Germany has its own questions, scoring (Chancenkarte 6-point system), pathway evaluation, recommendations, and PDF report. Admins can edit all rules without code changes.
 
-The good news: the DB already has `country` + `goal` columns on `assessment_questions`, `assessment_programs`, and `assessment_sessions`. We don't need a destructive migration — we layer a rule-pack system on top and remove Canada-specific assumptions from code.
+Current state: `country_pathways` already has 5 Germany pathways, ~25 Germany questions, and 5 `assessment_programs` rows with starter `match_rules`. We build the engine and admin around this baseline and round out the question set.
 
 ---
 
-## 1. Brand + navigation rename
-- "Canada Immigration Assessment" / "Canada Assessment" labels → **Settle Abroad** (header, landing, admin, portal, email subjects).
-- Routes: keep `/assessment*` paths (no breaking links). Add an alias `/settle-abroad` → same landing.
-- Update `AssessmentHeader.tsx`, `AssessmentLanding.tsx`, `AssessmentGoal.tsx`, `AssessmentAdmin.tsx`, `PortalAssessment.tsx`, email templates (`assessment-invite.tsx`, `assessment-report.tsx`, `assessment-verify-email.tsx`).
-- Sidebar / `AppLayout` link label.
-
-## 2. Country-first flow
-New step **0 — Choose destination country** before goal selection.
-
-```text
-Landing → [Country picker] → [Goal/Pathway picker (filtered by country)] → Questions → Result/PDF
-```
-
-- New page `src/pages/assessment/AssessmentCountry.tsx` with card grid (Canada, Germany active; UK / Australia / USA / NZ / UAE / EU shown as "Coming soon").
-- `AssessmentGoal.tsx` becomes country-aware: pulls goals from the active rule pack instead of the hardcoded `GOALS` array.
-- Session stores `flc_country` + `flc_goal` in sessionStorage and passes both to `assessment-session-create`.
-
-## 3. Rule-pack architecture (the core change)
-
-A **rule pack** = everything country-specific in one folder, loaded by code, behind a stable interface.
+## 1. Folder layout (Germany is self-contained)
 
 ```text
 src/lib/assessment/
-  core/
-    types.ts            # CountryPack, Pathway, Question, ScoringResult, Profile
-    registry.ts         # registerPack(), getPack(country), listActivePacks()
-    engine.ts           # runs questions → branching → scoring → eligibility
-    profile.ts          # shared profile shape (age, education, languages, work, family, finances)
-  packs/
-    canada/
-      index.ts          # pack manifest
-      pathways.ts       # Express Entry, PNP, Study, Work, Visitor, Business
-      questions.ts      # branching question groups per pathway
-      scoring.ts        # CRS + FSW 67-pt (wraps existing crs/calculator.ts)
-      eligibility.ts    # uses src/lib/noc.ts + pathway_rules
-      report.ts         # Canada-specific PDF sections
-    germany/
-      index.ts
-      pathways.ts       # Chancenkarte, Job Seeker, Ausbildung, Skilled Worker, EU Blue Card
-      questions.ts      # German-specific (B1/B2, ZAB recognition, salary thresholds…)
-      scoring.ts        # Chancenkarte points system (qualification, language, age, experience, connection, partner)
-      eligibility.ts    # Blue Card salary thresholds, skilled-worker recognition rules
-      report.ts
+  germany/
+    index.ts           # public API: getQuestions, score, evaluate, recommend, report
+    questions.ts       # canonical Germany question keys + helpers (typed)
+    chancenkarte.ts    # 6-point Opportunity Card scorer
+    pathways.ts        # eligibility for job seeker, Ausbildung, skilled worker, Blue Card
+    recommend.ts       # AI/rule-based recommendation engine (eligible / partial / low / gaps)
+    report.ts          # Germany PDF sections (called by edge function)
+    types.ts
 ```
 
-Interface (rough):
+`src/lib/assessmentPdf.ts` becomes a thin router: `if country==='DE' → germany/report.ts`, else existing Canada path. No Canada logic moves.
+
+## 2. Database (additive migration)
+
+Round out the Germany questions to cover every item the user listed, and add two admin-editable rule tables.
+
+- Top up `assessment_questions` (country='Germany') so we have:
+  - Personal: `de_age`, `de_marital_status`, `de_nationality`, `de_current_country`
+  - Education: `de_highest_qualification`, `de_education_country`, `de_degree_duration_years`, `de_regulated_profession`, `de_recognition_status` (full/partial/not_started/not_required), `de_anabin_status` (H+/H+-/H-/unknown), `de_vocational_qualification`, `de_vocational_duration_years`
+  - Language: `de_german_level` (none/A1/A2/B1/B2/C1/C2 — Goethe/telc/ÖSD), `de_german_test_provider`, `de_english_test` (IELTS/PTE/TOEFL/none), `de_english_score`, `de_english_cefr`
+  - Work: `de_occupation` (free-text + soft mapping later), `de_years_experience`, `de_skilled_experience_years` (last 7), `de_currently_employed`, `de_european_experience_years`, `de_management_experience_years`
+  - Germany ties: `de_previous_stay`, `de_previous_stay_months`, `de_family_in_germany`, `de_studied_in_germany`, `de_job_offer` (yes/no), `de_employer_contact` (early/advanced/contract)
+  - Finance: `de_blocked_account_eur`, `de_sponsor_support`, `de_monthly_budget_eur`, `de_proof_of_funds`
+  - Misc: `de_passport_valid`, `de_spouse_qualification`, `de_demand_occupation` (admin flag list)
+- New table `de_chancenkarte_rules` — admin-editable point weights per factor (qualification, language_de, language_en, work_experience, age, germany_ties, spouse, shortage_occupation) with JSON tiers (e.g. `B2 = 3 pts`, `age 18-34 = 2 pts`, etc.). One row per factor + global pass threshold (default ≥ 6).
+- New table `de_shortage_occupations` — admin list of demand/shortage occupations (label + keywords), used by the engine and the admin UI.
+- Update `assessment_programs.match_rules` for `de_*` rows to use the canonical keys above (no schema change; values only via data insert).
+- RLS: public select for both new tables; admin write only. Same pattern as `assessment_questions`.
+
+## 3. Chancenkarte 6-point engine (`chancenkarte.ts`)
+
+Pure function `scoreChancenkarte(answers, rules) → { total, sections, basePass, notes }`. Defaults — all configurable via `de_chancenkarte_rules`:
+
+| Factor | Points |
+| --- | --- |
+| Qualification recognition (full=4 / partial=3 / Anabin H+=3 / vocational recognised=3) | up to 4 |
+| German language (A1=1, A2=1, B1=2, B2=3, C1=3, C2=3) | up to 3 |
+| English language (B2/IELTS 6.0+=1) | 1 |
+| Work experience (≥2y skilled=1, ≥5y skilled=2) | up to 2 |
+| Age (≤34=2, 35–39=1) | up to 2 |
+| Shortage occupation match | 1 |
+| Germany ties (prior stay ≥6m / study in DE / family) | 1 |
+| Spouse joint application (also ≥6 pts when scored alone) | 1 |
+| **Pass threshold** | ≥ 6 |
+
+Base requirements (separate from points): recognised degree OR vocational qualification (≥2y), proof of funds (blocked account ≥ ~€12 324/yr or equivalent sponsor), valid passport, German A1 or English B2.
+
+## 4. Pathway evaluators (`pathways.ts`)
+
+Each returns `{ status: eligible | partial | not_eligible, reasons[], gaps[] }`, driven by `assessment_programs.match_rules` so admins can tune without code:
+
+- **Opportunity Card** — base reqs + Chancenkarte ≥ 6.
+- **Job Seeker Visa** — bachelor+ recognised, proof of funds, valid passport. 6-month plan = soft check.
+- **Ausbildung** — German ≥ B1, school qualification, age < 35 (soft), Ausbildung contract or active search.
+- **Skilled Worker (§18a/§18b)** — ZAB-recognised degree OR vocational, qualified job offer, German ≥ B1 (or English for §18b if employer agrees).
+- **EU Blue Card** — recognised degree, job offer with salary ≥ €43 759.80 (shortage) / €48 300 (standard) for 2025, contract ≥ 6 months.
+
+## 5. Recommendation engine (`recommend.ts`)
+
+Inputs: answers + scoring + pathway results. Outputs:
+
 ```ts
-export interface CountryPack {
-  code: "CA" | "DE" | "UK" | "AU" | "US" | "NZ" | "AE" | "EU";
-  name: string;
-  status: "active" | "coming_soon";
-  pathways: Pathway[];
-  getQuestions(ctx: { pathway: string; answers: Answers }): Question[];
-  score(answers: Answers, pathway: string): ScoringResult;
-  evaluate(answers: Answers): PathwayEligibility[];
-  renderReport(session, answers, result): PdfSections;
+{
+  overall: 'likely_eligible' | 'partial' | 'low',
+  bestPathway: 'de_chancenkarte' | ...,
+  missingRequirements: string[],          // e.g. "Get ZAB Statement of Comparability"
+  suggestedImprovements: { area, action, impactPts }[],   // e.g. "Move B1 → B2: +1 pt"
+  pathwayNotes: Record<pathwayCode, string>,
+  languageRecommendation: 'A1' | 'B1' | 'B2' | null,
+  nextActions: string[]                   // ordered checklist
 }
 ```
 
-The engine never references "Canada" or "CRS" directly. `assessment-submit` and `assessment-pdf-download` look up the pack by `session.country` and call `pack.score()` + `pack.renderReport()`.
+Rule-based first (deterministic, no LLM). Optional Lovable AI Gateway pass behind a feature flag to narrate the result (no API key needed). Out of scope for this PR: external integrations (Anabin/ZAB/APS/blocked account/employer match/embassy/visa checklist) — engine exposes hooks (`integrations/anabin`, `integrations/zab`, …) returning stubbed "manual_review" so we can wire real APIs later.
 
-## 4. Database — additive only
+## 6. Edge functions
 
-New migration adds (no destructive changes):
+- `assessment-submit`: if `session.country` is Germany / `DE`, branch to `germany/index.ts` for scoring + persisting `output.de` (chancenkarte breakdown, pathway results, recommendation). Canada branch unchanged.
+- `assessment-pdf-download`: same branch — call `germany/report.ts` for PDF sections.
+- New `germany/report.ts` produces sections: cover, Chancenkarte points breakdown, pathway matches, missing requirements, recognition guidance, language plan, next-actions checklist, disclaimer. Built with the same pdf-lib pattern as the existing CRS PDF.
 
-- `countries` table — `code` (PK), `name`, `flag_emoji`, `status` (`active|coming_soon`), `order_index`. Seed CA, DE active; UK/AU/US/NZ/AE/EU as coming_soon.
-- `country_pathways` table — `country_code`, `pathway_code`, `label`, `description`, `icon`, `is_active`, `order_index`. Seeds Canada's 6 + Germany's 5.
-- Reuse `assessment_questions` (already has `country` + `goal`). Use `goal` to store the pathway code (e.g. `de_chancenkarte`, `ca_express_entry`).
-- Reuse `assessment_programs` for per-country pathway match rules.
-- `assessment_sessions`: no schema change. `country` already exists; we'll start writing real ISO codes / pack codes there.
-- RLS: public read on `countries` + `country_pathways`; admin write. Same pattern as `assessment_questions`.
+## 7. Frontend
 
-## 5. Germany pack content
-
-**Pathways + scoring summary**
-
-| Pathway | Scoring driver |
-| --- | --- |
-| Opportunity Card (Chancenkarte) | 6-point system; need ≥6 pts + base requirements (vocational/uni degree, A1 German or B2 English, finances) |
-| Job Seeker Visa | Eligibility only (degree + funds + 6-month plan) |
-| Ausbildung | Eligibility + language (B1) + age + school qualification |
-| Skilled Worker | ZAB-recognized degree + qualified job offer + B1 |
-| EU Blue Card | Recognized degree + job offer ≥ €48 300 (shortage €43 759.80) + 6-month contract |
-
-We seed ~30–40 Germany-specific questions (German level via Goethe/telc/ÖSD, ZAB recognition, salary, Ausbildung contract, etc.) and pathway rules driven by `assessment_programs.match_rules` JSON so admins can tune without code.
-
-## 6. Canada pack
-Wrap existing logic — no behavior change:
-- `packs/canada/scoring.ts` calls existing `supabase/functions/_shared/crs/calculator.ts`.
-- `packs/canada/eligibility.ts` calls existing `noc-eligibility` edge function + `src/lib/noc.ts`.
-- `packs/canada/report.ts` is the current `assessmentPdf.ts` Canada sections, moved.
-
-`src/lib/assessmentPdf.ts` becomes a thin orchestrator that picks `pack.renderReport()`.
-
-## 7. Edge functions
-- `assessment-submit`: load pack by `session.country`, call `pack.score()`, persist `output`.
-- `assessment-pdf-download`: same, call `pack.renderReport()`.
-- New `assessment-pack-meta` (verify_jwt=true): returns `{ countries, pathways, questions }` for a given country/pathway so the frontend doesn't hardcode anything.
+- `AssessmentRun.tsx`: when `flc_country === 'Germany'`, render Germany branching (existing filter already supports `de_chancenkarte` as shared base). Add a live "Chancenkarte points" side panel (`src/components/assessment/ChancenkartePanel.tsx`) mirroring the existing `PathwayEligibilityPanel` — it calls `scoreChancenkarte` on the client for instant feedback.
+- `PortalAssessment.tsx`: show Germany pathway chips + Chancenkarte score when the session country is Germany.
 
 ## 8. Admin UI
-- `AssessmentAdmin.tsx` gets a **Country** filter (defaults to All). Sessions list shows a country chip.
-- New `src/pages/admin/CountryPackAdmin.tsx` — tabbed editor for countries, pathways, and per-country questions (admin can add a new country/pathway without code).
 
-## 9. Frontend touchpoints
-- `AssessmentLanding.tsx` — Settle Abroad hero, "Choose your destination" CTA.
-- `AssessmentCountry.tsx` (new) — country picker.
-- `AssessmentGoal.tsx` — country-scoped pathway picker (data-driven).
-- `AssessmentRun.tsx` — render `pack.getQuestions()` instead of hardcoded list; passes country through.
-- `PortalAssessment.tsx` — shows country flag + pathway, "Start a new country" CTA.
+Extend `AssessmentAdmin.tsx` with a **Germany rules** tab (visible when country filter = Germany):
+- Edit `de_chancenkarte_rules` (factor → tier → points, plus pass threshold).
+- Edit `de_shortage_occupations` (label + keywords).
+- Edit `assessment_programs.match_rules` for the 5 `de_*` programs via JSON form with field hints.
+- Existing question editor already supports Germany questions; just add a "Germany" preset to add the missing keys in one click.
 
-## 10. Out of scope (deferred)
-- Full UK / Australia / USA / NZ / UAE / EU rule packs (placeholder "Coming soon" cards only).
-- Multi-language UI (English only for now).
-- Migrating already-stored `country='Canada'` sessions to ISO codes — we keep a small normalizer (`Canada` ↔ `CA`).
+## 9. Out of scope (deferred)
+- Real Anabin / ZAB / APS / blocked-account / employer-matching API calls (stubs only; engine emits "manual_review" reasons).
+- Multi-language UI.
+- UK / AU / US / NZ / AE rule packs.
 
----
+## Technical details
 
-## Files added / edited
-
-**Migration (additive)**
-- `supabase/migrations/<ts>_settle_abroad_country_packs.sql` — `countries`, `country_pathways`, seed CA+DE, seed Germany questions + programs.
-
-**Edge functions**
-- New: `supabase/functions/assessment-pack-meta/index.ts` (+ `deno.json`, register in `config.toml`).
-- Edited: `assessment-submit`, `assessment-pdf-download` to delegate to the pack.
-
-**Frontend — new**
-- `src/lib/assessment/core/{types,registry,engine,profile}.ts`
-- `src/lib/assessment/packs/canada/{index,pathways,questions,scoring,eligibility,report}.ts`
-- `src/lib/assessment/packs/germany/{index,pathways,questions,scoring,eligibility,report}.ts`
-- `src/pages/assessment/AssessmentCountry.tsx`
-- `src/pages/admin/CountryPackAdmin.tsx` + route in `src/App.tsx`
-
-**Frontend — edited**
-- `AssessmentHeader.tsx`, `AssessmentLanding.tsx`, `AssessmentGoal.tsx`, `AssessmentRun.tsx`, `AssessmentAdmin.tsx`, `PortalAssessment.tsx`, `assessmentPdf.ts`, `AppLayout.tsx`, email templates.
-
-This delivers the rename + Canada/Germany packs and leaves a clean, country-agnostic engine ready for UK/AU/US/NZ/AE/EU to be added as data + a single pack folder each.
+- New folder `src/lib/assessment/germany/*` (Germany only).
+- Edited: `src/lib/assessmentPdf.ts` (router only), `src/pages/assessment/AssessmentRun.tsx` (Germany side panel), `src/pages/portal/PortalAssessment.tsx`, `src/pages/admin/AssessmentAdmin.tsx`, `supabase/functions/assessment-submit/index.ts`, `supabase/functions/assessment-pdf-download/index.ts`.
+- New components: `src/components/assessment/ChancenkartePanel.tsx`, `src/components/admin/GermanyRulesTab.tsx`.
+- One additive migration: `de_chancenkarte_rules`, `de_shortage_occupations` (+ RLS), and an insert/upsert of any missing `de_*` questions and seed point weights.
+- No changes to Canada CRS code paths, CRS calculator, NOC tables, or existing Canada questions.
