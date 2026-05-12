@@ -493,8 +493,8 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       y += 6;
     }
 
-    // IRCC LICO table — only relevant for spouse/parent income proof.
-    if (ev.branch === "parent" || ev.branch === "spouse") {
+    // IRCC LICO table — only relevant for parent/grandparent income proof.
+    if (ev.branch === "parent") {
       const famSize = Number(fam.family_size) || 0;
       newPageIfNeeded(220);
       pdf.setFont("helvetica", "bold"); pdf.setFontSize(12);
