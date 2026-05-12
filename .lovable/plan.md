@@ -1,132 +1,141 @@
+# Canada Assessment — PDF fixes + Family Reunification pathway
 
-# Canada Assessment — Hardening Pass
-
-Safety: all changes are additive/patches. No working module, table, route, or theme is removed. Existing Germany flow untouched. Client records are never deleted — only the `assessment_sessions` row.
-
-## 1. Name fields (First / Middle / Last)
-
-**File:** `src/components/assessment/StartAssessmentDialog.tsx`
-- Replace single `Full name *` with three inputs: First name *, Middle name (optional), Last name *.
-- On submit, compose `full_name = [first, middle, last].filter(Boolean).join(" ")` — keeps `clients.full_name` schema unchanged.
-- Existing-client tab unchanged.
-
-## 2. Delete duplicate assessment sessions (keep client intact)
-
-**File:** `src/pages/admin/AssessmentAdmin.tsx` (Submissions table)
-- Add a trash-icon button per row next to Resume/Download.
-- Confirms: "Delete this assessment record? The client profile will be kept."
-- Calls `supabase.from('assessment_sessions').delete().eq('id', sessionId)` — does NOT touch `clients`.
-- Admin-only (already guarded by route). RLS already restricts non-admins.
-
-## 3. CRS engine — strict IRCC caps (Canada only)
-
-**File:** `supabase/functions/_shared/crs/calculator.ts` (and mirror used in `assessment-crs`)
-- Add hard caps before returning total:
-  - Core: `min(total, withSpouse ? 460 : 500)`
-  - Spouse: `min(total, 40)`
-  - Transferability: already `min(100, …)` — keep
-  - Additional: already `min(600, …)` — keep
-  - Grand total: `min(total, 1200)`
-- De-duplicate additional points: ensure PNP (+600), job offer (50/200), Canadian education (15/30), sibling (15), French bonus (25/50) are each added **once**, not stacked from multiple answer keys.
-- Add unit assertions in calculator (dev-time `console.warn` if any section exceeds its cap) so future regressions are visible.
-
-## 4. Gate eligibility until language entered
-
-**File:** `src/pages/assessment/AssessmentRun.tsx` + `PathwayEligibilityPanel.tsx`
-- Helper `hasLanguage(answers)`: requires `english_test` set AND all four module scores (`english_listening/reading/writing/speaking`) present and numeric.
-- If false:
-  - Hide CRS number + pathway cards.
-  - Show neutral notice: "Complete the language test section to calculate accurate eligibility."
-- Eligibility evaluation in `evaluatePathways` only runs once `hasLanguage` is true.
-
-## 5. Remove "Overall IELTS"; require 4 modules
-
-**DB migration** (`assessment_questions`):
-- Deactivate `english_overall` and `french_overall`.
-- Ensure these are active and required: `english_listening`, `english_reading`, `english_writing`, `english_speaking` (numeric, IELTS bands 0–9 / CELPIP 1–12 / PTE 10–90 / TEF/TCF raw).
-- Same four for French (optional unless user selects French as a test).
-- `english_test` options: IELTS / CELPIP / PTE Core. `french_test`: TEF Canada / TCF Canada.
-
-CRS calculator already handles per-skill → per-skill CLB (no change needed beyond reading the 4 module values).
-
-## 6. Split work experience: Foreign vs Canadian
-
-**DB migration:**
-- Deactivate generic `work_experience_years`.
-- Ensure two active questions:
-  - `foreign_skilled_work_years` (numeric, 0–15)
-  - `canadian_skilled_work_years` (numeric, 0–10)
-
-**Calculator:** already reads `work_experience_years` + `canadian_work_experience`. Add alias mapping in `AssessmentRun.setWithDerived`: write `work_experience_years <- foreign_skilled_work_years` and `canadian_work_experience <- canadian_skilled_work_years` so existing engine keeps working.
-
-## 7. Self-employed experience
-
-**DB migration — new questions** (Canada, conditional):
-- `self_employed_any` (yes/no)
-- `self_employed_country` (text, shown when yes)
-- `self_employed_years` (numeric, shown when yes)
-- `self_employed_occupation` (text, shown when yes)
-
-**Calculator:** subtract self-employed years from `canadian_work_experience` when computing CEC eligibility flag (CEC excludes self-employment). Keep them in foreign years for FSW.
-
-## 8. Foreign work continuity (FSW)
-
-New question `foreign_work_continuous_1yr` (yes/no). Used as a hard gate for FSW eligibility result (not for CRS points).
-
-## 9. Current status in Canada
-
-New question `current_status_canada` with options: outside_canada / visitor / student / worker / pr_holder.
-- Drives routing flags shown on results page (CEC, AIP, RNIP, student-to-PR hints).
-- No CRS change.
-
-## 10. Job offer — keep minimal
-
-Ensure only two active job-offer questions: `job_offer` (yes/no), `lmia_backed` (yes/no, shown if job_offer=yes). Deactivate any deeper job-offer questions if present.
-
-## 11. Relatives in Canada — reword
-
-Rename label of `sibling_in_canada` to "Do you have close relatives living in Canada who are citizens or PR holders?" and add follow-up `relative_relationship` (sibling / parent / aunt_uncle / cousin / child / other). Only `sibling` awards the +15 CRS — matches IRCC.
-
-## 12. Settlement funds (single field)
-
-New question `settlement_funds_cad` (numeric). Drop source/investment questions if any. Results page checks against IRCC family-size table (built into a small util) and shows ✅/⚠.
-
-## 13. Province — "open to any?" gate
-
-New question `open_to_any_province` (yes/no). If no, show existing `preferred_provinces` multi-select; otherwise skip.
-
-## 14. FSW 67-point grid
-
-**New file:** `supabase/functions/_shared/crs/fsw67.ts`
-- Pure function `calculateFsw67(answers)` returning `{ total, sections, pass }` where `pass = total >= 67`.
-- Sections: Language (28), Education (25), Experience (15), Age (12), Arranged employment (10), Adaptability (10).
-- Wired into `assessment-crs` edge function response alongside CRS.
-
-## 15. Results / summary page
-
-**File:** `src/pages/assessment/AssessmentRun.tsx` final step (or new `AssessmentResult.tsx`).
-After submission show three blocks:
-- **Eligibility Summary** — EE, FSW, CEC, FST, PNP-potential with ✅/⚠ chips driven by calculator flags.
-- **CRS Breakdown** — already produced by `calculateCrs`; render section items as rows.
-- **Improvement Suggestions** — small rules table: e.g. if first-CLB is 8, simulate CLB 9 and show "+X CRS"; if no PNP, prompt province match; if foreign years <3, show transferability gain.
-
-No DB schema for suggestions — computed client-side from the breakdown.
+Two independent workstreams. Both are additive. No existing module, route, theme, or DB column is removed.
 
 ---
 
-## Files touched (summary)
+## Part 1 — PDF report fixes (Canada)
 
-- `src/components/assessment/StartAssessmentDialog.tsx` — name split
-- `src/pages/admin/AssessmentAdmin.tsx` — delete session button
-- `src/pages/assessment/AssessmentRun.tsx` — language gate, alias mapping, results page
-- `src/components/assessment/PathwayEligibilityPanel.tsx` — gated rendering
-- `supabase/functions/_shared/crs/calculator.ts` — hard caps, dedupe
-- `supabase/functions/_shared/crs/fsw67.ts` — new
-- `supabase/functions/assessment-crs/index.ts` — return FSW alongside CRS
-- One SQL migration — deactivate `english_overall`/`french_overall`/`work_experience_years`; add new questions (self-employed, continuity, status in Canada, settlement funds, open-to-any-province, relative relationship).
+**File:** `src/lib/assessmentPdf.ts` only.
+
+### 1a. Logo missing on download
+
+Root cause: `loadLogoDataUrl()` uses `fetch(flcLogo)` which can fail silently in some browsers (CORS / cached blob URL), so `addImage` is skipped and the header renders without the logo.
+
+Fix:
+- Replace the `fetch → blob → FileReader` flow with an `<img>` + canvas approach (synchronous-friendly, no CORS path on same-origin Vite asset):
+  - `new Image(); img.src = flcLogo; await img.decode();`
+  - Draw to an offscreen `canvas` sized to the natural dimensions, then `canvas.toDataURL("image/png")`.
+- Cache the data URL in a module-level variable so subsequent downloads reuse it.
+- Keep the existing `addImage(..., "PNG", margin, y, 90, 32)` placement so the header layout is unchanged.
+
+### 1b. Add FSW 67-point eligibility block
+
+The CRS edge function already returns `crs.fsw67` (from `supabase/functions/_shared/crs/fsw67.ts`), and `AssessmentRun.tsx` already reads it for the on-screen panel — but `assessmentPdf.ts` never renders it.
+
+Add a new section in the Canada branch (right after the CRS section, before "Answers grouped by section"):
+
+```
+Federal Skilled Worker — 67-Point Eligibility
+<total>/67   PASS / DOES NOT PASS
+
+Language ability        x / 28
+Education               x / 25
+Work experience         x / 15
+Age                     x / 12
+Arranged employment     x / 10
+Adaptability            x / 10
+```
+
+- Reads from `crs?.fsw67?.sections` with the same row-rendering helper used for CRS.
+- Color the pass/fail chip (green for pass, orange for below 67).
+
+### 1c. Add "Suggestions to improve CRS"
+
+Compute client-side from the CRS breakdown (no DB / no edge change needed). Helper `suggestCrsImprovements(crs, answers)` returns an array of `{ area, action, potentialGain }`.
+
+Rules (matches what the on-screen panel already hints at):
+- First-language CLB < 9 → "Retake IELTS to reach CLB 9 across all four modules (+X CRS for language + transferability)".
+- No PNP nomination → "Explore Provincial Nominee Programs aligned with your NOC (+600 CRS if nominated)".
+- Foreign work < 3 years → "Accumulate 3+ years of skilled foreign work to unlock full transferability tier".
+- Canadian work < 1 year → "Gain 1+ year of Canadian skilled work (CEC eligibility + transferability)".
+- No Canadian education credential → "A 1-2 year Canadian credential adds +15; 3-year/Masters adds +30".
+- Education = high_school/diploma → "Upgrade to bachelor's or master's for +30 to +85 core points".
+- Age > 30 → flag time-sensitivity note (no numeric promise).
+- French CLB < 7 → "Reach NCLC 7 in French for +25 or +50 bonus".
+
+Render as a bulleted list inside a styled card (same look as Germany "Recommendations & next actions" block, which already exists).
+
+### 1d. Always render even when only CRS exists
+
+Current early-bail: PDF only adds CRS rows if `crs.total` is a number. Keep that guard, but ensure FSW and suggestion sections render whenever `!isGermany`, falling back to "Complete the language section to see eligibility" if FSW is absent.
+
+---
+
+## Part 2 — Family Reunification / Dependent Pathway (Canadian PR + Citizens)
+
+This is a **separate flow**, not an addition to the CRS questionnaire. It runs when the applicant is already a Canadian PR or citizen (i.e. CRS scoring doesn't apply — they sponsor someone else).
+
+### 2a. Entry gate
+
+In `AssessmentRun.tsx`, before the existing question loop for Canada, check `answers.current_status_canada` (already a field in our schema):
+- If value is `pr_holder` or new value `citizen` → render `<FamilyReunificationFlow />` instead of the CRS pathway, with a back link to choose PR self-assessment instead.
+- Otherwise → existing CRS flow runs unchanged.
+
+Add `citizen` as an option to the `current_status_canada` question via a small data migration on `assessment_questions.options`.
+
+### 2b. New module
+
+```
+src/lib/assessment/family/
+  types.ts          // FamilyAnswers, Branch, BranchResult
+  branches.ts       // pure functions: which branch from relationship answer
+  evaluate.ts       // produces verdict cards + document checklist per branch
+  recommend.ts      // counselor-ready next-action list
+src/components/assessment/family/
+  FamilyReunificationFlow.tsx   // top-level state machine
+  RelationshipPicker.tsx        // Screen 1
+  branches/SpouseBranch.tsx     // A1–A7
+  branches/ChildBranch.tsx      // B1–B7
+  branches/ParentBranch.tsx     // C1–C9 (incl. Super Visa)
+  branches/OtherBranch.tsx      // D1–D5
+  DocumentChecklist.tsx         // common Screen 10
+  FamilySummary.tsx             // common Screen 11–12
+```
+
+Each branch is a small step component using existing shadcn primitives (Card, RadioGroup, Checkbox, Button). State is local to `FamilyReunificationFlow.tsx` and saved alongside CRS answers in the same `assessment_sessions.answers` JSON under a `family` key, so the existing autosave/draft mechanism is reused.
+
+### 2c. Branches (matches user spec exactly)
+
+- **Spouse / common-law / conjugal**: partner type → partner location → relationship status → children → sponsorship route (in-Canada class vs Family Class) → docs checklist → verdict.
+- **Dependent child**: child type → location → dependency check → custody → sponsorship route → docs → verdict.
+- **Parent / grandparent**: relative type → location → Super Visa vs PGP sponsorship → host relationship → income proof → relationship proof → medical insurance → docs → verdict.
+- **Other family member**: relative type → location → relationship proof → exceptional case check → counselor-review-only verdict.
+
+### 2d. Output
+
+`FamilySummary` shows:
+- Selected branch + key answers
+- Document readiness chips (✅ have / ⚠ missing)
+- Suggested route(s) with confidence label (Likely / Counselor review)
+- Buttons: **Download PDF**, **Book consultation**, **Save as lead** (re-use existing handlers from CRS flow)
+
+PDF: extend `assessmentPdf.ts` with a `family` section that prints the chosen branch, answers, checklist, and verdict — skipping the CRS/FSW blocks when `goal === "family_sponsorship"` or status is PR/citizen.
+
+### 2e. Database
+
+One additive migration:
+- Add `citizen` option to `current_status_canada.options`.
+- Optionally add a new `assessment_questions` row group `section='family'` for telecaller visibility — but the UI doesn't depend on it (questions are coded into branch components for fast iteration).
+- No new tables. Family answers persist inside `assessment_sessions.answers.family`.
+
+### 2f. Routing rules (no regressions)
+
+- CRS engine, FSW67 engine, Germany engine, existing forms, admin pages, telecaller — **untouched**.
+- Family flow is only reachable when the user explicitly selects PR/citizen, or selects `goal === "family_sponsorship"` on the goal step. Otherwise the existing CRS pathway runs as today.
+
+---
+
+## Technical notes
+
+- All changes are TypeScript-only on the frontend except the small `assessment_questions` option update.
+- No new external dependencies.
+- All colors via existing semantic tokens; no inline hex except in PDF (jsPDF requires RGB).
+- Existing draft autosave continues to work — family answers go under `answers.family` so old drafts remain valid.
 
 ## Out of scope
 
-- Germany flow (untouched).
-- Authentication, roles, telecaller, billing.
-- Any data backfill — existing draft sessions keep their old values; new questions default to null.
+- German flow.
+- Auth/roles/billing/telephony.
+- Backfilling existing sessions with the new `family` shape (new sessions only).
+- E2E rewrite of CRS scoring — only PDF rendering changes there.
