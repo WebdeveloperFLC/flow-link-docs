@@ -108,7 +108,7 @@ export default function AssessmentRun() {
     try {
       const { error } = await supabase.from("assessment_sessions").update({ answers, status: "in_progress" }).eq("id", sessionId);
       if (error) throw error;
-      toast.success("Progress saved");
+      toast.success("Progress saved — find it under Submissions in the admin console");
     } catch (e) { toast.error(e instanceof Error ? e.message : "Failed"); }
     finally { setSaving(false); }
   };
