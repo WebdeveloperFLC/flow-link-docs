@@ -28,6 +28,60 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 const isGermany = (c: string) => c === "Germany" || c === "DE";
 
+// Premium section subtitles shown only for the Germany pack.
+const GERMANY_SECTION_LABELS: Record<string, string> = {
+  personal: "Personal Profile & Germany Eligibility",
+  education: "Education & Qualification Recognition",
+  language: "Language Skills & Communication Readiness",
+  work: "Professional Experience & Germany Employability",
+  funds: "Financial Readiness & Settlement Support",
+  compliance: "Immigration History & Compliance Review",
+  documents: "Document Readiness & Upload Preparation",
+};
+
+// Auto-CEFR derivation from a test score.
+function deriveCefr(test: string, raw: number): string | null {
+  if (!Number.isFinite(raw)) return null;
+  const score = Number(raw);
+  if (test === "IELTS") {
+    if (score >= 7.5) return "C2";
+    if (score >= 6.5) return "C1";
+    if (score >= 5.5) return "B2";
+    if (score >= 5.0) return "B1";
+    if (score >= 4.0) return "A2";
+    return "A1";
+  }
+  if (test === "PTE") {
+    if (score >= 85) return "C2";
+    if (score >= 76) return "C1";
+    if (score >= 59) return "B2";
+    if (score >= 43) return "B1";
+    if (score >= 30) return "A2";
+    return "A1";
+  }
+  if (test === "TOEFL") {
+    if (score >= 110) return "C2";
+    if (score >= 95) return "C1";
+    if (score >= 72) return "B2";
+    if (score >= 57) return "B1";
+    if (score >= 31) return "A2";
+    return "A1";
+  }
+  if (test === "Duolingo") {
+    if (score >= 135) return "C1";
+    if (score >= 115) return "B2";
+    if (score >= 85) return "B1";
+    if (score >= 60) return "A2";
+    return "A1";
+  }
+  return null;
+}
+
+// Map experience band code → representative years for the engine.
+const EXP_BAND_TO_YEARS: Record<string, number> = {
+  lt_1: 0.5, "1_2": 1.5, "3_5": 4, gt_5: 6,
+};
+
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "Permanent Residence",
   work_permit: "Work Permit",
@@ -135,6 +189,17 @@ export default function AssessmentRun() {
           if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
           if (age >= 0 && age < 120) next.de_age = age;
         }
+      }
+      // Mirror skilled experience band → years for the engine.
+      if (code === "de_skilled_experience_band" && typeof v === "string" && EXP_BAND_TO_YEARS[v] != null) {
+        next.de_skilled_experience_years = EXP_BAND_TO_YEARS[v];
+      }
+      // Auto-CEFR from English test score.
+      const test = code === "de_english_test" ? v : next.de_english_test;
+      const score = code === "de_english_score" ? v : next.de_english_score;
+      if ((code === "de_english_test" || code === "de_english_score") && test && score != null && score !== "") {
+        const cefr = deriveCefr(String(test), Number(score));
+        if (cefr) next.de_english_cefr = cefr;
       }
       return next;
     });
@@ -272,7 +337,11 @@ export default function AssessmentRun() {
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
-              Section {step + 1} of {sections.length} · {currentSection?.label ?? ""}
+              Section {step + 1} of {sections.length} · {
+                isGermany(country)
+                  ? (GERMANY_SECTION_LABELS[currentSection?.key ?? ""] ?? currentSection?.label ?? "")
+                  : (currentSection?.label ?? "")
+              }
             </p>
           </div>
 
@@ -396,17 +465,18 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
     );
   }
   if (q.q_type === "select") {
+    const opts = normaliseOptions(q.options);
     return (
       <div className="flex flex-wrap gap-2">
-        {((q.options as string[]) ?? []).map((o) => (
-          <button key={o} type="button"
-            onClick={() => set(o)}
-            className={`px-4 py-2 rounded-full border text-sm capitalize ${
-              v === o ? "bg-[hsl(220_18%_11%)] text-white border-[hsl(220_18%_11%)]" : "border-[hsl(30_12%_82%)] bg-white"
+        {opts.map((o) => (
+          <button key={o.value} type="button"
+            onClick={() => set(o.value)}
+            className={`px-4 py-2 rounded-full border text-sm ${
+              v === o.value ? "bg-[hsl(220_18%_11%)] text-white border-[hsl(220_18%_11%)]" : "border-[hsl(30_12%_82%)] bg-white"
             }`}>
             <span className="inline-flex items-center gap-2">
-              <span className={`size-3 rounded-full border ${v === o ? "bg-white border-white" : "border-[hsl(30_12%_70%)]"}`} />
-              {o}
+              <span className={`size-3 rounded-full border ${v === o.value ? "bg-white border-white" : "border-[hsl(30_12%_70%)]"}`} />
+              {o.label}
             </span>
           </button>
         ))}
@@ -415,16 +485,17 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
   }
   if (q.q_type === "multiselect") {
     const arr: string[] = Array.isArray(v) ? v : [];
+    const opts = normaliseOptions(q.options);
     return (
       <div className="flex flex-wrap gap-2">
-        {((q.options as string[]) ?? []).map((o) => {
-          const on = arr.includes(o);
+        {opts.map((o) => {
+          const on = arr.includes(o.value);
           return (
-            <button key={o} type="button"
-              onClick={() => set(on ? arr.filter((x) => x !== o) : [...arr, o])}
+            <button key={o.value} type="button"
+              onClick={() => set(on ? arr.filter((x) => x !== o.value) : [...arr, o.value])}
               className={`px-3 py-1.5 rounded-full border text-sm ${
                 on ? "bg-[hsl(220_18%_11%)] text-white border-[hsl(220_18%_11%)]" : "border-[hsl(30_12%_82%)] bg-white"
-              }`}>{o}</button>
+              }`}>{o.label}</button>
           );
         })}
       </div>
@@ -437,4 +508,24 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
     return <input type="date" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value || null)} />;
   }
   return <input className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value)} />;
+}
+
+// Normalise legacy `string[]` options to `{value,label}[]` with a defensive prettifier
+// so even un-migrated rows render with a readable label.
+function normaliseOptions(opts: any): { value: string; label: string }[] {
+  if (!Array.isArray(opts)) return [];
+  return opts.map((o) => {
+    if (o && typeof o === "object" && "value" in o) {
+      return { value: String(o.value), label: String(o.label ?? prettify(String(o.value))) };
+    }
+    const s = String(o);
+    return { value: s, label: prettify(s) };
+  });
+}
+
+function prettify(s: string): string {
+  if (/^[A-C][1-2]$/.test(s)) return s; // CEFR codes stay uppercase
+  return s
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
