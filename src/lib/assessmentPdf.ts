@@ -295,7 +295,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       pdf.text(p.status.replace("_", " ").toUpperCase(), W - margin, y, { align: "right" });
       pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal");
       y += 12;
-      const lines = [...p.reasons.map((r) => `• ${r}`), ...p.gaps.map((g) => `– ${g}`)];
+      const lines = [...p.reasons.map((r) => safe(`• ${r}`)), ...p.gaps.map((g) => safe(`– ${g}`))];
       for (const ln of lines.slice(0, 5)) {
         const wrapped = pdf.splitTextToSize(ln, W - margin * 2 - 10) as string[];
         newPageIfNeeded(wrapped.length * 12);
@@ -313,7 +313,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       pdf.text("Recommendations & next actions", margin, y); y += 16;
       pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
       for (const s of de.recommendation.suggestedImprovements) {
-        const txt = `• ${s.area}: ${s.action}`;
+        const txt = safe(`• ${s.area}: ${s.action}`);
         const wrapped = pdf.splitTextToSize(txt, W - margin * 2) as string[];
         newPageIfNeeded(wrapped.length * 12);
         wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
@@ -325,7 +325,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         pdf.text("Next steps", margin, y); y += 14;
         pdf.setFont("helvetica", "normal");
         for (const a of de.recommendation.nextActions) {
-          const wrapped = pdf.splitTextToSize(`→ ${a}`, W - margin * 2) as string[];
+          const wrapped = pdf.splitTextToSize(safe(`• ${a}`), W - margin * 2 - 10) as string[];
           newPageIfNeeded(wrapped.length * 12);
           wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
           y += wrapped.length * 12;
