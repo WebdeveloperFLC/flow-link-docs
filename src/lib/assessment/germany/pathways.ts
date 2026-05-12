@@ -32,7 +32,7 @@ export function evaluateGermanyPathways(
     const reasons: string[] = [];
     const gaps: string[] = [...chancenkarte.baseFailures];
     if (chancenkarte.passes) {
-      reasons.push(`Chancenkarte points ${chancenkarte.total}/${chancenkarte.threshold} ✓`);
+      reasons.push(`Chancenkarte points ${chancenkarte.total}/${chancenkarte.threshold}`);
     } else if (chancenkarte.basePass) {
       gaps.push(`Need ${chancenkarte.threshold} Chancenkarte points (currently ${chancenkarte.total}).`);
     }
@@ -73,7 +73,7 @@ export function evaluateGermanyPathways(
   {
     const reasons: string[] = [];
     const gaps: string[] = [];
-    if (cefrIdx(answers.de_german_level) >= cefrIdx("B1")) reasons.push("German ≥ B1 ✓");
+    if (cefrIdx(answers.de_german_level) >= cefrIdx("B1")) reasons.push("German >= B1");
     else gaps.push("German B1 required for Ausbildung.");
     if (answers.de_ausbildung_offer === true) reasons.push("Ausbildung contract / placement confirmed.");
     else gaps.push("Confirmed Ausbildung contract not yet provided.");
@@ -96,7 +96,7 @@ export function evaluateGermanyPathways(
       answers.de_vocational_qualification === true;
     if (recognised) reasons.push("Recognition in place (ZAB or vocational).");
     else gaps.push("ZAB-recognised degree or recognised vocational training required.");
-    if (cefrIdx(answers.de_german_level) >= cefrIdx("B1")) reasons.push("German ≥ B1 ✓");
+    if (cefrIdx(answers.de_german_level) >= cefrIdx("B1")) reasons.push("German >= B1");
     else gaps.push("German B1 typically required (English may suffice under §18b for some employers).");
     if (answers.de_passport_valid !== true) gaps.push("Valid passport required.");
     results.push({
@@ -118,8 +118,8 @@ export function evaluateGermanyPathways(
     else if (salary >= 43759.8) reasons.push(`Salary €${salary.toLocaleString()} meets shortage threshold (€43,759.80).`);
     else gaps.push("Job offer salary below shortage threshold (€43,759.80).");
     const months = Number(answers.de_bluecard_contract_months ?? 0);
-    if (months >= 6) reasons.push("Contract ≥ 6 months.");
-    else gaps.push("Contract ≥ 6 months required.");
+    if (months >= 6) reasons.push("Contract >= 6 months.");
+    else gaps.push("Contract >= 6 months required.");
     if (answers.de_passport_valid !== true) gaps.push("Valid passport required.");
     results.push({
       code: "de_blue_card", label: "EU Blue Card",

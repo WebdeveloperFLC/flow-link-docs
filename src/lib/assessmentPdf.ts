@@ -19,6 +19,18 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 
 // Sections relevant to Family Reunification flow — hide CRS-only sections.
+// Sanitize text for jsPDF's built-in Helvetica (WinAnsi only). Non-WinAnsi glyphs
+// (≥, →, ✓, …) cause the whole string to render as spaced bytes.
+const safe = (s: string) =>
+  String(s ?? "")
+    .replace(/≥/g, ">=")
+    .replace(/≤/g, "<=")
+    .replace(/→/g, "->")
+    .replace(/↳/g, "->")
+    .replace(/✓/g, "(ok)")
+    .replace(/✗/g, "(x)")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
 const FAMILY_SECTION_ALLOW = new Set(["personal", "canada", "documents"]);
 // Question codes to skip when in family flow (CRS-only).
 const FAMILY_CODE_SKIP = /^(ielts|celpip|tef|tcf|noc|work|edu|education_level|spouse_|second_lang|canadian_work|provincial|funds|adapt|arranged)/i;
@@ -283,7 +295,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       pdf.text(p.status.replace("_", " ").toUpperCase(), W - margin, y, { align: "right" });
       pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal");
       y += 12;
-      const lines = [...p.reasons.map((r) => `• ${r}`), ...p.gaps.map((g) => `– ${g}`)];
+      const lines = [...p.reasons.map((r) => safe(`• ${r}`)), ...p.gaps.map((g) => safe(`– ${g}`))];
       for (const ln of lines.slice(0, 5)) {
         const wrapped = pdf.splitTextToSize(ln, W - margin * 2 - 10) as string[];
         newPageIfNeeded(wrapped.length * 12);
@@ -301,7 +313,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       pdf.text("Recommendations & next actions", margin, y); y += 16;
       pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
       for (const s of de.recommendation.suggestedImprovements) {
-        const txt = `• ${s.area}: ${s.action}`;
+        const txt = safe(`• ${s.area}: ${s.action}`);
         const wrapped = pdf.splitTextToSize(txt, W - margin * 2) as string[];
         newPageIfNeeded(wrapped.length * 12);
         wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
@@ -313,7 +325,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         pdf.text("Next steps", margin, y); y += 14;
         pdf.setFont("helvetica", "normal");
         for (const a of de.recommendation.nextActions) {
-          const wrapped = pdf.splitTextToSize(`→ ${a}`, W - margin * 2) as string[];
+          const wrapped = pdf.splitTextToSize(safe(`• ${a}`), W - margin * 2 - 10) as string[];
           newPageIfNeeded(wrapped.length * 12);
           wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
           y += wrapped.length * 12;
@@ -412,11 +424,11 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         pdf.text("Suggestions to improve your CRS", margin, y); y += 16;
         pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
         for (const t of tips) {
-          const head = `${t.area}: ${t.action}`;
+          const head = safe(`${t.area}: ${t.action}`);
           const bulletIndent = 12;
           const wrapped = pdf.splitTextToSize(head, W - margin * 2 - bulletIndent) as string[];
           const gainLines = t.potentialGain
-            ? (pdf.splitTextToSize(t.potentialGain, W - margin * 2 - bulletIndent - 4) as string[])
+            ? (pdf.splitTextToSize(safe(t.potentialGain), W - margin * 2 - bulletIndent - 4) as string[])
             : [];
           newPageIfNeeded(wrapped.length * 13 + gainLines.length * 13 + 6);
           wrapped.forEach((w2, i) => {

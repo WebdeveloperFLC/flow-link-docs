@@ -78,14 +78,14 @@ function basePass(answers: Record<string, any>): { ok: boolean; failures: string
   const anabin = ["H+", "H+-"].includes(String(answers.de_anabin_status));
   const vocational = answers.de_vocational_qualification === true && Number(answers.de_vocational_duration_years ?? 0) >= 2;
   if (!(recognition || anabin || vocational)) {
-    failures.push("No recognised university degree or vocational qualification (≥ 2 years).");
+    failures.push("No recognised university degree or vocational qualification (>= 2 years).");
   }
   const funds = Number(answers.de_blocked_account_eur ?? 0) >= 12324 || answers.de_sponsor_support === true;
   if (!funds) {
-    failures.push("Proof of funds missing — blocked account ≥ €12,324 or formal sponsor required.");
+    failures.push("Proof of funds missing — blocked account >= €12,324 or formal sponsor required.");
   }
   if (answers.de_passport_valid !== true) {
-    failures.push("Valid passport (≥ 12 months) required.");
+    failures.push("Valid passport (>= 12 months) required.");
   }
   const germanA1 = cefrIdx(answers.de_german_level) >= cefrIdx("A1");
   const englishB2 = cefrIdx(answers.de_english_cefr) >= cefrIdx("B2") || Number(answers.de_english_score ?? 0) >= 6;
