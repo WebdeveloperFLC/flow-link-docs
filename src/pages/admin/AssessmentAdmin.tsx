@@ -11,9 +11,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Mail, Download, Send, Copy, Search, ExternalLink,
-  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play,
+  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle,
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
+import { useNavigate } from "react-router-dom";
+
+const GOAL_LABELS: Record<string, string> = {
+  permanent_residence: "PR",
+  work_permit: "Work",
+  study_permit: "Study",
+  visitor_visa: "Visitor",
+  family_sponsorship: "Family",
+  business_investment: "Business",
+  unsure: "Eligibility",
+};
 
 const PUBLIC_ASSESSMENT_URL = `${window.location.origin}/assessment`;
 
@@ -223,6 +234,7 @@ function InvitationsTab() {
 }
 
 function SessionsTab() {
+  const nav = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -230,7 +242,7 @@ function SessionsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), output")
+      .select("id, status, goal, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), client:clients(first_name, last_name, email, phone), output")
       .order("created_at", { ascending: false }).limit(200);
     setRows(data ?? []); setLoading(false);
   };
@@ -240,7 +252,8 @@ function SessionsTab() {
     return rows.filter((r) => {
       if (statusFilter !== "all" && r.status !== statusFilter) return false;
       if (!t) return true;
-      const hay = `${r.lead?.first_name ?? ""} ${r.lead?.last_name ?? ""} ${r.lead?.email ?? ""}`.toLowerCase();
+      const p = r.client ?? r.lead ?? {};
+      const hay = `${p.first_name ?? ""} ${p.last_name ?? ""} ${p.email ?? ""}`.toLowerCase();
       return hay.includes(t);
     });
   }, [rows, q, statusFilter]);
@@ -272,32 +285,46 @@ function SessionsTab() {
       <table className="w-full text-sm">
         <thead className="bg-muted/50"><tr>
           <th className="text-left p-2 px-3">Client</th><th className="text-left p-2">Email</th>
-          <th className="text-left p-2">Status</th><th className="text-left p-2">CRS</th>
-          <th className="text-left p-2">Submitted</th><th></th>
+          <th className="text-left p-2">Goal</th><th className="text-left p-2">Status</th>
+          <th className="text-left p-2">CRS</th><th className="text-left p-2">Updated</th><th></th>
         </tr></thead>
         <tbody>
-          {filtered.map((r) => (
+          {filtered.map((r) => {
+            const p = r.client ?? r.lead ?? {};
+            const name = [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
+            const isOpen = r.status === "draft" || r.status === "in_progress";
+            const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
+            return (
             <tr key={r.id} className="border-t">
-              <td className="p-2 px-3">{r.lead?.first_name} {r.lead?.last_name}</td>
-              <td className="p-2">{r.lead?.email}</td>
+              <td className="p-2 px-3">{name}</td>
+              <td className="p-2">{p.email ?? "—"}</td>
+              <td className="p-2 text-xs">{GOAL_LABELS[r.goal] ?? "—"}</td>
               <td className="p-2"><Badge variant={r.status === "submitted" ? "default" : "outline"}>{r.status}</Badge></td>
               <td className="p-2 text-xs font-mono">{r.output?.crs?.total ?? "—"}</td>
-              <td className="p-2 text-xs">{r.submitted_at ? new Date(r.submitted_at).toLocaleString() : "—"}</td>
+              <td className="p-2 text-xs">{new Date(r.submitted_at ?? r.created_at).toLocaleString()}</td>
               <td className="p-2 text-right">
-                {r.status === "submitted" || r.status === "counselor_reviewed" ? (
-                  <div className="inline-flex gap-1">
-                    <Button size="sm" variant="outline" onClick={() => download(r.id)} title="Download PDF"><Download className="size-3.5" /></Button>
-                    <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
-                  </div>
-                ) : <span className="text-xs text-muted-foreground">—</span>}
+                <div className="inline-flex gap-1">
+                  {isOpen && (
+                    <Button size="sm" variant="default" onClick={() => nav(`/assessment/run/${r.id}`)} title="Open / Resume">
+                      <PlayCircle className="size-3.5 mr-1" />Resume
+                    </Button>
+                  )}
+                  {isDone && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => nav(`/assessment/run/${r.id}`)} title="View"><ExternalLink className="size-3.5" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => download(r.id)} title="Download PDF"><Download className="size-3.5" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
+                    </>
+                  )}
+                </div>
               </td>
             </tr>
-          ))}
+          );})}
           {filtered.length === 0 && (
-            <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
+            <tr><td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
               <div className="space-y-1">
-                <div className="font-medium text-foreground">No submissions yet</div>
-                <div>Completed assessments appear here once a lead registers, verifies their email, and submits the questionnaire.</div>
+                <div className="font-medium text-foreground">No assessments yet</div>
+                <div>Click <b>Start new assessment</b> above to add a client and begin.</div>
               </div>
             </td></tr>
           )}
