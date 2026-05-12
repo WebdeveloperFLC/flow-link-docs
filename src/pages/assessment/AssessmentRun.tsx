@@ -337,7 +337,11 @@ export default function AssessmentRun() {
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
-              Section {step + 1} of {sections.length} · {currentSection?.label ?? ""}
+              Section {step + 1} of {sections.length} · {
+                isGermany(country)
+                  ? (GERMANY_SECTION_LABELS[currentSection?.key ?? ""] ?? currentSection?.label ?? "")
+                  : (currentSection?.label ?? "")
+              }
             </p>
           </div>
 
