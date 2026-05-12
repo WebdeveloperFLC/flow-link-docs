@@ -257,7 +257,7 @@ function SessionsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, goal, answers, submitted_at, created_at, pdf_path, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
+      .select("id, status, goal, country, answers, submitted_at, created_at, pdf_path, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
       .order("created_at", { ascending: false }).limit(200);
     setRows(data ?? []); setLoading(false);
   };
@@ -278,7 +278,18 @@ function SessionsTab() {
     window.open((data as any).url, "_blank");
   };
   const pdfInput = async (r: any) => {
-    const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
+    const sCountry = r.country ?? "Canada";
+    const sGoal = r.goal ?? "permanent_residence";
+    const qs = await supabase
+      .from("assessment_questions")
+      .select("id, code, section, label, q_type, country, goal")
+      .eq("is_active", true)
+      .order("order_index");
+    const filtered = ((qs.data ?? []) as any[]).filter((q) => {
+      if (q.country !== sCountry) return false;
+      if (sCountry !== "Germany") return true;
+      return q.goal === sGoal || q.goal === "de_chancenkarte";
+    });
     const p = r.client ?? r.lead ?? {};
     const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "");
     return {
@@ -286,8 +297,9 @@ function SessionsTab() {
       clientName: name,
       clientEmail: p.email,
       goal: r.goal,
+      country: sCountry,
       answers: r.answers ?? {},
-      questions: (qs.data ?? []) as any[],
+      questions: filtered,
       crs: r.output?.crs,
     };
   };
