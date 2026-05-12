@@ -1,72 +1,76 @@
-## Goals
+## Goal
 
-1. Rename the sidebar entry "Canada Assessment" to "Settle Abroad" (the rest of the module is already rebranded — only this nav label is stale).
-2. Fix the "Edge Function returned a non-2xx status code" toast users see in the Assessment Console.
-
-## Why the error appears
-
-`supabase.functions.invoke` returns a `FunctionsHttpError` whose `.message` is literally `"Edge Function returned a non-2xx status code"` whenever an edge function returns 4xx/5xx. The actual server message in the JSON body is discarded by the current toast code (`error?.message ?? data?.error`), so the user always sees the generic string.
-
-On top of that, two functions are genuinely broken for **counselor-initiated** sessions (sessions created via `StartAssessmentDialog`, which have a `client_id` but **no** `lead_id`):
-
-- `assessment-resend-report` reads `session.lead.email` without a null check → throws → 500 (`Cannot read properties of null`). This fires when the user clicks the ✉ icon on rows started from the dialog.
-- `assessment-pdf-download` returns 404 `"No PDF"` for any session without `pdf_path` (e.g. a freshly-created draft), and the UI surfaces it as the generic non-2xx toast.
-
-Combined with the fact that the Germany session created in the screenshot is a draft with no PDF yet, clicking the download/email icon on any of the recent rows reproduces the toast.
+Fix UX problems in the Germany (Settle Abroad) assessment questionnaire: duplicate marital status, irrelevant spouse questions for single applicants, vague labels, weak inputs, missing relocation-readiness questions, and unprofessional section copy. Keep changes scoped to the Germany question pack, the questionnaire renderer, and the Chancenkarte rule that depends on those answers.
 
 ## Changes
 
-### 1. Sidebar rename
-`src/components/layout/AppLayout.tsx`
-- Change the nav item label `"Canada Assessment"` → `"Settle Abroad"`. Route (`/assessment-admin`) and icon stay the same.
+### 1. Database — Germany question pack (new migration)
 
-### 2. Fix `assessment-resend-report`
-`supabase/functions/assessment-resend-report/index.ts`
-- Select `client:clients(email, full_name)` alongside `lead:assessment_leads(...)`.
-- Compute `recipientEmail` from `lead?.email ?? client?.email`; first-name fallback from client's `full_name.split(" ")[0]`.
-- If `recipientEmail` is missing → return `400 { error: "Client has no email on file" }`.
-- Keep auth: staff OR (lead owner). Counselor-initiated sessions only allow staff (already covered by `isStaff`).
+A new migration cleans up duplicates and reshapes the personal section. Existing answer keys are reused where safe so that already-collected data still scores.
 
-### 3. Fix `assessment-pdf-download`
-`supabase/functions/assessment-pdf-download/index.ts`
-- Return `404 { error: "Report not generated yet — complete the assessment first." }` (clearer message) when `pdf_path` is null. No structural change.
+- **Drop / deactivate** these duplicate or replaced rows:
+  - `de_marital_status` (duplicate — "Marital status (detailed)")
+  - `de_spouse_qualification` (vague "basic conditions" wording)
+  - `de_previous_stay_months` (replaced by yes/no + duration)
+  - `de_age` (replaced by date of birth, age derived)
+  - `de_family_in_germany` boolean (replaced by multiselect of relations)
+  - `de_studied_in_germany` boolean (replaced by duration select)
 
-### 4. Surface real error messages instead of the generic supabase-js string
-For each `supabase.functions.invoke` call in the assessment admin/dialog, parse the actual error body so users see a useful toast:
+- **Keep** `de_marital` as the single marital field with options `single, married, common_law, separated, divorced, widowed` and move it to `order_index = 3`.
 
-```ts
-async function invokeError(error: any, data: any) {
-  if (data?.error) return data.error;
-  if (!error) return null;
-  try {
-    const body = await error.context?.json?.();
-    if (body?.error) return body.error;
-  } catch {}
-  return error.message ?? "Request failed";
-}
+- **Add / update** the following rows (all `country='Germany'`, `goal='de_chancenkarte'`):
+
+| code | type | label | options | conditional_on | order |
+|---|---|---|---|---|---|
+| `de_dob` | `date` | Date of birth | — | — | 10 |
+| `de_partner_join` | `boolean` | Will your spouse/partner also apply for Germany immigration with you? | — | `{"de_marital":["married","common_law"]}` | 30 |
+| `de_partner_qualification` | `boolean` | Does your spouse/partner have a recognised qualification? | — | `{"de_partner_join":true}` | 31 |
+| `de_partner_language` | `select` | Spouse/partner language ability | `["none","german_a1","german_b1","english_b2","both"]` | `{"de_partner_join":true}` | 32 |
+| `de_partner_skilled_experience` | `boolean` | Does your spouse/partner have skilled work experience? | — | `{"de_partner_join":true}` | 33 |
+| `de_previous_germany_stay` | `boolean` | Have you previously stayed in Germany legally? | — | — | 50 |
+| `de_previous_stay_duration` | `select` | Total duration stayed in Germany | `["lt_3m","3_6m","6_12m","gt_1y"]` | `{"de_previous_germany_stay":true}` | 51 |
+| `de_germany_study_duration` | `select` | Have you ever studied in Germany? | `["no","lt_6m","6_12m","gt_1y"]` | — | 52 |
+| `de_family_relations` | `multiselect` | Immediate family members living in Germany | `["parent","sibling","spouse","child","other","none"]` | — | 53 |
+| `de_move_intent` | `select` | When are you planning to move to Germany? | `["immediately","within_6_months","within_1_year","exploring"]` | — | 60 |
+| `de_documents_ready` | `multiselect` | Documents you currently have ready | `["resume","passport","education_docs","experience_letters"]` | — | 61 |
+
+### 2. Chancenkarte rule update (in `de_chancenkarte_rules` table)
+
+The "Germany connection" factor currently references the dropped keys. The migration updates that rule's `tiers` JSONB to read the new answer keys, scoring the same way (one point each, capped by `max_points`):
+
+```text
+- de_germany_study_duration_in ["lt_6m","6_12m","gt_1y"]   → 1 pt "Studied in Germany"
+- de_previous_germany_stay = true AND
+  de_previous_stay_duration_in ["6_12m","gt_1y"]            → 1 pt "Previous stay ≥ 6 months"
+- de_family_relations_in ["parent","sibling","spouse","child","other"] → 1 pt "Close family in Germany"
 ```
 
-Apply in:
-- `src/components/assessment/StartAssessmentDialog.tsx` (start button)
-- `src/pages/admin/AssessmentAdmin.tsx` — `downloadServer`, `resend`, plus the invite-create call
+The "spouse joint application" tier is rewritten:
 
-Place the helper in a small shared util `src/lib/invokeError.ts` so we don't duplicate it.
+```text
+- de_partner_join = true AND de_partner_qualification = true → 1 pt "Spouse joint application"
+```
 
-### 5. Hide download / email buttons that can never succeed
-`src/pages/admin/AssessmentAdmin.tsx`
-- Only render the server-download (cloud) and email (✉) icons when `r.pdf_path` is set AND (for email) there is an email on the lead/client. Draft rows already show **Resume** only — extend the same logic to "submitted with no email" rows so the broken action is simply not offered.
+No change to other factors (age, language, qualification, experience, shortage, funds).
 
-## Out of scope
+### 3. Engine code
 
-- No DB migrations.
-- No changes to the Germany or Canada scoring engines.
-- No changes to `AssessmentRun.tsx` flow — session creation itself already works (verified via network log: 200 OK).
+- `src/lib/assessment/germany/pathways.ts` (and Deno mirror `supabase/functions/_shared/germany/engine.ts`): age is now derived from `de_dob`. Add a small helper that returns `Number(answers.de_age) || ageFromDob(answers.de_dob)`. The `_gte` / `_in` matcher already handles the new rule clauses.
+
+### 4. Questionnaire renderer (`src/pages/assessment/AssessmentRun.tsx`)
+
+- Add a `date` branch to `renderInput` that renders a native `<input type="date">` styled with `flc-input`. When the user changes `de_dob`, also mirror the derived integer age into `answers.de_age` so the existing live Chancenkarte panel keeps scoring without a round-trip.
+- Replace the section-subtitle string `Section {n} of {N} · answer what you can, skip what you can't.` with `Section {n} of {N} · {currentSection.label}` to remove the apologetic copy.
+- Conditional rendering already supports `{ key: [values] }` (see `showQ`); no change needed for the new spouse / stay-duration conditions.
+
+### 5. Out of scope
+
+- No changes to Canada questions, scoring, or PDF.
+- No changes to admin rule editor UI (rules remain editable from `/germany-rules`).
+- No backfill of historical answers (old `de_age` / `de_previous_stay_months` answers continue to score via the engine fallback).
 
 ## Files touched
 
-- `src/components/layout/AppLayout.tsx`
-- `src/components/assessment/StartAssessmentDialog.tsx`
-- `src/pages/admin/AssessmentAdmin.tsx`
-- `src/lib/invokeError.ts` (new)
-- `supabase/functions/assessment-resend-report/index.ts`
-- `supabase/functions/assessment-pdf-download/index.ts`
+- New SQL migration under `supabase/migrations/` (questions + rule JSON update).
+- `src/pages/assessment/AssessmentRun.tsx` (date input, age mirror, section subtitle).
+- `src/lib/assessment/germany/pathways.ts` + `supabase/functions/_shared/germany/engine.ts` (age-from-DOB fallback).
