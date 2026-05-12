@@ -190,6 +190,17 @@ export default function AssessmentRun() {
           if (age >= 0 && age < 120) next.de_age = age;
         }
       }
+      // Mirror skilled experience band → years for the engine.
+      if (code === "de_skilled_experience_band" && typeof v === "string" && EXP_BAND_TO_YEARS[v] != null) {
+        next.de_skilled_experience_years = EXP_BAND_TO_YEARS[v];
+      }
+      // Auto-CEFR from English test score.
+      const test = code === "de_english_test" ? v : next.de_english_test;
+      const score = code === "de_english_score" ? v : next.de_english_score;
+      if ((code === "de_english_test" || code === "de_english_score") && test && score != null && score !== "") {
+        const cefr = deriveCefr(String(test), Number(score));
+        if (cefr) next.de_english_cefr = cefr;
+      }
       return next;
     });
   };
