@@ -1,69 +1,50 @@
-## Goal
+## What's wrong now
 
-Make the Canada Immigration Assessment usable **right now without email**, and rebuild the UI to match the premium Future Link Consultants look in your screenshots. Keep all existing invite/email/verify code intact for later.
+1. **Branding** — the assessment header shows a generic leaf icon + "Future Link Consultants" text. The real FLC logo (blue globe + plane) is not used.
+2. **"Progress saved" but no record visible** — when a counselor starts a session via *Start new assessment* and clicks **Save**, the row is written to `assessment_sessions` with `client_id` set (not `lead_id`). The admin **Submissions** tab only joins `assessment_leads`, so:
+   - the Client / Email columns show blank for manually-started sessions
+   - there's no link to **resume** the in-progress session
+   - the user can't tell where the saved data went
 
-## What changes
+## Plan
 
-### 1. Counselor-driven start (no email needed)
+### 1. Use the real FLC logo
 
-On `/assessment-admin`, replace the current "Send Invite is the only option" feel with a clear primary action:
+- Copy `user-uploads://FLC_logo_1_-01-4.png` into `src/assets/flc-logo.png`.
+- Update `src/components/assessment/AssessmentHeader.tsx`:
+  - Replace the inline `Leaf` SVG block with `<img src={logo} alt="Future Link Consultants" />`, sized ~`h-10 w-auto`, no background tile.
+  - Keep the same header layout (logo left, Client/Counselor pill right). Drop the redundant "Future Link Consultants" text label since the logo already contains the wordmark; keep the small "Canada Immigration Assessment" subtitle underneath.
+- No other pages need changes — the header component is shared across Landing, Goal, and Run screens.
 
-- **"Start new assessment"** button (primary, top of page) opens a dialog with two tabs:
-  - **Existing client** — searchable list of clients from the `clients` table; pick one → creates an `assessment_sessions` row tied to that client and opens `/assessment/run/:sessionId` in a new tab for the counselor (or copies a shareable link).
-  - **New client** — minimal form (full name, email optional, phone optional, country) → inserts into `clients`, then creates the session and opens the run page.
-- The existing "Send invite", "Invitations", "Submissions", "Questions", "Programs" tabs all stay exactly as they are — just demoted below the new primary action. Nothing gets deleted.
-- Add a small "Public link" copy button (referral entry) but it's no longer the main path.
+### 2. Make saved sessions findable & resumable
 
-Backend: one new edge function `assessment-session-create` that accepts `{ clientId }` or `{ newClient: {...} }`, upserts the client, creates an `assessment_sessions` row in `draft` status, and returns `{ sessionId }`. No email is sent. Existing invite/verify/register functions stay untouched.
+Update `src/pages/admin/AssessmentAdmin.tsx` → `SessionsTab`:
 
-### 2. Premium theme — match the screenshots
+- **Query both relations**: change the select to also join `client:clients(first_name, last_name, email, phone)` alongside the existing `lead:assessment_leads(...)`. Display whichever is present (`r.client ?? r.lead`).
+- **Show goal**: add a "Goal" column reading `r.goal` (mapped through `GOAL_LABELS`).
+- **Resume action**: for rows in `draft` / `in_progress`, add a **"Open / Resume"** button that navigates to `/assessment/run/{id}` so the counselor can continue the questionnaire. Keep Download PDF / Resend for submitted rows.
+- **Empty-state copy**: when no rows, say "No assessments yet. Click **Start new assessment** above to begin one." (Currently the empty state is misleading.)
+- **Default tab**: switch the default Tabs value from `submissions` to `submissions` (already is) but ensure newly-created sessions land here — after `StartAssessmentDialog` succeeds it already navigates to `/assessment/run/{id}`, so on returning to `/assessment-admin` the row will now be visible with name + Resume button.
 
-Screenshots show: ivory/cream page background, near-black "Future Link Consultants" header card with leaf logo, **large bold serif display headlines**, soft rounded white cards with subtle borders, **coral/red primary CTA**, dark pill toggle for Client/Counselor, clean numbered section rail, and a right-side CRS card with a thin red progress bar.
+### 3. Small confirmation toast tweak
 
-Update `src/index.css` + `tailwind.config.ts` design tokens (HSL semantic tokens only — no hardcoded colors in components):
-
-- `--background`: warm ivory (`hsl(36 33% 97%)`)
-- `--foreground`: near-black (`hsl(220 15% 10%)`)
-- `--primary`: deep coral/red (`hsl(8 75% 60%)`) for CTAs and accents
-- `--secondary` / dark surface: `hsl(220 20% 12%)` for the header card and pill
-- `--card`, `--border`, `--muted` tuned to match the soft, airy look
-- Add display font (e.g. **Fraunces** or **Instrument Serif** from Google Fonts) for H1/H2; keep Inter for body. Wire via `index.html` + `tailwind.config.ts` `fontFamily.display`.
-- Add token `--shadow-card` for the subtle card lift.
-
-Since this is a **token-level** change, **the entire app** (dashboard, clients, portal, etc.) instantly inherits the premium feel — no per-page rewrites.
-
-### 3. Rebuild the three assessment screens to match the screenshots
-
-- **`AssessmentLanding.tsx`** — left: "Client self-assessment" chip, huge serif H1 "Find your most likely path to Canada.", supporting copy "…Built by Future Link Consultants.", two info rows with leaf/info icons, advisory callout, consent checkbox, red "Start assessment →" button. Right: promo/referral code card with Apply button, stats row (7 goal paths · 20+ programs · <5 min), bullet list of features. Top header strip with leaf logo + Client/Counselor pill.
-
-- **New `AssessmentGoal.tsx`** at `/assessment/goal` — "Step 1 of 3 · What's your primary goal?" with **7 goal cards** in a responsive grid (Permanent Residence, Work Permit, Study Permit, Visitor Visa, Family Sponsorship, Business / Investment, Unsure / Need Guidance). Each card has icon + title + one-line description. Selecting a goal stores it on the session and routes to `/assessment/questions`.
-
-- **`AssessmentRun.tsx`** (rename route to `/assessment/questions`) — three-column layout:
-  - Left rail: "Step 2 of 3 · Permanent Residence" + numbered section list (Personal, Education, Language, Work experience, Family & location, Compliance) with active/completed states.
-  - Center: white card with current section title, helper line, the questions for just that section, Back / Next buttons at the bottom.
-  - Right: "Estimated CRS — Advisory" card showing the big number, thin red progress bar, and per-factor lines (Age, Education, First language, Second language, Canadian experience, Spouse, Transferability, Additional). Drives off the existing `assessment-crs` edge function — no scoring logic changes.
-
-Submit on the last section keeps the existing `assessment-submit` flow and the existing "Submitted" success card.
-
-### 4. What is **not** touched
-
-- `assessment-invite-create`, `assessment-verify-email`, `assessment-register`, `assessment-resend-report`, `assessment-pdf-download`, all email templates, `client_portal_*` tables, the CRS calculator, the questions/programs seed data — all stay as-is for when email is configured later.
+In `AssessmentRun.tsx` `save()`, change the toast from `"Progress saved"` to `"Progress saved — find it under Submissions in the admin console"` so the user knows where to look. (Optional polish.)
 
 ## Technical notes
 
-- New file: `supabase/functions/assessment-session-create/index.ts` (+ `deno.json`, `config.toml` entry with `verify_jwt = true` since counselor-only).
-- New file: `src/pages/assessment/AssessmentGoal.tsx`; route added in `src/App.tsx`.
-- Rewrites: `AssessmentLanding.tsx`, `AssessmentRun.tsx`, `AssessmentAdmin.tsx` (add "Start assessment" dialog at top; keep all existing tabs).
-- New component: `src/components/assessment/AssessmentHeader.tsx` (logo + Client/Counselor pill, reused on all three screens).
-- New component: `src/components/assessment/StartAssessmentDialog.tsx` (existing-client search + new-client form).
-- Theme: edit `src/index.css` tokens + `tailwind.config.ts` (add `fontFamily.display`, `boxShadow.card`). Add Fraunces/Instrument Serif link in `index.html`.
-- Migration: tiny — add `goal text` column to `assessment_sessions` so the goal picker has somewhere to store its choice. No data loss.
+- No schema changes. `assessment_sessions` already has `client_id`, `lead_id`, `goal`, `answers`, `status`.
+- RLS already allows authenticated staff to select sessions joined with `clients` (existing policies cover both tables).
+- No edge function changes.
 
-## Out of scope (call out)
+## Files touched
 
-- Sending emails to clients — explicitly deferred per your instructions. The "Send invite" tab keeps working but you don't need to use it.
-- Refunding credits / reverting history — those are handled from the Lovable Project history panel, not by me in code.
+- `src/assets/flc-logo.png` (new — copied from upload)
+- `src/components/assessment/AssessmentHeader.tsx` (swap icon → img)
+- `src/pages/admin/AssessmentAdmin.tsx` (SessionsTab: join clients, add Goal column + Resume button, empty-state copy)
+- `src/pages/assessment/AssessmentRun.tsx` (toast copy — optional)
 
-## Open question
+## Out of scope (unchanged)
 
-Approve and I'll build it. One small choice you can answer in the next message if you want: **display font** — Fraunces (slightly warmer, modern editorial) or Instrument Serif (sharper, closer to the screenshots). I'll default to **Instrument Serif** to match the screenshots unless you say otherwise.
+- Invite/email/verify/register flows
+- CRS calculator, question bank, PDF generation
+- Theme tokens, fonts, other pages
