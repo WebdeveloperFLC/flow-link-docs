@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
 import { OccupationSearch, type OccupationValue } from "@/components/assessment/OccupationSearch";
 import { PathwayEligibilityPanel } from "@/components/assessment/PathwayEligibilityPanel";
+import { ChancenkartePanel } from "@/components/assessment/ChancenkartePanel";
 
 type Q = {
   id: string; code: string; section: string; q_type: string; label: string;
@@ -25,6 +26,7 @@ const SECTION_LABELS: Record<string, string> = {
   documents: "Documents",
 };
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
+const isGermany = (c: string) => c === "Germany" || c === "DE";
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "Permanent Residence",
@@ -96,6 +98,7 @@ export default function AssessmentRun() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
+    if (isGermany(country)) { setCrs(null); return; }
     if (crsTimer.current) window.clearTimeout(crsTimer.current);
     crsTimer.current = window.setTimeout(async () => {
       try {
@@ -104,7 +107,7 @@ export default function AssessmentRun() {
       } catch { /* ignore */ }
     }, 350);
     return () => { if (crsTimer.current) window.clearTimeout(crsTimer.current); };
-  }, [answers]);
+  }, [answers, country]);
 
   const bySection = useMemo(() => {
     const out: Record<string, Q[]> = {};
@@ -315,6 +318,9 @@ export default function AssessmentRun() {
 
         {/* CRS aside */}
         <aside className="space-y-3">
+          {isGermany(country) ? (
+            <ChancenkartePanel answers={answers} />
+          ) : (
           <div className="flc-card p-5 sticky top-4 space-y-4">
             <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">
               Estimated CRS — Advisory
@@ -340,6 +346,7 @@ export default function AssessmentRun() {
               Estimate based on self-reported answers. Final CRS is confirmed by IRCC.
             </div>
           </div>
+          )}
         </aside>
       </main>
     </div>
