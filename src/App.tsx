@@ -52,6 +52,7 @@ import AssessmentInvite from "./pages/assessment/AssessmentInvite";
 import AssessmentVerify from "./pages/assessment/AssessmentVerify";
 import AssessmentRun from "./pages/assessment/AssessmentRun";
 import AssessmentGoal from "./pages/assessment/AssessmentGoal";
+import AssessmentCountry from "./pages/assessment/AssessmentCountry";
 import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 import NocAdmin from "./pages/admin/NocAdmin";
@@ -77,6 +78,8 @@ const App = () => (
             <Route path="/portal/auth" element={<PortalAuth />} />
             <Route path="/portal/invite" element={<PortalInviteRedeem />} />
             <Route path="/assessment" element={<AssessmentLanding />} />
+            <Route path="/settle-abroad" element={<AssessmentLanding />} />
+            <Route path="/assessment/country" element={<AssessmentCountry />} />
             <Route path="/assessment/goal" element={<AssessmentGoal />} />
             <Route path="/assessment/invite/:token" element={<AssessmentInvite />} />
             <Route path="/assessment/verify/:token" element={<AssessmentVerify />} />

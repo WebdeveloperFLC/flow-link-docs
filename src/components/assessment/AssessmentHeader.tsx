@@ -9,7 +9,8 @@ export function AssessmentHeader({ mode = "client", right }: { mode?: "client" |
       <div className="flex items-center gap-3">
         <img src={flcLogo} alt="Future Link Consultants" className="h-11 w-auto object-contain" />
         <div className="leading-tight border-l border-[hsl(30_12%_82%)] pl-3 hidden sm:block">
-          <div className="text-xs text-[hsl(220_14%_28%)]">Canada Immigration Assessment</div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(8_75%_60%)]">Settle Abroad</div>
+          <div className="text-xs text-[hsl(220_14%_28%)]">Multi-country immigration assessment</div>
         </div>
       </div>
       <div className="ml-auto flex items-center gap-3">

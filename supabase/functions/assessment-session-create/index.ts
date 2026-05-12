@@ -30,6 +30,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const goal = typeof body.goal === "string" && body.goal ? body.goal : "permanent_residence";
+    const country = typeof body.country === "string" && body.country ? body.country : "Canada";
     let clientId: string | null = body.clientId ?? null;
 
     if (!clientId && body.newClient) {
@@ -43,7 +44,7 @@ Deno.serve(async (req) => {
           email: nc.email ? String(nc.email).trim() : null,
           phone: nc.phone ? String(nc.phone).trim() : null,
           country: nc.country?.trim() || "India",
-          application_type: nc.application_type?.trim() || "Canada PR",
+          application_type: nc.application_type?.trim() || `${country} — assessment`,
           owner_id: uid,
           created_by: uid,
           lead_source: "assessment",
@@ -60,7 +61,7 @@ Deno.serve(async (req) => {
       .from("assessment_sessions")
       .insert({
         client_id: clientId,
-        country: "Canada",
+        country,
         goal,
         status: "draft",
         assigned_counselor_id: uid,

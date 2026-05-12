@@ -1,127 +1,144 @@
-# NOC 2021 + TEER occupation system for Canada Assessment
-
 ## Goal
-Replace the manual "Your occupation TEER level" dropdown with a natural-language occupation search. From the picked occupation we auto-derive NOC code, TEER, category-based draw eligibility, and Express Entry / FSW / CEC / PNP pathway eligibility — no IRCC jargon required from the user.
+Rebrand "Canada Assessment" → **Settle Abroad**, and refactor the assessment engine into a country-agnostic, modular rule-pack framework. Ship Canada + Germany as the first two packs; keep the same shared profile, CRM, and PDF/portal plumbing.
 
-## 1. Database (new migration)
+The good news: the DB already has `country` + `goal` columns on `assessment_questions`, `assessment_programs`, and `assessment_sessions`. We don't need a destructive migration — we layer a rule-pack system on top and remove Canada-specific assumptions from code.
 
-Admin-editable tables, RLS: public `select` for active rows, admin-only write.
+---
 
-### `noc_occupations`
-- `noc_code` text PK (5-digit 2021 code, e.g. `21231`)
-- `title` text (official IRCC title)
-- `teer` smallint (0–5, CHECK 0..5)
-- `broad_category` text (10 NOC 2021 broad groups)
-- `keywords` text[] (alt titles / synonyms for fuzzy search)
-- `search_tsv` tsvector generated from title + keywords (GIN index)
-- `is_active` boolean default true
-- `notes` text
+## 1. Brand + navigation rename
+- "Canada Immigration Assessment" / "Canada Assessment" labels → **Settle Abroad** (header, landing, admin, portal, email subjects).
+- Routes: keep `/assessment*` paths (no breaking links). Add an alias `/settle-abroad` → same landing.
+- Update `AssessmentHeader.tsx`, `AssessmentLanding.tsx`, `AssessmentGoal.tsx`, `AssessmentAdmin.tsx`, `PortalAssessment.tsx`, email templates (`assessment-invite.tsx`, `assessment-report.tsx`, `assessment-verify-email.tsx`).
+- Sidebar / `AppLayout` link label.
 
-### `noc_category_mappings`
-Maps NOC codes to IRCC category-based-draw categories (Healthcare, STEM, Trades, Transport, Agriculture & Agri-food, Education, French-speaking — French handled by language, but allow per-NOC tag).
-- `noc_code` text FK → noc_occupations
-- `category` text (enum-ish: `healthcare|stem|trades|transport|agriculture|education`)
-- PK (noc_code, category)
+## 2. Country-first flow
+New step **0 — Choose destination country** before goal selection.
 
-### `pathway_rules`
-Admin-editable eligibility rule rows; keeps IRCC logic out of code.
-- `pathway` text (`express_entry`, `fsw`, `cec`, `fst`, `pnp_generic`)
-- `min_teer` smallint nullable
-- `allowed_teers` smallint[] nullable
-- `min_foreign_experience_years` numeric nullable
-- `min_canadian_experience_years` numeric nullable
-- `min_clb` smallint nullable
-- `requires_job_offer` boolean default false
-- `extra` jsonb (free-form for future fields like FSW 67-point checks)
-- `is_active`, `sort_order`
-
-### `provincial_noc_targets`
-- `province_code` text (`ON`, `BC`, `AB`, …)
-- `stream_name` text
-- `noc_code` text nullable, `teer` smallint nullable, `category` text nullable
-- `notes`, `is_active`
-- Index on (noc_code), (province_code)
-
-### Seed
-Seed ~500 most-common NOC 2021 codes covering all TEER 0–5 with category mappings for the 6 IRCC category-based-draw groups, plus baseline `pathway_rules` rows for EE/FSW/CEC/FST.
-
-## 2. Edge function: `noc-search`
-`verify_jwt = true`. Input: `{ q: string, limit?: number }`. Returns up to N matches ranked by:
-1. exact code match
-2. `search_tsv @@ websearch_to_tsquery(q)` rank
-3. trigram similarity on title fallback (`pg_trgm`)
-Returns `{ noc_code, title, teer, broad_category, categories: string[] }`.
-
-## 3. Edge function: `noc-eligibility`
-Input: `{ noc_code, work_experience_years, canadian_work_experience, english_clb, french_clb, job_offer, province? }`.
-Reads `pathway_rules` + `provincial_noc_targets` and returns:
+```text
+Landing → [Country picker] → [Goal/Pathway picker (filtered by country)] → Questions → Result/PDF
 ```
-{
-  noc: { code, title, teer, broad_category },
-  categories: ["healthcare", ...],
-  pathways: {
-    express_entry: { eligible: bool, reasons: [...] },
-    fsw:          { eligible, reasons },
-    cec:          { eligible, reasons },
-    fst:          { eligible, reasons }
-  },
-  provincial_matches: [{ province_code, stream_name, notes }]
+
+- New page `src/pages/assessment/AssessmentCountry.tsx` with card grid (Canada, Germany active; UK / Australia / USA / NZ / UAE / EU shown as "Coming soon").
+- `AssessmentGoal.tsx` becomes country-aware: pulls goals from the active rule pack instead of the hardcoded `GOALS` array.
+- Session stores `flc_country` + `flc_goal` in sessionStorage and passes both to `assessment-session-create`.
+
+## 3. Rule-pack architecture (the core change)
+
+A **rule pack** = everything country-specific in one folder, loaded by code, behind a stable interface.
+
+```text
+src/lib/assessment/
+  core/
+    types.ts            # CountryPack, Pathway, Question, ScoringResult, Profile
+    registry.ts         # registerPack(), getPack(country), listActivePacks()
+    engine.ts           # runs questions → branching → scoring → eligibility
+    profile.ts          # shared profile shape (age, education, languages, work, family, finances)
+  packs/
+    canada/
+      index.ts          # pack manifest
+      pathways.ts       # Express Entry, PNP, Study, Work, Visitor, Business
+      questions.ts      # branching question groups per pathway
+      scoring.ts        # CRS + FSW 67-pt (wraps existing crs/calculator.ts)
+      eligibility.ts    # uses src/lib/noc.ts + pathway_rules
+      report.ts         # Canada-specific PDF sections
+    germany/
+      index.ts
+      pathways.ts       # Chancenkarte, Job Seeker, Ausbildung, Skilled Worker, EU Blue Card
+      questions.ts      # German-specific (B1/B2, ZAB recognition, salary thresholds…)
+      scoring.ts        # Chancenkarte points system (qualification, language, age, experience, connection, partner)
+      eligibility.ts    # Blue Card salary thresholds, skilled-worker recognition rules
+      report.ts
+```
+
+Interface (rough):
+```ts
+export interface CountryPack {
+  code: "CA" | "DE" | "UK" | "AU" | "US" | "NZ" | "AE" | "EU";
+  name: string;
+  status: "active" | "coming_soon";
+  pathways: Pathway[];
+  getQuestions(ctx: { pathway: string; answers: Answers }): Question[];
+  score(answers: Answers, pathway: string): ScoringResult;
+  evaluate(answers: Answers): PathwayEligibility[];
+  renderReport(session, answers, result): PdfSections;
 }
 ```
-Pure read-only; no writes.
 
-## 4. Question bank update (migration, same file)
-Replace the `noc_teer` select question with two questions:
-- `occupation` (new type `occupation_search`) — stores `{ noc_code, title, teer, categories }` as the answer value.
-- Keep `noc_teer` column-compatible by also writing `TEER X` into the existing `noc_teer` answer so the CRS calculator (`calculator.ts` line 247 `String(a.noc_teer).toUpperCase() === "TEER 0"`) keeps working unchanged.
+The engine never references "Canada" or "CRS" directly. `assessment-submit` and `assessment-pdf-download` look up the pack by `session.country` and call `pack.score()` + `pack.renderReport()`.
 
-## 5. Frontend
+## 4. Database — additive only
 
-### `src/components/assessment/OccupationSearch.tsx` (new)
-- Debounced (250 ms) command-palette style combobox (shadcn `Command` + `Popover`).
-- Calls `noc-search` edge function.
-- Shows: title • NOC code badge • TEER badge • category chips.
-- On select, writes `{ noc_code, title, teer, categories }` to the answer and also sets `noc_teer = "TEER {n}"` for backward compat.
-- "Can't find it?" link → falls back to the legacy TEER picker.
+New migration adds (no destructive changes):
 
-### `src/pages/assessment/AssessmentRun.tsx`
-- Register the new `occupation_search` question type → render `OccupationSearch`.
-- After an occupation is chosen, call `noc-eligibility` and display a small inline "Pathways you may qualify for" panel (chips: Express Entry ✓, CEC ✗ — *needs 1 yr Canadian experience*, etc.). Read-only hint, doesn't gate progress.
+- `countries` table — `code` (PK), `name`, `flag_emoji`, `status` (`active|coming_soon`), `order_index`. Seed CA, DE active; UK/AU/US/NZ/AE/EU as coming_soon.
+- `country_pathways` table — `country_code`, `pathway_code`, `label`, `description`, `icon`, `is_active`, `order_index`. Seeds Canada's 6 + Germany's 5.
+- Reuse `assessment_questions` (already has `country` + `goal`). Use `goal` to store the pathway code (e.g. `de_chancenkarte`, `ca_express_entry`).
+- Reuse `assessment_programs` for per-country pathway match rules.
+- `assessment_sessions`: no schema change. `country` already exists; we'll start writing real ISO codes / pack codes there.
+- RLS: public read on `countries` + `country_pathways`; admin write. Same pattern as `assessment_questions`.
 
-### `src/lib/assessmentPdf.ts`
-- Add an "Occupation & Pathway" section: NOC code, title, TEER, category tags, eligible pathways, provincial matches.
+## 5. Germany pack content
 
-## 6. Admin UI: `/admin/noc`
-New page `src/pages/admin/NocAdmin.tsx`, linked from existing `AssessmentAdmin` header. Admin-only. Three tabs:
-1. **Occupations** — searchable table over `noc_occupations`, add/edit/deactivate, edit keywords (chips), TEER, broad category.
-2. **Categories** — assign categories per NOC (multi-select).
-3. **Pathway rules** — table editor over `pathway_rules`.
-4. **Provincial targets** — table editor over `provincial_noc_targets`.
+**Pathways + scoring summary**
 
-Uses the same masters-style pattern as `src/pages/Masters.tsx` for consistency.
+| Pathway | Scoring driver |
+| --- | --- |
+| Opportunity Card (Chancenkarte) | 6-point system; need ≥6 pts + base requirements (vocational/uni degree, A1 German or B2 English, finances) |
+| Job Seeker Visa | Eligibility only (degree + funds + 6-month plan) |
+| Ausbildung | Eligibility + language (B1) + age + school qualification |
+| Skilled Worker | ZAB-recognized degree + qualified job offer + B1 |
+| EU Blue Card | Recognized degree + job offer ≥ €48 300 (shortage €43 759.80) + 6-month contract |
 
-## 7. CRS impact
-`supabase/functions/_shared/crs/calculator.ts` is **not** rewritten. Because the occupation step still populates `noc_teer = "TEER X"`, existing job-offer logic keeps working. (A future ticket can switch CRS to read `noc_code` directly.)
+We seed ~30–40 Germany-specific questions (German level via Goethe/telc/ÖSD, ZAB recognition, salary, Ausbildung contract, etc.) and pathway rules driven by `assessment_programs.match_rules` JSON so admins can tune without code.
 
-## Out of scope
-- Full 500-NOC IRCC bilingual dataset import (seeding a curated subset; admin UI lets you extend).
-- Rebuilding CRS scoring.
-- Per-province PNP scoring math — we only surface NOC/TEER/category matches.
+## 6. Canada pack
+Wrap existing logic — no behavior change:
+- `packs/canada/scoring.ts` calls existing `supabase/functions/_shared/crs/calculator.ts`.
+- `packs/canada/eligibility.ts` calls existing `noc-eligibility` edge function + `src/lib/noc.ts`.
+- `packs/canada/report.ts` is the current `assessmentPdf.ts` Canada sections, moved.
 
-## Files touched / added
+`src/lib/assessmentPdf.ts` becomes a thin orchestrator that picks `pack.renderReport()`.
 
-**Migrations**
-- `supabase/migrations/<ts>_noc_2021_system.sql` — new tables, RLS, seed, replace `noc_teer` question with `occupation_search`.
+## 7. Edge functions
+- `assessment-submit`: load pack by `session.country`, call `pack.score()`, persist `output`.
+- `assessment-pdf-download`: same, call `pack.renderReport()`.
+- New `assessment-pack-meta` (verify_jwt=true): returns `{ countries, pathways, questions }` for a given country/pathway so the frontend doesn't hardcode anything.
 
-**Edge functions** (new)
-- `supabase/functions/noc-search/index.ts` + `deno.json`
-- `supabase/functions/noc-eligibility/index.ts` + `deno.json`
-- `supabase/config.toml` — register both with `verify_jwt = true`.
+## 8. Admin UI
+- `AssessmentAdmin.tsx` gets a **Country** filter (defaults to All). Sessions list shows a country chip.
+- New `src/pages/admin/CountryPackAdmin.tsx` — tabbed editor for countries, pathways, and per-country questions (admin can add a new country/pathway without code).
 
-**Frontend**
-- `src/components/assessment/OccupationSearch.tsx` (new)
-- `src/components/assessment/PathwayEligibilityPanel.tsx` (new)
-- `src/pages/admin/NocAdmin.tsx` (new) + route in `src/App.tsx`
-- `src/pages/assessment/AssessmentRun.tsx` (wire new question type + eligibility panel)
-- `src/lib/assessmentPdf.ts` (add occupation/pathway section)
-- `src/pages/admin/AssessmentAdmin.tsx` (header link to NOC admin)
+## 9. Frontend touchpoints
+- `AssessmentLanding.tsx` — Settle Abroad hero, "Choose your destination" CTA.
+- `AssessmentCountry.tsx` (new) — country picker.
+- `AssessmentGoal.tsx` — country-scoped pathway picker (data-driven).
+- `AssessmentRun.tsx` — render `pack.getQuestions()` instead of hardcoded list; passes country through.
+- `PortalAssessment.tsx` — shows country flag + pathway, "Start a new country" CTA.
+
+## 10. Out of scope (deferred)
+- Full UK / Australia / USA / NZ / UAE / EU rule packs (placeholder "Coming soon" cards only).
+- Multi-language UI (English only for now).
+- Migrating already-stored `country='Canada'` sessions to ISO codes — we keep a small normalizer (`Canada` ↔ `CA`).
+
+---
+
+## Files added / edited
+
+**Migration (additive)**
+- `supabase/migrations/<ts>_settle_abroad_country_packs.sql` — `countries`, `country_pathways`, seed CA+DE, seed Germany questions + programs.
+
+**Edge functions**
+- New: `supabase/functions/assessment-pack-meta/index.ts` (+ `deno.json`, register in `config.toml`).
+- Edited: `assessment-submit`, `assessment-pdf-download` to delegate to the pack.
+
+**Frontend — new**
+- `src/lib/assessment/core/{types,registry,engine,profile}.ts`
+- `src/lib/assessment/packs/canada/{index,pathways,questions,scoring,eligibility,report}.ts`
+- `src/lib/assessment/packs/germany/{index,pathways,questions,scoring,eligibility,report}.ts`
+- `src/pages/assessment/AssessmentCountry.tsx`
+- `src/pages/admin/CountryPackAdmin.tsx` + route in `src/App.tsx`
+
+**Frontend — edited**
+- `AssessmentHeader.tsx`, `AssessmentLanding.tsx`, `AssessmentGoal.tsx`, `AssessmentRun.tsx`, `AssessmentAdmin.tsx`, `PortalAssessment.tsx`, `assessmentPdf.ts`, `AppLayout.tsx`, email templates.
+
+This delivers the rename + Canada/Germany packs and leaves a clean, country-agnostic engine ready for UK/AU/US/NZ/AE/EU to be added as data + a single pack folder each.

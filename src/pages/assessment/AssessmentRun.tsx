@@ -34,6 +34,12 @@ const GOAL_LABELS: Record<string, string> = {
   family_sponsorship: "Family Sponsorship",
   business_investment: "Business / Investment",
   unsure: "Eligibility Check",
+  pnp: "Provincial Nominee Program",
+  de_chancenkarte: "Opportunity Card (Chancenkarte)",
+  de_job_seeker: "Job Seeker Visa",
+  de_ausbildung: "Ausbildung",
+  de_skilled_worker: "Skilled Worker (Germany)",
+  de_blue_card: "EU Blue Card",
 };
 
 export default function AssessmentRun() {
@@ -44,6 +50,7 @@ export default function AssessmentRun() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [status, setStatus] = useState<string>("draft");
   const [goal, setGoal] = useState<string>("permanent_residence");
+  const [country, setCountry] = useState<string>("Canada");
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -58,13 +65,25 @@ export default function AssessmentRun() {
     const [qs, ses] = await Promise.all([
       supabase.from("assessment_questions").select("*").eq("is_active", true).order("order_index"),
       supabase.from("assessment_sessions")
-        .select("answers, status, goal, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)")
+        .select("answers, status, goal, country, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)")
         .eq("id", sessionId).maybeSingle(),
     ]);
-    setQuestions((qs.data ?? []) as Q[]);
+    const all = (qs.data ?? []) as any[];
+    const sCountry = (ses.data as any)?.country ?? "Canada";
+    const sGoal = (ses.data as any)?.goal ?? "permanent_residence";
+    // Country-pack question filter:
+    // - Canada: keep all rows where country='Canada' (current behaviour).
+    // - Germany: include rows where country='Germany' AND (goal matches the chosen pathway OR goal='de_chancenkarte' shared base).
+    const filtered = all.filter((q) => {
+      if (q.country !== sCountry) return false;
+      if (sCountry !== "Germany") return true;
+      return q.goal === sGoal || q.goal === "de_chancenkarte";
+    });
+    setQuestions(filtered as Q[]);
     setAnswers((ses.data?.answers as any) ?? {});
     setStatus(ses.data?.status ?? "draft");
-    setGoal((ses.data as any)?.goal ?? "permanent_residence");
+    setGoal(sGoal);
+    setCountry(sCountry);
     const c: any = (ses.data as any)?.client;
     const l: any = (ses.data as any)?.lead;
     setSubject({
@@ -147,6 +166,7 @@ export default function AssessmentRun() {
         clientName: subject.name,
         clientEmail: subject.email,
         goal,
+        country,
         answers,
         questions,
         crs,

@@ -7,24 +7,18 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Search, UserPlus, Play, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { listCountries, listPathways, countryNameFor, type Country, type Pathway } from "@/lib/settleAbroad";
 
 type Client = { id: string; full_name: string; email: string | null; phone: string | null; country: string | null };
-
-const GOALS = [
-  { id: "permanent_residence", label: "Permanent Residence" },
-  { id: "work_permit", label: "Work Permit" },
-  { id: "study_permit", label: "Study Permit" },
-  { id: "visitor_visa", label: "Visitor Visa" },
-  { id: "family_sponsorship", label: "Family Sponsorship" },
-  { id: "business_investment", label: "Business / Investment" },
-  { id: "unsure", label: "Unsure / Need Guidance" },
-];
 
 export function StartAssessmentDialog({
   open, onOpenChange, onStarted,
 }: { open: boolean; onOpenChange: (b: boolean) => void; onStarted?: (sessionId: string) => void }) {
   const [tab, setTab] = useState<"existing" | "new">("existing");
+  const [countryCode, setCountryCode] = useState("CA");
   const [goal, setGoal] = useState("permanent_residence");
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [pathways, setPathways] = useState<Pathway[]>([]);
   const [busy, setBusy] = useState(false);
 
   // existing
@@ -42,7 +36,17 @@ export function StartAssessmentDialog({
     if (!open) return;
     supabase.from("clients").select("id, full_name, email, phone, country").order("created_at", { ascending: false }).limit(100)
       .then((r) => setClients((r.data ?? []) as Client[]));
+    listCountries().then((c) => setCountries(c.filter((x) => x.status === "active")));
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    listPathways(countryCode).then((p) => {
+      setPathways(p);
+      if (p.length && !p.find((x) => x.pathway_code === goal)) setGoal(p[0].pathway_code);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countryCode, open]);
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -53,13 +57,13 @@ export function StartAssessmentDialog({
   const start = async () => {
     setBusy(true);
     try {
-      const body: any = { goal };
+      const body: any = { goal, country: countryNameFor(countryCode) };
       if (tab === "existing") {
         if (!picked) { toast.error("Pick a client"); setBusy(false); return; }
         body.clientId = picked;
       } else {
         if (!name.trim()) { toast.error("Client name is required"); setBusy(false); return; }
-        body.newClient = { full_name: name.trim(), email: email.trim() || null, phone: phone.trim() || null, country: country.trim() || "India", application_type: "Canada — assessment" };
+        body.newClient = { full_name: name.trim(), email: email.trim() || null, phone: phone.trim() || null, country: country.trim() || "India", application_type: `${countryNameFor(countryCode)} — assessment` };
       }
       const { data, error } = await supabase.functions.invoke("assessment-session-create", { body });
       if (error || (data as any)?.error) {
@@ -80,15 +84,23 @@ export function StartAssessmentDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Start new assessment</DialogTitle>
+          <DialogTitle>Start new Settle Abroad assessment</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <Label className="text-xs">Goal</Label>
-            <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full h-9 mt-1 rounded-md border bg-background px-2 text-sm">
-              {GOALS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Destination country</Label>
+              <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-full h-9 mt-1 rounded-md border bg-background px-2 text-sm">
+                {countries.map((c) => <option key={c.code} value={c.code}>{c.flag_emoji ?? ""} {c.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs">Pathway</Label>
+              <select value={goal} onChange={(e) => setGoal(e.target.value)} className="w-full h-9 mt-1 rounded-md border bg-background px-2 text-sm">
+                {pathways.map((p) => <option key={p.pathway_code} value={p.pathway_code}>{p.label}</option>)}
+              </select>
+            </div>
           </div>
 
           <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>

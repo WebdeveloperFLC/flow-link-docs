@@ -15,7 +15,7 @@ export default function AssessmentLanding() {
       return;
     }
     if (code.trim()) sessionStorage.setItem("flc_referral_code", code.trim());
-    nav("/assessment/goal");
+    nav("/assessment/country");
   };
 
   return (
@@ -25,26 +25,26 @@ export default function AssessmentLanding() {
       <main className="max-w-6xl mx-auto px-4 pb-16 pt-4 grid lg:grid-cols-[1.2fr_1fr] gap-10">
         <section className="space-y-6">
           <div className="flc-chip">
-            <Leaf className="size-3.5" /> Client self-assessment
+            <Leaf className="size-3.5" /> Settle Abroad · Client self-assessment
           </div>
 
-          <h1 className="flc-display text-6xl sm:text-7xl">Find your most likely path to Canada.</h1>
+          <h1 className="flc-display text-6xl sm:text-7xl">Find your most likely path abroad.</h1>
 
           <p className="text-[hsl(220_14%_28%)] text-base leading-relaxed max-w-xl">
-            A guided eligibility assessment across permanent residence, work, study, visit, family sponsorship,
-            and business immigration. Built by Future Link Consultants.
+            A guided eligibility assessment across multiple destinations — currently Canada and Germany,
+            with the UK, Australia, USA, New Zealand, UAE and Europe rolling out next.
           </p>
 
           <div className="space-y-4 max-w-xl pt-2">
-            <Row icon={Leaf} title="Seven immigration goals" body='PR, Work, Study, Visit, Family, Business — and a guided "I&apos;m not sure" path.' />
-            <Row icon={Info} title="Advisory only" body="We never replace IRCC's official tools or a counselor's review." />
+            <Row icon={Leaf} title="Country-first" body="Pick a destination, then we tailor the pathways: Express Entry, PNP, Opportunity Card, Blue Card and more." />
+            <Row icon={Info} title="Advisory only" body="We never replace official government tools or a counselor's review." />
           </div>
 
           <div className="flc-card p-5 flex gap-3 max-w-xl bg-[hsl(8_75%_60%/0.06)] border-[hsl(8_75%_60%/0.25)]">
             <AlertCircle className="size-4 mt-0.5 text-[hsl(8_75%_50%)] shrink-0" />
             <div className="text-sm text-[hsl(220_18%_11%)]">
               <span className="font-semibold">Advisory only.</span> This assessment is not a final immigration decision and does
-              not constitute legal advice. Results help your counselor identify the most likely Canadian pathways for your profile.
+              not constitute legal advice. Results help your counselor identify the most likely pathways for your profile.
             </div>
           </div>
 
@@ -76,16 +76,16 @@ export default function AssessmentLanding() {
           <div className="flc-divider" />
 
           <div className="grid grid-cols-3 gap-3">
-            <Stat value="7" label="Goal paths" />
-            <Stat value="20+" label="Programs" />
+            <Stat value="2" label="Live countries" />
+            <Stat value="11" label="Pathways" />
             <Stat value="<5 min" label="To finish" />
           </div>
 
           <div className="flc-divider" />
 
           <ul className="space-y-2 text-sm">
-            <Bullet>Branching, profile-aware questions</Bullet>
-            <Bullet>Live CRS estimate (PR pathway)</Bullet>
+            <Bullet>Country-specific branching questions</Bullet>
+            <Bullet>Live scoring (CRS for Canada, Chancenkarte for Germany)</Bullet>
             <Bullet>Risk flagging for refusals &amp; admissibility</Bullet>
             <Bullet>Downloadable advisory PDF report</Bullet>
           </ul>
