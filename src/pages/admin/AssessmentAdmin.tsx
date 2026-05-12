@@ -37,9 +37,14 @@ export default function AssessmentAdmin() {
         title="Settle Abroad — Assessment Console"
         description="Multi-country immigration assessments: invitations, submissions, scoring, and question/program management"
         actions={
-          <Button variant="outline" size="sm" onClick={() => (window.location.href = "/noc-admin")}>
-            NOC management
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => (window.location.href = "/noc-admin")}>
+              NOC management
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => (window.location.href = "/germany-rules")}>
+              Germany rules
+            </Button>
+          </div>
         }
       />
       <div className="p-6 max-w-7xl mx-auto space-y-5">
