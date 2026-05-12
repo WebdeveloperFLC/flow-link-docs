@@ -295,7 +295,7 @@ export default function AssessmentRun() {
                     )}
                   </>
                 ) : (
-                  renderInput(q, answers[q.code], (v) => set(q.code, v))
+                  renderInput(q, answers[q.code], (v) => setWithDerived(q.code, v))
                 )}
               </div>
             ))}
