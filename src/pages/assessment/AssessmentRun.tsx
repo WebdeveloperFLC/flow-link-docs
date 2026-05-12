@@ -28,6 +28,60 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 const isGermany = (c: string) => c === "Germany" || c === "DE";
 
+// Premium section subtitles shown only for the Germany pack.
+const GERMANY_SECTION_LABELS: Record<string, string> = {
+  personal: "Personal Profile & Germany Eligibility",
+  education: "Education & Qualification Recognition",
+  language: "Language Skills & Communication Readiness",
+  work: "Professional Experience & Germany Employability",
+  funds: "Financial Readiness & Settlement Support",
+  compliance: "Immigration History & Compliance Review",
+  documents: "Document Readiness & Upload Preparation",
+};
+
+// Auto-CEFR derivation from a test score.
+function deriveCefr(test: string, raw: number): string | null {
+  if (!Number.isFinite(raw)) return null;
+  const score = Number(raw);
+  if (test === "IELTS") {
+    if (score >= 7.5) return "C2";
+    if (score >= 6.5) return "C1";
+    if (score >= 5.5) return "B2";
+    if (score >= 5.0) return "B1";
+    if (score >= 4.0) return "A2";
+    return "A1";
+  }
+  if (test === "PTE") {
+    if (score >= 85) return "C2";
+    if (score >= 76) return "C1";
+    if (score >= 59) return "B2";
+    if (score >= 43) return "B1";
+    if (score >= 30) return "A2";
+    return "A1";
+  }
+  if (test === "TOEFL") {
+    if (score >= 110) return "C2";
+    if (score >= 95) return "C1";
+    if (score >= 72) return "B2";
+    if (score >= 57) return "B1";
+    if (score >= 31) return "A2";
+    return "A1";
+  }
+  if (test === "Duolingo") {
+    if (score >= 135) return "C1";
+    if (score >= 115) return "B2";
+    if (score >= 85) return "B1";
+    if (score >= 60) return "A2";
+    return "A1";
+  }
+  return null;
+}
+
+// Map experience band code → representative years for the engine.
+const EXP_BAND_TO_YEARS: Record<string, number> = {
+  lt_1: 0.5, "1_2": 1.5, "3_5": 4, gt_5: 6,
+};
+
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "Permanent Residence",
   work_permit: "Work Permit",
