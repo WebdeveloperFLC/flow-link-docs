@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import flcLogo from "@/assets/flc-logo.png";
+import { evaluateGermanyAsync, type DeEvaluation } from "@/lib/assessment/germany";
 
 const SECTION_LABELS: Record<string, string> = {
   personal: "Personal",
@@ -89,6 +90,7 @@ export async function openAssessmentPdf(input: AssessmentPdfInput) {
 async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   const { clientName, clientEmail, goal, answers, questions, crs, sessionId } = input;
   const country = input.country ?? "Canada";
+  const isGermany = country === "Germany" || country === "DE";
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
   const H = pdf.internal.pageSize.getHeight();
@@ -157,8 +159,108 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   y += 8;
   pdf.setTextColor(20, 20, 25);
 
-  // CRS section
-  if (crs && typeof crs.total === "number") {
+  // Germany section — Chancenkarte points + pathway eligibility
+  let de: DeEvaluation | null = null;
+  if (isGermany) {
+    try { de = await evaluateGermanyAsync(answers); } catch { de = null; }
+  }
+
+  if (isGermany && de) {
+    newPageIfNeeded(180);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(13);
+    pdf.text("Germany — Chancenkarte Score", margin, y); y += 18;
+    pdf.setFontSize(28);
+    pdf.setTextColor(220, 90, 60);
+    pdf.text(`${de.chancenkarte.total}`, margin, y + 6); y += 22;
+    pdf.setFontSize(9);
+    pdf.setTextColor(120, 120, 130);
+    pdf.text(`/ ${de.chancenkarte.threshold} points to pass — ${de.chancenkarte.passes ? "Likely eligible" : de.chancenkarte.basePass ? "Below threshold" : "Base requirements missing"}`, margin, y);
+    y += 14;
+    pdf.setTextColor(20, 20, 25);
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    for (const f of de.chancenkarte.factors) {
+      newPageIfNeeded(14);
+      pdf.setTextColor(80, 80, 90);
+      pdf.text(`${f.label} — ${f.reason}`, margin + 6, y);
+      pdf.setTextColor(20, 20, 25);
+      pdf.text(`${f.points}/${f.max}`, W - margin, y, { align: "right" });
+      y += 14;
+    }
+    y += 4;
+
+    if (de.chancenkarte.baseFailures.length) {
+      newPageIfNeeded(20 + de.chancenkarte.baseFailures.length * 12);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(11);
+      pdf.setTextColor(220, 90, 60);
+      pdf.text("Base requirements missing", margin, y); y += 14;
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+      for (const b of de.chancenkarte.baseFailures) {
+        const lines = pdf.splitTextToSize(`• ${b}`, W - margin * 2) as string[];
+        newPageIfNeeded(lines.length * 12);
+        lines.forEach((ln, i) => pdf.text(ln, margin, y + i * 12));
+        y += lines.length * 12;
+      }
+      y += 4;
+    }
+
+    // Pathway matches
+    newPageIfNeeded(40);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(13);
+    pdf.setTextColor(20, 30, 70);
+    pdf.text("Germany pathway eligibility", margin, y); y += 16;
+    pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+    for (const p of de.pathways) {
+      newPageIfNeeded(30);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(p.label, margin, y);
+      pdf.setTextColor(p.status === "eligible" ? 30 : p.status === "partial" ? 200 : 120, p.status === "eligible" ? 130 : 130, p.status === "eligible" ? 70 : 70);
+      pdf.text(p.status.replace("_", " ").toUpperCase(), W - margin, y, { align: "right" });
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal");
+      y += 12;
+      const lines = [...p.reasons.map((r) => `• ${r}`), ...p.gaps.map((g) => `– ${g}`)];
+      for (const ln of lines.slice(0, 5)) {
+        const wrapped = pdf.splitTextToSize(ln, W - margin * 2 - 10) as string[];
+        newPageIfNeeded(wrapped.length * 12);
+        wrapped.forEach((w2, i) => pdf.text(w2, margin + 8, y + i * 12));
+        y += wrapped.length * 12;
+      }
+      y += 4;
+    }
+
+    // Recommendations
+    if (de.recommendation.suggestedImprovements.length || de.recommendation.nextActions.length) {
+      newPageIfNeeded(40);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(13);
+      pdf.setTextColor(20, 30, 70);
+      pdf.text("Recommendations & next actions", margin, y); y += 16;
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+      for (const s of de.recommendation.suggestedImprovements) {
+        const txt = `• ${s.area}: ${s.action}`;
+        const wrapped = pdf.splitTextToSize(txt, W - margin * 2) as string[];
+        newPageIfNeeded(wrapped.length * 12);
+        wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
+        y += wrapped.length * 12;
+      }
+      y += 6;
+      if (de.recommendation.nextActions.length) {
+        pdf.setFont("helvetica", "bold");
+        pdf.text("Next steps", margin, y); y += 14;
+        pdf.setFont("helvetica", "normal");
+        for (const a of de.recommendation.nextActions) {
+          const wrapped = pdf.splitTextToSize(`→ ${a}`, W - margin * 2) as string[];
+          newPageIfNeeded(wrapped.length * 12);
+          wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
+          y += wrapped.length * 12;
+        }
+      }
+      y += 6;
+    }
+  }
+
+  // CRS section (Canada only)
+  if (!isGermany && crs && typeof crs.total === "number") {
     newPageIfNeeded(160);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
