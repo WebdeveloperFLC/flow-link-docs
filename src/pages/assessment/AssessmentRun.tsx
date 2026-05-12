@@ -8,6 +8,7 @@ import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
 import { OccupationSearch, type OccupationValue } from "@/components/assessment/OccupationSearch";
 import { PathwayEligibilityPanel } from "@/components/assessment/PathwayEligibilityPanel";
 import { ChancenkartePanel } from "@/components/assessment/ChancenkartePanel";
+import { CountryPicker } from "@/components/assessment/CountryPicker";
 
 type Q = {
   id: string; code: string; section: string; q_type: string; label: string;
@@ -506,6 +507,9 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
   }
   if (q.q_type === "date") {
     return <input type="date" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value || null)} />;
+  }
+  if (q.q_type === "country") {
+    return <CountryPicker value={v} onChange={(name) => set(name)} />;
   }
   return <input className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value)} />;
 }
