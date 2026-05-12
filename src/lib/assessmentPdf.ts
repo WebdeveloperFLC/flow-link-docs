@@ -328,10 +328,41 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       ansLines.forEach((ln, i) => pdf.text(ln, W - margin, y + i * lineH, { align: "right" }));
       pdf.setFont("helvetica", "normal");
       y += blockH;
+
+      // Inject derived Age right after DOB for Germany so the report mirrors the score input.
+      if (isGermany && q.code === "de_dob") {
+        const age = computeAge(answers.de_dob) ?? (typeof answers.de_age === "number" ? answers.de_age : null);
+        if (age != null) {
+          const lbl = "Age (derived)";
+          const ansStr = `${age}`;
+          const lblLines = pdf.splitTextToSize(lbl, W - margin * 2 - 130) as string[];
+          const aLines = pdf.splitTextToSize(ansStr, 120) as string[];
+          const bH = Math.max(lblLines.length, aLines.length) * lineH + 4;
+          newPageIfNeeded(bH);
+          pdf.setTextColor(80, 80, 90);
+          lblLines.forEach((ln, i) => pdf.text(ln, margin, y + i * lineH));
+          pdf.setTextColor(20, 20, 25);
+          pdf.setFont("helvetica", "bold");
+          aLines.forEach((ln, i) => pdf.text(ln, W - margin, y + i * lineH, { align: "right" }));
+          pdf.setFont("helvetica", "normal");
+          y += bH;
+        }
+      }
     }
     y += 6;
   }
 
   drawFooter();
   return pdf;
+}
+
+function computeAge(dob: any): number | null {
+  if (typeof dob !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return null;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1;
+  return age >= 0 && age < 120 ? age : null;
 }
