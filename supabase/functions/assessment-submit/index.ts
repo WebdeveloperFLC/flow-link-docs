@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { PDFDocument, StandardFonts, rgb } from "https://esm.sh/pdf-lib@1.17.1";
 import { calculateCrs, type CrsBreakdown } from "../_shared/crs/calculator.ts";
+import { evaluateGermany, type Rule as DeRule, type Shortage as DeShortage } from "../_shared/germany/engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -74,7 +75,7 @@ function missingInfo(a: Answers) {
   return m;
 }
 
-async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: string[]; missing: string[]; wrapper: any | null; crs: CrsBreakdown; }) {
+async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: string[]; missing: string[]; wrapper: any | null; crs: CrsBreakdown | null; de: ReturnType<typeof evaluateGermany> | null; country: string; }) {
   const pdf = await PDFDocument.create();
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
@@ -86,22 +87,23 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
     draw(page, title, { x: 36, y: H - 60, size: 11, font, color: rgb(0.85, 0.92, 1) });
   };
   const drawFooter = (page: any) => {
-    draw(page, opts.wrapper?.footer_text ?? "Confidential — Canada Immigration Assessment", { x: 36, y: 30, size: 9, font, color: rgb(0.5,0.5,0.5) });
+    draw(page, opts.wrapper?.footer_text ?? `Confidential — ${opts.country} Immigration Assessment`, { x: 36, y: 30, size: 9, font, color: rgb(0.5,0.5,0.5) });
   };
 
   // Cover
   let page = pdf.addPage([W, H]);
-  drawHeader(page, "Canada Immigration Assessment");
+  drawHeader(page, `${opts.country} Immigration Assessment — Settle Abroad`);
   draw(page, "Personalised Assessment Report", { x: 36, y: H - 160, size: 22, font: bold, color: rgb(0.07,0.16,0.32) });
   draw(page, `Prepared for: ${[opts.lead.first_name, opts.lead.middle_name, opts.lead.last_name].filter(Boolean).join(" ")}`, { x: 36, y: H - 200, size: 12, font });
   draw(page, `Email: ${opts.lead.email}`, { x: 36, y: H - 220, size: 11, font });
   draw(page, `Phone: ${opts.lead.phone ?? ""}`, { x: 36, y: H - 235, size: 11, font });
   draw(page, `Date: ${new Date().toLocaleDateString()}`, { x: 36, y: H - 250, size: 11, font });
   draw(page, "This advisory report summarises programs you may qualify for based on your responses.", { x: 36, y: H - 290, size: 11, font, color: rgb(0.3,0.3,0.3), maxWidth: W - 72 });
-  draw(page, "It is not a legal opinion. Final eligibility is determined by IRCC.", { x: 36, y: H - 305, size: 11, font, color: rgb(0.3,0.3,0.3) });
+  draw(page, "It is not a legal opinion. Final eligibility is determined by the destination authority.", { x: 36, y: H - 305, size: 11, font, color: rgb(0.3,0.3,0.3) });
   drawFooter(page);
 
-  // CRS Breakdown
+  // CRS Breakdown (Canada only)
+  if (opts.crs) {
   page = pdf.addPage([W, H]);
   drawHeader(page, "CRS Score Breakdown");
   let yc = H - 110;
@@ -129,6 +131,51 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
     for (const n of opts.crs.notes) { for (const ln of wrap(n, 95)) { draw(page, `• ${ln}`, { x: 44, y: yc, size: 10, font }); yc -= 12; } }
   }
   drawFooter(page);
+  }
+
+  // Germany Chancenkarte breakdown
+  if (opts.de) {
+    page = pdf.addPage([W, H]);
+    drawHeader(page, "Germany — Chancenkarte Score");
+    let yc = H - 110;
+    draw(page, `Chancenkarte points: ${opts.de.chancenkarte.total} / ${opts.de.chancenkarte.threshold}`, { x: 36, y: yc, size: 18, font: bold, color: rgb(0.07,0.16,0.32) });
+    yc -= 22;
+    draw(page, opts.de.chancenkarte.passes ? "Likely eligible for Opportunity Card" : opts.de.chancenkarte.basePass ? "Below points threshold" : "Base requirements missing", { x: 36, y: yc, size: 11, font, color: rgb(0.3,0.3,0.3) });
+    yc -= 22;
+    for (const f of opts.de.chancenkarte.factors) {
+      if (yc < 100) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Chancenkarte (cont.)"); yc = H - 110; }
+      draw(page, `${f.label} — ${f.reason}`, { x: 44, y: yc, size: 10, font, color: rgb(0.25,0.25,0.25) });
+      draw(page, `${f.points}/${f.max}`, { x: W - 80, y: yc, size: 10, font });
+      yc -= 12;
+    }
+    if (opts.de.chancenkarte.baseFailures.length) {
+      yc -= 6;
+      draw(page, "Base requirements missing", { x: 36, y: yc, size: 12, font: bold, color: rgb(0.7,0.2,0.2) }); yc -= 14;
+      for (const b of opts.de.chancenkarte.baseFailures) { for (const ln of wrap(b, 95)) { if (yc < 80) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Base requirements (cont.)"); yc = H - 110; } draw(page, `• ${ln}`, { x: 44, y: yc, size: 10, font }); yc -= 12; } }
+    }
+    drawFooter(page);
+
+    // Germany pathway results
+    page = pdf.addPage([W, H]);
+    drawHeader(page, "Germany pathway eligibility");
+    let yp = H - 110;
+    for (const p of opts.de.pathways) {
+      if (yp < 140) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Pathway eligibility (cont.)"); yp = H - 110; }
+      const color = p.status === "eligible" ? rgb(0.05,0.5,0.25) : p.status === "partial" ? rgb(0.85,0.55,0) : rgb(0.7,0.15,0.15);
+      draw(page, p.label, { x: 36, y: yp, size: 13, font: bold });
+      draw(page, p.status.replace("_", " ").toUpperCase(), { x: W - 140, y: yp, size: 10, font: bold, color });
+      yp -= 16;
+      for (const r of p.reasons.slice(0, 4)) { for (const ln of wrap(r, 90)) { draw(page, `• ${ln}`, { x: 44, y: yp, size: 10, font, color: rgb(0.25,0.4,0.25) }); yp -= 12; } }
+      for (const g of p.gaps.slice(0, 4)) { for (const ln of wrap(g, 90)) { draw(page, `- ${ln}`, { x: 44, y: yp, size: 10, font, color: rgb(0.6,0.25,0.25) }); yp -= 12; } }
+      yp -= 6;
+    }
+    // Missing + improvements
+    if (yp < 200) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Next actions"); yp = H - 110; }
+    draw(page, "Missing requirements & suggested improvements", { x: 36, y: yp, size: 13, font: bold }); yp -= 18;
+    for (const m of opts.de.recommendation.missingRequirements.slice(0, 10)) { for (const ln of wrap(m, 95)) { if (yp < 60) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Next actions (cont.)"); yp = H - 110; } draw(page, `• ${ln}`, { x: 44, y: yp, size: 10, font }); yp -= 12; } }
+    for (const s of opts.de.recommendation.suggestedImprovements) { const t = `${s.area}: ${s.action}`; for (const ln of wrap(t, 95)) { if (yp < 60) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Improvements (cont.)"); yp = H - 110; } draw(page, `→ ${ln}`, { x: 44, y: yp, size: 10, font }); yp -= 12; } }
+    drawFooter(page);
+  }
 
   // Programs
   page = pdf.addPage([W, H]);
@@ -228,11 +275,25 @@ Deno.serve(async (req) => {
     const matches = matchPrograms(finalAnswers, programs ?? []);
     const flags = riskFlags(finalAnswers);
     const missing = missingInfo(finalAnswers);
-    const crs = calculateCrs(finalAnswers);
+    const country = String(session.country ?? "Canada");
+    const isGermany = country === "Germany" || country === "DE";
+    const crs = isGermany ? null : calculateCrs(finalAnswers);
+
+    // Germany engine
+    let de: ReturnType<typeof evaluateGermany> | null = null;
+    if (isGermany) {
+      const [rulesRes, shortageRes] = await Promise.all([
+        admin.from("de_chancenkarte_rules").select("*").eq("is_active", true).order("order_index"),
+        admin.from("de_shortage_occupations").select("label, keywords, is_active").eq("is_active", true),
+      ]);
+      const rules = ((rulesRes.data ?? []) as unknown) as DeRule[];
+      const shortage = ((shortageRes.data ?? []) as unknown) as DeShortage[];
+      de = evaluateGermany(finalAnswers, rules, shortage);
+    }
 
     const { data: wrapper } = await admin.from("assessment_pdf_wrapper").select("*").maybeSingle();
 
-    const pdfBytes = await buildPdf({ lead: subject, session, matches, flags, missing, wrapper, crs });
+    const pdfBytes = await buildPdf({ lead: subject, session, matches, flags, missing, wrapper, crs, de, country });
     const path = `${sessionId}/report.pdf`;
     await admin.storage.from("assessment-pdf-assets").upload(path, pdfBytes, { contentType: "application/pdf", upsert: true });
 
@@ -241,7 +302,7 @@ Deno.serve(async (req) => {
     await admin.from("assessment_sessions").update({
       status: "submitted",
       answers: finalAnswers,
-      output: { matches, flags, missing, crs },
+      output: { matches, flags, missing, crs, de },
       pdf_path: path,
       submitted_at: new Date().toISOString(),
       last_emailed_at: new Date().toISOString(),
@@ -261,7 +322,7 @@ Deno.serve(async (req) => {
       } catch (_) { /* queued */ }
     }
 
-    return json({ ok: true, sessionId, matches, flags, missing, crs });
+    return json({ ok: true, sessionId, matches, flags, missing, crs, de });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }

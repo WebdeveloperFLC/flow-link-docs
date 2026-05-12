@@ -2807,6 +2807,78 @@ export type Database = {
           },
         ]
       }
+      de_chancenkarte_rules: {
+        Row: {
+          created_at: string
+          description: string | null
+          factor: string
+          id: string
+          is_active: boolean
+          label: string
+          max_points: number
+          order_index: number
+          tiers: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          factor: string
+          id?: string
+          is_active?: boolean
+          label: string
+          max_points?: number
+          order_index?: number
+          tiers?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          factor?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          max_points?: number
+          order_index?: number
+          tiers?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      de_shortage_occupations: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          keywords: string[]
+          label: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          label: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          label?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       default_team_members: {
         Row: {
           created_at: string

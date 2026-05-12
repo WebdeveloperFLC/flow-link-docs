@@ -56,6 +56,7 @@ import AssessmentCountry from "./pages/assessment/AssessmentCountry";
 import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 import NocAdmin from "./pages/admin/NocAdmin";
+import GermanyRulesAdmin from "./pages/admin/GermanyRulesAdmin";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,7 @@ const App = () => (
             <Route path="/offers-admin" element={<ProtectedRoute><OffersAdmin /></ProtectedRoute>} />
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
+            <Route path="/germany-rules" element={<ProtectedRoute><GermanyRulesAdmin /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
