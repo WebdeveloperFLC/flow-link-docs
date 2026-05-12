@@ -2688,6 +2688,83 @@ export type Database = {
           },
         ]
       }
+      countries: {
+        Row: {
+          code: string
+          created_at: string
+          flag_emoji: string | null
+          name: string
+          order_index: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          flag_emoji?: string | null
+          name: string
+          order_index?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          flag_emoji?: string | null
+          name?: string
+          order_index?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      country_pathways: {
+        Row: {
+          country_code: string
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          label: string
+          order_index: number
+          pathway_code: string
+          updated_at: string
+        }
+        Insert: {
+          country_code: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          label: string
+          order_index?: number
+          pathway_code: string
+          updated_at?: string
+        }
+        Update: {
+          country_code?: string
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string
+          order_index?: number
+          pathway_code?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "country_pathways_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       credit_wallet: {
         Row: {
           available_points: number
