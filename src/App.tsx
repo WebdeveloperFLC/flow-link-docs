@@ -54,6 +54,7 @@ import AssessmentRun from "./pages/assessment/AssessmentRun";
 import AssessmentGoal from "./pages/assessment/AssessmentGoal";
 import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
+import NocAdmin from "./pages/admin/NocAdmin";
 
 const queryClient = new QueryClient();
 
@@ -103,6 +104,7 @@ const App = () => (
             <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
             <Route path="/offers-admin" element={<ProtectedRoute><OffersAdmin /></ProtectedRoute>} />
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
+            <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
