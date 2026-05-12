@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { getMyPortalClientId } from "@/lib/portal";
 import { openAssessmentPdf } from "@/lib/assessmentPdf";
 
-type Sess = { id: string; status: string; goal: string | null; answers: any; submitted_at: string | null; created_at: string; output: any };
+type Sess = { id: string; status: string; goal: string | null; country: string | null; answers: any; submitted_at: string | null; created_at: string; output: any };
 
 export default function PortalAssessment() {
   const { user } = useAuth();
@@ -26,7 +26,7 @@ export default function PortalAssessment() {
         getMyPortalClientId(user.id),
       ]);
       const leadIds = (leads ?? []).map((l: any) => l.id);
-      const cols = "id, status, goal, answers, submitted_at, created_at, output";
+      const cols = "id, status, goal, country, answers, submitted_at, created_at, output";
       const queries: any[] = [];
       if (leadIds.length) queries.push(supabase.from("assessment_sessions").select(cols).in("lead_id", leadIds));
       if (clientId) queries.push(supabase.from("assessment_sessions").select(cols).eq("client_id", clientId));
@@ -43,12 +43,24 @@ export default function PortalAssessment() {
 
   const viewReport = async (s: Sess) => {
     try {
-      const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
+      const sCountry = s.country ?? "Canada";
+      const sGoal = s.goal ?? "permanent_residence";
+      const qs = await supabase
+        .from("assessment_questions")
+        .select("id, code, section, label, q_type, country, goal")
+        .eq("is_active", true)
+        .order("order_index");
+      const filtered = ((qs.data ?? []) as any[]).filter((q) => {
+        if (q.country !== sCountry) return false;
+        if (sCountry !== "Germany") return true;
+        return q.goal === sGoal || q.goal === "de_chancenkarte";
+      });
       await openAssessmentPdf({
         sessionId: s.id,
         goal: s.goal ?? undefined,
+        country: sCountry,
         answers: s.answers ?? {},
-        questions: (qs.data ?? []) as any[],
+        questions: filtered,
         crs: s.output?.crs,
       });
     } catch (e) {
