@@ -1,0 +1,2 @@
+UPDATE public.assessment_questions SET q_type='country' WHERE code IN ('de_nationality','de_current_country');
+UPDATE public.assessment_questions SET is_active=false WHERE code='de_passport_validity_known';
