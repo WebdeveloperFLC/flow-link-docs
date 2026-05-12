@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import flcLogo from "@/assets/flc-logo.png";
+import flcBanner from "@/assets/flc-banner.jpg";
 import { evaluateGermanyAsync, type DeEvaluation } from "@/lib/assessment/germany";
 import { evaluateFamily, type FamilyAnswers, FAMILY_BRANCH_LABELS } from "@/lib/assessment/family";
 import { suggestCrsImprovements } from "@/lib/assessment/canadaSuggestions";
@@ -54,20 +55,35 @@ let _logoDims: { w: number; h: number } | null = null;
 
 async function loadLogoDataUrl(): Promise<{ url: string; w: number; h: number } | null> {
   if (_logoDataUrl && _logoDims) return { url: _logoDataUrl, ..._logoDims };
+  return loadImageDataUrl(flcLogo as unknown as string, "image/png").then((r) => {
+    if (r) { _logoDataUrl = r.url; _logoDims = { w: r.w, h: r.h }; }
+    return r;
+  });
+}
+
+let _bannerDataUrl: string | null = null;
+let _bannerDims: { w: number; h: number } | null = null;
+async function loadBannerDataUrl(): Promise<{ url: string; w: number; h: number } | null> {
+  if (_bannerDataUrl && _bannerDims) return { url: _bannerDataUrl, ..._bannerDims };
+  const r = await loadImageDataUrl(flcBanner as unknown as string, "image/jpeg");
+  if (r) { _bannerDataUrl = r.url; _bannerDims = { w: r.w, h: r.h }; }
+  return r;
+}
+
+async function loadImageDataUrl(src: string, mime: string): Promise<{ url: string; w: number; h: number } | null> {
   try {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = flcLogo as unknown as string;
-    // Wait for decode (preferred) with a fallback to onload.
+    img.src = src;
     await new Promise<void>((resolve, reject) => {
       if ((img as any).decode) {
         (img as any).decode().then(() => resolve()).catch(() => {
           img.onload = () => resolve();
-          img.onerror = () => reject(new Error("logo load failed"));
+          img.onerror = () => reject(new Error("image load failed"));
         });
       } else {
         img.onload = () => resolve();
-        img.onerror = () => reject(new Error("logo load failed"));
+        img.onerror = () => reject(new Error("image load failed"));
       }
     });
     const canvas = document.createElement("canvas");
@@ -76,9 +92,8 @@ async function loadLogoDataUrl(): Promise<{ url: string; w: number; h: number } 
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
     ctx.drawImage(img, 0, 0);
-    _logoDataUrl = canvas.toDataURL("image/png");
-    _logoDims = { w: canvas.width, h: canvas.height };
-    return { url: _logoDataUrl, ..._logoDims };
+    const url = canvas.toDataURL(mime);
+    return { url, w: canvas.width, h: canvas.height };
   } catch {
     return null;
   }
