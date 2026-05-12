@@ -272,7 +272,7 @@ export default function AssessmentRun() {
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
-              Section {step + 1} of {sections.length} · answer what you can, skip what you can&apos;t.
+              Section {step + 1} of {sections.length} · {currentSection?.label ?? ""}
             </p>
           </div>
 
