@@ -57,7 +57,13 @@ function formatAnswer(v: any): string {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "Yes" : "No";
   if (Array.isArray(v)) return v.join(", ");
-  if (typeof v === "object") return JSON.stringify(v);
+  if (typeof v === "object") {
+    if (typeof v.noc_code === "string" && typeof v.teer === "number") {
+      const cats = Array.isArray(v.categories) && v.categories.length ? ` · ${v.categories.join(", ")}` : "";
+      return `${v.title} (NOC ${v.noc_code} · TEER ${v.teer}${cats})`;
+    }
+    return JSON.stringify(v);
+  }
   return String(v);
 }
 
