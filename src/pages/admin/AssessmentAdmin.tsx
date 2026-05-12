@@ -267,7 +267,7 @@ function SessionsTab() {
     try {
       const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
       const p = r.client ?? r.lead ?? {};
-      const name = p.full_name ?? [p.first_name, p.last_name].filter(Boolean).join(" ") || "";
+      const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "");
       await downloadAssessmentPdf({
         sessionId: r.id,
         clientName: name,
@@ -310,7 +310,7 @@ function SessionsTab() {
         <tbody>
           {filtered.map((r) => {
             const p = r.client ?? r.lead ?? {};
-            const name = p.full_name ?? [p.first_name, p.last_name].filter(Boolean).join(" ") || "—";
+            const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
             const isOpen = r.status === "draft" || r.status === "in_progress";
             const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
             return (
