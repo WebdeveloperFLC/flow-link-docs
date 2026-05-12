@@ -11,6 +11,22 @@ const json = (b: unknown, s = 200) =>
 
 type Answers = Record<string, any>;
 
+// Strip/replace characters that pdf-lib's WinAnsi-encoded StandardFonts can't render.
+function safe(t: unknown): string {
+  const s = String(t ?? "");
+  return s
+    .replace(/≥/g, ">=")
+    .replace(/≤/g, "<=")
+    .replace(/[–—]/g, "-")
+    .replace(/•/g, "-")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/…/g, "...")
+    .split("")
+    .filter((c) => c.charCodeAt(0) <= 0xff)
+    .join("");
+}
+
 function matchPrograms(answers: Answers, programs: any[]) {
   const results: { code: string; label: string; status: "eligible" | "review" | "not_eligible"; reasons: string[] }[] = [];
   for (const p of programs) {
@@ -21,7 +37,7 @@ function matchPrograms(answers: Answers, programs: any[]) {
     if (rules.min) {
       for (const [k, v] of Object.entries(rules.min)) {
         const a = Number(answers[k] ?? 0);
-        if (!Number.isFinite(a) || a < Number(v)) { status = "not_eligible"; reasons.push(`Requires ${k} ≥ ${v}, you reported ${answers[k] ?? "—"}`); }
+        if (!Number.isFinite(a) || a < Number(v)) { status = "not_eligible"; reasons.push(`Requires ${k} >= ${v}, you reported ${answers[k] ?? "-"}`); }
       }
     }
     if (rules.requires) {
