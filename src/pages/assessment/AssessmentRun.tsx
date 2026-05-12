@@ -28,6 +28,17 @@ const SECTION_LABELS: Record<string, string> = {
 };
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 const isGermany = (c: string) => c === "Germany" || c === "DE";
+const isCanada = (c: string) => c === "Canada" || c === "CA";
+
+// Language gate: CRS / FSW / pathway verdicts only after all 4 modules entered.
+function hasFullLanguage(a: Record<string, any>): boolean {
+  if (!a.english_test) return false;
+  return ["english_listening","english_reading","english_writing","english_speaking"]
+    .every((k) => {
+      const n = Number(a[k]);
+      return Number.isFinite(n) && n > 0;
+    });
+}
 
 // Premium section subtitles shown only for the Germany pack.
 const GERMANY_SECTION_LABELS: Record<string, string> = {
@@ -154,6 +165,7 @@ export default function AssessmentRun() {
 
   useEffect(() => {
     if (isGermany(country)) { setCrs(null); return; }
+    if (isCanada(country) && !hasFullLanguage(answers)) { setCrs(null); return; }
     if (crsTimer.current) window.clearTimeout(crsTimer.current);
     crsTimer.current = window.setTimeout(async () => {
       try {
