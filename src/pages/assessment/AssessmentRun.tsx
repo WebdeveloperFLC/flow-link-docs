@@ -66,7 +66,7 @@ export default function AssessmentRun() {
     const c: any = (ses.data as any)?.client;
     const l: any = (ses.data as any)?.lead;
     setSubject({
-      name: c?.full_name ?? [l?.first_name, l?.last_name].filter(Boolean).join(" ") || undefined,
+      name: c?.full_name ?? ([l?.first_name, l?.last_name].filter(Boolean).join(" ") || undefined),
       email: c?.email ?? l?.email ?? undefined,
     });
     setLoading(false);
