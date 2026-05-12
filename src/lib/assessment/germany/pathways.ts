@@ -66,7 +66,7 @@ export function evaluateGermanyPathways(
     else gaps.push("German B1 required for Ausbildung.");
     if (answers.de_ausbildung_offer === true) reasons.push("Ausbildung contract / placement confirmed.");
     else gaps.push("Confirmed Ausbildung contract not yet provided.");
-    const age = Number(answers.de_age ?? 0);
+    const age = Number(answers.de_age ?? 0) || ageFromDob(answers.de_dob);
     if (age > 0 && age >= 35) gaps.push("Most Ausbildung programmes prefer applicants under 35.");
     if (answers.de_passport_valid !== true) gaps.push("Valid passport required.");
     results.push({
