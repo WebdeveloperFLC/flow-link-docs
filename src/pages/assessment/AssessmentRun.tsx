@@ -433,5 +433,8 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
   if (q.q_type === "number") {
     return <input type="number" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value === "" ? null : Number(e.target.value))} />;
   }
+  if (q.q_type === "date") {
+    return <input type="date" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value || null)} />;
+  }
   return <input className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value)} />;
 }
