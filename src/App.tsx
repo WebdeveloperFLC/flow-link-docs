@@ -56,6 +56,7 @@ import AssessmentCountry from "./pages/assessment/AssessmentCountry";
 import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 import NocAdmin from "./pages/admin/NocAdmin";
+import GermanyRulesAdmin from "./pages/admin/GermanyRulesAdmin";
 
 const queryClient = new QueryClient();
 
