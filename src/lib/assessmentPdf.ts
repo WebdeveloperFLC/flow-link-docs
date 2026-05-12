@@ -18,6 +18,23 @@ const SECTION_LABELS: Record<string, string> = {
 };
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 
+// Sections relevant to Family Reunification flow — hide CRS-only sections.
+const FAMILY_SECTION_ALLOW = new Set(["personal", "canada", "documents"]);
+// Question codes to skip when in family flow (CRS-only).
+const FAMILY_CODE_SKIP = /^(ielts|celpip|tef|tcf|noc|work|edu|education_level|spouse_|second_lang|canadian_work|provincial|funds|adapt|arranged)/i;
+
+// IRCC LICO (Low Income Cut-Off) — 2024 figures, gross CAD/yr.
+const LICO_TABLE: { label: string; size: number; amount: number }[] = [
+  { label: "1 person",   size: 1, amount: 27514 },
+  { label: "2 persons",  size: 2, amount: 34254 },
+  { label: "3 persons",  size: 3, amount: 42100 },
+  { label: "4 persons",  size: 4, amount: 51128 },
+  { label: "5 persons",  size: 5, amount: 57988 },
+  { label: "6 persons",  size: 6, amount: 65400 },
+  { label: "7 persons",  size: 7, amount: 72814 },
+];
+const LICO_EACH_ADDITIONAL = 7412;
+
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "Permanent Residence",
   work_permit: "Work Permit",
