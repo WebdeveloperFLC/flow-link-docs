@@ -166,6 +166,7 @@ export default function AssessmentRun() {
         clientName: subject.name,
         clientEmail: subject.email,
         goal,
+        country,
         answers,
         questions,
         crs,
