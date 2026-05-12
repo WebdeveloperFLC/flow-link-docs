@@ -19,6 +19,18 @@ const SECTION_LABELS: Record<string, string> = {
 const SECTION_ORDER = ["personal","education","language","work","canada","province","funds","compliance","documents"];
 
 // Sections relevant to Family Reunification flow — hide CRS-only sections.
+// Sanitize text for jsPDF's built-in Helvetica (WinAnsi only). Non-WinAnsi glyphs
+// (≥, →, ✓, …) cause the whole string to render as spaced bytes.
+const safe = (s: string) =>
+  String(s ?? "")
+    .replace(/≥/g, ">=")
+    .replace(/≤/g, "<=")
+    .replace(/→/g, "->")
+    .replace(/↳/g, "->")
+    .replace(/✓/g, "(ok)")
+    .replace(/✗/g, "(x)")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
 const FAMILY_SECTION_ALLOW = new Set(["personal", "canada", "documents"]);
 // Question codes to skip when in family flow (CRS-only).
 const FAMILY_CODE_SKIP = /^(ielts|celpip|tef|tcf|noc|work|edu|education_level|spouse_|second_lang|canadian_work|provincial|funds|adapt|arranged)/i;
