@@ -81,39 +81,39 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   const W = 595, H = 842;
   const drawHeader = (page: any, title: string) => {
     page.drawRectangle({ x: 0, y: H - 80, width: W, height: 80, color: rgb(0.07, 0.16, 0.32) });
-    page.drawTextSafe(opts.wrapper?.brand_name ?? "Futurelink Consultants", { x: 36, y: H - 40, size: 16, font: bold, color: rgb(1,1,1) });
-    page.drawTextSafe(title, { x: 36, y: H - 60, size: 11, font, color: rgb(0.85, 0.92, 1) });
+    draw(page, opts.wrapper?.brand_name ?? "Futurelink Consultants", { x: 36, y: H - 40, size: 16, font: bold, color: rgb(1,1,1) });
+    draw(page, title, { x: 36, y: H - 60, size: 11, font, color: rgb(0.85, 0.92, 1) });
   };
   const drawFooter = (page: any) => {
-    page.drawTextSafe(opts.wrapper?.footer_text ?? "Confidential — Canada Immigration Assessment", { x: 36, y: 30, size: 9, font, color: rgb(0.5,0.5,0.5) });
+    draw(page, opts.wrapper?.footer_text ?? "Confidential — Canada Immigration Assessment", { x: 36, y: 30, size: 9, font, color: rgb(0.5,0.5,0.5) });
   };
 
   // Cover
   let page = pdf.addPage([W, H]);
   drawHeader(page, "Canada Immigration Assessment");
-  page.drawTextSafe("Personalised Assessment Report", { x: 36, y: H - 160, size: 22, font: bold, color: rgb(0.07,0.16,0.32) });
-  page.drawTextSafe(`Prepared for: ${[opts.lead.first_name, opts.lead.middle_name, opts.lead.last_name].filter(Boolean).join(" ")}`, { x: 36, y: H - 200, size: 12, font });
-  page.drawTextSafe(`Email: ${opts.lead.email}`, { x: 36, y: H - 220, size: 11, font });
-  page.drawTextSafe(`Phone: ${opts.lead.phone ?? ""}`, { x: 36, y: H - 235, size: 11, font });
-  page.drawTextSafe(`Date: ${new Date().toLocaleDateString()}`, { x: 36, y: H - 250, size: 11, font });
-  page.drawTextSafe("This advisory report summarises programs you may qualify for based on your responses.", { x: 36, y: H - 290, size: 11, font, color: rgb(0.3,0.3,0.3), maxWidth: W - 72 });
-  page.drawTextSafe("It is not a legal opinion. Final eligibility is determined by IRCC.", { x: 36, y: H - 305, size: 11, font, color: rgb(0.3,0.3,0.3) });
+  draw(page, "Personalised Assessment Report", { x: 36, y: H - 160, size: 22, font: bold, color: rgb(0.07,0.16,0.32) });
+  draw(page, `Prepared for: ${[opts.lead.first_name, opts.lead.middle_name, opts.lead.last_name].filter(Boolean).join(" ")}`, { x: 36, y: H - 200, size: 12, font });
+  draw(page, `Email: ${opts.lead.email}`, { x: 36, y: H - 220, size: 11, font });
+  draw(page, `Phone: ${opts.lead.phone ?? ""}`, { x: 36, y: H - 235, size: 11, font });
+  draw(page, `Date: ${new Date().toLocaleDateString()}`, { x: 36, y: H - 250, size: 11, font });
+  draw(page, "This advisory report summarises programs you may qualify for based on your responses.", { x: 36, y: H - 290, size: 11, font, color: rgb(0.3,0.3,0.3), maxWidth: W - 72 });
+  draw(page, "It is not a legal opinion. Final eligibility is determined by IRCC.", { x: 36, y: H - 305, size: 11, font, color: rgb(0.3,0.3,0.3) });
   drawFooter(page);
 
   // CRS Breakdown
   page = pdf.addPage([W, H]);
   drawHeader(page, "CRS Score Breakdown");
   let yc = H - 110;
-  page.drawTextSafe(`Total CRS Score: ${opts.crs.total}`, { x: 36, y: yc, size: 20, font: bold, color: rgb(0.07,0.16,0.32) });
+  draw(page, `Total CRS Score: ${opts.crs.total}`, { x: 36, y: yc, size: 20, font: bold, color: rgb(0.07,0.16,0.32) });
   yc -= 24;
-  page.drawTextSafe(opts.crs.withSpouse ? "Calculated with accompanying spouse" : "Calculated as single applicant", { x: 36, y: yc, size: 10, font, color: rgb(0.4,0.4,0.4) });
+  draw(page, opts.crs.withSpouse ? "Calculated with accompanying spouse" : "Calculated as single applicant", { x: 36, y: yc, size: 10, font, color: rgb(0.4,0.4,0.4) });
   yc -= 24;
   const sec = (label: string, total: number, max: number, items: Record<string, number>) => {
     if (yc < 140) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "CRS Breakdown (cont.)"); yc = H - 110; }
-    page.drawTextSafe(`${label} — ${total} / ${max}`, { x: 36, y: yc, size: 13, font: bold }); yc -= 16;
+    draw(page, `${label} — ${total} / ${max}`, { x: 36, y: yc, size: 13, font: bold }); yc -= 16;
     for (const [k, v] of Object.entries(items)) {
-      page.drawTextSafe(`• ${k.replace(/_/g," ")}`, { x: 44, y: yc, size: 10, font, color: rgb(0.25,0.25,0.25) });
-      page.drawTextSafe(String(v), { x: W - 80, y: yc, size: 10, font });
+      draw(page, `• ${k.replace(/_/g," ")}`, { x: 44, y: yc, size: 10, font, color: rgb(0.25,0.25,0.25) });
+      draw(page, String(v), { x: W - 80, y: yc, size: 10, font });
       yc -= 12;
     }
     yc -= 8;
@@ -124,8 +124,8 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   sec("Additional points", opts.crs.sections.additional.total, opts.crs.sections.additional.max, opts.crs.sections.additional.items);
   if (opts.crs.notes.length) {
     if (yc < 80) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "CRS Notes"); yc = H - 110; }
-    page.drawTextSafe("Notes", { x: 36, y: yc, size: 12, font: bold }); yc -= 14;
-    for (const n of opts.crs.notes) { for (const ln of wrap(n, 95)) { page.drawTextSafe(`• ${ln}`, { x: 44, y: yc, size: 10, font }); yc -= 12; } }
+    draw(page, "Notes", { x: 36, y: yc, size: 12, font: bold }); yc -= 14;
+    for (const n of opts.crs.notes) { for (const ln of wrap(n, 95)) { draw(page, `• ${ln}`, { x: 44, y: yc, size: 10, font }); yc -= 12; } }
   }
   drawFooter(page);
 
@@ -136,12 +136,12 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   for (const m of opts.matches) {
     if (y < 120) { drawFooter(page); page = pdf.addPage([W, H]); drawHeader(page, "Program Matches (cont.)"); y = H - 110; }
     const color = m.status === "eligible" ? rgb(0.05,0.5,0.25) : m.status === "review" ? rgb(0.85,0.55,0) : rgb(0.7,0.15,0.15);
-    page.drawTextSafe(m.label, { x: 36, y, size: 13, font: bold });
-    page.drawTextSafe(m.status.replace("_"," ").toUpperCase(), { x: W - 140, y, size: 10, font: bold, color });
+    draw(page, m.label, { x: 36, y, size: 13, font: bold });
+    draw(page, m.status.replace("_"," ").toUpperCase(), { x: W - 140, y, size: 10, font: bold, color });
     y -= 16;
     for (const r of m.reasons) {
       const lines = wrap(r, 90);
-      for (const ln of lines) { page.drawTextSafe(`• ${ln}`, { x: 44, y, size: 10, font, color: rgb(0.25,0.25,0.25) }); y -= 12; }
+      for (const ln of lines) { draw(page, `• ${ln}`, { x: 44, y, size: 10, font, color: rgb(0.25,0.25,0.25) }); y -= 12; }
     }
     y -= 8;
   }
@@ -151,21 +151,21 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   page = pdf.addPage([W, H]);
   drawHeader(page, "Risk Flags & Missing Documents");
   y = H - 110;
-  page.drawTextSafe("Risk flags", { x: 36, y, size: 13, font: bold }); y -= 18;
-  if (opts.flags.length === 0) { page.drawTextSafe("None disclosed.", { x: 36, y, size: 11, font }); y -= 16; }
-  for (const f of opts.flags) { for (const ln of wrap(f, 95)) { page.drawTextSafe(`• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
+  draw(page, "Risk flags", { x: 36, y, size: 13, font: bold }); y -= 18;
+  if (opts.flags.length === 0) { draw(page, "None disclosed.", { x: 36, y, size: 11, font }); y -= 16; }
+  for (const f of opts.flags) { for (const ln of wrap(f, 95)) { draw(page, `• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
   y -= 12;
-  page.drawTextSafe("Missing information / documents", { x: 36, y, size: 13, font: bold }); y -= 18;
-  if (opts.missing.length === 0) { page.drawTextSafe("Nothing flagged.", { x: 36, y, size: 11, font }); y -= 16; }
-  for (const m of opts.missing) { for (const ln of wrap(m, 95)) { page.drawTextSafe(`• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
+  draw(page, "Missing information / documents", { x: 36, y, size: 13, font: bold }); y -= 18;
+  if (opts.missing.length === 0) { draw(page, "Nothing flagged.", { x: 36, y, size: 11, font }); y -= 16; }
+  for (const m of opts.missing) { for (const ln of wrap(m, 95)) { draw(page, `• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
   y -= 16;
-  page.drawTextSafe("Next steps", { x: 36, y, size: 13, font: bold }); y -= 18;
+  draw(page, "Next steps", { x: 36, y, size: 13, font: bold }); y -= 18;
   const steps = [
     "Book a consultation with a Futurelink RCIC to review this report.",
     "Begin collecting documents flagged as missing.",
     "If applicable, book your language test and start the ECA process.",
   ];
-  for (const s of steps) { for (const ln of wrap(s, 95)) { page.drawTextSafe(`• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
+  for (const s of steps) { for (const ln of wrap(s, 95)) { draw(page, `• ${ln}`, { x: 44, y, size: 11, font }); y -= 14; } }
   drawFooter(page);
 
   return await pdf.save();
