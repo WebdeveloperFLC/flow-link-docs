@@ -14,6 +14,7 @@ import {
   Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle,
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
+import { invokeError } from "@/lib/invokeError";
 import { useNavigate } from "react-router-dom";
 import { downloadAssessmentPdf, openAssessmentPdf } from "@/lib/assessmentPdf";
 
@@ -156,7 +157,7 @@ function InviteTab() {
       body: { firstName: first, middleName: mid, lastName: last, email, phone },
     });
     setBusy(false);
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Failed");
     setLink((data as any).link);
     toast.success((data as any).emailed ? "Invitation emailed" : "Invitation created — email queued");
   };
@@ -273,7 +274,7 @@ function SessionsTab() {
   }, [rows, q, statusFilter]);
   const downloadServer = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-pdf-download", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Download failed");
     window.open((data as any).url, "_blank");
   };
   const pdfInput = async (r: any) => {
@@ -300,7 +301,7 @@ function SessionsTab() {
   };
   const resend = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
+    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Resend failed");
     toast.success("Report re-sent");
   };
   if (loading) return <Loader2 className="animate-spin" />;

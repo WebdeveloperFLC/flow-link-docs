@@ -8,6 +8,7 @@ import { Loader2, Search, UserPlus, Play, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { listCountries, listPathways, countryNameFor, type Country, type Pathway } from "@/lib/settleAbroad";
+import { invokeError } from "@/lib/invokeError";
 
 type Client = { id: string; full_name: string; email: string | null; phone: string | null; country: string | null };
 
@@ -67,7 +68,7 @@ export function StartAssessmentDialog({
       }
       const { data, error } = await supabase.functions.invoke("assessment-session-create", { body });
       if (error || (data as any)?.error) {
-        toast.error(error?.message ?? (data as any)?.error ?? "Failed");
+        toast.error((await invokeError(error, data)) ?? "Failed");
         setBusy(false); return;
       }
       const sessionId = (data as any).sessionId as string;
