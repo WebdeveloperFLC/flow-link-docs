@@ -122,6 +122,24 @@ export default function AssessmentRun() {
 
   const set = (code: string, v: any) => setAnswers((a) => ({ ...a, [code]: v }));
 
+  // Auto-derive age from de_dob for Germany scoring.
+  const setWithDerived = (code: string, v: any) => {
+    setAnswers((a) => {
+      const next: Record<string, any> = { ...a, [code]: v };
+      if (code === "de_dob" && typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        const dob = new Date(v);
+        if (!isNaN(dob.getTime())) {
+          const now = new Date();
+          let age = now.getFullYear() - dob.getFullYear();
+          const m = now.getMonth() - dob.getMonth();
+          if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
+          if (age >= 0 && age < 120) next.de_age = age;
+        }
+      }
+      return next;
+    });
+  };
+
   const setOccupation = (v: OccupationValue) => {
     setAnswers((a) => ({
       ...a,
@@ -254,7 +272,7 @@ export default function AssessmentRun() {
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
-              Section {step + 1} of {sections.length} · answer what you can, skip what you can&apos;t.
+              Section {step + 1} of {sections.length} · {currentSection?.label ?? ""}
             </p>
           </div>
 
@@ -277,7 +295,7 @@ export default function AssessmentRun() {
                     )}
                   </>
                 ) : (
-                  renderInput(q, answers[q.code], (v) => set(q.code, v))
+                  renderInput(q, answers[q.code], (v) => setWithDerived(q.code, v))
                 )}
               </div>
             ))}
@@ -414,6 +432,9 @@ function renderInput(q: Q, v: any, set: (v: any) => void) {
   }
   if (q.q_type === "number") {
     return <input type="number" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value === "" ? null : Number(e.target.value))} />;
+  }
+  if (q.q_type === "date") {
+    return <input type="date" className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value || null)} />;
   }
   return <input className={baseCls} value={v ?? ""} onChange={(e) => set(e.target.value)} />;
 }

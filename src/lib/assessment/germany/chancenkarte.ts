@@ -21,7 +21,10 @@ function matchClause(answers: Record<string, any>, when: Record<string, unknown>
     if (k.endsWith("_in")) {
       const key = k.slice(0, -3);
       const arr = Array.isArray(expected) ? expected : [];
-      if (!arr.includes(answers[key])) return false;
+      const a = answers[key];
+      if (Array.isArray(a)) {
+        if (!a.some((x) => arr.includes(x))) return false;
+      } else if (!arr.includes(a)) return false;
       continue;
     }
     const got = answers[k];

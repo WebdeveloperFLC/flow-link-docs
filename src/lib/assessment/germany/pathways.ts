@@ -4,6 +4,17 @@ import { cefrIdx } from "./chancenkarte";
 const EDU_ORDER = ["none", "secondary", "diploma", "bachelor", "master", "phd"];
 const eduIdx = (v: unknown) => EDU_ORDER.indexOf(String(v ?? "none"));
 
+function ageFromDob(dob: unknown): number {
+  if (typeof dob !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return 0;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return 0;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a -= 1;
+  return a >= 0 && a < 120 ? a : 0;
+}
+
 function eligible(reasons: string[], gaps: string[]): DePathwayResult["status"] {
   if (gaps.length === 0) return "eligible";
   if (gaps.length <= 1 && reasons.length > 0) return "partial";
@@ -66,7 +77,7 @@ export function evaluateGermanyPathways(
     else gaps.push("German B1 required for Ausbildung.");
     if (answers.de_ausbildung_offer === true) reasons.push("Ausbildung contract / placement confirmed.");
     else gaps.push("Confirmed Ausbildung contract not yet provided.");
-    const age = Number(answers.de_age ?? 0);
+    const age = Number(answers.de_age ?? 0) || ageFromDob(answers.de_dob);
     if (age > 0 && age >= 35) gaps.push("Most Ausbildung programmes prefer applicants under 35.");
     if (answers.de_passport_valid !== true) gaps.push("Valid passport required.");
     results.push({
