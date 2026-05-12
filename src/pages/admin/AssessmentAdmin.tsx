@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
 import { useNavigate } from "react-router-dom";
-import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
+import { downloadAssessmentPdf, openAssessmentPdf } from "@/lib/assessmentPdf";
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "PR",
@@ -263,23 +263,27 @@ function SessionsTab() {
     if (error || (data as any)?.error) return toast.error(error?.message ?? (data as any)?.error);
     window.open((data as any).url, "_blank");
   };
+  const pdfInput = async (r: any) => {
+    const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
+    const p = r.client ?? r.lead ?? {};
+    const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "");
+    return {
+      sessionId: r.id,
+      clientName: name,
+      clientEmail: p.email,
+      goal: r.goal,
+      answers: r.answers ?? {},
+      questions: (qs.data ?? []) as any[],
+      crs: r.output?.crs,
+    };
+  };
   const downloadClient = async (r: any) => {
-    try {
-      const qs = await supabase.from("assessment_questions").select("id, code, section, label, q_type").eq("is_active", true).order("order_index");
-      const p = r.client ?? r.lead ?? {};
-      const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "");
-      await downloadAssessmentPdf({
-        sessionId: r.id,
-        clientName: name,
-        clientEmail: p.email,
-        goal: r.goal,
-        answers: r.answers ?? {},
-        questions: (qs.data ?? []) as any[],
-        crs: r.output?.crs,
-      });
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "PDF failed");
-    }
+    try { await downloadAssessmentPdf(await pdfInput(r)); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "PDF failed"); }
+  };
+  const viewClient = async (r: any) => {
+    try { await openAssessmentPdf(await pdfInput(r)); }
+    catch (e) { toast.error(e instanceof Error ? e.message : "PDF failed"); }
   };
   const resend = async (id: string) => {
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
@@ -333,7 +337,7 @@ function SessionsTab() {
                   )}
                   {isDone && (
                     <>
-                      <Button size="sm" variant="outline" onClick={() => nav(`/assessment/run/${r.id}`)} title="View"><ExternalLink className="size-3.5" /></Button>
+                      <Button size="sm" variant="outline" onClick={() => viewClient(r)} title="View report"><ExternalLink className="size-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
                     </>

@@ -62,6 +62,18 @@ function formatAnswer(v: any): string {
 }
 
 export async function downloadAssessmentPdf(input: AssessmentPdfInput) {
+  const pdf = await buildAssessmentPdf(input);
+  const fname = `FLC-Assessment-${(input.clientName || input.sessionId || "report").replace(/[^a-z0-9_-]+/gi, "_")}.pdf`;
+  pdf.save(fname);
+}
+
+export async function openAssessmentPdf(input: AssessmentPdfInput) {
+  const pdf = await buildAssessmentPdf(input);
+  const url = pdf.output("bloburl") as unknown as string;
+  window.open(url, "_blank", "noopener");
+}
+
+async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   const { clientName, clientEmail, goal, answers, questions, crs, sessionId } = input;
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
@@ -203,7 +215,5 @@ export async function downloadAssessmentPdf(input: AssessmentPdfInput) {
   }
 
   drawFooter();
-
-  const fname = `FLC-Assessment-${(clientName || sessionId || "report").replace(/[^a-z0-9_-]+/gi, "_")}.pdf`;
-  pdf.save(fname);
+  return pdf;
 }
