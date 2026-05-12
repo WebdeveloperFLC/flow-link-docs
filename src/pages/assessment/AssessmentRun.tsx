@@ -5,6 +5,8 @@ import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
 import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save, Download } from "lucide-react";
 import { toast } from "sonner";
 import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
+import { OccupationSearch, type OccupationValue } from "@/components/assessment/OccupationSearch";
+import { PathwayEligibilityPanel } from "@/components/assessment/PathwayEligibilityPanel";
 
 type Q = {
   id: string; code: string; section: string; q_type: string; label: string;
@@ -97,6 +99,15 @@ export default function AssessmentRun() {
   }, [bySection]);
 
   const set = (code: string, v: any) => setAnswers((a) => ({ ...a, [code]: v }));
+
+  const setOccupation = (v: OccupationValue) => {
+    setAnswers((a) => ({
+      ...a,
+      noc_teer: v ? `TEER ${v.teer}` : null,
+      occupation: v,
+    }));
+  };
+  const currentOccupation: OccupationValue = answers.occupation ?? null;
 
   const showQ = (q: Q) => {
     const c = q.conditional_on as any;
@@ -233,7 +244,18 @@ export default function AssessmentRun() {
                   {q.label}{q.required && <span className="text-[hsl(8_75%_60%)] ml-0.5">*</span>}
                 </label>
                 {q.help_text && <div className="text-xs text-[hsl(220_14%_45%)]">{q.help_text}</div>}
-                {renderInput(q, answers[q.code], (v) => set(q.code, v))}
+                {q.q_type === "occupation_search" ? (
+                  <>
+                    <OccupationSearch value={currentOccupation} onChange={setOccupation} />
+                    {currentOccupation && (
+                      <div className="pt-3">
+                        <PathwayEligibilityPanel noc={currentOccupation as any} answers={answers} />
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  renderInput(q, answers[q.code], (v) => set(q.code, v))
+                )}
               </div>
             ))}
           </div>
