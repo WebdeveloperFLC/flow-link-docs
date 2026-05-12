@@ -1,35 +1,23 @@
-## Fixes
+## Problem
 
-### 1. Remove LICO table from Spouse branch
-LICO/MNI proof is only required for Parent/Grandparent (PGP & Super Visa), not for spousal sponsorship.
+In the Family Reunification PDF the **Next actions** section renders each line as `!’ R e g i s t e r ...` — every character spaced out and the leading glyph broken. Two bugs:
 
-- `src/components/assessment/FamilyReunificationFlow.tsx` — In the spouse branch, remove the `Family unit size` numeric input and the `<LicoTable />` block. Keep `LicoTable` only inside the parent/grandparent branch.
-- `src/lib/assessmentPdf.ts` — Change the LICO PDF block condition from `ev.branch === "parent" || ev.branch === "spouse"` to `ev.branch === "parent"` only, so it isn't rendered for spouse PDFs.
+1. `assessmentPdf.ts` line 497 prefixes each action with the Unicode arrow `→` (U+2192). Helvetica (jsPDF's built-in) cannot encode it, so jsPDF falls back to a replacement encoding that turns the whole string into spaced single bytes — same root cause we already fixed for `↳` in the CRS Suggestions block.
+2. `assessment/family/index.ts` line 183 truncates the missing-documents action with `slice(0, 3)` + `"…"`, so the user only ever sees three of the required items followed by `…`.
 
-### 2. Fix question ordering: "Relationship of closest relative" appearing above "Canadian education credential"
-The DB row `relative_relationship` has `order_index = 101` but is conditional on `sibling_in_canada` (order 107). When toggled Yes, it renders before its parent question and before the education credential question.
+## Fix
 
-- Add a migration to update `relative_relationship.order_index` to `108` so it renders directly below `sibling_in_canada`.
+**`src/lib/assessmentPdf.ts` (Next actions block, ~lines 489–503)**
+- Replace the `→ ${a}` prefix with a plain ASCII bullet, matching the rest of the document (`• ${a}`), and use the same hung-indent pattern already used elsewhere so wrapped continuation lines align under the first word.
 
-```sql
-UPDATE assessment_questions
-SET order_index = 108
-WHERE code = 'relative_relationship' AND section = 'canada';
-```
+**`src/lib/assessment/family/index.ts` (line 183)**
+- Drop the `slice(0, 3)` + `"…"` truncation. List every missing required document, joined by `; `. The PDF renderer already wraps long lines, so no layout risk.
 
-### 3. Fix "Suggestions to improve your CRS" PDF alignment
-The current rendering uses the `↳` Unicode arrow and a 3-space indent which Helvetica renders as a tofu/odd character and misaligns the gain line under bullets. Wrapped bullet continuation lines also start at the margin instead of being hung-indented under the bullet text.
+## Verification
 
-In `src/lib/assessmentPdf.ts` (Suggestions block ~lines 405–430):
-- Replace `↳` with an ASCII `→` substitute: use `"   "` indent + bold-italic style is not needed; switch to plain ASCII `"   ~ "` or simply indent the gain text under the bullet without any glyph. Use `"        "` (8 spaces) hung indent matching the `• ` width.
-- For the bullet itself, split with `splitTextToSize(head, W - margin*2 - 12)` and render the first wrapped line at `margin`, subsequent wrapped lines at `margin + 10`, so continuation lines align under the first word after `•`.
-- Render the `potentialGain` line with `pdf.splitTextToSize(gain, W - margin*2 - 20)` and draw every line at `margin + 14` (no glyph), in the muted gray color.
-- Increase per-line height slightly (`12` → `13`) and add `y += 4` between tips so bullets don't crowd.
+- Regenerate a Parent/Grandparent PDF and confirm the Next actions bullets render cleanly (`• Register interest-to-sponsor…`) with no spaced-out characters.
+- Confirm the "Collect missing documents" line lists all missing items in full, no trailing `…`.
 
-### Verification
-- Open a Spouse family flow in the preview and confirm no LICO table renders.
-- Toggle "Do you have close relatives in Canada? → Yes" inside the Canada CRS form and confirm the relationship chips now appear directly below that question, after "Canadian education credential earned".
-- Generate a Canada CRS PDF and confirm the Suggestions section bullets align cleanly with hung indents and no broken arrow glyph.
+## Out of scope
 
-### Out of scope
-Family eligibility logic, CRS math, German flow, banner/header, other PDF sections.
+CRS math, German flow, LICO table, country pathway list, banner, other PDF sections.
