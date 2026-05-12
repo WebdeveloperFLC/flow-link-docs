@@ -424,6 +424,18 @@ export default function AssessmentRun() {
 
         {/* Center card */}
         <section className="flc-card p-8 space-y-6 min-h-[480px]">
+          {isFamilyFlow ? (
+            <>
+              <div>
+                <h2 className="flc-display text-3xl">Family Reunification</h2>
+                <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
+                  Sponsor a family member to Canada — Spouse, Dependent child, Parent/Grandparent, or Other.
+                </p>
+              </div>
+              <FamilyReunificationFlow value={familyAnswers} onChange={setFamily} />
+            </>
+          ) : (
+          <>
           <div>
             <h2 className="flc-display text-3xl">{currentSection?.label}</h2>
             <p className="text-sm text-[hsl(220_14%_28%)] mt-1">
@@ -459,13 +471,15 @@ export default function AssessmentRun() {
               </div>
             ))}
           </div>
+          </>
+          )}
 
           <div className="flc-divider" />
 
           <div className="flex items-center justify-between">
             <button
               onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0}
+              disabled={step === 0 || isFamilyFlow}
               className="flex items-center gap-1.5 text-sm text-[hsl(220_18%_11%)] disabled:opacity-40"
             >
               <ArrowLeft className="size-4" /> Back
@@ -479,7 +493,12 @@ export default function AssessmentRun() {
                 {saving ? <Loader2 className="size-3.5 inline mr-1.5 animate-spin" /> : <Save className="size-3.5 inline mr-1.5" />}
                 Save
               </button>
-              {isLast ? (
+              {isFamilyFlow ? (
+                <button onClick={submit} disabled={submitting} className="flc-cta">
+                  {submitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                  Submit
+                </button>
+              ) : isLast ? (
                 <button onClick={submit} disabled={submitting} className="flc-cta">
                   {submitting ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                   Submit
@@ -495,7 +514,19 @@ export default function AssessmentRun() {
 
         {/* CRS aside */}
         <aside className="space-y-3">
-          {isGermany(country) ? (
+          {isFamilyFlow ? (
+            <div className="flc-card p-5 sticky top-4 space-y-3">
+              <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">
+                Family Reunification
+              </div>
+              <div className="text-sm text-[hsl(220_14%_28%)]">
+                This flow is for Canadian PR or citizens sponsoring a family member. CRS scoring does not apply.
+              </div>
+              <div className="text-[10px] text-[hsl(220_14%_45%)] border-t border-[hsl(30_12%_88%)] pt-2">
+                A counselor will review your answers and confirm the best sponsorship route.
+              </div>
+            </div>
+          ) : isGermany(country) ? (
             <ChancenkartePanel answers={answers} />
           ) : (
           <div className="flc-card p-5 sticky top-4 space-y-4">
