@@ -257,7 +257,7 @@ function SessionsTab() {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, goal, answers, submitted_at, created_at, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
+      .select("id, status, goal, answers, submitted_at, created_at, pdf_path, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
       .order("created_at", { ascending: false }).limit(200);
     setRows(data ?? []); setLoading(false);
   };
