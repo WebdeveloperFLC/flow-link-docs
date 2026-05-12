@@ -10,6 +10,17 @@ const cefrIdx = (v: unknown) => CEFR.indexOf(String(v ?? "none"));
 const EDU = ["none", "secondary", "diploma", "bachelor", "master", "phd"];
 const eduIdx = (v: unknown) => EDU.indexOf(String(v ?? "none"));
 
+function ageFromDob(dob: unknown): number {
+  if (typeof dob !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) return 0;
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return 0;
+  const now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) a -= 1;
+  return a >= 0 && a < 120 ? a : 0;
+}
+
 function matchClause(answers: Record<string, any>, when: Record<string, unknown>): boolean {
   for (const [k, expected] of Object.entries(when)) {
     if (k.endsWith("_gte")) { const a = Number(answers[k.slice(0,-4)]); if (!Number.isFinite(a) || a < Number(expected)) return false; continue; }
