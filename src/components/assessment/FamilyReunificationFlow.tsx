@@ -6,6 +6,69 @@ import {
   FAMILY_BRANCH_LABELS,
 } from "@/lib/assessment/family";
 
+// IRCC LICO 2024 — mirrors the PDF table so counselors see funds requirement live.
+const LICO_ROWS: { size: number; label: string; amount: number }[] = [
+  { size: 1, label: "1 person",   amount: 27514 },
+  { size: 2, label: "2 persons",  amount: 34254 },
+  { size: 3, label: "3 persons",  amount: 42100 },
+  { size: 4, label: "4 persons",  amount: 51128 },
+  { size: 5, label: "5 persons",  amount: 57988 },
+  { size: 6, label: "6 persons",  amount: 65400 },
+  { size: 7, label: "7 persons",  amount: 72814 },
+];
+const LICO_EXTRA = 7412;
+
+function LicoTable({ familySize, isSuperVisa }: { familySize?: number; isSuperVisa?: boolean }) {
+  const required = (() => {
+    if (!familySize || familySize < 1) return null;
+    const row = LICO_ROWS.find((r) => r.size === familySize);
+    if (row) return row.amount;
+    return LICO_ROWS[LICO_ROWS.length - 1].amount + (familySize - 7) * LICO_EXTRA;
+  })();
+  return (
+    <div className="rounded-xl border border-[hsl(30_12%_82%)] bg-white overflow-hidden">
+      <div className="px-4 py-3 border-b border-[hsl(30_12%_88%)] bg-[hsl(36_20%_96%)]">
+        <div className="text-sm font-semibold text-[hsl(220_18%_11%)]">Income requirement — IRCC LICO (2024)</div>
+        <div className="text-xs text-[hsl(220_14%_45%)] mt-0.5">
+          {isSuperVisa
+            ? "Super Visa: sponsor must meet LICO; no 3-year MNI requirement."
+            : "Family Class / PGP: sponsor must meet Minimum Necessary Income (LICO + 30% for PGP) for 3 consecutive tax years."}
+        </div>
+      </div>
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="text-left text-[11px] uppercase tracking-wider text-[hsl(220_14%_45%)]">
+            <th className="px-4 py-2 font-semibold">Family unit size</th>
+            <th className="px-4 py-2 font-semibold text-right">Minimum income (CAD / yr)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {LICO_ROWS.map((r) => {
+            const hi = familySize === r.size;
+            return (
+              <tr key={r.size} className={hi ? "bg-amber-50" : ""}>
+                <td className={`px-4 py-1.5 ${hi ? "font-semibold" : ""}`}>{r.label}</td>
+                <td className={`px-4 py-1.5 text-right ${hi ? "font-semibold" : ""}`}>CAD {r.amount.toLocaleString()}</td>
+              </tr>
+            );
+          })}
+          <tr className="text-[hsl(220_14%_45%)]">
+            <td className="px-4 py-1.5">Each additional person</td>
+            <td className="px-4 py-1.5 text-right">+ CAD {LICO_EXTRA.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table>
+      {required != null && (
+        <div className="px-4 py-2.5 border-t border-[hsl(30_12%_88%)] bg-[hsl(36_20%_98%)] text-sm">
+          <span className="text-[hsl(220_14%_45%)]">Declared family size {familySize}:</span>{" "}
+          <span className="font-semibold text-[hsl(220_18%_11%)]">CAD {required.toLocaleString()}</span> required.
+        </div>
+      )}
+      <div className="px-4 py-1.5 text-[10px] text-[hsl(220_14%_55%)]">Source: IRCC — figures advisory; confirm latest at canada.ca.</div>
+    </div>
+  );
+}
+
 interface Props {
   value: FamilyAnswers;
   onChange: (next: FamilyAnswers) => void;
@@ -170,6 +233,7 @@ export function FamilyReunificationFlow({ value, onChange }: Props) {
               className="w-32 rounded-lg border border-[hsl(30_12%_82%)] bg-white px-3 py-1.5 text-sm"
             />
           </Field>
+          <LicoTable familySize={(v as any).family_size} />
         </section>
       )}
 
@@ -273,6 +337,7 @@ export function FamilyReunificationFlow({ value, onChange }: Props) {
               className="w-32 rounded-lg border border-[hsl(30_12%_82%)] bg-white px-3 py-1.5 text-sm"
             />
           </Field>
+          <LicoTable familySize={(v as any).family_size} isSuperVisa={v.pathway_preference === "super_visa"} />
         </section>
       )}
 
