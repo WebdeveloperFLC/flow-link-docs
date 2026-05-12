@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Loader2, Mail, Download, Send, Copy, Search, ExternalLink,
-  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle,
+  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle, Trash2,
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
 import { invokeError } from "@/lib/invokeError";
@@ -304,6 +304,13 @@ function SessionsTab() {
     if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Resend failed");
     toast.success("Report re-sent");
   };
+  const deleteSession = async (id: string) => {
+    if (!confirm("Delete this assessment record?\n\nThe client profile and history are preserved — only this assessment session will be removed.")) return;
+    const { error } = await supabase.from("assessment_sessions").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    setRows((r) => r.filter((x) => x.id !== id));
+    toast.success("Assessment record deleted");
+  };
   if (loading) return <Loader2 className="animate-spin" />;
   return (
     <Card className="p-0 overflow-hidden">
@@ -360,6 +367,9 @@ function SessionsTab() {
                       )}
                     </>
                   )}
+                  <Button size="sm" variant="outline" onClick={() => deleteSession(r.id)} title="Delete this assessment record (keeps client)">
+                    <Trash2 className="size-3.5 text-destructive" />
+                  </Button>
                 </div>
               </td>
             </tr>
