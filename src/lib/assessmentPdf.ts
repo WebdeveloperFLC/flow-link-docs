@@ -539,11 +539,11 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       if (famSize > 0) {
         const base = LICO_TABLE.find((r) => r.size === famSize);
         const required = base ? base.amount : (LICO_TABLE[LICO_TABLE.length - 1].amount + (famSize - 7) * LICO_EACH_ADDITIONAL);
-        const summary = `Your declared family unit size: ${famSize} → CAD ${required.toLocaleString()} required.`;
+        const summary = `Declared family unit size: ${famSize}. Required income: CAD ${required.toLocaleString()}.`;
         pdf.setFont("helvetica", "bold");
         const sLines = pdf.splitTextToSize(summary, W - margin * 2) as string[];
         sLines.forEach((ln, i) => pdf.text(ln, margin, y + i * 12));
-        y += sLines.length * 12;
+        y += sLines.length * 12 + 4;
         pdf.setFont("helvetica", "normal");
       }
       pdf.setFontSize(8); pdf.setTextColor(140, 140, 145);
@@ -553,14 +553,12 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
     }
   }
 
-  // Answers grouped by section
+  // Answers grouped by section — fully skipped for Family Reunification PDFs.
   const bySection: Record<string, AssessmentQuestion[]> = {};
-  for (const q of questions) {
-    if (isFamilyFlow) {
-      if (!FAMILY_SECTION_ALLOW.has(q.section)) continue;
-      if (FAMILY_CODE_SKIP.test(q.code)) continue;
+  if (!isFamilyFlow) {
+    for (const q of questions) {
+      (bySection[q.section] ??= []).push(q);
     }
-    (bySection[q.section] ??= []).push(q);
   }
 
   for (const key of SECTION_ORDER) {
