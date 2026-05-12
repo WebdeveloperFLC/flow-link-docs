@@ -25,7 +25,13 @@ function matchClause(answers: Record<string, any>, when: Record<string, unknown>
   for (const [k, expected] of Object.entries(when)) {
     if (k.endsWith("_gte")) { const a = Number(answers[k.slice(0,-4)]); if (!Number.isFinite(a) || a < Number(expected)) return false; continue; }
     if (k.endsWith("_lte")) { const a = Number(answers[k.slice(0,-4)]); if (!Number.isFinite(a) || a > Number(expected)) return false; continue; }
-    if (k.endsWith("_in")) { const arr = Array.isArray(expected) ? expected : []; if (!arr.includes(answers[k.slice(0,-3)])) return false; continue; }
+    if (k.endsWith("_in")) {
+      const arr = Array.isArray(expected) ? expected : [];
+      const a = answers[k.slice(0,-3)];
+      if (Array.isArray(a)) { if (!a.some((x: unknown) => arr.includes(x))) return false; }
+      else if (!arr.includes(a)) return false;
+      continue;
+    }
     const got = answers[k];
     if (Array.isArray(expected)) { if (!expected.includes(got)) return false; }
     else if (typeof expected === "boolean") { const t = got === true || got === "yes" || got === "true"; if (t !== expected) return false; }
