@@ -412,18 +412,27 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         pdf.text("Suggestions to improve your CRS", margin, y); y += 16;
         pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
         for (const t of tips) {
-          const head = `• ${t.area}: ${t.action}`;
-          const wrapped = pdf.splitTextToSize(head, W - margin * 2) as string[];
-          newPageIfNeeded(wrapped.length * 12 + (t.potentialGain ? 12 : 0));
-          wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
-          y += wrapped.length * 12;
-          if (t.potentialGain) {
+          const head = `${t.area}: ${t.action}`;
+          const bulletIndent = 12;
+          const wrapped = pdf.splitTextToSize(head, W - margin * 2 - bulletIndent) as string[];
+          const gainLines = t.potentialGain
+            ? (pdf.splitTextToSize(t.potentialGain, W - margin * 2 - bulletIndent - 4) as string[])
+            : [];
+          newPageIfNeeded(wrapped.length * 13 + gainLines.length * 13 + 6);
+          wrapped.forEach((w2, i) => {
+            if (i === 0) pdf.text("•", margin, y);
+            pdf.text(w2, margin + bulletIndent, y);
+            y += 13;
+          });
+          if (gainLines.length) {
             pdf.setTextColor(120, 120, 130);
-            const gw = pdf.splitTextToSize(`   ↳ ${t.potentialGain}`, W - margin * 2) as string[];
-            gw.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
-            y += gw.length * 12;
+            gainLines.forEach((w2) => {
+              pdf.text(w2, margin + bulletIndent + 4, y);
+              y += 13;
+            });
             pdf.setTextColor(20, 20, 25);
           }
+          y += 4;
         }
         y += 6;
       }
@@ -493,8 +502,8 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       y += 6;
     }
 
-    // IRCC LICO table — only relevant for spouse/parent income proof.
-    if (ev.branch === "parent" || ev.branch === "spouse") {
+    // IRCC LICO table — only relevant for parent/grandparent income proof.
+    if (ev.branch === "parent") {
       const famSize = Number(fam.family_size) || 0;
       newPageIfNeeded(220);
       pdf.setFont("helvetica", "bold"); pdf.setFontSize(12);
