@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { Check, X } from "lucide-react";
 import { evaluatePathways, findProvincialMatches, ieltsOverallToClb, loadPathwayRules, type EligibilityResult, type NocOccupation, type ProvincialMatch } from "@/lib/noc";
 
+// Use the lowest of the four module bands (IRCC's "CLB across abilities") rather than overall.
+function minIeltsBand(a: Record<string, any>): number {
+  const vals = ["english_listening", "english_reading", "english_writing", "english_speaking"]
+    .map((k) => Number(a[k]))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  if (vals.length < 4) return 0;
+  return Math.min(...vals);
+}
+
 export function PathwayEligibilityPanel({
   noc,
   answers,
@@ -14,9 +23,11 @@ export function PathwayEligibilityPanel({
 
   useEffect(() => {
     if (!noc) { setResults([]); setProvincial([]); return; }
+    const minBand = minIeltsBand(answers);
+    if (minBand <= 0) { setResults([]); setProvincial([]); return; }
     (async () => {
       const rules = await loadPathwayRules();
-      const clb = ieltsOverallToClb(answers.english_overall);
+      const clb = ieltsOverallToClb(minBand);
       const r = evaluatePathways(rules, {
         noc,
         foreignYears: Number(answers.work_experience_years ?? 0),
@@ -31,9 +42,21 @@ export function PathwayEligibilityPanel({
       const pm = await findProvincialMatches(noc, province);
       setProvincial(pm);
     })();
-  }, [noc, answers.work_experience_years, answers.canadian_work_experience, answers.english_overall, answers.job_offer, JSON.stringify(answers.province_preference)]);
+  }, [noc, answers.work_experience_years, answers.canadian_work_experience,
+      answers.english_listening, answers.english_reading, answers.english_writing, answers.english_speaking,
+      answers.job_offer, JSON.stringify(answers.province_preference)]);
 
   if (!noc) return null;
+
+  // Gate: don't show pathway verdicts until all four language scores are entered.
+  const ready = minIeltsBand(answers) > 0;
+  if (!ready) {
+    return (
+      <div className="rounded-xl bg-[hsl(36_20%_94%)] p-4 text-xs text-[hsl(220_14%_28%)]">
+        Complete the language test section (all four module scores) to calculate accurate pathway eligibility.
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl bg-[hsl(36_20%_94%)] p-4 space-y-3">
