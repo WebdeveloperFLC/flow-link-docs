@@ -528,6 +528,17 @@ function RowItem({ label, v }: { label: string; v: any }) {
   );
 }
 
+function SummaryChip({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm ${
+      ok ? "border-[hsl(150_55%_42%)] bg-[hsl(150_55%_42%)]/5" : "border-[hsl(30_12%_82%)] bg-white"
+    }`}>
+      <span className={`size-2 rounded-full ${ok ? "bg-[hsl(150_55%_42%)]" : "bg-[hsl(30_12%_70%)]"}`} />
+      <span className="text-[hsl(220_18%_11%)]">{ok ? "✅" : "⚠"} {label}</span>
+    </div>
+  );
+}
+
 function renderInput(q: Q, v: any, set: (v: any) => void) {
   const baseCls = "flc-input";
   if (q.q_type === "boolean") {
