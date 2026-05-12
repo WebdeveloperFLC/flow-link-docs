@@ -22,6 +22,12 @@ const GOAL_LABELS: Record<string, string> = {
   family_sponsorship: "Family Sponsorship",
   business_investment: "Business / Investment",
   unsure: "Eligibility Check",
+  pnp: "Provincial Nominee Program",
+  de_chancenkarte: "Opportunity Card (Chancenkarte)",
+  de_job_seeker: "Job Seeker Visa",
+  de_ausbildung: "Ausbildung",
+  de_skilled_worker: "Skilled Worker (Germany)",
+  de_blue_card: "EU Blue Card",
 };
 
 export type AssessmentQuestion = {
@@ -32,6 +38,7 @@ export interface AssessmentPdfInput {
   clientName?: string;
   clientEmail?: string;
   goal?: string;
+  country?: string;
   answers: Record<string, any>;
   questions: AssessmentQuestion[];
   crs?: any;
@@ -81,6 +88,7 @@ export async function openAssessmentPdf(input: AssessmentPdfInput) {
 
 async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   const { clientName, clientEmail, goal, answers, questions, crs, sessionId } = input;
+  const country = input.country ?? "Canada";
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
   const H = pdf.internal.pageSize.getHeight();
@@ -108,11 +116,13 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
     pdf.text("Future Link Consultants", margin + 100, y + 16);
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(10);
+    pdf.setTextColor(220, 90, 60);
+    pdf.text("Settle Abroad", margin + 100, y + 30);
     pdf.setTextColor(90, 90, 100);
-    pdf.text("Canada Immigration Assessment", margin + 100, y + 30);
+    pdf.text(`${country} Immigration Assessment`, margin + 100, y + 42);
     pdf.setDrawColor(220, 220, 225);
-    pdf.line(margin, y + 42, W - margin, y + 42);
-    y += 56;
+    pdf.line(margin, y + 54, W - margin, y + 54);
+    y += 68;
     pdf.setTextColor(20, 20, 25);
     if (full) return;
   };

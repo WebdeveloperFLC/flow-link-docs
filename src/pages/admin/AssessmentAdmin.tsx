@@ -34,8 +34,8 @@ export default function AssessmentAdmin() {
   return (
     <AppLayout>
       <PageHeader
-        title="Canada Assessment"
-        description="Console for invitations, submissions, CRS, and question/program management"
+        title="Settle Abroad — Assessment Console"
+        description="Multi-country immigration assessments: invitations, submissions, scoring, and question/program management"
         actions={
           <Button variant="outline" size="sm" onClick={() => (window.location.href = "/noc-admin")}>
             NOC management

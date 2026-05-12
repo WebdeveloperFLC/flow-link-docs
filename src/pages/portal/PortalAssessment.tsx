@@ -68,8 +68,8 @@ export default function PortalAssessment() {
     <PortalLayout>
       <div className="p-6 max-w-3xl mx-auto space-y-4">
         <div>
-          <h1 className="text-2xl font-bold">Canada Assessment</h1>
-          <p className="text-sm text-muted-foreground">Your eligibility assessments and reports.</p>
+          <h1 className="text-2xl font-bold">Settle Abroad — Assessments</h1>
+          <p className="text-sm text-muted-foreground">Your multi-country eligibility assessments and reports.</p>
         </div>
 
         {loading ? <Loader2 className="animate-spin" /> : sessions.length === 0 ? (
