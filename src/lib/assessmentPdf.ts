@@ -492,11 +492,76 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       }
       y += 6;
     }
+
+    // IRCC LICO table — only relevant for spouse/parent income proof.
+    if (ev.branch === "parent" || ev.branch === "spouse") {
+      const famSize = Number(fam.family_size) || 0;
+      newPageIfNeeded(220);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(12);
+      pdf.setTextColor(20, 30, 70);
+      pdf.text("Income requirement — IRCC LICO (2024)", margin, y); y += 14;
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(9);
+      pdf.setTextColor(120, 120, 130);
+      const note = fam.pathway_preference === "super_visa"
+        ? "Super Visa: sponsor must meet LICO; no 3-year MNI requirement."
+        : "Family Class / PGP: sponsor must meet Minimum Necessary Income (MNI = LICO + 30% for PGP) for 3 consecutive tax years.";
+      const noteLines = pdf.splitTextToSize(note, W - margin * 2) as string[];
+      noteLines.forEach((ln, i) => pdf.text(ln, margin, y + i * 11));
+      y += noteLines.length * 11 + 6;
+      pdf.setTextColor(20, 20, 25);
+      // Header row
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(10);
+      pdf.setFillColor(235, 238, 245);
+      pdf.rect(margin, y - 10, W - margin * 2, 16, "F");
+      pdf.text("Family unit size", margin + 6, y);
+      pdf.text("Minimum income (CAD / yr)", W - margin - 6, y, { align: "right" });
+      y += 10;
+      pdf.setFont("helvetica", "normal");
+      for (const row of LICO_TABLE) {
+        newPageIfNeeded(16);
+        const highlight = famSize === row.size;
+        if (highlight) {
+          pdf.setFillColor(255, 244, 230);
+          pdf.rect(margin, y - 10, W - margin * 2, 16, "F");
+          pdf.setFont("helvetica", "bold");
+        }
+        pdf.text(row.label, margin + 6, y);
+        pdf.text(`CAD ${row.amount.toLocaleString()}`, W - margin - 6, y, { align: "right" });
+        if (highlight) pdf.setFont("helvetica", "normal");
+        y += 14;
+      }
+      newPageIfNeeded(16);
+      pdf.setTextColor(80, 80, 90);
+      pdf.text("Each additional person", margin + 6, y);
+      pdf.text(`+ CAD ${LICO_EACH_ADDITIONAL.toLocaleString()}`, W - margin - 6, y, { align: "right" });
+      pdf.setTextColor(20, 20, 25);
+      y += 16;
+      if (famSize > 0) {
+        const base = LICO_TABLE.find((r) => r.size === famSize);
+        const required = base ? base.amount : (LICO_TABLE[LICO_TABLE.length - 1].amount + (famSize - 7) * LICO_EACH_ADDITIONAL);
+        const summary = `Your declared family unit size: ${famSize} → CAD ${required.toLocaleString()} required.`;
+        pdf.setFont("helvetica", "bold");
+        const sLines = pdf.splitTextToSize(summary, W - margin * 2) as string[];
+        sLines.forEach((ln, i) => pdf.text(ln, margin, y + i * 12));
+        y += sLines.length * 12;
+        pdf.setFont("helvetica", "normal");
+      }
+      pdf.setFontSize(8); pdf.setTextColor(140, 140, 145);
+      pdf.text("Source: IRCC — figures advisory; confirm latest at canada.ca.", margin, y);
+      pdf.setFontSize(10); pdf.setTextColor(20, 20, 25);
+      y += 14;
+    }
   }
 
   // Answers grouped by section
   const bySection: Record<string, AssessmentQuestion[]> = {};
-  for (const q of questions) (bySection[q.section] ??= []).push(q);
+  for (const q of questions) {
+    if (isFamilyFlow) {
+      if (!FAMILY_SECTION_ALLOW.has(q.section)) continue;
+      if (FAMILY_CODE_SKIP.test(q.code)) continue;
+    }
+    (bySection[q.section] ??= []).push(q);
+  }
 
   for (const key of SECTION_ORDER) {
     const qs = bySection[key];
@@ -514,18 +579,20 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
 
     for (const q of qs) {
       const ans = formatAnswer(answers[q.code]);
-      const labelLines = pdf.splitTextToSize(q.label, W - margin * 2 - 130) as string[];
-      const ansLines = pdf.splitTextToSize(ans, 120) as string[];
-      const lineH = 12;
-      const blockH = Math.max(labelLines.length, ansLines.length) * lineH + 4;
+      // Two-line layout: label on top, indented answer below — prevents overlap.
+      const lineH = 13;
+      const labelLines = pdf.splitTextToSize(q.label, W - margin * 2) as string[];
+      const ansLines = pdf.splitTextToSize(ans, W - margin * 2 - 12) as string[];
+      const blockH = labelLines.length * lineH + ansLines.length * lineH + 6;
       newPageIfNeeded(blockH);
-      pdf.setTextColor(80, 80, 90);
+      pdf.setTextColor(90, 90, 100);
       labelLines.forEach((ln, i) => pdf.text(ln, margin, y + i * lineH));
+      y += labelLines.length * lineH;
       pdf.setTextColor(20, 20, 25);
       pdf.setFont("helvetica", "bold");
-      ansLines.forEach((ln, i) => pdf.text(ln, W - margin, y + i * lineH, { align: "right" }));
+      ansLines.forEach((ln, i) => pdf.text(ln, margin + 12, y + i * lineH));
       pdf.setFont("helvetica", "normal");
-      y += blockH;
+      y += ansLines.length * lineH + 6;
 
       // Inject derived Age right after DOB for Germany so the report mirrors the score input.
       if (isGermany && q.code === "de_dob") {
@@ -533,17 +600,14 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
         if (age != null) {
           const lbl = "Age (derived)";
           const ansStr = `${age}`;
-          const lblLines = pdf.splitTextToSize(lbl, W - margin * 2 - 130) as string[];
-          const aLines = pdf.splitTextToSize(ansStr, 120) as string[];
-          const bH = Math.max(lblLines.length, aLines.length) * lineH + 4;
+          const bH = lineH * 2 + 6;
           newPageIfNeeded(bH);
-          pdf.setTextColor(80, 80, 90);
-          lblLines.forEach((ln, i) => pdf.text(ln, margin, y + i * lineH));
+          pdf.setTextColor(90, 90, 100);
+          pdf.text(lbl, margin, y); y += lineH;
           pdf.setTextColor(20, 20, 25);
           pdf.setFont("helvetica", "bold");
-          aLines.forEach((ln, i) => pdf.text(ln, W - margin, y + i * lineH, { align: "right" }));
+          pdf.text(ansStr, margin + 12, y); y += lineH + 6;
           pdf.setFont("helvetica", "normal");
-          y += bH;
         }
       }
     }
@@ -551,6 +615,25 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   }
 
   drawFooter();
+
+  // Closing brand banner page.
+  const banner = await loadBannerDataUrl();
+  if (banner) {
+    pdf.addPage();
+    const maxW = W - margin * 2;
+    const ratio = banner.h / banner.w;
+    const drawW = maxW;
+    const drawH = Math.min(H - margin * 2 - 40, drawW * ratio);
+    const scaledW = drawH / ratio < maxW ? drawH / ratio : maxW;
+    const x = (W - scaledW) / 2;
+    try { pdf.addImage(banner.url, "JPEG", x, margin, scaledW, drawH); } catch { /* ignore */ }
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.setTextColor(120, 120, 130);
+    pdf.text("Trusted Since 2001 — www.futurelinkconsultants.com", W / 2, margin + drawH + 18, { align: "center" });
+    drawFooter();
+  }
+
   return pdf;
 }
 
