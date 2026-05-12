@@ -205,6 +205,17 @@ export default function AssessmentRun() {
           if (age >= 0 && age < 120) next.de_age = age;
         }
       }
+      // Canada DOB → age (auto-derived for CRS scoring).
+      if (code === "date_of_birth" && typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        const dob = new Date(v);
+        if (!isNaN(dob.getTime())) {
+          const now = new Date();
+          let age = now.getFullYear() - dob.getFullYear();
+          const m = now.getMonth() - dob.getMonth();
+          if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age -= 1;
+          if (age >= 0 && age < 120) next.age = age;
+        }
+      }
       // Mirror skilled experience band → years for the engine.
       if (code === "de_skilled_experience_band" && typeof v === "string" && EXP_BAND_TO_YEARS[v] != null) {
         next.de_skilled_experience_years = EXP_BAND_TO_YEARS[v];
@@ -233,7 +244,16 @@ export default function AssessmentRun() {
     const c = q.conditional_on as any;
     if (!c) return true;
     for (const k of Object.keys(c)) {
-      const expected = c[k]; const got = answers[k];
+      const expected = c[k];
+      // Support `<key>__not` suffix for inequality checks (kept in JSON, no DB column change).
+      if (k.endsWith("__not")) {
+        const realKey = k.slice(0, -"__not".length);
+        const got = answers[realKey];
+        if (Array.isArray(expected)) { if (expected.includes(got)) return false; }
+        else if (got === expected) return false;
+        continue;
+      }
+      const got = answers[k];
       if (Array.isArray(expected)) { if (!expected.includes(got)) return false; }
       else if (got !== expected) return false;
     }
@@ -244,14 +264,52 @@ export default function AssessmentRun() {
   const currentQuestions = (bySection[currentSection?.key] ?? []).filter(showQ);
   const isLast = step >= sections.length - 1;
 
-  // Family Reunification gate: when goal is family_sponsorship OR sponsor declares PR/citizen status.
+  // Family Reunification gate: goal=family_sponsorship, Canadian citizenship, or declared PR/citizen status.
   const familyStatus = String(answers.current_status_canada ?? "");
+  const isCanadianCitizen = answers.citizenship_country === "Canada";
   const isFamilyFlow =
     isCanada(country) &&
-    (goal === "family_sponsorship" || familyStatus === "pr_holder" || familyStatus === "citizen");
+    (goal === "family_sponsorship" || isCanadianCitizen || familyStatus === "pr_holder" || familyStatus === "citizen");
   const familyAnswers: FamilyAnswers = (answers.family as FamilyAnswers) ?? {};
   const setFamily = (next: FamilyAnswers) =>
     setAnswers((a) => ({ ...a, family: next, current_status_canada: next.sponsor_status ?? a.current_status_canada }));
+
+  // Prefill sponsor_status from the parent gate so the family flow doesn't ask again.
+  useEffect(() => {
+    if (!isFamilyFlow) return;
+    const current = (answers.family as FamilyAnswers | undefined)?.sponsor_status;
+    if (current) return;
+    const inferred: "citizen" | "pr_holder" | null =
+      isCanadianCitizen ? "citizen"
+      : familyStatus === "pr_holder" ? "pr_holder"
+      : familyStatus === "citizen" ? "citizen"
+      : null;
+    if (inferred) {
+      setAnswers((a) => ({ ...a, family: { ...((a.family as FamilyAnswers) ?? {}), sponsor_status: inferred } }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isFamilyFlow, isCanadianCitizen, familyStatus]);
+
+  // Back-button handler — works in every section and also exits the Family Reunification flow.
+  const goBack = () => {
+    if (isFamilyFlow) {
+      // Exit family flow by clearing its triggers; keep the user on the same step.
+      setAnswers((a) => {
+        const next = { ...a };
+        if (next.citizenship_country === "Canada") next.citizenship_country = "";
+        if (next.current_status_canada === "pr_holder" || next.current_status_canada === "citizen") {
+          next.current_status_canada = "";
+        }
+        if (next.family && typeof next.family === "object") {
+          next.family = { ...(next.family as FamilyAnswers), sponsor_status: undefined };
+        }
+        return next;
+      });
+      return;
+    }
+    setStep((s) => Math.max(0, s - 1));
+  };
+  const backDisabled = !isFamilyFlow && step === 0;
 
   const save = async (silent = false) => {
     if (!sessionId) return;
@@ -478,8 +536,8 @@ export default function AssessmentRun() {
 
           <div className="flex items-center justify-between">
             <button
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              disabled={step === 0 || isFamilyFlow}
+              onClick={goBack}
+              disabled={backDisabled}
               className="flex items-center gap-1.5 text-sm text-[hsl(220_18%_11%)] disabled:opacity-40"
             >
               <ArrowLeft className="size-4" /> Back
