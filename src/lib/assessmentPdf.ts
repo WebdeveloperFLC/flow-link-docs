@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf";
 import flcLogo from "@/assets/flc-logo.png";
 import { evaluateGermanyAsync, type DeEvaluation } from "@/lib/assessment/germany";
+import { evaluateFamily, type FamilyAnswers, FAMILY_BRANCH_LABELS } from "@/lib/assessment/family";
+import { suggestCrsImprovements } from "@/lib/assessment/canadaSuggestions";
 
 const SECTION_LABELS: Record<string, string> = {
   personal: "Personal",
@@ -46,16 +48,37 @@ export interface AssessmentPdfInput {
   sessionId?: string;
 }
 
-async function loadLogoDataUrl(): Promise<string | null> {
+// Cache logo data URL across multiple PDF generations.
+let _logoDataUrl: string | null = null;
+let _logoDims: { w: number; h: number } | null = null;
+
+async function loadLogoDataUrl(): Promise<{ url: string; w: number; h: number } | null> {
+  if (_logoDataUrl && _logoDims) return { url: _logoDataUrl, ..._logoDims };
   try {
-    const res = await fetch(flcLogo);
-    const blob = await res.blob();
-    return await new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result));
-      r.onerror = reject;
-      r.readAsDataURL(blob);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = flcLogo as unknown as string;
+    // Wait for decode (preferred) with a fallback to onload.
+    await new Promise<void>((resolve, reject) => {
+      if ((img as any).decode) {
+        (img as any).decode().then(() => resolve()).catch(() => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("logo load failed"));
+        });
+      } else {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("logo load failed"));
+      }
     });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || 240;
+    canvas.height = img.naturalHeight || 80;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0);
+    _logoDataUrl = canvas.toDataURL("image/png");
+    _logoDims = { w: canvas.width, h: canvas.height };
+    return { url: _logoDataUrl, ..._logoDims };
   } catch {
     return null;
   }
@@ -91,6 +114,10 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   const { clientName, clientEmail, goal, answers, questions, crs, sessionId } = input;
   const country = input.country ?? "Canada";
   const isGermany = country === "Germany" || country === "DE";
+  const isCanada = country === "Canada" || country === "CA";
+  // Family flow: triggered by explicit goal or PR/citizen status.
+  const familyStatus = String(answers.current_status_canada ?? "");
+  const isFamilyFlow = isCanada && (goal === "family_sponsorship" || familyStatus === "pr_holder" || familyStatus === "citizen");
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
   const H = pdf.internal.pageSize.getHeight();
@@ -110,7 +137,12 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
 
   const drawHeader = (full = true) => {
     if (logo) {
-      try { pdf.addImage(logo, "PNG", margin, y, 90, 32); } catch { /* ignore */ }
+      // Maintain aspect ratio to a max width of 90pt.
+      const maxW = 90;
+      const ratio = logo.h / logo.w;
+      const drawW = maxW;
+      const drawH = Math.min(40, Math.round(maxW * ratio));
+      try { pdf.addImage(logo.url, "PNG", margin, y, drawW, drawH); } catch { /* ignore */ }
     }
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
