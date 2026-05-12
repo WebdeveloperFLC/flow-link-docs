@@ -79,6 +79,7 @@ async function buildPdf(opts: { lead: any; session: any; matches: any[]; flags: 
   const font = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const W = 595, H = 842;
+  const draw = (pg: any, t: unknown, o: any) => pg.drawText(safe(t), o);
   const drawHeader = (page: any, title: string) => {
     page.drawRectangle({ x: 0, y: H - 80, width: W, height: 80, color: rgb(0.07, 0.16, 0.32) });
     draw(page, opts.wrapper?.brand_name ?? "Futurelink Consultants", { x: 36, y: H - 40, size: 16, font: bold, color: rgb(1,1,1) });
