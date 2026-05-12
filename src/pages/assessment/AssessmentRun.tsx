@@ -9,6 +9,8 @@ import { OccupationSearch, type OccupationValue } from "@/components/assessment/
 import { PathwayEligibilityPanel } from "@/components/assessment/PathwayEligibilityPanel";
 import { ChancenkartePanel } from "@/components/assessment/ChancenkartePanel";
 import { CountryPicker } from "@/components/assessment/CountryPicker";
+import { FamilyReunificationFlow } from "@/components/assessment/FamilyReunificationFlow";
+import type { FamilyAnswers } from "@/lib/assessment/family";
 
 type Q = {
   id: string; code: string; section: string; q_type: string; label: string;
@@ -241,6 +243,15 @@ export default function AssessmentRun() {
   const currentSection = sections[step] ?? sections[0];
   const currentQuestions = (bySection[currentSection?.key] ?? []).filter(showQ);
   const isLast = step >= sections.length - 1;
+
+  // Family Reunification gate: when goal is family_sponsorship OR sponsor declares PR/citizen status.
+  const familyStatus = String(answers.current_status_canada ?? "");
+  const isFamilyFlow =
+    isCanada(country) &&
+    (goal === "family_sponsorship" || familyStatus === "pr_holder" || familyStatus === "citizen");
+  const familyAnswers: FamilyAnswers = (answers.family as FamilyAnswers) ?? {};
+  const setFamily = (next: FamilyAnswers) =>
+    setAnswers((a) => ({ ...a, family: next, current_status_canada: next.sponsor_status ?? a.current_status_canada }));
 
   const save = async (silent = false) => {
     if (!sessionId) return;
