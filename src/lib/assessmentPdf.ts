@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf";
 import flcLogo from "@/assets/flc-logo.png";
 import { evaluateGermanyAsync, type DeEvaluation } from "@/lib/assessment/germany";
+import { evaluateFamily, type FamilyAnswers, FAMILY_BRANCH_LABELS } from "@/lib/assessment/family";
+import { suggestCrsImprovements } from "@/lib/assessment/canadaSuggestions";
 
 const SECTION_LABELS: Record<string, string> = {
   personal: "Personal",
@@ -46,16 +48,37 @@ export interface AssessmentPdfInput {
   sessionId?: string;
 }
 
-async function loadLogoDataUrl(): Promise<string | null> {
+// Cache logo data URL across multiple PDF generations.
+let _logoDataUrl: string | null = null;
+let _logoDims: { w: number; h: number } | null = null;
+
+async function loadLogoDataUrl(): Promise<{ url: string; w: number; h: number } | null> {
+  if (_logoDataUrl && _logoDims) return { url: _logoDataUrl, ..._logoDims };
   try {
-    const res = await fetch(flcLogo);
-    const blob = await res.blob();
-    return await new Promise<string>((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(String(r.result));
-      r.onerror = reject;
-      r.readAsDataURL(blob);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = flcLogo as unknown as string;
+    // Wait for decode (preferred) with a fallback to onload.
+    await new Promise<void>((resolve, reject) => {
+      if ((img as any).decode) {
+        (img as any).decode().then(() => resolve()).catch(() => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("logo load failed"));
+        });
+      } else {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("logo load failed"));
+      }
     });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth || 240;
+    canvas.height = img.naturalHeight || 80;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(img, 0, 0);
+    _logoDataUrl = canvas.toDataURL("image/png");
+    _logoDims = { w: canvas.width, h: canvas.height };
+    return { url: _logoDataUrl, ..._logoDims };
   } catch {
     return null;
   }
@@ -91,6 +114,10 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   const { clientName, clientEmail, goal, answers, questions, crs, sessionId } = input;
   const country = input.country ?? "Canada";
   const isGermany = country === "Germany" || country === "DE";
+  const isCanada = country === "Canada" || country === "CA";
+  // Family flow: triggered by explicit goal or PR/citizen status.
+  const familyStatus = String(answers.current_status_canada ?? "");
+  const isFamilyFlow = isCanada && (goal === "family_sponsorship" || familyStatus === "pr_holder" || familyStatus === "citizen");
   const pdf = new jsPDF({ unit: "pt", format: "a4" });
   const W = pdf.internal.pageSize.getWidth();
   const H = pdf.internal.pageSize.getHeight();
@@ -110,7 +137,12 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
 
   const drawHeader = (full = true) => {
     if (logo) {
-      try { pdf.addImage(logo, "PNG", margin, y, 90, 32); } catch { /* ignore */ }
+      // Maintain aspect ratio to a max width of 90pt.
+      const maxW = 90;
+      const ratio = logo.h / logo.w;
+      const drawW = maxW;
+      const drawH = Math.min(40, Math.round(maxW * ratio));
+      try { pdf.addImage(logo.url, "PNG", margin, y, drawW, drawH); } catch { /* ignore */ }
     }
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(14);
@@ -260,7 +292,7 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
   }
 
   // CRS section (Canada only)
-  if (!isGermany && crs && typeof crs.total === "number") {
+  if (!isGermany && !isFamilyFlow && crs && typeof crs.total === "number") {
     newPageIfNeeded(160);
     pdf.setFont("helvetica", "bold");
     pdf.setFontSize(13);
@@ -294,6 +326,140 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       y += 14;
     }
     y += 8;
+
+    // FSW 67-point eligibility — directly from the edge function response.
+    const fsw = crs?.fsw67;
+    if (fsw && typeof fsw.total === "number") {
+      newPageIfNeeded(160);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(13);
+      pdf.setTextColor(20, 30, 70);
+      pdf.text("Federal Skilled Worker — 67-Point Eligibility", margin, y);
+      // Pass/fail chip on the right.
+      const passing = !!fsw.pass;
+      const chip = passing ? "PASS" : "BELOW 67";
+      pdf.setFontSize(9);
+      pdf.setTextColor(passing ? 30 : 220, passing ? 130 : 90, passing ? 70 : 60);
+      pdf.text(chip, W - margin, y, { align: "right" });
+      y += 18;
+      pdf.setFontSize(24);
+      pdf.setTextColor(220, 90, 60);
+      pdf.text(`${fsw.total}`, margin, y + 4); y += 18;
+      pdf.setFontSize(9);
+      pdf.setTextColor(120, 120, 130);
+      pdf.text(`/ 100 · pass mark 67`, margin, y); y += 14;
+      pdf.setTextColor(20, 20, 25);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      const fswRows: [string, number, number][] = [
+        ["Language ability", fsw.sections?.language?.total ?? 0, fsw.sections?.language?.max ?? 28],
+        ["Education", fsw.sections?.education?.total ?? 0, fsw.sections?.education?.max ?? 25],
+        ["Work experience", fsw.sections?.experience?.total ?? 0, fsw.sections?.experience?.max ?? 15],
+        ["Age", fsw.sections?.age?.total ?? 0, fsw.sections?.age?.max ?? 12],
+        ["Arranged employment", fsw.sections?.arranged_employment?.total ?? 0, fsw.sections?.arranged_employment?.max ?? 10],
+        ["Adaptability", fsw.sections?.adaptability?.total ?? 0, fsw.sections?.adaptability?.max ?? 10],
+      ];
+      for (const [lbl, v, mx] of fswRows) {
+        newPageIfNeeded(14);
+        pdf.setTextColor(80, 80, 90);
+        pdf.text(lbl, margin + 6, y);
+        pdf.setTextColor(20, 20, 25);
+        pdf.text(`${v} / ${mx}`, W - margin - 6, y, { align: "right" });
+        y += 14;
+      }
+      y += 8;
+    }
+
+    // Suggestions to improve CRS — client-side heuristic.
+    try {
+      const tips = suggestCrsImprovements(crs, answers);
+      if (tips.length) {
+        newPageIfNeeded(40);
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(13);
+        pdf.setTextColor(20, 30, 70);
+        pdf.text("Suggestions to improve your CRS", margin, y); y += 16;
+        pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+        for (const t of tips) {
+          const head = `• ${t.area}: ${t.action}`;
+          const wrapped = pdf.splitTextToSize(head, W - margin * 2) as string[];
+          newPageIfNeeded(wrapped.length * 12 + (t.potentialGain ? 12 : 0));
+          wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
+          y += wrapped.length * 12;
+          if (t.potentialGain) {
+            pdf.setTextColor(120, 120, 130);
+            const gw = pdf.splitTextToSize(`   ↳ ${t.potentialGain}`, W - margin * 2) as string[];
+            gw.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
+            y += gw.length * 12;
+            pdf.setTextColor(20, 20, 25);
+          }
+        }
+        y += 6;
+      }
+    } catch { /* defensive */ }
+  }
+
+  // Family Reunification section (Canada PR / citizen sponsor flow).
+  if (isFamilyFlow) {
+    const fam = (answers.family ?? {}) as any;
+    const ev = evaluateFamily(fam);
+    newPageIfNeeded(60);
+    pdf.setFont("helvetica", "bold"); pdf.setFontSize(13);
+    pdf.setTextColor(20, 30, 70);
+    pdf.text("Family Reunification — Pathway Assessment", margin, y); y += 18;
+    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10); pdf.setTextColor(20, 20, 25);
+    pdf.text(`Sponsor status: ${fam.sponsor_status === "citizen" ? "Canadian citizen" : fam.sponsor_status === "pr_holder" ? "Canadian PR" : "—"}`, margin, y); y += 14;
+    if (ev.branch) {
+      pdf.text(`Selected branch: ${FAMILY_BRANCH_LABELS[ev.branch]}`, margin, y); y += 14;
+    }
+    y += 4;
+    // Verdicts
+    for (const v of ev.verdicts) {
+      newPageIfNeeded(30);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(v.label, margin, y);
+      const tone = v.status === "likely" ? [30, 130, 70] : v.status === "not_eligible" ? [200, 60, 60] : [200, 130, 70];
+      pdf.setTextColor(tone[0], tone[1], tone[2]);
+      pdf.text(v.status.replace("_", " ").toUpperCase(), W - margin, y, { align: "right" });
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal");
+      y += 12;
+      for (const r of v.reasons) {
+        const wrapped = pdf.splitTextToSize(`• ${r}`, W - margin * 2 - 10) as string[];
+        newPageIfNeeded(wrapped.length * 12);
+        wrapped.forEach((w2, i) => pdf.text(w2, margin + 8, y + i * 12));
+        y += wrapped.length * 12;
+      }
+      y += 4;
+    }
+    // Checklist
+    if (ev.checklist.length) {
+      newPageIfNeeded(30);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(12);
+      pdf.setTextColor(20, 30, 70);
+      pdf.text("Document readiness", margin, y); y += 14;
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+      for (const c of ev.checklist) {
+        newPageIfNeeded(14);
+        const mark = c.have ? "[x]" : c.required ? "[ ]" : "[-]";
+        pdf.text(`${mark} ${c.label}${c.required ? " (required)" : ""}`, margin, y);
+        y += 14;
+      }
+      y += 4;
+    }
+    // Next actions
+    if (ev.nextActions.length) {
+      newPageIfNeeded(30);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(12);
+      pdf.setTextColor(20, 30, 70);
+      pdf.text("Next actions", margin, y); y += 14;
+      pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
+      for (const a of ev.nextActions) {
+        const wrapped = pdf.splitTextToSize(`→ ${a}`, W - margin * 2) as string[];
+        newPageIfNeeded(wrapped.length * 12);
+        wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
+        y += wrapped.length * 12;
+      }
+      y += 6;
+    }
   }
 
   // Answers grouped by section
