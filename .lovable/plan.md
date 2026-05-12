@@ -1,50 +1,59 @@
-## What's wrong now
+## What's broken (root causes verified)
 
-1. **Branding** — the assessment header shows a generic leaf icon + "Future Link Consultants" text. The real FLC logo (blue globe + plane) is not used.
-2. **"Progress saved" but no record visible** — when a counselor starts a session via *Start new assessment* and clicks **Save**, the row is written to `assessment_sessions` with `client_id` set (not `lead_id`). The admin **Submissions** tab only joins `assessment_leads`, so:
-   - the Client / Email columns show blank for manually-started sessions
-   - there's no link to **resume** the in-progress session
-   - the user can't tell where the saved data went
+1. **Submit error** — `assessment-submit` returns 500 with `WinAnsi cannot encode "≥" (0x2265)`. The PDF uses `StandardFonts.Helvetica`, which only supports WinAnsi. The string `Requires ${k} ≥ ${v}` in `matchPrograms` (and any other non-Latin-1 chars like “ ” • — in the code) crashes `pdf-lib`. This is **not a credit problem** — the function is failing on a single unsupported character.
+2. **"Progress saved" toast on every step** — `next()` calls `save()`, which always toasts. So clicking **Next** between sections shows the success toast every time. The toast should only fire on the explicit **Save** button.
+3. **Admin Submissions tab 400 errors** — query selects `clients(first_name, last_name, email, phone)` but the `clients` table only has `full_name`. Fix to `full_name`.
+4. **No PDF download for the counselor** — needs a button that downloads a branded PDF with the FLC logo and the current assessment details.
 
 ## Plan
 
-### 1. Use the real FLC logo
+### 1. Fix the submit edge function (`supabase/functions/assessment-submit/index.ts`)
+- Replace `≥` with `>=` in the `matchPrograms` reason string.
+- Add a tiny `safe(text)` helper that strips/replaces any non-Latin-1 characters (e.g. `≥ → >=`, `— → -`, `• → -`, curly quotes → straight) before any `drawText` call, so future text additions can't crash WinAnsi again.
 
-- Copy `user-uploads://FLC_logo_1_-01-4.png` into `src/assets/flc-logo.png`.
-- Update `src/components/assessment/AssessmentHeader.tsx`:
-  - Replace the inline `Leaf` SVG block with `<img src={logo} alt="Future Link Consultants" />`, sized ~`h-10 w-auto`, no background tile.
-  - Keep the same header layout (logo left, Client/Counselor pill right). Drop the redundant "Future Link Consultants" text label since the logo already contains the wordmark; keep the small "Canada Immigration Assessment" subtitle underneath.
-- No other pages need changes — the header component is shared across Landing, Goal, and Run screens.
+### 2. Silence the auto-save toast (`src/pages/assessment/AssessmentRun.tsx`)
+- Add a `silent` flag: `save(silent = false)`. Only toast when `silent === false`.
+- `next()` calls `save(true)` (saves, advances, no toast).
+- Explicit **Save** button still calls `save(false)` and shows the existing toast.
+- Errors still toast in both paths.
 
-### 2. Make saved sessions findable & resumable
+### 3. Fix the admin Submissions tab (`src/pages/admin/AssessmentAdmin.tsx`)
+- Change the embedded select from `client:clients(first_name, last_name, email, phone)` to `client:clients(full_name, email, phone)`.
+- Render the client name from `r.client.full_name` (lead path still uses `first_name + last_name`).
+- This removes the 400 errors visible in network logs and lets manually-started sessions appear with client name.
 
-Update `src/pages/admin/AssessmentAdmin.tsx` → `SessionsTab`:
+### 4. Add "Download PDF" with FLC logo
 
-- **Query both relations**: change the select to also join `client:clients(first_name, last_name, email, phone)` alongside the existing `lead:assessment_leads(...)`. Display whichever is present (`r.client ?? r.lead`).
-- **Show goal**: add a "Goal" column reading `r.goal` (mapped through `GOAL_LABELS`).
-- **Resume action**: for rows in `draft` / `in_progress`, add a **"Open / Resume"** button that navigates to `/assessment/run/{id}` so the counselor can continue the questionnaire. Keep Download PDF / Resend for submitted rows.
-- **Empty-state copy**: when no rows, say "No assessments yet. Click **Start new assessment** above to begin one." (Currently the empty state is misleading.)
-- **Default tab**: switch the default Tabs value from `submissions` to `submissions` (already is) but ensure newly-created sessions land here — after `StartAssessmentDialog` succeeds it already navigates to `/assessment/run/{id}`, so on returning to `/assessment-admin` the row will now be visible with name + Resume button.
+**Where:**
+- A `Download PDF` button on the Assessment run page (right side of the action row, next to Save).
+- A `Download PDF` button on each row in the admin Submissions tab (for any session, draft or submitted).
 
-### 3. Small confirmation toast tweak
+**How (client-side, no edge function changes required):**
+- Install `jspdf` (already common in the project — verify; if not present, add only `jspdf`).
+- Create `src/lib/assessmentPdf.ts` exporting `downloadAssessmentPdf({ clientName, goal, answers, crs, questions })`.
+- The PDF includes:
+  - **Header** with FLC logo (`src/assets/flc-logo.png`, embedded as data URL) + "Future Link Consultants — Canada Immigration Assessment".
+  - Client name, goal, date.
+  - **CRS summary** (total + per-section breakdown from the existing `assessment-crs` response already held in state).
+  - **Answers grouped by section** using the same `SECTION_LABELS` map, printing `question.label → formatted answer`.
+  - Footer with confidentiality line + page numbers.
+- File name: `FLC-Assessment-${clientName || sessionId}.pdf`.
 
-In `AssessmentRun.tsx` `save()`, change the toast from `"Progress saved"` to `"Progress saved — find it under Submissions in the admin console"` so the user knows where to look. (Optional polish.)
+This keeps the existing server-side PDF (used by the email/report flow) intact and gives the counselor an immediate, on-demand download that works even before submission.
+
+### Out of scope
+- Email/invite/register flows (kept intact, bypassed).
+- Theme tokens, fonts, other pages.
+- Edits to the question bank or CRS calculator.
 
 ## Technical notes
+- `safe()` helper: `text.replace(/≥/g,">=").replace(/≤/g,"<=").replace(/[–—]/g,"-").replace(/[•]/g,"-").replace(/["""]/g,'"').replace(/[''']/g,"'")` then strip any remaining char with code point > 0xFF.
+- Logo embedding: `import flcLogo from "@/assets/flc-logo.png"` → fetch as blob → `FileReader` → data URL → `pdf.addImage(dataUrl, "PNG", x, y, w, h)`.
+- No DB migrations needed.
 
-- No schema changes. `assessment_sessions` already has `client_id`, `lead_id`, `goal`, `answers`, `status`.
-- RLS already allows authenticated staff to select sessions joined with `clients` (existing policies cover both tables).
-- No edge function changes.
-
-## Files touched
-
-- `src/assets/flc-logo.png` (new — copied from upload)
-- `src/components/assessment/AssessmentHeader.tsx` (swap icon → img)
-- `src/pages/admin/AssessmentAdmin.tsx` (SessionsTab: join clients, add Goal column + Resume button, empty-state copy)
-- `src/pages/assessment/AssessmentRun.tsx` (toast copy — optional)
-
-## Out of scope (unchanged)
-
-- Invite/email/verify/register flows
-- CRS calculator, question bank, PDF generation
-- Theme tokens, fonts, other pages
+## Files to change
+- `supabase/functions/assessment-submit/index.ts` — `safe()` helper + replace `≥`.
+- `src/pages/assessment/AssessmentRun.tsx` — silent save + Download PDF button.
+- `src/pages/admin/AssessmentAdmin.tsx` — fix clients select; add Download PDF action.
+- `src/lib/assessmentPdf.ts` — new file (jsPDF builder with FLC logo).
+- `package.json` — add `jspdf` if not present.
