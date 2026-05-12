@@ -331,6 +331,8 @@ function SessionsTab() {
             const name = p.full_name ?? ([p.first_name, p.last_name].filter(Boolean).join(" ") || "—");
             const isOpen = r.status === "draft" || r.status === "in_progress";
             const isDone = r.status === "submitted" || r.status === "counselor_reviewed";
+            const hasPdf = !!r.pdf_path;
+            const hasEmail = !!p.email;
             return (
             <tr key={r.id} className="border-t">
               <td className="p-2 px-3">{name}</td>
@@ -353,7 +355,9 @@ function SessionsTab() {
                     <>
                       <Button size="sm" variant="outline" onClick={() => viewClient(r)} title="View report"><ExternalLink className="size-3.5" /></Button>
                       <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
+                      {hasPdf && hasEmail && (
+                        <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
+                      )}
                     </>
                   )}
                 </div>
