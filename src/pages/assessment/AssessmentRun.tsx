@@ -295,16 +295,82 @@ export default function AssessmentRun() {
     </div>
   );
 
-  if (status === "submitted") return (
-    <div className="flc-shell min-h-screen flex items-center justify-center p-6">
-      <div className="flc-card max-w-md w-full p-10 text-center space-y-4">
-        <CheckCircle2 className="size-12 text-[hsl(8_75%_60%)] mx-auto" />
-        <h2 className="flc-display text-3xl">Assessment submitted</h2>
-        <p className="text-sm text-[hsl(220_14%_28%)]">A Future Link counselor will follow up shortly.</p>
-        <button onClick={() => nav("/assessment-admin")} className="flc-cta mx-auto">Back to console</button>
+  if (status === "submitted") {
+    const total = crs?.total ?? 0;
+    const fsw = crs?.fsw67;
+    const eePass = isCanada(country) && total > 0;
+    const fswPass = fsw?.pass;
+    return (
+      <div className="flc-shell min-h-screen p-6">
+        <div className="max-w-3xl mx-auto space-y-5">
+          <div className="flc-card p-8 text-center space-y-3">
+            <CheckCircle2 className="size-12 text-[hsl(8_75%_60%)] mx-auto" />
+            <h2 className="flc-display text-3xl">Assessment submitted</h2>
+            <p className="text-sm text-[hsl(220_14%_28%)]">A Future Link counselor will follow up shortly.</p>
+          </div>
+
+          {isCanada(country) && crs && (
+            <>
+              <div className="flc-card p-6 space-y-3">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">Eligibility summary</div>
+                <div className="grid sm:grid-cols-2 gap-2 text-sm">
+                  <SummaryChip ok={eePass} label="Express Entry — CRS pool" />
+                  <SummaryChip ok={!!fswPass} label={`FSW 67-point grid (${fsw?.total ?? 0}/100)`} />
+                  <SummaryChip ok={Number(answers.canadian_work_experience ?? 0) >= 1} label="CEC potential (1+ yr Canadian work)" />
+                  <SummaryChip ok={!!answers.provincial_nomination} label="Provincial Nomination (+600 CRS)" />
+                </div>
+              </div>
+
+              <div className="flc-card p-6 space-y-3">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">CRS breakdown</div>
+                <div className="flex items-baseline gap-2">
+                  <span className="flc-display text-5xl">{total}</span>
+                  <span className="text-xs text-[hsl(220_14%_45%)]">/ 1200 max</span>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-x-6 text-sm pt-2">
+                  <RowItem label="Age" v={crs?.sections?.core?.items?.age} />
+                  <RowItem label="Education" v={crs?.sections?.core?.items?.education} />
+                  <RowItem label="First language" v={crs?.sections?.core?.items?.first_language} />
+                  <RowItem label="Second language" v={crs?.sections?.core?.items?.second_language} />
+                  <RowItem label="Canadian work" v={crs?.sections?.core?.items?.canadian_work} />
+                  <RowItem label="Spouse" v={crs?.sections?.spouse?.total} />
+                  <RowItem label="Transferability" v={crs?.sections?.transferability?.total} />
+                  <RowItem label="Additional" v={crs?.sections?.additional?.total} />
+                </div>
+              </div>
+
+              {fsw && (
+                <div className="flc-card p-6 space-y-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">FSW 67-point grid</div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="flc-display text-4xl">{fsw.total}</span>
+                    <span className="text-xs text-[hsl(220_14%_45%)]">/ 100 · pass at 67</span>
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-x-6 text-sm pt-2">
+                    <RowItem label={`Language (max ${fsw.sections.language.max})`} v={fsw.sections.language.total} />
+                    <RowItem label={`Education (max ${fsw.sections.education.max})`} v={fsw.sections.education.total} />
+                    <RowItem label={`Experience (max ${fsw.sections.experience.max})`} v={fsw.sections.experience.total} />
+                    <RowItem label={`Age (max ${fsw.sections.age.max})`} v={fsw.sections.age.total} />
+                    <RowItem label={`Arranged employment (max ${fsw.sections.arranged_employment.max})`} v={fsw.sections.arranged_employment.total} />
+                    <RowItem label={`Adaptability (max ${fsw.sections.adaptability.max})`} v={fsw.sections.adaptability.total} />
+                  </div>
+                  {fsw.notes?.length > 0 && (
+                    <ul className="text-[11px] text-[hsl(220_14%_45%)] list-disc pl-5 pt-2 space-y-0.5">
+                      {fsw.notes.map((n: string, i: number) => <li key={i}>{n}</li>)}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="text-center">
+            <button onClick={() => nav("/assessment-admin")} className="flc-cta mx-auto">Back to console</button>
+          </div>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div className="flc-shell min-h-screen">
