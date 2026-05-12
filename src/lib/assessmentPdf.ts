@@ -494,10 +494,10 @@ async function buildAssessmentPdf(input: AssessmentPdfInput): Promise<jsPDF> {
       pdf.text("Next actions", margin, y); y += 14;
       pdf.setTextColor(20, 20, 25); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
       for (const a of ev.nextActions) {
-        const wrapped = pdf.splitTextToSize(`→ ${a}`, W - margin * 2) as string[];
-        newPageIfNeeded(wrapped.length * 12);
-        wrapped.forEach((w2, i) => pdf.text(w2, margin, y + i * 12));
-        y += wrapped.length * 12;
+        const wrapped = pdf.splitTextToSize(`• ${a}`, W - margin * 2 - 10) as string[];
+        newPageIfNeeded(wrapped.length * 13);
+        wrapped.forEach((w2, i) => pdf.text(w2, margin + (i === 0 ? 0 : 10), y + i * 13));
+        y += wrapped.length * 13 + 2;
       }
       y += 6;
     }
