@@ -180,7 +180,7 @@ export function evaluateFamily(a: FamilyAnswers): FamilyEvaluation {
 
   const checklist = checklistFor(branch, a);
   const missing = checklist.filter((c) => c.required && !c.have).map((c) => c.label);
-  if (missing.length) nextActions.push(`Collect missing documents: ${missing.slice(0, 3).join("; ")}${missing.length > 3 ? "…" : ""}.`);
+  if (missing.length) nextActions.push(`Collect missing documents: ${missing.join("; ")}.`);
 
   return { branch, verdicts, checklist, nextActions };
 }
