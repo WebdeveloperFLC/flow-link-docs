@@ -73,11 +73,18 @@ Deno.serve(async (req) => {
     // country code is editable per-client in the Contact & address card.
     const ccDigits = String(clientRow.country_code ?? "").replace(/\D/g, "");
     const phoneDigits = String(clientRow.phone ?? "").replace(/\D/g, "");
-    const dialNumber = !phoneDigits
-      ? ""
-      : ccDigits && !phoneDigits.startsWith(ccDigits)
-      ? `${ccDigits}${phoneDigits}`
-      : phoneDigits;
+    // Normal case: phone holds the subscriber number, country_code holds the
+    // dialing prefix. Fallback: some legacy records have the entire dialable
+    // number stored in country_code (>=7 digits) with phone empty — accept it
+    // so click-to-call still works instead of failing with a confusing 422.
+    let dialNumber = "";
+    if (phoneDigits) {
+      dialNumber = ccDigits && ccDigits.length <= 4 && !phoneDigits.startsWith(ccDigits)
+        ? `${ccDigits}${phoneDigits}`
+        : phoneDigits;
+    } else if (ccDigits.length >= 7) {
+      dialNumber = ccDigits;
+    }
     log(traceId, "resolved client phone", { clientId, phone: phoneSummary(dialNumber), countryCodePresent: !!ccDigits });
     if (!dialNumber) return json({ error: "Client has no phone number on file", traceId }, 422);
 
