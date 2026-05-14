@@ -1,84 +1,99 @@
-## Phase 6 — Financial Reports
+## Phase 7 — Fraud & Audit Enhancement + AI Financial Assistant
 
-All 4 report routes are already wired in `App.tsx` (`/accounting/reports/{pl,bs,cashflow,consolidated}`) but the pages are stubs. I'll replace the stubs and add reusable report infrastructure under the existing accounting module. No CRM, sidebar, overview, routing, or previously built page changes.
+Enhance two existing accounting pages. No new routes, no CRM changes, no redesign of other accounting pages. Reuse existing `AppLayout`, `AccountingPageHeader`, `AccountingKPICard`, `AccountingStatusBadge`, semantic tokens, recharts.
 
-### Files to create
+### 1. Types & Mock Data
 
-**Types & data**
-- `src/accounting/types/reports.ts` — `ReportNode` (id, label, kind: `header|line|subtotal|total|metric`, current, prior, children?, drilldownKey?, format?), `ReportTree`, `DrillTxn`, `FxRate`, `EntityCode`.
-- `src/accounting/data/mockReports.ts` — realistic mock numbers for:
-  - P&L tree (Revenue → 4 lines, COGS → 2, OpEx → 6, computed GP/EBITDA/Net) for 6 entities with current + prior period values.
-  - Balance Sheet tree (Assets: Current/Non-current; Liabilities: Current/Long-term; Equity) per entity, balanced.
-  - Cash Flow tree (Operating/Investing/Financing) with opening + closing balances per entity.
-  - 6-month revenue trend series, expense breakdown slices.
-  - FX rates: `USD→CAD 1.36`, `INR→CAD 0.0163`, `CAD→CAD 1`.
-  - Drilldown transactions keyed by account: date, docRef, entity, branch, account, amount, journalId, counterparty.
-  - Helpers: `getPLTree(entities, period, comparison)`, `getBSTree(entities, asOf)`, `getCashFlowTree(entities, period)`, `getDrilldownTxns(key)`, `convertToCAD(amount, currency)`, `sumNode(node)`.
+**`src/accounting/types/fraud.ts`** (new)
+- `FlagType` union: `DUPLICATE_PAYMENT | UNAPPROVED_VENDOR | ROUND_NUMBER_BILLING | HIGH_VELOCITY | OFF_HOURS_SUBMISSION | AMOUNT_MISMATCH`
+- `FlagSeverity`: `critical | warning | info`
+- `FlagStatus`: `under_review | confirmed | false_positive | dismissed | escalated | auto_cleared`
+- `FraudFlag`: id, txnRef, vendor, amount, currency, entity, flaggedAt, type, severity, status, riskScore, reason, similarTxnIds[]
 
-**Reusable report infrastructure** (`src/accounting/components/reports/`)
-- `ReportShell.tsx` — wraps `AppLayout` + `AccountingPageHeader` + filter slot + KPI bar slot + body slot. Sticky toolbar.
-- `ReportFilterBar.tsx` — entity multi-select (Popover + Checkbox list), branch select, date-range preset (`This month | This quarter | This FY | Custom` with shadcn Calendar in Popover), comparison toggle (`vs last period | vs last year`), `ReportExportMenu` slot. Controlled via props.
-- `ReportExportMenu.tsx` — DropdownMenu with `PDF` / `Excel` items (toast only).
-- `ReportTable.tsx` — sticky `<thead>` with `position: sticky top-0 bg-background z-10`, configurable columns, recursively renders `ReportRow`. Compact tabular-nums, right-aligned numbers.
-- `ReportRow.tsx` — single recursive row. Handles indent by depth, chevron expand/collapse for nodes with children, bold for `subtotal`, accent background + bold for `total`/`metric` (EBITDA, Net Profit, GP%, Net Margin %), green/red `Change %` arrow via `ArrowUp/ArrowDown`. Click opens `ReportDrilldownModal` when `drilldownKey` present. Uses `Collapsible`-style state lifted via context for "expand all/collapse all".
-- `ReportSectionHeader.tsx` — uppercase tracking-wider section divider row.
-- `ReportDrilldownModal.tsx` — shadcn `Dialog`. Header shows account label + period. Body: shadcn `Table` of mock txns (date, doc ref, entity, branch, account, amount, journal link, counterparty). Footer total row.
-- `ReportKPIBar.tsx` — horizontal grid of 3-5 `AccountingKPICard`s with delta arrows.
-- `ReportTrendChart.tsx` — recharts `LineChart` (project already uses recharts) for 6-month revenue.
-- `ReportBreakdownDonut.tsx` — recharts `PieChart` donut for expense breakdown with legend.
+**`src/accounting/data/mockFraud.ts`** (new)
+- ~18 flags across all 6 flag types, mixed severities/statuses
+- 30-day risk-score distribution series (date, critical, warning, info)
+- Helper: `getSimilarTxns(id)`
 
-All components: semantic tokens only (`bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `text-emerald-600`/`text-rose-600` mapped via `text-[hsl(var(--success))]` style if tokens exist, otherwise tailwind `text-emerald-500`/`text-rose-500` for variance only — variance colors are conventional and acceptable).
+**`src/accounting/types/aiChat.ts`** (new)
+- `ChatRole`: `user | assistant`
+- `RichBlock`: `{ kind: "table"|"chart"|"metric"|"reportLink", payload: any }`
+- `ChatMessage`: id, role, content (markdown), blocks?, createdAt
+- `Conversation`: id, title, messages, updatedAt
 
-### Page implementations
+**`src/accounting/data/mockAI.ts`** (new)
+- 4 prebuilt conversations (Oct expense spike, AR aging, duplicate invoices, Canada P&L)
+- Each scripted assistant reply demonstrates: markdown, an inline table, a mini chart, metric cards, and a report link
+- `quickQuestions` array (the 5 prompts from spec)
+- `mockReply(prompt)` → returns one of the scripted responses based on keyword match, else a generic fallback
 
-**`AccountingPLPage.tsx`** — `ReportShell` + `ReportFilterBar` (entities default all, period `This quarter`, comparison `vs last period`). `ReportKPIBar`: Revenue, Gross Profit, EBITDA, Net Profit (each with prior + Δ%). `ReportTable` rendering P&L tree with columns: Account / Current / Prior / Change %. Bold subtotals at TOTAL REVENUE, GROSS PROFIT, TOTAL OPEX, EBITDA, NET PROFIT. GROSS MARGIN % and NET MARGIN % rendered as `metric` rows. Below table: 2-column responsive grid with `ReportTrendChart` (6-month revenue) and `ReportBreakdownDonut` (expense breakdown).
+### 2. Fraud & Audit Page Components
 
-**`AccountingBSPage.tsx`** — `ReportShell` + filter bar with `As of` single date picker (replaces date range), entity multi-select, export menu. Two-column responsive layout: left card "Assets" tree, right card "Liabilities + Equity" tree. Bottom validation banner: compute `assetsTotal` and `liabPlusEquity`; if equal show green check `"Balance sheet balances — A = L + E"`; if not equal show amber warning with delta. Drilldown enabled on leaf accounts.
+**`src/accounting/components/fraud/FraudFlagBadge.tsx`** — colored pill per `FlagType` with short label.
 
-**`AccountingCashFlowPage.tsx`** — `ReportShell` + filter bar (period + entity + export). `ReportKPIBar`: Opening Balance, Net Cash Movement, Closing Balance, Free Cash Flow. `ReportTable` with sections Operating / Investing / Financing using indirect format (Net Income → adjustments → working capital → operating subtotal). Footer rows: Opening + Net change = Closing with validation badge (green if matches, warning otherwise). Drilldown on each line.
+**`src/accounting/components/fraud/RiskDistributionChart.tsx`** — recharts stacked `BarChart` (critical/warning/info) over 30 days, semantic-token colors.
 
-**`AccountingConsolidatedPage.tsx`** — `ReportShell` + entity checkbox selector (multi). Side-by-side `ReportTable` with dynamic columns: one per selected entity (showing source-currency amount), then `Eliminations` column (intercompany row pulled from mock), then `Consolidated (CAD)` column using `convertToCAD`. Top toolbar shows currency badge per entity. Below table: small breakdown of elimination entries list.
+**`src/accounting/components/fraud/FlagDetailModal.tsx`** — `Dialog` showing:
+- Transaction header (vendor, amount, entity, date, risk score)
+- "Why flagged" rationale block
+- Similar transactions table
+- Footer actions: `Confirm fraud` (destructive), `Mark false positive`, `Escalate`, `Dismiss` — each fires a sonner toast and updates local state.
 
-**`AccountingReportsPage.tsx`** — index page: 4 cards linking to PL / BS / Cash Flow / Consolidated with one-line descriptions and `ArrowRight`. Reuses existing `AccountingPageHeader`.
+### 3. Replace Fraud Page
 
-### Technical details
+**`src/accounting/pages/fraud/AccountingFraudPage.tsx`** (replace stub)
+- `AccountingPageHeader` ("Fraud & audit")
+- 4 `AccountingKPICard`s: Critical flags, Warnings, Auto-cleared, Under review (counts derived from mock)
+- `RiskDistributionChart` in a `Card`
+- Flagged-transactions `Table` (Date, Txn, Vendor, Amount, Entity, Risk, Type badge, Status). Row click opens `FlagDetailModal`.
+- Local `useState` for selected flag and status overrides (in-memory only).
 
-- State: per-page `useState` for filters, expand/collapse map (`Record<string, boolean>`), drilldown open/key. No persistence.
-- Recursive rendering: `ReportTable` flattens via `renderNode(node, depth)` returning `<ReportRow>` + recursive children when expanded. Subtotals are computed at data layer, not in component.
-- Formatting: extend `src/accounting/lib/format.ts` with `formatAccounting(n, currency)` (parentheses for negatives, `—` for zero), `formatPercent(n)`, `formatVariance(curr, prior)`. **Append only**, no edits to existing exports.
-- Charts: use existing `recharts` (already a dep — confirmed by other pages). No new packages.
-- Drilldown: clicking a leaf row with `drilldownKey` opens `ReportDrilldownModal` with `getDrilldownTxns(key)`.
-- Export: toast only — `toast.success("Exporting P&L to PDF…")`.
-- Sticky headers: `<thead className="sticky top-0 bg-card z-10 border-b">`.
-- Dark mode: relies entirely on semantic tokens.
-- Variance colors: use `text-emerald-500` / `text-rose-500` (acceptable convention for finance; not theming a brand color).
+### 4. AI Assistant Components
 
-### Out of scope (not touched)
+**`src/accounting/components/ai/ChatSidebar.tsx`** — left rail (~280px):
+- "New conversation" button
+- Conversation list (active highlight)
+- "Quick questions" section with chips that send the prompt
+- Collapses to icons under `md:` if needed; full hide on mobile via Sheet trigger above input.
 
-- `App.tsx`, sidebar, `AccountingOverviewPage`, all previously built journal/AP/AR/owners/approvals/documents pages, CRM modules, types.ts, supabase/, format.ts existing exports.
+**`src/accounting/components/ai/ChatMessage.tsx`** — bubble with avatar; assistant content rendered with a tiny inline markdown renderer (we already have `react-markdown` if present — otherwise lightweight: bold/italic/list/inline-code regex). Renders `RichBlock`s after markdown.
 
-### File summary
+**`src/accounting/components/ai/ChatRichBlock.tsx`** — switch on kind:
+- `table` → shadcn `Table`
+- `chart` → small recharts `LineChart` (~h-32)
+- `metric` → grid of `AccountingKPICard`-style mini cards
+- `reportLink` → `Card` with `Link` to `/accounting/reports/...`
 
-Create:
-- `src/accounting/types/reports.ts`
-- `src/accounting/data/mockReports.ts`
-- `src/accounting/components/reports/ReportShell.tsx`
-- `src/accounting/components/reports/ReportFilterBar.tsx`
-- `src/accounting/components/reports/ReportExportMenu.tsx`
-- `src/accounting/components/reports/ReportTable.tsx`
-- `src/accounting/components/reports/ReportRow.tsx`
-- `src/accounting/components/reports/ReportSectionHeader.tsx`
-- `src/accounting/components/reports/ReportDrilldownModal.tsx`
-- `src/accounting/components/reports/ReportKPIBar.tsx`
-- `src/accounting/components/reports/ReportTrendChart.tsx`
-- `src/accounting/components/reports/ReportBreakdownDonut.tsx`
+**`src/accounting/components/ai/ChatComposer.tsx`** — bottom bar:
+- auto-resizing `Textarea` (rows grow to max ~6)
+- entity `Select` (reuses `accountingEntityStore` entities)
+- send `Button` (enter sends, shift+enter newlines)
 
-Replace stubs:
-- `src/accounting/pages/reports/AccountingReportsPage.tsx`
-- `src/accounting/pages/reports/AccountingPLPage.tsx`
-- `src/accounting/pages/reports/AccountingBSPage.tsx`
-- `src/accounting/pages/reports/AccountingCashFlowPage.tsx`
-- `src/accounting/pages/reports/AccountingConsolidatedPage.tsx`
+**`src/accounting/components/ai/TypingIndicator.tsx`** — three-dot pulse.
 
-Append-only edit:
-- `src/accounting/lib/format.ts` (add accounting formatters)
+### 5. Replace AI Assistant Page
+
+**`src/accounting/pages/ai/AccountingAIPage.tsx`** (replace stub)
+- `AppLayout` with full-height shell: `flex h-[calc(100vh-...)] `
+- Left: `ChatSidebar`
+- Right column: scrollable message list + `ChatComposer` pinned bottom
+- State: `conversations`, `activeId`, `isTyping`. On send → push user msg → set typing true → `setTimeout` 800–1500ms → push `mockReply()` response → typing false.
+- Auto-scroll to bottom on new message.
+
+### Markdown rendering
+
+Check `package.json` for `react-markdown`. If present, use it; if not, use a small custom renderer (no new deps). Will verify during implementation.
+
+### Out of Scope
+
+- App.tsx, sidebar, overview page
+- All other accounting pages (journals, reports, approvals, owners, documents)
+- Real AI calls / Lovable AI gateway (this is a mock UI per spec: "fully functional **mock** AI assistant")
+- Persistence (no DB writes)
+- CRM modules
+
+### Files Summary
+
+**New (10):** `types/fraud.ts`, `types/aiChat.ts`, `data/mockFraud.ts`, `data/mockAI.ts`, `components/fraud/{FraudFlagBadge,RiskDistributionChart,FlagDetailModal}.tsx`, `components/ai/{ChatSidebar,ChatMessage,ChatRichBlock,ChatComposer,TypingIndicator}.tsx`
+
+**Replaced (2):** `pages/fraud/AccountingFraudPage.tsx`, `pages/ai/AccountingAIPage.tsx`
