@@ -105,50 +105,62 @@ Deno.serve(async (req) => {
         return json({ error: `SMTP not configured — missing: ${missing.join(", ")}. Fill the form and click Save settings first.` }, 400);
       }
       const recipient = action === "test" ? String(body.recipient ?? cfg.sender_email) : cfg.username;
+      let client: any = undefined;
+      const useImplicitTls = cfg.encryption === "ssl";
+      const useStartTls = cfg.encryption === "tls";
+      console.log("[smtp]", action, { host: cfg.host, port: cfg.port, encryption: cfg.encryption, username: cfg.username });
       try {
         const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
-        const client = new SMTPClient({
+        console.log("[smtp] handshake start");
+        client = new SMTPClient({
+          debug: { log: false, allowUnsecure: cfg.encryption === "none" },
           connection: {
             hostname: cfg.host,
             port: cfg.port,
-            tls: cfg.encryption === "ssl",
+            tls: useImplicitTls,
             auth: { username: cfg.username, password: cfg.password },
           },
+          pool: false,
         });
+        // Force the underlying connection (and AUTH) to actually run.
+        // denomailer connects lazily; sending or calling close triggers it.
         if (action === "verify") {
-          // denomailer connects lazily; force a connection by sending NOOP via close after send
-          // Simplest: do a no-op send to self only on test. For verify, just open + close.
+          console.log("[smtp] verify: opening connection + AUTH");
+          // A real handshake: send a tiny message to ourselves is overkill.
+          // Use the internal "connect" path by issuing a NOOP via send to self only if needed.
+          // Easiest reliable check: do a real send to the username address with a tiny header-only payload? Not allowed by all servers.
+          // We use the documented approach: open the queue (close triggers connect+quit).
           await client.close();
-          await admin.from("smtp_settings").update({
-            last_status: "verified",
-            last_verified_at: new Date().toISOString(),
-            last_error: null,
-          }).eq("id", cfg.id);
-          return json({ ok: true, status: "verified" });
+          console.log("[smtp] verify: connection closed cleanly");
+        } else {
+          console.log("[smtp] test: sending email to", recipient);
+          await client.send({
+            from: cfg.sender_name ? `${cfg.sender_name} <${cfg.sender_email}>` : cfg.sender_email,
+            to: recipient,
+            replyTo: cfg.reply_to ?? undefined,
+            subject: "SMTP test from Future Link DMS",
+            content: "This is a test email confirming your SMTP settings work.",
+            html: `<p>This is a <strong>test email</strong> confirming your SMTP settings work.</p><p style="color:#888;font-size:12px">Sent from Future Link DMS · ${new Date().toISOString()}</p>`,
+          });
+          console.log("[smtp] test: send OK");
         }
-        // test: send a real email
-        await client.send({
-          from: cfg.sender_name ? `${cfg.sender_name} <${cfg.sender_email}>` : cfg.sender_email,
-          to: recipient,
-          replyTo: cfg.reply_to ?? undefined,
-          subject: "SMTP test from Future Link DMS",
-          content: "This is a test email confirming your SMTP settings work.",
-          html: `<p>This is a <strong>test email</strong> confirming your SMTP settings work.</p><p style="color:#888;font-size:12px">Sent from Future Link DMS · ${new Date().toISOString()}</p>`,
-        });
-        await client.close();
         await admin.from("smtp_settings").update({
           last_status: "verified",
           last_verified_at: new Date().toISOString(),
           last_error: null,
         }).eq("id", cfg.id);
-        await admin.from("app_email_logs").insert({
-          recipient, subject: "SMTP test from Future Link DMS",
-          status: "sent", attempts: 1, sent_at: new Date().toISOString(),
-          provider: cfg.provider, category: "test", triggered_by: u.user.id,
-        });
-        return json({ ok: true, status: "sent" });
+        if (action === "test") {
+          await admin.from("app_email_logs").insert({
+            recipient, subject: "SMTP test from Future Link DMS",
+            status: "sent", attempts: 1, sent_at: new Date().toISOString(),
+            provider: cfg.provider, category: "test", triggered_by: u.user.id,
+          });
+        }
+        return json({ ok: true, status: action === "test" ? "sent" : "verified" });
       } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
+        const raw = e instanceof Error ? e.message : String(e);
+        const msg = friendlySmtpError(raw, { useStartTls, useImplicitTls, port: cfg.port });
+        console.error("[smtp] failed:", raw);
         await admin.from("smtp_settings").update({
           last_status: "failed", last_error: msg,
         }).eq("id", cfg.id);
@@ -159,7 +171,16 @@ Deno.serve(async (req) => {
             provider: cfg.provider, category: "test", triggered_by: u.user.id,
           });
         }
-        return json({ error: msg }, 502);
+        return json({ error: msg, raw }, 502);
+      } finally {
+        try {
+          if (client && typeof client.close === "function") {
+            await client.close();
+            console.log("[smtp] cleanup: close OK");
+          }
+        } catch (cleanupErr) {
+          console.warn("[smtp] cleanup close failed:", cleanupErr instanceof Error ? cleanupErr.message : cleanupErr);
+        }
       }
     }
 
@@ -174,4 +195,35 @@ function json(b: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function friendlySmtpError(raw: string, ctx: { useStartTls: boolean; useImplicitTls: boolean; port: number }): string {
+  const m = raw.toLowerCase();
+  if (m.includes("535") || m.includes("auth") && (m.includes("fail") || m.includes("invalid") || m.includes("denied"))) {
+    return `Authentication failed — invalid SMTP username or password. (${raw})`;
+  }
+  if (m.includes("534") || m.includes("application-specific password")) {
+    return `Authentication failed — provider requires an app password. (${raw})`;
+  }
+  if (m.includes("tls") || m.includes("ssl") || m.includes("certificate") || m.includes("handshake")) {
+    const hint = ctx.useImplicitTls
+      ? "Try port 587 with TLS/STARTTLS instead of port 465 SSL."
+      : ctx.useStartTls
+      ? "Try port 465 with SSL instead of STARTTLS."
+      : "Enable SSL or TLS encryption.";
+    return `TLS/SSL handshake failure. ${hint} (${raw})`;
+  }
+  if (m.includes("timeout") || m.includes("timed out")) {
+    return `Connection timeout — host did not respond. Check host, port, and firewall. (${raw})`;
+  }
+  if (m.includes("getaddrinfo") || m.includes("dns") || m.includes("name or service not known") || m.includes("nodename")) {
+    return `DNS failure — SMTP host could not be resolved. Check the host name. (${raw})`;
+  }
+  if (m.includes("econnrefused") || m.includes("connection refused")) {
+    return `Connection refused — wrong port or SMTP not enabled on this host. (${raw})`;
+  }
+  if (m.includes("cannot read properties of undefined") && m.includes("close")) {
+    return `SMTP client failed to initialize (likely TLS/handshake error before AUTH). Try toggling encryption (SSL ↔ TLS). (${raw})`;
+  }
+  return raw;
 }
