@@ -165,6 +165,14 @@ type SmtpCfg = {
 };
 
 type SmtpResponse = { code: number; lines: string[]; raw: string };
+type StagedError = Error & { stage?: string };
+type SmtpIo = {
+  cfg: SmtpCfg;
+  recipient: string;
+  writeLine: (stage: string, value: string) => Promise<void>;
+  readResponse: (stage: string) => Promise<SmtpResponse>;
+  expect: (stage: string, res: SmtpResponse, codes: number[]) => void;
+};
 
 async function runSmtpCheck({ cfg, action, recipient }: { cfg: SmtpCfg; action: "verify" | "test"; recipient: string }) {
   let conn: Deno.Conn | undefined;
@@ -175,8 +183,8 @@ async function runSmtpCheck({ cfg, action, recipient }: { cfg: SmtpCfg; action: 
   const timeoutMs = 20000;
 
   const fail = (stage: string, message: string) => {
-    const err = new Error(message);
-    (err as any).stage = stage;
+    const err: StagedError = new Error(message);
+    err.stage = stage;
     throw err;
   };
 
@@ -284,7 +292,7 @@ async function runSmtpCheck({ cfg, action, recipient }: { cfg: SmtpCfg; action: 
   }
 }
 
-async function sendTestMessage({ cfg, recipient, writeLine, readResponse, expect }: any) {
+async function sendTestMessage({ cfg, recipient, writeLine, readResponse, expect }: SmtpIo) {
   const from = String(cfg.sender_email || cfg.username).trim();
   const subject = "SMTP test from Future Link DMS";
   const now = new Date().toUTCString();
@@ -322,7 +330,7 @@ async function withTimeout<T>(promise: Promise<T>, ms: number, stage: string): P
   const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
       const err = new Error(`Timeout during ${stage} after ${ms}ms`);
-      (err as any).stage = stage;
+      (err as StagedError).stage = stage;
       reject(err);
     }, ms);
   });
