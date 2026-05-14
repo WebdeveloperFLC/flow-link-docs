@@ -17,6 +17,8 @@ import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDi
 import { invokeError } from "@/lib/invokeError";
 import { useNavigate } from "react-router-dom";
 import { downloadAssessmentPdf, openAssessmentPdf } from "@/lib/assessmentPdf";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "PR",
@@ -32,6 +34,19 @@ const PUBLIC_ASSESSMENT_URL = `${window.location.origin}/assessment`;
 
 export default function AssessmentAdmin() {
   const [startOpen, setStartOpen] = useState(false);
+  const { loading, hasRole } = useAuth();
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="p-8 flex items-center justify-center">
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
+    );
+  }
+  if (!hasRole(["admin", "counselor", "documentation", "telecaller"])) {
+    return <Navigate to="/" replace />;
+  }
   return (
     <AppLayout>
       <PageHeader
@@ -250,6 +265,7 @@ function InvitationsTab() {
 
 function SessionsTab() {
   const nav = useNavigate();
+  const { isAdmin } = useAuth();
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -312,9 +328,19 @@ function SessionsTab() {
     catch (e) { toast.error(e instanceof Error ? e.message : "PDF failed"); }
   };
   const resend = async (id: string) => {
+    const tId = toast.loading("Sending report email…");
+    console.log("[assessment] resend → session", id);
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Resend failed");
-    toast.success("Report re-sent");
+    const errMsg = (error || (data as any)?.error)
+      ? (await invokeError(error, data)) ?? (data as any)?.error ?? "Resend failed"
+      : null;
+    if (errMsg) {
+      console.error("[assessment] resend failed:", errMsg, data);
+      toast.error(`Email failed: ${errMsg}`, { id: tId });
+      return;
+    }
+    console.log("[assessment] resend ok:", data);
+    toast.success(`Report emailed to ${(data as any)?.recipient ?? "client"}`, { id: tId });
   };
   const deleteSession = async (id: string) => {
     if (!confirm("Delete this assessment record?\n\nThe client profile and history are preserved — only this assessment session will be removed.")) return;
@@ -379,9 +405,11 @@ function SessionsTab() {
                       )}
                     </>
                   )}
-                  <Button size="sm" variant="outline" onClick={() => deleteSession(r.id)} title="Delete this assessment record (keeps client)">
-                    <Trash2 className="size-3.5 text-destructive" />
-                  </Button>
+                  {isAdmin && (
+                    <Button size="sm" variant="outline" onClick={() => deleteSession(r.id)} title="Delete this assessment record (keeps client)">
+                      <Trash2 className="size-3.5 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               </td>
             </tr>
