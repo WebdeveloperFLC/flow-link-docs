@@ -30,7 +30,7 @@ import {
   formatAccountAmount, formatMaskedAccount, categoryOf,
 } from '../../data/mockOwners';
 import { MOCK_DOCUMENTS } from '../../data/mockDocuments';
-import type { AccountType, FinancialAccount, AccountCategory } from '../../types/owners';
+import type { AccountType, FinancialAccount } from '../../types/owners';
 
 const TYPE_PILL: Record<string, string> = {
   CORPORATION: 'bg-blue-100 text-blue-700',
@@ -674,5 +674,4 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   );
 }
 
-// silence unused
-void AccountCategory;
+
