@@ -105,45 +105,10 @@ Deno.serve(async (req) => {
         return json({ error: `SMTP not configured — missing: ${missing.join(", ")}. Fill the form and click Save settings first.` }, 400);
       }
       const recipient = action === "test" ? String(body.recipient ?? cfg.sender_email) : cfg.username;
-      let client: any = undefined;
-      const useImplicitTls = cfg.encryption === "ssl";
-      const useStartTls = cfg.encryption === "tls";
       console.log("[smtp]", action, { host: cfg.host, port: cfg.port, encryption: cfg.encryption, username: cfg.username });
       try {
-        const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
-        console.log("[smtp] handshake start");
-        client = new SMTPClient({
-          debug: { log: false, allowUnsecure: cfg.encryption === "none" },
-          connection: {
-            hostname: cfg.host,
-            port: cfg.port,
-            tls: useImplicitTls,
-            auth: { username: cfg.username, password: cfg.password },
-          },
-          pool: false,
-        });
-        // Force the underlying connection (and AUTH) to actually run.
-        // denomailer connects lazily; sending or calling close triggers it.
-        if (action === "verify") {
-          console.log("[smtp] verify: opening connection + AUTH");
-          // A real handshake: send a tiny message to ourselves is overkill.
-          // Use the internal "connect" path by issuing a NOOP via send to self only if needed.
-          // Easiest reliable check: do a real send to the username address with a tiny header-only payload? Not allowed by all servers.
-          // We use the documented approach: open the queue (close triggers connect+quit).
-          await client.close();
-          console.log("[smtp] verify: connection closed cleanly");
-        } else {
-          console.log("[smtp] test: sending email to", recipient);
-          await client.send({
-            from: cfg.sender_name ? `${cfg.sender_name} <${cfg.sender_email}>` : cfg.sender_email,
-            to: recipient,
-            replyTo: cfg.reply_to ?? undefined,
-            subject: "SMTP test from Future Link DMS",
-            content: "This is a test email confirming your SMTP settings work.",
-            html: `<p>This is a <strong>test email</strong> confirming your SMTP settings work.</p><p style="color:#888;font-size:12px">Sent from Future Link DMS · ${new Date().toISOString()}</p>`,
-          });
-          console.log("[smtp] test: send OK");
-        }
+        const smtpResult = await runSmtpCheck({ cfg, action, recipient });
+        console.log("[smtp]", action, "OK", { lastResponse: smtpResult.raw });
         await admin.from("smtp_settings").update({
           last_status: "verified",
           last_verified_at: new Date().toISOString(),
@@ -156,11 +121,11 @@ Deno.serve(async (req) => {
             provider: cfg.provider, category: "test", triggered_by: u.user.id,
           });
         }
-        return json({ ok: true, status: action === "test" ? "sent" : "verified" });
+        return json({ ok: true, status: action === "test" ? "sent" : "verified", raw: smtpResult.raw });
       } catch (e) {
-        const raw = e instanceof Error ? e.message : String(e);
-        const msg = friendlySmtpError(raw, { useStartTls, useImplicitTls, port: cfg.port });
-        console.error("[smtp] failed:", raw);
+        const raw = smtpRawError(e);
+        const msg = friendlySmtpError(raw, { encryption: cfg.encryption, port: cfg.port });
+        console.error("[smtp] failed:", { stage: (e as any)?.stage ?? "unknown", raw });
         await admin.from("smtp_settings").update({
           last_status: "failed", last_error: msg,
         }).eq("id", cfg.id);
@@ -171,16 +136,7 @@ Deno.serve(async (req) => {
             provider: cfg.provider, category: "test", triggered_by: u.user.id,
           });
         }
-        return json({ error: msg, raw }, 502);
-      } finally {
-        try {
-          if (client && typeof client.close === "function") {
-            await client.close();
-            console.log("[smtp] cleanup: close OK");
-          }
-        } catch (cleanupErr) {
-          console.warn("[smtp] cleanup close failed:", cleanupErr instanceof Error ? cleanupErr.message : cleanupErr);
-        }
+        return json({ error: msg, raw, stage: (e as any)?.stage ?? "smtp" }, 502);
       }
     }
 
