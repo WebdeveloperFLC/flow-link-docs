@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
         goal,
         status: "draft",
         assigned_counselor_id: uid,
+        created_by: uid,
       })
       .select("id")
       .single();
