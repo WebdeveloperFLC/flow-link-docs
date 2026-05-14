@@ -23,7 +23,7 @@ const nav: NavItem[] = [
   { to: "/team-access", icon: Share2, label: "Team access" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
-  { to: "/assessment-admin", icon: ClipboardCheck, label: "Settle Abroad", roles: ["admin", "counselor", "telecaller"] },
+  { to: "/assessment-admin", icon: ClipboardCheck, label: "Settle Abroad", roles: ["admin", "counselor", "telecaller", "documentation"] },
   { to: "/masters", icon: Database, label: "Masters", adminOnly: true },
   { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
   { to: "/settings/telephony", icon: Phone, label: "Phone connect" },
