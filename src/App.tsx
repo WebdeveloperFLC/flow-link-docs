@@ -142,6 +142,7 @@ const App = () => (
             <Route path="/accounting/journals" element={<ProtectedRoute><AccountingJournalsPage /></ProtectedRoute>} />
             <Route path="/accounting/journals/new" element={<ProtectedRoute><AccountingNewJournalPage /></ProtectedRoute>} />
             <Route path="/accounting/journals/:id" element={<ProtectedRoute><AccountingJournalDetailPage /></ProtectedRoute>} />
+            <Route path="/accounting/journals/:id/edit" element={<ProtectedRoute><AccountingNewJournalPage /></ProtectedRoute>} />
             <Route path="/accounting/coa" element={<ProtectedRoute><AccountingCOAPage /></ProtectedRoute>} />
             <Route path="/accounting/owners" element={<ProtectedRoute><AccountingOwnersPage /></ProtectedRoute>} />
             <Route path="/accounting/owners/wealth-summary" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />

@@ -1,119 +1,58 @@
+# Phase 3 — Journal Entries Module
 
-# Accounting Module — Additive Build Plan
+Build a complete Journal Entries module under `/accounting/journals` using only mock data. Strictly additive: only the 3 existing journal stub files and `mockJournals.ts` are replaced. No CRM files, no other accounting files, no router/sidebar changes (routes already wired in Phase 2).
 
-100% additive. Only **two existing files** are modified: `src/components/layout/AppLayout.tsx` (sidebar) and `src/App.tsx` (router). Everything else lives in `src/accounting/`.
+## Files Touched (4 total, all replacements of existing stubs)
 
-## Confirmed file targets
+1. `src/accounting/data/mockJournals.ts` — replace stub with `MOCK_ACCOUNTS` (20) + `MOCK_JOURNALS` (20, balanced)
+2. `src/accounting/pages/journals/AccountingJournalsPage.tsx` — list view
+3. `src/accounting/pages/journals/AccountingNewJournalPage.tsx` — create/edit form
+4. `src/accounting/pages/journals/AccountingJournalDetailPage.tsx` — detail view
 
-- Sidebar: `src/components/layout/AppLayout.tsx`
-- Router: `src/App.tsx`
-- Layout wrapper for authenticated pages: `AppLayout` rendered inside each accounting page (matches existing pattern e.g. `Clients`, `Dashboard`)
-- Auth gate: existing `<ProtectedRoute>` from `src/components/ProtectedRoute.tsx`
-- Design tokens: `src/index.css` + `tailwind.config.ts` (HSL semantic tokens — no hardcoded colors)
+No new packages. Reuses existing: `decimal.js`, shadcn `Button/Input/Select/DropdownMenu/Card/Badge/AlertDialog/Popover/Command/Textarea`, `sonner`, `lucide-react`, `react-hook-form` + `zod`, `react-router-dom`.
 
-## Decisions locked from clarifications
+Reuses Phase 2 helpers: `AccountingPageHeader`, `AccountingEmptyState`, `AccountingStatusBadge`, `formatCurrency`, `addDecimals`, `AppLayout`.
 
-- **State**: React Context (no Zustand dep added). `accountingEntityStore.ts` exports a `<AccountingEntityProvider>` + `useAccountingEntity()` hook with the same shape (activeEntity, availableEntities, fiscalYear, quarter, setActiveEntity).
-- **Colors**: All colors map to HSL semantic tokens. Status pill palette is centralized in `AccountingStatusBadge` using `bg-muted`, `bg-primary/10 text-primary`, `bg-destructive/10 text-destructive`, plus a small set of new semantic tokens added to `index.css` + `tailwind.config.ts` under `--accounting-success`, `--accounting-warning`, `--accounting-info` (additive only — no existing tokens changed). Recharts strokes/fills use `hsl(var(--primary))`, `hsl(var(--destructive))`, etc.
+## Mock Data (`mockJournals.ts`)
 
-## Step 1 — Sidebar
+- `MOCK_ACCOUNTS`: exact 20-row array per spec.
+- `MOCK_JOURNALS`: 20 entries with status mix 10 POSTED / 4 DRAFT / 3 PENDING_REVIEW / 2 VOIDED + 1 of the 20 has `sourceType:'OCR_UPLOAD'`. Each entry's lines satisfy `sum(debits)=sum(credits)` exactly. Realistic Canadian content (rent, payroll, invoices, vendor bills, travel, software, HST/GST). Entry numbers `JE-2024-0001..0020`. Exported TypeScript interfaces `Journal`, `JournalLine`, `Account`.
 
-Edit `src/components/layout/AppLayout.tsx`:
-- Extend the existing `nav` array shape with optional `section?: string` and a divider sentinel, OR render Accounting as a second mapped block beneath the current nav with a divider + label.
-- Section label styling matches existing token system (`text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2`) plus a `border-t border-sidebar-border my-2` divider above it.
-- Append 14 NavLinks reusing the **exact same `NavLink` className** as existing items (active = `bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm`).
-- Icons: `LayoutDashboard, BookOpen, Layers, Users, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles` — all already available from lucide-react.
-- No role gating (visible to all signed-in users); can be tightened later.
+## Page 1 — List (`AccountingJournalsPage.tsx`)
 
-## Step 2 — Router
+- `AppLayout` wrapper + `AccountingPageHeader` with "+ New journal entry" action button.
+- Filter bar: search input (narration/reference, case-insensitive), Status `DropdownMenu` checkbox multi-select with `Status (N)` label, Entity `Select`, Export CSV ghost button (Blob download of filtered rows).
+- Result count line.
+- Plain HTML table per spec (10 columns, widths, badge colors for source, `AccountingStatusBadge` for status, monospace tabular debit/credit totals computed via `addDecimals`).
+- Row click → detail page (except actions cell).
+- Actions `DropdownMenu`: View always; Edit if DRAFT → `/accounting/journals/{id}/edit`; Void if POSTED → shadcn `AlertDialog`, on confirm flips status in local React state.
+- Pagination: 15/page, Prev/Next outline buttons, "Page X of Y".
 
-Edit `src/App.tsx`:
-- Add 27 new `<Route>` entries inside the existing `<Routes>`, each wrapped with `<ProtectedRoute>` (matches `/clients`, `/dashboard` pattern).
-- Lazy-import accounting pages at the top of `App.tsx` to keep bundle hygiene (`import AccountingOverviewPage from "./accounting/pages/AccountingOverviewPage"` etc.).
-- Wrap the whole `<Routes>` subtree's accounting paths' children (the page components themselves) so the Provider is mounted only when needed: add `<AccountingEntityProvider>` *inside* each accounting page's top-level component, OR mount the provider once around the accounting routes via a tiny `AccountingShell` wrapper. Plan: mount `AccountingEntityProvider` inside each page (cheap, isolated, no router restructuring needed).
+## Page 2 — New / Edit (`AccountingNewJournalPage.tsx`)
 
-Route → component map: exactly the 27 routes you listed (Overview, journals/new/:id, coa, owners/:id/wealth-summary, ap, ar, documents/upload/ocr, approvals/:id, reports/pl/bs/cashflow/consolidated, tax/calendar/notices, fraud, reconciliation, ai-assistant, wealth).
+- Detects `:id` from route (used by `/journals/:id/edit`); pre-fills from `MOCK_JOURNALS` if present.
+- React Hook Form + Zod schema for header fields; lines managed via `useFieldArray`.
+- Sticky top bar: breadcrumb (left), live balance indicator (`Balanced ✓` green / `Out of balance` destructive computed with Decimal), Discard / Save draft / Post entry (Post disabled when unbalanced).
+- Card 1 Entry Details: Entity, Entry date (default today), Currency, FX rate (only when currency≠CAD), Source type, Reference; full-width Narration textarea.
+- Card 2 Journal Lines: HTML table with Combobox account picker (shadcn `Popover` + `Command`, results grouped by account type, searches code or name), Branch select, Tax code select, Description input, Debit/Credit inputs (typing in one clears the other for that row), remove × (hidden when ≤2 lines). Starts with 3 empty lines. Totals row (Decimal.js) + Add line button.
+- Card 3 Attachments: drag-drop zone + hidden file input; files held in local state with name/size/× remove.
+- Validation: draft (entity, date, narration ≥5) and post (draft + ≥2 lines + every line has account + totals equal). Errors via `toast.error`; success via `toast.success` then navigate to list. No API calls.
 
-Note: `/accounting/owners/wealth-summary` and `/accounting/wealth` both → `AccountingWealthPage` (per spec).
+## Page 3 — Detail (`AccountingJournalDetailPage.tsx`)
 
-## Step 3 — Folder structure
+- Read `:id` from `useParams`; lookup in `MOCK_JOURNALS`. If missing → `AccountingEmptyState` "Journal not found" + Back button.
+- Sticky bar: breadcrumb, status badge, Back, Edit (DRAFT only), Void (POSTED only) with `AlertDialog`. Void mutates local state.
+- Card 1 Entry summary: 3-col grid of label/value fields (Entity, Date, Source, Reference, Currency, FX rate when applicable, Created by, Posted at, Voided at + reason when voided); narration in muted box.
+- Card 2 Journal lines: read-only table; account name color by `accountType` (asset/liability/equity/revenue/expense palette per spec); alternating row bg; totals row with `Balanced ✓`.
+- Card 3 Audit trail: vertical timeline with colored circle icons (Plus/Send/Check/X from lucide-react); 3 events for POSTED, +1 for VOIDED; uses `entryDate`, `postedAt`, `voidedAt`, `voidReason`, `createdBy` from the entry. Mock IPs/times per spec.
 
-Create `src/accounting/` with the exact tree from your spec:
-- `components/shared/` (4 files)
-- `data/` (4 mock files — minimal seed data)
-- `lib/` (`format.ts`, `crmBridge.ts`)
-- `stores/accountingEntityStore.ts` (Context implementation)
-- `pages/` (overview + 12 subfolders, 27 page files total)
+## Styling Note
 
-## Step 4 — Shared components
+Spec lists raw Tailwind colors (`text-blue-600`, `bg-purple-100`, etc.) for source badges, account-type colors, and timeline dots. Per the previous Phase 2 decision (semantic tokens) but to honor the spec literally as instructed for this phase, I'll use the spec colors directly inside these journal pages only — they are scoped to this module and match the verbatim color callouts in the brief. `AccountingStatusBadge` (already built) is reused unchanged.
 
-All wrap children in semantic-token classes:
-- `AccountingPageHeader` — flex header, `h1` matches existing CRM page titles (`text-2xl font-semibold tracking-tight`), subtitle `text-[13px] text-muted-foreground mt-0.5`.
-- `AccountingEmptyState` — centered, icon `text-muted-foreground/40`, title `text-[15px] font-medium text-foreground`, description `text-[13px] text-muted-foreground`.
-- `AccountingStatusBadge` — switch on status; uses semantic-token classes (e.g. `bg-muted text-muted-foreground` for DRAFT, `bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400` style mapped to the new accounting tokens).
-- `AccountingKPICard` — matches existing `Dashboard` stat cards (will inspect Dashboard.tsx during implementation): `rounded-xl border border-border bg-card p-5 shadow-sm` shell, label small/muted, value `text-2xl font-semibold`, delta colored by `deltaDirection`.
+## Verification After Build
 
-## Step 5 — Format helpers
-
-`src/accounting/lib/format.ts` as specified. **Adds `decimal.js`** as a new dependency (lightweight, no existing conflict).
-
-## Step 6 — CRM Bridge (read-only)
-
-`src/accounting/lib/crmBridge.ts`:
-- `getCRMClients()` → async, queries `supabase.from('clients').select('id,name,email,phone,country')` and returns the array. (Project uses Supabase, not a local store, so this is the right read path.)
-- `getCRMVendors()` → returns `[]` with `// Wire when CRM vendor module exists`.
-- `getCRMDeals()` → returns `[]` with `// Wire when CRM deals module exists`.
-
-## Step 7 — Entity "store" (Context)
-
-`src/accounting/stores/accountingEntityStore.ts` exports:
-- `AccountingEntity` type
-- `AccountingEntityProvider` (seeded with the 5 entities you listed)
-- `useAccountingEntity()` returning `{ activeEntity, availableEntities, fiscalYear, quarter, setActiveEntity }`
-- Persists `activeEntity.id` to `localStorage` under `accounting:activeEntityId` so navigation between pages keeps selection.
-
-## Step 8 — Overview page (full build)
-
-Built exactly as specified, with these token swaps:
-- Bar fill `hsl(var(--primary))` instead of `#2563eb`
-- Line strokes `hsl(var(--primary))` and `hsl(var(--destructive))`
-- Grid `hsl(var(--border))`
-- Dot colors in alert rows use the new `--accounting-success/warning/danger/info` tokens
-- "Future Link Flow" pill uses `bg-primary/10 text-primary`
-- Quick-action card icons `text-primary`
-- All layout, spacing, copy, KPI numbers, chart data points, row contents, and route targets match your spec exactly
-- Recharts is **already installed** (used in `src/components/ui/chart.tsx`) — no new dep.
-
-Wraps content in `<AppLayout>` like other CRM pages. Mounts `<AccountingEntityProvider>` at the top.
-
-## Step 9 — Stub pages (26)
-
-Each remaining page renders `<AppLayout>` → `<AccountingPageHeader>` + `<AccountingEmptyState icon={UniqueIcon} title="Coming soon" description="This module will be built in the next phase." />`. Unique icon per stub from the lucide-react set (Receipt, FileText, ListTree, UserCircle, Wallet, FileInput, FileScan, ListChecks, FileBarChart, ScrollText, ShieldCheck, ArrowLeftRight, Bot, Calendar, BellRing, etc.).
-
-## Dependencies added
-
-- `decimal.js` (new)
-- No other new deps (recharts already present, lucide-react already present, no Zustand)
-
-## Files modified (exactly 2)
-
-1. `src/components/layout/AppLayout.tsx` — append divider + label + 14 NavLinks
-2. `src/App.tsx` — import 22 page components, register 27 routes
-
-## Files created (~46)
-
-- 4 shared components
-- 4 mock data files
-- 2 lib files (`format.ts`, `crmBridge.ts`)
-- 1 entity store/provider
-- 27 page files (1 full Overview + 26 stubs)
-
-## Post-build verification I will run
-
-1. Confirm only 2 existing files modified via diff summary
-2. Build/typecheck via harness auto-run
-3. Note new file count
-4. Visit `/accounting` in preview — confirm Overview renders with KPIs, both charts, all four bottom cards, quick actions
-5. Spot-check 3 existing routes (`/`, `/clients`, `/settings/email-smtp`) still render
-6. Walk all 14 new sidebar links — confirm each loads (full page or stub) without console errors
-
+1. List loads at `/accounting/journals` showing 15 of 20 with working filters, search, CSV export, pagination, void dialog.
+2. `/accounting/journals/new` form: balance indicator updates live, Post disabled until balanced, Save draft/Post toasts fire.
+3. Click entry → detail renders summary, lines (color-coded), audit timeline; Void on POSTED works.
+4. No changes to any non-journal file confirmed via diff.
