@@ -5332,6 +5332,10 @@ export type Database = {
       }
     }
     Functions: {
+      assessment_lead_has_creator: {
+        Args: { _lead_id: string; _uid: string }
+        Returns: boolean
+      }
       can_edit_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
