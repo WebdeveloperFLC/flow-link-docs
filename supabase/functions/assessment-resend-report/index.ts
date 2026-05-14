@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
     const { sessionId } = await req.json();
     const { data: session } = await admin.from("assessment_sessions")
       .select(
-        "id, pdf_path, lead:assessment_leads(id, email, first_name, auth_user_id), client:clients(email, full_name)"
+        "id, pdf_path, created_by, lead:assessment_leads(id, email, first_name, auth_user_id), client:clients(email, full_name)"
       ).eq("id", sessionId).maybeSingle();
     if (!session?.pdf_path) return json({ error: "Report not generated yet — complete the assessment first." }, 404);
 
@@ -29,12 +29,8 @@ Deno.serve(async (req) => {
     const userRoles = (roles ?? []).map((r: any) => r.role);
     const isAdmin = userRoles.includes("admin");
     const isOwner = (session.lead as any)?.auth_user_id === user.id;
-    let hasAccess = isAdmin || isOwner;
-    if (!hasAccess) {
-      const { data: canAccess } = await admin.rpc("can_access_assessment_session", { _uid: user.id, _sid: sessionId });
-      hasAccess = !!canAccess;
-    }
-    if (!hasAccess) return json({ error: "Forbidden — you are not assigned to this assessment" }, 403);
+    const isCreator = session.created_by === user.id;
+    if (!isAdmin && !isOwner && !isCreator) return json({ error: "Forbidden — you can only access assessments you created" }, 403);
 
     const lead = (session.lead as any) ?? null;
     const client = (session.client as any) ?? null;
