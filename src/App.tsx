@@ -59,6 +59,32 @@ import PortalAssessment from "./pages/portal/PortalAssessment";
 import AssessmentAdmin from "./pages/admin/AssessmentAdmin";
 import NocAdmin from "./pages/admin/NocAdmin";
 import GermanyRulesAdmin from "./pages/admin/GermanyRulesAdmin";
+import AccountingOverviewPage from "./accounting/pages/AccountingOverviewPage";
+import AccountingJournalsPage from "./accounting/pages/journals/AccountingJournalsPage";
+import AccountingNewJournalPage from "./accounting/pages/journals/AccountingNewJournalPage";
+import AccountingJournalDetailPage from "./accounting/pages/journals/AccountingJournalDetailPage";
+import AccountingCOAPage from "./accounting/pages/coa/AccountingCOAPage";
+import AccountingOwnersPage from "./accounting/pages/owners/AccountingOwnersPage";
+import AccountingOwnerDetailPage from "./accounting/pages/owners/AccountingOwnerDetailPage";
+import AccountingWealthPage from "./accounting/pages/owners/AccountingWealthPage";
+import AccountingAPPage from "./accounting/pages/ap/AccountingAPPage";
+import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
+import AccountingDocumentsPage from "./accounting/pages/documents/AccountingDocumentsPage";
+import AccountingUploadPage from "./accounting/pages/documents/AccountingUploadPage";
+import AccountingOCRPage from "./accounting/pages/documents/AccountingOCRPage";
+import AccountingApprovalsPage from "./accounting/pages/approvals/AccountingApprovalsPage";
+import AccountingApprovalDetailPage from "./accounting/pages/approvals/AccountingApprovalDetailPage";
+import AccountingReportsPage from "./accounting/pages/reports/AccountingReportsPage";
+import AccountingPLPage from "./accounting/pages/reports/AccountingPLPage";
+import AccountingBSPage from "./accounting/pages/reports/AccountingBSPage";
+import AccountingCashFlowPage from "./accounting/pages/reports/AccountingCashFlowPage";
+import AccountingConsolidatedPage from "./accounting/pages/reports/AccountingConsolidatedPage";
+import AccountingTaxPage from "./accounting/pages/tax/AccountingTaxPage";
+import AccountingTaxCalendarPage from "./accounting/pages/tax/AccountingTaxCalendarPage";
+import AccountingNoticesPage from "./accounting/pages/tax/AccountingNoticesPage";
+import AccountingFraudPage from "./accounting/pages/fraud/AccountingFraudPage";
+import AccountingReconciliationPage from "./accounting/pages/reconciliation/AccountingReconciliationPage";
+import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +138,33 @@ const App = () => (
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
             <Route path="/germany-rules" element={<ProtectedRoute><GermanyRulesAdmin /></ProtectedRoute>} />
+            <Route path="/accounting" element={<ProtectedRoute><AccountingOverviewPage /></ProtectedRoute>} />
+            <Route path="/accounting/journals" element={<ProtectedRoute><AccountingJournalsPage /></ProtectedRoute>} />
+            <Route path="/accounting/journals/new" element={<ProtectedRoute><AccountingNewJournalPage /></ProtectedRoute>} />
+            <Route path="/accounting/journals/:id" element={<ProtectedRoute><AccountingJournalDetailPage /></ProtectedRoute>} />
+            <Route path="/accounting/coa" element={<ProtectedRoute><AccountingCOAPage /></ProtectedRoute>} />
+            <Route path="/accounting/owners" element={<ProtectedRoute><AccountingOwnersPage /></ProtectedRoute>} />
+            <Route path="/accounting/owners/wealth-summary" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
+            <Route path="/accounting/owners/:id" element={<ProtectedRoute><AccountingOwnerDetailPage /></ProtectedRoute>} />
+            <Route path="/accounting/ap" element={<ProtectedRoute><AccountingAPPage /></ProtectedRoute>} />
+            <Route path="/accounting/ar" element={<ProtectedRoute><AccountingARPage /></ProtectedRoute>} />
+            <Route path="/accounting/documents" element={<ProtectedRoute><AccountingDocumentsPage /></ProtectedRoute>} />
+            <Route path="/accounting/documents/upload" element={<ProtectedRoute><AccountingUploadPage /></ProtectedRoute>} />
+            <Route path="/accounting/documents/ocr" element={<ProtectedRoute><AccountingOCRPage /></ProtectedRoute>} />
+            <Route path="/accounting/approvals" element={<ProtectedRoute><AccountingApprovalsPage /></ProtectedRoute>} />
+            <Route path="/accounting/approvals/:id" element={<ProtectedRoute><AccountingApprovalDetailPage /></ProtectedRoute>} />
+            <Route path="/accounting/reports" element={<ProtectedRoute><AccountingReportsPage /></ProtectedRoute>} />
+            <Route path="/accounting/reports/pl" element={<ProtectedRoute><AccountingPLPage /></ProtectedRoute>} />
+            <Route path="/accounting/reports/bs" element={<ProtectedRoute><AccountingBSPage /></ProtectedRoute>} />
+            <Route path="/accounting/reports/cashflow" element={<ProtectedRoute><AccountingCashFlowPage /></ProtectedRoute>} />
+            <Route path="/accounting/reports/consolidated" element={<ProtectedRoute><AccountingConsolidatedPage /></ProtectedRoute>} />
+            <Route path="/accounting/tax" element={<ProtectedRoute><AccountingTaxPage /></ProtectedRoute>} />
+            <Route path="/accounting/tax/calendar" element={<ProtectedRoute><AccountingTaxCalendarPage /></ProtectedRoute>} />
+            <Route path="/accounting/tax/notices" element={<ProtectedRoute><AccountingNoticesPage /></ProtectedRoute>} />
+            <Route path="/accounting/fraud" element={<ProtectedRoute><AccountingFraudPage /></ProtectedRoute>} />
+            <Route path="/accounting/reconciliation" element={<ProtectedRoute><AccountingReconciliationPage /></ProtectedRoute>} />
+            <Route path="/accounting/wealth" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
+            <Route path="/accounting/ai-assistant" element={<ProtectedRoute><AccountingAIPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />

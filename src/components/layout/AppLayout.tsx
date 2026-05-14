@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -30,6 +30,23 @@ const nav: NavItem[] = [
   { to: "/settings/telephony-integration", icon: KeyRound, label: "Telephony Integration", adminOnly: true },
 ];
 
+const accountingNav: NavItem[] = [
+  { to: "/accounting", icon: LayoutDashboard, label: "Overview", end: true },
+  { to: "/accounting/journals", icon: BookOpen, label: "Journal entries" },
+  { to: "/accounting/coa", icon: Layers, label: "Chart of accounts" },
+  { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
+  { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
+  { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
+  { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR" },
+  { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals" },
+  { to: "/accounting/reports", icon: BarChart2, label: "Reports" },
+  { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance" },
+  { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit" },
+  { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation" },
+  { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary" },
+  { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant" },
+];
+
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, roles, signOut, isAdmin, hasRole } = useAuth();
   const navigate = useNavigate();
@@ -50,6 +67,29 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           {nav
             .filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)))
             .map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
+                )
+              }
+            >
+              <item.icon className="size-4" />
+              {item.label}
+            </NavLink>
+          ))}
+
+          <div className="border-t border-sidebar-border my-2" />
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+            Accounting
+          </div>
+          {accountingNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
