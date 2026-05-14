@@ -125,7 +125,8 @@ Deno.serve(async (req) => {
       } catch (e) {
         const raw = smtpRawError(e);
         const msg = friendlySmtpError(raw, { encryption: cfg.encryption, port: cfg.port });
-        console.error("[smtp] failed:", { stage: (e as any)?.stage ?? "unknown", raw });
+        const stage = e instanceof Error ? (e as StagedError).stage ?? "unknown" : "unknown";
+        console.error("[smtp] failed:", { stage, raw });
         await admin.from("smtp_settings").update({
           last_status: "failed", last_error: msg,
         }).eq("id", cfg.id);
@@ -136,7 +137,7 @@ Deno.serve(async (req) => {
             provider: cfg.provider, category: "test", triggered_by: u.user.id,
           });
         }
-        return json({ error: msg, raw, stage: (e as any)?.stage ?? "smtp" }, 502);
+        return json({ error: msg, raw, stage }, 502);
       }
     }
 
