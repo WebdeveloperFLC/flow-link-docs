@@ -1,59 +1,63 @@
-# Phase 4 — Documents & OCR Module
+# Phase 5 — Approval Workflow
 
-Build the 3 document pages with mock data only. Strictly additive: 3 stub replacements + 1 new mock data file.
+Strictly additive build. Replace 3 stub files only. No other files touched. No new packages.
 
-## Files Touched (4 total)
+## Files Touched (3 total)
 
-1. `src/accounting/data/mockDocuments.ts` — **new** — types + `MOCK_DOCUMENTS` (20 entries)
-2. `src/accounting/pages/documents/AccountingUploadPage.tsx` — replace stub
-3. `src/accounting/pages/documents/AccountingOCRPage.tsx` — replace stub
-4. `src/accounting/pages/documents/AccountingDocumentsPage.tsx` — replace stub
+1. `src/accounting/data/mockApprovals.ts` — **new** (file does not yet exist) — types + `MOCK_APPROVALS` (15 entries)
+2. `src/accounting/pages/approvals/AccountingApprovalsPage.tsx` — replace stub
+3. `src/accounting/pages/approvals/AccountingApprovalDetailPage.tsx` — replace stub
 
-No new packages. No router/sidebar changes (routes already wired). No CRM/Phase 2/Phase 3 files touched.
+Routes for `/accounting/approvals` and `/accounting/approvals/:id` are already wired in `src/App.tsx` from Phase 2 — no router changes.
 
-## Mock Data (`mockDocuments.ts`)
+## Mock Data (`mockApprovals.ts`)
 
-- Exports types: `DocType`, `OCRStatus`, `ApprovalStatus`, `MockDocument`.
-- `MOCK_DOCUMENTS`: 20 entries with status mix exactly per spec — 8 COMPLETE (with extracted), 4 PENDING, 3 PROCESSING, 3 FAILED, plus 2 of the COMPLETE ones flagged `isDuplicateSuspected=true` (so 8 COMPLETE total includes the 2 duplicates). Realistic Canadian + India vendor names, mixed file types, varied confidences 0.72–0.98, per-field confidences, 5 entries linked to `MOCK_JOURNALS` IDs.
+Exports `ApprovalStatus`, `ApprovalStepStatus`, `ApprovalStep`, `PaymentRequest`, and `MOCK_APPROVALS`.
 
-## Page 1 — Upload Centre
+15 requests with the exact status mix from spec (3 APPROVED, 2 REJECTED, 2 SUBMITTED, 2 AUDITOR1_REVIEW, 2 AUDITOR2_REVIEW, 2 FINAL_REVIEW, 1 OTP_PENDING, 1 CANCELLED).
 
-- `AppLayout` + `AccountingPageHeader` with "View document library" action.
-- Large drag-drop Card zone (drag/drop + click triggers hidden multi-file input, accepts `.pdf,.jpg,.jpeg,.png,.webp,.xlsx,.csv`). Accepted-type pill badges below.
-- Upload queue Card appears once files are added: per-row icon (FileText/Image/FileSpreadsheet by extension), name, size, progress bar with 4 status states, × remove (queued/error only). "Upload all" button uses `setInterval` to animate each file 0→100% over ~1.5s, then marks complete; toast on completion. "Clear all" wipes the queue.
-- Success state replaces queue when all complete: green check, summary, "Review OCR queue" / "Upload more" buttons.
-- "Recent uploads" Card always visible — table of last 10 from `MOCK_DOCUMENTS` sorted by `uploadedAt` desc, with OCR status badge (PROCESSING uses an animated pulse dot via `animate-pulse`), and Review/View links per spec rules.
+Each request carries a 5-step pipeline (Initial submission → Auditor 1 → Auditor 2 → Final auditor → OTP). Step states are derived from the request status per spec rules. Approved/rejected steps include `actionAt`, `comments`, `ipAddress`, `deviceHint`.
 
-## Page 2 — OCR Review Queue
+Realistic Canadian + India payees: Acme Supplies Ltd, WeWork Toronto, Air Canada, HDFC Bank, Canada Revenue Agency, Payroll Canada, Bell Canada, Shopify Plus, Zomato Catering, Toronto Hydro, etc. Mixed CAD/USD/INR. `daysPending` varies 0–7 so the >48h overdue stat has hits. 3 entries link to `MOCK_JOURNALS` ids; 3 entries link to `MOCK_DOCUMENTS` ids.
 
-- Header with dynamic counts; 4 stat pills (Complete/Processing/Pending/Failed counts).
-- Queue navigation Card: Previous / "X of Y" / Next, status filter Select (All/Needs review/Complete/Failed), Skip ghost button. Local state holds current index plus a working list (filtered).
-- Confidence banner colored by `extracted.confidence` (≥0.85 green, ≥0.65 amber, else red) with appropriate lucide icon.
-- Duplicate warning banner (amber) shown only when `isDuplicateSuspected`, with "View original" link to the duplicate's id (in-page anchor / no-op + toast since other doc viewer is mock).
-- Two-column layout (`lg:grid-cols-2`):
-  - **Left**: mock document preview card — aspect-[3/4] muted box with FileText icon, filename, "Page 1 of 2", page nav buttons, zoom buttons (all visual only), highlight legend dots below.
-  - **Right**: editable form preloaded from `extracted`. All 14 fields per spec, each with optional confidence indicator + amber border on low-confidence inputs. GL account Select pulls from `MOCK_ACCOUNTS` formatted as `code — name`.
-- Action button row (sticky-ish at bottom of right card via `pt-3 border-t` inside CardContent): "Create journal entry" → navigates to `/accounting/journals/new`; "Mark as duplicate" + "Reject" via AlertDialog → remove current from working list and advance; "Skip" → advance index. "Re-run OCR" in card header flips current doc to PROCESSING in local state for 2s then back to COMPLETE with toast.
-- All edits stored in local component state; no persistence.
+## Page 1 — Approval Queue
 
-## Page 3 — Document Library
+`AppLayout` + `AccountingPageHeader` (title "Approval queue", subtitle "Accounting · Future Link Flow", actions = "+ New payment request" → `/accounting/ap`).
 
-- `AccountingPageHeader` with "Upload documents" action.
-- Filter bar: search input (filename / linkedVendor / extracted.vendorName / extracted.invoiceNumber, case-insensitive), Doc-type Select, Entity Select, OCR-status Select, From + To date inputs.
-- Result count line.
-- Plain HTML table per spec (9 columns, distinct muted-color pill per `DocType`, OCR status badge with pulse dot for PROCESSING, approval badge, linked-journal pill that navigates to `/accounting/journals/{id}`).
-- Actions DropdownMenu (View/Download/Link/Reject/Delete) — Reject and Delete use AlertDialog and update local state; View/Download show toasts; Link navigates to journals list.
-- Pagination: 15 per page, Previous / Next outline buttons + "Page X of Y" (matches journals list pattern).
+- **Stats row**: 4 stat cards (`AccountingKPICard`) — Pending approvals, Awaiting my action (currentStep ∈ {2,3}), Overdue >48h, Approved this month.
+- **Tabs**: shadcn `Tabs` with All / Pending / Awaiting me / Completed. Each renders the same table with its filtered slice.
+- **Table**: plain HTML table mirroring journal-list style. Columns per spec (Request #, Description, Payee, Amount, Entity, Submitted, Current step pill, Days pending, Actions). Status pills use the spec color map with raw Tailwind utility classes (same pattern approved in Phase 3/4).
+- **Row click** navigates to detail (excluding Actions column via `e.stopPropagation`).
+- **Actions DropdownMenu**: View details always; Approve/Reject only when status ∈ {AUDITOR1_REVIEW, AUDITOR2_REVIEW}; Cancel only when SUBMITTED. Approve uses AlertDialog → advances `currentStep`, marks step APPROVED, transitions overall status to next stage. Reject opens dialog with required reason textarea → status REJECTED. All updates are local component state (`useState` seeded from `MOCK_APPROVALS`). Sonner toast on every action.
 
-## Styling
+## Page 2 — Approval Detail
 
-- Reuses `AccountingPageHeader`, `formatCurrency`, `cn`, shadcn primitives (Card, Button, Input, Select, DropdownMenu, AlertDialog, Badge).
-- Spec-mandated raw Tailwind colors (green/amber/red/blue/purple/teal pills) used inline within these documents pages only — same approach approved for Phase 3 journal pages.
-- No new icons beyond lucide-react: FileText, Image, FileSpreadsheet, Upload, CheckCircle, AlertTriangle, AlertCircle, Download, RefreshCw, ZoomIn, ZoomOut, MoreHorizontal, X, Plus.
+Reads `:id` via `useParams`, finds in local state mirror of `MOCK_APPROVALS`. Missing → `AccountingEmptyState` + back button.
+
+- **Sticky header**: breadcrumb "Approvals / {requestNumber}" + status badge on left; Back ghost + contextual action buttons on right (Approve/Reject for auditor stages, Final approve/Reject for FINAL_REVIEW, Enter OTP for OTP_PENDING). The header buttons scroll/focus the action panel.
+- **Body** (`max-w-4xl mx-auto p-6 space-y-6`):
+  - **Card 1 — Request summary**: 2/3-col grid of label/value pairs incl. linked journal & document as blue Links when present.
+  - **Card 2 — Approval timeline**:
+    - Top step indicator row: 5 circles connected by lines. Color logic per spec (green for APPROVED, primary + animate-pulse ring for current PENDING, muted for future PENDING, destructive for REJECTED). Step number labels below.
+    - Detail list below: one bordered row per step with circle, name, role badge, assignee, comments block (italic in `bg-muted/50`), timestamp + IP on the right; pending-current shows amber "Pending" badge.
+  - **Card 3 — Action panel** (only when status requires user action):
+    - For AUDITOR1/AUDITOR2_REVIEW: comments textarea + "Approve & forward to next step" (green) and "Reject & return to submitter" (destructive). Reject requires non-empty comments (inline error). Both wrapped in AlertDialog confirmations. Sonner toasts.
+    - For FINAL_REVIEW: same structure, button labels become "Final approve — proceed to OTP verification" and "Reject request".
+    - For OTP_PENDING: 6-box OTP input (`w-12 h-14 text-center text-xl font-mono`), auto-advance via refs, auto-submit on 6th digit, mock validation `=== "123456"`. Wrong code → inline error + CSS keyframe `shake` (defined inline via `<style>` scoped class on the inputs container). Correct → status APPROVED, `approvedAt = new Date().toISOString()`, toast, navigate to `/accounting/approvals`. Includes "Verify & approve" primary button and "Cancel" ghost.
+  - **Card 4 — Audit trail**: vertical timeline of derived events (Submitted, each step Approved/Rejected with comments inline, final OTP approval). Each event: colored dot, label, timestamp, IP address (text-xs muted). Same visual pattern as the journal-detail audit timeline.
+
+State management: `useState<PaymentRequest>` seeded from the lookup; mutations create a new object (clone steps array) and update locally. No persistence, no API.
+
+## Reused primitives
+
+- `AppLayout`, `AccountingPageHeader`, `AccountingEmptyState`, `AccountingKPICard`
+- shadcn: `Card*`, `Button`, `Input`, `Textarea`, `Tabs`, `DropdownMenu`, `AlertDialog`, `Badge`, `Label`
+- `formatCurrency` from `accounting/lib/format`
+- lucide-react icons only: Check, X, Clock, AlertTriangle, ChevronLeft, MoreHorizontal, FileText, Link as Link2, Shield, ArrowRight, Plus
 
 ## Verification After Build
 
-1. `/accounting/documents/upload` — drag/drop + browse adds files; "Upload all" animates progress; success state shows; recent uploads table renders with proper status badges.
-2. `/accounting/documents/ocr` — banner color matches confidence; Prev/Next traverse queue; field edits persist while navigating; Mark duplicate / Reject remove the doc and auto-advance; Re-run OCR cycles status.
-3. `/accounting/documents` — all filters narrow rows; pagination works; linked-journal pill navigates; Delete dialog removes locally.
-4. No changes outside the 4 listed files.
+1. `/accounting/approvals` — stat counts match mock mix; tab filters narrow rows; status pills + days-pending color logic correct; Approve action advances a request through stages with toast; Reject opens reason dialog and flips status.
+2. `/accounting/approvals/:id` — timeline circles + connectors color correctly for each fixture status; action panel shows only for actionable statuses; required-comments validation fires on empty reject; OTP `123456` approves and navigates, anything else shakes.
+3. Linked journal / document links navigate to correct routes.
+4. No edits outside the 3 listed files; no new dependencies.
