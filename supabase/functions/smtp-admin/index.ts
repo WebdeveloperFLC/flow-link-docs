@@ -90,8 +90,15 @@ Deno.serve(async (req) => {
     if (action === "verify" || action === "test") {
       const { data: cfg } = await admin
         .from("smtp_settings").select("*").eq("singleton", true).maybeSingle();
-      if (!cfg || !cfg.host || !cfg.username || !cfg.password) {
-        return json({ error: "SMTP not configured" }, 400);
+      if (!cfg) {
+        return json({ error: "Save SMTP settings first before verifying or testing." }, 400);
+      }
+      const missing: string[] = [];
+      if (!cfg.host) missing.push("host");
+      if (!cfg.username) missing.push("username");
+      if (!cfg.password) missing.push("password");
+      if (missing.length) {
+        return json({ error: `SMTP not configured — missing: ${missing.join(", ")}. Fill the form and click Save settings first.` }, 400);
       }
       const recipient = action === "test" ? String(body.recipient ?? cfg.sender_email) : cfg.username;
       try {

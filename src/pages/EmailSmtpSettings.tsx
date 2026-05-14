@@ -221,11 +221,11 @@ const EmailSmtpSettings = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={onVerify} disabled={busy !== null}>
+              <Button variant="outline" onClick={onVerify} disabled={busy !== null || (!hasPassword && !form.password)} title={!hasPassword && !form.password ? "Save settings with a password first" : undefined}>
                 {busy === "verify" ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <ShieldCheck className="size-4 mr-1.5" />}
                 Verify connection
               </Button>
-              <Button variant="outline" onClick={onTest} disabled={busy !== null}>
+              <Button variant="outline" onClick={onTest} disabled={busy !== null || (!hasPassword && !form.password)} title={!hasPassword && !form.password ? "Save settings with a password first" : undefined}>
                 {busy === "test" ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Send className="size-4 mr-1.5" />}
                 Send test email
               </Button>
