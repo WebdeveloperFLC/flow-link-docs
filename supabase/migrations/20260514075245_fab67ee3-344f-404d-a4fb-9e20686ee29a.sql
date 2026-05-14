@@ -1,0 +1,1 @@
+ALTER VIEW public.smtp_settings_safe SET (security_invoker = true);
