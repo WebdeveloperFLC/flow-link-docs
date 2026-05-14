@@ -211,7 +211,9 @@ async function runSmtpCheck({ cfg, action, recipient }: { cfg: SmtpCfg; action: 
 
   const writeLine = async (stage: string, value: string) => {
     if (!conn) fail(stage, "SMTP connection is not open");
-    const safe = value.toUpperCase().startsWith("AUTH") ? "AUTH LOGIN" : value;
+    const safe = stage === "auth_username" || stage === "auth_password"
+      ? "<redacted>"
+      : value.toUpperCase().startsWith("AUTH") ? "AUTH LOGIN" : value;
     console.log("[smtp]", stage, ">", safe);
     await withTimeout(conn.write(encoder.encode(value + "\r\n")), timeoutMs, stage);
   };
