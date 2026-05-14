@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mail, ShieldCheck, ShieldAlert, Loader2, Send, RefreshCw } from "lucide-react";
+import { ShieldCheck, ShieldAlert, Loader2, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const PRESETS: Record<string, { host: string; port: number; encryption: "ssl"|"tls"|"none" }> = {
@@ -132,8 +132,7 @@ const EmailSmtpSettings = () => {
     <AppLayout>
       <PageHeader
         title="Email / SMTP Settings"
-        subtitle="Used for app notifications, alerts, and status updates. Login OTP and password reset stay on the managed auth pipeline."
-        icon={Mail}
+        description="Used for app notifications, alerts, and status updates. Login OTP and password reset stay on the managed auth pipeline."
       />
       <div className="p-8 space-y-6 max-w-3xl">
         <Card className="p-6 space-y-5 shadow-elev-sm">
