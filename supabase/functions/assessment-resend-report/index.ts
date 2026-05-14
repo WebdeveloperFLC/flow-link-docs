@@ -27,9 +27,14 @@ Deno.serve(async (req) => {
 
     const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
     const userRoles = (roles ?? []).map((r: any) => r.role);
-    const isStaff = userRoles.some((r: string) => ["admin","counselor","documentation","telecaller"].includes(r));
+    const isAdmin = userRoles.includes("admin");
     const isOwner = (session.lead as any)?.auth_user_id === user.id;
-    if (!isStaff && !isOwner) return json({ error: "Forbidden" }, 403);
+    let hasAccess = isAdmin || isOwner;
+    if (!hasAccess) {
+      const { data: canAccess } = await admin.rpc("can_access_assessment_session", { _uid: user.id, _sid: sessionId });
+      hasAccess = !!canAccess;
+    }
+    if (!hasAccess) return json({ error: "Forbidden — you are not assigned to this assessment" }, 403);
 
     const lead = (session.lead as any) ?? null;
     const client = (session.client as any) ?? null;
