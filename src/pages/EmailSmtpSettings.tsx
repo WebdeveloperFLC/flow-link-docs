@@ -28,6 +28,8 @@ type Form = {
   reply_to: string; is_active: boolean;
 };
 
+type SmtpAdminResponse = { raw?: string; ok?: boolean; status?: string };
+
 const EmailSmtpSettings = () => {
   const { isAdmin, loading } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
@@ -82,8 +84,9 @@ const EmailSmtpSettings = () => {
       });
       const message = await invokeError(error, data);
       if (message) { setLastRawResponse(message); throw new Error(message); }
-      if ((data as any)?.raw) setLastRawResponse(String((data as any).raw));
-      return data as any;
+      const response = (data ?? {}) as SmtpAdminResponse;
+      if (response.raw) setLastRawResponse(String(response.raw));
+      return response;
     } finally {
       setBusy(null);
     }
