@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShieldCheck, ShieldAlert, Loader2, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { invokeError } from "@/lib/invokeError";
 
 const PRESETS: Record<string, { host: string; port: number; encryption: "ssl"|"tls"|"none" }> = {
   hostinger: { host: "smtp.hostinger.com", port: 465, encryption: "ssl" },
@@ -27,12 +28,15 @@ type Form = {
   reply_to: string; is_active: boolean;
 };
 
+type SmtpAdminResponse = { raw?: string; ok?: boolean; status?: string };
+
 const EmailSmtpSettings = () => {
   const { isAdmin, loading } = useAuth();
   const [busy, setBusy] = useState<string | null>(null);
   const [hasPassword, setHasPassword] = useState(false);
   const [lastStatus, setLastStatus] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [lastRawResponse, setLastRawResponse] = useState<string | null>(null);
   const [lastVerifiedAt, setLastVerifiedAt] = useState<string | null>(null);
   const [testRecipient, setTestRecipient] = useState("");
   const [form, setForm] = useState<Form>({
@@ -78,9 +82,11 @@ const EmailSmtpSettings = () => {
       const { data, error } = await supabase.functions.invoke("smtp-admin", {
         body: { action, payload, recipient: testRecipient || form.sender_email },
       });
-      if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any).error);
-      return data as any;
+      const message = await invokeError(error, data);
+      if (message) { setLastRawResponse(message); throw new Error(message); }
+      const response = (data ?? {}) as SmtpAdminResponse;
+      if (response.raw) setLastRawResponse(String(response.raw));
+      return response;
     } finally {
       setBusy(null);
     }
@@ -99,7 +105,8 @@ const EmailSmtpSettings = () => {
   };
   const onVerify = async () => {
     try {
-      await call("verify");
+      const result = await call("verify");
+      if (result?.raw) setLastRawResponse(String(result.raw));
       toast.success("SMTP connection verified");
       load();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Verification failed"); load(); }
@@ -144,6 +151,7 @@ const EmailSmtpSettings = () => {
                 {lastVerifiedAt ? `Last verified ${new Date(lastVerifiedAt).toLocaleString()}` : "Not verified yet"}
                 {lastError ? ` · ${lastError}` : ""}
               </div>
+              {lastRawResponse ? <div className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">Raw SMTP response: {lastRawResponse}</div> : null}
             </div>
             <StatusBadge />
           </div>
