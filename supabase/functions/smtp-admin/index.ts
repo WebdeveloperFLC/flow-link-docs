@@ -51,6 +51,10 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid port" }, 400);
       }
       const encryption = ["ssl", "tls", "none"].includes(p.encryption) ? p.encryption : "tls";
+      const username = String(p.username ?? "").trim();
+      if (!username) {
+        return json({ error: "SMTP username is required" }, 400);
+      }
       const senderEmail = String(p.sender_email ?? "").trim();
       if (!/^\S+@\S+\.\S+$/.test(senderEmail)) {
         return json({ error: "Invalid sender email" }, 400);
@@ -67,7 +71,7 @@ Deno.serve(async (req) => {
         host: String(p.host ?? preset.host),
         port,
         encryption,
-        username: String(p.username ?? ""),
+        username,
         sender_email: senderEmail,
         sender_name: String(p.sender_name ?? ""),
         reply_to: p.reply_to ? String(p.reply_to) : null,

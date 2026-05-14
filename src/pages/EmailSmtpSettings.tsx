@@ -87,6 +87,7 @@ const EmailSmtpSettings = () => {
   };
 
   const onSave = async () => {
+    if (!form.username.trim()) { toast.error("SMTP username is required"); return; }
     if (!/^\S+@\S+\.\S+$/.test(form.sender_email)) { toast.error("Invalid sender email"); return; }
     if (form.port < 1 || form.port > 65535) { toast.error("Invalid port"); return; }
     try {
