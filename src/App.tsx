@@ -26,6 +26,8 @@ import FormBuilder from "./pages/FormBuilder";
 import QuestionnaireEmailTemplates from "./pages/QuestionnaireEmailTemplates";
 import TelephonySettings from "./pages/TelephonySettings";
 import TelephonyIntegrationSettings from "./pages/TelephonyIntegrationSettings";
+import EmailSmtpSettings from "./pages/EmailSmtpSettings";
+import EmailLogs from "./pages/EmailLogs";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
@@ -119,6 +121,8 @@ const App = () => (
             <Route path="/settings/questionnaire-emails" element={<ProtectedRoute><QuestionnaireEmailTemplates /></ProtectedRoute>} />
             <Route path="/settings/telephony" element={<ProtectedRoute><TelephonySettings /></ProtectedRoute>} />
             <Route path="/settings/telephony-integration" element={<ProtectedRoute><TelephonyIntegrationSettings /></ProtectedRoute>} />
+            <Route path="/settings/email-smtp" element={<ProtectedRoute><EmailSmtpSettings /></ProtectedRoute>} />
+            <Route path="/settings/email-logs" element={<ProtectedRoute><EmailLogs /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CallProvider>
