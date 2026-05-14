@@ -1,7 +1,9 @@
 // Surface the real edge-function error body instead of supabase-js's generic
 // "Edge Function returned a non-2xx status code" string.
 export async function invokeError(error: any, data: any): Promise<string | null> {
-  if (data && typeof data === "object" && (data as any).error) return String((data as any).error);
+  if (data && typeof data === "object" && (data as any).error) {
+    return (data as any).raw ? `${String((data as any).error)}\nRaw SMTP response: ${String((data as any).raw)}` : String((data as any).error);
+  }
   if (!error) return null;
   try {
     const ctx = (error as any).context;
