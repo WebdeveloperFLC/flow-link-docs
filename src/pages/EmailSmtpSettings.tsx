@@ -34,6 +34,7 @@ const EmailSmtpSettings = () => {
   const [hasPassword, setHasPassword] = useState(false);
   const [lastStatus, setLastStatus] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const [lastRawResponse, setLastRawResponse] = useState<string | null>(null);
   const [lastVerifiedAt, setLastVerifiedAt] = useState<string | null>(null);
   const [testRecipient, setTestRecipient] = useState("");
   const [form, setForm] = useState<Form>({
@@ -80,7 +81,8 @@ const EmailSmtpSettings = () => {
         body: { action, payload, recipient: testRecipient || form.sender_email },
       });
       const message = await invokeError(error, data);
-      if (message) throw new Error(message);
+      if (message) { setLastRawResponse(message); throw new Error(message); }
+      if ((data as any)?.raw) setLastRawResponse(String((data as any).raw));
       return data as any;
     } finally {
       setBusy(null);
@@ -100,7 +102,8 @@ const EmailSmtpSettings = () => {
   };
   const onVerify = async () => {
     try {
-      await call("verify");
+      const result = await call("verify");
+      if (result?.raw) setLastRawResponse(String(result.raw));
       toast.success("SMTP connection verified");
       load();
     } catch (e) { toast.error(e instanceof Error ? e.message : "Verification failed"); load(); }
@@ -145,6 +148,7 @@ const EmailSmtpSettings = () => {
                 {lastVerifiedAt ? `Last verified ${new Date(lastVerifiedAt).toLocaleString()}` : "Not verified yet"}
                 {lastError ? ` · ${lastError}` : ""}
               </div>
+              {lastRawResponse ? <div className="mt-1 text-xs text-muted-foreground whitespace-pre-wrap">Raw SMTP response: {lastRawResponse}</div> : null}
             </div>
             <StatusBadge />
           </div>
