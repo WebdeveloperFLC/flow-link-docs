@@ -1,93 +1,84 @@
+## Phase 6 — Financial Reports
 
-# Phase 6 — Owner Profiles & Wealth
+All 4 report routes are already wired in `App.tsx` (`/accounting/reports/{pl,bs,cashflow,consolidated}`) but the pages are stubs. I'll replace the stubs and add reusable report infrastructure under the existing accounting module. No CRM, sidebar, overview, routing, or previously built page changes.
 
-Strictly additive. Replace the 3 existing accounting owner stubs and add supporting files. No new packages. No CRM, journal, document, approval, or router changes. No backend.
+### Files to create
 
-## Files Touched (5 total)
+**Types & data**
+- `src/accounting/types/reports.ts` — `ReportNode` (id, label, kind: `header|line|subtotal|total|metric`, current, prior, children?, drilldownKey?, format?), `ReportTree`, `DrillTxn`, `FxRate`, `EntityCode`.
+- `src/accounting/data/mockReports.ts` — realistic mock numbers for:
+  - P&L tree (Revenue → 4 lines, COGS → 2, OpEx → 6, computed GP/EBITDA/Net) for 6 entities with current + prior period values.
+  - Balance Sheet tree (Assets: Current/Non-current; Liabilities: Current/Long-term; Equity) per entity, balanced.
+  - Cash Flow tree (Operating/Investing/Financing) with opening + closing balances per entity.
+  - 6-month revenue trend series, expense breakdown slices.
+  - FX rates: `USD→CAD 1.36`, `INR→CAD 0.0163`, `CAD→CAD 1`.
+  - Drilldown transactions keyed by account: date, docRef, entity, branch, account, amount, journalId, counterparty.
+  - Helpers: `getPLTree(entities, period, comparison)`, `getBSTree(entities, asOf)`, `getCashFlowTree(entities, period)`, `getDrilldownTxns(key)`, `convertToCAD(amount, currency)`, `sumNode(node)`.
 
-1. `src/accounting/types/owners.ts` — **new** — type definitions
-2. `src/accounting/data/mockOwners.ts` — **new** — owner profiles + financial accounts mock
-3. `src/accounting/components/shared/AccountOwnerSelect.tsx` — **new** — reusable grouped selector (built but not wired into journals)
-4. `src/accounting/pages/owners/AccountingOwnersPage.tsx` — replace stub (list + tabs + add/edit modal)
-5. `src/accounting/pages/owners/AccountingOwnerDetailPage.tsx` — replace stub (detail + accounts tabs + add/edit account modal)
-6. `src/accounting/pages/owners/AccountingWealthPage.tsx` — replace stub (wealth dashboard)
+**Reusable report infrastructure** (`src/accounting/components/reports/`)
+- `ReportShell.tsx` — wraps `AppLayout` + `AccountingPageHeader` + filter slot + KPI bar slot + body slot. Sticky toolbar.
+- `ReportFilterBar.tsx` — entity multi-select (Popover + Checkbox list), branch select, date-range preset (`This month | This quarter | This FY | Custom` with shadcn Calendar in Popover), comparison toggle (`vs last period | vs last year`), `ReportExportMenu` slot. Controlled via props.
+- `ReportExportMenu.tsx` — DropdownMenu with `PDF` / `Excel` items (toast only).
+- `ReportTable.tsx` — sticky `<thead>` with `position: sticky top-0 bg-background z-10`, configurable columns, recursively renders `ReportRow`. Compact tabular-nums, right-aligned numbers.
+- `ReportRow.tsx` — single recursive row. Handles indent by depth, chevron expand/collapse for nodes with children, bold for `subtotal`, accent background + bold for `total`/`metric` (EBITDA, Net Profit, GP%, Net Margin %), green/red `Change %` arrow via `ArrowUp/ArrowDown`. Click opens `ReportDrilldownModal` when `drilldownKey` present. Uses `Collapsible`-style state lifted via context for "expand all/collapse all".
+- `ReportSectionHeader.tsx` — uppercase tracking-wider section divider row.
+- `ReportDrilldownModal.tsx` — shadcn `Dialog`. Header shows account label + period. Body: shadcn `Table` of mock txns (date, doc ref, entity, branch, account, amount, journal link, counterparty). Footer total row.
+- `ReportKPIBar.tsx` — horizontal grid of 3-5 `AccountingKPICard`s with delta arrows.
+- `ReportTrendChart.tsx` — recharts `LineChart` (project already uses recharts) for 6-month revenue.
+- `ReportBreakdownDonut.tsx` — recharts `PieChart` donut for expense breakdown with legend.
 
-Routes `/accounting/owners`, `/accounting/owners/:id`, `/accounting/owners/wealth-summary` are already wired in `App.tsx` from Phase 2 — no router changes.
+All components: semantic tokens only (`bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `text-emerald-600`/`text-rose-600` mapped via `text-[hsl(var(--success))]` style if tokens exist, otherwise tailwind `text-emerald-500`/`text-rose-500` for variance only — variance colors are conventional and acceptable).
 
-## Types (`accounting/types/owners.ts`)
+### Page implementations
 
-Per spec exactly: `OwnerCategory`, `BusinessOwnerType`, `PersonalOwnerType`, `AccountType` (full enum list), `OwnerProfile`, `FinancialAccount`. Stored at `accounting/types/` instead of `src/types/` to keep accounting code colocated, matching the project's established pattern.
+**`AccountingPLPage.tsx`** — `ReportShell` + `ReportFilterBar` (entities default all, period `This quarter`, comparison `vs last period`). `ReportKPIBar`: Revenue, Gross Profit, EBITDA, Net Profit (each with prior + Δ%). `ReportTable` rendering P&L tree with columns: Account / Current / Prior / Change %. Bold subtotals at TOTAL REVENUE, GROSS PROFIT, TOTAL OPEX, EBITDA, NET PROFIT. GROSS MARGIN % and NET MARGIN % rendered as `metric` rows. Below table: 2-column responsive grid with `ReportTrendChart` (6-month revenue) and `ReportBreakdownDonut` (expense breakdown).
 
-## Mock Data (`accounting/data/mockOwners.ts`)
+**`AccountingBSPage.tsx`** — `ReportShell` + filter bar with `As of` single date picker (replaces date range), entity multi-select, export menu. Two-column responsive layout: left card "Assets" tree, right card "Liabilities + Equity" tree. Bottom validation banner: compute `assetsTotal` and `liabPlusEquity`; if equal show green check `"Balance sheet balances — A = L + E"`; if not equal show amber warning with delta. Drilldown enabled on leaf accounts.
 
-Exports `MOCK_OWNERS` (10 profiles) and `MOCK_FINANCIAL_ACCOUNTS` (~25 accounts), all per spec:
-- 4 business owners (Future Link Canada/USA/India + Future Link Academy brand). Canada/USA linked to existing entity ids from `accountingEntityStore`.
-- 6 personal/HUF/Trust/NRI (Sharma family).
-- ~25 accounts: business banking, personal savings, FDs, LIC policies, demat, loans, HUF, NRE/NRO. Realistic balances, IFSC, policy numbers, premium/EMI fields, maturity dates ranging across the next 90+ days so the wealth-page upcoming events list has hits.
-- Helpers: `getOwnerById`, `getAccountsForOwner`, `categoryOf(accountType)` (returns ASSET/LIABILITY/INVESTMENT/INSURANCE), grouping helper used by selector & detail page, `formatMaskedAccount`.
+**`AccountingCashFlowPage.tsx`** — `ReportShell` + filter bar (period + entity + export). `ReportKPIBar`: Opening Balance, Net Cash Movement, Closing Balance, Free Cash Flow. `ReportTable` with sections Operating / Investing / Financing using indirect format (Net Income → adjustments → working capital → operating subtotal). Footer rows: Opening + Net change = Closing with validation badge (green if matches, warning otherwise). Drilldown on each line.
 
-## Page 1 — Owners List (`AccountingOwnersPage.tsx`)
+**`AccountingConsolidatedPage.tsx`** — `ReportShell` + entity checkbox selector (multi). Side-by-side `ReportTable` with dynamic columns: one per selected entity (showing source-currency amount), then `Eliminations` column (intercompany row pulled from mock), then `Consolidated (CAD)` column using `convertToCAD`. Top toolbar shows currency badge per entity. Below table: small breakdown of elimination entries list.
 
-`AppLayout` + `AccountingPageHeader` (title "Owner profiles", subtitle per spec, action "+ Add owner profile" → opens modal).
+**`AccountingReportsPage.tsx`** — index page: 4 cards linking to PL / BS / Cash Flow / Consolidated with one-line descriptions and `ArrowRight`. Reuses existing `AccountingPageHeader`.
 
-- **Tabs** (shadcn `Tabs`): All / Business / Personal / Family office.
-- **Filter bar**: search Input (name/PAN/brand), Country select (All/CA/US/IN), Category select, Active-only toggle (`Switch`).
-- **Grid**: `grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`. Each card:
-  - Top: avatar circle (initials, deterministic color from id hash), name, type pill (color map per spec — blue for corporate types, gray for brand, purple for personal/HUF/trust/NRI; raw Tailwind utilities consistent with Phase 3/4).
-  - Middle: country flag emoji + country, masked PAN/GST/EIN, relationship label, "Linked to: …" for brand types.
-  - Bottom: account count, total assets per currency (e.g. `₹28.4L · CAD 245K` — own helper formats INR in lakhs/crore), total liabilities, "View accounts →" link.
-  - `DropdownMenu`: Edit profile, Add account, View all accounts, Deactivate (toast only).
-- **Add/Edit modal** (shadcn `Dialog`, two-step):
-  - Step 1: 2×2 grid of large option cards (Business / Individual / HUF / Trust) using lucide icons.
-  - Step 2: dynamic form per type per spec (business fields, individual fields including NRI link, HUF members repeatable list, Trust trustees/beneficiaries). Conditional country-specific fields (PAN/GST/EIN/SIN/Aadhar last-4). Tags input (comma-split chips). Notes textarea. Save → local `useState` array update, sonner toast, close modal.
+### Technical details
 
-## Page 2 — Owner Detail (`AccountingOwnerDetailPage.tsx`)
+- State: per-page `useState` for filters, expand/collapse map (`Record<string, boolean>`), drilldown open/key. No persistence.
+- Recursive rendering: `ReportTable` flattens via `renderNode(node, depth)` returning `<ReportRow>` + recursive children when expanded. Subtotals are computed at data layer, not in component.
+- Formatting: extend `src/accounting/lib/format.ts` with `formatAccounting(n, currency)` (parentheses for negatives, `—` for zero), `formatPercent(n)`, `formatVariance(curr, prior)`. **Append only**, no edits to existing exports.
+- Charts: use existing `recharts` (already a dep — confirmed by other pages). No new packages.
+- Drilldown: clicking a leaf row with `drilldownKey` opens `ReportDrilldownModal` with `getDrilldownTxns(key)`.
+- Export: toast only — `toast.success("Exporting P&L to PDF…")`.
+- Sticky headers: `<thead className="sticky top-0 bg-card z-10 border-b">`.
+- Dark mode: relies entirely on semantic tokens.
+- Variance colors: use `text-emerald-500` / `text-rose-500` (acceptable convention for finance; not theming a brand color).
 
-Reads `:id` via `useParams`; missing → `AccountingEmptyState` + back link.
+### Out of scope (not touched)
 
-- **Sticky header**: large avatar (48px), name, type badge, Edit button (opens edit modal — reuses Step 2 form from page 1, extracted to a shared in-file component).
-- **4 KPI cards** (`AccountingKPICard`): Total accounts, Total assets, Total liabilities, Net worth (color via prop based on sign).
-- **Tabs**: Accounts / Documents / Notes / Activity.
-- **Accounts tab**: 4 collapsible sections (`Collapsible` shadcn) — Bank accounts, Investments, Insurance policies, Loans & liabilities. Mapping from `AccountType` → section is centralised. Each section ends with `+ Add account` button.
-  - Account row: institution-letter square (deterministic color), nickname + institution, type pill, status pill, masked acct #, right-aligned balance (green for asset, red with `-` for liability). Conditional metadata row per type (FD: maturity + rate; insurance: sum assured + next premium + amount; loan: EMI + outstanding). Action menu: Edit · View transactions (toast) · Link document (toast).
-  - Account icons per spec mapped from lucide-react: Landmark, Clock, TrendingUp, PieChart, Shield, Heart, CreditCard, Banknote, Star, Home.
-- **Documents tab**: Filtered list of `MOCK_DOCUMENTS` whose `linkedVendor` matches owner brand or relationship — falls back to empty state with upload button (toast, no real upload).
-- **Notes tab**: editable textarea bound to local state, "+ Add note" appends entry with timestamp (in-memory).
-- **Activity tab**: derived synthetic timeline (Profile created, accounts added, last edit) using `formatDate`.
-- **Add/Edit account modal** (two-step):
-  - Step 1: 5 category cards (Bank/Savings, Investment, Insurance/Policy, Loan/Liability, Cash/Other).
-  - Step 2: dynamic form per category exactly per spec (FD auto-calc maturity = start + tenure, insurance auto-calc next premium from frequency, loan EMI fields). All saves are `useState` updates with toast.
+- `App.tsx`, sidebar, `AccountingOverviewPage`, all previously built journal/AP/AR/owners/approvals/documents pages, CRM modules, types.ts, supabase/, format.ts existing exports.
 
-## Page 3 — Wealth Summary (`AccountingWealthPage.tsx`)
+### File summary
 
-`AppLayout` + header (title "Wealth & investment summary").
+Create:
+- `src/accounting/types/reports.ts`
+- `src/accounting/data/mockReports.ts`
+- `src/accounting/components/reports/ReportShell.tsx`
+- `src/accounting/components/reports/ReportFilterBar.tsx`
+- `src/accounting/components/reports/ReportExportMenu.tsx`
+- `src/accounting/components/reports/ReportTable.tsx`
+- `src/accounting/components/reports/ReportRow.tsx`
+- `src/accounting/components/reports/ReportSectionHeader.tsx`
+- `src/accounting/components/reports/ReportDrilldownModal.tsx`
+- `src/accounting/components/reports/ReportKPIBar.tsx`
+- `src/accounting/components/reports/ReportTrendChart.tsx`
+- `src/accounting/components/reports/ReportBreakdownDonut.tsx`
 
-- **Toolbar**: owner multi-select (shadcn `Popover` with checkbox list), display-currency select (INR/CAD/USD; converts via inline `MOCK_FX = { INR:1, CAD:62, USD:84 }` — values normalize to display currency), as-of date input.
-- **4 KPI cards**: Total assets, Total liabilities, Net worth (large, green if positive), Liquid assets (bank+cash only).
-- **Asset breakdown**: SVG donut (no chart lib — simple circle stroke segments computed from totals) + legend list with %, value per segment (Bank deposits / Investments / Insurance / Real estate / Other).
-- **Liabilities breakdown**: simple horizontal stacked bar + legend (Home / Vehicle / Personal / Credit cards) + total monthly EMI.
-- **Upcoming events table** (next 90 days): unions premium-due, FD/RD maturity, monthly EMI projections; sorted by date; columns Date / Owner / Account / Event type (colored badge: amber premium, green maturity, blue EMI) / Amount / Action (Mark paid → toast; View account → navigates to detail page).
-- **Insurance policies quick view**: card list with sum assured, premium+frequency, next due date colored (red <30d, amber <60d), Mark paid button (toast).
-- **Investment portfolio summary**: total portfolio value, simple per-owner stacked bar (CSS divs, percentages of total), holdings table from accounts whose `remarks` parse as holdings (skip empty).
+Replace stubs:
+- `src/accounting/pages/reports/AccountingReportsPage.tsx`
+- `src/accounting/pages/reports/AccountingPLPage.tsx`
+- `src/accounting/pages/reports/AccountingBSPage.tsx`
+- `src/accounting/pages/reports/AccountingCashFlowPage.tsx`
+- `src/accounting/pages/reports/AccountingConsolidatedPage.tsx`
 
-## Reusable Component (`AccountOwnerSelect.tsx`)
-
-Shadcn `Select` with `SelectGroup`/`SelectLabel` per owner. Props: `value`, `onChange`, `accounts?`, `owners?` (defaults to mock). Renders grouped options exactly per spec: `RBC Business Chequing (CAD ••••4521)`. Built only — not wired into journal pages.
-
-## Shared In-File Patterns
-
-- Avatar color: hash of id → pick from a fixed 10-color palette of muted Tailwind classes (`bg-blue-100 text-blue-700` etc.).
-- INR formatting: small helper `formatINR(n)` produces `₹X.YL` (lakhs) and `₹X.YCr` (crore) above thresholds; falls back to `formatCurrency` from `accounting/lib/format` for CAD/USD.
-- All state lives in `useState` per page. No persistence, no API calls.
-
-## Reused Primitives
-
-`AppLayout`, `AccountingPageHeader`, `AccountingEmptyState`, `AccountingKPICard`, shadcn `Card*`, `Button`, `Input`, `Select*`, `Switch`, `Tabs`, `Dialog`, `DropdownMenu`, `Collapsible`, `Badge`, `Popover`, `Checkbox`, `Textarea`, `Label`, sonner. lucide-react icons only.
-
-## Verification After Build
-
-1. `/accounting/owners`: 10 cards visible, tabs filter correctly, search filters by name/PAN, country filter works. Add modal both steps render and save creates a new card.
-2. `/accounting/owners/:id` (e.g. Rajesh Sharma): KPI numbers reconcile to the mock account totals; sections show correct accounts; account add modal saves into local state.
-3. `/accounting/owners/wealth-summary`: donut + bars reflect totals; currency switcher reformats numbers; upcoming-events table shows events ordered by date.
-4. `AccountOwnerSelect` rendered in a small sandbox check — not wired into journals.
-5. No edits outside the 6 files listed; no new dependencies.
+Append-only edit:
+- `src/accounting/lib/format.ts` (add accounting formatters)
