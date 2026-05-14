@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShieldCheck, ShieldAlert, Loader2, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { invokeError } from "@/lib/invokeError";
 
 const PRESETS: Record<string, { host: string; port: number; encryption: "ssl"|"tls"|"none" }> = {
   hostinger: { host: "smtp.hostinger.com", port: 465, encryption: "ssl" },
@@ -78,8 +79,8 @@ const EmailSmtpSettings = () => {
       const { data, error } = await supabase.functions.invoke("smtp-admin", {
         body: { action, payload, recipient: testRecipient || form.sender_email },
       });
-      if (error) throw new Error(error.message);
-      if ((data as any)?.error) throw new Error((data as any).error);
+      const message = await invokeError(error, data);
+      if (message) throw new Error(message);
       return data as any;
     } finally {
       setBusy(null);
