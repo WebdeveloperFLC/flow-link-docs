@@ -21,11 +21,14 @@ Deno.serve(async (req) => {
     const { sessionId } = await req.json();
     const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", user.id);
     const isAdmin = (roles ?? []).some((r: any) => r.role === "admin");
-    if (!isAdmin) {
-      const { data: canAccess } = await admin.rpc("can_access_assessment_session", { _uid: user.id, _sid: sessionId });
-      if (!canAccess) return json({ error: "Forbidden — you are not assigned to this assessment" }, 403);
+    const { data: session } = await admin.from("assessment_sessions")
+      .select("pdf_path, created_by, lead:assessment_leads(auth_user_id)")
+      .eq("id", sessionId).maybeSingle();
+    const isCreator = session?.created_by === user.id;
+    const isLeadOwner = (session?.lead as any)?.auth_user_id === user.id;
+    if (!isAdmin && !isCreator && !isLeadOwner) {
+      return json({ error: "Forbidden — you can only access assessments you created" }, 403);
     }
-    const { data: session } = await admin.from("assessment_sessions").select("pdf_path").eq("id", sessionId).maybeSingle();
     if (!session?.pdf_path) return json({ error: "Report not generated yet — complete the assessment first." }, 404);
     const { data: signed } = await admin.storage.from("assessment-pdf-assets").createSignedUrl(session.pdf_path, 60 * 15);
     return json({ url: signed?.signedUrl });

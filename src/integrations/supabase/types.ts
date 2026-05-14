@@ -282,41 +282,6 @@ export type Database = {
         }
         Relationships: []
       }
-      assessment_assignees: {
-        Row: {
-          assigned_by: string | null
-          created_at: string
-          id: string
-          role: string | null
-          session_id: string
-          user_id: string
-        }
-        Insert: {
-          assigned_by?: string | null
-          created_at?: string
-          id?: string
-          role?: string | null
-          session_id: string
-          user_id: string
-        }
-        Update: {
-          assigned_by?: string | null
-          created_at?: string
-          id?: string
-          role?: string | null
-          session_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assessment_assignees_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "assessment_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       assessment_email_verifications: {
         Row: {
           consumed_at: string | null
@@ -636,6 +601,7 @@ export type Database = {
           client_id: string | null
           country: string
           created_at: string
+          created_by: string | null
           goal: string
           id: string
           last_emailed_at: string | null
@@ -653,6 +619,7 @@ export type Database = {
           client_id?: string | null
           country?: string
           created_at?: string
+          created_by?: string | null
           goal?: string
           id?: string
           last_emailed_at?: string | null
@@ -670,6 +637,7 @@ export type Database = {
           client_id?: string | null
           country?: string
           created_at?: string
+          created_by?: string | null
           goal?: string
           id?: string
           last_emailed_at?: string | null
@@ -5364,8 +5332,8 @@ export type Database = {
       }
     }
     Functions: {
-      can_access_assessment_session: {
-        Args: { _sid: string; _uid: string }
+      assessment_lead_has_creator: {
+        Args: { _lead_id: string; _uid: string }
         Returns: boolean
       }
       can_edit_client: {
