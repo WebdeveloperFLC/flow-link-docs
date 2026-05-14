@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle, Mail, ChevronRight } from "lucide-react";
+import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle, Mail, ChevronRight, Server, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { FirmProfileCard } from "@/components/settings/FirmProfileCard";
@@ -123,6 +123,35 @@ const Settings = () => {
               <div className="text-xs text-muted-foreground">
                 Manage reusable subject lines and email bodies. Each visa form picks one of these as its sharing email.
               </div>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Card>
+        </Link>
+
+        <div className="pt-2">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Outbound app email · SMTP
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Configure the SMTP server used for app notifications, alerts, and status updates. Auth emails (login OTP, password reset) keep using the managed pipeline.
+          </p>
+        </div>
+        <Link to="/settings/email-smtp" className="block transition-colors">
+          <Card className="p-5 shadow-elev-sm flex items-center gap-3 hover:bg-muted/40">
+            <Server className="size-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold">Email / SMTP settings</div>
+              <div className="text-xs text-muted-foreground">Hostinger, Gmail, Outlook, Brevo, or custom. Verify connection and send test emails.</div>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground" />
+          </Card>
+        </Link>
+        <Link to="/settings/email-logs" className="block transition-colors">
+          <Card className="p-5 shadow-elev-sm flex items-center gap-3 hover:bg-muted/40">
+            <ListChecks className="size-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold">Email logs</div>
+              <div className="text-xs text-muted-foreground">Recipient, subject, status, attempts, error, retry button.</div>
             </div>
             <ChevronRight className="size-4 text-muted-foreground" />
           </Card>
