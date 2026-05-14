@@ -1,63 +1,93 @@
-# Phase 5 — Approval Workflow
 
-Strictly additive build. Replace 3 stub files only. No other files touched. No new packages.
+# Phase 6 — Owner Profiles & Wealth
 
-## Files Touched (3 total)
+Strictly additive. Replace the 3 existing accounting owner stubs and add supporting files. No new packages. No CRM, journal, document, approval, or router changes. No backend.
 
-1. `src/accounting/data/mockApprovals.ts` — **new** (file does not yet exist) — types + `MOCK_APPROVALS` (15 entries)
-2. `src/accounting/pages/approvals/AccountingApprovalsPage.tsx` — replace stub
-3. `src/accounting/pages/approvals/AccountingApprovalDetailPage.tsx` — replace stub
+## Files Touched (5 total)
 
-Routes for `/accounting/approvals` and `/accounting/approvals/:id` are already wired in `src/App.tsx` from Phase 2 — no router changes.
+1. `src/accounting/types/owners.ts` — **new** — type definitions
+2. `src/accounting/data/mockOwners.ts` — **new** — owner profiles + financial accounts mock
+3. `src/accounting/components/shared/AccountOwnerSelect.tsx` — **new** — reusable grouped selector (built but not wired into journals)
+4. `src/accounting/pages/owners/AccountingOwnersPage.tsx` — replace stub (list + tabs + add/edit modal)
+5. `src/accounting/pages/owners/AccountingOwnerDetailPage.tsx` — replace stub (detail + accounts tabs + add/edit account modal)
+6. `src/accounting/pages/owners/AccountingWealthPage.tsx` — replace stub (wealth dashboard)
 
-## Mock Data (`mockApprovals.ts`)
+Routes `/accounting/owners`, `/accounting/owners/:id`, `/accounting/owners/wealth-summary` are already wired in `App.tsx` from Phase 2 — no router changes.
 
-Exports `ApprovalStatus`, `ApprovalStepStatus`, `ApprovalStep`, `PaymentRequest`, and `MOCK_APPROVALS`.
+## Types (`accounting/types/owners.ts`)
 
-15 requests with the exact status mix from spec (3 APPROVED, 2 REJECTED, 2 SUBMITTED, 2 AUDITOR1_REVIEW, 2 AUDITOR2_REVIEW, 2 FINAL_REVIEW, 1 OTP_PENDING, 1 CANCELLED).
+Per spec exactly: `OwnerCategory`, `BusinessOwnerType`, `PersonalOwnerType`, `AccountType` (full enum list), `OwnerProfile`, `FinancialAccount`. Stored at `accounting/types/` instead of `src/types/` to keep accounting code colocated, matching the project's established pattern.
 
-Each request carries a 5-step pipeline (Initial submission → Auditor 1 → Auditor 2 → Final auditor → OTP). Step states are derived from the request status per spec rules. Approved/rejected steps include `actionAt`, `comments`, `ipAddress`, `deviceHint`.
+## Mock Data (`accounting/data/mockOwners.ts`)
 
-Realistic Canadian + India payees: Acme Supplies Ltd, WeWork Toronto, Air Canada, HDFC Bank, Canada Revenue Agency, Payroll Canada, Bell Canada, Shopify Plus, Zomato Catering, Toronto Hydro, etc. Mixed CAD/USD/INR. `daysPending` varies 0–7 so the >48h overdue stat has hits. 3 entries link to `MOCK_JOURNALS` ids; 3 entries link to `MOCK_DOCUMENTS` ids.
+Exports `MOCK_OWNERS` (10 profiles) and `MOCK_FINANCIAL_ACCOUNTS` (~25 accounts), all per spec:
+- 4 business owners (Future Link Canada/USA/India + Future Link Academy brand). Canada/USA linked to existing entity ids from `accountingEntityStore`.
+- 6 personal/HUF/Trust/NRI (Sharma family).
+- ~25 accounts: business banking, personal savings, FDs, LIC policies, demat, loans, HUF, NRE/NRO. Realistic balances, IFSC, policy numbers, premium/EMI fields, maturity dates ranging across the next 90+ days so the wealth-page upcoming events list has hits.
+- Helpers: `getOwnerById`, `getAccountsForOwner`, `categoryOf(accountType)` (returns ASSET/LIABILITY/INVESTMENT/INSURANCE), grouping helper used by selector & detail page, `formatMaskedAccount`.
 
-## Page 1 — Approval Queue
+## Page 1 — Owners List (`AccountingOwnersPage.tsx`)
 
-`AppLayout` + `AccountingPageHeader` (title "Approval queue", subtitle "Accounting · Future Link Flow", actions = "+ New payment request" → `/accounting/ap`).
+`AppLayout` + `AccountingPageHeader` (title "Owner profiles", subtitle per spec, action "+ Add owner profile" → opens modal).
 
-- **Stats row**: 4 stat cards (`AccountingKPICard`) — Pending approvals, Awaiting my action (currentStep ∈ {2,3}), Overdue >48h, Approved this month.
-- **Tabs**: shadcn `Tabs` with All / Pending / Awaiting me / Completed. Each renders the same table with its filtered slice.
-- **Table**: plain HTML table mirroring journal-list style. Columns per spec (Request #, Description, Payee, Amount, Entity, Submitted, Current step pill, Days pending, Actions). Status pills use the spec color map with raw Tailwind utility classes (same pattern approved in Phase 3/4).
-- **Row click** navigates to detail (excluding Actions column via `e.stopPropagation`).
-- **Actions DropdownMenu**: View details always; Approve/Reject only when status ∈ {AUDITOR1_REVIEW, AUDITOR2_REVIEW}; Cancel only when SUBMITTED. Approve uses AlertDialog → advances `currentStep`, marks step APPROVED, transitions overall status to next stage. Reject opens dialog with required reason textarea → status REJECTED. All updates are local component state (`useState` seeded from `MOCK_APPROVALS`). Sonner toast on every action.
+- **Tabs** (shadcn `Tabs`): All / Business / Personal / Family office.
+- **Filter bar**: search Input (name/PAN/brand), Country select (All/CA/US/IN), Category select, Active-only toggle (`Switch`).
+- **Grid**: `grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4`. Each card:
+  - Top: avatar circle (initials, deterministic color from id hash), name, type pill (color map per spec — blue for corporate types, gray for brand, purple for personal/HUF/trust/NRI; raw Tailwind utilities consistent with Phase 3/4).
+  - Middle: country flag emoji + country, masked PAN/GST/EIN, relationship label, "Linked to: …" for brand types.
+  - Bottom: account count, total assets per currency (e.g. `₹28.4L · CAD 245K` — own helper formats INR in lakhs/crore), total liabilities, "View accounts →" link.
+  - `DropdownMenu`: Edit profile, Add account, View all accounts, Deactivate (toast only).
+- **Add/Edit modal** (shadcn `Dialog`, two-step):
+  - Step 1: 2×2 grid of large option cards (Business / Individual / HUF / Trust) using lucide icons.
+  - Step 2: dynamic form per type per spec (business fields, individual fields including NRI link, HUF members repeatable list, Trust trustees/beneficiaries). Conditional country-specific fields (PAN/GST/EIN/SIN/Aadhar last-4). Tags input (comma-split chips). Notes textarea. Save → local `useState` array update, sonner toast, close modal.
 
-## Page 2 — Approval Detail
+## Page 2 — Owner Detail (`AccountingOwnerDetailPage.tsx`)
 
-Reads `:id` via `useParams`, finds in local state mirror of `MOCK_APPROVALS`. Missing → `AccountingEmptyState` + back button.
+Reads `:id` via `useParams`; missing → `AccountingEmptyState` + back link.
 
-- **Sticky header**: breadcrumb "Approvals / {requestNumber}" + status badge on left; Back ghost + contextual action buttons on right (Approve/Reject for auditor stages, Final approve/Reject for FINAL_REVIEW, Enter OTP for OTP_PENDING). The header buttons scroll/focus the action panel.
-- **Body** (`max-w-4xl mx-auto p-6 space-y-6`):
-  - **Card 1 — Request summary**: 2/3-col grid of label/value pairs incl. linked journal & document as blue Links when present.
-  - **Card 2 — Approval timeline**:
-    - Top step indicator row: 5 circles connected by lines. Color logic per spec (green for APPROVED, primary + animate-pulse ring for current PENDING, muted for future PENDING, destructive for REJECTED). Step number labels below.
-    - Detail list below: one bordered row per step with circle, name, role badge, assignee, comments block (italic in `bg-muted/50`), timestamp + IP on the right; pending-current shows amber "Pending" badge.
-  - **Card 3 — Action panel** (only when status requires user action):
-    - For AUDITOR1/AUDITOR2_REVIEW: comments textarea + "Approve & forward to next step" (green) and "Reject & return to submitter" (destructive). Reject requires non-empty comments (inline error). Both wrapped in AlertDialog confirmations. Sonner toasts.
-    - For FINAL_REVIEW: same structure, button labels become "Final approve — proceed to OTP verification" and "Reject request".
-    - For OTP_PENDING: 6-box OTP input (`w-12 h-14 text-center text-xl font-mono`), auto-advance via refs, auto-submit on 6th digit, mock validation `=== "123456"`. Wrong code → inline error + CSS keyframe `shake` (defined inline via `<style>` scoped class on the inputs container). Correct → status APPROVED, `approvedAt = new Date().toISOString()`, toast, navigate to `/accounting/approvals`. Includes "Verify & approve" primary button and "Cancel" ghost.
-  - **Card 4 — Audit trail**: vertical timeline of derived events (Submitted, each step Approved/Rejected with comments inline, final OTP approval). Each event: colored dot, label, timestamp, IP address (text-xs muted). Same visual pattern as the journal-detail audit timeline.
+- **Sticky header**: large avatar (48px), name, type badge, Edit button (opens edit modal — reuses Step 2 form from page 1, extracted to a shared in-file component).
+- **4 KPI cards** (`AccountingKPICard`): Total accounts, Total assets, Total liabilities, Net worth (color via prop based on sign).
+- **Tabs**: Accounts / Documents / Notes / Activity.
+- **Accounts tab**: 4 collapsible sections (`Collapsible` shadcn) — Bank accounts, Investments, Insurance policies, Loans & liabilities. Mapping from `AccountType` → section is centralised. Each section ends with `+ Add account` button.
+  - Account row: institution-letter square (deterministic color), nickname + institution, type pill, status pill, masked acct #, right-aligned balance (green for asset, red with `-` for liability). Conditional metadata row per type (FD: maturity + rate; insurance: sum assured + next premium + amount; loan: EMI + outstanding). Action menu: Edit · View transactions (toast) · Link document (toast).
+  - Account icons per spec mapped from lucide-react: Landmark, Clock, TrendingUp, PieChart, Shield, Heart, CreditCard, Banknote, Star, Home.
+- **Documents tab**: Filtered list of `MOCK_DOCUMENTS` whose `linkedVendor` matches owner brand or relationship — falls back to empty state with upload button (toast, no real upload).
+- **Notes tab**: editable textarea bound to local state, "+ Add note" appends entry with timestamp (in-memory).
+- **Activity tab**: derived synthetic timeline (Profile created, accounts added, last edit) using `formatDate`.
+- **Add/Edit account modal** (two-step):
+  - Step 1: 5 category cards (Bank/Savings, Investment, Insurance/Policy, Loan/Liability, Cash/Other).
+  - Step 2: dynamic form per category exactly per spec (FD auto-calc maturity = start + tenure, insurance auto-calc next premium from frequency, loan EMI fields). All saves are `useState` updates with toast.
 
-State management: `useState<PaymentRequest>` seeded from the lookup; mutations create a new object (clone steps array) and update locally. No persistence, no API.
+## Page 3 — Wealth Summary (`AccountingWealthPage.tsx`)
 
-## Reused primitives
+`AppLayout` + header (title "Wealth & investment summary").
 
-- `AppLayout`, `AccountingPageHeader`, `AccountingEmptyState`, `AccountingKPICard`
-- shadcn: `Card*`, `Button`, `Input`, `Textarea`, `Tabs`, `DropdownMenu`, `AlertDialog`, `Badge`, `Label`
-- `formatCurrency` from `accounting/lib/format`
-- lucide-react icons only: Check, X, Clock, AlertTriangle, ChevronLeft, MoreHorizontal, FileText, Link as Link2, Shield, ArrowRight, Plus
+- **Toolbar**: owner multi-select (shadcn `Popover` with checkbox list), display-currency select (INR/CAD/USD; converts via inline `MOCK_FX = { INR:1, CAD:62, USD:84 }` — values normalize to display currency), as-of date input.
+- **4 KPI cards**: Total assets, Total liabilities, Net worth (large, green if positive), Liquid assets (bank+cash only).
+- **Asset breakdown**: SVG donut (no chart lib — simple circle stroke segments computed from totals) + legend list with %, value per segment (Bank deposits / Investments / Insurance / Real estate / Other).
+- **Liabilities breakdown**: simple horizontal stacked bar + legend (Home / Vehicle / Personal / Credit cards) + total monthly EMI.
+- **Upcoming events table** (next 90 days): unions premium-due, FD/RD maturity, monthly EMI projections; sorted by date; columns Date / Owner / Account / Event type (colored badge: amber premium, green maturity, blue EMI) / Amount / Action (Mark paid → toast; View account → navigates to detail page).
+- **Insurance policies quick view**: card list with sum assured, premium+frequency, next due date colored (red <30d, amber <60d), Mark paid button (toast).
+- **Investment portfolio summary**: total portfolio value, simple per-owner stacked bar (CSS divs, percentages of total), holdings table from accounts whose `remarks` parse as holdings (skip empty).
+
+## Reusable Component (`AccountOwnerSelect.tsx`)
+
+Shadcn `Select` with `SelectGroup`/`SelectLabel` per owner. Props: `value`, `onChange`, `accounts?`, `owners?` (defaults to mock). Renders grouped options exactly per spec: `RBC Business Chequing (CAD ••••4521)`. Built only — not wired into journal pages.
+
+## Shared In-File Patterns
+
+- Avatar color: hash of id → pick from a fixed 10-color palette of muted Tailwind classes (`bg-blue-100 text-blue-700` etc.).
+- INR formatting: small helper `formatINR(n)` produces `₹X.YL` (lakhs) and `₹X.YCr` (crore) above thresholds; falls back to `formatCurrency` from `accounting/lib/format` for CAD/USD.
+- All state lives in `useState` per page. No persistence, no API calls.
+
+## Reused Primitives
+
+`AppLayout`, `AccountingPageHeader`, `AccountingEmptyState`, `AccountingKPICard`, shadcn `Card*`, `Button`, `Input`, `Select*`, `Switch`, `Tabs`, `Dialog`, `DropdownMenu`, `Collapsible`, `Badge`, `Popover`, `Checkbox`, `Textarea`, `Label`, sonner. lucide-react icons only.
 
 ## Verification After Build
 
-1. `/accounting/approvals` — stat counts match mock mix; tab filters narrow rows; status pills + days-pending color logic correct; Approve action advances a request through stages with toast; Reject opens reason dialog and flips status.
-2. `/accounting/approvals/:id` — timeline circles + connectors color correctly for each fixture status; action panel shows only for actionable statuses; required-comments validation fires on empty reject; OTP `123456` approves and navigates, anything else shakes.
-3. Linked journal / document links navigate to correct routes.
-4. No edits outside the 3 listed files; no new dependencies.
+1. `/accounting/owners`: 10 cards visible, tabs filter correctly, search filters by name/PAN, country filter works. Add modal both steps render and save creates a new card.
+2. `/accounting/owners/:id` (e.g. Rajesh Sharma): KPI numbers reconcile to the mock account totals; sections show correct accounts; account add modal saves into local state.
+3. `/accounting/owners/wealth-summary`: donut + bars reflect totals; currency switcher reformats numbers; upcoming-events table shows events ordered by date.
+4. `AccountOwnerSelect` rendered in a small sandbox check — not wired into journals.
+5. No edits outside the 6 files listed; no new dependencies.
