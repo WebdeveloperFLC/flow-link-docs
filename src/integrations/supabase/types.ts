@@ -225,6 +225,63 @@ export type Database = {
         }
         Relationships: []
       }
+      app_email_logs: {
+        Row: {
+          attempts: number
+          body_html: string | null
+          body_text: string | null
+          category: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json
+          next_retry_at: string | null
+          provider: string | null
+          recipient: string
+          sent_at: string | null
+          status: string
+          subject: string
+          triggered_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body_html?: string | null
+          body_text?: string | null
+          category?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          next_retry_at?: string | null
+          provider?: string | null
+          recipient: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body_html?: string | null
+          body_text?: string | null
+          category?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json
+          next_retry_at?: string | null
+          provider?: string | null
+          recipient?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          triggered_by?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assessment_email_verifications: {
         Row: {
           consumed_at: string | null
@@ -4558,6 +4615,69 @@ export type Database = {
         }
         Relationships: []
       }
+      smtp_settings: {
+        Row: {
+          created_at: string
+          encryption: string
+          host: string
+          id: string
+          is_active: boolean
+          last_error: string | null
+          last_status: string | null
+          last_verified_at: string | null
+          password: string
+          port: number
+          provider: string
+          reply_to: string | null
+          sender_email: string
+          sender_name: string
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          encryption?: string
+          host?: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_status?: string | null
+          last_verified_at?: string | null
+          password?: string
+          port?: number
+          provider?: string
+          reply_to?: string | null
+          sender_email?: string
+          sender_name?: string
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          username?: string
+        }
+        Update: {
+          created_at?: string
+          encryption?: string
+          host?: string
+          id?: string
+          is_active?: boolean
+          last_error?: string | null
+          last_status?: string | null
+          last_verified_at?: string | null
+          password?: string
+          port?: number
+          provider?: string
+          reply_to?: string | null
+          sender_email?: string
+          sender_name?: string
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          username?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -5036,6 +5156,66 @@ export type Database = {
       }
     }
     Views: {
+      smtp_settings_safe: {
+        Row: {
+          created_at: string | null
+          encryption: string | null
+          has_password: boolean | null
+          host: string | null
+          id: string | null
+          is_active: boolean | null
+          last_error: string | null
+          last_status: string | null
+          last_verified_at: string | null
+          port: number | null
+          provider: string | null
+          reply_to: string | null
+          sender_email: string | null
+          sender_name: string | null
+          updated_at: string | null
+          updated_by: string | null
+          username: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          encryption?: string | null
+          has_password?: never
+          host?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_error?: string | null
+          last_status?: string | null
+          last_verified_at?: string | null
+          port?: number | null
+          provider?: string | null
+          reply_to?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          username?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          encryption?: string | null
+          has_password?: never
+          host?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          last_error?: string | null
+          last_status?: string | null
+          last_verified_at?: string | null
+          port?: number | null
+          provider?: string | null
+          reply_to?: string | null
+          sender_email?: string | null
+          sender_name?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
       v_clients_masked: {
         Row: {
           application_id: string | null
