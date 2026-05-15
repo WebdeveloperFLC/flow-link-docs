@@ -68,7 +68,11 @@ import AccountingOwnersPage from "./accounting/pages/owners/AccountingOwnersPage
 import AccountingOwnerDetailPage from "./accounting/pages/owners/AccountingOwnerDetailPage";
 import AccountingWealthPage from "./accounting/pages/owners/AccountingWealthPage";
 import AccountingAPPage from "./accounting/pages/ap/AccountingAPPage";
+import AccountingNewBillPage from "./accounting/pages/ap/AccountingNewBillPage";
+import AccountingBillDetailPage from "./accounting/pages/ap/AccountingBillDetailPage";
 import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
+import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoicePage";
+import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
 import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
 import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
 import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
@@ -156,7 +160,11 @@ const App = () => (
             <Route path="/accounting/owners/wealth-summary" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
             <Route path="/accounting/owners/:id" element={<ProtectedRoute><AccountingOwnerDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/ap" element={<ProtectedRoute><AccountingAPPage /></ProtectedRoute>} />
+            <Route path="/accounting/ap/new" element={<ProtectedRoute><AccountingNewBillPage /></ProtectedRoute>} />
+            <Route path="/accounting/ap/:id" element={<ProtectedRoute><AccountingBillDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/ar" element={<ProtectedRoute><AccountingARPage /></ProtectedRoute>} />
+            <Route path="/accounting/ar/new" element={<ProtectedRoute><AccountingNewInvoicePage /></ProtectedRoute>} />
+            <Route path="/accounting/ar/:id" element={<ProtectedRoute><AccountingInvoiceDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/vendors" element={<ProtectedRoute><AccountingVendorsPage /></ProtectedRoute>} />
             <Route path="/accounting/vendors/:id" element={<ProtectedRoute><AccountingVendorDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/clients" element={<ProtectedRoute><AccountingClientsPage /></ProtectedRoute>} />
