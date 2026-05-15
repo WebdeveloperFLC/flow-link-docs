@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   try {
     const expected = Deno.env.get("EMAIL_INBOUND_SECRET");
     const provided = req.headers.get("x-webhook-secret") || new URL(req.url).searchParams.get("secret");
-    if (expected && provided !== expected) {
+    if (!expected || provided !== expected) {
       return new Response("forbidden", { status: 403, headers: corsHeaders });
     }
 
