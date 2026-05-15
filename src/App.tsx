@@ -69,6 +69,10 @@ import AccountingOwnerDetailPage from "./accounting/pages/owners/AccountingOwner
 import AccountingWealthPage from "./accounting/pages/owners/AccountingWealthPage";
 import AccountingAPPage from "./accounting/pages/ap/AccountingAPPage";
 import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
+import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
+import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
+import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
+import AccountingClientDetailPage from "./accounting/pages/clients/AccountingClientDetailPage";
 import AccountingDocumentsPage from "./accounting/pages/documents/AccountingDocumentsPage";
 import AccountingUploadPage from "./accounting/pages/documents/AccountingUploadPage";
 import AccountingOCRPage from "./accounting/pages/documents/AccountingOCRPage";
@@ -149,6 +153,10 @@ const App = () => (
             <Route path="/accounting/owners/:id" element={<ProtectedRoute><AccountingOwnerDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/ap" element={<ProtectedRoute><AccountingAPPage /></ProtectedRoute>} />
             <Route path="/accounting/ar" element={<ProtectedRoute><AccountingARPage /></ProtectedRoute>} />
+            <Route path="/accounting/vendors" element={<ProtectedRoute><AccountingVendorsPage /></ProtectedRoute>} />
+            <Route path="/accounting/vendors/:id" element={<ProtectedRoute><AccountingVendorDetailPage /></ProtectedRoute>} />
+            <Route path="/accounting/clients" element={<ProtectedRoute><AccountingClientsPage /></ProtectedRoute>} />
+            <Route path="/accounting/clients/:id" element={<ProtectedRoute><AccountingClientDetailPage /></ProtectedRoute>} />
             <Route path="/accounting/documents" element={<ProtectedRoute><AccountingDocumentsPage /></ProtectedRoute>} />
             <Route path="/accounting/documents/upload" element={<ProtectedRoute><AccountingUploadPage /></ProtectedRoute>} />
             <Route path="/accounting/documents/ocr" element={<ProtectedRoute><AccountingOCRPage /></ProtectedRoute>} />
