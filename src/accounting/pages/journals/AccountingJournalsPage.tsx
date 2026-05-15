@@ -212,7 +212,9 @@ export default function AccountingJournalsPage() {
                     </td>
                     <td className="px-3">{fmtDate(j.entryDate)}</td>
                     <td className="px-3">{j.entity}</td>
-                    <td className="px-3 max-w-0 truncate" title={j.narration}>{j.narration}</td>
+                    <td className="px-3" title={j.narration}>
+                      {j.narration.length > 45 ? `${j.narration.slice(0, 45)}…` : j.narration}
+                    </td>
                     <td className="px-3">
                       <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${SOURCE_BADGE[j.sourceType]}`}>
                         {j.sourceType}
