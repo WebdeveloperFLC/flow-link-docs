@@ -41,6 +41,7 @@ const RX_ACC_NUM = /^[A-Za-z0-9 \-]{4,34}$/;
 function validate(input: BankAccountInput): ValidationError | null {
   if (!input.country) return { field: "country", message: "Country is required" };
   if (!input.entityId) return { field: "entityId", message: "Entity is required" };
+  if (!input.ownerProfileId) return { field: "ownerProfileId", message: "Owner is required" };
   if (!input.coaAccountId) return { field: "coaAccountId", message: "Linked Chart of Accounts ledger is required" };
   if (!input.currency) return { field: "currency", message: "Currency is required" };
   if (!input.bankName.trim()) return { field: "bankName", message: "Bank name is required" };
