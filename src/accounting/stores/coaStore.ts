@@ -44,7 +44,13 @@ export interface ValidationError { field: string; message: string }
 
 function validate(input: CoaAccountInput, idEditing?: string): ValidationError | null {
   if (!input.code.trim()) return { field: "code", message: "Account code is required" };
+  if (!/^[A-Za-z0-9.\-]{2,20}$/.test(input.code.trim())) {
+    return { field: "code", message: "Code must be 2–20 characters: letters, digits, '.' or '-'" };
+  }
   if (!input.name.trim()) return { field: "name", message: "Account name is required" };
+  if (input.name.trim().length < 2 || input.name.trim().length > 80) {
+    return { field: "name", message: "Name must be 2–80 characters" };
+  }
   if (!input.groupCode) return { field: "groupCode", message: "Account group is required" };
   if (!input.typeCode) return { field: "typeCode", message: "Account type is required" };
   // Unique code
