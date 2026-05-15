@@ -56,6 +56,13 @@ export function AccountingEntityProvider({ children }: { children: ReactNode }) 
 
 export function useAccountingEntity(): Ctx {
   const ctx = useContext(AccountingEntityContext);
-  if (!ctx) throw new Error("useAccountingEntity must be used inside AccountingEntityProvider");
-  return ctx;
+  if (ctx) return ctx;
+  // Fallback: allow usage outside provider with a no-op active entity.
+  return {
+    activeEntity: SEED[0],
+    availableEntities: SEED,
+    fiscalYear: "FY 2024–25",
+    quarter: "Q3",
+    setActiveEntity: () => {},
+  };
 }
