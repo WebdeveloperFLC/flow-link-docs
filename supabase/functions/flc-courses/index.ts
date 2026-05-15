@@ -310,6 +310,49 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "search");
 
+    if (action === "diagnose") {
+      const out: Record<string, unknown> = {
+        ok: true,
+        config: {
+          url_host: (() => { try { return new URL(URL_).host; } catch { return null; } })(),
+          db: DB,
+          login: LOGIN,
+          api_key_length: KEY?.length ?? 0,
+          using_fallback_url: !Deno.env.get("ODOO_COURSES_URL"),
+          using_fallback_db: !Deno.env.get("ODOO_COURSES_DB"),
+          using_fallback_login: !Deno.env.get("ODOO_COURSES_LOGIN"),
+          using_fallback_key: !Deno.env.get("ODOO_COURSES_API_KEY"),
+        },
+      };
+      // Probe server DB list
+      try {
+        const dbs = await odooCall(URL_, "/xmlrpc/2/db", "list", []);
+        out.databases = dbs;
+        out.db_match = Array.isArray(dbs) ? (dbs as string[]).includes(DB) : null;
+      } catch (e) {
+        out.databases_error = e instanceof Error ? e.message : String(e);
+      }
+      // Probe authentication
+      try {
+        const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
+        out.auth_uid = uid;
+        out.auth_ok = typeof uid === "number" && uid > 0;
+        if (out.auth_ok) {
+          try {
+            const cnt = await exec(URL_, DB, uid as number, KEY, "flc.course", "search_count", [[]]);
+            out.flc_course_count = cnt;
+            out.flc_course_accessible = true;
+          } catch (e) {
+            out.flc_course_accessible = false;
+            out.flc_course_error = e instanceof Error ? e.message : String(e);
+          }
+        }
+      } catch (e) {
+        out.auth_error = e instanceof Error ? e.message : String(e);
+      }
+      return json(out);
+    }
+
     const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
     if (typeof uid !== "number" || uid <= 0) {
       throw new Error(
