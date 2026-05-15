@@ -93,6 +93,7 @@ import AccountingTaxDashboardPage from "./accounting/pages/tax/AccountingTaxDash
 import AccountingTaxCalendarPage from "./accounting/pages/tax/AccountingTaxCalendarPage";
 import AccountingNoticesPage from "./accounting/pages/tax/AccountingNoticesPage";
 import AccountingFraudPage from "./accounting/pages/fraud/AccountingFraudPage";
+import AccountingFlaggedPage from "./accounting/pages/fraud/AccountingFlaggedPage";
 import AccountingReconciliationPage from "./accounting/pages/reconciliation/AccountingReconciliationPage";
 import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
@@ -185,6 +186,7 @@ const App = () => (
             <Route path="/accounting/tax/calendar" element={<ProtectedRoute><AccountingTaxCalendarPage /></ProtectedRoute>} />
             <Route path="/accounting/tax/notices" element={<ProtectedRoute><AccountingNoticesPage /></ProtectedRoute>} />
             <Route path="/accounting/fraud" element={<ProtectedRoute><AccountingFraudPage /></ProtectedRoute>} />
+            <Route path="/accounting/fraud/flagged" element={<ProtectedRoute><AccountingFlaggedPage /></ProtectedRoute>} />
             <Route path="/accounting/reconciliation" element={<ProtectedRoute><AccountingReconciliationPage /></ProtectedRoute>} />
             <Route path="/accounting/wealth" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
             <Route path="/accounting/ai-assistant" element={<ProtectedRoute><AccountingAIPage /></ProtectedRoute>} />
