@@ -1,70 +1,64 @@
-## Fraud & Audit Module — Implementation Plan
+## Goal
 
-### Context discovered
-- `src/accounting/pages/fraud/AccountingFraudPage.tsx` already exists as a full page using the **old** fraud schema (`FraudFlag` with `flagType`/`severity` lowercase, `getRiskDistribution`, etc.).
-- `src/accounting/data/mockFraud.ts` already exists with the old schema.
-- `src/accounting/types/fraud.ts` defines the old types.
-- Three components depend on the old schema:
-  - `src/accounting/components/fraud/FlagDetailModal.tsx`
-  - `src/accounting/components/fraud/FraudFlagBadge.tsx`
-  - `src/accounting/components/fraud/RiskDistributionChart.tsx`
-- `src/App.tsx` already has `/accounting/fraud` route. `/accounting/fraud/flagged` is missing.
-- `AccountingFlaggedPage.tsx` does not exist.
+Restrict the Accounting module so only:
+1. CRM **admins** (role `admin` in `user_roles`), AND
+2. Users who have an **ACTIVE** row in `accounting_users` (any accounting role)
 
-### The conflict
-The new spec rewrites `mockFraud.ts` with a totally different schema (`FraudFlagType` uppercase, `FraudSeverity`, `FraudStatus`, new fields). This will break the 3 fraud components and the existing fraud page that import the old shapes — causing TS errors.
+…can see the Accounting nav section and open any `/accounting/*` route. Everyone else gets redirected away.
 
-The instructions allow editing only the two stub pages + App.tsx + creating `mockFraud.ts`. To keep the build green, the orphaned old components and the old `types/fraud.ts` must be **deleted** (same cleanup pattern used in the Tax module rebuild). The new pages will inline their own badges/charts so no replacement components are needed. I will treat these deletions as part of the rebuild.
+Bootstrap stays intact: while `accounting_users` is empty, any signed-in user can still reach `/accounting/settings/users` to seed the first Super Admin (matches existing `is_accounting_admin()` logic).
 
-### Files to create
-1. **`src/accounting/data/mockFraud.ts`** (replace) — new schema:
-   - Types: `FraudFlagType` (12 values), `FraudSeverity` (CRITICAL/HIGH/MEDIUM/LOW), `FraudStatus` (5 values), `FraudFlag` interface with all spec fields.
-   - `MOCK_FRAUD_FLAGS`: 12 flags (ff1–ff12) exactly per spec.
-   - `MOCK_RISK_TREND`: 30 daily points from 2024-10-02 → 2024-10-31, baseline ~45, spike to ~88 on Oct 27–29, settle to 72 by Nov 1. Deterministic.
-   - `FLAG_TYPE_LABELS` map for readable labels.
-   - `TODAY = '2024-11-01'` constant.
+## Approach
 
-2. **`src/accounting/pages/fraud/AccountingFraudPage.tsx`** (replace) — Dashboard:
-   - 400ms skeleton on mount.
-   - `AccountingPageHeader` with "View all flags ({openCount})" → navigate `/accounting/fraud/flagged`.
-   - Critical alert banners: red card per CRITICAL+OPEN flag, pulsing dot, truncated details, "Review now →" link to flagged page.
-   - Overall risk score card: large number, color-coded (<30 green, 30–60 amber, 60–80 orange, >80 red), risk label, sparkline `Recharts AreaChart` h-80 with gradient fill matching risk color, no axis labels.
-   - 4 KPI cards (`AccountingKPICard`): Open flags, Total at risk (sum CAD-equivalent using simple FX: 1 INR = 0.017 CAD, 1 USD = 1.36 CAD, 1 AED = 0.37 CAD — hardcoded), Confirmed fraud, Resolved this month.
-   - Flags-by-type horizontal `BarChart` (vertical layout), sorted desc, bars colored by dominant severity within type.
-   - Recent flags card: top 5 by `detectedAt`, with severity dot (pulse if CRITICAL+OPEN), type badge, description, entity, amount, risk progress bar (w-24, color per <40/40–70/>70), status badge, actions placeholder.
-   - Entity risk summary: 4 cards, one per entity (Canada HQ, India Pvt Ltd, Academy, USA Corp, UAE — show top 4 by open flag count), each with name, open count, risk score, "View flags →" link with entity filter param.
+Add a single client-side gate that wraps every accounting route + hides the sidebar section. No DB changes (RLS for `accounting_users` is already correct; the rest of accounting is mock data today, so route-level + UI-level gating is the right layer).
 
-3. **`src/accounting/pages/fraud/AccountingFlaggedPage.tsx`** (new) — Flagged transactions list:
-   - 400ms skeleton on mount.
-   - Header with "← Back to dashboard" button.
-   - Filter bar: search input, Severity Select, Flag type Select, Status Select, Entity Select, "Export CSV" ghost button (native `Blob`).
-   - Summary strip: 5 colored pills (Total / Open / Critical / Confirmed / Resolved).
-   - Plain HTML table with 9 columns per spec; pulsing dot for CRITICAL+OPEN; risk score colored + mini progress bar.
-   - Row click opens slide-over `Sheet` (520px) with: header, description card, affected transaction (resolves `linkedBillId` against `MOCK_BILLS`, `linkedInvoiceId` against `MOCK_INVOICES`, `linkedJournalId` against `MOCK_JOURNALS`), submission details (IP mono), related flags list, review section (assigned-to Select, review note Textarea, status action buttons).
-   - Actions DropdownMenu per row: View details, Assign to me, Mark under review, Confirm as fraud (`AlertDialog`), Mark false positive (`AlertDialog` with required reason `Textarea`), Resolve (`AlertDialog` with required resolution note).
-   - Sonner toasts for all actions; `toast.error` for fraud confirmation.
-   - Empty state: `AccountingEmptyState` when filters yield 0 rows.
-   - State managed via React `useState` + `useMemo` (Context not needed for single-page state; spec says "React Context only (no Zustand)" which I read as "if you need cross-component state, use Context, not Zustand" — the local state stays in the page).
+### 1. New hook `src/accounting/hooks/useAccountingAccess.ts`
 
-### Files to delete (cleanup, required to keep build green)
-- `src/accounting/types/fraud.ts`
-- `src/accounting/components/fraud/FlagDetailModal.tsx`
-- `src/accounting/components/fraud/FraudFlagBadge.tsx`
-- `src/accounting/components/fraud/RiskDistributionChart.tsx`
+- Inputs: `useAuth()` (for `user`, `isAdmin`, `loading`).
+- Queries `accounting_users` once per session for the current `auth_user_id`:
+  - `select id, role, status` where `auth_user_id = user.id`.
+- Also checks bootstrap: `select id` from `accounting_users` limit 1 — if zero rows, bootstrap mode is active.
+- Returns `{ loading, hasAccess, isBootstrap, accountingRole }`.
+- `hasAccess = isAdmin || (row.status === 'ACTIVE') || isBootstrap`.
 
-### Files to edit
-- **`src/App.tsx`** — add lazy import + route for `/accounting/fraud/flagged → AccountingFlaggedPage` (additive only). Existing `/accounting/fraud` route already correct.
+### 2. New wrapper `src/accounting/components/AccountingProtectedRoute.tsx`
 
-### Conventions
-- HSL semantic tokens only (destructive, primary, muted, etc.).
-- shadcn primitives: AlertDialog, Sheet, Select, DropdownMenu, Card, Button, Input, Textarea, Badge.
-- Recharts (already installed) for AreaChart + BarChart.
-- Reuse `AccountingPageHeader`, `AccountingKPICard`, `AccountingStatusBadge`, `AccountingEmptyState`, `formatCurrency`, `formatCompact`.
-- No new npm packages, no CRM files touched.
+- Uses `ProtectedRoute` semantics first (must be signed in).
+- Then `useAccountingAccess()`:
+  - `loading` → spinner.
+  - `!hasAccess` → `<Navigate to="/" replace />` with a `toast.error("You don't have access to Accounting")`.
+  - Otherwise render children.
 
-### Expected deliverables
-- 1 replaced data file (`mockFraud.ts`)
-- 1 replaced page (`AccountingFraudPage.tsx`)
-- 1 new page (`AccountingFlaggedPage.tsx`)
-- 1 edited (`App.tsx`)
-- 4 deleted (orphaned old fraud components + types)
+### 3. `src/App.tsx`
+
+- Import `AccountingProtectedRoute`.
+- Replace `<ProtectedRoute>` with `<AccountingProtectedRoute>` on every `/accounting/*` route only. CRM routes untouched.
+
+### 4. `src/components/layout/AppLayout.tsx`
+
+- Call `useAccountingAccess()` inside `AppLayout`.
+- Render the "Accounting" sidebar header + `accountingNav` block only when `hasAccess` is true. While loading, hide it (avoid flash). CRM nav unchanged.
+
+### 5. No CRM file edits, no new packages, no migrations, no edits to existing accounting files except adding the two new files and the AppLayout/App.tsx wiring. The shared `AppLayout` is in `src/components/layout/` (not under `src/accounting/`), so editing it does not touch any "existing accounting file".
+
+## Files
+
+**Created**
+- `src/accounting/hooks/useAccountingAccess.ts`
+- `src/accounting/components/AccountingProtectedRoute.tsx`
+
+**Edited**
+- `src/App.tsx` — swap `ProtectedRoute` → `AccountingProtectedRoute` on `/accounting/*` routes.
+- `src/components/layout/AppLayout.tsx` — conditionally render the Accounting nav section.
+
+## Behavior summary
+
+| User | Sees Accounting in sidebar? | Can open `/accounting/*`? |
+|---|---|---|
+| Not signed in | No | Redirect to `/auth` |
+| Signed in, CRM admin | Yes | Yes |
+| Signed in, ACTIVE in `accounting_users` | Yes | Yes |
+| Signed in, SUSPENDED / no row, table not empty | No | Redirect to `/` |
+| Signed in, table empty (bootstrap) | Yes | Yes — so first Super Admin can be seeded |
+
+Confirm and I'll implement.
