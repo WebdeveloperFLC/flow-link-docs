@@ -27,14 +27,16 @@ Deno.serve(async (req) => {
     const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const userClient = createClient(url, anon, { global: { headers: { Authorization: auth } } });
-    const { data: u } = await userClient.auth.getUser();
-    if (!u?.user) return json({ error: "Not authenticated" }, 401);
+    const token = auth.slice("Bearer ".length);
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    const userId = claimsData?.claims?.sub as string | undefined;
+    if (claimsErr || !userId) return json({ error: "Not authenticated" }, 401);
 
     const admin = createClient(url, service);
     const { data: roleRow } = await admin
       .from("user_roles")
       .select("role")
-      .eq("user_id", u.user.id)
+      .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
     if (!roleRow) return json({ error: "Forbidden" }, 403);
@@ -76,7 +78,7 @@ Deno.serve(async (req) => {
         sender_name: String(p.sender_name ?? ""),
         reply_to: p.reply_to ? String(p.reply_to) : null,
         is_active: !!p.is_active,
-        updated_by: u.user.id,
+        updated_by: userId,
       };
       // Only overwrite password if non-empty supplied
       if (typeof p.password === "string" && p.password.length > 0) {
@@ -118,7 +120,7 @@ Deno.serve(async (req) => {
           await admin.from("app_email_logs").insert({
             recipient, subject: "SMTP test from Future Link DMS",
             status: "sent", attempts: 1, sent_at: new Date().toISOString(),
-            provider: cfg.provider, category: "test", triggered_by: u.user.id,
+            provider: cfg.provider, category: "test", triggered_by: userId,
           });
         }
         return json({ ok: true, status: action === "test" ? "sent" : "verified", raw: smtpResult.raw });
@@ -134,7 +136,7 @@ Deno.serve(async (req) => {
           await admin.from("app_email_logs").insert({
             recipient, subject: "SMTP test from Future Link DMS",
             status: "failed", attempts: 1, error_message: msg,
-            provider: cfg.provider, category: "test", triggered_by: u.user.id,
+            provider: cfg.provider, category: "test", triggered_by: userId,
           });
         }
         return json({ error: msg, raw, stage }, 502);
