@@ -6,6 +6,7 @@ const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString()
 export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   {
     id: "ba-1", country: "CA", entityId: "e1", branchId: null,
+    ownerProfileId: "o1",
     coaAccountId: "ac-1010", currency: "CAD",
     bankName: "Royal Bank of Canada", nickname: "RBC Operating",
     holderName: "Future Link Canada Inc.", accountNumber: "0042196754321",
@@ -19,6 +20,7 @@ export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   },
   {
     id: "ba-2", country: "CA", entityId: "e1", branchId: null,
+    ownerProfileId: "o1",
     coaAccountId: "ac-1040", currency: "CAD",
     bankName: "Royal Bank of Canada", nickname: "RBC Reserves",
     holderName: "Future Link Canada Inc.", accountNumber: "0042196700987",
@@ -31,6 +33,7 @@ export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   },
   {
     id: "ba-3", country: "US", entityId: "e2", branchId: null,
+    ownerProfileId: "o2",
     coaAccountId: "ac-1030", currency: "USD",
     bankName: "JPMorgan Chase", nickname: "Chase Business Checking",
     holderName: "Future Link USA Corp", accountNumber: "8870042196754",
@@ -44,6 +47,7 @@ export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   },
   {
     id: "ba-4", country: "IN", entityId: "e3", branchId: null,
+    ownerProfileId: "o3",
     coaAccountId: "ac-1020", currency: "INR",
     bankName: "HDFC Bank", nickname: "HDFC Mumbai HQ",
     holderName: "Future Link India Pvt Ltd", accountNumber: "50100234876521",
@@ -58,6 +62,7 @@ export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   },
   {
     id: "ba-5", country: "IN", entityId: "e3", branchId: "e4",
+    ownerProfileId: "o3",
     coaAccountId: "ac-1051", currency: "INR",
     bankName: "ICICI Bank", nickname: "ICICI Delhi Branch Petty",
     holderName: "Future Link India Pvt Ltd — Delhi", accountNumber: "000401234567",
@@ -69,6 +74,7 @@ export const SEED_BANK_ACCOUNTS: BankAccount[] = [
   },
   {
     id: "ba-6", country: "IN", entityId: "e3", branchId: null,
+    ownerProfileId: "o3",
     coaAccountId: "ac-1020", currency: "INR",
     bankName: "Axis Bank", nickname: "Axis Coaching Receivables",
     holderName: "Future Link India Pvt Ltd", accountNumber: "918020045612378",
