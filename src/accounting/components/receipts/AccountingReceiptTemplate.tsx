@@ -1,4 +1,5 @@
 import { fmtReceiptAmount, maskPassport, type ReceiptData } from "../../lib/receiptHelpers";
+import flcLogo from "@/assets/flc-logo.png";
 
 const ROW_LABEL: React.CSSProperties = { color: "#6b7280", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 };
 const ROW_VALUE: React.CSSProperties = { color: "#111827", fontSize: 13, marginBottom: 6 };
@@ -58,25 +59,11 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
         {/* HEADER */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                background: "#1a56db",
-                color: "#ffffff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 800,
-                fontSize: 20,
-                borderRadius: 8,
-                marginBottom: 10,
-                letterSpacing: 1,
-              }}
-              aria-label="Future Link Consultants logo"
-            >
-              FL
-            </div>
+            <img
+              src={flcLogo}
+              alt="Future Link Consultants"
+              style={{ height: 56, width: "auto", maxWidth: 240, objectFit: "contain", display: "block", marginBottom: 12 }}
+            />
             <div style={{ fontSize: 22, fontWeight: 700, color: "#111827", marginBottom: 2 }}>{r.companyName}</div>
             <div style={{ fontSize: 12, color: "#333333", fontWeight: 600 }}>{r.companyEntity}</div>
             <div style={{ fontSize: 12, color: "#6b7280", marginBottom: 6 }}>{r.companyBranch}</div>
