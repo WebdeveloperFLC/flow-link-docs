@@ -291,7 +291,7 @@ export default function AccountingCOAPage() {
               treeData
               getDataPath={(d) => getPath(d as CoaAccount)}
               groupDefaultExpanded={-1}
-              autoGroupColumnDef={autoGroupColumnDef}
+              autoGroupColumnDef={autoGroupColumnDef as ColDef<CoaAccount>}
               getRowId={(p) => p.data.id}
               onGridReady={onGridReady}
               onRowClicked={(e) => { if (e.data) setDetail(e.data); }}
