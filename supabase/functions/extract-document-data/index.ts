@@ -1,3 +1,5 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -13,6 +15,7 @@ const json = (b: unknown, status = 200) =>
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 
 function bytesToBase64(bytes: Uint8Array): string {
   let binary = "";
@@ -30,10 +33,11 @@ async function fetchDocumentRow(documentId: string): Promise<{
   mime_type: string | null;
   document_type: string | null;
   custom_type: string | null;
+  client_id: string | null;
 } | null> {
   if (!SUPABASE_URL || !SERVICE_ROLE) return null;
   const r = await fetch(
-    `${SUPABASE_URL}/rest/v1/client_documents?id=eq.${documentId}&select=storage_path,file_name,mime_type,document_type,custom_type`,
+    `${SUPABASE_URL}/rest/v1/client_documents?id=eq.${documentId}&select=storage_path,file_name,mime_type,document_type,custom_type,client_id`,
     { headers: { apikey: SERVICE_ROLE, Authorization: `Bearer ${SERVICE_ROLE}` } },
   );
   if (!r.ok) return null;
@@ -227,6 +231,15 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
   try {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData } = await userClient.auth.getUser();
+    if (!userData?.user) return json({ error: "Unauthorized" }, 401);
+    const callerId = userData.user.id;
+
     const body = await req.json().catch(() => ({}));
     let docType = String(body?.document_type ?? "").slice(0, 80);
     let customType = String(body?.custom_type ?? "").slice(0, 80);
@@ -249,6 +262,14 @@ Deno.serve(async (req) => {
     if (documentId) {
       const row = await fetchDocumentRow(documentId);
       if (row) {
+        // Authorize: caller must have view rights on the owning client.
+        if (row.client_id) {
+          const { data: canView } = await userClient.rpc("can_view_client", {
+            _uid: callerId,
+            _cid: row.client_id,
+          });
+          if (!canView) return json({ error: "Forbidden" }, 403);
+        }
         if (!docType) docType = String(row.document_type ?? "");
         if (!customType) customType = String(row.custom_type ?? "");
         if (!fileName) fileName = String(row.file_name ?? "");
