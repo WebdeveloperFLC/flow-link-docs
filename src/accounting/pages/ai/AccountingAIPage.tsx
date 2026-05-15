@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -384,16 +385,8 @@ export default function AccountingAIPage() {
 
     try {
       const context = buildContext(selectedEntity);
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1024,
+      const { data, error } = await supabase.functions.invoke("ai-financial-assistant", {
+        body: {
           system: SYSTEM_PROMPT,
           messages: [
             ...conversationHistory.slice(-6),
@@ -402,12 +395,11 @@ export default function AccountingAIPage() {
               content: `Financial data context:\n${context}\n\nQuestion: ${userMsg}`,
             },
           ],
-        }),
+        },
       });
-
-      if (!response.ok) throw new Error("API request failed");
-      const data = await response.json();
-      const assistantMsg: string = data.content?.[0]?.text ?? "";
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const assistantMsg: string = data?.text ?? "";
 
       setMessages((prev) => [
         ...prev,
