@@ -239,3 +239,56 @@ export const ELIMINATIONS = [
   { label: "Intercompany service fees (CA HQ ↔ India)", amount: -48000 },
   { label: "Management charges (CA HQ ↔ UAE)", amount: -24000 },
 ];
+
+// ─────────────────────────────────────────────────────────────────
+// Back-compat exports used by ReportFilterBar and ReportDrilldownModal
+// (existing accounting components that pre-date this rewrite)
+// ─────────────────────────────────────────────────────────────────
+import type { DrillTxn as DrillTxnRich, EntityCode as EntityCodeRich } from "../types/reports";
+
+export const MOCK_ENTITIES: { code: EntityCodeRich; name: string; currency: "CAD" | "USD" | "INR"; branches: string[] }[] = [
+  { code: "FLC-CA", name: "Future Link Canada HQ", currency: "CAD", branches: ["Toronto", "Vancouver", "Calgary"] },
+  { code: "FLC-US", name: "Future Link USA Corp", currency: "USD", branches: ["New York", "San Francisco"] },
+  { code: "FLC-IN", name: "Future Link India Pvt Ltd", currency: "INR", branches: ["Delhi", "Mumbai", "Bangalore"] },
+  { code: "FL-CONSULTING", name: "Future Link Consulting", currency: "CAD", branches: ["Toronto"] },
+  { code: "FL-TRAINING", name: "Future Link Academy", currency: "INR", branches: ["Mumbai", "Bangalore"] },
+  { code: "FL-HOLDINGS", name: "Future Link Holdings", currency: "CAD", branches: ["Toronto"] },
+];
+
+const SAMPLE_COUNTERPARTIES = [
+  "Sharma family", "Patel Enterprises", "U of Toronto", "Conestoga College",
+  "Pearson VUE", "VFS Global", "RBC", "HDFC Bank", "Khan & co.", "Mehta family",
+];
+
+export function getDrilldownTxns(key: string, totalAmount: number): DrillTxnRich[] {
+  // Generate a small, deterministic-looking set of mock transactions that sum
+  // approximately to `totalAmount`. Pulls from PL_DRILLDOWN if available, then
+  // pads or scales to reach the requested total.
+  const seed = PL_DRILLDOWN[key] ?? [];
+  const count = Math.max(seed.length, 5);
+  const sign = totalAmount < 0 ? -1 : 1;
+  const target = Math.abs(totalAmount);
+  const baseSum = seed.reduce((s, t) => s + Math.abs(t.amount), 0) || target;
+  const scale = baseSum > 0 ? target / baseSum : 1;
+
+  return Array.from({ length: count }).map((_, i) => {
+    const src = seed[i % Math.max(seed.length, 1)];
+    const ent = MOCK_ENTITIES[i % MOCK_ENTITIES.length];
+    const branch = ent.branches[i % ent.branches.length];
+    const amount = src
+      ? Math.round(Math.abs(src.amount) * scale) * sign
+      : Math.round((target / count)) * sign;
+    return {
+      id: `${key}-${i + 1}`,
+      date: src?.date ?? `2024-10-${String(28 - i * 3).padStart(2, "0")}`,
+      docRef: `DOC-${key}-${String(1000 + i)}`,
+      entity: ent.code,
+      branch,
+      account: src?.description ?? `Transaction ${i + 1}`,
+      amount,
+      currency: ent.currency,
+      journalId: `JE-${2400 + i}`,
+      counterparty: SAMPLE_COUNTERPARTIES[i % SAMPLE_COUNTERPARTIES.length],
+    };
+  });
+}
