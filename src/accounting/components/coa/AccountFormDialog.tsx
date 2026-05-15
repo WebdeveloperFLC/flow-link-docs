@@ -125,7 +125,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       description: description.trim() || undefined,
     };
     const result = initial ? updateAccount(initial.id, input) : addAccount(input);
-    if (!result.ok) { toast.error(result.error.message); return; }
+    if (result.ok === false) { toast.error(result.error.message); return; }
     toast.success(initial ? `${input.name} updated` : `${input.name} added`);
     onOpenChange(false);
   };
