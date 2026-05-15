@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams, useSearchParams, Link } from "react-router-dom";
 import Decimal from "decimal.js";
 import { Check, ChevronsUpDown, Plus, Upload, X, FileText } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -46,6 +46,7 @@ export default function AccountingNewJournalPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const existing = id ? MOCK_JOURNALS.find(j => j.id === id) : undefined;
+  const [searchParams] = useSearchParams();
 
   const [entity, setEntity] = useState(existing?.entity ?? '');
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? new Date().toISOString().slice(0, 10));
@@ -67,6 +68,51 @@ export default function AccountingNewJournalPage() {
   const [submitted, setSubmitted] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showOcrBanner, setShowOcrBanner] = useState(
+    !existing && (
+      !!searchParams.get('vendor') || !!searchParams.get('amount') ||
+      !!searchParams.get('reference') || !!searchParams.get('narration') ||
+      searchParams.get('sourceType') === 'OCR_UPLOAD'
+    )
+  );
+
+  useEffect(() => {
+    if (existing) return;
+    const hasOcr =
+      !!searchParams.get('vendor') || !!searchParams.get('amount') ||
+      !!searchParams.get('reference') || !!searchParams.get('narration') ||
+      searchParams.get('sourceType') === 'OCR_UPLOAD';
+    if (!hasOcr) return;
+
+    const date = searchParams.get('date');
+    const cur = searchParams.get('currency');
+    const ref = searchParams.get('reference');
+    const narr = searchParams.get('narration');
+    const amount = searchParams.get('amount') ?? '';
+    const taxCode = searchParams.get('taxCode') ?? '';
+    const vendor = searchParams.get('vendor') ?? '';
+    const glAccount = searchParams.get('glAccount') ?? '';
+
+    if (date) setEntryDate(date);
+    if (cur && ['CAD', 'USD', 'INR'].includes(cur)) setCurrency(cur as Currency);
+    if (ref) setReference(ref);
+    if (narr) setNarration(narr);
+    setSourceType('OCR_UPLOAD');
+
+    const account =
+      MOCK_ACCOUNTS.find(a => a.code === glAccount) ||
+      (glAccount ? MOCK_ACCOUNTS.find(a => a.name.toLowerCase().includes(glAccount.toLowerCase())) : undefined);
+
+    const prefilled: LineForm = {
+      ...emptyLine(),
+      accountId: account?.id ?? '',
+      debit: amount,
+      taxCode,
+      description: vendor,
+    };
+    setLines([prefilled, emptyLine(), emptyLine()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const totals = useMemo(() => {
     const dr = lines.reduce((s, l) => s.plus(new Decimal(l.debit || 0)), new Decimal(0));
@@ -142,6 +188,14 @@ export default function AccountingNewJournalPage() {
       </div>
 
       <div className="max-w-5xl mx-auto space-y-6 p-6">
+        {showOcrBanner && (
+          <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 text-blue-900 px-3 py-2 text-sm">
+            <span className="flex-1">Pre-filled from OCR extraction — please review all fields before posting</span>
+            <button onClick={() => setShowOcrBanner(false)} aria-label="Dismiss" className="hover:opacity-70">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <Card>
           <CardHeader><CardTitle className="text-base">Entry details</CardTitle></CardHeader>
           <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4">

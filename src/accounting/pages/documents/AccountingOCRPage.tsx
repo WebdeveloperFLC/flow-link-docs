@@ -349,7 +349,22 @@ export default function AccountingOCRPage() {
               )}
 
               <div className="flex flex-col gap-2 pt-3 border-t">
-                <Button onClick={() => navigate('/accounting/journals/new')}>Create journal entry</Button>
+                <Button onClick={() => {
+                  const merged: any = { ...(ext ?? {}), ...(edits[current.id] ?? {}) };
+                  const params = new URLSearchParams({
+                    vendor: merged.vendorName ?? '',
+                    amount: String(merged.totalAmount ?? ''),
+                    date: merged.invoiceDate ?? '',
+                    taxCode: merged.suggestedTaxCode ?? '',
+                    glAccount: merged.suggestedLedger ?? '',
+                    currency: merged.currency ?? 'CAD',
+                    reference: merged.invoiceNumber ?? '',
+                    narration: [merged.vendorName, merged.documentType, merged.invoiceNumber]
+                      .filter(Boolean).join(' — '),
+                    sourceType: 'OCR_UPLOAD',
+                  });
+                  navigate(`/accounting/journals/new?${params}`);
+                }}>Create journal entry</Button>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
