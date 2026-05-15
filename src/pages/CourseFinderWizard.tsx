@@ -398,12 +398,12 @@ const CourseFinderWizard = () => {
     if (!user) { toast.error("Sign in to save filters"); return; }
     const { data, error } = await supabase
       .from("course_finder_saved_filters")
-      .insert({
+      .insert([{
         owner_id: user.id,
         name: saveName.trim(),
         payload: f as unknown as Record<string, unknown>,
         is_shared: isAdmin && shareNew,
-      })
+      }])
       .select()
       .single();
     if (error) { toast.error(error.message); return; }
@@ -467,8 +467,12 @@ const CourseFinderWizard = () => {
           {/* Toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b">
             <div className="flex items-center gap-2">
-              <Button onClick={apply} className="gradient-brand text-primary-foreground gap-1.5">
-                <Filter className="size-3.5" /> Apply Filter
+              <Button onClick={() => apply(0, false)} disabled={loading}
+                className="gradient-brand text-primary-foreground gap-1.5">
+                {loading
+                  ? <Loader2 className="size-3.5 animate-spin" />
+                  : <Filter className="size-3.5" />}
+                Apply Filter
               </Button>
               <Button variant="outline" onClick={reset} className="gap-1.5">
                 <RotateCcw className="size-3.5" /> Reset
@@ -502,10 +506,18 @@ const CourseFinderWizard = () => {
                     <Input
                       value={saveName} onChange={(e) => setSaveName(e.target.value)}
                       placeholder="e.g. Canada Masters CS"
-                      onKeyDown={(e) => e.key === "Enter" && saveCurrent()}
+                      onKeyDown={(e) => { if (e.key === "Enter") saveCurrent(); }}
                       autoFocus
                     />
-                    <Button size="sm" className="w-full" onClick={saveCurrent}>Save</Button>
+                    {isAdmin && (
+                      <div className="flex items-center gap-2 pt-1">
+                        <Switch id="cf-share" checked={shareNew} onCheckedChange={setShareNew} />
+                        <Label htmlFor="cf-share" className="text-xs cursor-pointer">
+                          Share with team
+                        </Label>
+                      </div>
+                    )}
+                    <Button size="sm" className="w-full" onClick={() => saveCurrent()}>Save</Button>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -660,44 +672,150 @@ const CourseFinderWizard = () => {
         {/* Right rail */}
         <aside className="space-y-4 lg:sticky lg:top-[100px] lg:self-start">
           <Card className="p-4 shadow-elev-sm">
-            <div className="flex items-center gap-2 text-sm font-semibold mb-1">
-              <Plug className="size-4 text-primary" /> Course catalogue
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-semibold">Results</div>
+              {results !== null && !loading && (
+                <Badge variant="secondary" className="font-normal">{total}</Badge>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Results will appear here once the Odoo course catalogue is connected.
-              Send the Odoo course model technical name (e.g. <code>op.course</code>) in chat
-              to wire this filter to live data.
-            </p>
-          </Card>
-
-          <Card className="p-4 shadow-elev-sm">
-            <div className="text-sm font-semibold mb-2">Saved filters</div>
-            {saved.length === 0 ? (
+            {results === null && !loading && (
               <p className="text-xs text-muted-foreground">
-                No saved filters yet. Configure the form and click <em>Save filter</em>.
+                Build a filter and click <em>Apply Filter</em> to search the live course catalogue.
               </p>
-            ) : (
-              <ScrollArea className="max-h-[280px]">
-                <ul className="space-y-1">
-                  {saved.map((s) => (
-                    <li key={s.id}
-                      className={cn(
-                        "flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50",
-                        activeSaved === s.id && "bg-muted",
-                      )}
-                    >
-                      <button className="text-left truncate flex-1" onClick={() => loadFilter(s.id)}>
-                        {s.name}
-                      </button>
-                      <button onClick={() => deleteFilter(s.id)} className="text-muted-foreground hover:text-destructive">
-                        <X className="size-3.5" />
-                      </button>
-                    </li>
-                  ))}
+            )}
+            {loading && results === null && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground py-4">
+                <Loader2 className="size-3.5 animate-spin" /> Searching…
+              </div>
+            )}
+            {searchError && (
+              <p className="text-xs text-destructive whitespace-pre-wrap">{searchError}</p>
+            )}
+            {results && results.length === 0 && !loading && !searchError && (
+              <p className="text-xs text-muted-foreground">
+                No courses match. Try widening the filters.
+              </p>
+            )}
+            {results && results.length > 0 && (
+              <ScrollArea className="max-h-[520px] -mx-2 px-2">
+                <ul className="space-y-2">
+                  {results.map((c) => {
+                    const institute = fmtRel((c as Record<string, unknown>).institute_id);
+                    const campus = fmtRel((c as Record<string, unknown>).campus_id);
+                    const country = fmtRel((c as Record<string, unknown>).country_id);
+                    const city = (c as { city?: string }).city || "";
+                    const level = fmtRel((c as Record<string, unknown>).program_level_id);
+                    const tuition = fmtMoney((c as Record<string, unknown>).tuition_fee,
+                      (c as Record<string, unknown>).currency_id);
+                    const name = String(
+                      (c as { display_name?: string; name?: string }).display_name
+                        ?? (c as { name?: string }).name ?? `Course #${c.id}`,
+                    );
+                    return (
+                      <li key={c.id} className="rounded-md border bg-card p-2.5 text-xs space-y-1">
+                        <div className="font-medium text-sm leading-tight line-clamp-2" title={name}>
+                          {name}
+                        </div>
+                        {(institute || campus) && (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <Users className="size-3 shrink-0" />
+                            <span className="truncate">{[institute, campus].filter(Boolean).join(" · ")}</span>
+                          </div>
+                        )}
+                        {(country || city) && (
+                          <div className="flex items-center gap-1 text-muted-foreground">
+                            <MapPin className="size-3 shrink-0" />
+                            <span className="truncate">{[city, country].filter(Boolean).join(", ")}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-0.5">
+                          {level && (
+                            <span className="inline-flex items-center gap-1 text-muted-foreground">
+                              <Cap className="size-3" /> {level}
+                            </span>
+                          )}
+                          {tuition && <span className="font-medium">{tuition}</span>}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
+                {results.length < total && (
+                  <Button variant="outline" size="sm" className="w-full mt-3"
+                    onClick={() => apply(results.length, true)} disabled={loading}>
+                    {loading ? <Loader2 className="size-3.5 animate-spin mr-1" /> : null}
+                    Load more ({total - results.length} remaining)
+                  </Button>
+                )}
               </ScrollArea>
             )}
           </Card>
+
+          <Card className="p-4 shadow-elev-sm">
+            <div className="text-sm font-semibold mb-2">My saved filters</div>
+            {mySaved.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                None yet. Click <em>Save filter</em> to keep this configuration.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {mySaved.map((s) => (
+                  <li key={s.id}
+                    className={cn(
+                      "flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50",
+                      activeSaved === s.id && "bg-muted",
+                    )}
+                  >
+                    <button className="text-left truncate flex-1" onClick={() => loadFilter(s.id)}>
+                      {s.name}
+                      {s.is_shared && (
+                        <Badge variant="secondary" className="ml-2 font-normal text-[10px]">shared</Badge>
+                      )}
+                    </button>
+                    {isAdmin && (
+                      <button onClick={() => toggleShare(s)}
+                        title={s.is_shared ? "Unshare" : "Share with team"}
+                        className="text-muted-foreground hover:text-primary">
+                        <Users className="size-3.5" />
+                      </button>
+                    )}
+                    <button onClick={() => deleteFilter(s.id)}
+                      className="text-muted-foreground hover:text-destructive">
+                      <X className="size-3.5" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+
+          {sharedSaved.length > 0 && (
+            <Card className="p-4 shadow-elev-sm">
+              <div className="text-sm font-semibold mb-2 flex items-center gap-1.5">
+                <Users className="size-4 text-primary" /> Team filters
+              </div>
+              <ul className="space-y-1">
+                {sharedSaved.map((s) => (
+                  <li key={s.id}
+                    className={cn(
+                      "flex items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted/50",
+                      activeSaved === s.id && "bg-muted",
+                    )}
+                  >
+                    <button className="text-left truncate flex-1" onClick={() => loadFilter(s.id)}>
+                      {s.name}
+                    </button>
+                    {isAdmin && (
+                      <button onClick={() => deleteFilter(s.id)}
+                        className="text-muted-foreground hover:text-destructive">
+                        <X className="size-3.5" />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </aside>
       </div>
     </div>
