@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { FirmProfileCard } from "@/components/settings/FirmProfileCard";
 import { OdooIntegrationCard } from "@/components/settings/OdooIntegrationCard";
+import { OdooCourseDiscoveryCard } from "@/components/settings/OdooCourseDiscoveryCard";
 import { Link } from "react-router-dom";
 
 interface ApiKey {
@@ -166,6 +167,7 @@ const Settings = () => {
           </p>
         </div>
         <OdooIntegrationCard />
+        <OdooCourseDiscoveryCard />
 
         <div className="pt-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
