@@ -26,24 +26,18 @@ export function useAccountingAccess(): AccessState {
     }
     let cancelled = false;
     (async () => {
-      const [{ data: rows }, { count }] = await Promise.all([
-        supabase
-          .from("accounting_users" as any)
-          .select("role,status")
-          .eq("auth_user_id", user.id)
-          .limit(1),
-        supabase
-          .from("accounting_users" as any)
-          .select("id", { count: "exact", head: true }),
-      ]);
+      const { data: rows } = await supabase
+        .from("accounting_users" as any)
+        .select("role,status")
+        .eq("auth_user_id", user.id)
+        .limit(1);
       if (cancelled) return;
       const row: any = rows?.[0];
-      const isBootstrap = (count ?? 0) === 0;
       const isActiveAccountingUser = row?.status === "ACTIVE";
       setState({
         loading: false,
-        hasAccess: isAdmin || isActiveAccountingUser || isBootstrap,
-        isBootstrap,
+        hasAccess: isAdmin || isActiveAccountingUser,
+        isBootstrap: false,
         accountingRole: row?.role ?? null,
       });
     })();

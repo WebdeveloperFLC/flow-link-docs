@@ -1,64 +1,29 @@
-## Goal
+## Root cause
 
-Restrict the Accounting module so only:
-1. CRM **admins** (role `admin` in `user_roles`), AND
-2. Users who have an **ACTIVE** row in `accounting_users` (any accounting role)
+`useAccountingAccess` treats "I see zero rows in `accounting_users`" as bootstrap mode and grants access. But RLS on `accounting_users` is admin-only for SELECT, so **every non-admin sees `count = 0`** and falls into the bootstrap branch → counselors/telecallers/documentation all pass the gate.
 
-…can see the Accounting nav section and open any `/accounting/*` route. Everyone else gets redirected away.
+Table actually has 2 rows; the client just can't see them.
 
-Bootstrap stays intact: while `accounting_users` is empty, any signed-in user can still reach `/accounting/settings/users` to seed the first Super Admin (matches existing `is_accounting_admin()` logic).
+## Fix
 
-## Approach
+Drop the client-side bootstrap heuristic. New rule:
 
-Add a single client-side gate that wraps every accounting route + hides the sidebar section. No DB changes (RLS for `accounting_users` is already correct; the rest of accounting is mock data today, so route-level + UI-level gating is the right layer).
+- `hasAccess = isCRMAdmin || (own accounting_users row exists AND status = 'ACTIVE')`
 
-### 1. New hook `src/accounting/hooks/useAccountingAccess.ts`
-
-- Inputs: `useAuth()` (for `user`, `isAdmin`, `loading`).
-- Queries `accounting_users` once per session for the current `auth_user_id`:
-  - `select id, role, status` where `auth_user_id = user.id`.
-- Also checks bootstrap: `select id` from `accounting_users` limit 1 — if zero rows, bootstrap mode is active.
-- Returns `{ loading, hasAccess, isBootstrap, accountingRole }`.
-- `hasAccess = isAdmin || (row.status === 'ACTIVE') || isBootstrap`.
-
-### 2. New wrapper `src/accounting/components/AccountingProtectedRoute.tsx`
-
-- Uses `ProtectedRoute` semantics first (must be signed in).
-- Then `useAccountingAccess()`:
-  - `loading` → spinner.
-  - `!hasAccess` → `<Navigate to="/" replace />` with a `toast.error("You don't have access to Accounting")`.
-  - Otherwise render children.
-
-### 3. `src/App.tsx`
-
-- Import `AccountingProtectedRoute`.
-- Replace `<ProtectedRoute>` with `<AccountingProtectedRoute>` on every `/accounting/*` route only. CRM routes untouched.
-
-### 4. `src/components/layout/AppLayout.tsx`
-
-- Call `useAccountingAccess()` inside `AppLayout`.
-- Render the "Accounting" sidebar header + `accountingNav` block only when `hasAccess` is true. While loading, hide it (avoid flash). CRM nav unchanged.
-
-### 5. No CRM file edits, no new packages, no migrations, no edits to existing accounting files except adding the two new files and the AppLayout/App.tsx wiring. The shared `AppLayout` is in `src/components/layout/` (not under `src/accounting/`), so editing it does not touch any "existing accounting file".
+Self-read of one's own `accounting_users` row is allowed by the existing RLS policy, so the check is reliable. CRM admins remain the bootstrap path: when the table is empty, the CRM admin (Santosh) signs in, opens Accounting → Users & roles, and creates the first Super Admin via the existing edge function (which itself gates server-side with `is_accounting_admin()`).
 
 ## Files
 
-**Created**
-- `src/accounting/hooks/useAccountingAccess.ts`
-- `src/accounting/components/AccountingProtectedRoute.tsx`
-
 **Edited**
-- `src/App.tsx` — swap `ProtectedRoute` → `AccountingProtectedRoute` on `/accounting/*` routes.
-- `src/components/layout/AppLayout.tsx` — conditionally render the Accounting nav section.
+- `src/accounting/hooks/useAccountingAccess.ts` — remove the `count` query and the `isBootstrap` branch; compute `hasAccess` only from `isAdmin` + own ACTIVE row.
 
-## Behavior summary
+No other files change. `AccountingProtectedRoute`, `AppLayout`, and `App.tsx` already consume `hasAccess` correctly.
 
-| User | Sees Accounting in sidebar? | Can open `/accounting/*`? |
-|---|---|---|
-| Not signed in | No | Redirect to `/auth` |
-| Signed in, CRM admin | Yes | Yes |
-| Signed in, ACTIVE in `accounting_users` | Yes | Yes |
-| Signed in, SUSPENDED / no row, table not empty | No | Redirect to `/` |
-| Signed in, table empty (bootstrap) | Yes | Yes — so first Super Admin can be seeded |
+## Behavior after fix
 
-Confirm and I'll implement.
+| User | Sees Accounting? |
+|---|---|
+| CRM admin (Santosh) | Yes |
+| User with ACTIVE row in `accounting_users` | Yes |
+| Counselor / telecaller / documentation / viewer with no row | **No** (redirected to `/`) |
+| SUSPENDED accounting user | No |
