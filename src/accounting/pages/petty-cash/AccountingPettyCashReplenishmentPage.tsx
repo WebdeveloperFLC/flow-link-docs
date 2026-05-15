@@ -15,6 +15,7 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { usePettyCash } from "../../stores/pettyCashStore";
 import { ReplenishmentStatus } from "../../types/pettyCash";
 import { formatCurrency } from "../../lib/format";
+import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
 
 const STATUS_CLS: Record<ReplenishmentStatus, string> = {
   REQUESTED: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
@@ -26,6 +27,7 @@ const STATUS_CLS: Record<ReplenishmentStatus, string> = {
 export default function AccountingPettyCashReplenishmentPage() {
   const navigate = useNavigate();
   const { branches, replenishments, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid } = usePettyCash();
+  const { isAdmin } = usePettyCashAdmin();
 
   const lowBranches = useMemo(() => branches.filter(b => b.currentBalance < 2500), [branches]);
   const sorted = useMemo(() => [...replenishments].sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)), [replenishments]);
@@ -121,7 +123,7 @@ export default function AccountingPettyCashReplenishmentPage() {
                         <td className="px-3 py-2 text-xs text-muted-foreground">{r.requestedAt.slice(0, 10)}</td>
                         <td className="px-3 py-2 text-right">
                           <div className="flex justify-end gap-1.5">
-                            {r.status === "REQUESTED" && (
+                            {isAdmin && r.status === "REQUESTED" && (
                               <>
                                 <Button size="sm" variant="outline" onClick={() => { rejectReplenishment(r.id, "Finance — Ritu Khanna", "Rejected"); toast.success("Replenishment rejected"); }}>
                                   <XCircle className="size-3.5" />
@@ -131,10 +133,13 @@ export default function AccountingPettyCashReplenishmentPage() {
                                 </Button>
                               </>
                             )}
-                            {r.status === "APPROVED" && (
+                            {isAdmin && r.status === "APPROVED" && (
                               <Button size="sm" onClick={() => { markReplenishmentPaid(r.id); toast.success("Marked as paid · branch balance updated"); }}>
                                 <Banknote className="size-3.5 mr-1" /> Mark paid
                               </Button>
+                            )}
+                            {!isAdmin && (r.status === "REQUESTED" || r.status === "APPROVED") && (
+                              <span className="text-[11px] text-muted-foreground">Admin only</span>
                             )}
                           </div>
                         </td>
