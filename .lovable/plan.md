@@ -1,26 +1,84 @@
-## Reports module — full implementation
+## Tax & Compliance module — Phase 2
 
-All 5 report routes and page stubs already exist in `src/App.tsx`; no routing changes required.
+### Files
 
-### Files to create (1)
-- `src/accounting/data/mockReports.ts` — exports `MONTHLY_DATA`, `ENTITY_DATA`, `PL_DATA`, `BS_DATA`, `CF_DATA`, plus `FX_RATES` and `PL_DRILLDOWN` (3 hardcoded transactions per P&L line).
+**New (2):**
+- `src/accounting/data/mockTax.ts` *(replaces existing — see conflict below)*
+- `src/accounting/pages/tax/AccountingTaxDashboardPage.tsx`
 
-### Files to replace (5 stubs → full pages)
-1. `src/accounting/pages/reports/AccountingReportsPage.tsx` — Hub: period ToggleGroup (This month/Quarter/YTD/Last year/Custom, default YTD), 6 report cards (P&L, BS, Cash flow, Consolidated, AR aging, AP aging) using lucide icons + colored badges, + 4 KPI cards row using `AccountingKPICard`.
-2. `src/accounting/pages/reports/AccountingPLPage.tsx` — Filter bar (Entity/Period select, "vs Prior period" Switch, Export ghost), 3 summary cards, full P&L HTML table (Revenue → Cost of revenue → Gross profit → Operating expenses → EBITDA → Tax → Net profit) with prior-period column when toggle on, % change colored. Click any line → shadcn `Sheet` drill-down with 3 mock transactions + link to `/accounting/journals`. Recharts `ComposedChart` (Revenue/Expenses bars + Net profit line) on last 6 months.
-3. `src/accounting/pages/reports/AccountingBSPage.tsx` — As-of date input (default 2024-10-31), Entity Select, Export ghost. Balance check banner (green when balanced). Two-column Assets / Liabilities+Equity tables with totals, total-of-totals border-t-2. Recharts `PieChart` donut for asset breakdown.
-4. `src/accounting/pages/reports/AccountingCashFlowPage.tsx` — Period/Entity Select, Export ghost. 4 summary cards (Operating/Investing/Financing/Net change). Three sectioned table with +/- prefix, color tokens, opening + net + closing reconciliation. Recharts `BarChart` waterfall (Opening → Operating → Investing → Financing → Closing) with green/red bars.
-5. `src/accounting/pages/reports/AccountingConsolidatedPage.tsx` — Entity checkboxes (Select all / Clear all), amber FX rates banner. Consolidated table: Category × {entities + Eliminations + Consolidated} with mock intercompany eliminations (red, with tooltip). Recharts grouped `BarChart` (Revenue/Expenses/Profit groups, one bar per entity, distinct colors). Entity cards grid below with native+CAD amounts, margin %, 3-bar sparkline from `MONTHLY_DATA`.
+**Replaced (2 stubs):**
+- `src/accounting/pages/tax/AccountingTaxCalendarPage.tsx`
+- `src/accounting/pages/tax/AccountingNoticesPage.tsx`
+
+**Edited (1):**
+- `src/App.tsx` — swap `/accounting/tax` route from `AccountingTaxPage` → `AccountingTaxDashboardPage` (import line + route element).
+
+### Conflict to resolve
+
+The existing `mockTax.ts` (schema: `TaxFiling`, `MOCK_FILINGS`) and `mockNotices.ts` (`ComplianceNotice`) are imported by:
+- `src/accounting/pages/tax/AccountingTaxPage.tsx` (current `/accounting/tax`)
+- `src/accounting/components/tax/{FilingStatusBadge,UpcomingDeadlinesTimeline,AddNoticeDialog}.tsx`
+- `src/accounting/pages/tax/AccountingNoticesPage.tsx` (being replaced)
+
+The new schema (`TaxPeriod`, `MOCK_TAX_PERIODS`, new `ComplianceNotice` shape) is incompatible. To honor "no new packages" and keep TypeScript clean, the plan will:
+
+1. Rewrite `mockTax.ts` with the new schema and **fold the new `ComplianceNotice` + `MOCK_NOTICES` into the same file** (one source of truth, matching the spec). `mockNotices.ts` will be left untouched but unused (safe — no runtime impact). If you'd prefer it deleted, say so.
+2. **Delete** the now-orphaned files that depended on the old schema (otherwise the build breaks):
+   - `src/accounting/pages/tax/AccountingTaxPage.tsx`
+   - `src/accounting/components/tax/FilingStatusBadge.tsx`
+   - `src/accounting/components/tax/UpcomingDeadlinesTimeline.tsx`
+   - `src/accounting/components/tax/AddNoticeDialog.tsx`
+   - `src/accounting/types/tax.ts` (types now live in `mockTax.ts`)
+
+These deletions are necessary — leaving them in place causes TS errors. Confirm or I'll proceed as listed.
+
+### `mockTax.ts` contents
+
+- `TODAY = new Date('2024-11-01')`
+- Types: `TaxType`, `FilingStatus`, `NoticeStatus`, `TaxPeriod`, `ComplianceNotice` (per spec)
+- `MOCK_TAX_PERIODS`: 20 records exactly as listed (CA×5, IN-Pvt×7, IN-Academy×2, US×4, AE×2)
+- `MOCK_NOTICES`: 8 records exactly as listed
+- Helper `daysBetween(a,b)` for `daysUntilDue`/`daysOverdue` derivation
+
+### Page 1 — `AccountingTaxDashboardPage.tsx`
+
+Layout (top → bottom):
+1. `AccountingPageHeader` with two action buttons (View notices / Filing calendar) → `useNavigate`.
+2. **Alert banners** (mb-4): one per `OVERDUE` period (red, `AlertCircle`) and one per `CRITICAL` open notice. Each with right-aligned link.
+3. **KPI row** — `grid-cols-2 md:grid-cols-4 gap-4`, uses `AccountingKPICard`:
+   - Total filings FY · Overdue (border-destructive when >0) · Due in 30d · Open notices (with critical count).
+4. **Country status row** — `grid-cols-2 md:grid-cols-4`, custom card per country (flag emoji, status badge, next filing, notices count, colored `border-l-4`).
+5. **Upcoming filings** Card with HTML `<table>`: 8 rows sorted OVERDUE→DUE_SOON→PENDING by `dueDate`. Columns per spec (Entity+flag, Tax type colored badge, Period, Amount, Due date with sub-line, Status badge, Actions ⋯).
+   - Actions menu: "Mark as filed" → `AlertDialog` with reference + filed-date inputs → updates local `useState`, sonner success toast.
+6. **Notices summary** Card: filtered to OPEN/ESCALATED/RESPONDED. Priority badge (CRITICAL = red + `animate-pulse` dot).
+
+### Page 2 — `AccountingTaxCalendarPage.tsx`
+
+- Header with "+ Add filing" → `toast.info`.
+- Filter bar (5 `Select`s: Country, Entity, Tax type, Status, Period) + view toggle (List / Timeline) on right.
+- Stat pills strip: Total / Filed / Pending / Overdue / Due soon.
+- **List view** (default): grouped by country with `Collapsible` section headers (CA/IN/US/AE), HTML table inside each, rows sorted overdue-first.
+- **Timeline view**: simple two-month grid (Nov 2024, Dec 2024) — 7-col day cells, due-date dots colored by status (red/amber/green), `<Tooltip>` on dot showing entity + tax type + amount.
+- "Export to CSV" ghost button at bottom — native `Blob` + anchor download from filtered set.
+
+### Page 3 — `AccountingNoticesPage.tsx`
+
+- Header with "+ Add notice" → `toast.info`.
+- Red banner if any open `CRITICAL` notice.
+- 4 KPI cards (Total / Open / Total demand (mixed-currency string) / Critical with border-destructive).
+- Filter bar (Search input + 5 `Select`s).
+- HTML table with all 10 columns per spec; CRITICAL pulsing red dot via `animate-pulse`.
+- Row click + actions menu → shadcn `Sheet` slide-over (480px) with full notice details, editable notes textarea (local state), and footer buttons: Mark responded / Escalate / Mark resolved (AlertDialog) / Close (AlertDialog). All status changes update local `useState` + sonner toast.
 
 ### Cross-cutting
-- 400 ms `useEffect` skeleton on each page mount (skeleton components from shadcn `Skeleton`).
-- All arithmetic via `addDecimals` / `Decimal`; all formatting via `formatCurrency` / `formatCompact` / `formatAccounting` / `formatPercent`.
-- Confirmations via shadcn `AlertDialog`; toasts via `sonner`. Export buttons: `toast.info("Export to PDF/Excel coming soon")`.
-- Plain HTML tables + Tailwind only; HSL semantic tokens (`bg-muted`, `text-primary`, `text-destructive`, `bg-green-50/50` only for emphasis rows as spec'd). Recharts stroke colors are the only place raw hex is allowed.
-- Fully responsive: tables wrap in `overflow-x-auto`; grids collapse to single column on mobile.
-- No new npm packages. No CRM files touched. No other accounting files touched. `App.tsx` not modified (routes already exist).
 
-### Files modified summary
-- 1 new: `mockReports.ts`
-- 5 replaced: the five report page files
-- 0 edits to `App.tsx`
+- `TODAY = new Date('2024-11-01')` referenced from `mockTax.ts`.
+- 400ms `setTimeout` skeleton on each page mount (`Skeleton` blocks).
+- All amounts via `formatCurrency(amount, currency)`.
+- HSL semantic tokens only; status colors via Tailwind utility classes already used elsewhere (e.g. `text-destructive`, `bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400`, green/blue equivalents).
+- Tables wrapped in `overflow-x-auto` for mobile.
+- React local state only (no Context needed since pages are independent; spec says "Context only (no Zustand)" — local `useState` satisfies this).
+- No new npm packages. No CRM files touched.
+
+### Summary
+6 file ops: rewrite `mockTax.ts`, add `AccountingTaxDashboardPage.tsx`, replace 2 stubs, edit `App.tsx`, delete 5 orphaned files (listed above).
