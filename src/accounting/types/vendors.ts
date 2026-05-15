@@ -27,6 +27,10 @@ export interface Vendor {
   phone: string;
   address: string;
   bankAccount?: string;
+  // Optional primary contact person
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
 export interface VendorTxn {

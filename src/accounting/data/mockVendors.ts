@@ -10,6 +10,7 @@ export const MOCK_VENDORS: Vendor[] = [
     outstandingBalance: 18400, ytdSpend: 142800, lastTxnDate: '2024-10-05',
     email: 'ar@acmesupplies.ca', phone: '+1 416 555 0140',
     address: '210 King St W, Toronto, ON M5H 1J8', bankAccount: '••••4521',
+    contactName: 'Sarah Liu', contactEmail: 'sarah.liu@acmesupplies.ca', contactPhone: '+1 416 555 0141',
   },
   {
     id: 'v2', name: 'TechPro Solutions', legalName: 'TechPro Solutions LLC',
@@ -18,6 +19,7 @@ export const MOCK_VENDORS: Vendor[] = [
     outstandingBalance: 24500, ytdSpend: 286000, lastTxnDate: '2024-10-12',
     email: 'billing@techpro.io', phone: '+1 415 555 0190',
     address: '500 Howard St, San Francisco, CA 94105',
+    contactName: 'Marcus Chen', contactEmail: 'marcus@techpro.io',
   },
   {
     id: 'v3', name: 'AWS', legalName: 'Amazon Web Services Inc.',

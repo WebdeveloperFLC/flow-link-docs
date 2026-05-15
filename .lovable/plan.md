@@ -1,99 +1,95 @@
-## Phase 7 — Fraud & Audit Enhancement + AI Financial Assistant
+## Goal
 
-Enhance two existing accounting pages. No new routes, no CRM changes, no redesign of other accounting pages. Reuse existing `AppLayout`, `AccountingPageHeader`, `AccountingKPICard`, `AccountingStatusBadge`, semantic tokens, recharts.
+Two related enhancements inside the existing Accounting module:
 
-### 1. Types & Mock Data
+1. Make Vendors form/master more flexible (configurable categories + optional contact person).
+2. Expand Accounting Clients module to handle the study-abroad / visa / coaching business reality (link CRM clients, accounting-only clients, richer filters, ledger, services, staff association).
 
-**`src/accounting/types/fraud.ts`** (new)
-- `FlagType` union: `DUPLICATE_PAYMENT | UNAPPROVED_VENDOR | ROUND_NUMBER_BILLING | HIGH_VELOCITY | OFF_HOURS_SUBMISSION | AMOUNT_MISMATCH`
-- `FlagSeverity`: `critical | warning | info`
-- `FlagStatus`: `under_review | confirmed | false_positive | dismissed | escalated | auto_cleared`
-- `FraudFlag`: id, txnRef, vendor, amount, currency, entity, flaggedAt, type, severity, status, riskScore, reason, similarTxnIds[]
+No CRM changes. No new top-level routes. All work stays in `src/accounting/**` using existing semantic tokens and AG Grid wrappers.
 
-**`src/accounting/data/mockFraud.ts`** (new)
-- ~18 flags across all 6 flag types, mixed severities/statuses
-- 30-day risk-score distribution series (date, critical, warning, info)
-- Helper: `getSimilarTxns(id)`
+---
 
-**`src/accounting/types/aiChat.ts`** (new)
-- `ChatRole`: `user | assistant`
-- `RichBlock`: `{ kind: "table"|"chart"|"metric"|"reportLink", payload: any }`
-- `ChatMessage`: id, role, content (markdown), blocks?, createdAt
-- `Conversation`: id, title, messages, updatedAt
+## Part 1 — Vendors
 
-**`src/accounting/data/mockAI.ts`** (new)
-- 4 prebuilt conversations (Oct expense spike, AR aging, duplicate invoices, Canada P&L)
-- Each scripted assistant reply demonstrates: markdown, an inline table, a mini chart, metric cards, and a report link
-- `quickQuestions` array (the 5 prompts from spec)
-- `mockReply(prompt)` → returns one of the scripted responses based on keyword match, else a generic fallback
+### 1A. Configurable categories
+- Convert `VENDOR_CATEGORY_LABEL` from a hardcoded const into a small in-memory store: `src/accounting/stores/vendorCategoriesStore.ts` exposing `useVendorCategories()` (list + `addCategory(label)`).
+- Seed it with the 9 existing categories so nothing breaks.
+- `AddVendorDialog` Category Select gets an "+ Add new category…" footer item that opens an inline mini-dialog (label input → slug code generated from label) and adds it to the store.
+- `AccountingVendorsPage` filters use the same hook so new categories appear instantly in the filter dropdown and grid `valueFormatter`.
 
-### 2. Fraud & Audit Page Components
+### 1B. Optional contact person
+- Extend `Vendor` type with optional `contactName?`, `contactEmail?`, `contactPhone?`.
+- `AddVendorDialog` gets a collapsible "Contact person (optional)" section with three inputs.
+- `AccountingVendorDetailPage` header shows a "Primary contact" block when any contact field exists (name + mailto/tel links). No layout change otherwise.
 
-**`src/accounting/components/fraud/FraudFlagBadge.tsx`** — colored pill per `FlagType` with short label.
+---
 
-**`src/accounting/components/fraud/RiskDistributionChart.tsx`** — recharts stacked `BarChart` (critical/warning/info) over 30 days, semantic-token colors.
+## Part 2 — Accounting Clients
 
-**`src/accounting/components/fraud/FlagDetailModal.tsx`** — `Dialog` showing:
-- Transaction header (vendor, amount, entity, date, risk score)
-- "Why flagged" rationale block
-- Similar transactions table
-- Footer actions: `Confirm fraud` (destructive), `Mark false positive`, `Escalate`, `Dismiss` — each fires a sonner toast and updates local state.
+### 2A. Types & data
+- Extend `Client` type:
+  - `clientType: 'STUDENT' | 'IMMIGRATION' | 'CORPORATE' | 'FAMILY' | 'COACHING'` (replaces/augments `segment`; keep `segment` as alias for back-compat).
+  - Optional: `counselorId`, `counselorName`, `servicePackage`, `visaCategory`, `intake`, `leadSource`, `notes`, `linkedCrmClientId`.
+- New types: `ClientService` (package, total, paid, remaining, nextDueDate), `ClientNote`, `ClientActivity`, `ClientRefund`, `ClientDiscount`.
+- New mock files: `mockStaff.ts` (counselor list), extended `mockClients.ts` with services, refunds, discounts, installments, notes, activity.
 
-### 3. Replace Fraud Page
+### 2B. Client list page
+- Two header buttons: **Add new client** (opens `AddClientDialog`) and **Link CRM client** (opens `LinkCrmClientDialog`).
+- `LinkCrmClientDialog`: searchable command palette over `getCRMClients()` (already in `crmBridge.ts`); on select, creates a linked accounting client record (mock add) with `linkedCrmClientId` and a small "CRM" badge in the grid.
+- Expanded filters bar: Country, Client type, Service package, Counselor, Visa category, Intake, Payment status, Active/Inactive. Filters wrap responsively.
+- Grid adds columns: Type, Counselor, Service package, badge for CRM-linked.
 
-**`src/accounting/pages/fraud/AccountingFraudPage.tsx`** (replace stub)
-- `AccountingPageHeader` ("Fraud & audit")
-- 4 `AccountingKPICard`s: Critical flags, Warnings, Auto-cleared, Under review (counts derived from mock)
-- `RiskDistributionChart` in a `Card`
-- Flagged-transactions `Table` (Date, Txn, Vendor, Amount, Entity, Risk, Type badge, Status). Row click opens `FlagDetailModal`.
-- Local `useState` for selected flag and status overrides (in-memory only).
+### 2C. Add new client dialog
+Sectioned form (Basic / Business / Notes):
+- Basic: Full name, Client type, Country, Email, Phone, Tax ID (optional).
+- Business: Counselor (Select from mock staff), Service package (Select), Visa category, Intake/session, Lead source, Payment terms.
+- Notes: textarea.
+Reuses existing `Dialog`/`Select`/`Input` styling from `AddVendorDialog`.
 
-### 4. AI Assistant Components
+### 2D. Client detail page (ledger)
+Enhance existing `AccountingClientDetailPage`:
+- **Header**: client info + assigned counselor chip + linked-CRM chip if applicable.
+- **KPI strip**: Total billed, Total received, Outstanding, Refunds, Installment progress (e.g. "3 of 5 paid").
+- **Aging card**: Current / 30 / 60 / 90+ (reuse `AgingBreakdownCard`).
+- **Services panel**: list of enrolled services with package amount, paid, remaining, next due date.
+- **Tabs**: Transactions, Invoices, Receipts, Documents, Notes, Activity timeline.
+  - Receipts tab supports rendering refunds and discounts as separate row types.
+  - Notes tab: list + add note (local state).
+  - Activity tab: chronological feed (mock entries: invoice issued, payment received, note added, status changed).
 
-**`src/accounting/components/ai/ChatSidebar.tsx`** — left rail (~280px):
-- "New conversation" button
-- Conversation list (active highlight)
-- "Quick questions" section with chips that send the prompt
-- Collapses to icons under `md:` if needed; full hide on mobile via Sheet trigger above input.
+### 2E. Staff association
+- `mockStaff.ts` exports a small list (Counselor A/B/C, Senior Advisor, etc.).
+- `useStaff()` hook for dropdowns; later swappable with CRM users query.
 
-**`src/accounting/components/ai/ChatMessage.tsx`** — bubble with avatar; assistant content rendered with a tiny inline markdown renderer (we already have `react-markdown` if present — otherwise lightweight: bold/italic/list/inline-code regex). Renders `RichBlock`s after markdown.
+---
 
-**`src/accounting/components/ai/ChatRichBlock.tsx`** — switch on kind:
-- `table` → shadcn `Table`
-- `chart` → small recharts `LineChart` (~h-32)
-- `metric` → grid of `AccountingKPICard`-style mini cards
-- `reportLink` → `Card` with `Link` to `/accounting/reports/...`
+## Files
 
-**`src/accounting/components/ai/ChatComposer.tsx`** — bottom bar:
-- auto-resizing `Textarea` (rows grow to max ~6)
-- entity `Select` (reuses `accountingEntityStore` entities)
-- send `Button` (enter sends, shift+enter newlines)
+**Created**
+- `src/accounting/stores/vendorCategoriesStore.ts`
+- `src/accounting/data/mockStaff.ts`
+- `src/accounting/components/clients/AddClientDialog.tsx`
+- `src/accounting/components/clients/LinkCrmClientDialog.tsx`
+- `src/accounting/components/clients/ClientServicesPanel.tsx`
+- `src/accounting/components/clients/ClientNotesTab.tsx`
+- `src/accounting/components/clients/ClientActivityTab.tsx`
 
-**`src/accounting/components/ai/TypingIndicator.tsx`** — three-dot pulse.
+**Edited**
+- `src/accounting/types/vendors.ts` (+ contact fields)
+- `src/accounting/types/clients.ts` (+ business fields, services, notes, activity)
+- `src/accounting/data/mockVendors.ts` (categories moved to store; sample contact data)
+- `src/accounting/data/mockClients.ts` (richer data + services + notes + activity)
+- `src/accounting/components/vendors/AddVendorDialog.tsx` (configurable category + contact section)
+- `src/accounting/pages/vendors/AccountingVendorsPage.tsx` (use category store)
+- `src/accounting/pages/vendors/AccountingVendorDetailPage.tsx` (contact block in header)
+- `src/accounting/pages/clients/AccountingClientsPage.tsx` (buttons + expanded filters + new columns)
+- `src/accounting/pages/clients/AccountingClientDetailPage.tsx` (KPIs, services, expanded tabs)
 
-### 5. Replace AI Assistant Page
+No routes added, no CRM files touched.
 
-**`src/accounting/pages/ai/AccountingAIPage.tsx`** (replace stub)
-- `AppLayout` with full-height shell: `flex h-[calc(100vh-...)] `
-- Left: `ChatSidebar`
-- Right column: scrollable message list + `ChatComposer` pinned bottom
-- State: `conversations`, `activeId`, `isTyping`. On send → push user msg → set typing true → `setTimeout` 800–1500ms → push `mockReply()` response → typing false.
-- Auto-scroll to bottom on new message.
+## Technical notes
 
-### Markdown rendering
-
-Check `package.json` for `react-markdown`. If present, use it; if not, use a small custom renderer (no new deps). Will verify during implementation.
-
-### Out of Scope
-
-- App.tsx, sidebar, overview page
-- All other accounting pages (journals, reports, approvals, owners, documents)
-- Real AI calls / Lovable AI gateway (this is a mock UI per spec: "fully functional **mock** AI assistant")
-- Persistence (no DB writes)
-- CRM modules
-
-### Files Summary
-
-**New (10):** `types/fraud.ts`, `types/aiChat.ts`, `data/mockFraud.ts`, `data/mockAI.ts`, `components/fraud/{FraudFlagBadge,RiskDistributionChart,FlagDetailModal}.tsx`, `components/ai/{ChatSidebar,ChatMessage,ChatRichBlock,ChatComposer,TypingIndicator}.tsx`
-
-**Replaced (2):** `pages/fraud/AccountingFraudPage.tsx`, `pages/ai/AccountingAIPage.tsx`
+- Categories store is a tiny `useSyncExternalStore`-style module with a Set + listeners — no Zustand needed; mirrors pattern used elsewhere.
+- CRM client linking uses existing `getCRMClients()` from `crmBridge.ts`; the linked record is appended to in-memory `MOCK_CLIENTS` so it appears immediately. No DB writes.
+- All new selects reuse shadcn `Select` / `Command` primitives already in the project.
+- All colors via semantic tokens; AG Grid wrapper unchanged.

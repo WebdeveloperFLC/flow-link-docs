@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, MapPin, Building2 } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Building2, User } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -12,8 +12,9 @@ import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge
 import AgingBreakdownCard from "../../components/ledger/AgingBreakdownCard";
 import {
   MOCK_VENDORS, MOCK_VENDOR_TXNS, MOCK_VENDOR_DOCS, MOCK_VENDOR_PAYMENTS,
-  VENDOR_CATEGORY_LABEL, getVendorAging,
+  getVendorAging,
 } from "../../data/mockVendors";
+import { getVendorCategoryLabel } from "../../stores/vendorCategoriesStore";
 import { formatCurrency } from "../../lib/format";
 import type { VendorTxn, VendorDocument, VendorPayment } from "../../types/vendors";
 
@@ -84,7 +85,7 @@ export default function AccountingVendorDetailPage() {
 
         <AccountingPageHeader
           title={vendor.name}
-          subtitle={`${VENDOR_CATEGORY_LABEL[vendor.category]} · ${vendor.country}`}
+          subtitle={`${getVendorCategoryLabel(vendor.category)} · ${vendor.country}`}
           actions={<AccountingStatusBadge status={vendor.status} />}
         />
 
@@ -109,6 +110,32 @@ export default function AccountingVendorDetailPage() {
               {vendor.bankAccount && <div><div className="text-muted-foreground text-xs">Bank account</div><div className="font-mono">{vendor.bankAccount}</div></div>}
               <div><div className="text-muted-foreground text-xs">Currency</div><div>{vendor.currency}</div></div>
             </div>
+            {(vendor.contactName || vendor.contactEmail || vendor.contactPhone) && (
+              <div className="mt-5 pt-4 border-t">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mb-3">Primary contact</div>
+                <div className="grid gap-3 sm:grid-cols-3 text-sm">
+                  {vendor.contactName && (
+                    <div className="flex items-start gap-2"><User className="size-4 text-muted-foreground mt-0.5" />
+                      <div><div className="text-muted-foreground text-xs">Name</div><div>{vendor.contactName}</div></div>
+                    </div>
+                  )}
+                  {vendor.contactEmail && (
+                    <div className="flex items-start gap-2"><Mail className="size-4 text-muted-foreground mt-0.5" />
+                      <div><div className="text-muted-foreground text-xs">Email</div>
+                        <a href={`mailto:${vendor.contactEmail}`} className="text-primary hover:underline">{vendor.contactEmail}</a>
+                      </div>
+                    </div>
+                  )}
+                  {vendor.contactPhone && (
+                    <div className="flex items-start gap-2"><Phone className="size-4 text-muted-foreground mt-0.5" />
+                      <div><div className="text-muted-foreground text-xs">Phone</div>
+                        <a href={`tel:${vendor.contactPhone}`} className="text-primary hover:underline">{vendor.contactPhone}</a>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </Card>
 
           <Card className="p-5 flex flex-col justify-between">
