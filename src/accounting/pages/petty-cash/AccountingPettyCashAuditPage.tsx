@@ -249,16 +249,14 @@ function toCsv(rows: PettyCashVoucher[], branches: { id: string; name: string }[
   ];
 }
 
-function AuditCard({ title, children, empty, onExport }: { title: string; children: React.ReactNode; empty: string; onExport: () => void }) {
-  const hasContent = !!children && (children as { props?: object } | string) !== false;
+function AuditCard({ title, children, empty, onExport }: { title: string; children?: React.ReactNode; empty: string; onExport: () => void }) {
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm font-semibold">{title}</div>
         <Button variant="outline" size="sm" onClick={onExport}><Download className="size-3.5 mr-1.5" /> Export</Button>
       </div>
-      {children || <div className="text-center py-10 text-sm text-muted-foreground">{empty}</div>}
-      {hasContent === false && <div className="text-center py-10 text-sm text-muted-foreground">{empty}</div>}
+      {children ?? <div className="text-center py-10 text-sm text-muted-foreground">{empty}</div>}
     </Card>
   );
 }
