@@ -98,6 +98,7 @@ import AccountingReconciliationPage from "./accounting/pages/reconciliation/Acco
 import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
+import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -151,47 +152,47 @@ const App = () => (
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
             <Route path="/germany-rules" element={<ProtectedRoute><GermanyRulesAdmin /></ProtectedRoute>} />
-            <Route path="/accounting" element={<ProtectedRoute><AccountingOverviewPage /></ProtectedRoute>} />
-            <Route path="/accounting/journals" element={<ProtectedRoute><AccountingJournalsPage /></ProtectedRoute>} />
-            <Route path="/accounting/journals/new" element={<ProtectedRoute><AccountingNewJournalPage /></ProtectedRoute>} />
-            <Route path="/accounting/journals/:id" element={<ProtectedRoute><AccountingJournalDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/journals/:id/edit" element={<ProtectedRoute><AccountingNewJournalPage /></ProtectedRoute>} />
-            <Route path="/accounting/coa" element={<ProtectedRoute><AccountingCOAPage /></ProtectedRoute>} />
-            <Route path="/accounting/owners" element={<ProtectedRoute><AccountingOwnersPage /></ProtectedRoute>} />
-            <Route path="/accounting/owners/wealth-summary" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
-            <Route path="/accounting/owners/:id" element={<ProtectedRoute><AccountingOwnerDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/ap" element={<ProtectedRoute><AccountingAPPage /></ProtectedRoute>} />
-            <Route path="/accounting/ap/new" element={<ProtectedRoute><AccountingNewBillPage /></ProtectedRoute>} />
-            <Route path="/accounting/ap/:id" element={<ProtectedRoute><AccountingBillDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/ar" element={<ProtectedRoute><AccountingARPage /></ProtectedRoute>} />
-            <Route path="/accounting/ar/new" element={<ProtectedRoute><AccountingNewInvoicePage /></ProtectedRoute>} />
-            <Route path="/accounting/ar/:id" element={<ProtectedRoute><AccountingInvoiceDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/vendors" element={<ProtectedRoute><AccountingVendorsPage /></ProtectedRoute>} />
-            <Route path="/accounting/vendors/:id" element={<ProtectedRoute><AccountingVendorDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/clients" element={<ProtectedRoute><AccountingClientsPage /></ProtectedRoute>} />
-            <Route path="/accounting/clients/:id" element={<ProtectedRoute><AccountingClientDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/bank-accounts" element={<ProtectedRoute><AccountingBankAccountsPage /></ProtectedRoute>} />
-            <Route path="/accounting/bank-accounts/:id" element={<ProtectedRoute><AccountingBankAccountDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/documents" element={<ProtectedRoute><AccountingDocumentsPage /></ProtectedRoute>} />
-            <Route path="/accounting/documents/upload" element={<ProtectedRoute><AccountingUploadPage /></ProtectedRoute>} />
-            <Route path="/accounting/documents/ocr" element={<ProtectedRoute><AccountingOCRPage /></ProtectedRoute>} />
-            <Route path="/accounting/approvals" element={<ProtectedRoute><AccountingApprovalsPage /></ProtectedRoute>} />
-            <Route path="/accounting/approvals/:id" element={<ProtectedRoute><AccountingApprovalDetailPage /></ProtectedRoute>} />
-            <Route path="/accounting/reports" element={<ProtectedRoute><AccountingReportsPage /></ProtectedRoute>} />
-            <Route path="/accounting/reports/pl" element={<ProtectedRoute><AccountingPLPage /></ProtectedRoute>} />
-            <Route path="/accounting/reports/bs" element={<ProtectedRoute><AccountingBSPage /></ProtectedRoute>} />
-            <Route path="/accounting/reports/cashflow" element={<ProtectedRoute><AccountingCashFlowPage /></ProtectedRoute>} />
-            <Route path="/accounting/reports/consolidated" element={<ProtectedRoute><AccountingConsolidatedPage /></ProtectedRoute>} />
-            <Route path="/accounting/tax" element={<ProtectedRoute><AccountingTaxDashboardPage /></ProtectedRoute>} />
-            <Route path="/accounting/tax/calendar" element={<ProtectedRoute><AccountingTaxCalendarPage /></ProtectedRoute>} />
-            <Route path="/accounting/tax/notices" element={<ProtectedRoute><AccountingNoticesPage /></ProtectedRoute>} />
-            <Route path="/accounting/fraud" element={<ProtectedRoute><AccountingFraudPage /></ProtectedRoute>} />
-            <Route path="/accounting/fraud/flagged" element={<ProtectedRoute><AccountingFlaggedPage /></ProtectedRoute>} />
-            <Route path="/accounting/reconciliation" element={<ProtectedRoute><AccountingReconciliationPage /></ProtectedRoute>} />
-            <Route path="/accounting/wealth" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
-            <Route path="/accounting/ai-assistant" element={<ProtectedRoute><AccountingAIPage /></ProtectedRoute>} />
-            <Route path="/accounting/settings/users" element={<ProtectedRoute><AccountingUsersPage /></ProtectedRoute>} />
-            <Route path="/accounting/settings/entities" element={<ProtectedRoute><AccountingEntitiesPage /></ProtectedRoute>} />
+            <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/journals/:id" element={<AccountingProtectedRoute><AccountingJournalDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/journals/:id/edit" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/coa" element={<AccountingProtectedRoute><AccountingCOAPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/owners" element={<AccountingProtectedRoute><AccountingOwnersPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/owners/wealth-summary" element={<AccountingProtectedRoute><AccountingWealthPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/owners/:id" element={<AccountingProtectedRoute><AccountingOwnerDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ap" element={<AccountingProtectedRoute><AccountingAPPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ap/new" element={<AccountingProtectedRoute><AccountingNewBillPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ap/:id" element={<AccountingProtectedRoute><AccountingBillDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ar" element={<AccountingProtectedRoute><AccountingARPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ar/new" element={<AccountingProtectedRoute><AccountingNewInvoicePage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ar/:id" element={<AccountingProtectedRoute><AccountingInvoiceDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/vendors" element={<AccountingProtectedRoute><AccountingVendorsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/vendors/:id" element={<AccountingProtectedRoute><AccountingVendorDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/clients" element={<AccountingProtectedRoute><AccountingClientsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/clients/:id" element={<AccountingProtectedRoute><AccountingClientDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/bank-accounts" element={<AccountingProtectedRoute><AccountingBankAccountsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/bank-accounts/:id" element={<AccountingProtectedRoute><AccountingBankAccountDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/documents" element={<AccountingProtectedRoute><AccountingDocumentsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/documents/upload" element={<AccountingProtectedRoute><AccountingUploadPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/documents/ocr" element={<AccountingProtectedRoute><AccountingOCRPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/approvals" element={<AccountingProtectedRoute><AccountingApprovalsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/approvals/:id" element={<AccountingProtectedRoute><AccountingApprovalDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports" element={<AccountingProtectedRoute><AccountingReportsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/pl" element={<AccountingProtectedRoute><AccountingPLPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/bs" element={<AccountingProtectedRoute><AccountingBSPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/cashflow" element={<AccountingProtectedRoute><AccountingCashFlowPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/consolidated" element={<AccountingProtectedRoute><AccountingConsolidatedPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/tax" element={<AccountingProtectedRoute><AccountingTaxDashboardPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/tax/calendar" element={<AccountingProtectedRoute><AccountingTaxCalendarPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/tax/notices" element={<AccountingProtectedRoute><AccountingNoticesPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/fraud" element={<AccountingProtectedRoute><AccountingFraudPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/fraud/flagged" element={<AccountingProtectedRoute><AccountingFlaggedPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reconciliation" element={<AccountingProtectedRoute><AccountingReconciliationPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/wealth" element={<AccountingProtectedRoute><AccountingWealthPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/ai-assistant" element={<AccountingProtectedRoute><AccountingAIPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/settings/users" element={<AccountingProtectedRoute><AccountingUsersPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/settings/entities" element={<AccountingProtectedRoute><AccountingEntitiesPage /></AccountingProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
