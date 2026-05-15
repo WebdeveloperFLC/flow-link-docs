@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
@@ -17,15 +18,17 @@ import { ROLE_OPTIONS } from "./RoleBadge";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onInvite: (u: AccountingUser) => void;
+  onCreated: (u: AccountingUser) => void;
 }
 
-export default function InviteUserDialog({ open, onOpenChange, onInvite }: Props) {
+export default function InviteUserDialog({ open, onOpenChange, onCreated }: Props) {
   const entities = useEntities();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState<AccountingRole>("ACCOUNTANT");
   const [scope, setScope] = useState<string[]>(["*"]);
+  const [submitting, setSubmitting] = useState(false);
 
   const allEntities = scope.includes("*");
   const toggleEntity = (id: string) => {
@@ -35,37 +38,72 @@ export default function InviteUserDialog({ open, onOpenChange, onInvite }: Props
     });
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!email.trim()) { toast.error("Email is required"); return; }
-    onInvite({
-      id: `u-${Date.now().toString(36)}`,
-      name: name.trim() || email.split("@")[0],
-      email: email.trim(),
-      role,
-      entityScope: scope.length ? scope : ["*"],
-      mfaEnabled: false,
-      status: "INVITED",
-    });
-    toast.success(`Invite sent to ${email}`);
-    onOpenChange(false);
-    setEmail(""); setName(""); setRole("ACCOUNTANT"); setScope(["*"]);
+    if (!name.trim()) { toast.error("Name is required"); return; }
+    if (password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+    setSubmitting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("accounting-create-user", {
+        body: {
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          role,
+          entity_scope: scope.length ? scope : ["*"],
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const row = data.user;
+      onCreated({
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        role: row.role,
+        entityScope: row.entity_scope ?? ["*"],
+        mfaEnabled: !!row.mfa_enabled,
+        lastLogin: row.last_login ?? undefined,
+        status: row.status,
+      });
+      toast.success(`Account created for ${email}. They can sign in immediately.`);
+      onOpenChange(false);
+      setEmail(""); setName(""); setPassword(""); setRole("ACCOUNTANT"); setScope(["*"]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to create user");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
-          <DialogTitle>Invite user</DialogTitle>
-          <DialogDescription>Send an invite to grant access to the accounting workspace.</DialogDescription>
+          <DialogTitle>Add new user</DialogTitle>
+          <DialogDescription>
+            Create an account with a temporary password. The user can sign in immediately and change
+            their password after first login.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
+          <div className="grid gap-2">
+            <Label>Full name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
+          </div>
           <div className="grid gap-2">
             <Label>Email</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" />
           </div>
           <div className="grid gap-2">
-            <Label>Name (optional)</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
+            <Label>Temporary password</Label>
+            <Input
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 8 characters"
+            />
+            <p className="text-[11px] text-muted-foreground">Share this with the user securely. They can change it after signing in.</p>
           </div>
           <div className="grid gap-2">
             <Label>Role</Label>
@@ -107,8 +145,10 @@ export default function InviteUserDialog({ open, onOpenChange, onInvite }: Props
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit}>Send invite</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>Cancel</Button>
+          <Button onClick={submit} disabled={submitting}>
+            {submitting ? "Creating..." : "Create account"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

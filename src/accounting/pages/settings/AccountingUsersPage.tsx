@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ShieldCheck, ShieldOff, UserPlus } from "lucide-react";
+import { Plus, ShieldCheck, ShieldOff, UserPlus, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingBreadcrumbs from "../../components/shared/AccountingBreadcrumbs";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
@@ -11,7 +12,6 @@ import DarkModeToggle from "../../components/shared/DarkModeToggle";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import InviteUserDialog from "../../components/settings/InviteUserDialog";
 import RoleBadge from "../../components/settings/RoleBadge";
-import { MOCK_ACCOUNTING_USERS } from "../../data/mockAccountingUsers";
 import { AccountingUser } from "../../types/accountingUsers";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import { toast } from "sonner";
@@ -21,9 +21,40 @@ export default function AccountingUsersPage() {
   const entities = useEntities();
   const entityName = (id: string) => entities.find((e) => e.id === id)?.name ?? id;
 
-  const [users, setUsers] = useState<AccountingUser[]>(MOCK_ACCOUNTING_USERS);
+  const [users, setUsers] = useState<AccountingUser[]>([]);
+  const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<AccountingUser | null>(null);
+
+  const mapRow = (r: any): AccountingUser => ({
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    role: r.role,
+    entityScope: r.entity_scope ?? ["*"],
+    mfaEnabled: !!r.mfa_enabled,
+    lastLogin: r.last_login ?? undefined,
+    status: r.status,
+  });
+
+  const loadUsers = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("accounting_users" as any)
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) {
+      toast.error(error.message);
+      setUsers([]);
+    } else {
+      setUsers((data ?? []).map(mapRow));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
   const cols: ColDef<AccountingUser>[] = [
     {
@@ -82,17 +113,21 @@ export default function AccountingUsersPage() {
           actions={
             <>
               <DarkModeToggle />
-              <Button onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Invite user</Button>
+              <Button onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Add user</Button>
             </>
           }
         />
         <Card className="p-5 shadow-elev-sm">
-          {users.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground text-sm gap-2">
+              <Loader2 className="size-4 animate-spin" /> Loading users...
+            </div>
+          ) : users.length === 0 ? (
             <AccountingEmptyState
               icon={UserPlus}
               title="No users yet"
-              description="Invite teammates to give them access to the accounting workspace."
-              action={<Button size="sm" onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Invite user</Button>}
+              description="Add the first admin to start managing access. The first account you create becomes Super admin."
+              action={<Button size="sm" onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Add user</Button>}
             />
           ) : (
             <AccountingAGGrid rowData={users} columnDefs={cols} height={560} rowHeight={56} />
@@ -102,7 +137,7 @@ export default function AccountingUsersPage() {
         <InviteUserDialog
           open={inviteOpen}
           onOpenChange={setInviteOpen}
-          onInvite={(u) => setUsers((prev) => [u, ...prev])}
+          onCreated={(u) => setUsers((prev) => [...prev, u])}
         />
         <ConfirmDialog
           open={!!confirmTarget}
@@ -113,10 +148,17 @@ export default function AccountingUsersPage() {
             : `${confirmTarget?.name} will lose access until reactivated.`}
           confirmLabel={confirmTarget?.status === "SUSPENDED" ? "Reactivate" : "Suspend"}
           destructive={confirmTarget?.status !== "SUSPENDED"}
-          onConfirm={() => {
+          onConfirm={async () => {
             if (!confirmTarget) return;
-            setUsers((prev) => prev.map((u) => u.id === confirmTarget.id
-              ? { ...u, status: u.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED" } : u));
+            const newStatus = confirmTarget.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
+            const { data, error } = await supabase.functions.invoke("accounting-update-user", {
+              body: { id: confirmTarget.id, status: newStatus },
+            });
+            if (error || data?.error) {
+              toast.error(error?.message ?? data?.error ?? "Update failed");
+              return;
+            }
+            setUsers((prev) => prev.map((u) => u.id === confirmTarget.id ? { ...u, status: newStatus } : u));
             toast.success("User updated");
             setConfirmTarget(null);
           }}

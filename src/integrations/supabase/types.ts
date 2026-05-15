@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_users: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string
+          email: string
+          entity_scope: string[]
+          id: string
+          last_login: string | null
+          mfa_enabled: boolean
+          name: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string
+          email: string
+          entity_scope?: string[]
+          id?: string
+          last_login?: string | null
+          mfa_enabled?: boolean
+          name: string
+          role: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string
+          email?: string
+          entity_scope?: string[]
+          id?: string
+          last_login?: string | null
+          mfa_enabled?: boolean
+          name?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action: string
@@ -5471,6 +5513,7 @@ export type Database = {
         Args: { _dedupe?: string; payload: Json }
         Returns: Json
       }
+      is_accounting_admin: { Args: { _uid: string }; Returns: boolean }
       is_chat_channel_member: {
         Args: { _channel: string; _uid: string }
         Returns: boolean
