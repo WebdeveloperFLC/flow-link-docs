@@ -19,13 +19,14 @@ Deno.serve(async (req) => {
       return json({ error: "Not authenticated" }, 401);
     }
 
-    // Verify caller
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return json({ error: "Not authenticated" }, 401);
-    const callerId = userData.user.id;
+    // Verify caller via JWT claims (works with ES256 signing keys)
+    const userClient = createClient(SUPABASE_URL, ANON_KEY);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return json({ error: "Not authenticated", detail: claimsErr?.message }, 401);
+    }
+    const callerId = claimsData.claims.sub as string;
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
