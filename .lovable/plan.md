@@ -1,22 +1,54 @@
-## Problem
+## Complete AP/AR Module
 
-The Bank accounts page exists at `/accounting/bank-accounts` (`src/accounting/pages/bank-accounts/AccountingBankAccountsPage.tsx`) and is fully built (list, KPIs, form dialog, reconciliation badges), but there is no entry for it in the Accounting sidebar in `src/components/layout/AppLayout.tsx`. So users have no way to navigate to it.
+Finish the remaining AR pages and wire up all routes.
 
-## Change
+### Files to create (4 new)
 
-Add a single nav entry to the `accountingNav` array in `src/components/layout/AppLayout.tsx`:
+1. **`src/accounting/pages/ar/AccountingARPage.tsx`**
+   - List view of customer invoices from `mockAR.ts`
+   - KPIs: Outstanding, Overdue, Due this week, Collected (TODAY = 2024-11-01)
+   - Aging buckets: Current, 1-30, 31-60, 61-90, 90+
+   - Filters: entity, category, status
+   - Row actions: Mark as paid, Void (shadcn AlertDialog confirm), View detail
+   - Pagination: 15/page
+   - Empty state via `AccountingEmptyState`
+   - Same shape/patterns as `AccountingAPPage.tsx`
 
-- Label: **Bank accounts**
-- Route: `/accounting/bank-accounts`
-- Icon: `Landmark` (already used on the page itself, matches the bank metaphor) — add it to the existing `lucide-react` import.
+2. **`src/accounting/pages/ar/AccountingNewInvoicePage.tsx`**
+   - react-hook-form + zod
+   - Fields: client (FreeCombobox), entity, category, issue date, due date, line items, tax %, tags
+   - Auto-calc subtotal/tax/total, multi-currency via `fmtMoney`
+   - Mirror `AccountingNewBillPage.tsx`
 
-Placement: directly under **Chart of accounts**, so the grouping reads:
-Overview → Journal entries → Chart of accounts → **Bank accounts** → Owner profiles → …
+3. **`src/accounting/pages/ar/AccountingInvoiceDetailPage.tsx`**
+   - Header (status badge, aging banner if overdue)
+   - Financial summary, line items table
+   - Activity timeline from status transitions
+   - Actions: Mark paid, Void (AlertDialog), back link
+   - "View client ledger" → `/accounting/clients` if route exists else Sonner toast "Coming soon"
+   - Mirror `AccountingBillDetailPage.tsx`
 
-That keeps it next to the other foundational ledger setup items, before the AP/AR transactional pages.
+### Files to modify (1)
 
-## Out of scope
+4. **`src/App.tsx`** — Add 4 routes inside the existing accounting layout:
+   ```
+   /accounting/ap/new          → AccountingNewBillPage
+   /accounting/ap/:id          → AccountingBillDetailPage
+   /accounting/ar              → AccountingARPage
+   /accounting/ar/new          → AccountingNewInvoicePage
+   /accounting/ar/:id          → AccountingInvoiceDetailPage
+   ```
+   (Plus AP detail/new if not yet routed.)
 
-- No changes to the Bank accounts page itself.
-- No changes to routing (route is already wired).
-- No changes to any other CRM or accounting functionality.
+### Constraints respected
+- No CRM files touched
+- No previously built accounting files modified (only additive + App.tsx routes)
+- Plain HTML tables + Tailwind, no AG Grid
+- `AccountingPageHeader` subtitle (no breadcrumbs component)
+- shadcn AlertDialog for confirms, Sonner for toasts
+- No new npm packages
+- TODAY = `new Date('2024-11-01')` for aging
+- No auto journal creation; vendor/client ledger = navigate or toast
+
+### Final deliverable
+List of all files created (7 total across both turns) and modified (App.tsx).
