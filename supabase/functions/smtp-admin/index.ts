@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
         sender_name: String(p.sender_name ?? ""),
         reply_to: p.reply_to ? String(p.reply_to) : null,
         is_active: !!p.is_active,
-        updated_by: u.user.id,
+        updated_by: userId,
       };
       // Only overwrite password if non-empty supplied
       if (typeof p.password === "string" && p.password.length > 0) {
@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
           await admin.from("app_email_logs").insert({
             recipient, subject: "SMTP test from Future Link DMS",
             status: "sent", attempts: 1, sent_at: new Date().toISOString(),
-            provider: cfg.provider, category: "test", triggered_by: u.user.id,
+            provider: cfg.provider, category: "test", triggered_by: userId,
           });
         }
         return json({ ok: true, status: action === "test" ? "sent" : "verified", raw: smtpResult.raw });
@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
           await admin.from("app_email_logs").insert({
             recipient, subject: "SMTP test from Future Link DMS",
             status: "failed", attempts: 1, error_message: msg,
-            provider: cfg.provider, category: "test", triggered_by: u.user.id,
+            provider: cfg.provider, category: "test", triggered_by: userId,
           });
         }
         return json({ error: msg, raw, stage }, 502);
