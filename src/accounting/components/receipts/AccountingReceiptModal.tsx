@@ -1,5 +1,6 @@
 import { Download, Mail, MessageCircle, Printer, X } from "lucide-react";
 import { toast } from "sonner";
+import { createRoot, type Root } from "react-dom/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AccountingReceiptTemplate from "./AccountingReceiptTemplate";
@@ -14,13 +15,34 @@ interface Props {
 export default function AccountingReceiptModal({ receipt, isOpen, onClose }: Props) {
   // In production, replace window.print() with html2pdf or a server-side
   // Puppeteer edge function so we can attach the PDF directly to email/WhatsApp.
-  function handleDownload() {
-    window.print();
+  function printReceipt() {
+    const existing = document.getElementById("accounting-receipt-print-root");
+    if (existing) existing.remove();
+
+    const mount = document.createElement("div");
+    mount.id = "accounting-receipt-print-root";
+    document.body.appendChild(mount);
+    const root: Root = createRoot(mount);
+    root.render(<AccountingReceiptTemplate receipt={receipt} />);
+
+    const cleanup = () => {
+      try { root.unmount(); } catch {}
+      mount.remove();
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+        // Safety fallback in case afterprint never fires (some browsers)
+        setTimeout(cleanup, 2000);
+      });
+    });
   }
 
-  function handlePrint() {
-    window.print();
-  }
+  const handleDownload = printReceipt;
+  const handlePrint = printReceipt;
 
   function handleEmail() {
     // Wire to a Resend/SES edge function once email service is configured.

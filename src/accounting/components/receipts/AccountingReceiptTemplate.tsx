@@ -29,10 +29,17 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
     <>
       <style>{`
         @media print {
-          @page { size: A4; margin: 20mm; }
-          body * { visibility: hidden; }
-          #accounting-receipt-print, #accounting-receipt-print * { visibility: visible; }
-          #accounting-receipt-print { position: absolute; left: 0; top: 0; width: 100%; }
+          @page { size: A4; margin: 15mm; }
+          html, body { background: #ffffff !important; margin: 0 !important; padding: 0 !important; }
+          body > *:not(#accounting-receipt-print-root) { display: none !important; }
+          #accounting-receipt-print-root { display: block !important; position: static !important; }
+          #accounting-receipt-print {
+            position: static !important;
+            box-shadow: none !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
         }
       `}</style>
       <div
