@@ -311,7 +311,12 @@ Deno.serve(async (req) => {
     const action = String(body?.action ?? "search");
 
     const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
-    if (typeof uid !== "number" || uid <= 0) throw new Error("Odoo authentication failed");
+    if (typeof uid !== "number" || uid <= 0) {
+      throw new Error(
+        `Odoo authentication failed for db="${DB}" login="${LOGIN}" at ${URL_} (got ${JSON.stringify(uid)}). ` +
+        `Check ODOO_COURSES_URL / ODOO_COURSES_DB / ODOO_COURSES_LOGIN / ODOO_COURSES_API_KEY.`,
+      );
+    }
 
     if (action === "search") {
       const filters = (body?.filters ?? {}) as Filters;
