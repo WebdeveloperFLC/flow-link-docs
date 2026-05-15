@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Upload, X, FileText } from "lucide-react";
+import { Upload, X, FileText, ShieldCheck, UserCheck } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,8 +13,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePettyCash, approvalLevelFor } from "../../stores/pettyCashStore";
-import { PETTY_CATEGORIES, PaymentType, ReimbursementMethod } from "../../types/pettyCash";
+import { PaymentType, ReimbursementMethod } from "../../types/pettyCash";
 import { formatCurrency } from "../../lib/format";
+import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
+import { ExtensibleSelect } from "../../components/petty-cash/ExtensibleSelect";
+import { AddOptionDialog } from "../../components/petty-cash/AddOptionDialog";
+import { ManageBranchesDialog } from "../../components/petty-cash/ManageBranchesDialog";
 
 const APPROVAL_LABEL: Record<string, { text: string; cls: string }> = {
   auto: { text: "Auto-approved (under ₹500)", cls: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400" },
@@ -26,7 +30,8 @@ const APPROVAL_LABEL: Record<string, { text: string; cls: string }> = {
 export default function AccountingPettyCashVoucherPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const { branches, addVoucher } = usePettyCash();
+  const { branches, addVoucher, categories, people, addCategory, addPerson } = usePettyCash();
+  const { isAdmin } = usePettyCashAdmin();
 
   const [branchId, setBranchId] = useState(search.get("branch") ?? branches[0]?.id ?? "");
   const [category, setCategory] = useState<string>("");
@@ -44,6 +49,10 @@ export default function AccountingPettyCashVoucherPage() {
   const [file, setFile] = useState<File | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [showAddEmployee, setShowAddEmployee] = useState(false);
+  const [showManageBranches, setShowManageBranches] = useState(false);
 
   const numAmount = parseFloat(amount) || 0;
   const level = useMemo(() => (numAmount > 0 ? approvalLevelFor(numAmount) : null), [numAmount]);
@@ -77,6 +86,7 @@ export default function AccountingPettyCashVoucherPage() {
   };
 
   const branch = branches.find(b => b.id === branchId);
+  const employees = people.filter(p => p.role === "employee");
 
   return (
     <AppLayout>
@@ -100,27 +110,43 @@ export default function AccountingPettyCashVoucherPage() {
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Branch *</Label>
-              <Select value={branchId} onValueChange={setBranchId}>
-                <SelectTrigger className={cn(submitted && !branchId && "border-destructive")}><SelectValue placeholder="Select branch…" /></SelectTrigger>
-                <SelectContent>
-                  {branches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ExtensibleSelect
+                value={branchId}
+                onValueChange={setBranchId}
+                options={branches.map(b => ({ value: b.id, label: b.name }))}
+                placeholder="Select branch…"
+                invalid={submitted && !branchId}
+                canAdd={isAdmin}
+                addLabel="Manage branches…"
+                onAdd={() => setShowManageBranches(true)}
+              />
               {branch && (
-                <div className="text-[11px] text-muted-foreground">
-                  Custodian: {branch.custodianName} · Balance: <span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span>
+                <div className="text-[11px] text-muted-foreground space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="inline-flex items-center gap-1"><UserCheck className="size-3" /> Custodian: <span className="text-foreground font-medium">{branch.custodianName}</span></span>
+                    <span className="inline-flex items-center gap-1"><ShieldCheck className="size-3" /> Approver: <span className="text-foreground font-medium">{branch.secondaryApproverName ?? "—"}</span></span>
+                  </div>
+                  <div>Balance: <span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span>
+                    {isAdmin && (
+                      <button type="button" onClick={() => setShowManageBranches(true)} className="ml-2 text-primary hover:underline">Edit branch</button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
 
             <div className="space-y-1.5">
               <Label>Expense category *</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className={cn(submitted && !category && "border-destructive")}><SelectValue placeholder="Select category…" /></SelectTrigger>
-                <SelectContent>
-                  {PETTY_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <ExtensibleSelect
+                value={category}
+                onValueChange={setCategory}
+                options={categories.map(c => ({ value: c.value, label: c.label, disabled: c.disabled }))}
+                placeholder="Select category…"
+                invalid={submitted && !category}
+                canAdd={isAdmin}
+                addLabel="Add new category…"
+                onAdd={() => setShowAddCategory(true)}
+              />
             </div>
 
             <div className="space-y-1.5">
@@ -158,8 +184,16 @@ export default function AccountingPettyCashVoucherPage() {
               <>
                 <div className="space-y-1.5">
                   <Label>Employee name *</Label>
-                  <Input value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} placeholder="e.g. Pooja Sharma"
-                    className={cn(submitted && !employeeName.trim() && "border-destructive")} />
+                  <ExtensibleSelect
+                    value={employeeName}
+                    onValueChange={setEmployeeName}
+                    options={employees.map(p => ({ value: p.name, label: p.name }))}
+                    placeholder="Select employee…"
+                    invalid={submitted && !employeeName.trim()}
+                    canAdd
+                    addLabel="Add new employee…"
+                    onAdd={() => setShowAddEmployee(true)}
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Reimbursement method *</Label>
@@ -230,6 +264,35 @@ export default function AccountingPettyCashVoucherPage() {
           <div className="text-sm text-destructive">{errs.join(" · ")}</div>
         )}
       </div>
+
+      <AddOptionDialog
+        open={showAddCategory}
+        onOpenChange={setShowAddCategory}
+        title="Add expense category"
+        fields={[{ key: "label", label: "Category name", required: true, placeholder: "e.g. Office plants" }]}
+        onSubmit={(v) => {
+          const c = addCategory(v.label);
+          setCategory(c.value);
+          toast.success("Category added");
+        }}
+      />
+
+      <AddOptionDialog
+        open={showAddEmployee}
+        onOpenChange={setShowAddEmployee}
+        title="Add employee"
+        fields={[
+          { key: "name", label: "Employee name", required: true },
+          { key: "email", label: "Email", type: "email", placeholder: "optional" },
+        ]}
+        onSubmit={(v) => {
+          const p = addPerson({ name: v.name, email: v.email, role: "employee" });
+          setEmployeeName(p.name);
+          toast.success("Employee added");
+        }}
+      />
+
+      <ManageBranchesDialog open={showManageBranches} onOpenChange={setShowManageBranches} />
     </AppLayout>
   );
 }

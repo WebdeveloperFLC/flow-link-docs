@@ -15,15 +15,16 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { usePettyCash } from "../../stores/pettyCashStore";
-import { PETTY_CATEGORIES, PettyCashVoucher } from "../../types/pettyCash";
+import { PettyCashVoucher } from "../../types/pettyCash";
 import { formatCurrency } from "../../lib/format";
-
-const CAT_LABEL = Object.fromEntries(PETTY_CATEGORIES.map(c => [c.value, c.label]));
+import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
 
 export default function AccountingPettyCashAuditPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const { branches, vouchers, verifications, submitVerification } = usePettyCash();
+  const { branches, vouchers, verifications, categories, submitVerification } = usePettyCash();
+  const { isAdmin } = usePettyCashAdmin();
+  const CAT_LABEL: Record<string, string> = Object.fromEntries(categories.map(c => [c.value, c.label]));
   const [branchFilter, setBranchFilter] = useState<string>(search.get("branch") ?? "all");
   const [q, setQ] = useState("");
 
@@ -85,10 +86,12 @@ export default function AccountingPettyCashAuditPage() {
           subtitle="Discrepancies, flagged vouchers, missing receipts, and approval delays"
           actions={
             <>
-              <CashVerificationDialog onSubmit={(branchId, actual, by, note) => {
-                const r = submitVerification(branchId, actual, by, note);
-                toast.success(`Verification recorded · delta ${formatCurrency(r.delta, "INR")}`);
-              }} />
+              {isAdmin && (
+                <CashVerificationDialog onSubmit={(branchId, actual, by, note) => {
+                  const r = submitVerification(branchId, actual, by, note);
+                  toast.success(`Verification recorded · delta ${formatCurrency(r.delta, "INR")}`);
+                }} />
+              )}
               <Button variant="outline" onClick={() => navigate("/accounting/petty-cash")}>
                 <ScanSearch className="size-4 mr-1.5" /> Dashboard
               </Button>
@@ -156,10 +159,10 @@ export default function AccountingPettyCashAuditPage() {
           </TabsContent>
 
           <TabsContent value="missing" className="mt-4">
-            <VoucherTable rows={missingReceipts} branches={branches} navigate={navigate} onExport={() => exportCsv(toCsv(missingReceipts, branches), "petty-cash-missing-receipts")} empty="No missing receipts." />
+            <VoucherTable rows={missingReceipts} branches={branches} catLabel={CAT_LABEL} navigate={navigate} onExport={() => exportCsv(toCsv(missingReceipts, branches, CAT_LABEL), "petty-cash-missing-receipts")} empty="No missing receipts." />
           </TabsContent>
           <TabsContent value="flagged" className="mt-4">
-            <VoucherTable rows={flaggedVouchers} branches={branches} navigate={navigate} onExport={() => exportCsv(toCsv(flaggedVouchers, branches), "petty-cash-flagged")} empty="No flagged vouchers." showFlags />
+            <VoucherTable rows={flaggedVouchers} branches={branches} catLabel={CAT_LABEL} navigate={navigate} onExport={() => exportCsv(toCsv(flaggedVouchers, branches, CAT_LABEL), "petty-cash-flagged")} empty="No flagged vouchers." showFlags />
           </TabsContent>
 
           <TabsContent value="branches" className="mt-4">
@@ -203,7 +206,7 @@ export default function AccountingPettyCashAuditPage() {
           </TabsContent>
 
           <TabsContent value="delays" className="mt-4">
-            <VoucherTable rows={approvalDelays} branches={branches} navigate={navigate} onExport={() => exportCsv(toCsv(approvalDelays, branches), "approval-delays")} empty="No delayed approvals." showAge />
+            <VoucherTable rows={approvalDelays} branches={branches} catLabel={CAT_LABEL} navigate={navigate} onExport={() => exportCsv(toCsv(approvalDelays, branches, CAT_LABEL), "approval-delays")} empty="No delayed approvals." showAge />
           </TabsContent>
 
           <TabsContent value="verifications" className="mt-4">
@@ -238,12 +241,12 @@ export default function AccountingPettyCashAuditPage() {
   );
 }
 
-function toCsv(rows: PettyCashVoucher[], branches: { id: string; name: string }[]) {
+function toCsv(rows: PettyCashVoucher[], branches: { id: string; name: string }[], CAT_LABEL: Record<string, string>) {
   return [
     ["Voucher", "Branch", "Date", "Category", "Paid to", "Amount", "Status", "Flags"],
     ...rows.map(v => [
       v.voucherNumber, branches.find(b => b.id === v.branchId)?.name ?? "",
-      v.date, CAT_LABEL[v.category], v.paidTo, String(v.amount), v.status,
+      v.date, CAT_LABEL[v.category] ?? v.category, v.paidTo, String(v.amount), v.status,
       [...(v.missingReceipt ? ["missing_receipt"] : []), ...(v.flags ?? [])].join("|"),
     ]),
   ];
@@ -262,10 +265,11 @@ function AuditCard({ title, children, empty, onExport }: { title: string; childr
 }
 
 function VoucherTable({
-  rows, branches, navigate, onExport, empty, showFlags, showAge,
+  rows, branches, catLabel, navigate, onExport, empty, showFlags, showAge,
 }: {
   rows: PettyCashVoucher[];
   branches: { id: string; name: string }[];
+  catLabel: Record<string, string>;
   navigate: (p: string) => void;
   onExport: () => void;
   empty: string;
@@ -303,7 +307,7 @@ function VoucherTable({
                     <td className="px-3 py-2 font-mono text-xs">{v.voucherNumber}</td>
                     <td className="px-3 py-2">{branches.find(b => b.id === v.branchId)?.name}</td>
                     <td className="px-3 py-2 text-muted-foreground">{v.date}</td>
-                    <td className="px-3 py-2">{CAT_LABEL[v.category]}</td>
+                    <td className="px-3 py-2">{catLabel[v.category] ?? v.category}</td>
                     <td className="px-3 py-2 truncate max-w-[180px]">{v.paidTo}</td>
                     <td className="px-3 py-2 text-right font-mono">{formatCurrency(v.amount, "INR")}</td>
                     {showAge && <td className={cn("px-3 py-2 text-right font-mono", days >= 3 && "text-destructive font-medium")}>{days}d</td>}

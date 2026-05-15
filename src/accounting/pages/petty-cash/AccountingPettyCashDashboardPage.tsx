@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet, AlertTriangle, Clock, ShieldAlert, TrendingDown, Plus,
-  Download, ArrowUpRight, ScanSearch, RefreshCw,
+  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -10,23 +10,36 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import { usePettyCash } from "../../stores/pettyCashStore";
 import { formatCurrency } from "../../lib/format";
-import { PETTY_CATEGORIES, PettyCategory } from "../../types/pettyCash";
-
-const CAT_LABEL = Object.fromEntries(PETTY_CATEGORIES.map(c => [c.value, c.label])) as Record<PettyCategory, string>;
+import { PettyCategory } from "../../types/pettyCash";
+import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
+import { ManageBranchesDialog } from "../../components/petty-cash/ManageBranchesDialog";
+import { ManagePeopleDialog } from "../../components/petty-cash/ManagePeopleDialog";
+import { ManageCategoriesDialog } from "../../components/petty-cash/ManageCategoriesDialog";
 
 export default function AccountingPettyCashDashboardPage() {
   const navigate = useNavigate();
-  const { branches, vouchers, getBranchSummary, getCategoryBreakdown, getMonthlyTrend } = usePettyCash();
+  const { branches, vouchers, categories, getBranchSummary, getCategoryBreakdown, getMonthlyTrend } = usePettyCash();
+  const { isAdmin } = usePettyCashAdmin();
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+  const [showManageBranches, setShowManageBranches] = useState(false);
+  const [showManagePeople, setShowManagePeople] = useState(false);
+  const [showManageCategories, setShowManageCategories] = useState(false);
+
+  const CAT_LABEL = useMemo(() => {
+    const m: Record<string, string> = {};
+    categories.forEach(c => { m[c.value] = c.label; });
+    return m;
+  }, [categories]);
 
   const summaries = branches.map(b => getBranchSummary(b.id));
   const totals = useMemo(() => {
@@ -85,6 +98,24 @@ export default function AccountingPettyCashDashboardPage() {
           subtitle="Branch-wise petty cash operations, approvals, and audit"
           actions={
             <>
+              {isAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline"><Settings className="size-4 mr-1.5" /> Manage</Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowManageBranches(true)}>
+                      <Building2 className="size-4 mr-2" /> Branches
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowManagePeople(true)}>
+                      <Users className="size-4 mr-2" /> Custodians, approvers & employees
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowManageCategories(true)}>
+                      <Tags className="size-4 mr-2" /> Categories
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Button variant="outline" onClick={() => navigate("/accounting/petty-cash/audit")}>
                 <ScanSearch className="size-4 mr-1.5" /> Audit
               </Button>
@@ -258,7 +289,7 @@ export default function AccountingPettyCashDashboardPage() {
                 <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All categories</SelectItem>
-                  {PETTY_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                  {categories.filter(c => !c.disabled).map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="h-8 w-[140px] text-xs" />
@@ -293,7 +324,7 @@ export default function AccountingPettyCashDashboardPage() {
                         <td className="px-3 py-2 font-mono text-xs">{v.voucherNumber}</td>
                         <td className="px-3 py-2">{branches.find(b => b.id === v.branchId)?.name}</td>
                         <td className="px-3 py-2 text-muted-foreground">{v.date}</td>
-                        <td className="px-3 py-2">{CAT_LABEL[v.category]}</td>
+                        <td className="px-3 py-2">{CAT_LABEL[v.category] ?? v.category}</td>
                         <td className="px-3 py-2 truncate max-w-[200px]">{v.paidTo}</td>
                         <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(v.amount, "INR")}</td>
                         <td className="px-3 py-2">
@@ -326,6 +357,10 @@ export default function AccountingPettyCashDashboardPage() {
           )}
         </Card>
       </div>
+
+      <ManageBranchesDialog open={showManageBranches} onOpenChange={setShowManageBranches} />
+      <ManagePeopleDialog open={showManagePeople} onOpenChange={setShowManagePeople} />
+      <ManageCategoriesDialog open={showManageCategories} onOpenChange={setShowManageCategories} />
     </AppLayout>
   );
 }
