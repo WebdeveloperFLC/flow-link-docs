@@ -8,10 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { usePettyCash } from "../../stores/pettyCashStore";
-import { PETTY_CATEGORIES, ApprovalLevel } from "../../types/pettyCash";
+import { ApprovalLevel } from "../../types/pettyCash";
 import { formatCurrency } from "../../lib/format";
-
-const CAT_LABEL = Object.fromEntries(PETTY_CATEGORIES.map(c => [c.value, c.label]));
+import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
 
 const LEVEL_LABEL: Record<ApprovalLevel, string> = {
   auto: "Auto-approval",
@@ -33,7 +32,9 @@ const FLAG_LABEL: Record<string, string> = {
 export default function AccountingPettyCashDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { vouchers, branches, approveVoucher, rejectVoucher, markReimbursed } = usePettyCash();
+  const { vouchers, branches, categories, approveVoucher, rejectVoucher, markReimbursed } = usePettyCash();
+  const { isAdmin } = usePettyCashAdmin();
+  const CAT_LABEL: Record<string, string> = Object.fromEntries(categories.map(c => [c.value, c.label]));
   const voucher = vouchers.find(v => v.id === id);
 
   if (!voucher) {
@@ -51,13 +52,14 @@ export default function AccountingPettyCashDetailPage() {
   const pendingStep = voucher.approvalTrail.find(s => s.status === "pending");
 
   // Journal preview
+  const catLabel = CAT_LABEL[voucher.category] ?? voucher.category;
   const jrows: { dr?: string; cr?: string; account: string; amount: number }[] = [];
   if (voucher.paymentType === "petty_cash") {
-    jrows.push({ dr: "Dr", account: `Expense — ${CAT_LABEL[voucher.category]}`, amount: voucher.amount });
+    jrows.push({ dr: "Dr", account: `Expense — ${catLabel}`, amount: voucher.amount });
     jrows.push({ cr: "Cr", account: `Petty Cash — ${branch.name}`, amount: voucher.amount });
   } else {
     // reimbursement
-    jrows.push({ dr: "Dr", account: `Expense — ${CAT_LABEL[voucher.category]}`, amount: voucher.amount });
+    jrows.push({ dr: "Dr", account: `Expense — ${catLabel}`, amount: voucher.amount });
     jrows.push({ cr: "Cr", account: `Employee Payable — ${voucher.employeeName ?? "Employee"}`, amount: voucher.amount });
     if (voucher.status === "REIMBURSED") {
       jrows.push({ dr: "Dr", account: `Employee Payable — ${voucher.employeeName ?? "Employee"}`, amount: voucher.amount });
@@ -100,7 +102,7 @@ export default function AccountingPettyCashDetailPage() {
           <span className="text-foreground font-mono">{voucher.voucherNumber}</span>
         </nav>
         <div className="flex items-center gap-2">
-          {voucher.status === "PENDING" && (
+          {isAdmin && voucher.status === "PENDING" && (
             <>
               <Button variant="outline" onClick={onReject}>
                 <XCircle className="size-4 mr-1.5" /> Reject
@@ -110,10 +112,13 @@ export default function AccountingPettyCashDetailPage() {
               </Button>
             </>
           )}
-          {voucher.paymentType === "reimbursement" && voucher.status === "APPROVED" && (
+          {isAdmin && voucher.paymentType === "reimbursement" && voucher.status === "APPROVED" && (
             <Button onClick={onReimburse}>
               <Banknote className="size-4 mr-1.5" /> Mark reimbursed
             </Button>
+          )}
+          {!isAdmin && voucher.status === "PENDING" && (
+            <span className="text-xs text-muted-foreground">Approval requires admin rights</span>
           )}
         </div>
       </div>
@@ -126,7 +131,7 @@ export default function AccountingPettyCashDetailPage() {
               <div className="text-xs text-muted-foreground font-mono">{voucher.voucherNumber}</div>
               <div className="text-2xl font-semibold mt-1">{formatCurrency(voucher.amount, "INR")}</div>
               <div className="text-sm text-muted-foreground mt-1">
-                {CAT_LABEL[voucher.category]} · Paid to <span className="text-foreground font-medium">{voucher.paidTo}</span>
+                {catLabel} · Paid to <span className="text-foreground font-medium">{voucher.paidTo}</span>
               </div>
               <div className="text-xs text-muted-foreground mt-1">{branch.name} · {voucher.date}</div>
             </div>
@@ -167,7 +172,7 @@ export default function AccountingPettyCashDetailPage() {
               <CardContent className="grid grid-cols-2 gap-4 text-sm">
                 <Field label="Branch" value={branch.name} />
                 <Field label="Custodian" value={branch.custodianName} />
-                <Field label="Category" value={CAT_LABEL[voucher.category]} />
+                <Field label="Category" value={catLabel} />
                 <Field label="Required approval" value={LEVEL_LABEL[voucher.requiredLevel]} />
                 <Field label="Created by" value={voucher.createdBy} />
                 <Field label="Created at" value={new Date(voucher.createdAt).toLocaleString()} />
