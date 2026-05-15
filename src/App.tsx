@@ -98,6 +98,7 @@ import AccountingReconciliationPage from "./accounting/pages/reconciliation/Acco
 import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
+import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
 
 const queryClient = new QueryClient();
 
