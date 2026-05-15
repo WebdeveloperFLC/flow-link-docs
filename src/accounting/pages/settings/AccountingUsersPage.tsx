@@ -113,7 +113,7 @@ export default function AccountingUsersPage() {
           actions={
             <>
               <DarkModeToggle />
-              <Button onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Invite user</Button>
+              <Button onClick={() => setInviteOpen(true)}><Plus className="size-4 mr-1" /> Add user</Button>
             </>
           }
         />
