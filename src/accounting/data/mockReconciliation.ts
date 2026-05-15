@@ -1,78 +1,115 @@
-import type { BankStatement, ReconMatch, SystemEntry } from '../types/reconciliation';
+export interface BankStatementLine {
+  id: string;
+  date: string;
+  description: string;
+  reference?: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  currency: string;
+  rawText: string;
+}
 
-// Statement covering Oct 1 - Oct 18, 2024 for the RBC Business Chequing (fa1)
-export const MOCK_BANK_STATEMENT: BankStatement = {
-  accountId: 'fa1',
-  startDate: '2024-10-01',
-  endDate: '2024-10-18',
-  openingBalance: 198420,
-  closingBalance: 245000,
-  lines: [
-    { id: 'b1', date: '2024-10-01', description: 'WeWork Toronto Rent', amount: -8500, reference: 'WW-OCT-2024' },
-    { id: 'b2', date: '2024-10-02', description: 'Payroll Disbursement Period 20', amount: -113600, reference: 'PAY20' },
-    { id: 'b3', date: '2024-10-03', description: 'Maple Realty Wire In', amount: 16950, reference: 'WIRE-MR-9981' },
-    { id: 'b4', date: '2024-10-05', description: 'ACME OFFICE SUPPLIES TORONTO', amount: -1401.20, reference: 'EFT-AC-441' },
-    { id: 'b5', date: '2024-10-07', description: 'AMAZON WEB SERVICES *AWS', amount: -6502.10, reference: 'CARD-AMEX' },
-    { id: 'b6', date: '2024-10-08', description: 'Air Canada — Conference Travel', amount: -3200, reference: 'AC-118' },
-    { id: 'b7', date: '2024-10-10', description: 'JetBrains Renewal — INR FX', amount: -3018.50, reference: 'WIRE-JB-001' },
-    { id: 'b8', date: '2024-10-12', description: 'CRA HST Q3 Remittance', amount: -18420, reference: 'CRA-HST-Q3' },
-    { id: 'b9', date: '2024-10-14', description: 'TD BANK INVOICE 0051', amount: 9040, reference: 'EFT-TD-2117' },
-    { id: 'b10', date: '2024-10-15', description: 'Toronto Hydro — Pre-auth', amount: -1240, reference: 'PAD-TH-9921' },
-    { id: 'b11', date: '2024-10-16', description: 'Bank Service Fee', amount: -42, reference: 'FEE-OCT' },
-    { id: 'b12', date: '2024-10-17', description: 'Interest Earned', amount: 18.40, reference: 'INT-OCT' },
-    { id: 'b13', date: '2024-10-18', description: 'UNKNOWN MERCHANT 4422', amount: -129.99, reference: 'POS-4422' },
-  ],
-};
+export interface ReconciliationMatch {
+  statementLineId: string;
+  journalLineId?: string;
+  journalEntryNumber?: string;
+  confidence: number;
+  matchType: 'EXACT' | 'FUZZY' | 'MANUAL' | 'UNMATCHED' | 'NEW_ENTRY';
+  matchReasons: string[];
+  status: 'AUTO_MATCHED' | 'NEEDS_REVIEW' | 'CONFIRMED' | 'UNMATCHED' | 'EXCEPTION';
+  reviewNote?: string;
+}
 
-export const MOCK_SYSTEM_ENTRIES: SystemEntry[] = [
-  { id: 's1', journalId: 'je-rent-oct', entryNumber: 'JE-2024-0010', date: '2024-10-01', description: 'October rent — WeWork', amount: -8500, reference: 'WW-OCT-2024' },
-  { id: 's2', journalId: 'je2',          entryNumber: 'JE-2024-0002', date: '2024-10-02', description: 'Bi-weekly payroll — Canada', amount: -113600, reference: 'PAY-2024-20' },
-  { id: 's3', journalId: 'je3',          entryNumber: 'JE-2024-0003', date: '2024-10-03', description: 'Receipt — Maple Realty', amount: 16950, reference: 'INV-2024-0042' },
-  { id: 's4', journalId: 'je4',          entryNumber: 'JE-2024-0004', date: '2024-10-05', description: 'Acme Office Supplies bill', amount: -1401.20, reference: 'BILL-ACME-9921' },
-  { id: 's5', journalId: 'je5',          entryNumber: 'JE-2024-0005', date: '2024-10-08', description: 'AWS October infra', amount: -4820, reference: 'AWS-OCT-2024' }, // amount mismatch with bank
-  { id: 's6', journalId: 'je6',          entryNumber: 'JE-2024-0006', date: '2024-10-08', description: 'Travel — Vancouver conference', amount: -3200, reference: 'EXP-RPT-118' },
-  { id: 's7', journalId: 'je-jb',        entryNumber: 'JE-2024-0011', date: '2024-10-10', description: 'JetBrains licence — FX wire', amount: -3018.50, reference: 'JB-RENEW-24' },
-  { id: 's8', journalId: 'je8',          entryNumber: 'JE-2024-0008', date: '2024-10-12', description: 'CRA HST Q3 remittance', amount: -18420, reference: 'CRA-HST-Q3' },
-  { id: 's9', journalId: 'je9',          entryNumber: 'JE-2024-0009', date: '2024-10-14', description: 'TD Bank — training revenue', amount: 9040, reference: 'INV-2024-0051' },
-  { id: 's10', journalId: 'je-th',       entryNumber: 'JE-2024-0012', date: '2024-10-15', description: 'Toronto Hydro — utilities', amount: -1240, reference: 'PAD-TH-9921' },
+export interface ReconciliationSession {
+  id: string;
+  bankAccountId: string;
+  bankAccountName: string;
+  entity: string;
+  currency: string;
+  statementDate: string;
+  statementFrom: string;
+  statementTo: string;
+  openingBalance: number;
+  closingBalance: number;
+  totalLines: number;
+  matchedLines: number;
+  unreconciledLines: number;
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'ABANDONED';
+  createdAt: string;
+  completedAt?: string;
+  createdBy: string;
+}
+
+const mk = (
+  id: string,
+  date: string,
+  description: string,
+  debit: number,
+  credit: number,
+  balance: number,
+  reference?: string
+): BankStatementLine => ({
+  id,
+  date,
+  description,
+  debit,
+  credit,
+  balance,
+  currency: 'CAD',
+  reference,
+  rawText: `${date},${description},${reference ?? ''},${debit},${credit},${balance}`,
+});
+
+export const MOCK_STATEMENT_LINES: BankStatementLine[] = [
+  mk('s1',  '2024-10-01', 'Opening balance brought forward',                  0,    245000, 245000),
+  mk('s2',  '2024-10-01', 'WEWORK TORONTO OCT RENT',                         8500, 0,      236500, 'WW-OCT-2024'),
+  mk('s3',  '2024-10-03', 'CLIENT PAYMENT INV2024012 SHARMA FAMILY TRUST',   0,    18500,  255000),
+  mk('s4',  '2024-10-05', 'MICROSOFT AZURE OCT SERVICES',                    1240, 0,      253760, 'MSFT-INV-OCT24'),
+  mk('s5',  '2024-10-07', 'CLIENT PAYMENT MEHTA ENT LTD',                    0,    12800,  266560),
+  mk('s6',  '2024-10-10', 'AIR CANADA BUSINESS TRAVEL',                      3420, 0,      263140, 'AC-BOOKING-78234'),
+  mk('s7',  '2024-10-12', 'BELL CANADA SERVICES OCT',                        890,  0,      262250),
+  mk('s8',  '2024-10-14', 'TORONTO IMMIGRATION SERVICES CONSULTING FEE',     0,    22000,  284250),
+  mk('s9',  '2024-10-15', 'PAYROLL CRA REMITTANCE SEP24',                    17800,0,      266450, 'CRA-PAY-SEP24'),
+  mk('s10', '2024-10-16', 'ROGERS COMM MOBILE PLAN',                         420,  0,      266030),
+  mk('s11', '2024-10-18', 'PACIFIC CONSULTING GROUP INV2024018 PAYMENT',     0,    8500,   274530),
+  mk('s12', '2024-10-20', 'RCIC MEMBERSHIP FEE 2025',                        2800, 0,      271730),
+  mk('s13', '2024-10-22', 'SINGH AND ASSOCIATES PYMT',                       0,    15600,  287330),
+  mk('s14', '2024-10-24', 'SLACK TECHNOLOGIES USD 229',                      312,  0,      287018),
+  mk('s15', '2024-10-25', 'CRA GST HST REMITTANCE Q3',                       48500,0,      238518, 'CRA-GST-Q3-2024'),
+  mk('s16', '2024-10-26', 'GLOBAL EDUCATION PARTNERS',                       0,    9800,   248318),
+  mk('s17', '2024-10-28', 'PAYROLL OCT 2024 DIRECT DEP',                     124000,0,     124318, 'PR-OCT-2024'),
+  mk('s18', '2024-10-29', 'ADOBE SYSTEMS SUBSCRIPTION',                      189,  0,      124129),
+  mk('s19', '2024-10-30', 'NORTH STAR IMMIGRATION PMT',                      0,    6200,   130329),
+  mk('s20', '2024-10-31', 'BANK SERVICE CHARGES OCT',                        2400, 0,      127929),
 ];
 
-/** Build initial matches based on amount + date proximity + reference fuzzy match. */
-export function buildInitialMatches(): ReconMatch[] {
-  const matches: ReconMatch[] = [];
-  for (const b of MOCK_BANK_STATEMENT.lines) {
-    let best: { entry: SystemEntry; score: number; reasons: string[] } | null = null;
-    for (const s of MOCK_SYSTEM_ENTRIES) {
-      const reasons: string[] = [];
-      let score = 0;
-      if (Math.abs(s.amount - b.amount) < 0.01) { score += 60; reasons.push('Exact amount'); }
-      else if (Math.abs(Math.abs(s.amount) - Math.abs(b.amount)) / Math.max(Math.abs(b.amount), 1) < 0.05) {
-        score += 25; reasons.push('Amount ±5%');
-      }
-      const dDays = Math.abs((new Date(s.date).getTime() - new Date(b.date).getTime()) / 86400000);
-      if (dDays === 0) { score += 25; reasons.push('Same date'); }
-      else if (dDays <= 2) { score += 15; reasons.push(`Date ±${dDays}d`); }
-      if (b.reference && s.reference && (b.reference === s.reference || s.reference.includes(b.reference) || b.reference.includes(s.reference))) {
-        score += 15; reasons.push('Reference match');
-      }
-      const bDesc = b.description.toLowerCase();
-      const sDesc = s.description.toLowerCase();
-      const tokens = sDesc.split(/\s+/).filter(t => t.length >= 4);
-      if (tokens.some(t => bDesc.includes(t))) { score += 10; reasons.push('Description'); }
-      if (!best || score > best.score) best = { entry: s, score, reasons };
-    }
-    let status: ReconMatch['status'];
-    if (best && best.score >= 85) status = 'AUTO_MATCHED';
-    else if (best && best.score >= 50) status = 'REVIEW_NEEDED';
-    else status = 'UNMATCHED';
-    matches.push({
-      id: `m-${b.id}`,
-      bankLineId: b.id,
-      systemEntryId: status === 'UNMATCHED' ? null : best!.entry.id,
-      status,
-      confidence: best ? Math.min(100, best.score) : 0,
-      reasons: status === 'UNMATCHED' ? [] : best!.reasons,
-    });
-  }
-  return matches;
-}
+export const MOCK_PAST_SESSIONS: ReconciliationSession[] = [
+  {
+    id: 'rs-1', bankAccountId: 'ba-1', bankAccountName: 'RBC Business Chequing',
+    entity: 'Canada HQ', currency: 'CAD',
+    statementDate: '2024-09-30', statementFrom: '2024-09-01', statementTo: '2024-09-30',
+    openingBalance: 218400, closingBalance: 245000,
+    totalLines: 20, matchedLines: 18, unreconciledLines: 2,
+    status: 'COMPLETED', createdAt: '2024-10-02T09:00:00Z', completedAt: '2024-10-02T11:30:00Z',
+    createdBy: 'Priya Sharma',
+  },
+  {
+    id: 'rs-2', bankAccountId: 'ba-4', bankAccountName: 'HDFC Current Account',
+    entity: 'India Mumbai', currency: 'INR',
+    statementDate: '2024-10-31', statementFrom: '2024-10-01', statementTo: '2024-10-31',
+    openingBalance: 4250000, closingBalance: 5180000,
+    totalLines: 22, matchedLines: 22, unreconciledLines: 0,
+    status: 'COMPLETED', createdAt: '2024-11-02T08:15:00Z', completedAt: '2024-11-02T09:45:00Z',
+    createdBy: 'Karan Iyer',
+  },
+  {
+    id: 'rs-3', bankAccountId: 'ba-3', bankAccountName: 'Chase Business Checking',
+    entity: 'USA Corp', currency: 'USD',
+    statementDate: '2024-10-31', statementFrom: '2024-10-01', statementTo: '2024-10-31',
+    openingBalance: 96400, closingBalance: 88200,
+    totalLines: 13, matchedLines: 8, unreconciledLines: 5,
+    status: 'IN_PROGRESS', createdAt: '2024-11-04T14:20:00Z',
+    createdBy: 'Rohit Mehra',
+  },
+];
