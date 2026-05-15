@@ -10,6 +10,7 @@ import { applyContactMask } from "@/lib/masking";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import DOMPurify from "dompurify";
 
 export function ClientEmailCard({ clientId, defaultTo }: { clientId: string; defaultTo?: string | null }) {
   const { hasRole } = useAuth();
