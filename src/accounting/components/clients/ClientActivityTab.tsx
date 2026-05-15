@@ -1,10 +1,11 @@
+import type { ComponentType } from "react";
 import { Card } from "@/components/ui/card";
 import {
   FileText, CreditCard, StickyNote, RefreshCw, Tag, Sparkles, ShieldAlert,
 } from "lucide-react";
 import type { ClientActivity } from "../../types/clients";
 
-const ICON: Record<ClientActivity["type"], React.ComponentType<{ className?: string }>> = {
+const ICON: Record<ClientActivity["type"], ComponentType<{ className?: string }>> = {
   INVOICE_ISSUED: FileText,
   PAYMENT_RECEIVED: CreditCard,
   NOTE_ADDED: StickyNote,
