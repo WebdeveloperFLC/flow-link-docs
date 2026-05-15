@@ -89,7 +89,7 @@ import AccountingPLPage from "./accounting/pages/reports/AccountingPLPage";
 import AccountingBSPage from "./accounting/pages/reports/AccountingBSPage";
 import AccountingCashFlowPage from "./accounting/pages/reports/AccountingCashFlowPage";
 import AccountingConsolidatedPage from "./accounting/pages/reports/AccountingConsolidatedPage";
-import AccountingTaxPage from "./accounting/pages/tax/AccountingTaxPage";
+import AccountingTaxDashboardPage from "./accounting/pages/tax/AccountingTaxDashboardPage";
 import AccountingTaxCalendarPage from "./accounting/pages/tax/AccountingTaxCalendarPage";
 import AccountingNoticesPage from "./accounting/pages/tax/AccountingNoticesPage";
 import AccountingFraudPage from "./accounting/pages/fraud/AccountingFraudPage";
@@ -181,7 +181,7 @@ const App = () => (
             <Route path="/accounting/reports/bs" element={<ProtectedRoute><AccountingBSPage /></ProtectedRoute>} />
             <Route path="/accounting/reports/cashflow" element={<ProtectedRoute><AccountingCashFlowPage /></ProtectedRoute>} />
             <Route path="/accounting/reports/consolidated" element={<ProtectedRoute><AccountingConsolidatedPage /></ProtectedRoute>} />
-            <Route path="/accounting/tax" element={<ProtectedRoute><AccountingTaxPage /></ProtectedRoute>} />
+            <Route path="/accounting/tax" element={<ProtectedRoute><AccountingTaxDashboardPage /></ProtectedRoute>} />
             <Route path="/accounting/tax/calendar" element={<ProtectedRoute><AccountingTaxCalendarPage /></ProtectedRoute>} />
             <Route path="/accounting/tax/notices" element={<ProtectedRoute><AccountingNoticesPage /></ProtectedRoute>} />
             <Route path="/accounting/fraud" element={<ProtectedRoute><AccountingFraudPage /></ProtectedRoute>} />
