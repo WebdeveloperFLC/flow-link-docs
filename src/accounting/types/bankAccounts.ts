@@ -7,6 +7,7 @@ export interface BankAccount {
   country: string;            // ISO-2
   entityId: string;           // top-level company entity id
   branchId: string | null;    // optional sub-entity / branch id
+  ownerProfileId: string;     // linked owner (business / personal / family-office)
   coaAccountId: string;       // linked COA ledger id
   currency: string;
   // Bank details
