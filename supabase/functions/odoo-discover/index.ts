@@ -147,10 +147,10 @@ Deno.serve(async (req) => {
     const { data: isAdmin } = await sb.rpc("has_role", { _user_id: u.user.id, _role: "admin" });
     if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-    const URL_ = Deno.env.get("ODOO_URL");
-    const DB = Deno.env.get("ODOO_DB");
-    const LOGIN = Deno.env.get("ODOO_LOGIN");
-    const KEY = Deno.env.get("ODOO_API_KEY");
+    const URL_ = Deno.env.get("ODOO_COURSES_URL") ?? Deno.env.get("ODOO_URL");
+    const DB = Deno.env.get("ODOO_COURSES_DB") ?? Deno.env.get("ODOO_DB");
+    const LOGIN = Deno.env.get("ODOO_COURSES_LOGIN") ?? Deno.env.get("ODOO_LOGIN");
+    const KEY = Deno.env.get("ODOO_COURSES_API_KEY") ?? Deno.env.get("ODOO_API_KEY");
     if (!URL_ || !DB || !LOGIN || !KEY) return json({ ok: false, error: "Odoo not configured" }, 400);
 
     const body = await req.json().catch(() => ({}));
