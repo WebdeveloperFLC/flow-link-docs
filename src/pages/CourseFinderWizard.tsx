@@ -20,7 +20,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { COUNTRY_LIST } from "@/lib/countries";
 import {
   GraduationCap, Filter, Save, RotateCcw, ChevronDown, X, Check,
-  Loader2, Users, ExternalLink, MapPin, GraduationCap as Cap,
+  Loader2, Users, MapPin, GraduationCap as Cap,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
