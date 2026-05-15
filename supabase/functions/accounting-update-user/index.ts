@@ -17,14 +17,14 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) return json({ error: "Not authenticated" }, 401);
 
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: u, error: ue } = await userClient.auth.getUser();
-    if (ue || !u.user) return json({ error: "Not authenticated" }, 401);
+    const userClient = createClient(SUPABASE_URL, ANON_KEY);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: ce } = await userClient.auth.getClaims(token);
+    if (ce || !claimsData?.claims?.sub) return json({ error: "Not authenticated" }, 401);
+    const callerId = claimsData.claims.sub as string;
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data: isAdmin } = await admin.rpc("is_accounting_admin", { _uid: u.user.id });
+    const { data: isAdmin } = await admin.rpc("is_accounting_admin", { _uid: callerId });
     if (!isAdmin) return json({ error: "Only accounting admins can update users" }, 403);
 
     const { id, role, entity_scope, status, name } = await req.json();
