@@ -1,95 +1,110 @@
-## Goal
 
-Two related enhancements inside the existing Accounting module:
+# Phase 9 — Tax, Compliance, Settings, Final Polish
 
-1. Make Vendors form/master more flexible (configurable categories + optional contact person).
-2. Expand Accounting Clients module to handle the study-abroad / visa / coaching business reality (link CRM clients, accounting-only clients, richer filters, ledger, services, staff association).
+All work stays inside `src/accounting/` plus the existing `AppLayout` sidebar (sidebar gets a tiny "Settings" subgroup; no CRM files touched). Existing accounting pages (`AccountingTaxPage`, `AccountingNoticesPage`, `AccountingTaxCalendarPage`) currently render "Coming soon" placeholders — those are the ones we replace, so no duplicate routes.
 
-No CRM changes. No new top-level routes. All work stays in `src/accounting/**` using existing semantic tokens and AG Grid wrappers.
+## 1. Tax dashboard — replace `AccountingTaxPage`
 
----
+- **Header**: title, entity selector reuse, "New filing" button.
+- **4 KPI cards** (`AccountingKPICard`): Filed this period, Outstanding, Overdue, Upcoming (next 30 days). Computed from mock filings.
+- **Filing status table** (AG Grid via `AccountingAGGrid`):
+  - Columns: Entity, Tax type, Period, Amount, Due date, Status, Actions.
+  - Status pills: `FILED` (success), `OPEN` (muted), `LATE` (destructive), `DUE_SOON` (warning) — via `AccountingStatusBadge`.
+  - Seeded rows: Canada GST/HST Q1–Q4, India GSTR-3B Apr–Mar (12 monthly), India TDS Q1–Q4, USA Sales Tax Q1–Q4 — across the multi-entity seed.
+  - Action menu: Mark filed, Upload return, View notice (with confirm dialogs for destructive ops).
+- **Upcoming deadlines timeline** (next 90 days): vertical list grouped by week, using semantic tokens; click → opens filing.
+- Filters: entity, tax type, status, period.
 
-## Part 1 — Vendors
+## 2. Compliance notices — replace `AccountingNoticesPage`
 
-### 1A. Configurable categories
-- Convert `VENDOR_CATEGORY_LABEL` from a hardcoded const into a small in-memory store: `src/accounting/stores/vendorCategoriesStore.ts` exposing `useVendorCategories()` (list + `addCategory(label)`).
-- Seed it with the 9 existing categories so nothing breaks.
-- `AddVendorDialog` Category Select gets an "+ Add new category…" footer item that opens an inline mini-dialog (label input → slug code generated from label) and adds it to the store.
-- `AccountingVendorsPage` filters use the same hook so new categories appear instantly in the filter dropdown and grid `valueFormatter`.
+- **List** (AG Grid): authority, notice number, date issued, due date, amount, status badge (`OPEN` / `RESPONDED` / `CLOSED`), linked document name, actions.
+- **"Add notice" dialog** (`AddNoticeDialog.tsx`): authority (free text + suggested), notice number, dates, amount + currency, status, optional linked-document upload stub, notes.
+- **Detail drawer**: timeline of responses, attachments, change-status action with confirm dialog.
+- Filters: authority, status, entity.
+- Empty state when no notices.
 
-### 1B. Optional contact person
-- Extend `Vendor` type with optional `contactName?`, `contactEmail?`, `contactPhone?`.
-- `AddVendorDialog` gets a collapsible "Contact person (optional)" section with three inputs.
-- `AccountingVendorDetailPage` header shows a "Primary contact" block when any contact field exists (name + mailto/tel links). No layout change otherwise.
+## 3. Users & roles — `pages/settings/AccountingUsersPage.tsx` (route `/accounting/settings/users`)
 
----
+- **Table**: avatar/initials, name, email, role badge, entity scope (chips), MFA on/off, last login, status (Active/Suspended), actions (Edit, Resend invite, Suspend → confirm dialog).
+- **Invite dialog** (`InviteUserDialog.tsx`): email, role select with descriptions, multi-entity scope select, send invite.
+- **Role badge colors** (added to a small `roleStyles.ts` map using semantic tokens with named hues): SUPER_ADMIN purple, FINANCE_ADMIN blue, ACCOUNTANT teal, AUDITOR amber, FINAL_AUDITOR orange, BRANCH_MANAGER green, COMPLIANCE_OFFICER slate, VIEWER gray.
+- Backed by `mockAccountingUsers.ts` — unlimited entries, free-form add.
 
-## Part 2 — Accounting Clients
+## 4. Entity settings — `pages/settings/AccountingEntitiesPage.tsx` (route `/accounting/settings/entities`)
 
-### 2A. Types & data
-- Extend `Client` type:
-  - `clientType: 'STUDENT' | 'IMMIGRATION' | 'CORPORATE' | 'FAMILY' | 'COACHING'` (replaces/augments `segment`; keep `segment` as alias for back-compat).
-  - Optional: `counselorId`, `counselorName`, `servicePackage`, `visaCategory`, `intake`, `leadSource`, `notes`, `linkedCrmClientId`.
-- New types: `ClientService` (package, total, paid, remaining, nextDueDate), `ClientNote`, `ClientActivity`, `ClientRefund`, `ClientDiscount`.
-- New mock files: `mockStaff.ts` (counselor list), extended `mockClients.ts` with services, refunds, discounts, installments, notes, activity.
+- Replaces the in-memory `accountingEntityStore` SEED with a configurable store (`accountingEntitiesStore.ts`, `useSyncExternalStore` pattern, persisted to localStorage). Provider keeps reading from the store so the entity switcher updates live.
+- **Tree view**: company → branches → sub-branches (recursive, expand/collapse). Shows: name, country flag (emoji), currency, fiscal year start, tax IDs (multiple).
+- **Add entity / Edit entity dialog**: name, type (Company/Branch/Sub-branch/Brand), parent, country, currency, fiscal year start (MM-DD), unlimited tax IDs (chip input).
+- **No artificial limits** — flat array, free add/edit/delete (delete with confirm dialog).
 
-### 2B. Client list page
-- Two header buttons: **Add new client** (opens `AddClientDialog`) and **Link CRM client** (opens `LinkCrmClientDialog`).
-- `LinkCrmClientDialog`: searchable command palette over `getCRMClients()` (already in `crmBridge.ts`); on select, creates a linked accounting client record (mock add) with `linkedCrmClientId` and a small "CRM" badge in the grid.
-- Expanded filters bar: Country, Client type, Service package, Counselor, Visa category, Intake, Payment status, Active/Inactive. Filters wrap responsively.
-- Grid adds columns: Type, Counselor, Service package, badge for CRM-linked.
+## 5. Global polish
 
-### 2C. Add new client dialog
-Sectioned form (Basic / Business / Notes):
-- Basic: Full name, Client type, Country, Email, Phone, Tax ID (optional).
-- Business: Counselor (Select from mock staff), Service package (Select), Visa category, Intake/session, Lead source, Payment terms.
-- Notes: textarea.
-Reuses existing `Dialog`/`Select`/`Input` styling from `AddVendorDialog`.
+Shared primitives added under `src/accounting/components/shared/`:
 
-### 2D. Client detail page (ledger)
-Enhance existing `AccountingClientDetailPage`:
-- **Header**: client info + assigned counselor chip + linked-CRM chip if applicable.
-- **KPI strip**: Total billed, Total received, Outstanding, Refunds, Installment progress (e.g. "3 of 5 paid").
-- **Aging card**: Current / 30 / 60 / 90+ (reuse `AgingBreakdownCard`).
-- **Services panel**: list of enrolled services with package amount, paid, remaining, next due date.
-- **Tabs**: Transactions, Invoices, Receipts, Documents, Notes, Activity timeline.
-  - Receipts tab supports rendering refunds and discounts as separate row types.
-  - Notes tab: list + add note (local state).
-  - Activity tab: chronological feed (mock entries: invoice issued, payment received, note added, status changed).
+- `AccountingBreadcrumbs.tsx` — auto-builds from route, rendered in a small `AccountingPageShell` wrapper that already-built pages opt into via existing `AccountingPageHeader` (we extend `AccountingPageHeader` with an optional `breadcrumbs` prop so other pages don't need rewrites).
+- `AccountingErrorState.tsx` — icon, message, Retry button.
+- `AccountingTableSkeleton.tsx` — replaces spinners across new pages.
+- `ConfirmDialog.tsx` — generic destructive-action confirm (used for delete/void/reject/suspend on new pages; existing pages can adopt incrementally).
+- `useKeyboardShortcuts.ts` — global hook mounted in new pages: `N` (new journal — navigates from journals list), `/` (focus first `[data-search]` input), `Esc` (already native to Radix dialogs; we add a no-op safety).
+- `DarkModeToggle.tsx` — placed in a new lightweight `AccountingTopbar` slot inside `AccountingPageHeader` (right side). Toggles `document.documentElement.classList.toggle('dark')`, persists to `localStorage('accounting:theme')`. AG Grid already reacts to the `dark` class.
+- `OnboardingChecklist.tsx` — rendered on `AccountingOverviewPage` only when `localStorage('accounting:onboarded')` is unset and entities/COA/etc. counts are zero. 5 items: Add first entity, Set up COA, Upload bank statement, Invite accountant, Configure tax codes — each links to the relevant page; dismissable.
+- **Responsive**: new tables get a `useIsMobile()` branch rendering a stacked card list instead of AG Grid; sidebar mobile drawer is out of scope (CRM-owned `AppLayout`); we will only ensure new accounting pages reflow at `<768px`.
+- **Empty states**: every new table/list uses existing `AccountingEmptyState`.
 
-### 2E. Staff association
-- `mockStaff.ts` exports a small list (Counselor A/B/C, Senior Advisor, etc.).
-- `useStaff()` hook for dropdowns; later swappable with CRM users query.
+## 6. Sidebar additions
 
----
+Append to `accountingNav` in `AppLayout.tsx`:
+- `/accounting/settings/entities` — "Entities"
+- `/accounting/settings/users` — "Users & roles"
 
-## Files
+(Two entries only; CRM nav untouched.)
 
-**Created**
-- `src/accounting/stores/vendorCategoriesStore.ts`
-- `src/accounting/data/mockStaff.ts`
-- `src/accounting/components/clients/AddClientDialog.tsx`
-- `src/accounting/components/clients/LinkCrmClientDialog.tsx`
-- `src/accounting/components/clients/ClientServicesPanel.tsx`
-- `src/accounting/components/clients/ClientNotesTab.tsx`
-- `src/accounting/components/clients/ClientActivityTab.tsx`
+## File map
 
-**Edited**
-- `src/accounting/types/vendors.ts` (+ contact fields)
-- `src/accounting/types/clients.ts` (+ business fields, services, notes, activity)
-- `src/accounting/data/mockVendors.ts` (categories moved to store; sample contact data)
-- `src/accounting/data/mockClients.ts` (richer data + services + notes + activity)
-- `src/accounting/components/vendors/AddVendorDialog.tsx` (configurable category + contact section)
-- `src/accounting/pages/vendors/AccountingVendorsPage.tsx` (use category store)
-- `src/accounting/pages/vendors/AccountingVendorDetailPage.tsx` (contact block in header)
-- `src/accounting/pages/clients/AccountingClientsPage.tsx` (buttons + expanded filters + new columns)
-- `src/accounting/pages/clients/AccountingClientDetailPage.tsx` (KPIs, services, expanded tabs)
+```text
+src/accounting/
+  types/
+    tax.ts                       NEW (Filing, Notice, TaxStatus)
+    accountingUsers.ts           NEW
+    settings.ts                  NEW (extended Entity with parentId, fiscalStart, taxIds[])
+  data/
+    mockTax.ts                   NEW (filings + upcoming deadlines)
+    mockNotices.ts               NEW
+    mockAccountingUsers.ts       NEW
+  stores/
+    accountingEntitiesStore.ts   NEW (configurable, persisted)
+    onboardingStore.ts           NEW
+    themeStore.ts                NEW
+  components/
+    shared/
+      AccountingBreadcrumbs.tsx  NEW
+      AccountingErrorState.tsx   NEW
+      AccountingTableSkeleton.tsx NEW
+      ConfirmDialog.tsx          NEW
+      DarkModeToggle.tsx         NEW
+      OnboardingChecklist.tsx    NEW
+      AccountingPageHeader.tsx   EDIT (breadcrumbs + topbar slot)
+    tax/
+      FilingStatusBadge.tsx      NEW
+      UpcomingDeadlinesTimeline.tsx NEW
+      AddNoticeDialog.tsx        NEW
+    settings/
+      InviteUserDialog.tsx       NEW
+      RoleBadge.tsx              NEW
+      EntityTree.tsx             NEW
+      EntityFormDialog.tsx       NEW
+  hooks/
+    useKeyboardShortcuts.ts      NEW
+  pages/
+    AccountingOverviewPage.tsx   EDIT (mount OnboardingChecklist)
+    tax/AccountingTaxPage.tsx    REPLACE
+    tax/AccountingNoticesPage.tsx REPLACE
+    settings/AccountingUsersPage.tsx     NEW
+    settings/AccountingEntitiesPage.tsx  NEW
+  stores/accountingEntityStore.ts EDIT (read from accountingEntitiesStore)
 
-No routes added, no CRM files touched.
+src/App.tsx                      EDIT (2 new routes)
+src/components/layout/AppLayout.tsx EDIT (2 new sidebar items)
+```
 
-## Technical notes
-
-- Categories store is a tiny `useSyncExternalStore`-style module with a Set + listeners — no Zustand needed; mirrors pattern used elsewhere.
-- CRM client linking uses existing `getCRMClients()` from `crmBridge.ts`; the linked record is appended to in-memory `MOCK_CLIENTS` so it appears immediately. No DB writes.
-- All new selects reuse shadcn `Select` / `Command` primitives already in the project.
-- All colors via semantic tokens; AG Grid wrapper unchanged.
+No CRM files modified. No new top-level modules. All existing accounting routes preserved.

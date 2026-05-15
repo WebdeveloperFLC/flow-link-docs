@@ -89,6 +89,8 @@ import AccountingNoticesPage from "./accounting/pages/tax/AccountingNoticesPage"
 import AccountingFraudPage from "./accounting/pages/fraud/AccountingFraudPage";
 import AccountingReconciliationPage from "./accounting/pages/reconciliation/AccountingReconciliationPage";
 import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
+import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
+import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
 
 const queryClient = new QueryClient();
 
@@ -174,6 +176,8 @@ const App = () => (
             <Route path="/accounting/reconciliation" element={<ProtectedRoute><AccountingReconciliationPage /></ProtectedRoute>} />
             <Route path="/accounting/wealth" element={<ProtectedRoute><AccountingWealthPage /></ProtectedRoute>} />
             <Route path="/accounting/ai-assistant" element={<ProtectedRoute><AccountingAIPage /></ProtectedRoute>} />
+            <Route path="/accounting/settings/users" element={<ProtectedRoute><AccountingUsersPage /></ProtectedRoute>} />
+            <Route path="/accounting/settings/entities" element={<ProtectedRoute><AccountingEntitiesPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
