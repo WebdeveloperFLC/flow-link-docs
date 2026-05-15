@@ -15,6 +15,10 @@ import {
 } from "recharts";
 import AccountingPageHeader from "../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../components/shared/AccountingKPICard";
+import OnboardingChecklist from "../components/shared/OnboardingChecklist";
+import DarkModeToggle from "../components/shared/DarkModeToggle";
+import { isOnboardingDismissed } from "../stores/onboardingStore";
+import { useState } from "react";
 import { formatCurrency, formatCompact } from "../lib/format";
 import {
   AccountingEntityProvider, useAccountingEntity,
@@ -75,6 +79,7 @@ const quickActions = [
 function OverviewInner() {
   const navigate = useNavigate();
   const { activeEntity, availableEntities, setActiveEntity } = useAccountingEntity();
+  const [showOnboarding, setShowOnboarding] = useState(() => !isOnboardingDismissed());
 
   const headerActions = (
     <>
@@ -99,6 +104,7 @@ function OverviewInner() {
       <Button variant="outline" onClick={() => navigate("/accounting/ai-assistant")}>
         <Sparkles className="size-4 mr-2" /> Ask AI
       </Button>
+      <DarkModeToggle />
     </>
   );
 
@@ -119,6 +125,8 @@ function OverviewInner() {
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">{headerActions}</div>
         </div>
+
+        {showOnboarding && <OnboardingChecklist onDismiss={() => setShowOnboarding(false)} />}
 
         {/* KPI ROW */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
