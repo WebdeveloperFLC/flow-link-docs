@@ -30,7 +30,7 @@ import EmailSmtpSettings from "./pages/EmailSmtpSettings";
 import EmailLogs from "./pages/EmailLogs";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
-import CourseFinder from "./pages/CourseFinder";
+import CourseFinder from "./pages/CourseFinderWizard";
 import Messages from "./pages/Messages";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
