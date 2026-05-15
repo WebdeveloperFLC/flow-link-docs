@@ -1,9 +1,14 @@
-export type PettyCategory =
-  | "flowers" | "tea" | "milk" | "labour" | "repair" | "water"
-  | "transport" | "snacks" | "stationery" | "courier" | "printing"
-  | "employee_reimbursement" | "other";
+// Categories are now a free-form list managed in the petty-cash store.
+// We keep a string type so admins can add new categories at runtime.
+export type PettyCategory = string;
 
-export const PETTY_CATEGORIES: { value: PettyCategory; label: string }[] = [
+export interface PettyCategoryOption {
+  value: string;
+  label: string;
+  disabled?: boolean;
+}
+
+export const PETTY_CATEGORIES: PettyCategoryOption[] = [
   { value: "flowers", label: "Flowers" },
   { value: "tea", label: "Tea" },
   { value: "milk", label: "Milk" },
@@ -23,6 +28,15 @@ export type PettyCashStatus = "PENDING" | "APPROVED" | "REJECTED" | "REIMBURSED"
 export type PaymentType = "petty_cash" | "reimbursement";
 export type ReimbursementMethod = "cash" | "bank";
 export type ApprovalLevel = "auto" | "custodian" | "secondary" | "finance";
+
+export type PettyPersonRole = "custodian" | "approver" | "employee";
+
+export interface PettyPerson {
+  id: string;
+  name: string;
+  email?: string;
+  role: PettyPersonRole;
+}
 
 export interface PettyBranch {
   id: string;
