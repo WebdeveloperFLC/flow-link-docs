@@ -1,49 +1,50 @@
-## Receipt Generation System for AR Invoices
+## Problem
 
-Add branded, printable receipts to the AR module. PDF via `window.print()`; email/WhatsApp are toast/`wa.me` placeholders. No new npm packages.
+When the user clicks **Download PDF** / **Print** on the receipt modal, the generated PDF is mostly blank (only header chrome shows). Cause:
 
-### New files (3)
+1. The receipt template lives inside the shadcn `Dialog`, which Radix renders in a portal with `position: fixed`, an overlay backdrop, and a `max-h-[60vh] overflow-y-auto` scroll container.
+2. The current `@media print` rule does `body * { visibility: hidden }` then re-shows `#accounting-receipt-print` with `position: absolute; top:0; left:0`. But because the receipt's ancestors are `position: fixed` + scroll-clipped, the absolute positioning is relative to the dialog, not the page — so the printed page captures only the small clipped viewport, producing the blank/broken PDF.
+3. The print also includes the modal's overlay/buttons region in some browsers (Chromium Skia, per the PDF metadata).
 
-1. **`src/accounting/lib/receiptHelpers.ts`**
-   - `ReceiptData` interface (per spec).
-   - `generateReceiptNumber(invoiceNumber, paymentIndex=1)` → `RCP-{stripped}-{N}`.
-   - `getEntityAddress(entity, branch)` with the 4 base entity addresses + India branch overrides (Delhi → 07-GSTIN, Mumbai → 27-GSTIN, Bangalore → 29-GSTIN), each with their own address.
-   - `buildReceiptData(invoice, amountPaid, paymentDate, paymentMethod, paymentReference?, instalmentNumber?)` — pulls from `CustomerInvoice` (mockAR), maps service via internal `getServiceLabel` (covers all `ServiceType` values, falls back to raw key).
-   - `currencySymbol(code)` helper: CAD→CA$, USD→US$, INR→₹, AED→AED, GBP→£, AUD→A$, EUR→€.
-   - `maskPassport(p?)`: returns `••••••` + last 4 if present.
+## Fix (UI-only, no new packages)
 
-2. **`src/accounting/components/receipts/AccountingReceiptTemplate.tsx`**
-   - Pure presentational component, props `{ receipt: ReceiptData }`.
-   - Wrapper `<div id="accounting-receipt-print">` with **inline styles only** (no Tailwind).
-   - Sections: Header (logo placeholder + company block left, big "RECEIPT" + meta right) · Billed-to / Receipt-details two-column · Service details · Payment breakdown (subtotal, tax, total, bold amount received, outstanding green/red, instalment line if `isInstalment`) · Footer (computer-generated note, thank-you, website, branch address).
-   - Currency rendered via `currencySymbol()`; passport masked.
-   - Inline `<style>` block with `@media print { @page { size: A4; margin: 20mm } body * { visibility: hidden } #accounting-receipt-print, #accounting-receipt-print * { visibility: visible } #accounting-receipt-print { position: absolute; left: 0; top: 0; width: 100% } }`.
+Render a **dedicated print container at `document.body` level** at print time, instead of relying on the dialog's DOM subtree.
 
-3. **`src/accounting/components/receipts/AccountingReceiptModal.tsx`**
-   - shadcn `Dialog`, `max-w-3xl` desktop / fullscreen mobile.
-   - Header: "Payment receipt" + receipt number subtitle.
-   - Action bar (border-b, `bg-muted/30`): **Download PDF** (primary, `Download` icon, calls `window.print()` with code comment about replacing with html2pdf/Puppeteer); **Print** (outline, `Printer`); **Email to client** (outline, `Mail`, `toast.info("Email delivery coming soon. Will send to "+receipt.clientEmail)` with comment about Resend/SES edge function); **WhatsApp** (outline, green tint, `MessageCircle`, opens `https://wa.me/?text=` with the prescribed message body).
-   - Body: `overflow-y-auto max-h-[60vh] p-4 bg-white` rendering `<AccountingReceiptTemplate receipt={receipt} />`.
-   - Footer: ghost Close.
+### Files modified (2, additive only)
 
-### Modified files (additive only, 2)
+**`src/accounting/components/receipts/AccountingReceiptModal.tsx`**
+- On `handleDownload` / `handlePrint`:
+  1. Create a `<div id="accounting-receipt-print-root">` appended directly to `document.body`.
+  2. Use `ReactDOM.createRoot` (already in the project via React 18) to render `<AccountingReceiptTemplate receipt={receipt} />` into it.
+  3. Wait one animation frame (`requestAnimationFrame`) for layout, call `window.print()`.
+  4. On `window.onafterprint` (with a `setTimeout` fallback), unmount and remove the node.
+- Keep the in-modal preview untouched so the user still sees the receipt onscreen.
 
-4. **`src/accounting/pages/ar/AccountingARPage.tsx`**
-   - Add state: `selectedReceipt: ReceiptData | null`, `receiptModalOpen: boolean`.
-   - In row `DropdownMenu`, after "Record payment", add `Generate receipt` item rendered only when `i.status === "PAID" || i.status === "PARTIALLY_PAID"`. Calls `buildReceiptData(i, i.receivedAmount, i.paidDate ?? today, i.paymentMethod ?? "Other", i.paymentReference)`, sets state, opens modal.
-   - Render `<AccountingReceiptModal>` at end of JSX when `selectedReceipt` is set.
+**`src/accounting/components/receipts/AccountingReceiptTemplate.tsx`**
+- Replace the current `@media print` block with a stronger, portal-aware version:
+  ```css
+  @media print {
+    @page { size: A4; margin: 15mm; }
+    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+    body > *:not(#accounting-receipt-print-root) { display: none !important; }
+    #accounting-receipt-print-root { display: block !important; position: static !important; }
+    #accounting-receipt-print {
+      position: static !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+  }
+  ```
+- This guarantees: only the body-level print root prints, it flows naturally (no clipping by fixed/overflow ancestors), and pagination works for tall receipts.
 
-5. **`src/accounting/pages/ar/AccountingInvoiceDetailPage.tsx`**
-   - Add same two state hooks.
-   - In sticky header actions, add `Download receipt` button (with `Receipt` icon) gated on `inv.status === "PAID" || inv.status === "PARTIALLY_PAID"`.
-   - Render `<AccountingReceiptModal>` at end of JSX.
+### Why not html2canvas/jsPDF
+The user's stack constraint is **no new npm packages**. `window.print()` produces a real vector PDF (better text quality than canvas rasterization) once the DOM/CSS issue above is fixed.
 
-### Constraints respected
-- No CRM files touched; only the 2 listed accounting files modified, all changes additive.
-- No new npm packages — uses existing `lucide-react`, `sonner`, shadcn `Dialog`, `Button`.
-- Receipt template uses inline styles only.
-- Passport numbers masked; currency symbols mapped per spec.
-- Print-only PDF via browser; email and WhatsApp clearly stubbed with code comments for future edge-function wiring.
+### Out of scope
+- Email and WhatsApp actions remain stubbed as-is.
+- No changes to `receiptHelpers.ts`, AR pages, or any other file.
 
-### Final deliverable
-List of all files created (3) and modified (2).
+### Expected result
+Printing or "Download PDF" produces a full, properly paginated A4 receipt with header, billed-to/receipt-details, service details, payment breakdown, instalment block (when applicable), and footer — matching what the user sees in the modal preview.
