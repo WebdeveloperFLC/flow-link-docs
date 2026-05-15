@@ -42,24 +42,67 @@ Deno.serve(async (req) => {
     if (String(password).length < 8) return json({ error: "Password must be at least 8 characters" }, 400);
     const scope: string[] = Array.isArray(entity_scope) && entity_scope.length ? entity_scope : ["*"];
 
-    // Create auth user (auto-confirmed so they can log in immediately)
+    const normalizedEmail = String(email).trim().toLowerCase();
+    let authUserId: string | null = null;
+    let createdHere = false;
+
+    // Try to create auth user (auto-confirmed so they can log in immediately)
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      email: String(email).trim().toLowerCase(),
+      email: normalizedEmail,
       password: String(password),
       email_confirm: true,
       user_metadata: { full_name: name, signup_role: "accounting" },
     });
-    if (createErr || !created.user) {
-      return json({ error: createErr?.message || "Failed to create auth user" }, 400);
+
+    if (created?.user) {
+      authUserId = created.user.id;
+      createdHere = true;
+    } else {
+      // If user already exists in auth, find them and reset their password
+      const msg = (createErr?.message || "").toLowerCase();
+      const alreadyExists = msg.includes("already") || msg.includes("registered") || msg.includes("exists");
+      if (!alreadyExists) {
+        return json({ error: createErr?.message || "Failed to create auth user" }, 400);
+      }
+
+      // Look up existing auth user by email (paginate just in case)
+      let found: { id: string } | null = null;
+      for (let page = 1; page <= 20 && !found; page++) {
+        const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+        if (listErr) return json({ error: listErr.message }, 400);
+        const u = list.users.find((x) => (x.email || "").toLowerCase() === normalizedEmail);
+        if (u) found = { id: u.id };
+        if (list.users.length < 200) break;
+      }
+      if (!found) return json({ error: "Email exists in auth but user not found" }, 400);
+
+      // Ensure not already linked in accounting_users
+      const { data: existingRow } = await admin
+        .from("accounting_users")
+        .select("id")
+        .eq("auth_user_id", found.id)
+        .maybeSingle();
+      if (existingRow) {
+        return json({ error: "This user already has an accounting account" }, 400);
+      }
+
+      // Reset password to the admin-provided one and confirm email
+      const { error: updErr } = await admin.auth.admin.updateUserById(found.id, {
+        password: String(password),
+        email_confirm: true,
+        user_metadata: { full_name: name, signup_role: "accounting" },
+      });
+      if (updErr) return json({ error: updErr.message }, 400);
+      authUserId = found.id;
     }
 
     // Insert accounting profile row
     const { data: row, error: insertErr } = await admin
       .from("accounting_users")
       .insert({
-        auth_user_id: created.user.id,
+        auth_user_id: authUserId,
         name,
-        email: String(email).trim().toLowerCase(),
+        email: normalizedEmail,
         role,
         entity_scope: scope,
         status: "ACTIVE",
@@ -69,8 +112,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (insertErr) {
-      // rollback auth user on failure
-      await admin.auth.admin.deleteUser(created.user.id);
+      // rollback auth user only if we created it in this call
+      if (createdHere && authUserId) {
+        await admin.auth.admin.deleteUser(authUserId);
+      }
       return json({ error: insertErr.message }, 400);
     }
 
