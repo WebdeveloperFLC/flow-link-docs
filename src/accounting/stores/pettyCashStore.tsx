@@ -1,0 +1,222 @@
+import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
+import {
+  PETTY_BRANCHES, PETTY_VOUCHERS, PETTY_REPLENISHMENTS, PETTY_VERIFICATIONS,
+  approvalLevelFor, isToday, isThisMonth,
+} from "../data/mockPettyCash";
+import {
+  PettyBranch, PettyCashVoucher, PettyCashReplenishment, PettyCashVerification,
+  PettyCategory, ApprovalLevel, PaymentType, ReimbursementMethod, PettyCashStatus, ReplenishmentStatus,
+} from "../types/pettyCash";
+
+export interface NewVoucherInput {
+  branchId: string;
+  category: PettyCategory;
+  amount: number;
+  paidTo: string;
+  paymentType: PaymentType;
+  employeeName?: string;
+  reimbursementMethod?: ReimbursementMethod;
+  date: string;
+  notes?: string;
+  receiptFileName?: string;
+  emergency?: boolean;
+  recurring?: boolean;
+  linkedClient?: string;
+  linkedCounselor?: string;
+}
+
+interface BranchSummary {
+  branch: PettyBranch;
+  spentToday: number;
+  spentMonth: number;
+  remaining: number;
+  pendingCount: number;
+  flaggedCount: number;
+  lastUpdated?: string;
+}
+
+interface Ctx {
+  branches: PettyBranch[];
+  vouchers: PettyCashVoucher[];
+  replenishments: PettyCashReplenishment[];
+  verifications: PettyCashVerification[];
+  addVoucher: (input: NewVoucherInput) => PettyCashVoucher;
+  approveVoucher: (id: string, level: ApprovalLevel, by?: string) => void;
+  rejectVoucher: (id: string, by?: string, note?: string) => void;
+  markReimbursed: (id: string, by?: string) => void;
+  submitVerification: (branchId: string, actualCash: number, by: string, note?: string) => PettyCashVerification;
+  requestReplenishment: (branchId: string, requestedAmount: number, by: string, note?: string) => PettyCashReplenishment;
+  approveReplenishment: (id: string, approvedAmount: number, by: string) => void;
+  rejectReplenishment: (id: string, by: string, note?: string) => void;
+  markReplenishmentPaid: (id: string) => void;
+  getBranchSummary: (branchId: string) => BranchSummary;
+  getCategoryBreakdown: (filterBranchId?: string) => { category: PettyCategory; amount: number }[];
+  getMonthlyTrend: () => { month: string; amount: number }[];
+}
+
+const PettyCashContext = createContext<Ctx | null>(null);
+
+export function PettyCashProvider({ children }: { children: ReactNode }) {
+  const [branches, setBranches] = useState<PettyBranch[]>(PETTY_BRANCHES);
+  const [vouchers, setVouchers] = useState<PettyCashVoucher[]>(PETTY_VOUCHERS);
+  const [replenishments, setReplenishments] = useState<PettyCashReplenishment[]>(PETTY_REPLENISHMENTS);
+  const [verifications, setVerifications] = useState<PettyCashVerification[]>(PETTY_VERIFICATIONS);
+
+  const addVoucher = useCallback((input: NewVoucherInput) => {
+    const branch = branches.find(b => b.id === input.branchId);
+    if (!branch) throw new Error("Branch not found");
+    const required = approvalLevelFor(input.amount);
+    const id = `pv-new-${Date.now()}`;
+    const voucherNumber = `PV-${branch.code}-${String(vouchers.length + 1).padStart(4, "0")}`;
+    const now = new Date().toISOString();
+    const trail: PettyCashVoucher["approvalTrail"] = [
+      { level: "auto", status: "approved", by: branch.custodianName, at: now, note: required === "auto" ? "Auto-approved (under ₹500)" : "Voucher created" },
+    ];
+    if (required !== "auto") {
+      trail.push({ level: required, status: "pending" });
+    }
+    const status: PettyCashStatus = required === "auto" ? "APPROVED" : "PENDING";
+    const flags: PettyCashVoucher["flags"] = [];
+    if (input.amount % 500 === 0 && input.amount >= 500) flags.push("round_number");
+    if (input.category === "other" && input.amount >= 1000) flags.push("excess_other");
+    const voucher: PettyCashVoucher = {
+      id, voucherNumber, branchId: input.branchId, category: input.category,
+      amount: input.amount, paidTo: input.paidTo, paymentType: input.paymentType,
+      employeeName: input.employeeName, reimbursementMethod: input.reimbursementMethod,
+      date: input.date, notes: input.notes, receiptFileName: input.receiptFileName,
+      missingReceipt: !input.receiptFileName, emergency: input.emergency,
+      recurring: input.recurring, linkedClient: input.linkedClient, linkedCounselor: input.linkedCounselor,
+      status, requiredLevel: required, approvalTrail: trail,
+      flags: flags.length ? flags : undefined,
+      createdAt: now, createdBy: branch.custodianName,
+    };
+    setVouchers(prev => [voucher, ...prev]);
+    if (status === "APPROVED" && input.paymentType === "petty_cash") {
+      setBranches(prev => prev.map(b => b.id === branch.id ? { ...b, currentBalance: b.currentBalance - input.amount } : b));
+    }
+    return voucher;
+  }, [branches, vouchers.length]);
+
+  const approveVoucher = useCallback((id: string, _level: ApprovalLevel, by = "Current user") => {
+    setVouchers(prev => prev.map(v => {
+      if (v.id !== id) return v;
+      const trail = v.approvalTrail.map(s => s.status === "pending" ? { ...s, status: "approved" as const, by, at: new Date().toISOString() } : s);
+      const newStatus: PettyCashStatus = "APPROVED";
+      // Deduct from balance now if petty_cash and wasn't already approved
+      if (v.status !== "APPROVED" && v.paymentType === "petty_cash") {
+        setBranches(prev2 => prev2.map(b => b.id === v.branchId ? { ...b, currentBalance: b.currentBalance - v.amount } : b));
+      }
+      return { ...v, status: newStatus, approvalTrail: trail };
+    }));
+  }, []);
+
+  const rejectVoucher = useCallback((id: string, by = "Current user", note?: string) => {
+    setVouchers(prev => prev.map(v => {
+      if (v.id !== id) return v;
+      const trail = v.approvalTrail.map(s => s.status === "pending" ? { ...s, status: "rejected" as const, by, at: new Date().toISOString(), note } : s);
+      return { ...v, status: "REJECTED" as const, approvalTrail: trail };
+    }));
+  }, []);
+
+  const markReimbursed = useCallback((id: string, by = "Finance — Ritu Khanna") => {
+    setVouchers(prev => prev.map(v => {
+      if (v.id !== id) return v;
+      const trail = [...v.approvalTrail, { level: "finance" as const, status: "approved" as const, by, at: new Date().toISOString(), note: "Reimbursement paid" }];
+      // If paid via cash, deduct from petty cash now
+      if (v.reimbursementMethod === "cash") {
+        setBranches(prev2 => prev2.map(b => b.id === v.branchId ? { ...b, currentBalance: b.currentBalance - v.amount } : b));
+      }
+      return { ...v, status: "REIMBURSED" as const, approvalTrail: trail };
+    }));
+  }, []);
+
+  const submitVerification = useCallback((branchId: string, actualCash: number, by: string, note?: string) => {
+    const branch = branches.find(b => b.id === branchId)!;
+    const expected = branch.currentBalance;
+    const delta = actualCash - expected;
+    const verification: PettyCashVerification = {
+      id: `vf-${Date.now()}`, branchId, date: new Date().toISOString().slice(0, 10),
+      expectedCash: expected, actualCash, delta, by, note,
+    };
+    setVerifications(prev => [verification, ...prev]);
+    setBranches(prev => prev.map(b => b.id === branchId ? { ...b, lastVerifiedAt: new Date().toISOString(), lastVerifiedDelta: delta } : b));
+    return verification;
+  }, [branches]);
+
+  const requestReplenishment = useCallback((branchId: string, requestedAmount: number, by: string, note?: string) => {
+    const branch = branches.find(b => b.id === branchId)!;
+    const r: PettyCashReplenishment = {
+      id: `rp-${Date.now()}`, branchId, currentBalance: branch.currentBalance,
+      requestedAmount, status: "REQUESTED", requestedBy: by, requestedAt: new Date().toISOString(), note,
+    };
+    setReplenishments(prev => [r, ...prev]);
+    return r;
+  }, [branches]);
+
+  const approveReplenishment = useCallback((id: string, approvedAmount: number, by: string) => {
+    setReplenishments(prev => prev.map(r => r.id === id ? { ...r, status: "APPROVED" as const, approvedAmount, approvedBy: by, approvedAt: new Date().toISOString() } : r));
+  }, []);
+  const rejectReplenishment = useCallback((id: string, by: string, note?: string) => {
+    setReplenishments(prev => prev.map(r => r.id === id ? { ...r, status: "REJECTED" as const, approvedBy: by, approvedAt: new Date().toISOString(), note } : r));
+  }, []);
+  const markReplenishmentPaid = useCallback((id: string) => {
+    setReplenishments(prev => prev.map(r => {
+      if (r.id !== id) return r;
+      const amount = r.approvedAmount ?? r.requestedAmount;
+      setBranches(prev2 => prev2.map(b => b.id === r.branchId ? { ...b, currentBalance: b.currentBalance + amount } : b));
+      return { ...r, status: "PAID" as const, paidAt: new Date().toISOString() };
+    }));
+  }, []);
+
+  const getBranchSummary = useCallback((branchId: string): BranchSummary => {
+    const branch = branches.find(b => b.id === branchId)!;
+    const branchVouchers = vouchers.filter(v => v.branchId === branchId);
+    const counted = branchVouchers.filter(v => v.status === "APPROVED" || v.status === "REIMBURSED");
+    const spentToday = counted.filter(v => isToday(v.date)).reduce((s, v) => s + v.amount, 0);
+    const spentMonth = counted.filter(v => isThisMonth(v.date)).reduce((s, v) => s + v.amount, 0);
+    const pendingCount = branchVouchers.filter(v => v.status === "PENDING").length;
+    const flaggedCount = branchVouchers.filter(v => (v.flags?.length ?? 0) > 0 || v.missingReceipt).length;
+    const lastUpdated = branchVouchers[0]?.createdAt;
+    return { branch, spentToday, spentMonth, remaining: branch.currentBalance, pendingCount, flaggedCount, lastUpdated };
+  }, [branches, vouchers]);
+
+  const getCategoryBreakdown = useCallback((filterBranchId?: string) => {
+    const map = new Map<PettyCategory, number>();
+    vouchers.forEach(v => {
+      if (filterBranchId && v.branchId !== filterBranchId) return;
+      if (v.status !== "APPROVED" && v.status !== "REIMBURSED") return;
+      map.set(v.category, (map.get(v.category) ?? 0) + v.amount);
+    });
+    return Array.from(map.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
+  }, [vouchers]);
+
+  const getMonthlyTrend = useCallback(() => {
+    const map = new Map<string, number>();
+    vouchers.forEach(v => {
+      if (v.status !== "APPROVED" && v.status !== "REIMBURSED") return;
+      const d = new Date(v.date);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      map.set(k, (map.get(k) ?? 0) + v.amount);
+    });
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b)).map(([month, amount]) => ({ month, amount }));
+  }, [vouchers]);
+
+  const value = useMemo<Ctx>(() => ({
+    branches, vouchers, replenishments, verifications,
+    addVoucher, approveVoucher, rejectVoucher, markReimbursed,
+    submitVerification, requestReplenishment, approveReplenishment,
+    rejectReplenishment, markReplenishmentPaid,
+    getBranchSummary, getCategoryBreakdown, getMonthlyTrend,
+  }), [branches, vouchers, replenishments, verifications, addVoucher, approveVoucher, rejectVoucher, markReimbursed, submitVerification, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid, getBranchSummary, getCategoryBreakdown, getMonthlyTrend]);
+
+  return <PettyCashContext.Provider value={value}>{children}</PettyCashContext.Provider>;
+}
+
+export function usePettyCash(): Ctx {
+  const ctx = useContext(PettyCashContext);
+  if (!ctx) throw new Error("usePettyCash must be used within PettyCashProvider");
+  return ctx;
+}
+
+// Re-export helper
+export { approvalLevelFor };
