@@ -401,7 +401,7 @@ const CourseFinderWizard = () => {
       .insert([{
         owner_id: user.id,
         name: saveName.trim(),
-        payload: f as unknown as Record<string, unknown>,
+        payload: f as unknown as never,
         is_shared: isAdmin && shareNew,
       }])
       .select()
