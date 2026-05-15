@@ -12,12 +12,14 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AddVendorDialog from "../../components/vendors/AddVendorDialog";
-import { MOCK_VENDORS, VENDOR_CATEGORY_LABEL } from "../../data/mockVendors";
+import { MOCK_VENDORS } from "../../data/mockVendors";
+import { useVendorCategories, getVendorCategoryLabel } from "../../stores/vendorCategoriesStore";
 import { formatCurrency } from "../../lib/format";
 import type { Vendor } from "../../types/vendors";
 
 export default function AccountingVendorsPage() {
   const navigate = useNavigate();
+  const categories = useVendorCategories();
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<string>("ALL");
   const [category, setCategory] = useState<string>("ALL");
@@ -43,7 +45,7 @@ export default function AccountingVendorsPage() {
     },
     {
       headerName: "Category", field: "category", width: 170,
-      valueFormatter: (p) => VENDOR_CATEGORY_LABEL[p.value as string] ?? p.value,
+      valueFormatter: (p) => getVendorCategoryLabel(p.value as string),
     },
     { headerName: "Country", field: "country", width: 100 },
     { headerName: "Tax ID", field: "taxId", width: 160 },
@@ -103,8 +105,8 @@ export default function AccountingVendorsPage() {
               <SelectTrigger className="w-[200px] h-9"><SelectValue placeholder="Category" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All categories</SelectItem>
-                {Object.entries(VENDOR_CATEGORY_LABEL).map(([k,v]) =>
-                  <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                {categories.map((c) =>
+                  <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={setStatus}>
