@@ -7,6 +7,7 @@ import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
+import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[] };
 
@@ -56,6 +57,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, roles, signOut, isAdmin, hasRole } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
+  const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -90,11 +92,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             </NavLink>
           ))}
 
-          <div className="border-t border-sidebar-border my-2" />
-          <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-            Accounting
-          </div>
-          {accountingNav.map((item) => (
+          {!accountingAccessLoading && hasAccountingAccess && (
+            <>
+              <div className="border-t border-sidebar-border my-2" />
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                Accounting
+              </div>
+              {accountingNav.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -111,7 +115,9 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               <item.icon className="size-4" />
               {item.label}
             </NavLink>
-          ))}
+              ))}
+            </>
+          )}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
