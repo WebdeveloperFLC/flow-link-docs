@@ -256,7 +256,7 @@ function AuditCard({ title, children, empty, onExport }: { title: string; childr
         <div className="text-sm font-semibold">{title}</div>
         <Button variant="outline" size="sm" onClick={onExport}><Download className="size-3.5 mr-1.5" /> Export</Button>
       </div>
-      {children ?? <div className="text-center py-10 text-sm text-muted-foreground">{empty}</div>}
+      {children ? children : <div className="text-center py-10 text-sm text-muted-foreground">{empty}</div>}
     </Card>
   );
 }
