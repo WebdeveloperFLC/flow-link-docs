@@ -14,10 +14,11 @@ import DarkModeToggle from "../../components/shared/DarkModeToggle";
 import BankAccountStatusBadge from "../../components/bank-accounts/BankAccountStatusBadge";
 import BankAccountDefaultsBadges from "../../components/bank-accounts/BankAccountDefaultsBadges";
 import ReconciliationStatusPill from "../../components/bank-accounts/ReconciliationStatusPill";
-import BankAccountFormDialog from "../../components/bank-accounts/BankAccountFormDialog";
+import BankAccountFormDialog, { ownerLabel } from "../../components/bank-accounts/BankAccountFormDialog";
 import { useBankAccounts, deleteBankAccount, toggleStatus, setDefault, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
+import { MOCK_OWNERS } from "../../data/mockOwners";
 import { MOCK_JOURNALS } from "../../data/mockJournals";
 import { formatCurrency } from "../../lib/format";
 import { DefaultKind } from "../../types/bankAccounts";
@@ -33,6 +34,7 @@ export default function AccountingBankAccountDetailPage() {
   const ledger = account ? ledgers.find((l) => l.id === account.coaAccountId) : null;
   const entity = account ? entities.find((e) => e.id === account.entityId) : null;
   const branch = account?.branchId ? entities.find((e) => e.id === account.branchId) : null;
+  const owner = account ? MOCK_OWNERS.find((o) => o.id === account.ownerProfileId) : null;
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -122,6 +124,7 @@ export default function AccountingBankAccountDetailPage() {
                 <div className="text-[12px] uppercase tracking-wider text-muted-foreground font-semibold">Entity & linking</div>
                 <Row label="Entity" value={entity?.name ?? "—"} />
                 <Row label="Branch" value={branch?.name ?? "—"} />
+                <Row label="Owner" value={owner ? <Link to={`/accounting/owners/${owner.id}`} className="text-primary hover:underline">{ownerLabel(owner)}</Link> : "—"} />
                 <Row label="Linked COA ledger" value={ledger ? <Link to="/accounting/coa" className="text-primary hover:underline">{ledger.code} · {ledger.name}</Link> : "—"} />
                 <Row label="Currency" value={account.currency} />
                 <Row label="Defaults" value={<BankAccountDefaultsBadges account={account} />} />
