@@ -193,6 +193,15 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "list_models");
 
+    if (action === "list_databases") {
+      try {
+        const dbs = await odooCallJsonRpc(URL_, "db", "list", []);
+        return json({ ok: true, databases: dbs, configured_db: DB });
+      } catch (e) {
+        return json({ ok: false, error: e instanceof Error ? e.message : String(e), configured_db: DB }, 500);
+      }
+    }
+
     const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
     if (typeof uid !== "number" || uid <= 0) throw new Error("Odoo authentication failed");
 
