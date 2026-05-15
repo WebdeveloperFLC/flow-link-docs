@@ -47,6 +47,22 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
   const [result, setResult] = useState<ImportResult | null>(null);
 
   const onFile = async (file: File) => {
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Maximum 5MB allowed.");
+      return;
+    }
+    const lowerName = file.name.toLowerCase();
+    const isCsv = file.type === "text/csv" || lowerName.endsWith(".csv");
+    if (!isCsv) {
+      const validTypes = [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+      ];
+      if (!validTypes.includes(file.type) && !lowerName.endsWith(".xlsx")) {
+        toast.error("Invalid file type. Please upload an .xlsx file only.");
+        return;
+      }
+    }
     setBusy(true); setResult(null);
     try {
       const r = await parseCsv(file);
