@@ -6,6 +6,8 @@ import {
 import {
   PettyBranch, PettyCashVoucher, PettyCashReplenishment, PettyCashVerification,
   PettyCategory, ApprovalLevel, PaymentType, ReimbursementMethod, PettyCashStatus, ReplenishmentStatus,
+  PettyCategoryOption, PettyPerson, PettyPersonRole,
+  PETTY_CATEGORIES,
 } from "../types/pettyCash";
 
 export interface NewVoucherInput {
@@ -40,6 +42,8 @@ interface Ctx {
   vouchers: PettyCashVoucher[];
   replenishments: PettyCashReplenishment[];
   verifications: PettyCashVerification[];
+  categories: PettyCategoryOption[];
+  people: PettyPerson[];
   addVoucher: (input: NewVoucherInput) => PettyCashVoucher;
   approveVoucher: (id: string, level: ApprovalLevel, by?: string) => void;
   rejectVoucher: (id: string, by?: string, note?: string) => void;
@@ -49,6 +53,11 @@ interface Ctx {
   approveReplenishment: (id: string, approvedAmount: number, by: string) => void;
   rejectReplenishment: (id: string, by: string, note?: string) => void;
   markReplenishmentPaid: (id: string) => void;
+  addCategory: (label: string) => PettyCategoryOption;
+  updateCategory: (value: string, patch: Partial<PettyCategoryOption>) => void;
+  addPerson: (input: { name: string; email?: string; role: PettyPersonRole }) => PettyPerson;
+  addBranch: (input: { name: string; code: string; custodianName: string; secondaryApproverName?: string; openingFloat: number; custodianEmail?: string }) => PettyBranch;
+  updateBranch: (id: string, patch: Partial<PettyBranch>) => void;
   getBranchSummary: (branchId: string) => BranchSummary;
   getCategoryBreakdown: (filterBranchId?: string) => { category: PettyCategory; amount: number }[];
   getMonthlyTrend: () => { month: string; amount: number }[];
@@ -61,6 +70,30 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
   const [vouchers, setVouchers] = useState<PettyCashVoucher[]>(PETTY_VOUCHERS);
   const [replenishments, setReplenishments] = useState<PettyCashReplenishment[]>(PETTY_REPLENISHMENTS);
   const [verifications, setVerifications] = useState<PettyCashVerification[]>(PETTY_VERIFICATIONS);
+  const [categories, setCategories] = useState<PettyCategoryOption[]>(PETTY_CATEGORIES);
+  const [people, setPeople] = useState<PettyPerson[]>(() => {
+    const seen = new Set<string>();
+    const list: PettyPerson[] = [];
+    PETTY_BRANCHES.forEach(b => {
+      const cKey = `custodian:${b.custodianName}`;
+      if (!seen.has(cKey)) {
+        seen.add(cKey);
+        list.push({ id: `pp-c-${b.code}`, name: b.custodianName, email: b.custodianEmail, role: "custodian" });
+      }
+      if (b.secondaryApproverName) {
+        const aKey = `approver:${b.secondaryApproverName}`;
+        if (!seen.has(aKey)) {
+          seen.add(aKey);
+          list.push({ id: `pp-a-${b.code}`, name: b.secondaryApproverName, role: "approver" });
+        }
+      }
+    });
+    list.push({ id: "pp-fin-1", name: "Finance — Ritu Khanna", email: "ritu.khanna@futurelink.in", role: "approver" });
+    ["Pooja Sharma", "Arjun Mehta", "Sneha Iyer", "Rohit Bansal", "Kavita Joshi", "Aman Gupta", "Rashmi Nair"].forEach((n, i) => {
+      list.push({ id: `pp-e-${i + 1}`, name: n, role: "employee" });
+    });
+    return list;
+  });
 
   const addVoucher = useCallback((input: NewVoucherInput) => {
     const branch = branches.find(b => b.id === input.branchId);
@@ -168,6 +201,48 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const addCategory = useCallback((label: string): PettyCategoryOption => {
+    const value = label.trim().toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+    const safeValue = value || `cat_${Date.now()}`;
+    const opt: PettyCategoryOption = { value: safeValue, label: label.trim() };
+    setCategories(prev => prev.some(c => c.value === safeValue) ? prev : [...prev, opt]);
+    return opt;
+  }, []);
+
+  const updateCategory = useCallback((value: string, patch: Partial<PettyCategoryOption>) => {
+    setCategories(prev => prev.map(c => c.value === value ? { ...c, ...patch } : c));
+  }, []);
+
+  const addPerson = useCallback((input: { name: string; email?: string; role: PettyPersonRole }): PettyPerson => {
+    const person: PettyPerson = {
+      id: `pp-${input.role[0]}-${Date.now()}`,
+      name: input.name.trim(),
+      email: input.email?.trim() || undefined,
+      role: input.role,
+    };
+    setPeople(prev => [...prev, person]);
+    return person;
+  }, []);
+
+  const addBranch = useCallback((input: { name: string; code: string; custodianName: string; secondaryApproverName?: string; openingFloat: number; custodianEmail?: string }): PettyBranch => {
+    const branch: PettyBranch = {
+      id: `br-${input.code.toLowerCase()}-${Date.now()}`,
+      name: input.name.trim(),
+      code: input.code.trim().toUpperCase(),
+      custodianName: input.custodianName,
+      custodianEmail: input.custodianEmail ?? "",
+      secondaryApproverName: input.secondaryApproverName,
+      openingFloat: input.openingFloat,
+      currentBalance: input.openingFloat,
+    };
+    setBranches(prev => [...prev, branch]);
+    return branch;
+  }, []);
+
+  const updateBranch = useCallback((id: string, patch: Partial<PettyBranch>) => {
+    setBranches(prev => prev.map(b => b.id === id ? { ...b, ...patch } : b));
+  }, []);
+
   const getBranchSummary = useCallback((branchId: string): BranchSummary => {
     const branch = branches.find(b => b.id === branchId)!;
     const branchVouchers = vouchers.filter(v => v.branchId === branchId);
@@ -202,12 +277,13 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
   }, [vouchers]);
 
   const value = useMemo<Ctx>(() => ({
-    branches, vouchers, replenishments, verifications,
+    branches, vouchers, replenishments, verifications, categories, people,
     addVoucher, approveVoucher, rejectVoucher, markReimbursed,
     submitVerification, requestReplenishment, approveReplenishment,
     rejectReplenishment, markReplenishmentPaid,
+    addCategory, updateCategory, addPerson, addBranch, updateBranch,
     getBranchSummary, getCategoryBreakdown, getMonthlyTrend,
-  }), [branches, vouchers, replenishments, verifications, addVoucher, approveVoucher, rejectVoucher, markReimbursed, submitVerification, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid, getBranchSummary, getCategoryBreakdown, getMonthlyTrend]);
+  }), [branches, vouchers, replenishments, verifications, categories, people, addVoucher, approveVoucher, rejectVoucher, markReimbursed, submitVerification, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid, addCategory, updateCategory, addPerson, addBranch, updateBranch, getBranchSummary, getCategoryBreakdown, getMonthlyTrend]);
 
   return <PettyCashContext.Provider value={value}>{children}</PettyCashContext.Provider>;
 }
