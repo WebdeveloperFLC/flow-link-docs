@@ -21,9 +21,11 @@ import BankAccountStatusBadge from "../../components/bank-accounts/BankAccountSt
 import BankAccountDefaultsBadges from "../../components/bank-accounts/BankAccountDefaultsBadges";
 import ReconciliationStatusPill from "../../components/bank-accounts/ReconciliationStatusPill";
 import BankAccountFormDialog from "../../components/bank-accounts/BankAccountFormDialog";
+import { ownerLabel } from "../../components/bank-accounts/BankAccountFormDialog";
 import { useBankAccounts, deleteBankAccount, toggleStatus } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
+import { MOCK_OWNERS } from "../../data/mockOwners";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { BankAccount, maskAccountNumber } from "../../types/bankAccounts";
 
@@ -40,6 +42,7 @@ export default function AccountingBankAccountsPage() {
   const [search, setSearch] = useState("");
   const [countryFilter, setCountryFilter] = useState(ALL);
   const [entityFilter, setEntityFilter] = useState(ALL);
+  const [ownerFilter, setOwnerFilter] = useState(ALL);
   const [currencyFilter, setCurrencyFilter] = useState(ALL);
   const [statusFilter, setStatusFilter] = useState<"all" | "ACTIVE" | "INACTIVE">("all");
 
@@ -49,12 +52,14 @@ export default function AccountingBankAccountsPage() {
 
   const ledgerById = useMemo(() => new Map(ledgers.map((l) => [l.id, l])), [ledgers]);
   const entityById = useMemo(() => new Map(entities.map((e) => [e.id, e])), [entities]);
+  const ownerById = useMemo(() => new Map(MOCK_OWNERS.map((o) => [o.id, o])), []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return accounts.filter((b) => {
       if (countryFilter !== ALL && b.country !== countryFilter) return false;
       if (entityFilter !== ALL && b.entityId !== entityFilter) return false;
+      if (ownerFilter !== ALL && b.ownerProfileId !== ownerFilter) return false;
       if (currencyFilter !== ALL && b.currency !== currencyFilter) return false;
       if (statusFilter !== "all" && b.status !== statusFilter) return false;
       if (q) {
@@ -63,7 +68,7 @@ export default function AccountingBankAccountsPage() {
       }
       return true;
     });
-  }, [accounts, search, countryFilter, entityFilter, currencyFilter, statusFilter]);
+  }, [accounts, search, countryFilter, entityFilter, ownerFilter, currencyFilter, statusFilter]);
 
   const kpis = useMemo(() => {
     const total = accounts.length;
@@ -108,6 +113,14 @@ export default function AccountingBankAccountsPage() {
         const ent = entityById.get(p.data.entityId)?.name ?? "—";
         const br = p.data.branchId ? entityById.get(p.data.branchId)?.name : null;
         return br ? `${ent} · ${br}` : ent;
+      },
+    },
+    {
+      headerName: "Owner", minWidth: 180, flex: 1,
+      valueGetter: (p) => {
+        if (!p.data) return "";
+        const o = ownerById.get(p.data.ownerProfileId);
+        return o ? ownerLabel(o) : "—";
       },
     },
     {
@@ -165,7 +178,7 @@ export default function AccountingBankAccountsPage() {
     },
   ];
 
-  const filtersActive = search || countryFilter !== ALL || entityFilter !== ALL || currencyFilter !== ALL || statusFilter !== "all";
+  const filtersActive = search || countryFilter !== ALL || entityFilter !== ALL || ownerFilter !== ALL || currencyFilter !== ALL || statusFilter !== "all";
   const countries = Array.from(new Set(accounts.map((a) => a.country))).sort();
   const currencies = Array.from(new Set(accounts.map((a) => a.currency))).sort();
 
@@ -216,6 +229,15 @@ export default function AccountingBankAccountsPage() {
               <SelectContent>
                 <SelectItem value={ALL}>All entities</SelectItem>
                 {entities.filter((e) => !e.parentId).map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+              <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Owner" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All owners</SelectItem>
+                {MOCK_OWNERS.filter((o) => o.isActive).map((o) => (
+                  <SelectItem key={o.id} value={o.id}>{ownerLabel(o)}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
