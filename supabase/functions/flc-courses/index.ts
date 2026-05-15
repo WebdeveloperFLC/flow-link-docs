@@ -317,6 +317,8 @@ Deno.serve(async (req) => {
       const out: Record<string, unknown> = {
         ok: true,
         config: {
+          url_full: URL_,
+          url_pathname: (() => { try { return new URL(URL_).pathname; } catch { return null; } })(),
           url_host: (() => { try { return new URL(URL_).host; } catch { return null; } })(),
           db: DB,
           login: LOGIN,
