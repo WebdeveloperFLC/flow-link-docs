@@ -99,7 +99,11 @@ export function ClientEmailCard({ clientId, defaultTo }: { clientId: string; def
                   <Badge variant="outline" className="text-[10px]">{m.status}</Badge>
                 </div>
                 <div className="mt-2 text-sm whitespace-pre-wrap">
-                  {m.body_html ? <div dangerouslySetInnerHTML={{ __html: m.body_html }} /> : m.body_text}
+                  {m.body_html ? (
+                    <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(m.body_html) }} />
+                  ) : (
+                    m.body_text
+                  )}
                 </div>
               </div>
             );
