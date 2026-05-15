@@ -114,7 +114,7 @@ function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false;
   }
   return { ok: true, value: parseValue(xml, { i: 0 }) };
 }
-async function odooCall(url: string, ep: string, method: string, params: unknown[]) {
+async function odooCallXmlRpc(url: string, ep: string, method: string, params: unknown[]) {
   const r = await fetch(url.replace(/\/$/, "") + ep, {
     method: "POST", headers: { "Content-Type": "text/xml" },
     body: buildCall(method, params),
@@ -124,6 +124,43 @@ async function odooCall(url: string, ep: string, method: string, params: unknown
   const p = parseResponse(t);
   if (!p.ok) throw new Error(p.fault);
   return p.value;
+}
+
+// JSON-RPC fallback (works through proxies that block /xmlrpc/*)
+async function odooCallJsonRpc(url: string, service: string, method: string, args: unknown[]) {
+  const r = await fetch(url.replace(/\/$/, "") + "/jsonrpc", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "call",
+      params: { service, method, args },
+      id: Date.now(),
+    }),
+  });
+  const t = await r.text();
+  if (!r.ok) throw new Error(`Odoo HTTP ${r.status}: ${t.slice(0, 300)}`);
+  let parsed: any;
+  try { parsed = JSON.parse(t); } catch { throw new Error(`Odoo non-JSON response: ${t.slice(0, 300)}`); }
+  if (parsed.error) {
+    const msg = parsed.error?.data?.message || parsed.error?.message || JSON.stringify(parsed.error);
+    throw new Error(String(msg).slice(0, 400));
+  }
+  return parsed.result;
+}
+
+// Try XML-RPC first; if proxy blocks it (CSRF / 400 / HTML), fall back to JSON-RPC
+async function odooCall(url: string, ep: string, method: string, params: unknown[]) {
+  try {
+    return await odooCallXmlRpc(url, ep, method, params);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/CSRF|<!DOCTYPE|<html|HTTP 4\d\d/i.test(msg)) {
+      const service = ep.includes("/common") ? "common" : "object";
+      return await odooCallJsonRpc(url, service, method, params);
+    }
+    throw e;
+  }
 }
 const exec = (url: string, db: string, uid: number, pw: string, model: string, method: string, args: unknown[], kwargs: Record<string, unknown> = {}) =>
   odooCall(url, "/xmlrpc/2/object", "execute_kw", [db, uid, pw, model, method, args, kwargs]);
@@ -155,6 +192,15 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action ?? "list_models");
+
+    if (action === "list_databases") {
+      try {
+        const dbs = await odooCallJsonRpc(URL_, "db", "list", []);
+        return json({ ok: true, databases: dbs, configured_db: DB });
+      } catch (e) {
+        return json({ ok: false, error: e instanceof Error ? e.message : String(e), configured_db: DB }, 500);
+      }
+    }
 
     const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
     if (typeof uid !== "number" || uid <= 0) throw new Error("Odoo authentication failed");
