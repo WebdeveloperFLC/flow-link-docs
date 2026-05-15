@@ -1,60 +1,76 @@
-## Plan: Course Finder — match the Odoo "basic.filter.wizard" experience
+## Goal
 
-The screen recording shows the exact filter form your team uses inside Odoo (`basic.filter.wizard`, menu_id=783). I'll rebuild this same filter inside Fovel's Course Finder, then in a second step plug it into the real Odoo course catalogue.
+Wire the Course Finder "Apply Filter" to live `flc.course` results from the connected Odoo (FLC) instance, and move saved filters from `localStorage` into a Postgres table with proper access control. The existing UI layout and filter sections stay as-is.
 
-### Step 1 — Rebuild the filter UI (this iteration)
+## Step 1 — Discover `flc.course` schema (one-time)
 
-Replace the current `/course-finder` page with a 2-column filter form mirroring the Odoo wizard, grouped exactly as on Odoo:
+Before building the filter mapping, run `odoo-discover` with `action: describe_model`, `model: flc.course` to capture the exact field names (e.g. country, state, study area, level, intake, tuition, currency, waivers). The current UI uses display labels; we need the Odoo technical names to build the search domain.
 
-**Top filters**
-- Country (multi) · State / Province (multi) · City
-- Study Area · Discipline Area · Program Level
-- Course Intake · Year · Semester · Month
+The plan below assumes typical FLC field names; the actual mapping table will be finalized from the discover response and stored in a single constant on the edge function.
 
-**English Proficiency**
-- English Proficiency (dropdown: IELTS / PTE / TOEFL / Duolingo …) · Score Criteria
+## Step 2 — New edge function: `flc-courses`
 
-**Language Eligibility**
-- Language Eligibility (dropdown) · Score Criteria
+`supabase/functions/flc-courses/index.ts` — auth-gated (any logged-in user). Reuses the XML-RPC + JSON-RPC fallback helpers from `odoo-discover`. Reads `ODOO_COURSES_URL/DB/LOGIN/API_KEY` (with fallback to `ODOO_*`).
 
-**Aptitude Eligibility**
-- Aptitude Eligibility (dropdown: GRE / GMAT / SAT …) · Score Criteria
+Actions:
 
-**Advanced Filter** (toggle reveals)
-- Institute · Institute Campus · Program Availability · Program Delivery Mode
-- Currency · Grading Scale · Grade Score (min → max) · Tuition Fees Amount (min → max)
-- Toggles: GMAT Waiver · GRE Waiver · SAT Waiver · Without Maths · Stem Course
-- Conditional Acceptance · Education Gap · Number Of Backlogs · Scholarship Available
-- Country of Citizenship · Country of Residence
-- Toggles: Application Fees Waiver · German Language Test Waiver · English Proficiency Test Waiver · French Language Test Waiver
+- `search` — body: `{ filters: FilterState, limit, offset, order }`
+  - Builds an Odoo domain from the filter payload using a `FILTER_MAP` (UI key → Odoo field + operator).
+  - Calls `flc.course.search_read` with a curated `fields` list (name, institute, campus, country, state, city, level, intake, tuition_fee, currency, delivery_mode, ielts/pte/toefl mins, scholarship, application_fee, waivers, etc.).
+  - Returns `{ ok, total, courses }`.
+- `facets` (optional, for populating dropdowns like Institute, Currency) — returns distinct values via `read_group`.
 
-**Save Filter** (toggle) → name + visibility, stored in a new `course_finder_saved_filters` table.
+Domain construction rules:
 
-**Apply Filter** button → for now runs against an empty result list with a "Connect Odoo course catalogue" empty-state CTA.
+- Multi-selects (countries, states) → `["country_id.code", "in", [...]]` (use whichever relation field exists).
+- Free text (city, institute) → `ilike`.
+- Tuition / grade / score min-max → two clauses with `>=` and `<=`.
+- Booleans (waivers, STEM, withoutMaths) → only added when `true`.
+- Empty strings / empty arrays → skipped (no filter).
+- Test scores (English/Language/Aptitude) → applied as "course requirement ≤ user score" so the course is reachable.
 
-Visual style follows the existing Fovel design tokens (no green Odoo chrome) — left rail of section labels, two-column field grid, semantic tokens only.
+## Step 3 — New table: `course_finder_saved_filters`
 
-### Step 2 — Wire to real courses (next iteration, after you confirm the model)
+Migration:
 
-The wizard model `basic.filter.wizard` is a transient search form; the underlying course records live in another model. To finish the wiring I need **one** of these from your Odoo:
+```text
+id uuid PK, name text, payload jsonb, owner_id uuid (auth user), 
+is_shared boolean default false, created_at, updated_at
+```
 
-1. Open any course record in Odoo with `?debug=1` in the URL → developer tools → "View Fields" → copy the model technical name (e.g. `op.course`, `x_course_master`, `product.template`), **or**
-2. From the wizard result list, click any row → the URL will contain `model=...` — paste that here.
+RLS:
 
-Once I have the model name I'll:
-- Add `odoo-courses-sync` edge function (XML-RPC `search_read`) → stores courses in a new `courses` table
-- Add `odoo-courses-filter` that translates the form above into an Odoo domain and returns matching courses live
-- Add a "Sync now" + last-sync indicator on the page (same pattern as the CRM sync card)
+- SELECT: owner OR `is_shared = true` OR admin (`has_role(uid,'admin')`).
+- INSERT: any authenticated user (forces `owner_id = auth.uid()`).
+- UPDATE / DELETE: owner OR admin.
 
-### Technical notes
-- New table `course_finder_saved_filters` (user_id, name, payload jsonb, is_shared, created_at) with RLS — owner can CRUD, shared filters readable by org.
-- Filter state lives in a single Zustand-free `useState` object so we can serialize it 1:1 to the saved-filter payload.
-- Multi-selects use the existing `Combobox` pattern from `OccupationSearch`.
-- No backend calls in step 1 except saving filters — keeps this iteration shippable independently.
+Trigger: `touch_updated_at` on update.
 
-### Open question before I implement
-Do you want me to:
-- **(A)** Build the full filter UI now with placeholder dropdowns (countries already in `src/lib/countries.ts`, others as static lists for now) and ship it, then wire Odoo in step 2, **or**
-- **(B)** Wait until you paste the course model name so I can do UI + live data in one go?
+Only admins may toggle `is_shared = true` (enforced via a CHECK in the UPDATE policy: `is_shared = OLD.is_shared OR has_role(auth.uid(),'admin')`).
 
-(A) is faster to see progress; (B) avoids throwaway dropdown stubs.
+## Step 4 — Frontend rewrite of `CourseFinderWizard.tsx`
+
+Keep all existing sections, fields, layout, and styling. Changes:
+
+1. Replace `loadSaved`/`writeSaved` (localStorage) with Supabase queries against `course_finder_saved_filters`. Sidebar lists "My filters" + "Shared filters" (admin-controlled). Save dialog gets an "Share with team" switch (admins only).
+2. `apply()` calls `supabase.functions.invoke("flc-courses", { body: { action: "search", filters: f, limit: 50 } })`, sets `results` state and `loading`.
+3. Replace the "Connect Odoo course catalogue" placeholder rail with a results list rendering name, institute · campus, country/city, level, intake, tuition (with currency), and any matching waivers as badges. Empty / error / loading states included.
+4. Pagination via "Load more" using `offset`.
+5. URL param `?saved=<id>` auto-loads a saved filter (so admins can share links).
+
+## Technical notes
+
+- Field-name fragility: `FILTER_MAP` is centralized in the edge function so a single update fixes mismatches once we see the discover output.
+- Auth: `flc-courses` requires a logged-in user; no admin gate (course finder is for counselors).
+- No changes to `odoo-sync` or other Odoo functions.
+- No new packages.
+
+## Files
+
+- `supabase/functions/flc-courses/index.ts` — new
+- `supabase/migrations/<ts>_course_finder_saved_filters.sql` — new
+- `src/pages/CourseFinderWizard.tsx` — wire apply + saved filters + results rail (UI sections unchanged)
+
+## Open question
+
+Saved-filter sharing: should **any user** be able to mark a filter as "shared with team", or **admins only**? Plan currently assumes admins only. Confirm or override.
