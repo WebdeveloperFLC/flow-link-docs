@@ -11,6 +11,8 @@ import { BankAccount, BankAccountInput } from "../../types/bankAccounts";
 import { addBankAccount, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import { useAccounts } from "../../stores/coaStore";
+import { MOCK_OWNERS } from "../../data/mockOwners";
+import type { OwnerProfile } from "../../types/owners";
 import LinkedCoaAccountSelect from "./LinkedCoaAccountSelect";
 
 const COUNTRIES = [
@@ -38,6 +40,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
 
   const [country, setCountry] = useState("CA");
   const [entityId, setEntityId] = useState("");
+  const [ownerProfileId, setOwnerProfileId] = useState("");
   const [branchId, setBranchId] = useState<string>(NONE);
   const [coaAccountId, setCoaAccountId] = useState("");
   const [currency, setCurrency] = useState("CAD");
@@ -68,12 +71,14 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   // Top-level entities (companies); branches are nested children of an entity
   const topEntities = entities.filter((e) => !e.parentId);
   const branches = entities.filter((e) => e.parentId === entityId);
+  const ownerOptions = MOCK_OWNERS.filter((o) => o.isActive && (!country || o.country === country));
 
   useEffect(() => {
     if (!open) return;
     if (initial) {
       setCountry(initial.country);
       setEntityId(initial.entityId);
+      setOwnerProfileId(initial.ownerProfileId ?? "");
       setBranchId(initial.branchId ?? NONE);
       setCoaAccountId(initial.coaAccountId);
       setCurrency(initial.currency);
@@ -99,6 +104,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setActive(initial.status === "ACTIVE");
     } else {
       setCountry("CA"); setEntityId(""); setBranchId(NONE);
+      setOwnerProfileId("");
       setCoaAccountId(""); setCurrency("CAD");
       setBankName(""); setNickname(""); setHolderName(""); setAccountNumber("");
       setIban(""); setSwift(""); setIfsc(""); setRoutingNumber(""); setTransitNumber("");
@@ -122,6 +128,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   const submit = () => {
     const input: BankAccountInput = {
       country, entityId, branchId: branchId === NONE ? null : branchId,
+      ownerProfileId,
       coaAccountId, currency,
       bankName: bankName.trim(), nickname: nickname.trim(),
       holderName: holderName.trim(), accountNumber: accountNumber.trim(),
@@ -171,6 +178,16 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                   <SelectTrigger><SelectValue placeholder="Select entity" /></SelectTrigger>
                   <SelectContent>
                     {topEntities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field label="Owner">
+                <Select value={ownerProfileId} onValueChange={setOwnerProfileId}>
+                  <SelectTrigger><SelectValue placeholder={ownerOptions.length ? "Select owner" : "No owners for country"} /></SelectTrigger>
+                  <SelectContent>
+                    {ownerOptions.map((o) => (
+                      <SelectItem key={o.id} value={o.id}>{ownerLabel(o)}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
@@ -238,7 +255,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={submit}
-            disabled={!entityId || !coaAccountId || !bankName.trim() || !nickname.trim() || !holderName.trim() || !accountNumber.trim()}
+            disabled={!entityId || !ownerProfileId || !coaAccountId || !bankName.trim() || !nickname.trim() || !holderName.trim() || !accountNumber.trim()}
           >
             {initial ? "Save changes" : "Add bank account"}
           </Button>
@@ -246,6 +263,14 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       </DialogContent>
     </Dialog>
   );
+}
+
+export function ownerLabel(o: OwnerProfile): string {
+  if (o.category === "BUSINESS" || o.category === "FAMILY_OFFICE") {
+    return o.brandName ?? o.legalName ?? "Unnamed owner";
+  }
+  const name = [o.firstName, o.lastName].filter(Boolean).join(" ").trim();
+  return name || o.brandName || o.legalName || "Unnamed owner";
 }
 
 function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
