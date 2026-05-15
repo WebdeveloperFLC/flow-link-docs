@@ -99,6 +99,12 @@ import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
+import AccountingPettyCashDashboardPage from "./accounting/pages/petty-cash/AccountingPettyCashDashboardPage";
+import AccountingPettyCashVoucherPage from "./accounting/pages/petty-cash/AccountingPettyCashVoucherPage";
+import AccountingPettyCashDetailPage from "./accounting/pages/petty-cash/AccountingPettyCashDetailPage";
+import AccountingPettyCashAuditPage from "./accounting/pages/petty-cash/AccountingPettyCashAuditPage";
+import AccountingPettyCashReplenishmentPage from "./accounting/pages/petty-cash/AccountingPettyCashReplenishmentPage";
+import { PettyCashProvider } from "./accounting/stores/pettyCashStore";
 
 const queryClient = new QueryClient();
 
@@ -193,6 +199,11 @@ const App = () => (
             <Route path="/accounting/ai-assistant" element={<AccountingProtectedRoute><AccountingAIPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/settings/users" element={<AccountingProtectedRoute><AccountingUsersPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/settings/entities" element={<AccountingProtectedRoute><AccountingEntitiesPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/petty-cash" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashDashboardPage /></PettyCashProvider></AccountingProtectedRoute>} />
+            <Route path="/accounting/petty-cash/new" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashVoucherPage /></PettyCashProvider></AccountingProtectedRoute>} />
+            <Route path="/accounting/petty-cash/audit" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashAuditPage /></PettyCashProvider></AccountingProtectedRoute>} />
+            <Route path="/accounting/petty-cash/replenishment" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashReplenishmentPage /></PettyCashProvider></AccountingProtectedRoute>} />
+            <Route path="/accounting/petty-cash/:id" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashDetailPage /></PettyCashProvider></AccountingProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />
