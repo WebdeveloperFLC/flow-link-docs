@@ -34,6 +34,7 @@ const accountingNav: NavItem[] = [
   { to: "/accounting", icon: LayoutDashboard, label: "Overview", end: true },
   { to: "/accounting/journals", icon: BookOpen, label: "Journal entries" },
   { to: "/accounting/coa", icon: Layers, label: "Chart of accounts" },
+  { to: "/accounting/bank-accounts", icon: Landmark, label: "Bank accounts" },
   { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
   { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
   { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
