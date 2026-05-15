@@ -1,84 +1,62 @@
 ## Goal
+Replace the mock data in **Course Finder** with real data pulled from your **Odoo CRM**, using the Odoo credentials already stored in Lovable Cloud.
 
-Remove fixed-list limitations on Petty Cash dropdowns, gate admin-only actions (manage categories, branches, custodians, approvers) behind admin rights, and add UI to select / add custodian and approver per branch.
+## Good news: API key already configured
+Your project already has these Odoo secrets stored securely (used today by the CRM client sync):
 
-## Scope
+- `ODOO_URL`
+- `ODOO_DB`
+- `ODOO_LOGIN`
+- `ODOO_API_KEY`
 
-Only files inside `src/accounting/` plus reuse of the existing `useAccountingAccess` admin hook. No CRM changes, no new packages.
+You do **not** need to paste the key anywhere. The new sync will reuse them automatically. If you ever want to rotate it, you can update `ODOO_API_KEY` from Cloud → Secrets — never put it in the code.
 
-## What changes
+## What I need from you (one clarifying answer)
+Course data in Odoo isn't standard — it lives in a custom model. Before I build the sync I need to know **where the courses live in your Odoo instance**. Pick one:
 
-### 1. Make dropdowns extensible (no fixed limit)
+1. A custom Odoo model (e.g. `x_course`, `op.course` from Odoo OpenEduCat, or similar) — please share the **model technical name** and the field names for: course name, university/institution, country, study level, field, duration, tuition, intake, IELTS/PTE, scholarship/coop/PR flags.
+2. Stored as **products** (`product.template`) tagged with a category like "Course".
+3. Something else — describe briefly.
 
-Convert these from hard-coded enums into store-managed lists that admins can add to from inside the dropdown:
+If you're not sure, I can add a one-time **discovery endpoint** that lists your Odoo models and fields so we can pick the right one together.
 
-- **Expense categories** (`PETTY_CATEGORIES`) — used in Voucher form and Dashboard filter.
-- **Branches** (`PETTY_BRANCHES`) — used in Voucher form, Dashboard, Audit, Replenishment.
-- **Custodians** — currently a string on each branch; becomes a selectable list with “+ Add custodian” inline.
-- **Approvers (secondary + finance)** — same pattern as custodians.
+## Plan once the model is known
 
-Each dropdown gets an inline “+ Add new …” row at the bottom that opens a tiny dialog (name + email for people, name + code for branches, label + key for categories). On save it’s appended to the store and immediately selected.
+### 1. New edge function `odoo-courses-sync`
+- Authenticates against Odoo via XML-RPC using existing secrets (same pattern as `odoo-sync`).
+- Reads courses + related university/country from the chosen Odoo model.
+- Upserts into the existing Supabase tables already used by Course Finder:
+  - `countries`
+  - `universities`
+  - `courses`
+- Maps Odoo fields → Lovable schema (study_level, intake_months, tuition_fee, currency, ielts_overall, flags, etc.).
+- Returns `{ pulled, upserted, errors }`.
 
-Non-admins see the dropdowns but the “+ Add new …” row is hidden.
+### 2. Settings UI: "Course Finder · Odoo sync" card
+Added under Settings (next to existing Odoo card), admin-only:
+- "Test connection" (reuses Odoo test).
+- "Sync now" → invokes `odoo-courses-sync`.
+- Shows last sync time, count, status.
+- Optional toggle: auto-sync every N minutes (reuses existing pg_cron pattern from `odoo-cron`).
 
-### 2. Admin-only rights
+### 3. Course Finder page
+- No UI changes required — it already reads `countries` / `universities` / `courses` from Supabase. Once data is upserted, mock entries are replaced by live ones.
+- Add a small "Synced from Odoo · {timestamp}" line in the header.
 
-Use `useAccountingAccess().accountingRole === "ADMIN"` (or `isAdmin` fallback) to gate:
+### 4. Safety
+- Sync is **upsert by Odoo external id** (stored in a new `odoo_id` column on `courses` and `universities`) so re-runs don't duplicate.
+- Existing manually-created rows are left untouched (we only touch rows with `odoo_id` set).
+- Admin-only RLS on the sync trigger.
 
-- “+ Add new …” rows in every dropdown.
-- A new **“Manage”** button on the Petty Cash dashboard that opens a settings panel for branches / custodians / approvers / categories.
-- Approve / reject voucher buttons on Detail page.
-- Approve / reject / mark-paid actions on Replenishment page.
-- Submit cash verification on Audit page.
+## Files that will be touched
+- **New:** `supabase/functions/odoo-courses-sync/index.ts`
+- **New migration:** add `odoo_id` columns + indexes on `courses`, `universities`, `countries`
+- **New:** `src/components/settings/OdooCoursesSyncCard.tsx`
+- **Edited:** `src/pages/Settings.tsx` (mount new card)
+- **Edited:** `src/pages/CourseFinder.tsx` (small "last synced" label only)
 
-Non-admins can still create vouchers (their voucher just enters the normal approval flow) and view everything read-only.
+No CRM functionality, auth, or unrelated modules are changed. No new npm packages. The Odoo API key stays in Lovable Cloud secrets — never in code.
 
-### 3. Custodian + approver selection on branches
+---
 
-- New **Manage Branches** dialog (admin only) reachable from dashboard header (“Settings” / cog icon) and from each branch card (“Edit”). Lets admin: rename branch, change code, pick custodian from list or add new, pick secondary approver from list or add new, set opening float.
-- New **Manage People** dialog with two tabs: Custodians, Approvers. Add / rename / set email. Used as the source of both dropdowns.
-- New **Manage Categories** dialog: add / rename / disable a category.
-
-### 4. Voucher form additions
-
-- Branch dropdown: shows current branches + “+ Add branch” (admin).
-- Custodian / approver fields appear as read-only chips derived from the selected branch, with an “Edit branch” link (admin only).
-- Category dropdown: shows current categories + “+ Add category” (admin).
-- For employee reimbursement, the employee-name field becomes a combobox sourced from a new `pettyPeople` list with “+ Add employee” (any user, since employees are not an admin-only concept).
-
-## Technical notes
-
-### Files to add
-
-- `src/accounting/stores/pettyCashStore.tsx` — extend with:
-  - `categories`, `custodians`, `approvers` state, seeded from existing constants.
-  - `addCategory`, `addCustodian`, `addApprover`, `updateBranch`, `addBranch` actions.
-- `src/accounting/components/petty-cash/AddOptionDialog.tsx` — generic small dialog (name / email / code fields driven by props).
-- `src/accounting/components/petty-cash/ManageBranchesDialog.tsx`
-- `src/accounting/components/petty-cash/ManagePeopleDialog.tsx`
-- `src/accounting/components/petty-cash/ManageCategoriesDialog.tsx`
-- `src/accounting/components/petty-cash/ExtensibleSelect.tsx` — wraps shadcn `Select` and conditionally renders an “+ Add …” row at the bottom that calls a callback (returns the new id/value).
-
-### Files to modify
-
-- `src/accounting/types/pettyCash.ts` — relax `PettyCategory` to `string`; add `PettyPerson` (id, name, email, role: 'custodian' | 'approver' | 'employee'); add `disabled?: boolean` on category records.
-- `src/accounting/data/mockPettyCash.ts` — export seed `PETTY_CUSTODIANS`, `PETTY_APPROVERS`, `PETTY_EMPLOYEES` derived from existing branch + employee constants.
-- `src/accounting/pages/petty-cash/AccountingPettyCashDashboardPage.tsx` — add admin-only “Manage” button group (Branches / People / Categories); use `ExtensibleSelect` for filters.
-- `src/accounting/pages/petty-cash/AccountingPettyCashVoucherPage.tsx` — switch branch / category / employee Selects to `ExtensibleSelect`; show custodian + approver as derived chips; admin-only “+ Add”.
-- `src/accounting/pages/petty-cash/AccountingPettyCashDetailPage.tsx` — gate approve / reject buttons behind `isAdmin`.
-- `src/accounting/pages/petty-cash/AccountingPettyCashReplenishmentPage.tsx` — gate approve / reject / paid buttons behind `isAdmin`.
-- `src/accounting/pages/petty-cash/AccountingPettyCashAuditPage.tsx` — gate cash verification submit behind `isAdmin`.
-
-### Behavior rules
-
-- Admin check uses the existing `useAccountingAccess` hook (no new auth code).
-- New options persist only in React Context state (mock data) — same pattern the module already uses.
-- Non-admins attempting an admin action: button is hidden (no toast spam).
-- All new UI uses existing shadcn components + semantic tokens; dark-mode friendly.
-- No CRM, npm, schema, or backend changes.
-
-## Out of scope
-
-- Persisting added categories / people across reload (mock-only state, same as the rest of the module).
-- Role management UI (admin status comes from existing `accounting_users.role`).
-- Any change to CRM pages or shared layout other than what already exists.
+**Please reply with which Odoo model holds your courses (option 1, 2, or 3 above), or say "discover" and I'll add the discovery endpoint first.**
