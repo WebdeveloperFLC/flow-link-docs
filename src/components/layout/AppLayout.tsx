@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -37,6 +37,8 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
   { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
   { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
+  { to: "/accounting/vendors", icon: Truck, label: "Vendors" },
+  { to: "/accounting/clients", icon: Briefcase, label: "Clients" },
   { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR" },
   { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals" },
   { to: "/accounting/reports", icon: BarChart2, label: "Reports" },
