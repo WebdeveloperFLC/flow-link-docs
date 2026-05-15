@@ -114,7 +114,7 @@ function parseValue(xml: string, pos: { i: number }): unknown {
 function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false; fault: string } {
   if (xml.includes("<fault>")) {
     const m = xml.match(/<name>faultString<\/name>\s*<value>\s*(?:<string>)?([\s\S]*?)(?:<\/string>)?\s*<\/value>/);
-    return { ok: false, fault: (m?.[1] ?? "Odoo fault").slice(0, 400) };
+    return { ok: false, fault: (m?.[1] ?? "Odoo fault").slice(0, 2000) };
   }
   return { ok: true, value: parseValue(xml, { i: 0 }) };
 }
