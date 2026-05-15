@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Receipt } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { MOCK_INVOICES, SERVICE_TYPE_LABELS, type CustomerInvoice } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import AccountingReceiptModal from "../../components/receipts/AccountingReceiptModal";
+import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
 
 const TODAY = new Date("2024-11-01");
 
@@ -18,6 +20,8 @@ export default function AccountingInvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [inv, setInv] = useState<CustomerInvoice | undefined>(MOCK_INVOICES.find((i) => i.id === id));
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const bank = useMemo(() => inv?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === inv.linkedBankAccountId) : null, [inv]);
 
   if (!inv) return (
@@ -41,6 +45,12 @@ export default function AccountingInvoiceDetailPage() {
               {inv.status === "DRAFT" && <Button variant="outline" onClick={() => { setInv({ ...inv, status: "SENT" }); toast.success("Invoice sent"); }}>Send invoice</Button>}
               {(inv.status === "SENT" || inv.status === "OVERDUE" || inv.status === "PARTIALLY_PAID") && <Button onClick={() => { setInv({ ...inv, status: "PAID", paidDate: new Date().toISOString().slice(0, 10), receivedAmount: inv.totalAmount, outstandingBalance: 0 }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
               {(inv.status === "DRAFT" || inv.status === "SENT") && <Button variant="destructive" onClick={() => { setInv({ ...inv, status: "VOID" }); toast.success("Voided"); }}>Void</Button>}
+              {(inv.status === "PAID" || inv.status === "PARTIALLY_PAID") && (
+                <Button variant="outline" onClick={() => {
+                  const r = buildReceiptData(inv, inv.receivedAmount, inv.paidDate ?? new Date().toISOString().slice(0, 10), inv.paymentMethod ?? "Other", inv.paymentReference);
+                  setSelectedReceipt(r); setReceiptModalOpen(true);
+                }}><Receipt className="size-4 mr-1.5" /> Download receipt</Button>
+              )}
               <Button variant="ghost" onClick={() => navigate("/accounting/clients")}>View client ledger</Button>
               <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
             </>} />
@@ -94,6 +104,13 @@ export default function AccountingInvoiceDetailPage() {
           {inv.status === "VOID" && <Timeline color="bg-destructive" label={`Voided${inv.notes ? ` — ${inv.notes}` : ""}`} ts={inv.invoiceDate} />}
         </CardContent></Card>
       </div>
+      {selectedReceipt && (
+        <AccountingReceiptModal
+          receipt={selectedReceipt}
+          isOpen={receiptModalOpen}
+          onClose={() => { setReceiptModalOpen(false); setSelectedReceipt(null); }}
+        />
+      )}
     </AppLayout>
   );
 }

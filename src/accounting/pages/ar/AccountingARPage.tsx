@@ -20,6 +20,8 @@ import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { MOCK_INVOICES, SERVICE_TYPE_LABELS, type CustomerInvoice, type InvoiceStatus } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import AccountingReceiptModal from "../../components/receipts/AccountingReceiptModal";
+import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
 import { cn } from "@/lib/utils";
 
 const TODAY = new Date("2024-11-01");
@@ -50,6 +52,20 @@ export default function AccountingARPage() {
 
   const [payDialog, setPayDialog] = useState<CustomerInvoice | null>(null);
   const [voidDialog, setVoidDialog] = useState<CustomerInvoice | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
+  const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+
+  function openReceipt(i: CustomerInvoice) {
+    const data = buildReceiptData(
+      i,
+      i.receivedAmount,
+      i.paidDate ?? new Date().toISOString().slice(0, 10),
+      i.paymentMethod ?? "Other",
+      i.paymentReference,
+    );
+    setSelectedReceipt(data);
+    setReceiptModalOpen(true);
+  }
 
   const entities = useMemo(() => Array.from(new Set(invoices.map((i) => i.entity))), [invoices]);
   const branches = useMemo(() => Array.from(new Set(invoices.map((i) => i.branch))), [invoices]);
@@ -239,6 +255,9 @@ export default function AccountingARPage() {
                           {(i.status === "SENT" || i.status === "OVERDUE" || i.status === "PARTIALLY_PAID") && (
                             <DropdownMenuItem onClick={() => setPayDialog(i)}>Record payment</DropdownMenuItem>
                           )}
+                          {(i.status === "PAID" || i.status === "PARTIALLY_PAID") && (
+                            <DropdownMenuItem onClick={() => openReceipt(i)}>Generate receipt</DropdownMenuItem>
+                          )}
                           <DropdownMenuItem onClick={() => { navigate("/accounting/journals"); toast.info("Fill in journal details manually"); }}>Create journal entry</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate("/accounting/clients")}>View client ledger</DropdownMenuItem>
                           {(i.status === "DRAFT" || i.status === "SENT") && (
@@ -289,6 +308,14 @@ export default function AccountingARPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {selectedReceipt && (
+          <AccountingReceiptModal
+            receipt={selectedReceipt}
+            isOpen={receiptModalOpen}
+            onClose={() => { setReceiptModalOpen(false); setSelectedReceipt(null); }}
+          />
+        )}
       </div>
     </AppLayout>
   );
