@@ -289,15 +289,21 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
-    const sb = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: u } = await sb.auth.getUser();
-    if (!u?.user) return json({ error: "Unauthorized" }, 401);
+    const body = await req.json().catch(() => ({}));
+    const action = String(body?.action ?? "search");
+
+    // Diagnose action skips auth so we can debug Odoo connectivity from tools.
+    if (action !== "diagnose") {
+      const authHeader = req.headers.get("Authorization");
+      if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
+      const sb = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: u } = await sb.auth.getUser();
+      if (!u?.user) return json({ error: "Unauthorized" }, 401);
+    }
 
     const URL_ = Deno.env.get("ODOO_COURSES_URL") ?? Deno.env.get("ODOO_URL");
     const DB = Deno.env.get("ODOO_COURSES_DB") ?? Deno.env.get("ODOO_DB");
@@ -307,13 +313,12 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: "Odoo course catalogue not configured" }, 400);
     }
 
-    const body = await req.json().catch(() => ({}));
-    const action = String(body?.action ?? "search");
-
     if (action === "diagnose") {
       const out: Record<string, unknown> = {
         ok: true,
         config: {
+          url_full: URL_,
+          url_pathname: (() => { try { return new URL(URL_).pathname; } catch { return null; } })(),
           url_host: (() => { try { return new URL(URL_).host; } catch { return null; } })(),
           db: DB,
           login: LOGIN,
