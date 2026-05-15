@@ -27,14 +27,16 @@ Deno.serve(async (req) => {
     const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const userClient = createClient(url, anon, { global: { headers: { Authorization: auth } } });
-    const { data: u } = await userClient.auth.getUser();
-    if (!u?.user) return json({ error: "Not authenticated" }, 401);
+    const token = auth.slice("Bearer ".length);
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(token);
+    const userId = claimsData?.claims?.sub as string | undefined;
+    if (claimsErr || !userId) return json({ error: "Not authenticated" }, 401);
 
     const admin = createClient(url, service);
     const { data: roleRow } = await admin
       .from("user_roles")
       .select("role")
-      .eq("user_id", u.user.id)
+      .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
     if (!roleRow) return json({ error: "Forbidden" }, 403);
