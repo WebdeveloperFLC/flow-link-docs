@@ -43,6 +43,7 @@ export const DOCUMENT_TYPES = [
 
 export const ROLE_LABELS: Record<string, string> = {
   admin: "Administrator",
+  commission_admin: "Commission admin",
   counselor: "Edit",
   documentation: "Edit",
   telecaller: "Telecaller",
@@ -51,6 +52,7 @@ export const ROLE_LABELS: Record<string, string> = {
 
 export const ROLE_COLORS: Record<string, string> = {
   admin: "bg-secondary text-secondary-foreground",
+  commission_admin: "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30 dark:text-emerald-300",
   counselor: "bg-primary text-primary-foreground",
   documentation: "bg-accent text-accent-foreground border border-primary/20",
   telecaller: "bg-amber-500/15 text-amber-700 border border-amber-500/30 dark:text-amber-300",
