@@ -9,7 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { Navigate } from "react-router-dom";
-import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff } from "lucide-react";
+import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { HandleUserDataDialog, LifecycleAction } from "@/components/users/HandleUserDataDialog";
+import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog";
 
 interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
@@ -57,6 +58,7 @@ const Users = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [lifecycle, setLifecycle] = useState<{ action: LifecycleAction; user: Profile } | null>(null);
   const [resetUser, setResetUser] = useState<Profile | null>(null);
+  const [permsUser, setPermsUser] = useState<Profile | null>(null);
   const [newPw, setNewPw] = useState("");
   const [showNewPw, setShowNewPw] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
@@ -195,6 +197,9 @@ const Users = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => setPermsUser(p)}
+                        ><KeyRound className="size-3.5 mr-2" /> Module access</DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => { setResetUser(p); setNewPw(""); setShowNewPw(false); }}
                         >Reset password</DropdownMenuItem>
                         {status === "active" ? (
@@ -270,6 +275,15 @@ const Users = () => {
         </DialogContent>
       </Dialog>
       <AddUserDialog open={addOpen} onOpenChange={setAddOpen} onCreated={load} />
+      {permsUser && (
+        <UserPermissionsDialog
+          open={!!permsUser}
+          onOpenChange={(o) => { if (!o) setPermsUser(null); }}
+          userId={permsUser.id}
+          userName={permsUser.full_name ?? permsUser.email ?? ""}
+          role={(rolesFor(permsUser.id)[0] ?? "viewer") as AppRole}
+        />
+      )}
       {lifecycle && (
         <HandleUserDataDialog
           open={!!lifecycle}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ShieldCheck, ShieldOff, UserPlus, Loader2 } from "lucide-react";
+import { Plus, ShieldCheck, ShieldOff, UserPlus, Loader2, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingBreadcrumbs from "../../components/shared/AccountingBreadcrumbs";
@@ -12,6 +12,7 @@ import DarkModeToggle from "../../components/shared/DarkModeToggle";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import InviteUserDialog from "../../components/settings/InviteUserDialog";
 import RoleBadge from "../../components/settings/RoleBadge";
+import AccountingUserPermissionsDialog from "../../components/settings/AccountingUserPermissionsDialog";
 import { AccountingUser } from "../../types/accountingUsers";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import { toast } from "sonner";
@@ -25,6 +26,7 @@ export default function AccountingUsersPage() {
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState<AccountingUser | null>(null);
+  const [permsTarget, setPermsTarget] = useState<AccountingUser | null>(null);
 
   const mapRow = (r: any): AccountingUser => ({
     id: r.id,
@@ -95,6 +97,12 @@ export default function AccountingUsersPage() {
         };
         return <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${map[p.value]}`}>{p.value.charAt(0) + p.value.slice(1).toLowerCase()}</span>;
       } },
+    { headerName: "Module access", field: "id", flex: 0.9, minWidth: 140, sortable: false, filter: false,
+      cellRenderer: (p: { data: AccountingUser }) => (
+        <Button variant="outline" size="sm" onClick={() => setPermsTarget(p.data)}>
+          <KeyRound className="size-3.5 mr-1" /> Manage
+        </Button>
+      ) },
     { headerName: "Actions", field: "id", flex: 0.8, minWidth: 110, sortable: false, filter: false,
       cellRenderer: (p: { data: AccountingUser }) => (
         <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setConfirmTarget(p.data)}>
@@ -163,6 +171,15 @@ export default function AccountingUsersPage() {
             setConfirmTarget(null);
           }}
         />
+        {permsTarget && (
+          <AccountingUserPermissionsDialog
+            open={!!permsTarget}
+            onOpenChange={(v) => { if (!v) setPermsTarget(null); }}
+            userId={permsTarget.id}
+            userName={permsTarget.name}
+            role={permsTarget.role}
+          />
+        )}
       </div>
     </AppLayout>
   );
