@@ -1,94 +1,85 @@
 ## Goal
 
-Make every tab in the Institution Detail page (Overview, Sources, Documents, Agreements, Commissions, Claims, Promotions, Campaigns, AI Suggestions) end-to-end testable using a rich, realistic mock dataset and a metadata-driven dynamic field system — without touching any CRM code outside `src/institutions/`, without redesigning the page, and without adding npm packages.
+Make every institution detail page a fully isolated workspace (no data leakage across institutions) and gate the entire Institutions section (`Institutions`, `Course Review`, `AI Suggestions`) behind admin-only access.
 
-## Architecture
+## Root cause of the current leak
 
-```text
-src/institutions/
-  config.ts                       (existing) USE_MOCK_DATA + thresholds + field-group registry keys
-  mock/
-    canadianInstitutions.ts       (existing) extended with full dataset
-    students.ts                   eligibility / blocked / carry-forward / payments
-    campaigns.ts                  campaigns + sources mock
-    fieldDefinitions.ts           NEW — dynamic field schema (per scope: agreement, commission, claim, promotion, campaign, renewal)
-    types.ts                      extended types
-  repositories/
-    index.ts                      (existing) +studentsRepo, campaignsRepo, suggestionsRepo, fieldDefsRepo, paymentsRepo
-  hooks/
-    useInstitutionData.ts         (existing) + useStudents, useCampaigns, useSuggestions, useFieldDefs, usePayments
-  lib/
-    commissionEngine.ts           (existing, reused)
-    claimEngine.ts                NEW — eligibility, carry-forward, dedupe, totals
-    fieldRenderer.tsx             NEW — renders dynamic fields from definitions
-  components/
-    OverviewPanel.tsx             NEW — KPI dashboard + recent lists
-    SourcesPanel.tsx              NEW — wraps existing sources list (extracted from page)
-    DocumentsPanel.tsx            NEW — enhanced upload + auto-classify + extraction summary
-    AgreementsPanel.tsx           (existing) extended: full action menu, dynamic fields
-    CommissionsPanel.tsx          (existing) extended: simulator, conflict warnings, "why" panel
-    ClaimsPanel.tsx               (existing) extended: eligible/blocked/carry-forward, invoices flow
-    PromotionsPanel.tsx           NEW
-    CampaignsPanel.tsx            NEW
-    AiSuggestionsPanel.tsx        NEW (extracted from page)
-    DynamicFieldGroup.tsx         NEW — renders a group of dynamic fields
-  pages/
-    InstitutionDetailPage.tsx     edit: just compose the panels into tabs (no business logic in page)
-```
-
-Data flow stays: **Panel → hook → repository → (Supabase | mock)**. Live rows always win; mock fills empty results only when `USE_MOCK_DATA=true`. Nothing in panels imports mock or Supabase directly.
-
-## Dynamic field system
-
-`fieldDefinitions.ts` exports a registry keyed by `scope` (`agreement | commission | claim | promotion | campaign | renewal`). Each definition:
+`src/institutions/repositories/index.ts` defines:
 
 ```text
-{ key, label, type: text|number|date|select|multiselect|currency|percent|boolean|textarea,
-  group, options?, required?, visibleIf?, validate?, defaultValue?, helpText? }
+mockForInst(rows, id) → if filter yields 0 rows, return ALL rows
 ```
 
-- Panels render fixed accounting columns (status, dates, totals) directly.
-- All institution-specific rules render via `<DynamicFieldGroup scope="agreement" values={agreement.extracted_data} onChange={...} />`.
-- Adding a new field later = one entry in `fieldDefinitions.ts` (or, in future, a DB row) — no panel changes.
-- `visibleIf` evaluates against current values for conditional fields (e.g. show `wire_deduction_amount` only if `wire_deduction_applies = true`).
+Because real DB institutions use UUIDs but mock rows are keyed to `mock-inst-seneca`, `mock-inst-conestoga`, etc., the filter always yields 0 and every real institution falls back to the full shared mock dataset. That is why Conestoga, UBC, and others all show Seneca/Centennial records.
 
-## Mock dataset (extend `canadianInstitutions.ts` + new `students.ts`, `campaigns.ts`)
+Additionally, panels like Agreements/Commissions/Promotions/Campaigns load via `useXxx(id)` which goes through the same repo, so the leak propagates to every tab.
 
-- **Institutions**: Seneca, Conestoga, Centennial, Fanshawe, UBC (partner / non-partner mix).
-- **Agreements**: 1–2 per institution with mixed statuses (active, expiring-in-45-days, expired, draft) and full dynamic rule payloads (countries, claim/invoice deadlines, tax, wire deduction, clawback, governing law, minimum enrolments).
-- **Commissions**: at least one each of fixed, percentage, slab, semester-wise, yearly, country-specific, intake-specific; plus rules with conflicts (two May-intake bonuses) to test the conflict warning.
-- **Claim cycles**: Jan / May / Sep cycles per institution in states open / submitted / partially_paid / closed / disputed; carry_forward_from references.
-- **Invoices**: states draft / reviewed / sent / approved / paid / overdue / disputed.
-- **Students** (`students.ts`): 25–40 records across institutions/cycles with statuses eligible / pending_dues / deferred / withdrawn / missing_consent / carried_forward; one student appears in two consecutive cycles with carry-forward link (no duplication).
-- **Payments**: one paid invoice with proof_path, one pending.
-- **Promotions**: bonus_commission, fee_waiver, seasonal, intake_offer, country_offer — each linked to an agreement and/or commission rule.
-- **Campaigns**: marketing + commission campaigns with periods, target countries, eligible institutions.
-- **AI suggestions**: 8–10 covering every example case (expiring agreement, claim deadline, missing consent, invoice not submitted, rule mismatch, etc.).
-- **Sources**: per institution — website, brochure pdf, excel sheet, scholarship page — each with confidence + status + linked agreement id.
-- **Counselor incentives / B2B share**: stored as dynamic fields on commissions.
+---
 
-## Tab work
+## Changes
 
-- **Overview**: KPI grid (active programs, claims submitted, approved/paid commission, renewals due, pending review, blocked students, active campaigns) + four "recent" lists + AI highlights. Pulls aggregates from hooks; no new repos beyond what's listed.
-- **Sources**: move existing JSX into `SourcesPanel.tsx`, add "linked agreement" and "open details" sheet using mock metadata.
-- **Documents**: add full type list (Agreement, Commission sheet, Program sheet, Promotion/Campaign, Invoice template, Renewal document, Other), per-row upload + processing + extraction confidence badges, extracted summary panel after upload, "linked record" chip + jump-to-tab action. When DB has no events, fall back to mock pipeline result so UX is testable.
-- **Agreements**: full table with renewal countdown, action menu (view / edit / extract AI summary / renewal review / version history dialog). Edit dialog renders `DynamicFieldGroup scope="agreement"`.
-- **Commissions**: master list grouped by agreement; commission simulator (reuses `commissionEngine`); rule conflict warning (detects overlapping bonus conditions); "why this rule applied" panel.
-- **Claims**: cycles list with eligible/blocked/carry-forward counts (from `claimEngine`), invoice CRUD already exists; add "mark paid" + "upload proof" (mock) actions; show original vs processed intake; assert no duplicate students across cycles.
-- **Promotions**: list + dialog with dynamic fields, linked agreement / commission rule pickers.
-- **Campaigns**: list + dialog (period, bonus logic, eligible institutions, target countries, claim/renewal impact flags).
-- **AI Suggestions**: card grid (title, severity pill, explanation, affected institution, accept / dismiss / defer actions) wired to existing `upi_ai_suggestions` repo with mock fallback.
+### 1. New helper — institution-scoped filter
 
-Every tab: explicit loading skeleton, empty state with CTA, and error card.
+Create `src/institutions/lib/scope.ts`:
+
+- `getInstitutionRecords<T>(institutionId, records)` — strict filter, never falls back to "all".
+- `pickMockTemplate(institutionId)` — deterministic hash → one of `mock-inst-seneca | mock-inst-conestoga | mock-inst-centennial | mock-inst-fanshawe | mock-inst-ubc`. Used only when DB is empty AND `USE_MOCK_DATA` is on, so a real UUID still gets a single, stable, isolated mock dataset (not a merged blob).
+- `rekeyToInstitution<T>(records, fromId, toId)` — clones records and rewrites `institution_id` so the seeded mock looks like it belongs to the current institution.
+
+### 2. Repositories — strict scoping + per-institution seeding
+
+Edit `src/institutions/repositories/index.ts`:
+
+- Remove the dangerous "filter empty → return all" fallback in `mockForInst`.
+- New flow per repo (`agreementsRepo`, `commissionsRepo`, `claimCyclesRepo`, `invoicesRepo`, `promotionsRepo`, `campaignsRepo`, `sourcesMockRepo`, `suggestionsRepo`, `studentsRepo`, `commissionsRepo.rules`):
+  1. Query Supabase, filter strictly by `institution_id === institutionId`.
+  2. If real rows exist → return them.
+  3. Else if `USE_MOCK_DATA` and `institutionId` is set → pick a deterministic template institution via `pickMockTemplate(id)`, take ONLY that template's rows, rekey their `institution_id` to the current id, and return them.
+  4. Else → return `[]` so panels render their empty state.
+- For child collections (commission rules, invoices by cycle, students by cycle), seed using the same template so child IDs remain consistent within the seeded snapshot.
+
+### 3. Per-institution mock structure
+
+Edit `src/institutions/mock/canadianInstitutions.ts`, `mock/students.ts`, `mock/campaigns.ts`:
+
+- Group the existing rows by `institution_id` (already keyed). No new content needed — the existing per-institution buckets become the "templates" the helper picks from.
+- Remove globally-scoped mock rows that have `institution_id: null` (e.g., `cmp-3` "Counselor incentive Q1 2026") from the per-institution paths, or attach them to a specific template so they cannot leak into other institutions.
+
+### 4. Detail page — verify id before rendering
+
+Edit `src/institutions/pages/InstitutionDetailPage.tsx`:
+
+- Early-return a "not found / loading" state if `id` is missing or `inst` not yet loaded (already partially done).
+- Every panel (`OverviewPanel`, `AgreementsPanel`, `CommissionsPanel`, `ClaimsPanel`, `PromotionsPanel`, `CampaignsPanel`, `AiSuggestionsPanel`, `AiReviewPanel`, sources/docs sections) receives `institutionId={id}` and renders an empty state when its hook returns `[]`.
+- Confirm every create/insert path on this page already sets `institution_id: id` (uploads, sources, campaigns — already correct). Audit the same in panel dialogs (`AgreementsPanel`, `CommissionsPanel`, `ClaimsPanel`, `PromotionsPanel`, `CampaignsPanel`) and patch any insert that omits `institution_id`.
+
+### 5. Empty states
+
+Every panel must render an inline empty card ("No agreements for this institution yet") when its scoped list is empty, instead of borrowing from other institutions. No new styling — reuse existing `<Card>` empty patterns already present in the panels.
+
+### 6. Admin-only access to the Institutions section
+
+- Add `src/institutions/components/InstitutionsProtectedRoute.tsx`:
+  - Uses `useAuth()`; while `loading` show a spinner; if `!user` redirect to `/auth`; if `!isAdmin` render an "Access restricted — admin only" card.
+- Wrap the four routes in `src/App.tsx`:
+  - `/institutions`, `/institutions/review`, `/institutions/suggestions`, `/institutions/:id` → `<InstitutionsProtectedRoute>…</InstitutionsProtectedRoute>` (replacing the existing `ProtectedRoute`).
+- Hide the `institutionsNav` group in `src/components/layout/AppLayout.tsx` when `!isAdmin` so non-admins don't see the menu.
+
+Access management itself (grant/revoke admin) already exists via the `user_roles` table + `useAuth().isAdmin`. No DB migration needed for this step — admins assign the `admin` role from the existing Users page.
+
+---
 
 ## Out of scope
 
-- New backend/edge-function work (existing functions stay as-is)
-- New DB migrations (current schema already supports everything; dynamic fields live in `extracted_data` jsonb)
-- Touching CRM modules outside `src/institutions/`
-- Redesigning the institution page chrome
-- Adding npm packages
+- No redesign of any tab, panel, or page chrome.
+- No new edge functions or DB migrations.
+- No changes to CRM modules outside `src/institutions/` (except the two App.tsx route wrappers and the AppLayout nav visibility check).
 
-## QA paths verified before completion
+## QA checklist
 
-Upload agreement → pipeline shows extracted → Agreements row appears with AI summary · Upload commission sheet → Commissions row + rules appear · Upload program sheet → Sources/Documents/Course Review link works · Create claim cycle → only eligible students counted · Block one student → cycle still progresses, student carried to next cycle, no duplicates · Generate invoice → mark paid → totals update · Agreement nearing expiry → renewal alert badge + AI suggestion · Add new dynamic field in `fieldDefinitions.ts` → it appears in the edit dialog with no other code change.
+1. Open Conestoga → Agreements/Commissions/Claims/Promotions/Campaigns/AI Suggestions only show Conestoga records (or the Conestoga-template mock, never Seneca/Centennial/Fanshawe rows).
+2. Open Seneca → only Seneca rows visible.
+3. Open a brand-new institution with no data → every tab shows its empty state, not borrowed rows.
+4. Create an agreement/commission/promotion/campaign from a panel → record appears only on that institution's detail page.
+5. Non-admin user signs in → `/institutions*` routes show "Access restricted"; sidebar hides the Institutions group.
+6. Admin user → full access restored.
