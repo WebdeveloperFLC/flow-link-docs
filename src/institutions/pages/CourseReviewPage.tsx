@@ -13,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type Row = any;
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
+const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
 
 const ConfidenceBadge = ({ score }: { score: number | null }) => {
   const s = score ?? 0;
@@ -111,6 +113,17 @@ export default function CourseReviewPage() {
     <AppLayout>
       <PageHeader title="Course Review" description="Review and publish AI-extracted courses awaiting approval." />
       <div className="p-6 space-y-4">
+        {statusFilter === "published" && (
+          <Card className="p-4 flex items-center gap-3 bg-success/5 border-success/20">
+            <Info className="size-4 text-success" />
+            <div className="flex-1 text-sm">
+              These programs are <strong>live in Course Finder</strong>. Students can see them on the public catalog.
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/courses" target="_blank">View in Course Finder <ExternalLink className="size-3 ml-1" /></Link>
+            </Button>
+          </Card>
+        )}
         <Card className="p-4 flex flex-wrap gap-3 items-end">
           <div className="space-y-1">
             <Label className="text-xs">Status</Label>
