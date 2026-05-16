@@ -40,6 +40,15 @@ export interface MockDocument {
   linkedClient?: string;
   tags: string[];
   extracted?: ExtractedData;
+  /** AI-extracted transaction lines, when this doc is a bank/card statement */
+  lineItems?: Array<{
+    date: string;
+    description: string;
+    amount: number;
+    reference?: string;
+  }>;
+  /** Error captured when OCR/extraction failed */
+  ocrError?: string;
 }
 
 export const MOCK_DOCUMENTS: MockDocument[] = [];
