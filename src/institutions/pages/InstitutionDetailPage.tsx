@@ -26,6 +26,7 @@ import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { Lock } from "lucide-react";
 import { useMockSources } from "../hooks/useInstitutionData";
+import { ALLOW_TEST_DELETIONS } from "../config";
 
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
@@ -207,6 +208,18 @@ export default function InstitutionDetailPage() {
     if (orchErr) toast.error(orchErr.message);
     else toast.success("Extraction complete — open Review to verify");
     setBusy(false); load();
+  };
+
+  const deleteDoc = async (d: any) => {
+    if (!confirm(`Delete document "${d.file_name}"?\n\nThis removes the file and all pipeline events. Irreversible.`)) return;
+    if (d.file_path) {
+      await supabase.storage.from("institution-documents").remove([d.file_path]);
+    }
+    await supabase.from("upi_document_pipeline_events").delete().eq("document_id", d.id);
+    const { error } = await supabase.from("upi_uploaded_documents").delete().eq("id", d.id);
+    if (error) return toast.error(error.message);
+    toast.success("Document deleted");
+    load();
   };
 
   const generateContent = async () => {
@@ -450,6 +463,11 @@ export default function InstitutionDetailPage() {
                     {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
                   </Badge>
                   <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
+                  {ALLOW_TEST_DELETIONS && (
+                    <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
                 </Card>
               ))}
               {docs.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No documents yet.</div>}
