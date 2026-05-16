@@ -64,6 +64,15 @@ function suggestAccount(desc: string, expAccts: { id: string; code: string; name
 
 const STEPS = ["Card details", "Import statement", "Categorise", "Generate journal"];
 
+function ProgressLine({ label, active, done }: { label: string; active?: boolean; done?: boolean }) {
+  return (
+    <div className={cn("flex items-center gap-2", done ? "text-green-600" : active ? "text-foreground" : "text-muted-foreground")}>
+      {done ? <Check className="size-3.5" /> : active ? <Loader2 className="size-3.5 animate-spin" /> : <span className="size-3.5 rounded-full border border-current opacity-40" />}
+      <span>{label}</span>
+    </div>
+  );
+}
+
 export default function AccountingCardReconciliationNewPage() {
   const navigate = useNavigate();
   const entities = useEntities();
