@@ -609,7 +609,7 @@ export function ThemeCustomizer() {
                   { key: 'underline', label: 'Under' },
                 ] as const).map((s) => {
                   const active = theme.navActiveStyle === s.key;
-                  const activeItemStyle: React.CSSProperties =
+                  const activeItemStyle =
                     s.key === 'pill'
                       ? { background: 'hsl(var(--primary) / 0.15)', borderRadius: 4 }
                       : s.key === 'border-left'
