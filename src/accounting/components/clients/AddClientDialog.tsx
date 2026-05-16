@@ -13,7 +13,7 @@ import {
 import {
   MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES, CLIENT_TYPE_LABEL,
 } from "../../data/mockStaff";
-import { MOCK_CLIENTS } from "../../data/mockClients";
+import { addClient } from "../../stores/clientsStore";
 import type { Client, ClientType } from "../../types/clients";
 
 interface Props {
@@ -57,8 +57,8 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
       counselorId, counselorName: counselor?.name,
       servicePackage, visaCategory, intake, leadSource, notes,
     };
-    MOCK_CLIENTS.push(created);
-    onCreated?.(created);
+    const persisted = addClient(created);
+    onCreated?.(persisted);
     toast.success(`Client "${name}" created`);
     onOpenChange(false);
     setName(""); setEmail(""); setPhone(""); setTaxId(""); setNotes("");

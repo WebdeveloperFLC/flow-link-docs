@@ -12,7 +12,7 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AddVendorDialog from "../../components/vendors/AddVendorDialog";
-import { MOCK_VENDORS } from "../../data/mockVendors";
+import { useVendors } from "../../stores/vendorsStore";
 import { useVendorCategories, getVendorCategoryLabel } from "../../stores/vendorCategoriesStore";
 import { formatCurrency } from "../../lib/format";
 import type { Vendor } from "../../types/vendors";
@@ -20,18 +20,19 @@ import type { Vendor } from "../../types/vendors";
 export default function AccountingVendorsPage() {
   const navigate = useNavigate();
   const categories = useVendorCategories();
+  const vendors = useVendors();
   const [open, setOpen] = useState(false);
   const [country, setCountry] = useState<string>("ALL");
   const [category, setCategory] = useState<string>("ALL");
   const [status, setStatus] = useState<string>("ALL");
 
   const rows = useMemo(() => {
-    return MOCK_VENDORS.filter(v =>
+    return vendors.filter(v =>
       (country === "ALL" || v.country === country) &&
       (category === "ALL" || v.category === category) &&
       (status === "ALL" || v.status === status),
     );
-  }, [country, category, status]);
+  }, [vendors, country, category, status]);
 
   const cols = useMemo<ColDef<Vendor>[]>(() => [
     {
@@ -117,7 +118,7 @@ export default function AccountingVendorsPage() {
                   <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>)}
               </SelectContent>
             </Select>
-            <span className="ml-auto text-xs text-muted-foreground">{rows.length} of {MOCK_VENDORS.length} vendors</span>
+            <span className="ml-auto text-xs text-muted-foreground">{rows.length} of {vendors.length} vendors</span>
           </div>
         </Card>
 

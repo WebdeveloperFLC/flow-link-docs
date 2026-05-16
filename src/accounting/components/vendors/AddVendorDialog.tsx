@@ -6,50 +6,52 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { Plus } from "lucide-react";
-import { useVendorCategories, addVendorCategory } from "../../stores/vendorCategoriesStore";
+import DynamicSelect from "../shared/DynamicSelect";
+import { addVendor } from "../../stores/vendorsStore";
+import type { Vendor, VendorCategory } from "../../types/vendors";
 
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
-  onCreate?: (v: { name: string; category: string; country: string; currency: string; paymentTerms: string }) => void;
+  onCreate?: (v: Vendor) => void;
 }
 
 export default function AddVendorDialog({ open, onOpenChange, onCreate }: Props) {
-  const categories = useVendorCategories();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("PROFESSIONAL_SERVICES");
   const [country, setCountry] = useState("CA");
   const [currency, setCurrency] = useState("CAD");
-  const [paymentTerms, setPaymentTerms] = useState("Net 30");
+  const [paymentTerms, setPaymentTerms] = useState("NET_30");
   const [taxId, setTaxId] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [showContact, setShowContact] = useState(false);
-  const [addingCategory, setAddingCategory] = useState(false);
-  const [newCategoryLabel, setNewCategoryLabel] = useState("");
 
   const handleSave = () => {
     if (!name.trim()) { toast.error("Vendor name is required"); return; }
-    onCreate?.({ name, category, country, currency, paymentTerms });
+    const created = addVendor({
+      name: name.trim(),
+      legalName: name.trim(),
+      category: category as VendorCategory,
+      country,
+      taxId: taxId || "—",
+      paymentTerms,
+      currency: currency as Vendor["currency"],
+      status: "ACTIVE",
+      email: contactEmail || "",
+      phone: contactPhone || "",
+      address: "",
+      contactName: contactName || undefined,
+      contactEmail: contactEmail || undefined,
+      contactPhone: contactPhone || undefined,
+    });
+    onCreate?.(created);
     toast.success(`Vendor "${name}" created`);
     onOpenChange(false);
     setName(""); setTaxId("");
     setContactName(""); setContactEmail(""); setContactPhone("");
     setShowContact(false);
-  };
-
-  const handleAddCategory = () => {
-    const created = addVendorCategory(newCategoryLabel);
-    if (!created) { toast.error("Enter a valid category name"); return; }
-    setCategory(created.code);
-    setNewCategoryLabel("");
-    setAddingCategory(false);
-    toast.success(`Category "${created.label}" added`);
   };
 
   return (
@@ -66,62 +68,20 @@ export default function AddVendorDialog({ open, onOpenChange, onCreate }: Props)
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <Label>Category</Label>
-                <button type="button"
-                  onClick={() => setAddingCategory(v => !v)}
-                  className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
-                  <Plus className="size-3" /> {addingCategory ? "Cancel" : "New"}
-                </button>
-              </div>
-              {addingCategory ? (
-                <div className="flex gap-2">
-                  <Input
-                    value={newCategoryLabel}
-                    onChange={(e) => setNewCategoryLabel(e.target.value)}
-                    placeholder="e.g. Insurance"
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddCategory(); } }}
-                  />
-                  <Button type="button" size="sm" onClick={handleAddCategory}>Add</Button>
-                </div>
-              ) : (
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <Label>Category</Label>
+              <DynamicSelect listKey="vendor_categories" value={category} onValueChange={setCategory} addLabel="category" />
             </div>
             <div className="grid gap-2">
               <Label>Country</Label>
-              <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["CA","US","IN","GB","DE","CZ","AU"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
             </div>
             <div className="grid gap-2">
               <Label>Currency</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["CAD","USD","INR"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />
             </div>
             <div className="grid gap-2">
               <Label>Payment terms</Label>
-              <Select value={paymentTerms} onValueChange={setPaymentTerms}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["Due on receipt","Net 7","Net 14","Net 15","Net 21","Net 30","Net 45","Net 60"].map(p =>
-                    <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <DynamicSelect listKey="payment_terms" value={paymentTerms} onValueChange={setPaymentTerms} addLabel="payment term" />
             </div>
           </div>
           <div className="grid gap-2">
