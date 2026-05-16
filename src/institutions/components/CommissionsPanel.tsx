@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCommissions, useCommissionRules } from "../hooks/useInstitutionData";
 import { simulateCommission } from "../lib/commissionEngine";
+import { detectRuleConflicts } from "../lib/claimEngine";
+import { AlertTriangle } from "lucide-react";
 
 export function CommissionsPanel({ institutionId }: { institutionId: string }) {
   const { data: commissions, loading } = useCommissions(institutionId);
@@ -20,6 +22,7 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
     <div className="space-y-4">
       {commissions.map((c: any) => {
         const cRules = rules.filter((r: any) => r.commission_id === c.id);
+        const conflicts = detectRuleConflicts(cRules as any[]);
         const meta = c.metadata ?? {};
         const base = { base_rate_percent: c.base_rate_percent ?? meta.base_rate_percent ?? 0, currency: c.currency ?? "CAD" };
         const breakdown = simulateCommission(base, cRules as any, sim);
@@ -55,6 +58,17 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
                     </li>
                   ))}
                 </ul>
+                {conflicts.length > 0 && (
+                  <div className="mt-2 text-xs text-destructive flex items-start gap-2">
+                    <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                    <div>
+                      <div className="font-medium">Rule conflicts detected</div>
+                      <ul className="list-disc pl-4">
+                        {conflicts.map((cf, i) => <li key={i}>{cf.reason}</li>)}
+                      </ul>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -79,6 +93,9 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
                   <span className="font-mono">{breakdown.total.toFixed(2)} {breakdown.currency}</span>
                 </li>
               </ul>
+              <div className="text-[11px] text-muted-foreground mt-2">
+                Why these lines: base rate plus any rule whose condition matches the simulator inputs above.
+              </div>
             </div>
           </Card>
         );

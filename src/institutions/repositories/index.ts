@@ -1,13 +1,15 @@
 import { supabase } from "@/integrations/supabase/client";
 import { USE_MOCK_DATA } from "../config";
 import {
-  mockAgreements,
-  mockCommissions,
-  mockCommissionRules,
-  mockClaimCycles,
-  mockInvoices,
-  mockPromotions,
+  mockAgreementsExtended as mockAgreements,
+  mockCommissionsExtended as mockCommissions,
+  mockCommissionRulesExtended as mockCommissionRules,
+  mockClaimCyclesExtended as mockClaimCycles,
+  mockInvoicesExtended as mockInvoices,
+  mockPromotionsExtended as mockPromotions,
 } from "../mock/canadianInstitutions";
+import { mockStudents, mockPayments } from "../mock/students";
+import { mockCampaigns, mockSources, mockSuggestions } from "../mock/campaigns";
 
 /**
  * Repository layer. Live Supabase rows always take precedence.
@@ -16,15 +18,25 @@ import {
  */
 
 async function liveOrMock<T>(live: PromiseLike<T[]>, mock: T[]): Promise<T[]> {
-  const rows = await live;
-  if (rows.length > 0) return rows;
+  try {
+    const rows = await live;
+    if (rows.length > 0) return rows;
+  } catch {
+    // fall through to mock
+  }
   if (USE_MOCK_DATA) return mock;
-  return rows;
+  return [];
 }
 
-function filterByInst<T extends { institution_id?: string | null }>(rows: T[], institutionId?: string) {
+/**
+ * When DB returns no rows for a real institution id, we still want the demo
+ * tabs to be testable. Mock IDs (`mock-inst-*`) won't match real UUIDs, so
+ * fall back to ALL mock rows when filtering by-institution yields nothing.
+ */
+function mockForInst<T extends { institution_id?: string | null }>(rows: T[], institutionId?: string) {
   if (!institutionId) return rows;
-  return rows.filter((r) => r.institution_id === institutionId);
+  const filtered = rows.filter((r) => r.institution_id === institutionId);
+  return filtered.length > 0 ? filtered : rows;
 }
 
 // --- Agreements
@@ -38,7 +50,7 @@ export const agreementsRepo = {
         if (r.error) throw r.error;
         return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
       });
-    return liveOrMock(live, filterByInst(mockAgreements, institutionId) as any[]);
+    return liveOrMock(live, mockForInst(mockAgreements, institutionId) as any[]);
   },
 };
 
@@ -53,7 +65,7 @@ export const commissionsRepo = {
         if (r.error) throw r.error;
         return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
       });
-    return liveOrMock(live, filterByInst(mockCommissions, institutionId) as any[]);
+    return liveOrMock(live, mockForInst(mockCommissions, institutionId) as any[]);
   },
   async rules(commissionIds: string[]) {
     if (commissionIds.length === 0) return [];
@@ -83,7 +95,7 @@ export const claimCyclesRepo = {
         if (r.error) throw r.error;
         return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
       });
-    return liveOrMock(live, filterByInst(mockClaimCycles, institutionId) as any[]);
+    return liveOrMock(live, mockForInst(mockClaimCycles, institutionId) as any[]);
   },
 };
 
@@ -98,7 +110,7 @@ export const invoicesRepo = {
         if (r.error) throw r.error;
         return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
       });
-    return liveOrMock(live, filterByInst(mockInvoices, institutionId) as any[]);
+    return liveOrMock(live, mockForInst(mockInvoices, institutionId) as any[]);
   },
 };
 
@@ -113,7 +125,7 @@ export const promotionsRepo = {
         if (r.error) throw r.error;
         return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
       });
-    return liveOrMock(live, filterByInst(mockPromotions, institutionId) as any[]);
+    return liveOrMock(live, mockForInst(mockPromotions, institutionId) as any[]);
   },
 };
 
@@ -138,5 +150,59 @@ export const pipelineRepo = {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data ?? [];
+  },
+};
+
+// --- Students (mock-only for now)
+export const studentsRepo = {
+  async list(institutionId?: string) {
+    if (!USE_MOCK_DATA) return [];
+    return institutionId ? mockForInst(mockStudents, institutionId) : mockStudents;
+  },
+};
+
+// --- Payments (mock-only)
+export const paymentsRepo = {
+  async list() {
+    if (!USE_MOCK_DATA) return [];
+    return mockPayments;
+  },
+};
+
+// --- Campaigns
+export const campaignsRepo = {
+  async list(institutionId?: string) {
+    const live = supabase
+      .from("upi_marketing_campaigns")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then((r) => {
+        if (r.error) throw r.error;
+        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
+      });
+    return liveOrMock(live, mockForInst(mockCampaigns as any[], institutionId));
+  },
+};
+
+// --- Sources mock fallback (only used when DB has none)
+export const sourcesMockRepo = {
+  async list(institutionId?: string) {
+    if (!USE_MOCK_DATA) return [];
+    return mockForInst(mockSources, institutionId);
+  },
+};
+
+// --- AI suggestions
+export const suggestionsRepo = {
+  async list(institutionId?: string) {
+    const live = supabase
+      .from("upi_ai_suggestions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then((r) => {
+        if (r.error) throw r.error;
+        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
+      });
+    return liveOrMock(live, mockForInst(mockSuggestions as any[], institutionId));
   },
 };

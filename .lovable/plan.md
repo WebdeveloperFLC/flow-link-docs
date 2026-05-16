@@ -1,94 +1,94 @@
 ## Goal
 
-Turn the existing institution Documents upload into a full AI pipeline: classify → extract → link to Agreements / Commissions / Promotions / Campaigns / AI Suggestions → trigger reminders. Reuse existing tabs/UI; no new top‑level CRM sections, no new npm packages.
+Make every tab in the Institution Detail page (Overview, Sources, Documents, Agreements, Commissions, Claims, Promotions, Campaigns, AI Suggestions) end-to-end testable using a rich, realistic mock dataset and a metadata-driven dynamic field system — without touching any CRM code outside `src/institutions/`, without redesigning the page, and without adding npm packages.
 
-## Architecture (mandatory)
+## Architecture
 
+```text
+src/institutions/
+  config.ts                       (existing) USE_MOCK_DATA + thresholds + field-group registry keys
+  mock/
+    canadianInstitutions.ts       (existing) extended with full dataset
+    students.ts                   eligibility / blocked / carry-forward / payments
+    campaigns.ts                  campaigns + sources mock
+    fieldDefinitions.ts           NEW — dynamic field schema (per scope: agreement, commission, claim, promotion, campaign, renewal)
+    types.ts                      extended types
+  repositories/
+    index.ts                      (existing) +studentsRepo, campaignsRepo, suggestionsRepo, fieldDefsRepo, paymentsRepo
+  hooks/
+    useInstitutionData.ts         (existing) + useStudents, useCampaigns, useSuggestions, useFieldDefs, usePayments
+  lib/
+    commissionEngine.ts           (existing, reused)
+    claimEngine.ts                NEW — eligibility, carry-forward, dedupe, totals
+    fieldRenderer.tsx             NEW — renders dynamic fields from definitions
+  components/
+    OverviewPanel.tsx             NEW — KPI dashboard + recent lists
+    SourcesPanel.tsx              NEW — wraps existing sources list (extracted from page)
+    DocumentsPanel.tsx            NEW — enhanced upload + auto-classify + extraction summary
+    AgreementsPanel.tsx           (existing) extended: full action menu, dynamic fields
+    CommissionsPanel.tsx          (existing) extended: simulator, conflict warnings, "why" panel
+    ClaimsPanel.tsx               (existing) extended: eligible/blocked/carry-forward, invoices flow
+    PromotionsPanel.tsx           NEW
+    CampaignsPanel.tsx            NEW
+    AiSuggestionsPanel.tsx        NEW (extracted from page)
+    DynamicFieldGroup.tsx         NEW — renders a group of dynamic fields
+  pages/
+    InstitutionDetailPage.tsx     edit: just compose the panels into tabs (no business logic in page)
 ```
-UI components  →  hooks (useInstitutions, useAgreements, useCommissions, useClaimCycles, useDocuments, usePromotions, useAiSuggestions)
-              →  services (institutionsService, agreementsService, …)
-              →  repositories (supabaseRepo + mockRepo)  ← selected by config flag
-              →  data source (Supabase tables OR src/institutions/mock/*)
+
+Data flow stays: **Panel → hook → repository → (Supabase | mock)**. Live rows always win; mock fills empty results only when `USE_MOCK_DATA=true`. Nothing in panels imports mock or Supabase directly.
+
+## Dynamic field system
+
+`fieldDefinitions.ts` exports a registry keyed by `scope` (`agreement | commission | claim | promotion | campaign | renewal`). Each definition:
+
+```text
+{ key, label, type: text|number|date|select|multiselect|currency|percent|boolean|textarea,
+  group, options?, required?, visibleIf?, validate?, defaultValue?, helpText? }
 ```
 
-- Add `src/institutions/config.ts` exporting `USE_MOCK_DATA` (default `true` in dev, overridable via `VITE_USE_MOCK_DATA`).
-- Repo selection rule: real Supabase rows take priority; mock repo only fills in when the live query returns empty AND `USE_MOCK_DATA` is true. Never merge duplicates.
-- Mock files live in `src/institutions/mock/` (institutions, agreements, commissions, claimCycles, promotions, invoices, disputes, clawbacks) — pages never import them directly.
-- All thresholds (renewal reminder days, confidence cutoffs, claim deadlines) live in `src/institutions/config.ts`, not in components.
+- Panels render fixed accounting columns (status, dates, totals) directly.
+- All institution-specific rules render via `<DynamicFieldGroup scope="agreement" values={agreement.extracted_data} onChange={...} />`.
+- Adding a new field later = one entry in `fieldDefinitions.ts` (or, in future, a DB row) — no panel changes.
+- `visibleIf` evaluates against current values for conditional fields (e.g. show `wire_deduction_amount` only if `wire_deduction_applies = true`).
 
-## Database (additions only — existing `upi_*` tables reused)
+## Mock dataset (extend `canadianInstitutions.ts` + new `students.ts`, `campaigns.ts`)
 
-New migration adds:
+- **Institutions**: Seneca, Conestoga, Centennial, Fanshawe, UBC (partner / non-partner mix).
+- **Agreements**: 1–2 per institution with mixed statuses (active, expiring-in-45-days, expired, draft) and full dynamic rule payloads (countries, claim/invoice deadlines, tax, wire deduction, clawback, governing law, minimum enrolments).
+- **Commissions**: at least one each of fixed, percentage, slab, semester-wise, yearly, country-specific, intake-specific; plus rules with conflicts (two May-intake bonuses) to test the conflict warning.
+- **Claim cycles**: Jan / May / Sep cycles per institution in states open / submitted / partially_paid / closed / disputed; carry_forward_from references.
+- **Invoices**: states draft / reviewed / sent / approved / paid / overdue / disputed.
+- **Students** (`students.ts`): 25–40 records across institutions/cycles with statuses eligible / pending_dues / deferred / withdrawn / missing_consent / carried_forward; one student appears in two consecutive cycles with carry-forward link (no duplication).
+- **Payments**: one paid invoice with proof_path, one pending.
+- **Promotions**: bonus_commission, fee_waiver, seasonal, intake_offer, country_offer — each linked to an agreement and/or commission rule.
+- **Campaigns**: marketing + commission campaigns with periods, target countries, eligible institutions.
+- **AI suggestions**: 8–10 covering every example case (expiring agreement, claim deadline, missing consent, invoice not submitted, rule mismatch, etc.).
+- **Sources**: per institution — website, brochure pdf, excel sheet, scholarship page — each with confidence + status + linked agreement id.
+- **Counselor incentives / B2B share**: stored as dynamic fields on commissions.
 
-- `upi_document_pipeline_events` — per‑doc state log (`uploaded → processing → extracted → needs_review → approved/rejected`), error msg, edge function name.
-- `upi_claim_cycles` — institution_id, period, status, due_date, total_expected, total_received, notes.
-- `upi_invoices` — institution_id, claim_cycle_id, invoice_no, amount, currency, status, sent_at, paid_at, file_path.
-- `upi_renewal_alerts` — agreement_id, fire_at, threshold_days, status, dismissed_by.
-- Add columns: `upi_uploaded_documents.pipeline_status text default 'uploaded'`, `extracted_payload jsonb default '{}'`, `linked_record_refs jsonb default '[]'`.
-- RLS: authenticated full CRUD (matches sibling tables).
+## Tab work
 
-## Edge functions
+- **Overview**: KPI grid (active programs, claims submitted, approved/paid commission, renewals due, pending review, blocked students, active campaigns) + four "recent" lists + AI highlights. Pulls aggregates from hooks; no new repos beyond what's listed.
+- **Sources**: move existing JSX into `SourcesPanel.tsx`, add "linked agreement" and "open details" sheet using mock metadata.
+- **Documents**: add full type list (Agreement, Commission sheet, Program sheet, Promotion/Campaign, Invoice template, Renewal document, Other), per-row upload + processing + extraction confidence badges, extracted summary panel after upload, "linked record" chip + jump-to-tab action. When DB has no events, fall back to mock pipeline result so UX is testable.
+- **Agreements**: full table with renewal countdown, action menu (view / edit / extract AI summary / renewal review / version history dialog). Edit dialog renders `DynamicFieldGroup scope="agreement"`.
+- **Commissions**: master list grouped by agreement; commission simulator (reuses `commissionEngine`); rule conflict warning (detects overlapping bonus conditions); "why this rule applied" panel.
+- **Claims**: cycles list with eligible/blocked/carry-forward counts (from `claimEngine`), invoice CRUD already exists; add "mark paid" + "upload proof" (mock) actions; show original vs processed intake; assert no duplicate students across cycles.
+- **Promotions**: list + dialog with dynamic fields, linked agreement / commission rule pickers.
+- **Campaigns**: list + dialog (period, bonus logic, eligible institutions, target countries, claim/renewal impact flags).
+- **AI Suggestions**: card grid (title, severity pill, explanation, affected institution, accept / dismiss / defer actions) wired to existing `upi_ai_suggestions` repo with mock fallback.
 
-Reuse existing `upi-process-document`, `upi-analyze-agreement`, `upi-extract-programs-from-doc`. Add:
-
-- `upi-extract-commission-sheet` — Gemini structured tool call → commission + commission_rules rows (slabs, bonuses, country/intake/program specific, tax, wire deduction, aggregator).
-- `upi-detect-promotions` — scans extracted_payload for waivers/bonuses/scholarships → inserts `upi_promotions` with `auto_detected=true` + optional draft `upi_marketing_campaigns`.
-- `upi-document-orchestrator` — single entry called after upload. Routes by classification to the right extractor, writes pipeline events, schedules renewal alerts, generates AI suggestions.
-- `upi-renewal-scan` (cron‑safe) — computes alerts at 180/120/90/60/30/7 days, plus risk flags (low enrollments, no recent apps, pending disputes) using mock/real metrics behind the service layer.
-
-All structured extraction uses Lovable AI Gateway with tool calling (no JSON‑in‑prompt). Default model `google/gemini-3-flash-preview`, escalate to `gemini-2.5-pro` for agreements.
-
-## Frontend changes (inside existing institution module only)
-
-### Documents tab (enhance existing upload card)
-- Type dropdown already exists; wire it to drive the extractor route.
-- Per row: pipeline status pill, confidence score badge, "Review extraction" button, reprocess action.
-- After upload, call `upi-document-orchestrator`; poll `pipeline_status`.
-
-### AI Review Panel (new component, opened from Documents tab)
-- Side‑by‑side: left = signed URL preview of file (PDF/image/iframe fallback); right = editable form of extracted fields grouped by section.
-- Actions: Approve (commits to target table), Edit, Reject, Reprocess.
-
-### Agreements tab (replace empty state)
-- Table of agreements with: name, status, start/expiry, renewal countdown (computed), countries covered, commission model summary, linked promotions count, AI summary, alert chips.
-- Row actions: View extracted rules (drawer), Download, Edit, Renewal review, Version history (uses `upi_agreement_versions`).
-
-### Commissions tab (replace empty state)
-- Active commission structures grouped by agreement.
-- Show base %, slabs, bonuses, country/intake/program overrides, invoice + tax requirements, aggregator notes.
-- Commission Simulator: pick program/country/intake/tuition → returns payout breakdown using rules engine in `src/institutions/lib/commissionEngine.ts` (pure function, fully driven by rule rows).
-
-### AI Suggestions tab (already exists, currently blank)
-- Render suggestions from `upi_ai_suggestions` with categories: expiring agreement, ending promo, missing invoice, claim deadline, underperforming institution, commission mismatch, missing rule, duplicate payout.
-- Generate on demand via existing `upi-ask-suggestions` + new orchestrator‑emitted suggestions.
-
-### Renewal Alert Engine (UI surface)
-- Bell badge on Agreements tab counting active alerts.
-- Inline alert strip on Institution Detail header when any agreement < 90 days.
-
-## Hooks / services to add
-
-`src/institutions/hooks/`:
-`useInstitutions`, `useInstitution(id)`, `useDocuments(institutionId)`, `useAgreements(institutionId)`, `useCommissions(institutionId)`, `useCommissionRules(commissionId)`, `useClaimCycles(institutionId)`, `useInvoices`, `usePromotions`, `useAiSuggestions`, `useRenewalAlerts`, `useDocumentPipeline(documentId)`.
-
-`src/institutions/services/` — thin orchestration (e.g. `documentsService.uploadAndProcess`, `agreementsService.approveExtraction`).
-
-`src/institutions/repositories/` — `supabase/*.ts` and `mock/*.ts` implementing the same interface; `index.ts` picks per flag.
-
-## Mock data (Future Link Consultants context)
-
-Canadian institutions (Seneca, Conestoga, Centennial, Algoma, Cape Breton, Fanshawe) with realistic agreements, semester/yearly commission models, intake bonuses, claim cycles tied to Jan/May/Sep intakes, sample invoices, one dispute, one clawback. Mock files are pure data — no React imports.
+Every tab: explicit loading skeleton, empty state with CTA, and error card.
 
 ## Out of scope
 
-- Redesigning institution list / detail visual layout.
-- New top‑level routes outside `/institutions`.
-- New npm packages.
-- Real cron scheduling (function is cron‑ready but DB cron job left for follow‑up).
+- New backend/edge-function work (existing functions stay as-is)
+- New DB migrations (current schema already supports everything; dynamic fields live in `extracted_data` jsonb)
+- Touching CRM modules outside `src/institutions/`
+- Redesigning the institution page chrome
+- Adding npm packages
 
-## Files touched (summary)
+## QA paths verified before completion
 
-- New: `src/institutions/{config.ts,repositories/*,services/*,hooks/*,mock/*,lib/commissionEngine.ts,components/AiReviewPanel.tsx,components/AgreementsTable.tsx,components/CommissionsPanel.tsx,components/CommissionSimulator.tsx,components/RenewalAlertsBell.tsx}`
-- Edit: `InstitutionDetailPage.tsx` (wire enhanced tabs through hooks), `AiSuggestionsPage.tsx` (render via `useAiSuggestions`).
-- New edge functions: `upi-document-orchestrator`, `upi-extract-commission-sheet`, `upi-detect-promotions`, `upi-renewal-scan`.
-- One migration for new tables + columns.
+Upload agreement → pipeline shows extracted → Agreements row appears with AI summary · Upload commission sheet → Commissions row + rules appear · Upload program sheet → Sources/Documents/Course Review link works · Create claim cycle → only eligible students counted · Block one student → cycle still progresses, student carried to next cycle, no duplicates · Generate invoice → mark paid → totals update · Agreement nearing expiry → renewal alert badge + AI suggestion · Add new dynamic field in `fieldDefinitions.ts` → it appears in the edit dialog with no other code change.

@@ -77,3 +77,75 @@ export interface MockPromotion {
   is_active: boolean;
   auto_detected: boolean;
 }
+
+export interface MockStudent {
+  id: string;
+  institution_id: string;
+  claim_cycle_id: string | null;
+  full_name: string;
+  country: string;
+  intake_original: string;
+  intake_processed: string;
+  program: string;
+  tuition: number;
+  currency: string;
+  status:
+    | "eligible"
+    | "pending_dues"
+    | "deferred"
+    | "withdrawn"
+    | "missing_consent"
+    | "carried_forward";
+  carry_forward_from?: string | null;
+  block_reason?: string | null;
+}
+
+export interface MockCampaign {
+  id: string;
+  institution_id: string | null;
+  name: string;
+  period_from: string;
+  period_to: string;
+  is_active: boolean;
+  bonus_logic: string;
+  target_countries: string[];
+  eligible_institutions: string[];
+  promotion_ids: string[];
+  claim_impact: string;
+  renewal_impact: string;
+  channel: string;
+}
+
+export interface MockSource {
+  id: string;
+  institution_id: string;
+  source_type: string;
+  name: string;
+  url: string | null;
+  uploaded_at: string;
+  confidence_score: number;
+  status: "queued" | "running" | "completed" | "failed";
+  linked_agreement_id?: string | null;
+}
+
+export interface MockSuggestion {
+  id: string;
+  institution_id: string;
+  suggestion_type: string;
+  severity: "info" | "warning" | "critical";
+  title: string;
+  description: string;
+  confidence: number;
+  status: "pending" | "accepted" | "dismissed" | "deferred";
+  affected_record?: string | null;
+}
+
+export interface MockPayment {
+  id: string;
+  invoice_id: string;
+  amount: number;
+  currency: string;
+  paid_at: string | null;
+  method: string;
+  proof_path?: string | null;
+}

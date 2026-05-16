@@ -6,6 +6,11 @@ import {
   invoicesRepo,
   promotionsRepo,
   renewalAlertsRepo,
+  studentsRepo,
+  campaignsRepo,
+  suggestionsRepo,
+  sourcesMockRepo,
+  paymentsRepo,
 } from "../repositories";
 import { RENEWAL_THRESHOLDS_DAYS } from "../config";
 
@@ -62,3 +67,17 @@ export function useRenewalAlerts(agreementIds: string[]) {
   const key = agreementIds.join(",");
   return useResource(() => renewalAlertsRepo.list(agreementIds), [key]);
 }
+
+export const useStudents = (institutionId?: string) =>
+  useResource(() => studentsRepo.list(institutionId), [institutionId]);
+
+export const useCampaigns = (institutionId?: string) =>
+  useResource(() => campaignsRepo.list(institutionId), [institutionId]);
+
+export const useSuggestions = (institutionId?: string) =>
+  useResource(() => suggestionsRepo.list(institutionId), [institutionId]);
+
+export const useMockSources = (institutionId?: string) =>
+  useResource(() => sourcesMockRepo.list(institutionId), [institutionId]);
+
+export const usePayments = () => useResource(() => paymentsRepo.list(), []);
