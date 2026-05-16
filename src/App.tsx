@@ -105,6 +105,10 @@ import AccountingPettyCashDetailPage from "./accounting/pages/petty-cash/Account
 import AccountingPettyCashAuditPage from "./accounting/pages/petty-cash/AccountingPettyCashAuditPage";
 import AccountingPettyCashReplenishmentPage from "./accounting/pages/petty-cash/AccountingPettyCashReplenishmentPage";
 import { PettyCashProvider } from "./accounting/stores/pettyCashStore";
+import InstitutionsListPage from "./institutions/pages/InstitutionsListPage";
+import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
+import CourseReviewPage from "./institutions/pages/CourseReviewPage";
+import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 
 const queryClient = new QueryClient();
 
@@ -158,6 +162,10 @@ const App = () => (
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
             <Route path="/germany-rules" element={<ProtectedRoute><GermanyRulesAdmin /></ProtectedRoute>} />
+            <Route path="/institutions" element={<ProtectedRoute><InstitutionsListPage /></ProtectedRoute>} />
+            <Route path="/institutions/review" element={<ProtectedRoute><CourseReviewPage /></ProtectedRoute>} />
+            <Route path="/institutions/suggestions" element={<ProtectedRoute><AiSuggestionsPage /></ProtectedRoute>} />
+            <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
