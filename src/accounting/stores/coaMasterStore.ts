@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from "react";
 import { AccountGroup, AccountType, AccountSubType, AccountNature } from "../types/coa";
 
-const GROUPS_KEY = "accounting:coa-groups:v1";
-const TYPES_KEY = "accounting:coa-types:v1";
-const SUBTYPES_KEY = "accounting:coa-subtypes:v1";
+const GROUPS_KEY = "accounting:coa-groups:v2";
+const TYPES_KEY = "accounting:coa-types:v2";
+const SUBTYPES_KEY = "accounting:coa-subtypes:v2";
 
 const SEED_GROUPS: AccountGroup[] = [
   { code: "ASSET", label: "Assets", nature: "DEBIT", system: true },
