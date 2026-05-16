@@ -169,13 +169,14 @@ export default function AccountingNewJournalPage() {
   };
 
   function persist(status: Journal['status']): string {
-    const lineModels = lines.filter(l => l.accountId).map(l => {
-      const a = MOCK_ACCOUNTS.find(x => x.id === l.accountId)!;
-      return {
+    const lineModels = lines.filter(l => l.accountId).flatMap(l => {
+      const a = MOCK_ACCOUNTS.find(x => x.id === l.accountId);
+      if (!a) return [];
+      return [{
         id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name, accountType: a.type,
         debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0,
         description: l.description, taxCode: l.taxCode,
-      };
+      }];
     });
     if (existing) {
       updateJournal(existing.id, { entity, entryDate, currency, sourceType, reference, narration, status, lines: lineModels });
