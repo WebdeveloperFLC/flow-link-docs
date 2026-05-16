@@ -7,6 +7,7 @@ export interface IntercompanyTransaction {
   fromEntity: string;
   toEntity: string;
   description: string;
+  transactionType?: string;
   currency: string;
   fxRate: number;
   amount: number;
