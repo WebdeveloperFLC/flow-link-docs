@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
@@ -121,6 +121,34 @@ export default function AccountingCardReconciliationNewPage() {
   const [extractError, setExtractError] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // Hand-off from Documents → OCR → Send to Card reconciliation
+  useEffect(() => {
+    let raw: string | null = null;
+    try { raw = sessionStorage.getItem('pending-card-statement'); } catch { return; }
+    if (!raw) return;
+    try { sessionStorage.removeItem('pending-card-statement'); } catch {}
+    try {
+      const payload = JSON.parse(raw) as {
+        filename?: string;
+        meta?: { statementFrom?: string; statementTo?: string; openingBalance?: number; closingBalance?: number; currency?: string };
+        lines?: CardStatementLine[];
+      };
+      if (Array.isArray(payload.lines) && payload.lines.length > 0) {
+        if (payload.meta?.statementFrom) setFromDate(payload.meta.statementFrom);
+        if (payload.meta?.statementTo) setToDate(payload.meta.statementTo);
+        if (Number.isFinite(Number(payload.meta?.openingBalance))) setOpening(String(payload.meta!.openingBalance));
+        if (Number.isFinite(Number(payload.meta?.closingBalance))) setClosing(String(payload.meta!.closingBalance));
+        if (payload.meta?.currency) setCurrency(payload.meta.currency);
+        setLines(payload.lines);
+        setAiSummary({ total: payload.lines.length, matched: 0 });
+        setPdfFileName(payload.filename ?? 'From Documents');
+        toast.success(`Loaded ${payload.lines.length} transactions from Documents`);
+        setStep(2);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isAi = (f: AiMetaField) => aiMetaFields.has(f);
   const clearAiFlag = (f: AiMetaField) => {
