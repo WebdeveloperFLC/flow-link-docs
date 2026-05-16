@@ -27,6 +27,13 @@ import { useMockSources } from "../hooks/useInstitutionData";
 
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
+  if (!id) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-sm text-muted-foreground">No institution selected.</div>
+      </AppLayout>
+    );
+  }
   const [inst, setInst] = useState<UpiInstitution | null>(null);
   const [sources, setSources] = useState<UpiSource[]>([]);
   const [docs, setDocs] = useState<any[]>([]);
