@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { UpiInstitution } from "../types/upi";
 
 export default function InstitutionsListPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<UpiInstitution[]>([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "partners" | "active" | "inactive">("all");
@@ -59,15 +60,22 @@ export default function InstitutionsListPage() {
       <div className="p-8 space-y-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: "Total institutions", value: stats.total },
-            { label: "Partner institutions", value: stats.partners },
-            { label: "Courses published", value: stats.courses },
-            { label: "Pending review", value: stats.pending },
+            { label: "Total institutions", value: stats.total, onClick: () => setFilter("all") },
+            { label: "Partner institutions", value: stats.partners, onClick: () => setFilter("partners") },
+            { label: "Courses published", value: stats.courses, onClick: () => navigate("/institutions/review?status=published") },
+            { label: "Pending review", value: stats.pending, onClick: () => navigate("/institutions/review?status=pending_review") },
           ].map((s) => (
-            <Card key={s.label} className="p-4">
-              <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{s.label}</div>
-              <div className="text-2xl font-bold mt-1 tabular-nums">{s.value}</div>
-            </Card>
+            <button
+              key={s.label}
+              type="button"
+              onClick={s.onClick}
+              className="text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
+            >
+              <Card className="p-4 cursor-pointer hover:shadow-elev-md hover:border-primary/50 transition-all h-full">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{s.label}</div>
+                <div className="text-2xl font-bold mt-1 tabular-nums">{s.value}</div>
+              </Card>
+            </button>
           ))}
         </div>
 
