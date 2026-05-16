@@ -12,8 +12,8 @@ const KNOWN = new Set([
   "program_url","source_url","duration_value","duration_unit","tuition_fee","tuition_fee_per","application_fee",
   "currency","intake_months","ielts_overall","ielts_min_component","pte_overall","toefl_overall","duolingo_overall",
   "cambridge_overall","gpa_requirement","work_experience_years","age_requirement","has_scholarship",
-  "scholarship_amount","scholarship_currency","scholarship_detail","is_coop","is_pr_pathway","is_online",
-  "is_part_time","commission_info","bonus_info","confidence_score","source_last_updated",
+  "scholarship_amount","scholarship_currency","scholarship_detail","is_coop","is_pr_pathway","is_pgwp_eligible",
+  "is_online","is_part_time","commission_info","bonus_info","confidence_score","source_last_updated",
 ]);
 
 async function sha256Hex(s: string): Promise<string> {

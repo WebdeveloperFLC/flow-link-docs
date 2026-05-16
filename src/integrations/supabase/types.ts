@@ -5511,6 +5511,7 @@ export type Database = {
           is_coop: boolean | null
           is_online: boolean | null
           is_part_time: boolean | null
+          is_pgwp_eligible: boolean | null
           is_pr_pathway: boolean | null
           job_id: string | null
           metadata: Json | null
@@ -5567,6 +5568,7 @@ export type Database = {
           is_coop?: boolean | null
           is_online?: boolean | null
           is_part_time?: boolean | null
+          is_pgwp_eligible?: boolean | null
           is_pr_pathway?: boolean | null
           job_id?: string | null
           metadata?: Json | null
@@ -5623,6 +5625,7 @@ export type Database = {
           is_coop?: boolean | null
           is_online?: boolean | null
           is_part_time?: boolean | null
+          is_pgwp_eligible?: boolean | null
           is_pr_pathway?: boolean | null
           job_id?: string | null
           metadata?: Json | null

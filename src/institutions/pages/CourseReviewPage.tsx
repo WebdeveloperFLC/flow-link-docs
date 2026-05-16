@@ -146,6 +146,7 @@ export default function CourseReviewPage() {
                   <th className="p-3">Tuition</th>
                   <th className="p-3">Intakes</th>
                   <th className="p-3">IELTS</th>
+                  <th className="p-3">PGWP</th>
                   <th className="p-3">Confidence</th>
                   <th className="p-3">Source</th>
                   <th className="p-3 text-right">Actions</th>
@@ -153,7 +154,7 @@ export default function CourseReviewPage() {
               </thead>
               <tbody>
                 {rows.length === 0 && (
-                  <tr><td colSpan={10} className="p-8 text-center text-muted-foreground">No courses match the filters.</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No courses match the filters.</td></tr>
                 )}
                 {rows.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-accent/30">
@@ -164,6 +165,7 @@ export default function CourseReviewPage() {
                     <td className="p-3 tabular-nums">{r.tuition_fee ? `${r.tuition_fee} ${r.currency ?? ""}` : "—"}</td>
                     <td className="p-3">{Array.isArray(r.intake_months) ? r.intake_months.join(", ") : "—"}</td>
                     <td className="p-3">{r.ielts_overall ?? "—"}</td>
+                    <td className="p-3">{r.is_pgwp_eligible === true ? <Badge className="bg-success/15 text-success border-0">Yes</Badge> : r.is_pgwp_eligible === false ? <Badge variant="secondary">No</Badge> : "—"}</td>
                     <td className="p-3"><ConfidenceBadge score={r.confidence_score} /></td>
                     <td className="p-3">{r.source_url ? <a className="text-primary inline-flex items-center gap-1" href={r.source_url} target="_blank" rel="noreferrer">link <ExternalLink className="size-3" /></a> : "—"}</td>
                     <td className="p-3">
@@ -266,6 +268,17 @@ function EditSheet({ row, onClose, onSaved, institutions, levels }: {
             {field("source_url", "Source URL")}
             {field("review_status", "Review status")}
             {field("confidence_score", "Confidence", "number")}
+            <div className="space-y-1">
+              <Label className="text-xs">PGWP eligible</Label>
+              <Select value={draft.is_pgwp_eligible === null || draft.is_pgwp_eligible === undefined ? "unknown" : String(draft.is_pgwp_eligible)} onValueChange={(v) => setDraft({ ...draft, is_pgwp_eligible: v === "unknown" ? null : v === "true" })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unknown">Unknown</SelectItem>
+                  <SelectItem value="true">Yes</SelectItem>
+                  <SelectItem value="false">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Review notes</Label>
