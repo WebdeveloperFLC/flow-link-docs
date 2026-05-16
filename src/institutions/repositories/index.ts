@@ -38,7 +38,7 @@ async function fetchLiveScoped<T extends { institution_id?: string | null }>(
     if (order) q = q.order(order.col, { ascending: order.ascending ?? false });
     const { data, error } = await q;
     if (error) throw error;
-    return (data ?? []) as T[];
+    return (data ?? []) as unknown as T[];
   } catch {
     return [];
   }
