@@ -216,6 +216,30 @@ export default function AccountingOCRPage() {
 
         {ext && <ConfidenceBanner confidence={conf} />}
 
+        {current.lineItems && current.lineItems.length > 0 && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-center gap-3 mb-3 dark:bg-indigo-500/10 dark:border-indigo-500/30">
+            <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+            <div className="flex-1 text-sm text-indigo-900 dark:text-indigo-200">
+              <span className="font-medium">{current.lineItems.length} transactions</span> extracted from this statement
+              {current.extracted?.invoiceDate && current.extracted?.dueDate && (
+                <> · {current.extracted.invoiceDate} → {current.extracted.dueDate}</>
+              )}
+            </div>
+            <Button size="sm" onClick={sendToCardReconciliation}>
+              Send to Card reconciliation
+            </Button>
+          </div>
+        )}
+
+        {current.ocrStatus === 'FAILED' && current.ocrError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 flex items-start gap-2 mb-3 dark:bg-red-500/10 dark:border-red-500/30">
+            <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+            <span className="text-sm text-red-900 dark:text-red-300">
+              Extraction failed: {current.ocrError}
+            </span>
+          </div>
+        )}
+
         {ext?.isDuplicateSuspected && (
           <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex items-center gap-2 mb-3 dark:bg-amber-500/10 dark:border-amber-500/30">
             <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
