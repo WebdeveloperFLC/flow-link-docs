@@ -4985,6 +4985,1641 @@ export type Database = {
         }
         Relationships: []
       }
+      upi_agreement_versions: {
+        Row: {
+          agreement_id: string
+          change_summary: string | null
+          created_at: string | null
+          created_by: string | null
+          file_path: string | null
+          id: string
+          version_number: number
+        }
+        Insert: {
+          agreement_id: string
+          change_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          version_number: number
+        }
+        Update: {
+          agreement_id?: string
+          change_summary?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          file_path?: string | null
+          id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_agreement_versions_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_agreements: {
+        Row: {
+          agreement_type: string | null
+          created_at: string | null
+          extracted_data: Json | null
+          file_path: string | null
+          id: string
+          institution_id: string
+          metadata: Json | null
+          notes: string | null
+          renewal_reminder_days: number | null
+          signed_by_institution: string | null
+          signed_by_us: string | null
+          signed_date: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          agreement_type?: string | null
+          created_at?: string | null
+          extracted_data?: Json | null
+          file_path?: string | null
+          id?: string
+          institution_id: string
+          metadata?: Json | null
+          notes?: string | null
+          renewal_reminder_days?: number | null
+          signed_by_institution?: string | null
+          signed_by_us?: string | null
+          signed_date?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          agreement_type?: string | null
+          created_at?: string | null
+          extracted_data?: Json | null
+          file_path?: string | null
+          id?: string
+          institution_id?: string
+          metadata?: Json | null
+          notes?: string | null
+          renewal_reminder_days?: number | null
+          signed_by_institution?: string | null
+          signed_by_us?: string | null
+          signed_date?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_agreements_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_ai_suggestions: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          document_id: string | null
+          id: string
+          institution_id: string | null
+          metadata: Json | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          status: string | null
+          suggestion_data: Json | null
+          suggestion_type: string
+          title: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          document_id?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string | null
+          suggestion_data?: Json | null
+          suggestion_type: string
+          title?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          document_id?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          status?: string | null
+          suggestion_data?: Json | null
+          suggestion_type?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_ai_suggestions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "upi_uploaded_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_ai_suggestions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_ai_suggestions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institution_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_audit_logs: {
+        Row: {
+          action: string
+          changed_by: string | null
+          changed_fields: Json | null
+          created_at: string | null
+          id: number
+          ip_address: string | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          changed_by?: string | null
+          changed_fields?: Json | null
+          created_at?: string | null
+          id?: number
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          changed_by?: string | null
+          changed_fields?: Json | null
+          created_at?: string | null
+          id?: number
+          ip_address?: string | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      upi_campuses: {
+        Row: {
+          address: string | null
+          city: string | null
+          country_id: string | null
+          country_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          institution_id: string
+          is_main_campus: boolean | null
+          metadata: Json | null
+          name: string
+          phone: string | null
+          state_province: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          country_id?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          institution_id: string
+          is_main_campus?: boolean | null
+          metadata?: Json | null
+          name: string
+          phone?: string | null
+          state_province?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          country_id?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          institution_id?: string
+          is_main_campus?: boolean | null
+          metadata?: Json | null
+          name?: string
+          phone?: string | null
+          state_province?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_campuses_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "upi_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_campuses_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_rules: {
+        Row: {
+          commission_id: string
+          condition_field: string | null
+          condition_operator: string | null
+          condition_value: string | null
+          created_at: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          max_value: number | null
+          metadata: Json | null
+          min_value: number | null
+          notes: string | null
+          payout_amount: number | null
+          payout_currency: string | null
+          payout_type: string | null
+          rule_name: string | null
+          rule_type: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          commission_id: string
+          condition_field?: string | null
+          condition_operator?: string | null
+          condition_value?: string | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          max_value?: number | null
+          metadata?: Json | null
+          min_value?: number | null
+          notes?: string | null
+          payout_amount?: number | null
+          payout_currency?: string | null
+          payout_type?: string | null
+          rule_name?: string | null
+          rule_type?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          commission_id?: string
+          condition_field?: string | null
+          condition_operator?: string | null
+          condition_value?: string | null
+          created_at?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          max_value?: number | null
+          metadata?: Json | null
+          min_value?: number | null
+          notes?: string | null
+          payout_amount?: number | null
+          payout_currency?: string | null
+          payout_type?: string | null
+          rule_name?: string | null
+          rule_type?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_rules_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commissions: {
+        Row: {
+          agreement_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          institution_id: string
+          is_active: boolean | null
+          is_proposed: boolean | null
+          metadata: Json | null
+          model_type: string
+          name: string
+          notes: string | null
+          source: string | null
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          institution_id: string
+          is_active?: boolean | null
+          is_proposed?: boolean | null
+          metadata?: Json | null
+          model_type: string
+          name: string
+          notes?: string | null
+          source?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          agreement_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          institution_id?: string
+          is_active?: boolean | null
+          is_proposed?: boolean | null
+          metadata?: Json | null
+          model_type?: string
+          name?: string
+          notes?: string | null
+          source?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commissions_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commissions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_countries: {
+        Row: {
+          created_at: string | null
+          id: string
+          iso_alpha2: string | null
+          iso_alpha3: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          iso_alpha2?: string | null
+          iso_alpha3?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          iso_alpha2?: string | null
+          iso_alpha3?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      upi_course_intakes: {
+        Row: {
+          course_id: string
+          id: string
+          is_confirmed: boolean | null
+          month: string
+          notes: string | null
+          year: number | null
+        }
+        Insert: {
+          course_id: string
+          id?: string
+          is_confirmed?: boolean | null
+          month: string
+          notes?: string | null
+          year?: number | null
+        }
+        Update: {
+          course_id?: string
+          id?: string
+          is_confirmed?: boolean | null
+          month?: string
+          notes?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_course_intakes_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "upi_courses_staging"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_courses_staging: {
+        Row: {
+          age_requirement: string | null
+          application_fee: number | null
+          bonus_info: string | null
+          cambridge_overall: number | null
+          campus_id: string | null
+          campus_name: string | null
+          city: string | null
+          commission_info: string | null
+          confidence_score: number | null
+          country_name: string | null
+          course_description: string | null
+          course_title: string
+          currency: string | null
+          dedup_hash: string | null
+          discipline_area_id: string | null
+          duolingo_overall: number | null
+          duration_unit: string | null
+          duration_value: number | null
+          extracted_at: string | null
+          gpa_requirement: string | null
+          has_scholarship: boolean | null
+          id: string
+          ielts_min_component: number | null
+          ielts_overall: number | null
+          institution_id: string | null
+          intake_months: Json | null
+          is_coop: boolean | null
+          is_online: boolean | null
+          is_part_time: boolean | null
+          is_pr_pathway: boolean | null
+          job_id: string | null
+          metadata: Json | null
+          program_level_id: string | null
+          program_url: string | null
+          pte_overall: number | null
+          published_course_id: string | null
+          review_notes: string | null
+          review_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scholarship_amount: number | null
+          scholarship_currency: string | null
+          scholarship_detail: string | null
+          source_id: string | null
+          source_identifier: string | null
+          source_last_updated: string | null
+          source_url: string | null
+          state_province: string | null
+          study_area_id: string | null
+          toefl_overall: number | null
+          tuition_fee: number | null
+          tuition_fee_per: string | null
+          updated_at: string | null
+          work_experience_years: number | null
+        }
+        Insert: {
+          age_requirement?: string | null
+          application_fee?: number | null
+          bonus_info?: string | null
+          cambridge_overall?: number | null
+          campus_id?: string | null
+          campus_name?: string | null
+          city?: string | null
+          commission_info?: string | null
+          confidence_score?: number | null
+          country_name?: string | null
+          course_description?: string | null
+          course_title: string
+          currency?: string | null
+          dedup_hash?: string | null
+          discipline_area_id?: string | null
+          duolingo_overall?: number | null
+          duration_unit?: string | null
+          duration_value?: number | null
+          extracted_at?: string | null
+          gpa_requirement?: string | null
+          has_scholarship?: boolean | null
+          id?: string
+          ielts_min_component?: number | null
+          ielts_overall?: number | null
+          institution_id?: string | null
+          intake_months?: Json | null
+          is_coop?: boolean | null
+          is_online?: boolean | null
+          is_part_time?: boolean | null
+          is_pr_pathway?: boolean | null
+          job_id?: string | null
+          metadata?: Json | null
+          program_level_id?: string | null
+          program_url?: string | null
+          pte_overall?: number | null
+          published_course_id?: string | null
+          review_notes?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scholarship_amount?: number | null
+          scholarship_currency?: string | null
+          scholarship_detail?: string | null
+          source_id?: string | null
+          source_identifier?: string | null
+          source_last_updated?: string | null
+          source_url?: string | null
+          state_province?: string | null
+          study_area_id?: string | null
+          toefl_overall?: number | null
+          tuition_fee?: number | null
+          tuition_fee_per?: string | null
+          updated_at?: string | null
+          work_experience_years?: number | null
+        }
+        Update: {
+          age_requirement?: string | null
+          application_fee?: number | null
+          bonus_info?: string | null
+          cambridge_overall?: number | null
+          campus_id?: string | null
+          campus_name?: string | null
+          city?: string | null
+          commission_info?: string | null
+          confidence_score?: number | null
+          country_name?: string | null
+          course_description?: string | null
+          course_title?: string
+          currency?: string | null
+          dedup_hash?: string | null
+          discipline_area_id?: string | null
+          duolingo_overall?: number | null
+          duration_unit?: string | null
+          duration_value?: number | null
+          extracted_at?: string | null
+          gpa_requirement?: string | null
+          has_scholarship?: boolean | null
+          id?: string
+          ielts_min_component?: number | null
+          ielts_overall?: number | null
+          institution_id?: string | null
+          intake_months?: Json | null
+          is_coop?: boolean | null
+          is_online?: boolean | null
+          is_part_time?: boolean | null
+          is_pr_pathway?: boolean | null
+          job_id?: string | null
+          metadata?: Json | null
+          program_level_id?: string | null
+          program_url?: string | null
+          pte_overall?: number | null
+          published_course_id?: string | null
+          review_notes?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scholarship_amount?: number | null
+          scholarship_currency?: string | null
+          scholarship_detail?: string | null
+          source_id?: string | null
+          source_identifier?: string | null
+          source_last_updated?: string | null
+          source_url?: string | null
+          state_province?: string | null
+          study_area_id?: string | null
+          toefl_overall?: number | null
+          tuition_fee?: number | null
+          tuition_fee_per?: string | null
+          updated_at?: string | null
+          work_experience_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_courses_staging_campus_id_fkey"
+            columns: ["campus_id"]
+            isOneToOne: false
+            referencedRelation: "upi_campuses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_discipline_area_id_fkey"
+            columns: ["discipline_area_id"]
+            isOneToOne: false
+            referencedRelation: "upi_discipline_areas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "upi_sync_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_program_level_id_fkey"
+            columns: ["program_level_id"]
+            isOneToOne: false
+            referencedRelation: "upi_program_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institution_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_courses_staging_study_area_id_fkey"
+            columns: ["study_area_id"]
+            isOneToOne: false
+            referencedRelation: "upi_study_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_discipline_areas: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          slug: string
+          study_area_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          slug: string
+          study_area_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          slug?: string
+          study_area_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_discipline_areas_study_area_id_fkey"
+            columns: ["study_area_id"]
+            isOneToOne: false
+            referencedRelation: "upi_study_areas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_document_categories: {
+        Row: {
+          category_id: string
+          document_id: string
+        }
+        Insert: {
+          category_id: string
+          document_id: string
+        }
+        Update: {
+          category_id?: string
+          document_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_document_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "upi_taxonomy_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_document_categories_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "upi_uploaded_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_eligibility_rules: {
+        Row: {
+          course_id: string
+          description: string
+          id: string
+          metadata: Json | null
+          raw_text: string | null
+          rule_type: string | null
+        }
+        Insert: {
+          course_id: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          raw_text?: string | null
+          rule_type?: string | null
+        }
+        Update: {
+          course_id?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          raw_text?: string | null
+          rule_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_eligibility_rules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "upi_courses_staging"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_extraction_results: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          document_id: string | null
+          entity_key: string | null
+          entity_type: string
+          entity_value: string | null
+          entity_value_structured: Json | null
+          field_path: string | null
+          id: string
+          is_approved: boolean | null
+          is_rejected: boolean | null
+          job_id: string | null
+          metadata: Json | null
+          page_number: number | null
+          routed_to: string | null
+          source_text: string | null
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          document_id?: string | null
+          entity_key?: string | null
+          entity_type: string
+          entity_value?: string | null
+          entity_value_structured?: Json | null
+          field_path?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_rejected?: boolean | null
+          job_id?: string | null
+          metadata?: Json | null
+          page_number?: number | null
+          routed_to?: string | null
+          source_text?: string | null
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          document_id?: string | null
+          entity_key?: string | null
+          entity_type?: string
+          entity_value?: string | null
+          entity_value_structured?: Json | null
+          field_path?: string | null
+          id?: string
+          is_approved?: boolean | null
+          is_rejected?: boolean | null
+          job_id?: string | null
+          metadata?: Json | null
+          page_number?: number | null
+          routed_to?: string | null
+          source_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_extraction_results_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "upi_uploaded_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_extraction_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "upi_sync_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_institution_sources: {
+        Row: {
+          confidence_score: number | null
+          crawl_status: string | null
+          created_at: string | null
+          error_log: Json | null
+          extracted_records_count: number | null
+          file_path: string | null
+          id: string
+          institution_id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          metadata: Json | null
+          name: string | null
+          next_sync_at: string | null
+          notes: string | null
+          pages_found: number | null
+          pages_scanned: number | null
+          parser_type: string | null
+          priority: number | null
+          source_type: string
+          sync_frequency: string | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          crawl_status?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          extracted_records_count?: number | null
+          file_path?: string | null
+          id?: string
+          institution_id: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          next_sync_at?: string | null
+          notes?: string | null
+          pages_found?: number | null
+          pages_scanned?: number | null
+          parser_type?: string | null
+          priority?: number | null
+          source_type: string
+          sync_frequency?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          crawl_status?: string | null
+          created_at?: string | null
+          error_log?: Json | null
+          extracted_records_count?: number | null
+          file_path?: string | null
+          id?: string
+          institution_id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          metadata?: Json | null
+          name?: string | null
+          next_sync_at?: string | null
+          notes?: string | null
+          pages_found?: number | null
+          pages_scanned?: number | null
+          parser_type?: string | null
+          priority?: number | null
+          source_type?: string
+          sync_frequency?: string | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institution_sources_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_institution_tags: {
+        Row: {
+          institution_id: string
+          tag_id: string
+        }
+        Insert: {
+          institution_id: string
+          tag_id: string
+        }
+        Update: {
+          institution_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institution_tags_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_institution_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "upi_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_institutions: {
+        Row: {
+          accreditation: string | null
+          address: string | null
+          city: string | null
+          country_id: string | null
+          country_name: string | null
+          created_at: string | null
+          email: string | null
+          established_year: number | null
+          id: string
+          institution_type: string | null
+          is_active: boolean | null
+          is_partner: boolean | null
+          logo_url: string | null
+          metadata: Json | null
+          name: string
+          notes: string | null
+          partner_since: string | null
+          phone: string | null
+          ranking_info: string | null
+          slug: string | null
+          state_province: string | null
+          total_programs: number | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          accreditation?: string | null
+          address?: string | null
+          city?: string | null
+          country_id?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          established_year?: number | null
+          id?: string
+          institution_type?: string | null
+          is_active?: boolean | null
+          is_partner?: boolean | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name: string
+          notes?: string | null
+          partner_since?: string | null
+          phone?: string | null
+          ranking_info?: string | null
+          slug?: string | null
+          state_province?: string | null
+          total_programs?: number | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          accreditation?: string | null
+          address?: string | null
+          city?: string | null
+          country_id?: string | null
+          country_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          established_year?: number | null
+          id?: string
+          institution_type?: string | null
+          is_active?: boolean | null
+          is_partner?: boolean | null
+          logo_url?: string | null
+          metadata?: Json | null
+          name?: string
+          notes?: string | null
+          partner_since?: string | null
+          phone?: string | null
+          ranking_info?: string | null
+          slug?: string | null
+          state_province?: string | null
+          total_programs?: number | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_institutions_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "upi_countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_language_requirements: {
+        Row: {
+          component_name: string | null
+          course_id: string
+          id: string
+          metadata: Json | null
+          min_component_score: number | null
+          notes: string | null
+          overall_score: number | null
+          test_name: string
+        }
+        Insert: {
+          component_name?: string | null
+          course_id: string
+          id?: string
+          metadata?: Json | null
+          min_component_score?: number | null
+          notes?: string | null
+          overall_score?: number | null
+          test_name: string
+        }
+        Update: {
+          component_name?: string | null
+          course_id?: string
+          id?: string
+          metadata?: Json | null
+          min_component_score?: number | null
+          notes?: string | null
+          overall_score?: number | null
+          test_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_language_requirements_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "upi_courses_staging"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_marketing_campaigns: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          channel: string
+          created_at: string | null
+          generated_content: string | null
+          id: string
+          institution_id: string | null
+          metadata: Json | null
+          promotion_id: string | null
+          prompt_context: Json | null
+          sent_at: string | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          channel: string
+          created_at?: string | null
+          generated_content?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          promotion_id?: string | null
+          prompt_context?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          channel?: string
+          created_at?: string | null
+          generated_content?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          promotion_id?: string | null
+          prompt_context?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_marketing_campaigns_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_marketing_campaigns_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "upi_promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_program_levels: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      upi_promotions: {
+        Row: {
+          auto_detected: boolean | null
+          conditions: Json | null
+          created_at: string | null
+          description: string | null
+          detection_source: string | null
+          id: string
+          institution_id: string | null
+          is_active: boolean | null
+          metadata: Json | null
+          promo_type: string | null
+          target_countries: Json | null
+          target_disciplines: Json | null
+          title: string
+          updated_at: string | null
+          valid_from: string | null
+          valid_to: string | null
+        }
+        Insert: {
+          auto_detected?: boolean | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          detection_source?: string | null
+          id?: string
+          institution_id?: string | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          promo_type?: string | null
+          target_countries?: Json | null
+          target_disciplines?: Json | null
+          title: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Update: {
+          auto_detected?: boolean | null
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          detection_source?: string | null
+          id?: string
+          institution_id?: string | null
+          is_active?: boolean | null
+          metadata?: Json | null
+          promo_type?: string | null
+          target_countries?: Json | null
+          target_disciplines?: Json | null
+          title?: string
+          updated_at?: string | null
+          valid_from?: string | null
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_promotions_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_scholarship_rules: {
+        Row: {
+          amount: number | null
+          course_id: string
+          coverage: string | null
+          currency: string | null
+          deadline_month: string | null
+          eligibility: string | null
+          id: string
+          institution_id: string | null
+          is_automatic: boolean | null
+          metadata: Json | null
+          name: string | null
+          notes: string | null
+        }
+        Insert: {
+          amount?: number | null
+          course_id: string
+          coverage?: string | null
+          currency?: string | null
+          deadline_month?: string | null
+          eligibility?: string | null
+          id?: string
+          institution_id?: string | null
+          is_automatic?: boolean | null
+          metadata?: Json | null
+          name?: string | null
+          notes?: string | null
+        }
+        Update: {
+          amount?: number | null
+          course_id?: string
+          coverage?: string | null
+          currency?: string | null
+          deadline_month?: string | null
+          eligibility?: string | null
+          id?: string
+          institution_id?: string | null
+          is_automatic?: boolean | null
+          metadata?: Json | null
+          name?: string | null
+          notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_scholarship_rules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "upi_courses_staging"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_scholarship_rules_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_study_areas: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      upi_sync_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_summary: string | null
+          id: string
+          institution_id: string | null
+          metadata: Json | null
+          pages_discovered: number | null
+          pages_failed: number | null
+          pages_scanned: number | null
+          records_extracted: number | null
+          records_rejected: number | null
+          records_upserted: number | null
+          source_id: string
+          started_at: string | null
+          status: string | null
+          triggered_by: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_summary?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          pages_discovered?: number | null
+          pages_failed?: number | null
+          pages_scanned?: number | null
+          records_extracted?: number | null
+          records_rejected?: number | null
+          records_upserted?: number | null
+          source_id: string
+          started_at?: string | null
+          status?: string | null
+          triggered_by?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_summary?: string | null
+          id?: string
+          institution_id?: string | null
+          metadata?: Json | null
+          pages_discovered?: number | null
+          pages_failed?: number | null
+          pages_scanned?: number | null
+          records_extracted?: number | null
+          records_rejected?: number | null
+          records_upserted?: number | null
+          source_id?: string
+          started_at?: string | null
+          status?: string | null
+          triggered_by?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_sync_jobs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_sync_jobs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institution_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_sync_logs: {
+        Row: {
+          created_at: string | null
+          detail: Json | null
+          id: number
+          job_id: string
+          level: string | null
+          message: string
+          page_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          detail?: Json | null
+          id?: number
+          job_id: string
+          level?: string | null
+          message: string
+          page_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          detail?: Json | null
+          id?: number
+          job_id?: string
+          level?: string | null
+          message?: string
+          page_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_sync_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "upi_sync_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_tags: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      upi_taxonomy_categories: {
+        Row: {
+          category_type: string | null
+          created_at: string | null
+          id: string
+          is_system: boolean | null
+          metadata: Json | null
+          name: string
+          parent_id: string | null
+          slug: string
+        }
+        Insert: {
+          category_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_system?: boolean | null
+          metadata?: Json | null
+          name: string
+          parent_id?: string | null
+          slug: string
+        }
+        Update: {
+          category_type?: string | null
+          created_at?: string | null
+          id?: string
+          is_system?: boolean | null
+          metadata?: Json | null
+          name?: string
+          parent_id?: string | null
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_taxonomy_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "upi_taxonomy_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_uploaded_documents: {
+        Row: {
+          classification: Json | null
+          confidence_score: number | null
+          created_at: string | null
+          detected_language: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes: number | null
+          file_type: string | null
+          id: string
+          institution_id: string | null
+          is_processed: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          page_count: number | null
+          processing_error: string | null
+          raw_text: string | null
+          review_notes: string | null
+          review_status: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          classification?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_language?: string | null
+          file_name: string
+          file_path: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          id?: string
+          institution_id?: string | null
+          is_processed?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          page_count?: number | null
+          processing_error?: string | null
+          raw_text?: string | null
+          review_notes?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          classification?: Json | null
+          confidence_score?: number | null
+          created_at?: string | null
+          detected_language?: string | null
+          file_name?: string
+          file_path?: string
+          file_size_bytes?: number | null
+          file_type?: string | null
+          id?: string
+          institution_id?: string | null
+          is_processed?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          page_count?: number | null
+          processing_error?: string | null
+          raw_text?: string | null
+          review_notes?: string | null
+          review_status?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_uploaded_documents_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_uploaded_documents_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institution_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
