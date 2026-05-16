@@ -1,36 +1,18 @@
-# Why you don't see "Sync now"
+## Problem
 
-The button is rendered per source row in **Institution → Sources tab**. A database check shows `upi_institution_sources` is empty — no sources exist yet for any institution, so no row (and no Sync button) is drawn. The Add-source step is either failing silently (RLS / missing field) or wasn't completed.
+Clicking **Sync now** triggers `POST /functions/v1/upi-sync-source` which fails with **"Failed to fetch"** in the browser. That error means the request never got a response — almost always either (a) the edge function isn't deployed yet, or (b) the CORS preflight failed. The function file exists in the repo but no logs exist for it on the server, confirming it hasn't been deployed since it was created.
 
-# Plan (UI + diagnostics only, no schema or business-logic changes)
+A secondary issue: the CORS headers in the function are missing `Access-Control-Allow-Methods`, which some browsers reject during preflight.
 
-### 1. Diagnose the silent add-source failure
-- Wrap `addSource` in `InstitutionDetailPage.tsx` with explicit success/error logging and a visible toast on every outcome (including network errors).
-- Log the inserted row (or the full Supabase error object) so we can see RLS denials in the console.
-- If RLS is the cause, confirm `upi_institution_sources` has an INSERT policy for `authenticated` users tied to the parent institution. If missing, surface this as a follow-up migration (not done in this pass — flagged so we don't silently change policies).
+## Fix
 
-### 2. Make the Sources tab obvious
-- Replace the plain "No sources yet." text with a styled empty-state card containing:
-  - A short instruction ("Add a program URL above, then click Sync now to fetch courses").
-  - An arrow / pointer up to the Add-source form.
-- Auto-focus the URL input when the Sources tab opens and the list is empty.
+1. **Add `Access-Control-Allow-Methods: POST, OPTIONS`** to the `corsHeaders` in `supabase/functions/upi-sync-source/index.ts` so the preflight cannot fail.
+2. **Deploy `upi-sync-source`** explicitly via the deploy tool so it's live immediately (instead of waiting on the next full deploy).
+3. **Verify** by calling the function with `curl_edge_functions` against one of the existing source IDs (e.g. `19d1f37a-9242-4296-ad32-d258a44152ca`) and confirming a 200 / job row appears.
+4. If the test call returns 402 (AI credits) or any other server error, surface that to the user instead of leaving the source stuck on "queued" — already handled in the function's catch block which sets `crawl_status = failed`.
 
-### 3. Make Sync now more prominent
-- Change the per-row Sync button from `variant="outline" size="sm"` to the default solid primary variant and give it its own column so it never wraps below the badge on narrow widths.
-- Add a sticky "Sync all sources" button at the top of the Sources tab when ≥1 source exists, which loops through and invokes `upi-sync-source` for each.
+No DB migrations, no UI changes. The existing Sync now button + handler are correct.
 
-### 4. Add a tiny smoke-test affordance
-- After a successful `addSource`, automatically scroll the new row into view and briefly highlight it so it's clear the row (and its Sync button) exist.
+## Files
 
-# Files touched
-- `src/institutions/pages/InstitutionDetailPage.tsx` — only the Sources tab + `addSource` / `syncNow` handlers.
-
-# Out of scope
-- No DB migrations, no RLS changes, no edits to `upi-sync-source` edge function, no changes to other tabs or pages.
-- If diagnostics in step 1 reveal an RLS block, I'll report it back and propose a separate migration before changing policies.
-
-# Acceptance test
-1. Open any institution → Sources tab → empty state is visible with clear instructions and focused input.
-2. Paste a URL, click Add source → toast confirms, row appears highlighted, Sync now button is visibly the primary action on that row.
-3. Click Sync now → existing flow (job created, `upi-sync-source` invoked, toast with upserted count).
-4. If add-source fails, the exact error message appears in a destructive toast and the console.
+- `supabase/functions/upi-sync-source/index.ts` — add one CORS header line, then deploy.
