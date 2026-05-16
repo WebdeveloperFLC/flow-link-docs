@@ -1,56 +1,94 @@
-## Root cause
+# Fix: Agreement Extraction Validation + Test-mode Deletion
 
-`upi-analyze-agreement` reads the uploaded PDF with `await file.text()`. For a real PDF (Centennial College agreement), this returns binary garbage, not text — so the AI receives essentially nothing and produces no extraction.
+## 1. Field-level validation on extracted agreement details
 
-Secondary issue: even when text is available, the extraction schema only asks for **commission fields**. It never extracts agency details, institution details, signing authorities, addresses, governing law, claim deadlines, payment method, sub-agent rules, termination notice, signed dates, etc. So the Agreement card stays empty even on a clean run.
+**Where:** `supabase/functions/upi-analyze-agreement/index.ts` (server side, post-AI parse) and `src/institutions/components/AgreementsPanel.tsx` (UI surfacing).
 
-## Fix
+### Server: build a validation pass before persisting
 
-### 1. Send the PDF directly to Gemini (no text parsing)
+After Gemini returns the tool call, run `validateExtraction(parsed, ag.title)` that produces:
+- `missing_fields: string[]` — fields that are null/empty out of a required set
+- `low_confidence_fields: string[]` — values that look bogus (e.g., dates not ISO, currency not 3 chars, % > 100)
+- `needs_review: boolean` — true if any missing/low-confidence
+- `validation_notes: string[]` — human reasons
 
-Rewrite the AI call to use Gemini's multimodal input via Lovable AI Gateway. Download the file from storage, base64-encode it, and pass it as `inline_data` with `mime_type: application/pdf`. Gemini 2.5 Pro reads scanned and native PDFs natively — no `pdf-parse`/OCR plumbing needed.
+Required field set (per the spec the user gave):
+- agency block — always overlaid with fixed values, never missing
+- institution: legal_name, address, agent_email or phone, signing_authority
+- agreement: agreement_type, valid_from, valid_to, governing_law, claim_deadline_days, invoice_deadline_days, termination_notice_days, payment_method, signed_on, institution_signed_on, institution_signed_by, sub_agent_allowed, consent_form_required, countries_allowed (non-empty), ai_summary
+- commission: model_type, currency, and at least one rule
 
-Fallback chain:
-- If `file_path` exists → download → base64 → send as inline PDF.
-- If download fails or file is missing → fall back to current title-only prompt so it never hard-crashes.
+Sanity checks:
+- `valid_to > valid_from`
+- ISO date format `YYYY-MM-DD` for all date fields
+- `currency` matches `/^[A-Z]{3}$/`
+- numeric day fields in `[0, 3650]`
+- each commission rule has `rule_type` and `payout_type`; `payout_amount >= 0`
+- if `payout_type === "percentage"` then `payout_amount <= 100`
 
-### 2. Expand the extraction schema
+Persist into `extracted_data`:
+```json
+{
+  ...,
+  "validation": {
+    "missing_fields": [...],
+    "low_confidence_fields": [...],
+    "notes": [...],
+    "needs_review": true
+  }
+}
+```
 
-Replace the commission-only tool schema with a full agreement schema that captures everything visible on the Agreement card and the dynamic field group. Tool name stays `submit_agreement_extraction`. Fields:
+Confidence becomes: `95 - 5 * missing_fields.length - 3 * low_confidence_fields.length`, clamped to `[30, 95]`.
 
-- **agency** (object): company, address, phone, email, website, signing_authority, signing_title, signing_email
-- **institution** (object): legal_name, address, agent_email, website, phone, signing_authority, signing_title, contact_office
-- **agreement** (object): title, agreement_type, valid_from, valid_to, status, signed_on, institution_signed_on, institution_signed_by, governing_law, claim_deadline_days, invoice_deadline_days, termination_notice_days, sub_agent_allowed, b2b_allowed, consent_form_required, payment_method, countries_allowed, ai_summary
-- **commission** (object): model_type, currency, description, rules[] (same shape as today)
+Also set `upi_agreements.status = 'needs_review'` (instead of whatever the model returned) when `needs_review` is true, so the badge on the card shows it immediately.
 
-System prompt instructs the model to extract every detail it sees, leave unknown fields null, and always populate the agency block (fixed) and ai_summary.
+### UI: surface missing/needs-review state on the Agreement card
 
-### 3. Persist the extracted fields
+In `AgreementsPanel.tsx`:
+- If `ext.validation?.needs_review`, render an amber "Needs review" banner inside the card listing `missing_fields` and `notes` as chips.
+- The existing `Item` grid already hides null values — that already gives a visible signal of missing data, but the explicit list makes it actionable.
+- "Edit dynamic fields" stays the path to fill them in manually.
 
-After the AI call:
-- Merge `agency`, `institution`, `agreement`, `commission` into `extracted_data` JSON on `upi_agreements`.
-- Update `upi_agreements` row with `valid_from`, `valid_to`, `agreement_type`, `status` when present (so the card chips and countdown work).
-- Insert `upi_commissions` + `upi_commission_rules` only when `commission.rules` is non-empty (today's behavior).
-- Keep the `upi_ai_suggestions` row but use a richer description.
+No DB migration needed — `extracted_data` is already JSON.
 
-### 4. Confidence
+## 2. Test-mode deletion across data/documents
 
-Set confidence = 95 when at least the institution legal_name **and** one commission rule are extracted; 75 if only one is present; 60 otherwise.
+Goal: while running on seed/mock data, allow deleting any uploaded document, agreement, commission, claim, suggestion, etc. — gated by a single flag so it can be turned off later.
 
-## Files touched
+### Flag
 
-- `supabase/functions/upi-analyze-agreement/index.ts` — rewrite as above.
+Reuse the existing `USE_MOCK_DATA` flag in `src/institutions/config.ts`. Add a derived export:
+```ts
+export const ALLOW_TEST_DELETIONS = USE_MOCK_DATA; // remove gating later by flipping to false
+```
 
-No DB migration. No frontend changes — `AgreementsPanel` and `DynamicFieldGroup` already read from `extracted_data`, so once the function writes the full object the UI lights up automatically.
+(Single source of truth — when QA goes live the team flips `VITE_USE_MOCK_DATA=false`.)
+
+### Delete actions to add
+
+| Where | What | How |
+|---|---|---|
+| Documents tab (`InstitutionDetailPage.tsx`, doc card) | Trash icon button next to "Review" | Deletes storage object in `institution-documents` bucket + row in `upi_uploaded_documents` + cascade rows in `upi_document_pipeline_events` |
+| Agreements card (`AgreementsPanel.tsx`, dropdown menu) | New "Delete agreement" item, red text | Deletes `upi_agreements` row; cascade already handles related rows |
+| Commissions / Claims / Promotions / AI suggestions panels | "Delete" entry in each row's overflow menu | Soft = `DELETE` directly |
+
+Each click shows a `confirm()` dialog ("This is irreversible — delete?") and a toast on success/failure. All delete buttons are wrapped in `{ALLOW_TEST_DELETIONS && ... }` so they vanish when the flag is off.
+
+### RLS
+
+CRM admins already have write/delete via the existing RLS on these tables (the recent migration only tightened **commissions** to commission_admin). For `upi_uploaded_documents` and `upi_agreements` the current admin policies still cover delete, so no migration is needed. If a test deletion fails with a 403, we'll add a permissive policy in a follow-up migration scoped to admin only — but I expect existing policies to suffice.
+
+## Files to change
+
+- `supabase/functions/upi-analyze-agreement/index.ts` — add `validateExtraction()` + persist validation block + adjust confidence + status.
+- `src/institutions/components/AgreementsPanel.tsx` — render needs-review banner; add "Delete agreement" menu item (gated).
+- `src/institutions/pages/InstitutionDetailPage.tsx` — add delete button on document cards (gated), with storage + DB cleanup.
+- `src/institutions/components/CommissionsPanel.tsx`, `ClaimsPanel.tsx`, `PromotionsPanel.tsx`, `AiSuggestionsPanel.tsx` — add gated delete row actions.
+- `src/institutions/config.ts` — export `ALLOW_TEST_DELETIONS`.
 
 ## Out of scope
 
-- No mock seed of "6 ready-made agreements" for the 6 institutions. The user can upload one PDF per institution and extraction will now populate every field from this list. If you'd like seeded mock agreements as well, say so and I'll add them in a follow-up.
-- No changes to commission engine or claims.
-
-## Verification
-
-1. Re-upload the Centennial agreement under that institution → Documents.
-2. Pipeline routes `agreement` → orchestrator → `upi-analyze-agreement` (already wired).
-3. Open Agreements tab → card should show valid_from/valid_to, governing law, claim deadline, termination notice, sub-agent, AI summary, and a commission proposal in AI Suggestions.
-4. Check `edge-function-logs-upi-analyze-agreement` for any errors.
+- No DB migration (unless a delete returns 403 after the UI is wired — we'll handle in a follow-up).
+- No changes to the AI prompt itself; the validation is independent of the model.
+- No mass "delete all" / reset button — only per-row deletes.

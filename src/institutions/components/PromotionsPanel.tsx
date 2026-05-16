@@ -5,7 +5,10 @@ import { usePromotions } from "../hooks/useInstitutionData";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DynamicFieldGroup } from "./DynamicFieldGroup";
-import { Send } from "lucide-react";
+import { Send, Trash2 } from "lucide-react";
+import { ALLOW_TEST_DELETIONS } from "../config";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function PromotionsPanel({
   institutionId,
@@ -14,8 +17,16 @@ export function PromotionsPanel({
   institutionId: string;
   onRunCampaign?: (promo: { id: string; title: string }) => void;
 }) {
-  const { data: promos, loading } = usePromotions(institutionId);
+  const { data: promos, loading, reload } = usePromotions(institutionId) as any;
   const [edit, setEdit] = useState<any | null>(null);
+
+  const deletePromo = async (p: any) => {
+    if (!confirm(`Delete promotion "${p.title}"?`)) return;
+    const { error } = await supabase.from("upi_promotions").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    toast.success("Promotion deleted");
+    reload?.();
+  };
 
   if (loading) return <div className="p-8 text-center text-sm text-muted-foreground">Loading promotions…</div>;
   if (promos.length === 0)
@@ -42,6 +53,11 @@ export function PromotionsPanel({
               {onRunCampaign && (
                 <Button size="sm" onClick={() => onRunCampaign({ id: p.id, title: p.title })}>
                   <Send className="size-4 mr-1" /> Run campaign
+                </Button>
+              )}
+              {ALLOW_TEST_DELETIONS && (
+                <Button size="sm" variant="ghost" onClick={() => deletePromo(p)} className="text-destructive hover:text-destructive">
+                  <Trash2 className="size-4" />
                 </Button>
               )}
             </div>

@@ -6,13 +6,25 @@ import { Button } from "@/components/ui/button";
 import { useCommissions, useCommissionRules } from "../hooks/useInstitutionData";
 import { simulateCommission } from "../lib/commissionEngine";
 import { detectRuleConflicts } from "../lib/claimEngine";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
+import { ALLOW_TEST_DELETIONS } from "../config";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export function CommissionsPanel({ institutionId }: { institutionId: string }) {
-  const { data: commissions, loading } = useCommissions(institutionId);
+  const { data: commissions, loading, reload } = useCommissions(institutionId) as any;
   const ids = useMemo(() => commissions.map((c: any) => c.id), [commissions]);
   const { data: rules } = useCommissionRules(ids);
   const [sim, setSim] = useState({ tuition: 18000, currency: "CAD", country: "India", intake: "May", program_level: "PG Diploma", student_count: 1 });
+
+  const deleteCommission = async (c: any) => {
+    if (!confirm(`Delete commission "${c.name}" and its rules?`)) return;
+    await supabase.from("upi_commission_rules").delete().eq("commission_id", c.id);
+    const { error } = await supabase.from("upi_commissions").delete().eq("id", c.id);
+    if (error) return toast.error(error.message);
+    toast.success("Commission deleted");
+    reload?.();
+  };
 
   if (loading) return <div className="text-sm text-muted-foreground py-8 text-center">Loading commissions…</div>;
   if (commissions.length === 0)
@@ -38,6 +50,11 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
               <div className="flex gap-2">
                 {c.is_proposed && <Badge variant="secondary">Proposed</Badge>}
                 <Badge variant={c.is_active ? "default" : "outline"}>{c.is_active ? "Active" : "Inactive"}</Badge>
+                {ALLOW_TEST_DELETIONS && (
+                  <Button size="sm" variant="ghost" onClick={() => deleteCommission(c)} className="text-destructive hover:text-destructive">
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
               </div>
             </div>
 

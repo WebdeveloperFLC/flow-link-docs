@@ -14,6 +14,103 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const CCY = /^[A-Z]{3}$/;
+
+function isEmpty(v: unknown): boolean {
+  if (v == null) return true;
+  if (typeof v === "string") return v.trim() === "";
+  if (Array.isArray(v)) return v.length === 0;
+  return false;
+}
+
+function validateExtraction(parsed: {
+  institution?: Record<string, any>;
+  agreement?: Record<string, any>;
+  commission?: Record<string, any>;
+}) {
+  const missing: string[] = [];
+  const low: string[] = [];
+  const notes: string[] = [];
+  const inst = parsed.institution ?? {};
+  const ag = parsed.agreement ?? {};
+  const comm = parsed.commission ?? {};
+  const rules = Array.isArray(comm.rules) ? comm.rules : [];
+
+  // Required institution fields
+  for (const f of ["legal_name", "address", "signing_authority"]) {
+    if (isEmpty(inst[f])) missing.push(`institution.${f}`);
+  }
+  if (isEmpty(inst.agent_email) && isEmpty(inst.phone)) {
+    missing.push("institution.agent_email_or_phone");
+  }
+
+  // Required agreement fields
+  const reqAg = [
+    "agreement_type", "valid_from", "valid_to", "governing_law",
+    "claim_deadline_days", "invoice_deadline_days", "termination_notice_days",
+    "payment_method", "signed_on", "institution_signed_on", "institution_signed_by",
+    "sub_agent_allowed", "consent_form_required", "countries_allowed", "ai_summary",
+  ];
+  for (const f of reqAg) {
+    if (isEmpty(ag[f])) missing.push(`agreement.${f}`);
+  }
+
+  // Date sanity
+  for (const d of ["valid_from", "valid_to", "signed_on", "institution_signed_on"]) {
+    const v = ag[d];
+    if (v && typeof v === "string" && !ISO_DATE.test(v)) {
+      low.push(`agreement.${d}`);
+      notes.push(`${d} is not ISO YYYY-MM-DD (got "${v}")`);
+    }
+  }
+  if (ag.valid_from && ag.valid_to && ISO_DATE.test(ag.valid_from) && ISO_DATE.test(ag.valid_to)) {
+    if (ag.valid_to <= ag.valid_from) {
+      low.push("agreement.valid_to");
+      notes.push("valid_to is not after valid_from");
+    }
+  }
+  for (const d of ["claim_deadline_days", "invoice_deadline_days", "termination_notice_days"]) {
+    const v = ag[d];
+    if (v != null && (typeof v !== "number" || v < 0 || v > 3650)) {
+      low.push(`agreement.${d}`);
+      notes.push(`${d} out of range`);
+    }
+  }
+
+  // Commission
+  if (isEmpty(comm.model_type)) missing.push("commission.model_type");
+  if (isEmpty(comm.currency)) {
+    missing.push("commission.currency");
+  } else if (!CCY.test(String(comm.currency))) {
+    low.push("commission.currency");
+    notes.push(`currency "${comm.currency}" is not a 3-letter ISO code`);
+  }
+  if (rules.length === 0) {
+    missing.push("commission.rules");
+  } else {
+    rules.forEach((r: any, i: number) => {
+      if (isEmpty(r.rule_type)) missing.push(`commission.rules[${i}].rule_type`);
+      if (isEmpty(r.payout_type)) missing.push(`commission.rules[${i}].payout_type`);
+      if (typeof r.payout_amount === "number" && r.payout_amount < 0) {
+        low.push(`commission.rules[${i}].payout_amount`);
+        notes.push(`rule ${i + 1} payout_amount is negative`);
+      }
+      if (r.payout_type === "percentage" && typeof r.payout_amount === "number" && r.payout_amount > 100) {
+        low.push(`commission.rules[${i}].payout_amount`);
+        notes.push(`rule ${i + 1} percentage payout > 100`);
+      }
+    });
+  }
+
+  return {
+    missing_fields: missing,
+    low_confidence_fields: low,
+    notes,
+    needs_review: missing.length > 0 || low.length > 0,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -206,9 +303,17 @@ Leave any field you cannot determine as null. Never invent institution details.`
     const commission = parsed.commission ?? { model_type: "fixed", rules: [] };
     const rules = Array.isArray(commission.rules) ? commission.rules : [];
 
+    const validation = validateExtraction({ institution, agreement, commission });
     const hasInstitution = !!institution.legal_name;
     const hasRules = rules.length > 0;
-    const confidence = hasInstitution && hasRules ? 95 : hasInstitution || hasRules ? 75 : 60;
+    const baseConfidence = hasInstitution && hasRules ? 95 : hasInstitution || hasRules ? 75 : 60;
+    const confidence = Math.max(
+      30,
+      Math.min(
+        baseConfidence,
+        95 - 5 * validation.missing_fields.length - 3 * validation.low_confidence_fields.length,
+      ),
+    );
 
     const extracted_data = {
       ...agreement,
@@ -216,6 +321,7 @@ Leave any field you cannot determine as null. Never invent institution details.`
       institution,
       commission_summary: { model_type: commission.model_type, currency: commission.currency, description: commission.description },
       confidence,
+      validation,
     };
 
     // Update the agreement row with the parsed fields + extracted_data
@@ -223,7 +329,11 @@ Leave any field you cannot determine as null. Never invent institution details.`
     if (agreement.valid_from) agreementUpdate.valid_from = agreement.valid_from;
     if (agreement.valid_to) agreementUpdate.valid_to = agreement.valid_to;
     if (agreement.agreement_type) agreementUpdate.agreement_type = agreement.agreement_type;
-    if (agreement.status) agreementUpdate.status = agreement.status;
+    if (validation.needs_review) {
+      agreementUpdate.status = "needs_review";
+    } else if (agreement.status) {
+      agreementUpdate.status = agreement.status;
+    }
     if (agreement.title) agreementUpdate.title = agreement.title;
     await supabase.from("upi_agreements").update(agreementUpdate).eq("id", agreement_id);
 

@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useSuggestions } from "../hooks/useInstitutionData";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { ALLOW_TEST_DELETIONS } from "../config";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 const SEV_VARIANT = {
   critical: "destructive" as const,
@@ -21,6 +24,16 @@ export function AiSuggestionsPanel({ institutionId }: { institutionId: string })
       await supabase.from("upi_ai_suggestions").update({ status, reviewed_at: new Date().toISOString() } as any).eq("id", id);
     }
     setBusy(null);
+    reload();
+  };
+
+  const deleteSuggestion = async (id: string, title: string) => {
+    if (!confirm(`Delete suggestion "${title}"?`)) return;
+    if (!id.startsWith("sug-")) {
+      const { error } = await supabase.from("upi_ai_suggestions").delete().eq("id", id);
+      if (error) return toast.error(error.message);
+    }
+    toast.success("Suggestion deleted");
     reload();
   };
 
@@ -55,6 +68,11 @@ export function AiSuggestionsPanel({ institutionId }: { institutionId: string })
                 </div>
               ) : (
                 <Badge variant="secondary">{s.status}</Badge>
+              )}
+              {ALLOW_TEST_DELETIONS && (
+                <Button size="sm" variant="ghost" onClick={() => deleteSuggestion(s.id, s.title)} className="text-destructive hover:text-destructive">
+                  <Trash2 className="size-4" />
+                </Button>
               )}
             </div>
           </Card>
