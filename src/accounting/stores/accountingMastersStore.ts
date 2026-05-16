@@ -12,7 +12,8 @@ export type MasterListKey =
   | "tax_codes"
   | "branches"
   | "countries"
-  | "units";
+  | "units"
+  | "intercompany_types";
 
 export interface MasterItem {
   code: string;
@@ -135,10 +136,22 @@ const SEED: Record<MasterListKey, MasterItem[]> = {
     { code: "MONTH", label: "Month" },
     { code: "PKG", label: "Package" },
   ],
+  intercompany_types: [
+    { code: "MGMT_FEE", label: "Management fee", system: true },
+    { code: "SOFTWARE_DEV", label: "Software development charges", system: true },
+    { code: "CONSULTING", label: "Consulting / advisory fee", system: true },
+    { code: "STAFF_COST", label: "Staff cost recharge", system: true },
+    { code: "RENT_SHARING", label: "Rent / overhead sharing", system: true },
+    { code: "LOAN", label: "Inter-company loan", system: true },
+    { code: "LOAN_REPAYMENT", label: "Loan repayment", system: true },
+    { code: "DIVIDEND", label: "Dividend / profit transfer", system: true },
+    { code: "CAPITAL", label: "Capital contribution", system: true },
+    { code: "OTHER", label: "Other", system: true },
+  ],
 };
 
 const store = createPersistedStore<Record<MasterListKey, MasterItem[]>>(
-  "accounting:masters:v4",
+  "accounting:masters:v5",
   SEED,
 );
 
