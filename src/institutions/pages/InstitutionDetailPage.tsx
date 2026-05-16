@@ -17,6 +17,7 @@ import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
 import { RunCampaignDialog } from "../components/RunCampaignDialog";
 import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
+import { ClaimsPanel } from "../components/ClaimsPanel";
 import { AiReviewPanel } from "../components/AiReviewPanel";
 
 export default function InstitutionDetailPage() {
