@@ -19,12 +19,13 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "../../lib/format";
-import { MOCK_ACCOUNTS, MOCK_JOURNALS, AccountType, Currency } from "../../data/mockJournals";
+import { MOCK_ACCOUNTS, AccountType, Currency, Journal } from "../../data/mockJournals";
+import { useJournals, addJournal, updateJournal } from "../../stores/journalsStore";
+import { useEntities } from "../../stores/accountingEntitiesStore";
+import DynamicSelect from "../../components/shared/DynamicSelect";
 
-const ENTITIES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi', 'Future Link Academy'];
 const SOURCES = ['MANUAL', 'OCR_UPLOAD', 'AP', 'AR'] as const;
 const BRANCHES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
-const TAX_CODES = ['GST-5%', 'HST-13%', 'IGST-18%', 'CGST-9%', 'SGST-9%', 'TDS-10%', 'TCS-1%'];
 const ACCOUNT_TYPES: AccountType[] = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
 
 interface LineForm {
@@ -45,8 +46,10 @@ const emptyLine = (): LineForm => ({
 export default function AccountingNewJournalPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
-  const existing = id ? MOCK_JOURNALS.find(j => j.id === id) : undefined;
+  const allJournals = useJournals();
+  const existing = id ? allJournals.find(j => j.id === id) : undefined;
   const [searchParams] = useSearchParams();
+  const entities = useEntities();
 
   const [entity, setEntity] = useState(existing?.entity ?? '');
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? new Date().toISOString().slice(0, 10));
@@ -152,16 +155,40 @@ export default function AccountingNewJournalPage() {
     setSubmitted(true);
     const errs = validateDraft();
     if (errs.length) { toast.error(errs.join(' · ')); return; }
+    persist('DRAFT');
     toast.success('Draft saved');
+    setTimeout(() => navigate('/accounting/journals'), 300);
   };
   const onPost = () => {
     setSubmitted(true);
     const errs = validatePost();
     if (errs.length) { toast.error(errs.join(' · ')); return; }
-    const num = `JE-2024-${String(MOCK_JOURNALS.length + 1).padStart(4, '0')}`;
+    const num = persist('POSTED');
     toast.success(`Journal entry ${num} posted`);
     setTimeout(() => navigate('/accounting/journals'), 400);
   };
+
+  function persist(status: Journal['status']): string {
+    const lineModels = lines.filter(l => l.accountId).map(l => {
+      const a = MOCK_ACCOUNTS.find(x => x.id === l.accountId)!;
+      return {
+        id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name, accountType: a.type,
+        debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0,
+        description: l.description, taxCode: l.taxCode,
+      };
+    });
+    if (existing) {
+      updateJournal(existing.id, { entity, entryDate, currency, sourceType, reference, narration, status, lines: lineModels });
+      return existing.entryNumber;
+    }
+    const num = `JE-${new Date().getFullYear()}-${String(allJournals.length + 1).padStart(4, '0')}`;
+    addJournal({
+      entryNumber: num, entryDate, entity, narration, sourceType, reference, currency, status,
+      createdBy: 'Current user', postedAt: status === 'POSTED' ? new Date().toISOString() : undefined,
+      lines: lineModels,
+    });
+    return num;
+  }
 
   return (
     <AppLayout>
@@ -206,7 +233,7 @@ export default function AccountingNewJournalPage() {
                   <SelectValue placeholder="Select entity…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {ENTITIES.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+                  {entities.map(e => <SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -216,14 +243,7 @@ export default function AccountingNewJournalPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Currency *</Label>
-              <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CAD">CAD</SelectItem>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="INR">INR</SelectItem>
-                </SelectContent>
-              </Select>
+              <DynamicSelect listKey="currencies" value={currency} onValueChange={(v) => setCurrency(v as Currency)} />
             </div>
             {currency !== 'CAD' && (
               <div className="space-y-1.5">
@@ -233,12 +253,7 @@ export default function AccountingNewJournalPage() {
             )}
             <div className="space-y-1.5">
               <Label>Source type *</Label>
-              <Select value={sourceType} onValueChange={(v) => setSourceType(v as typeof SOURCES[number])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {SOURCES.map(s => <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <DynamicSelect listKey="journal_types" value={sourceType} onValueChange={(v) => setSourceType(v as typeof SOURCES[number])} />
             </div>
             <div className="space-y-1.5">
               <Label>Reference</Label>
@@ -297,13 +312,7 @@ export default function AccountingNewJournalPage() {
                         </Select>
                       </td>
                       <td className="px-2 py-2">
-                        <Select value={l.taxCode || 'none'} onValueChange={(v) => updateLine(idx, { taxCode: v === 'none' ? '' : v })}>
-                          <SelectTrigger className="w-24 h-9"><SelectValue placeholder="—" /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">—</SelectItem>
-                            {TAX_CODES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                          </SelectContent>
-                        </Select>
+                        <div className="w-32"><DynamicSelect listKey="tax_codes" value={l.taxCode} onValueChange={(v) => updateLine(idx, { taxCode: v })} placeholder="—" /></div>
                       </td>
                       <td className="px-2 py-2">
                         <Input
