@@ -43,7 +43,9 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
-  const [docKind, setDocKind] = useState<"program_sheet" | "agreement" | "commission_sheet" | "brochure">("program_sheet");
+  const [docKind, setDocKind] = useState<
+    "program_sheet" | "agreement" | "commission_sheet" | "brochure" | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"
+  >("program_sheet");
   const [askPrompt, setAskPrompt] = useState("");
   const [askAnswer, setAskAnswer] = useState("");
   const [asking, setAsking] = useState(false);
@@ -344,7 +346,11 @@ export default function InstitutionDetailPage() {
                       <SelectItem value="program_sheet">Program sheet (extract programs)</SelectItem>
                       <SelectItem value="agreement">Agreement</SelectItem>
                       <SelectItem value="commission_sheet">Commission sheet</SelectItem>
-                      <SelectItem value="brochure">Brochure / other</SelectItem>
+                      <SelectItem value="brochure">Brochure</SelectItem>
+                      <SelectItem value="promotion_campaign">Promotion / Campaign</SelectItem>
+                      <SelectItem value="invoice_template">Invoice template</SelectItem>
+                      <SelectItem value="renewal_document">Renewal document</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
