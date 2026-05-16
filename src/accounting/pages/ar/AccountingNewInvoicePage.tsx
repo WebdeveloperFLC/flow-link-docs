@@ -11,15 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
-import { SERVICE_TYPE_LABELS, MOCK_INVOICES, COUNSELORS } from "../../data/mockAR";
+import DynamicSelect from "../../components/shared/DynamicSelect";
+import { COUNSELORS, type CustomerInvoice } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import { useClients } from "../../stores/clientsStore";
+import { addArInvoice } from "../../stores/arInvoicesStore";
+import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
-const ENTITIES = ["Future Link Canada HQ", "Future Link USA Corp", "Future Link India Pvt Ltd", "Future Link Academy", "Future Link UAE"];
-const BRANCHES = ["Head Office", "India — Mumbai", "India — Delhi", "India — Bangalore", "Canada — Toronto", "Canada — Vancouver", "UAE — Dubai", "USA — New York"];
-const TAX_CODES = ["GST-5%", "HST-13%", "IGST-18%", "CGST-9%", "SGST-9%", "VAT-5%", "VAT-15%", "ZERO-RATED", "EXEMPT"];
-const PAY_METHODS = ["Bank Transfer", "Cheque", "Cash", "Credit Card", "UPI", "Wire Transfer", "NEFT", "RTGS", "IMPS"];
-const COUNTRIES = ["Canada", "United Kingdom", "Australia", "United States", "Germany", "Ireland", "France", "UAE", "Other"];
-const CURRENCIES = ["CAD", "USD", "INR", "AED", "GBP", "AUD", "EUR"];
 const TAG_SUGGESTIONS = ["urgent", "vip", "scholarship", "installment", "referral"];
 
 const fullSchema = z.object({
@@ -30,34 +29,76 @@ const fullSchema = z.object({
 
 export default function AccountingNewInvoicePage() {
   const navigate = useNavigate();
+  const clients = useClients();
+  const entities = useEntities();
+  const taxCodes = useMaster("tax_codes");
+
   const [client, setClient] = useState(""); const [clientEmail, setClientEmail] = useState(""); const [clientPhone, setClientPhone] = useState("");
   const [counselor, setCounselor] = useState(""); const [serviceType, setServiceType] = useState("");
   const [destinationCountry, setDestinationCountry] = useState(""); const [universityName, setUniversityName] = useState(""); const [intakeMonth, setIntakeMonth] = useState("");
-  const [entity, setEntity] = useState(""); const [branch, setBranch] = useState(""); const [currency, setCurrency] = useState("CAD");
+  const [entityId, setEntityId] = useState(""); const [branchId, setBranchId] = useState(""); const [currency, setCurrency] = useState("CAD");
   const [invoiceNumber, setInvoiceNumber] = useState(""); const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10)); const [dueDate, setDueDate] = useState("");
   const [subtotal, setSubtotal] = useState<number>(0); const [taxCode, setTaxCode] = useState(""); const [taxAmount, setTaxAmount] = useState<number>(0);
+  const [paymentTerms, setPaymentTerms] = useState("");
   const [description, setDescription] = useState(""); const [notes, setNotes] = useState("");
   const [coa, setCoa] = useState("1200 — Accounts receivable"); const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
   const [installmentPlan, setInstallmentPlan] = useState(false); const [totalInstallments, setTotalInstallments] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]); const [tagInput, setTagInput] = useState("");
 
   const total = +(subtotal + taxAmount).toFixed(2);
-  const clientOptions = Array.from(new Set(MOCK_INVOICES.map((i) => i.client)));
+  const topEntities = entities.filter((e) => !e.parentId);
+  const branches = entities.filter((e) => e.parentId === entityId);
+  const entityName = entities.find((e) => e.id === entityId)?.name ?? "";
+  const branchName = entities.find((e) => e.id === branchId)?.name ?? "";
+
+  const clientOptions = clients.map((c) => c.name);
 
   function applyTax(code: string) {
     setTaxCode(code);
-    const m = code.match(/(\d+(?:\.\d+)?)%/);
+    const label = taxCodes.find((t) => t.code === code)?.label ?? code;
+    const m = label.match(/(\d+(?:\.\d+)?)\s*%/);
     if (m) setTaxAmount(+(subtotal * (parseFloat(m[1]) / 100)).toFixed(2));
+  }
+
+  function buildPayload(status: CustomerInvoice["status"]): Omit<CustomerInvoice, "id"> {
+    const cc = (["CA","US","IN","AE"] as const).includes((entities.find((e) => e.id === entityId)?.country ?? "OTHER") as never)
+      ? ((entities.find((e) => e.id === entityId)?.country ?? "OTHER") as CustomerInvoice["branchCountry"])
+      : "OTHER";
+    const cur = (["CAD","USD","INR","AED","GBP","AUD","EUR"] as const).includes(currency as never) ? (currency as CustomerInvoice["currency"]) : "CAD";
+    const pm = (["BANK_TRANSFER","CASH","CHEQUE","UPI","CARD","WIRE","OTHER"] as const).includes(payMethod as never) ? (payMethod as CustomerInvoice["paymentMethod"]) : undefined;
+    return {
+      invoiceNumber, client, clientEmail, clientPhone: clientPhone || undefined,
+      counselor: counselor || "—",
+      entity: entityName || "—", branch: branchName || entityName || "—", branchCountry: cc,
+      serviceType: "OTHER" as CustomerInvoice["serviceType"],
+      destinationCountry: (destinationCountry as CustomerInvoice["destinationCountry"]) || undefined,
+      universityName: universityName || undefined, intakeMonth: intakeMonth || undefined,
+      programName: serviceType || undefined,
+      description: description || "—",
+      invoiceDate, dueDate, currency: cur, subtotal,
+      taxCode: masterLabel("tax_codes", taxCode) || taxCode || "NONE",
+      taxAmount, totalAmount: total,
+      receivedAmount: 0, outstandingBalance: total, status,
+      linkedCOACode: "1200", linkedBankAccountId: bankId || undefined,
+      paymentMethod: pm,
+      notes: notes || (paymentTerms ? `Payment terms: ${masterLabel("payment_terms", paymentTerms)}` : undefined),
+      installmentPlan: installmentPlan || undefined,
+      totalInstallments: installmentPlan ? totalInstallments : undefined,
+      installmentsPaid: installmentPlan ? 0 : undefined,
+      tags: tags.length ? tags : undefined,
+    };
   }
 
   function save(asDraft: boolean) {
     if (asDraft) {
-      if (!client || !invoiceNumber || !entity) { toast.error("Client, invoice number and entity are required to save a draft"); return; }
+      if (!client || !invoiceNumber || !entityId) { toast.error("Client, invoice number and entity are required to save a draft"); return; }
+      addArInvoice(buildPayload("DRAFT"));
       toast.success("Draft saved"); navigate("/accounting/ar"); return;
     }
-    const r = fullSchema.safeParse({ client, invoiceNumber, entity, currency, invoiceDate, dueDate, subtotal, description });
+    const r = fullSchema.safeParse({ client, invoiceNumber, entity: entityName, currency, invoiceDate, dueDate, subtotal, description });
     if (!r.success) { toast.error(r.error.errors[0]?.message ?? "Please complete required fields"); return; }
     if (dueDate < invoiceDate) { toast.error("Due date must be on or after invoice date"); return; }
+    addArInvoice(buildPayload("SENT"));
     toast.success("Invoice created and ready to send"); navigate("/accounting/ar");
   }
 
@@ -81,16 +122,27 @@ export default function AccountingNewInvoicePage() {
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Service details</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
-          <Field label="Service type"><FreeCombobox value={serviceType} onChange={setServiceType} options={[...Object.values(SERVICE_TYPE_LABELS), "Other — type your own"]} /></Field>
-          <Field label="Destination country"><FreeCombobox value={destinationCountry} onChange={setDestinationCountry} options={COUNTRIES} /></Field>
+          <Field label="Service type"><DynamicSelect listKey="client_categories" value={serviceType} onValueChange={setServiceType} placeholder="Select service type" /></Field>
+          <Field label="Destination country"><DynamicSelect listKey="countries" value={destinationCountry} onValueChange={setDestinationCountry} /></Field>
           <Field label="University / institution"><Input value={universityName} onChange={(e) => setUniversityName(e.target.value)} /></Field>
           <Field label="Intake month"><Input value={intakeMonth} onChange={(e) => setIntakeMonth(e.target.value)} placeholder="e.g. September 2025" /></Field>
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Entity & branch</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
-          <Field label="Entity *"><FreeCombobox value={entity} onChange={setEntity} options={[...ENTITIES, "Other — type your own"]} /></Field>
-          <Field label="Branch"><FreeCombobox value={branch} onChange={setBranch} options={[...BRANCHES, "Other — type your own"]} /></Field>
-          <Field label="Currency *"><PlainSelect value={currency} onChange={setCurrency} options={CURRENCIES} /></Field>
+          <Field label="Entity *">
+            <Select value={entityId} onValueChange={(v) => { setEntityId(v); setBranchId(""); }}>
+              <SelectTrigger><SelectValue placeholder="Select entity" /></SelectTrigger>
+              <SelectContent>{topEntities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label="Branch">
+            <Select value={branchId || "__none__"} onValueChange={(v) => setBranchId(v === "__none__" ? "" : v)} disabled={!entityId || branches.length === 0}>
+              <SelectTrigger><SelectValue placeholder={branches.length ? "Select branch" : "No branches"} /></SelectTrigger>
+              <SelectContent><SelectItem value="__none__">—</SelectItem>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label="Currency *"><DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} /></Field>
+          <Field label="Payment terms"><DynamicSelect listKey="payment_terms" value={paymentTerms} onValueChange={setPaymentTerms} /></Field>
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Invoice details</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
@@ -98,7 +150,7 @@ export default function AccountingNewInvoicePage() {
           <Field label="Invoice date *"><Input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} /></Field>
           <Field label="Due date *"><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></Field>
           <Field label="Subtotal *"><Input type="number" min={0} step={0.01} value={subtotal || ""} onChange={(e) => setSubtotal(parseFloat(e.target.value) || 0)} /></Field>
-          <Field label="Tax code"><FreeCombobox value={taxCode} onChange={applyTax} options={[...TAX_CODES, "Other — type your own"]} /></Field>
+          <Field label="Tax code"><DynamicSelect listKey="tax_codes" value={taxCode} onValueChange={applyTax} /></Field>
           <Field label="Tax amount"><Input type="number" min={0} step={0.01} value={taxAmount || ""} onChange={(e) => setTaxAmount(parseFloat(e.target.value) || 0)} /></Field>
           <Field label="Total"><Input value={total.toFixed(2)} readOnly className="bg-muted" /></Field>
           <div className="col-span-2"><Field label="Description *"><Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the service…" /></Field></div>
@@ -108,9 +160,15 @@ export default function AccountingNewInvoicePage() {
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Linked COA account"><Input value={coa} onChange={(e) => setCoa(e.target.value)} /></Field>
           <Field label="Linked bank account">
-            <PlainSelect value={bankId} onChange={setBankId} options={SEED_BANK_ACCOUNTS.filter((b) => b.currency === currency).map((b) => b.nickname)} />
+            <Select value={bankId || "__none__"} onValueChange={(v) => setBankId(v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Select bank…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">—</SelectItem>
+                {SEED_BANK_ACCOUNTS.filter((b) => b.currency === currency).map((b) => <SelectItem key={b.id} value={b.id}>{b.nickname} · ••••{b.accountNumber.slice(-4)}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Preferred payment method"><FreeCombobox value={payMethod} onChange={setPayMethod} options={[...PAY_METHODS, "Other — type your own"]} /></Field>
+          <Field label="Preferred payment method"><DynamicSelect listKey="payment_methods" value={payMethod} onValueChange={setPayMethod} /></Field>
           <Field label="Installment plan">
             <div className="flex items-center gap-3">
               <label className="text-sm flex items-center gap-2">
@@ -138,12 +196,4 @@ export default function AccountingNewInvoicePage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="grid gap-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
-}
-function PlainSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
-  return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-      <SelectContent>{options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-    </Select>
-  );
 }

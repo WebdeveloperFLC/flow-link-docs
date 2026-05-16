@@ -18,7 +18,8 @@ import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import AccountingTableSkeleton from "../../components/shared/AccountingTableSkeleton";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import { fmtMoney } from "../../components/ap-ar/money";
-import { MOCK_INVOICES, SERVICE_TYPE_LABELS, type CustomerInvoice, type InvoiceStatus } from "../../data/mockAR";
+import { SERVICE_TYPE_LABELS, type CustomerInvoice, type InvoiceStatus } from "../../data/mockAR";
+import { useArInvoices, updateArInvoice, deleteArInvoice } from "../../stores/arInvoicesStore";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import AccountingReceiptModal from "../../components/receipts/AccountingReceiptModal";
 import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
@@ -35,7 +36,7 @@ function daysFromToday(dateStr: string): number {
 
 export default function AccountingARPage() {
   const navigate = useNavigate();
-  const [invoices, setInvoices] = useState<CustomerInvoice[]>(MOCK_INVOICES);
+  const invoices = useArInvoices();
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t); }, []);
 
@@ -52,6 +53,7 @@ export default function AccountingARPage() {
 
   const [payDialog, setPayDialog] = useState<CustomerInvoice | null>(null);
   const [voidDialog, setVoidDialog] = useState<CustomerInvoice | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<CustomerInvoice | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
 
@@ -109,9 +111,7 @@ export default function AccountingARPage() {
     overdue: invoices.filter((i) => i.status === "OVERDUE").length,
   };
 
-  function updateInvoice(id: string, patch: Partial<CustomerInvoice>) {
-    setInvoices((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
-  }
+  const updateInvoice = (id: string, patch: Partial<CustomerInvoice>) => updateArInvoice(id, patch);
 
   function exportCSV() {
     const rows = [
@@ -266,6 +266,8 @@ export default function AccountingARPage() {
                               <DropdownMenuItem className="text-destructive" onClick={() => setVoidDialog(i)}>Void</DropdownMenuItem>
                             </>
                           )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteDialog(i)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -305,6 +307,19 @@ export default function AccountingARPage() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={() => { if (voidDialog) { updateInvoice(voidDialog.id, { status: "VOID" }); toast.success("Invoice voided"); setVoidDialog(null); } }}>Void invoice</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={!!deleteDialog} onOpenChange={(o) => !o && setDeleteDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this invoice?</AlertDialogTitle>
+              <AlertDialogDescription>{deleteDialog && `${deleteDialog.invoiceNumber} — ${deleteDialog.client}. This permanently removes the record.`}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { if (deleteDialog) { deleteArInvoice(deleteDialog.id); toast.success("Invoice deleted"); setDeleteDialog(null); } }}>Delete</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

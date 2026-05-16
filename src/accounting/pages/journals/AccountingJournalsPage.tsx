@@ -23,8 +23,9 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import { formatCurrency } from "../../lib/format";
 import {
-  MOCK_JOURNALS, Journal, JournalStatus, SourceType,
+  Journal, JournalStatus, SourceType,
 } from "../../data/mockJournals";
+import { useJournals, updateJournal, deleteJournal } from "../../stores/journalsStore";
 
 const ALL_STATUSES: JournalStatus[] = ['DRAFT', 'PENDING_REVIEW', 'POSTED', 'VOIDED'];
 const ENTITIES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
@@ -51,12 +52,13 @@ function lineTotals(j: Journal) {
 
 export default function AccountingJournalsPage() {
   const navigate = useNavigate();
-  const [journals, setJournals] = useState<Journal[]>(MOCK_JOURNALS);
+  const journals = useJournals();
   const [search, setSearch] = useState('');
   const [statuses, setStatuses] = useState<Set<JournalStatus>>(new Set());
   const [entity, setEntity] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [voidTarget, setVoidTarget] = useState<Journal | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Journal | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -102,13 +104,20 @@ export default function AccountingJournalsPage() {
 
   const confirmVoid = () => {
     if (!voidTarget) return;
-    setJournals(prev => prev.map(j =>
-      j.id === voidTarget.id
-        ? { ...j, status: 'VOIDED', voidedAt: new Date().toISOString(), voidReason: 'Voided from list' }
-        : j
-    ));
+    updateJournal(voidTarget.id, {
+      status: 'VOIDED',
+      voidedAt: new Date().toISOString(),
+      voidReason: 'Voided from list',
+    });
     toast.success(`${voidTarget.entryNumber} voided`);
     setVoidTarget(null);
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    deleteJournal(deleteTarget.id);
+    toast.success(`${deleteTarget.entryNumber} deleted`);
+    setDeleteTarget(null);
   };
 
   return (
@@ -251,6 +260,10 @@ export default function AccountingJournalsPage() {
                               </DropdownMenuItem>
                             </>
                           )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteTarget(j)}>
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -289,6 +302,21 @@ export default function AccountingJournalsPage() {
             >
               Void
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete journal entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Permanently remove {deleteTarget?.entryNumber}? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
