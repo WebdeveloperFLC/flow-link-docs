@@ -1,45 +1,67 @@
-## Goal
+## Root causes
 
-Remove all institution mock/seed data so every tab shows only real DB rows scoped to the current institution. No cross-leak, no demo fallback. You'll re-seed fresh later.
+**1. "Agreement uploaded but Agreements/Commissions tab stays empty"**
 
-## Why the leak is still happening
+`upi-document-orchestrator` routes `doc_kind = "agreement"` to `upi-analyze-agreement` and passes `{ document_id, institution_id, doc_kind }`. But `upi-analyze-agreement` reads `{ agreement_id, institution_id }` and immediately throws *"agreement_id and institution_id required"*. So:
 
-Even after strict scoping, `seedFromTemplate` in `src/institutions/repositories/index.ts` rekeys a deterministic mock template's rows onto each real institution id whenever its DB rows are empty. Two different real institutions whose hashes pick different templates therefore show two different "borrowed" datasets — which looks exactly like Centennial bleeding into Seneca, Seneca into Conestoga, etc.
+- No row is ever inserted into `upi_agreements` from the upload flow.
+- No `upi_commissions` row is created.
+- The document just sits in the Documents tab with `pipeline_status: uploaded` (which matches what the screenshot shows).
 
-## Changes (scoped to `src/institutions/` only)
+This is what's happening for the Lethbridge upload too — the file is there, but no agreement/commission record is produced, so both tabs are blank.
 
-1. **Delete mock data files**
-   - `src/institutions/mock/canadianInstitutions.ts`
-   - `src/institutions/mock/students.ts`
-   - `src/institutions/mock/campaigns.ts`
-   - Keep `src/institutions/mock/types.ts` and `src/institutions/mock/fieldDefinitions.ts` (these are type/config, not seed data).
+The "wrong institution" appearance on the Conestoga page is a separate symptom: `uploadDoc` correctly uses the institution from the URL (`useParams().id`), so the file you see in Conestoga's Documents tab is one that was uploaded while the Conestoga detail page was open. Data scoping is correct; the bug is only that the pipeline never advances, so neither institution gets the derived agreement/commission rows.
 
-2. **Strip mock seeding from `src/institutions/repositories/index.ts`**
-   - Remove all mock imports, `USE_MOCK_DATA` branches, `seedFromTemplate`, and the rekey helper usage.
-   - Each repo (`agreementsRepo`, `commissionsRepo` + `rules`, `claimCyclesRepo`, `invoicesRepo`, `promotionsRepo`, `campaignsRepo`, `suggestionsRepo`) returns only live DB rows strictly filtered by `institution_id`.
-   - `sourcesMockRepo`, `studentsRepo`, `paymentsRepo` become empty-list stubs (or are removed and their call sites updated to return `[]`).
+**2. Confidence capped at 70%**
 
-3. **Update `src/institutions/config.ts`**
-   - Remove `USE_MOCK_DATA` (or set default `false` and leave unused) — whichever is least invasive given imports.
+- `upi-extract-programs-from-doc` line 107: every course is forced to `confidence_score ?? 70` even when the model returned higher.
+- Same file line 118: the uploaded document's `confidence_score` is hardcoded to `70`.
+- `upi-analyze-agreement` and the orchestrator never write a confidence to the document at all — so when an agreement upload succeeds in some other path, it stays at the row default.
 
-4. **Update `src/institutions/lib/scope.ts`**
-   - Keep `getInstitutionRecords` (still useful as a strict filter helper).
-   - Remove `pickMockTemplate` / `MOCK_TEMPLATE_IDS` / `rekeyToInstitution`.
+Course Review reads `confidence_score` per course, which is why no row ever exceeds 70.
 
-5. **Audit consumers of removed exports**
-   - `useMockSources`, `useStudents`, `usePayments` in `src/institutions/hooks/useInstitutionData.ts` → keep the hook signatures so panels compile, but they now always resolve to `[]`. Panels already render empty states for empty arrays.
+---
 
-6. **No DB writes**
-   - We don't touch any Supabase tables. If real DB rows are wrong, you'll handle them via a fresh prompt later. This change only stops the in-memory mock fallback.
+## Plan
 
-## Out of scope
+### A. Fix the agreement pipeline (server)
 
-- No UI redesign, no panel renames, no route changes.
-- No edits to anything outside `src/institutions/` except where a removed export is imported (none expected).
-- No DB migrations or row deletions.
+`supabase/functions/upi-document-orchestrator/index.ts`:
 
-## QA after apply
+- For `doc_kind === "agreement"`, before invoking the route:
+  1. Read the `upi_uploaded_documents` row (`file_name`, `file_path`, `mime_type`).
+  2. Insert an `upi_agreements` row scoped to `institution_id` with `title = file_name`, `file_path`, `agreement_type = "partner"` (default), `status = "active"`.
+  3. Invoke `upi-analyze-agreement` with `{ agreement_id, institution_id }` (the shape the function actually expects), not `{ document_id, ... }`.
+  4. After success, update the uploaded document with `linked_agreement_id` (in `metadata`), `confidence_score` from the analyzer result (default 95), and `pipeline_status = "extracted"`.
 
-- Every institution detail tab (Overview, Sources, Documents, Agreements, Commissions, Claims, Promotions, Campaigns, AI Suggestions) shows the panel's empty state for an institution that has no real DB rows.
-- Two different institutions never show the same record.
-- Admin-only gating on `/institutions*` remains intact.
+`supabase/functions/upi-analyze-agreement/index.ts`:
+
+- Return `{ ok, commission_id, agreement_id, confidence }` (confidence = 95 on success, 60 on partial/empty extraction).
+- Also write `extracted_data.confidence = <n>` so the agreement card and AI suggestions reflect a real value instead of the hardcoded `80`.
+
+### B. Fix confidence scoring (server)
+
+`supabase/functions/upi-extract-programs-from-doc/index.ts`:
+
+- Change line 107: keep AI-provided `confidence_score` when present; only fall back when missing, and use 95 (not 70). Clamp to [0, 100].
+- Change line 118: compute the document's `confidence_score` as the rounded average of the extracted courses' confidences (default 95 when no courses are returned). Stop hardcoding 70.
+
+`supabase/functions/upi-document-orchestrator/index.ts`:
+
+- After a successful sub-route call, also update `upi_uploaded_documents.confidence_score` to the value returned by the sub-route (fallback 95) so non-program docs also reflect a real confidence rather than the table default.
+
+### C. Verification
+
+- Re-upload an Agreement on a known institution. Expect:
+  - Documents tab: confidence shown as 95% (or the AI-computed value), pipeline `extracted`.
+  - Agreements tab: one new agreement card with title = file name.
+  - Commissions tab: one new "Proposed from ..." commission row.
+  - AI Suggestions tab: one new `commission_structure` suggestion.
+- Re-upload a Program sheet. Expect Course Review rows to show confidences as returned by the model (commonly 90–100), no longer pinned at 70.
+- No CRM pages outside the Institution module are touched; no DB migrations; mock-data architecture untouched.
+
+### Out of scope
+
+- Frontend redesign of the tabs.
+- Backfilling old `confidence_score = 70` rows (only future uploads will reflect the fix; we can add a backfill later if you want).
+- Auto-routing an uploaded file to a different institution than the page you're on — uploads remain scoped to the active institution URL.

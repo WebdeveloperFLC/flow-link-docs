@@ -104,7 +104,11 @@ Deno.serve(async (req) => {
     const args = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     const parsed = args ? JSON.parse(args) : { courses: [] };
     let courses: any[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
-    courses = courses.map((c) => ({ ...c, confidence_score: c.confidence_score ?? 70 }));
+    courses = courses.map((c) => {
+      const raw = Number(c.confidence_score);
+      const cs = Number.isFinite(raw) ? Math.max(0, Math.min(100, Math.round(raw))) : 95;
+      return { ...c, confidence_score: cs };
+    });
 
     let upserted = 0;
     if (courses.length > 0) {
@@ -114,11 +118,14 @@ Deno.serve(async (req) => {
       upserted = (upRes as any)?.upserted ?? 0;
     }
 
+    const docConfidence = courses.length
+      ? Math.round(courses.reduce((s, c) => s + Number(c.confidence_score ?? 0), 0) / courses.length)
+      : 95;
     await supabase.from("upi_uploaded_documents")
-      .update({ is_processed: true, confidence_score: 70, review_status: "approved" })
+      .update({ is_processed: true, confidence_score: docConfidence, review_status: "approved" })
       .eq("id", document_id);
 
-    return new Response(JSON.stringify({ ok: true, found: courses.length, upserted }), {
+    return new Response(JSON.stringify({ ok: true, found: courses.length, upserted, confidence: docConfidence }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
