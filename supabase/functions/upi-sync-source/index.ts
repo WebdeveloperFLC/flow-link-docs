@@ -189,6 +189,9 @@ Deno.serve(async (req) => {
       .update({ crawl_status: "running" })
       .eq("id", source.id);
 
+    // Run the heavy work in the background and return immediately so the
+    // client doesn't hit the 150s edge idle timeout.
+    const work = (async () => {
     await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader`);
 
     // Fetch via Jina Reader (free, no key required)
@@ -279,27 +282,35 @@ Deno.serve(async (req) => {
         await logMsg(supabase, job_id!, "info", `Discovered ${links.length} program links, fetching ${unique.length} detail pages`);
 
         const detailed: unknown[] = [];
-        for (const l of unique) {
-          try {
-            const dRes = await fetch(`https://r.jina.ai/${l.program_url}`, {
-              headers: { Accept: "text/markdown", "X-Return-Format": "markdown" },
-            });
-            if (!dRes.ok) continue;
-            let md = await dRes.text();
-            if (md.length > DETAIL_MAX_CHARS) md = md.slice(0, DETAIL_MAX_CHARS);
-            const parsed = await callAI(
-              `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${md}`,
-              COURSE_TOOL,
-            );
-            const items: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
-            for (const it of items) {
-              const o = it as Record<string, unknown>;
-              if (!o.program_url) o.program_url = l.program_url;
-              if (!o.course_title) o.course_title = l.course_title;
-              detailed.push(o);
-            }
-            pagesScanned++;
-          } catch (_) { /* skip bad page */ }
+        // Parallelize detail fetches in batches to stay fast & safe
+        const CONCURRENCY = 5;
+        for (let i = 0; i < unique.length; i += CONCURRENCY) {
+          const batch = unique.slice(i, i + CONCURRENCY);
+          const results = await Promise.all(batch.map(async (l) => {
+            try {
+              const dRes = await fetch(`https://r.jina.ai/${l.program_url}`, {
+                headers: { Accept: "text/markdown", "X-Return-Format": "markdown" },
+              });
+              if (!dRes.ok) return [];
+              let md = await dRes.text();
+              if (md.length > DETAIL_MAX_CHARS) md = md.slice(0, DETAIL_MAX_CHARS);
+              const parsed = await callAI(
+                `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${md}`,
+                COURSE_TOOL,
+              );
+              const items: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
+              return items.map((it) => {
+                const o = it as Record<string, unknown>;
+                if (!o.program_url) o.program_url = l.program_url;
+                if (!o.course_title) o.course_title = l.course_title;
+                return o;
+              });
+            } catch (_) { return []; }
+          }));
+          for (const arr of results) {
+            detailed.push(...arr);
+            if (arr.length) pagesScanned++;
+          }
         }
         if (detailed.length > 0) {
           courses = detailed;
@@ -367,10 +378,31 @@ Deno.serve(async (req) => {
       extracted_records_count: upserted,
       confidence_score: avgConfidence,
     }).eq("id", source.id);
+    })();
+
+    // @ts-ignore - EdgeRuntime is available in Supabase edge runtime
+    if (typeof EdgeRuntime !== "undefined" && (EdgeRuntime as any).waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(work.catch(async (e) => {
+        const message = e instanceof Error ? e.message : String(e);
+        if (job_id) {
+          await supabase.from("upi_sync_jobs").update({
+            status: "failed", error_summary: message, completed_at: new Date().toISOString(),
+          }).eq("id", job_id);
+          await logMsg(supabase, job_id, "error", message);
+        }
+        if (source_id_outer) {
+          await supabase.from("upi_institution_sources").update({ crawl_status: "failed" }).eq("id", source_id_outer);
+        }
+      }));
+    } else {
+      // Fallback: await (local/dev)
+      await work;
+    }
 
     return new Response(
-      JSON.stringify({ ok: true, job_id, extracted: courses.length, upserted, rejected }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ ok: true, job_id, status: "running", message: "Sync started in background. Poll job status for progress." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 202 },
     );
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
