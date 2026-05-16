@@ -1,71 +1,56 @@
-## Goal
-Stop the CRM `admin` role from automatically being a financial admin. Accounting and Commissions become their own walled gardens with their own admin roles, so an IT lead / supervisor / manager with CRM `admin` rights can run the rest of the CRM without ever seeing accounting books or commission payouts.
+## Root cause
 
-## New access model
+`upi-analyze-agreement` reads the uploaded PDF with `await file.text()`. For a real PDF (Centennial College agreement), this returns binary garbage, not text — so the AI receives essentially nothing and produces no extraction.
 
-Three independent admin "tracks":
+Secondary issue: even when text is available, the extraction schema only asks for **commission fields**. It never extracts agency details, institution details, signing authorities, addresses, governing law, claim deadlines, payment method, sub-agent rules, termination notice, signed dates, etc. So the Agreement card stays empty even on a clean run.
 
-| Track | Role(s) that grant full access | Scope |
-|---|---|---|
-| CRM admin | `user_roles.role = 'admin'` | Everything in the CRM **except** Accounting and Commissions |
-| Accounting admin | `accounting_users.role in ('SUPER_ADMIN','FINANCE_ADMIN')` | Entire `/accounting/*` module |
-| Commission admin | new `user_roles.role = 'commission_admin'` | Institutions → Commissions, Claims, Agreements, Invoicing |
+## Fix
 
-A person can hold any combination — a CRM admin who is *also* listed in `accounting_users` keeps accounting access; a CRM admin who is *also* `commission_admin` keeps commissions. Nothing is granted just by being a CRM admin.
+### 1. Send the PDF directly to Gemini (no text parsing)
 
-## What changes for the user
+Rewrite the AI call to use Gemini's multimodal input via Lovable AI Gateway. Download the file from storage, base64-encode it, and pass it as `inline_data` with `mime_type: application/pdf`. Gemini 2.5 Pro reads scanned and native PDFs natively — no `pdf-parse`/OCR plumbing needed.
 
-- `/accounting/*` routes: only accessible to a user whose auth id is in `accounting_users` with role `SUPER_ADMIN` or `FINANCE_ADMIN` (or other accounting roles they've been granted). A CRM admin with no accounting record sees a "No access" screen and the Accounting entry disappears from the sidebar.
-- Institutions → Commissions / Claims / Agreements / Invoicing tabs: only visible/usable for `commission_admin` (or someone with an explicit per-section grant via the matrix we just built). CRM admin alone no longer grants this.
-- `/users` Module-access matrix: `Accounting (entry)` and `Commissions & Claims` rows are removed for non-accounting/non-commission admins — those modules are no longer controlled by the CRM matrix, they're controlled by their own role tables.
-- The CRM admin badge keeps full power over: Clients, Documents, Tasks, Telephony, Institutions (non-commission tabs), Assessments, Reports, Letter templates, Settings, Users & roles, per-section permissions matrix.
+Fallback chain:
+- If `file_path` exists → download → base64 → send as inline PDF.
+- If download fails or file is missing → fall back to current title-only prompt so it never hard-crashes.
 
-## Database
+### 2. Expand the extraction schema
 
-Additive migration only — no existing roles or policies are dropped.
+Replace the commission-only tool schema with a full agreement schema that captures everything visible on the Agreement card and the dynamic field group. Tool name stays `submit_agreement_extraction`. Fields:
 
-1. Add `'commission_admin'` to the `app_role` enum.
-2. New helper functions:
-   - `public.is_accounting_user(_uid)` → true if a row in `accounting_users` with status `ACTIVE` and role in (`SUPER_ADMIN`,`FINANCE_ADMIN`,`ACCOUNTANT`,`AUDITOR`,`FINAL_AUDITOR`,`BRANCH_MANAGER`,`COMPLIANCE_OFFICER`,`VIEWER`) maps to this auth user. (Used purely as a route-gate; existing accounting RLS already enforces per-row rules.)
-   - `public.is_commission_admin(_uid)` → `has_role(_uid,'commission_admin')`.
-3. Update the helper added last turn:
-   - `public.user_has_module(_uid, _module, _level)` — drop the blanket `has_role(_uid,'admin')` short-circuit for the two scoped modules:
-     - For `_module = 'accounting'`: return `is_accounting_user(_uid)`.
-     - For `_module = 'commissions'`: return `is_commission_admin(_uid)` OR explicit grant in `user_module_permissions`.
-     - For every other module: behavior is unchanged (admin still full).
-4. Tighten RLS on commission-related tables (`upi_commissions`, `upi_commission_students`, `upi_claims`, `upi_agreements`, `upi_agreement_versions`, `upi_ai_suggestions`, `upi_extraction_results`, `upi_uploaded_documents`) — replace any existing `has_role(...,'admin')` checks with `is_commission_admin(...) OR is_accounting_admin(...)`. CRM `admin` alone no longer satisfies these.
+- **agency** (object): company, address, phone, email, website, signing_authority, signing_title, signing_email
+- **institution** (object): legal_name, address, agent_email, website, phone, signing_authority, signing_title, contact_office
+- **agreement** (object): title, agreement_type, valid_from, valid_to, status, signed_on, institution_signed_on, institution_signed_by, governing_law, claim_deadline_days, invoice_deadline_days, termination_notice_days, sub_agent_allowed, b2b_allowed, consent_form_required, payment_method, countries_allowed, ai_summary
+- **commission** (object): model_type, currency, description, rules[] (same shape as today)
 
-> Note: I'll read each table's existing policies first and rewrite them one-for-one; nothing else gets stricter.
+System prompt instructs the model to extract every detail it sees, leave unknown fields null, and always populate the agency block (fixed) and ai_summary.
 
-## Frontend
+### 3. Persist the extracted fields
 
-**New / edited utilities**
-- `src/contexts/AuthContext.tsx`
-  - Add `isCommissionAdmin`, `isAccountingMember` (true if user has a row in `accounting_users`).
-  - Update `canModule()` so `accounting` and `commissions` ignore the plain CRM admin flag and use the two new flags.
-- `src/lib/modulePermissions.ts`
-  - Remove `accounting` and `commissions` from the CRM matrix (those move to their own pages).
-  - `admin` no longer auto-fills those two — irrelevant now since they're gone from the matrix.
+After the AI call:
+- Merge `agency`, `institution`, `agreement`, `commission` into `extracted_data` JSON on `upi_agreements`.
+- Update `upi_agreements` row with `valid_from`, `valid_to`, `agreement_type`, `status` when present (so the card chips and countdown work).
+- Insert `upi_commissions` + `upi_commission_rules` only when `commission.rules` is non-empty (today's behavior).
+- Keep the `upi_ai_suggestions` row but use a richer description.
 
-**Route guards** (`src/App.tsx`)
-- Wrap every `/accounting/*` route in a new `<RequireAccountingMember>` element. CRM admin alone gets a "You don't have access to Accounting" empty state with a link back to the CRM dashboard.
-- Wrap the commissions / claims / agreements tabs inside Institutions with `<RequireCommissionAdmin>`. (Institutions itself stays open to CRM admin so they can still manage partner schools.)
+### 4. Confidence
 
-**UI cleanups**
-- `src/components/layout/AppLayout.tsx` (and any sidebar where Accounting / Commissions live) — show those nav entries only when the corresponding access flag is true.
-- `src/institutions/components/*` — hide the Commissions / Claims / Agreements tab triggers when `!isCommissionAdmin && !isAccountingMember`.
-- New page `src/pages/NoAccountingAccess.tsx` and `src/pages/NoCommissionAccess.tsx` for the gated empty states.
+Set confidence = 95 when at least the institution legal_name **and** one commission rule are extracted; 75 if only one is present; 60 otherwise.
 
-**Users & roles page**
-- `/users` Role dropdown gets a new option **Commission admin**.
-- Per-row helper text updated: "Admin = full CRM access (excludes Accounting & Commissions). Commission admin = full commission/claims access. Accounting access is managed in /accounting/settings/users."
-- The Module-access dialog no longer shows the two removed rows.
+## Files touched
+
+- `supabase/functions/upi-analyze-agreement/index.ts` — rewrite as above.
+
+No DB migration. No frontend changes — `AgreementsPanel` and `DynamicFieldGroup` already read from `extracted_data`, so once the function writes the full object the UI lights up automatically.
 
 ## Out of scope
-- No change to existing CRM admin powers outside Accounting and Commissions.
-- No change to per-client sharing rules.
-- No migration of historical data — just access gates and role definitions.
 
-## Risks / things to confirm during build
-- I'll read every commission-table RLS policy before rewriting it, so the existing accountant / counselor read paths remain intact.
-- If your team currently relies on CRM admins logging in to view commission reports, they'll need to either be added to `accounting_users` or given the new `commission_admin` role. I'll surface this in a one-line banner on the Users page after the migration runs.
+- No mock seed of "6 ready-made agreements" for the 6 institutions. The user can upload one PDF per institution and extraction will now populate every field from this list. If you'd like seeded mock agreements as well, say so and I'll add them in a follow-up.
+- No changes to commission engine or claims.
+
+## Verification
+
+1. Re-upload the Centennial agreement under that institution → Documents.
+2. Pipeline routes `agreement` → orchestrator → `upi-analyze-agreement` (already wired).
+3. Open Agreements tab → card should show valid_from/valid_to, governing law, claim deadline, termination notice, sub-agent, AI summary, and a commission proposal in AI Suggestions.
+4. Check `edge-function-logs-upi-analyze-agreement` for any errors.
