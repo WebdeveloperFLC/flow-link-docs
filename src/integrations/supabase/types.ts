@@ -5275,6 +5275,65 @@ export type Database = {
           },
         ]
       }
+      upi_claim_cycles: {
+        Row: {
+          claim_due_date: string | null
+          created_at: string
+          currency: string | null
+          id: string
+          institution_id: string
+          intake: string | null
+          invoice_due_date: string | null
+          metadata: Json | null
+          notes: string | null
+          period_label: string
+          status: string | null
+          total_expected: number | null
+          total_received: number | null
+          updated_at: string
+        }
+        Insert: {
+          claim_due_date?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          institution_id: string
+          intake?: string | null
+          invoice_due_date?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          period_label: string
+          status?: string | null
+          total_expected?: number | null
+          total_received?: number | null
+          updated_at?: string
+        }
+        Update: {
+          claim_due_date?: string | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          institution_id?: string
+          intake?: string | null
+          invoice_due_date?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          period_label?: string
+          status?: string | null
+          total_expected?: number | null
+          total_received?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_claim_cycles_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_commission_rules: {
         Row: {
           commission_id: string
@@ -5769,6 +5828,44 @@ export type Database = {
           },
         ]
       }
+      upi_document_pipeline_events: {
+        Row: {
+          created_at: string
+          document_id: string
+          edge_function: string | null
+          id: string
+          message: string | null
+          payload: Json | null
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          edge_function?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          state: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          edge_function?: string | null
+          id?: string
+          message?: string | null
+          payload?: Json | null
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_document_pipeline_events_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "upi_uploaded_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_eligibility_rules: {
         Row: {
           course_id: string
@@ -6078,6 +6175,69 @@ export type Database = {
           },
         ]
       }
+      upi_invoices: {
+        Row: {
+          amount: number | null
+          claim_cycle_id: string | null
+          created_at: string
+          currency: string | null
+          file_path: string | null
+          id: string
+          institution_id: string
+          invoice_no: string | null
+          metadata: Json | null
+          paid_at: string | null
+          sent_at: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          claim_cycle_id?: string | null
+          created_at?: string
+          currency?: string | null
+          file_path?: string | null
+          id?: string
+          institution_id: string
+          invoice_no?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          claim_cycle_id?: string | null
+          created_at?: string
+          currency?: string | null
+          file_path?: string | null
+          id?: string
+          institution_id?: string
+          invoice_no?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_invoices_claim_cycle_id_fkey"
+            columns: ["claim_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "upi_claim_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_language_requirements: {
         Row: {
           component_name: string | null
@@ -6270,6 +6430,50 @@ export type Database = {
             columns: ["institution_id"]
             isOneToOne: false
             referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_renewal_alerts: {
+        Row: {
+          agreement_id: string
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          fire_at: string
+          id: string
+          risk_flags: Json | null
+          status: string | null
+          threshold_days: number
+        }
+        Insert: {
+          agreement_id: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          fire_at: string
+          id?: string
+          risk_flags?: Json | null
+          status?: string | null
+          threshold_days: number
+        }
+        Update: {
+          agreement_id?: string
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          fire_at?: string
+          id?: string
+          risk_flags?: Json | null
+          status?: string | null
+          threshold_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_renewal_alerts_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "upi_agreements"
             referencedColumns: ["id"]
           },
         ]
@@ -6539,6 +6743,7 @@ export type Database = {
           confidence_score: number | null
           created_at: string | null
           detected_language: string | null
+          extracted_payload: Json | null
           file_name: string
           file_path: string
           file_size_bytes: number | null
@@ -6546,9 +6751,11 @@ export type Database = {
           id: string
           institution_id: string | null
           is_processed: boolean | null
+          linked_record_refs: Json | null
           metadata: Json | null
           mime_type: string | null
           page_count: number | null
+          pipeline_status: string | null
           processing_error: string | null
           raw_text: string | null
           review_notes: string | null
@@ -6563,6 +6770,7 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           detected_language?: string | null
+          extracted_payload?: Json | null
           file_name: string
           file_path: string
           file_size_bytes?: number | null
@@ -6570,9 +6778,11 @@ export type Database = {
           id?: string
           institution_id?: string | null
           is_processed?: boolean | null
+          linked_record_refs?: Json | null
           metadata?: Json | null
           mime_type?: string | null
           page_count?: number | null
+          pipeline_status?: string | null
           processing_error?: string | null
           raw_text?: string | null
           review_notes?: string | null
@@ -6587,6 +6797,7 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string | null
           detected_language?: string | null
+          extracted_payload?: Json | null
           file_name?: string
           file_path?: string
           file_size_bytes?: number | null
@@ -6594,9 +6805,11 @@ export type Database = {
           id?: string
           institution_id?: string | null
           is_processed?: boolean | null
+          linked_record_refs?: Json | null
           metadata?: Json | null
           mime_type?: string | null
           page_count?: number | null
+          pipeline_status?: string | null
           processing_error?: string | null
           raw_text?: string | null
           review_notes?: string | null
