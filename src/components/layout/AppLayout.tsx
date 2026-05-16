@@ -126,6 +126,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             </>
           )}
 
+          {isAdmin && <>
           <div className="border-t border-sidebar-border my-2" />
           <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
             Institutions
@@ -148,6 +149,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               {item.label}
             </NavLink>
           ))}
+          </>}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
