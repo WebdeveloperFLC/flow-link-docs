@@ -1,92 +1,71 @@
 ## Goal
-Add a per-section View / Edit / Delete permissions matrix to both the main Users page and the Accounting Users page. Admins (and Super Admins) always have full rights and the matrix is locked for them. Permissions are saved to the database and enforced via RLS-friendly helper functions, not only the UI.
+Stop the CRM `admin` role from automatically being a financial admin. Accounting and Commissions become their own walled gardens with their own admin roles, so an IT lead / supervisor / manager with CRM `admin` rights can run the rest of the CRM without ever seeing accounting books or commission payouts.
 
-## What the user will see
+## New access model
 
-**Main app `/users` page (existing CRM)**
-- Each user row gets a new "Permissions" button → opens a "Module access" drawer.
-- Drawer shows a matrix with sections down the left and 3 toggles per row: View, Edit, Delete.
-- Sections (CRM modules):
-  - Clients, Documents, Tasks, Telephony / Calls, Institutions, Commissions & Claims,
-    Assessments, Accounting (top-level entry), Reports & Analytics, Letter templates, Settings.
-- Admin → all rows shown checked + locked, with a banner "Admins have full access to every section."
-- "Save" persists; "Reset to role defaults" restores the role's default matrix.
+Three independent admin "tracks":
 
-**Accounting `/accounting/settings/users` page**
-- New "Module access" column on the grid + button per row opens an accounting-scoped matrix.
-- Sections (accounting sub-modules):
-  - Dashboard, Chart of Accounts, Journals, AP / Bills, AR / Invoices, Vendors, Clients link,
-    Bank accounts & Reconciliation, Petty cash, Approvals, Tax & Compliance, Documents / OCR,
-    Reports, Fraud, AI, Owners, Entities, Users & roles.
-- SUPER_ADMIN / FINANCE_ADMIN → locked-full like Admin above.
+| Track | Role(s) that grant full access | Scope |
+|---|---|---|
+| CRM admin | `user_roles.role = 'admin'` | Everything in the CRM **except** Accounting and Commissions |
+| Accounting admin | `accounting_users.role in ('SUPER_ADMIN','FINANCE_ADMIN')` | Entire `/accounting/*` module |
+| Commission admin | new `user_roles.role = 'commission_admin'` | Institutions → Commissions, Claims, Agreements, Invoicing |
 
-UI styling matches the existing card/section pattern from each module (PageHeader + Card grid on the CRM side, AccountingPageHeader + Card on the accounting side).
+A person can hold any combination — a CRM admin who is *also* listed in `accounting_users` keeps accounting access; a CRM admin who is *also* `commission_admin` keeps commissions. Nothing is granted just by being a CRM admin.
 
-## Data model
+## What changes for the user
 
-Two new tables — one per surface, so RLS can stay simple and per-row updates are cheap.
+- `/accounting/*` routes: only accessible to a user whose auth id is in `accounting_users` with role `SUPER_ADMIN` or `FINANCE_ADMIN` (or other accounting roles they've been granted). A CRM admin with no accounting record sees a "No access" screen and the Accounting entry disappears from the sidebar.
+- Institutions → Commissions / Claims / Agreements / Invoicing tabs: only visible/usable for `commission_admin` (or someone with an explicit per-section grant via the matrix we just built). CRM admin alone no longer grants this.
+- `/users` Module-access matrix: `Accounting (entry)` and `Commissions & Claims` rows are removed for non-accounting/non-commission admins — those modules are no longer controlled by the CRM matrix, they're controlled by their own role tables.
+- The CRM admin badge keeps full power over: Clients, Documents, Tasks, Telephony, Institutions (non-commission tabs), Assessments, Reports, Letter templates, Settings, Users & roles, per-section permissions matrix.
 
-```text
-public.user_module_permissions          -- main CRM
-  user_id  uuid  -> auth.users
-  module   text  -- e.g. 'clients', 'documents', 'accounting'…
-  can_view bool default false
-  can_edit bool default false
-  can_delete bool default false
-  updated_at timestamptz
-  PK (user_id, module)
+## Database
 
-public.accounting_user_module_permissions
-  accounting_user_id uuid -> accounting_users.id
-  module   text          -- e.g. 'coa','journals','ap'…
-  can_view / can_edit / can_delete bool
-  PK (accounting_user_id, module)
-```
+Additive migration only — no existing roles or policies are dropped.
 
-Helper SECURITY DEFINER functions used by RLS and the client:
-```text
-public.user_has_module(_uid uuid, _module text, _level text)  -- 'view'|'edit'|'delete'
-  returns true if has_role(_uid,'admin') OR matching row exists.
+1. Add `'commission_admin'` to the `app_role` enum.
+2. New helper functions:
+   - `public.is_accounting_user(_uid)` → true if a row in `accounting_users` with status `ACTIVE` and role in (`SUPER_ADMIN`,`FINANCE_ADMIN`,`ACCOUNTANT`,`AUDITOR`,`FINAL_AUDITOR`,`BRANCH_MANAGER`,`COMPLIANCE_OFFICER`,`VIEWER`) maps to this auth user. (Used purely as a route-gate; existing accounting RLS already enforces per-row rules.)
+   - `public.is_commission_admin(_uid)` → `has_role(_uid,'commission_admin')`.
+3. Update the helper added last turn:
+   - `public.user_has_module(_uid, _module, _level)` — drop the blanket `has_role(_uid,'admin')` short-circuit for the two scoped modules:
+     - For `_module = 'accounting'`: return `is_accounting_user(_uid)`.
+     - For `_module = 'commissions'`: return `is_commission_admin(_uid)` OR explicit grant in `user_module_permissions`.
+     - For every other module: behavior is unchanged (admin still full).
+4. Tighten RLS on commission-related tables (`upi_commissions`, `upi_commission_students`, `upi_claims`, `upi_agreements`, `upi_agreement_versions`, `upi_ai_suggestions`, `upi_extraction_results`, `upi_uploaded_documents`) — replace any existing `has_role(...,'admin')` checks with `is_commission_admin(...) OR is_accounting_admin(...)`. CRM `admin` alone no longer satisfies these.
 
-public.acct_user_has_module(_uid uuid, _module text, _level text)
-  returns true if user is SUPER_ADMIN/FINANCE_ADMIN OR matching row exists.
-```
+> Note: I'll read each table's existing policies first and rewrite them one-for-one; nothing else gets stricter.
 
-RLS:
-- Both new tables: admins can do everything; users can SELECT their own row.
-- `INSERT/UPDATE/DELETE` only by admins (CRM) or SUPER_ADMIN / FINANCE_ADMIN (accounting).
+## Frontend
 
-## DB enforcement (incremental, additive — no existing policy is removed)
+**New / edited utilities**
+- `src/contexts/AuthContext.tsx`
+  - Add `isCommissionAdmin`, `isAccountingMember` (true if user has a row in `accounting_users`).
+  - Update `canModule()` so `accounting` and `commissions` ignore the plain CRM admin flag and use the two new flags.
+- `src/lib/modulePermissions.ts`
+  - Remove `accounting` and `commissions` from the CRM matrix (those move to their own pages).
+  - `admin` no longer auto-fills those two — irrelevant now since they're gone from the matrix.
 
-Add module-level guard policies alongside existing ones for the highest-risk tables:
-- CRM side: `clients`, `client_documents`, `client_timeline` writes gated by `user_has_module(auth.uid(),'clients','edit'|'delete')` in addition to the current ownership/access logic.
-- Accounting side: `accounting_journals`, `accounting_bills`, `accounting_invoices`, `accounting_coa_accounts` writes gated by `acct_user_has_module(auth.uid(), <module>, 'edit'|'delete')`.
+**Route guards** (`src/App.tsx`)
+- Wrap every `/accounting/*` route in a new `<RequireAccountingMember>` element. CRM admin alone gets a "You don't have access to Accounting" empty state with a link back to the CRM dashboard.
+- Wrap the commissions / claims / agreements tabs inside Institutions with `<RequireCommissionAdmin>`. (Institutions itself stays open to CRM admin so they can still manage partner schools.)
 
-For sections without dedicated tables (e.g. "Reports"), enforcement is UI-only — that is documented next to those toggles.
+**UI cleanups**
+- `src/components/layout/AppLayout.tsx` (and any sidebar where Accounting / Commissions live) — show those nav entries only when the corresponding access flag is true.
+- `src/institutions/components/*` — hide the Commissions / Claims / Agreements tab triggers when `!isCommissionAdmin && !isAccountingMember`.
+- New page `src/pages/NoAccountingAccess.tsx` and `src/pages/NoCommissionAccess.tsx` for the gated empty states.
 
-If a section needs more policies later, they can be added without changing the matrix UI.
-
-## Code changes
-
-**New**
-- `src/lib/modulePermissions.ts` — module list, role defaults, `useMyModulePermissions()` + `useUserModulePermissions(userId)` hooks, `<RequireModule module level>` guard.
-- `src/components/users/UserPermissionsDialog.tsx` — matrix dialog for `/users`.
-- `src/accounting/lib/accountingModulePermissions.ts` — same pattern for accounting.
-- `src/accounting/components/settings/AccountingUserPermissionsDialog.tsx` — matrix dialog for accounting.
-
-**Edited**
-- `src/pages/Users.tsx` — add "Permissions" button per row, wire dialog.
-- `src/accounting/pages/settings/AccountingUsersPage.tsx` — add "Module access" action + column, wire dialog.
-- `src/contexts/AuthContext.tsx` — expose `modulePermissions` map and `canModule(module, level)` helper.
-- A small `<RequireModule>` wrapper applied around existing route elements in `src/App.tsx` for the gated CRM sections (admins always pass).
-
-**Migration**
-- Create both tables + helper functions + RLS + the additive policies described above.
+**Users & roles page**
+- `/users` Role dropdown gets a new option **Commission admin**.
+- Per-row helper text updated: "Admin = full CRM access (excludes Accounting & Commissions). Commission admin = full commission/claims access. Accounting access is managed in /accounting/settings/users."
+- The Module-access dialog no longer shows the two removed rows.
 
 ## Out of scope
-- No change to existing roles, route layout, or any unrelated UI.
-- No bulk-import of permissions; each user is edited individually (matches accounting's existing UX).
-- Reports/Analytics gating stays UI-only for now (no dedicated tables to guard).
+- No change to existing CRM admin powers outside Accounting and Commissions.
+- No change to per-client sharing rules.
+- No migration of historical data — just access gates and role definitions.
 
-## Open assumption
-Default matrix per existing role uses sensible mappings (e.g. `counselor` → view+edit on Clients/Documents/Tasks; `viewer` → view only across CRM; `telecaller` → view+edit on Telephony, view on Clients; `ACCOUNTANT` → view+edit on Journals/AP/AR/COA/Reconciliation, view on Reports). Admins are always full. I'll seed these defaults on first open of the dialog so existing users aren't suddenly locked out.
+## Risks / things to confirm during build
+- I'll read every commission-table RLS policy before rewriting it, so the existing accountant / counselor read paths remain intact.
+- If your team currently relies on CRM admins logging in to view commission reports, they'll need to either be added to `accounting_users` or given the new `commission_admin` role. I'll surface this in a one-line banner on the Users page after the migration runs.
