@@ -20,6 +20,8 @@ export interface ThemeConfig {
   buttonStyle: 'filled' | 'soft' | 'outlined';
   buttonRadius: 'none' | 'small' | 'medium' | 'large' | 'full';
   mode: 'light' | 'dark' | 'system';
+  cardStyle: 'solid' | 'glass' | 'flat';
+  navActiveStyle: 'pill' | 'border-left' | 'glow' | 'underline';
 }
 
 export const DEFAULT_THEME: ThemeConfig = {
@@ -44,6 +46,8 @@ export const DEFAULT_THEME: ThemeConfig = {
   buttonStyle: 'filled',
   buttonRadius: 'medium',
   mode: 'light',
+  cardStyle: 'solid',
+  navActiveStyle: 'pill',
 };
 
 export const THEME_PRESETS: { name: string; preview: string; config: ThemeConfig }[] = [
@@ -239,4 +243,14 @@ export function applyTheme(config: ThemeConfig): void {
   root.setAttribute('data-fl-sidebar-position', config.sidebarPosition);
   root.setAttribute('data-fl-sidebar-mode', config.sidebarMode);
   root.setAttribute('data-fl-button-style', config.buttonStyle);
+
+  // Card style (solid removes attribute so default card styles apply)
+  if (config.cardStyle === 'glass' || config.cardStyle === 'flat') {
+    document.body.setAttribute('data-card-style', config.cardStyle);
+  } else {
+    document.body.removeAttribute('data-card-style');
+  }
+
+  // Sidebar active item style
+  document.body.setAttribute('data-nav-style', config.navActiveStyle);
 }
