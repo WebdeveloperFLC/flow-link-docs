@@ -1,8 +1,8 @@
 import { createPersistedStore, genId } from "./_persist";
-import { MOCK_CUSTOMER_INVOICES } from "../data/mockAR";
+import { MOCK_INVOICES } from "../data/mockAR";
 import type { CustomerInvoice } from "../data/mockAR";
 
-const store = createPersistedStore<CustomerInvoice[]>("accounting:ar-invoices:v1", MOCK_CUSTOMER_INVOICES);
+const store = createPersistedStore<CustomerInvoice[]>("accounting:ar-invoices:v1", MOCK_INVOICES);
 
 export const useArInvoices = () => store.use();
 export const getArInvoices = () => store.get();
