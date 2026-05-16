@@ -7903,10 +7903,12 @@ export type Database = {
         Returns: Json
       }
       is_accounting_admin: { Args: { _uid: string }; Returns: boolean }
+      is_accounting_user: { Args: { _uid: string }; Returns: boolean }
       is_chat_channel_member: {
         Args: { _channel: string; _uid: string }
         Returns: boolean
       }
+      is_commission_admin: { Args: { _uid: string }; Returns: boolean }
       is_portal_user_for: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
