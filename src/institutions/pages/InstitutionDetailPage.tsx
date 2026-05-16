@@ -49,7 +49,7 @@ export default function InstitutionDetailPage() {
 
   const saveInst = async (patch: Partial<UpiInstitution>) => {
     if (!inst) return;
-    const { error } = await supabase.from("upi_institutions").update(patch).eq("id", inst.id);
+    const { error } = await supabase.from("upi_institutions").update(patch as any).eq("id", inst.id);
     if (error) toast.error(error.message); else { setInst({ ...inst, ...patch }); toast.success("Saved"); }
   };
 
