@@ -224,3 +224,9 @@ export const mockPromotions: MockPromotion[] = [
   { id: "promo-1", institution_id: "mock-inst-seneca", title: "Application fee waiver — May 2026 intake", promo_type: "seasonal", valid_from: "2026-01-01", valid_to: "2026-04-30", target_countries: ["India", "Nigeria"], is_active: true, auto_detected: true },
   { id: "promo-2", institution_id: "mock-inst-conestoga", title: "Free GIC partner offer", promo_type: "general", valid_from: "2026-01-01", valid_to: "2026-12-31", target_countries: ["India"], is_active: true, auto_detected: false },
 ];
+export const mockAgreementsExtended: MockAgreement[] = [...mockAgreements, ..._agreementsExtra];
+export const mockCommissionsExtended: MockCommission[] = [...mockCommissions, ..._commissionsExtra];
+export const mockCommissionRulesExtended: MockCommissionRule[] = [...mockCommissionRules, ..._commissionRulesExtra];
+export const mockClaimCyclesExtended: MockClaimCycle[] = [...mockClaimCycles, ..._claimCyclesExtra];
+export const mockInvoicesExtended: MockInvoice[] = [...mockInvoices, ..._invoicesExtra];
+export const mockPromotionsExtended: MockPromotion[] = [...mockPromotions, ..._promotionsExtra];
