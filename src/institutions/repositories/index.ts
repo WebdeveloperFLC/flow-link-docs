@@ -15,7 +15,7 @@ import {
  * and is never merged with real rows.
  */
 
-async function liveOrMock<T>(live: Promise<T[]>, mock: T[]): Promise<T[]> {
+async function liveOrMock<T>(live: PromiseLike<T[]>, mock: T[]): Promise<T[]> {
   const rows = await live;
   if (rows.length > 0) return rows;
   if (USE_MOCK_DATA) return mock;
