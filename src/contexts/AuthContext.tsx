@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller" | "client";
+export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller" | "client" | "commission_admin";
 
 interface AuthCtx {
   user: User | null;
@@ -16,6 +16,8 @@ interface AuthCtx {
   canCreateClient: boolean;
   isAdmin: boolean;
   isClient: boolean;
+  isCommissionAdmin: boolean;
+  isAccountingMember: boolean;
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -25,10 +27,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAccountingMember, setIsAccountingMember] = useState(false);
 
   const loadRoles = async (uid: string) => {
-    const { data } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    setRoles((data ?? []).map((r) => r.role as AppRole));
+    const [{ data: roleRows }, { data: acctRows }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+      supabase.from("accounting_users" as any).select("id,status").eq("auth_user_id", uid).eq("status", "ACTIVE").limit(1),
+    ]);
+    setRoles((roleRows ?? []).map((r: any) => r.role as AppRole));
+    setIsAccountingMember(!!acctRows && acctRows.length > 0);
   };
 
   useEffect(() => {
@@ -70,6 +77,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     canEdit: hasRole(["admin", "counselor", "documentation"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
     canCreateClient: !!user,
+    isCommissionAdmin: roles.includes("commission_admin") || isAccountingMember,
+    isAccountingMember,
   };
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
@@ -91,6 +100,8 @@ export const useAuth = () => {
       canCreateClient: false,
       isAdmin: false,
       isClient: false,
+      isCommissionAdmin: false,
+      isAccountingMember: false,
     } as AuthCtx;
   }
   return c;
