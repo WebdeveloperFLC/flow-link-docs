@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_user_module_permissions: {
+        Row: {
+          accounting_user_id: string
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          module: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          accounting_user_id: string
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          module: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          accounting_user_id?: string
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          module?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       accounting_users: {
         Row: {
           auth_user_id: string | null
@@ -7272,6 +7302,36 @@ export type Database = {
           },
         ]
       }
+      user_module_permissions: {
+        Row: {
+          can_delete: boolean
+          can_edit: boolean
+          can_view: boolean
+          module: string
+          updated_at: string
+          updated_by: string | null
+          user_id: string
+        }
+        Insert: {
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          module: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id: string
+        }
+        Update: {
+          can_delete?: boolean
+          can_edit?: boolean
+          can_view?: boolean
+          module?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -7691,6 +7751,10 @@ export type Database = {
       }
     }
     Functions: {
+      acct_user_has_module: {
+        Args: { _level: string; _module: string; _uid: string }
+        Returns: boolean
+      }
       assessment_lead_has_creator: {
         Args: { _lead_id: string; _uid: string }
         Returns: boolean
@@ -7883,6 +7947,10 @@ export type Database = {
       user_client_permission: {
         Args: { _cid: string; _uid: string }
         Returns: Database["public"]["Enums"]["client_permission"]
+      }
+      user_has_module: {
+        Args: { _level: string; _module: string; _uid: string }
+        Returns: boolean
       }
       user_telephony_agent_id: { Args: { _uid: string }; Returns: string }
     }
