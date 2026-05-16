@@ -10,13 +10,14 @@ export interface AccountingEntity {
   type: SettingsEntity["type"];
 }
 
-const FALLBACK: AccountingEntity[] = [
-  { id: "e1", name: "Future Link Canada HQ", country: "CA", currency: "CAD", type: "COMPANY" },
-  { id: "e2", name: "Future Link USA Corp", country: "US", currency: "USD", type: "COMPANY" },
-  { id: "e3", name: "Future Link India Pvt Ltd", country: "IN", currency: "INR", type: "COMPANY" },
-  { id: "e4", name: "India — Delhi Branch", country: "IN", currency: "INR", type: "BRANCH" },
-  { id: "e5", name: "Future Link Academy", country: "IN", currency: "INR", type: "BRAND" },
-];
+const PLACEHOLDER: AccountingEntity = {
+  id: "none",
+  name: "No entity",
+  country: "",
+  currency: "",
+  type: "COMPANY",
+};
+const FALLBACK: AccountingEntity[] = [PLACEHOLDER];
 
 function toAccountingEntity(e: SettingsEntity): AccountingEntity {
   return { id: e.id, name: e.name, country: e.country, currency: e.currency, type: e.type };
