@@ -1,67 +1,53 @@
-## Root causes
+## What's actually in the database
 
-**1. "Agreement uploaded but Agreements/Commissions tab stays empty"**
+I queried `upi_uploaded_documents` for that file name. There are **two completely separate rows**, one per institution:
 
-`upi-document-orchestrator` routes `doc_kind = "agreement"` to `upi-analyze-agreement` and passes `{ document_id, institution_id, doc_kind }`. But `upi-analyze-agreement` reads `{ agreement_id, institution_id }` and immediately throws *"agreement_id and institution_id required"*. So:
+| id (short) | institution | file_path | doc_kind | pipeline | conf | uploaded at |
+|---|---|---|---|---|---|---|
+| `aa1391f5…` | **Conestoga College** (`ebc42ff2…`) | `ebc42ff2…/…/Agent Contract RAA 2026 - … - signed.pdf` | `program_sheet` | extracted | 95 | 03:08 |
+| `617944ec…` | **Lethbridge Polytechnic** (`6f909159…`) | `6f909159…/…/Agent Contract RAA 2026 - … - signed.pdf` | `program_sheet` | extracted | 95 | 03:11 |
 
-- No row is ever inserted into `upi_agreements` from the upload flow.
-- No `upi_commissions` row is created.
-- The document just sits in the Documents tab with `pipeline_status: uploaded` (which matches what the screenshot shows).
+So:
 
-This is what's happening for the Lethbridge upload too — the file is there, but no agreement/commission record is produced, so both tabs are blank.
+1. There is **no cross-institution leak**. The same PDF was uploaded twice — once while the Conestoga detail page was open (03:08), then again 3 minutes later on Lethbridge (03:11). Each row has its own `institution_id` and its own storage path under that institution's folder. Repository scoping is working correctly.
+2. Both uploads were done with `Document type = "Program sheet"` (the dropdown default), so the orchestrator routed them to `upi-extract-programs-from-doc`, **not** `upi-analyze-agreement`. That's why:
+   - The Agreements and Commissions tabs in Lethbridge are still empty.
+   - The Review modal shows an empty `{}` payload — the program-sheet extractor returned zero courses for a contract PDF, so there is nothing to display.
+   - The screenshot still shows "uploaded · 70% confidence" because the modal was opened before the orchestrator finished and the local React state was stale.
 
-The "wrong institution" appearance on the Conestoga page is a separate symptom: `uploadDoc` correctly uses the institution from the URL (`useParams().id`), so the file you see in Conestoga's Documents tab is one that was uploaded while the Conestoga detail page was open. Data scoping is correct; the bug is only that the pipeline never advances, so neither institution gets the derived agreement/commission rows.
+## Fix plan (frontend only — no DB or edge changes)
 
-**2. Confidence capped at 70%**
+### A. Stop silent mis-routing of uploads
 
-- `upi-extract-programs-from-doc` line 107: every course is forced to `confidence_score ?? 70` even when the model returned higher.
-- Same file line 118: the uploaded document's `confidence_score` is hardcoded to `70`.
-- `upi-analyze-agreement` and the orchestrator never write a confidence to the document at all — so when an agreement upload succeeds in some other path, it stays at the row default.
+`src/institutions/pages/InstitutionDetailPage.tsx` (Documents tab):
 
-Course Review reads `confidence_score` per course, which is why no row ever exceeds 70.
+1. **Remove the silent default** for `docKind`. Initialize to `null` and require the user to pick a type before the file picker accepts a file. Disable the dropzone and show "Pick a document type first" until a kind is chosen.
+2. **Auto-suggest the kind from the file name** when a file is dropped (heuristic, user can still override):
+   - `/agreement|contract|raa|moa|mou/i` → `agreement`
+   - `/commission|payout|tariff/i` → `commission_sheet`
+   - `/program|course|brochure|prospect/i` → `program_sheet` / `brochure`
+   - `/invoice/i` → `invoice_template`
+   - `/renewal/i` → `renewal_document`
+   If a heuristic matches and it differs from the currently picked kind, show a one-line warning under the dropzone: *"Filename suggests `agreement` — switch?"* with a one-click switch button.
+3. **Show the active institution name above the upload zone** ("Uploading to: Lethbridge Polytechnic") so it is impossible to confuse which institution is receiving the file.
+4. **Refresh the docs list after the orchestrator returns** (`load()` is already called, but also re-fetch when the Review modal opens so the badge/confidence reflect the latest row).
 
----
+### B. Make the Review modal correct & actionable
 
-## Plan
+`src/institutions/components/AiReviewPanel.tsx`:
 
-### A. Fix the agreement pipeline (server)
+1. **Re-fetch the document by id** when the modal opens, instead of trusting the prop. This eliminates the "70% confidence / uploaded" stale-state issue the screenshot shows.
+2. **Add a "Document type" selector** in the modal header. When the user changes it and clicks **Reprocess**, send the new kind to `upi-document-orchestrator`. Today Reprocess re-uses the existing (wrong) kind, so a mis-typed upload can never be fixed without re-uploading.
+3. **When `extracted_payload` is empty `{}`**, render a friendly hint instead of just an empty JSON box: *"No fields extracted — likely wrong document type. Try changing the type above and Reprocess."*
 
-`supabase/functions/upi-document-orchestrator/index.ts`:
+### C. Clean up the existing two orphaned rows (manual, one-time)
 
-- For `doc_kind === "agreement"`, before invoking the route:
-  1. Read the `upi_uploaded_documents` row (`file_name`, `file_path`, `mime_type`).
-  2. Insert an `upi_agreements` row scoped to `institution_id` with `title = file_name`, `file_path`, `agreement_type = "partner"` (default), `status = "active"`.
-  3. Invoke `upi-analyze-agreement` with `{ agreement_id, institution_id }` (the shape the function actually expects), not `{ document_id, ... }`.
-  4. After success, update the uploaded document with `linked_agreement_id` (in `metadata`), `confidence_score` from the analyzer result (default 95), and `pipeline_status = "extracted"`.
-
-`supabase/functions/upi-analyze-agreement/index.ts`:
-
-- Return `{ ok, commission_id, agreement_id, confidence }` (confidence = 95 on success, 60 on partial/empty extraction).
-- Also write `extracted_data.confidence = <n>` so the agreement card and AI suggestions reflect a real value instead of the hardcoded `80`.
-
-### B. Fix confidence scoring (server)
-
-`supabase/functions/upi-extract-programs-from-doc/index.ts`:
-
-- Change line 107: keep AI-provided `confidence_score` when present; only fall back when missing, and use 95 (not 70). Clamp to [0, 100].
-- Change line 118: compute the document's `confidence_score` as the rounded average of the extracted courses' confidences (default 95 when no courses are returned). Stop hardcoding 70.
-
-`supabase/functions/upi-document-orchestrator/index.ts`:
-
-- After a successful sub-route call, also update `upi_uploaded_documents.confidence_score` to the value returned by the sub-route (fallback 95) so non-program docs also reflect a real confidence rather than the table default.
-
-### C. Verification
-
-- Re-upload an Agreement on a known institution. Expect:
-  - Documents tab: confidence shown as 95% (or the AI-computed value), pipeline `extracted`.
-  - Agreements tab: one new agreement card with title = file name.
-  - Commissions tab: one new "Proposed from ..." commission row.
-  - AI Suggestions tab: one new `commission_structure` suggestion.
-- Re-upload a Program sheet. Expect Course Review rows to show confidences as returned by the model (commonly 90–100), no longer pinned at 70.
-- No CRM pages outside the Institution module are touched; no DB migrations; mock-data architecture untouched.
+The two rows above were uploaded as `program_sheet` against a contract PDF, so they produced no agreements/commissions. Two options for you to choose from (I'll ask in chat after plan approval):
+- **Reclassify and reprocess**: change `metadata.doc_kind` to `agreement` on the Lethbridge row and re-run the orchestrator so the Agreements and Commissions tabs populate.
+- **Delete both** and re-upload once on Lethbridge with the correct type.
 
 ### Out of scope
-
-- Frontend redesign of the tabs.
-- Backfilling old `confidence_score = 70` rows (only future uploads will reflect the fix; we can add a backfill later if you want).
-- Auto-routing an uploaded file to a different institution than the page you're on — uploads remain scoped to the active institution URL.
+- No CRM pages outside the Institution module.
+- No DB migrations.
+- No edge function logic changes (the orchestrator fix from the previous turn stands).
+- No redesign of any tab.
