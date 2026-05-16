@@ -77,6 +77,25 @@ export default function CourseReviewPage() {
     load();
   };
 
+  const publish = async (ids: string[]) => {
+    if (!ids.length) return;
+    const t = toast.loading(`Publishing ${ids.length} to Course Finder…`);
+    const { data, error } = await supabase.functions.invoke("upi-publish-courses", { body: { staging_ids: ids } });
+    toast.dismiss(t);
+    if (error) return toast.error(`Publish failed: ${error.message}`);
+    const res = data as { published?: number; failed?: number; errors?: { error: string }[] };
+    if (res?.failed && res.failed > 0) {
+      toast.warning(`Published ${res.published ?? 0}, failed ${res.failed}`, {
+        description: res.errors?.[0]?.error,
+      });
+    } else {
+      toast.success(`Published ${res?.published ?? 0} to Course Finder`, {
+        action: { label: "View", onClick: () => window.open("/courses", "_blank") },
+      });
+    }
+    load();
+  };
+
   const toggle = (id: string) => {
     const s = new Set(selected);
     s.has(id) ? s.delete(id) : s.add(id);
@@ -129,7 +148,7 @@ export default function CourseReviewPage() {
               <Badge variant="secondary">{selected.size} selected</Badge>
               <Button size="sm" onClick={() => setStatus(selectedIds, "approved")}><Check className="size-4 mr-1" /> Bulk Approve</Button>
               <Button size="sm" variant="destructive" onClick={() => setStatus(selectedIds, "rejected")}><X className="size-4 mr-1" /> Bulk Reject</Button>
-              <Button size="sm" variant="outline" onClick={() => setStatus(selectedIds, "published")}><Upload className="size-4 mr-1" /> Bulk Publish</Button>
+              <Button size="sm" variant="outline" onClick={() => publish(selectedIds)}><Upload className="size-4 mr-1" /> Bulk Publish</Button>
             </div>
           )}
         </Card>
@@ -173,7 +192,7 @@ export default function CourseReviewPage() {
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "approved")}><Check className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "rejected")}><X className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setEditing(r)}><Pencil className="size-4" /></Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "published")}><Upload className="size-4" /></Button>
+                        <Button size="sm" variant="ghost" title="Publish to Course Finder" onClick={() => publish([r.id])}><Upload className="size-4" /></Button>
                       </div>
                     </td>
                   </tr>

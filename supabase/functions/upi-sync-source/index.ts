@@ -7,6 +7,35 @@ const corsHeaders = {
 };
 
 const MAX_CHARS = 80_000;
+const DETAIL_MAX_CHARS = 40_000;
+const MAX_DETAIL_FETCHES = 25;
+
+const LINK_TOOL = {
+  type: "function",
+  function: {
+    name: "extract_program_links",
+    description: "From a program-list page, return distinct academic program names and their detail page URLs. Ignore navigation, news, blog or generic info pages.",
+    parameters: {
+      type: "object",
+      properties: {
+        programs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              course_title: { type: "string" },
+              program_url: { type: "string" },
+            },
+            required: ["course_title", "program_url"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["programs"],
+      additionalProperties: false,
+    },
+  },
+};
 
 const COURSE_TOOL = {
   type: "function",
@@ -53,9 +82,25 @@ const COURSE_TOOL = {
               is_coop: { type: "boolean" },
               is_pr_pathway: { type: "boolean" },
               is_pgwp_eligible: { type: "boolean", description: "True if program is designated PGWP-eligible (Post-Graduation Work Permit, Canada)" },
+              stem_eligible: { type: "boolean" },
               is_online: { type: "boolean" },
               is_part_time: { type: "boolean" },
               program_url: { type: "string" },
+              apply_url: { type: "string", description: "Direct application/apply-now URL if different from program_url" },
+              field_of_study: {
+                type: "string",
+                description: "Closest match: Business & Management, IT & Computer Science, Engineering, Health & Medicine, Hospitality & Tourism, Arts & Humanities",
+              },
+              specialization: { type: "string" },
+              gpa_requirement: { type: "string" },
+              application_fee: { type: "number" },
+              has_scholarship: { type: "boolean" },
+              scholarship_detail: { type: "string" },
+              career_outcomes: { type: "string", description: "Short summary of job/career outcomes" },
+              pr_visa_notes: { type: "string", description: "Notes on PR or visa pathways relevant to this program" },
+              intake_year: { type: "number" },
+              campus_name: { type: "string" },
+              course_description: { type: "string", description: "Concise 1-2 sentence description" },
               confidence_score: {
                 type: "number",
                 description: "0-100 confidence that the extracted data is correct",
@@ -168,58 +213,103 @@ Deno.serve(async (req) => {
       await logMsg(supabase, job_id!, "warn", "Page content is very thin — likely JS-rendered. Consider Firecrawl for this source.");
     }
 
-    // Call Gemini Flash with tool calling for structured output
-    await logMsg(supabase, job_id!, "info", "Extracting courses with Gemini Flash");
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You extract academic course/program data from university web pages. Return strict structured output using the provided tool. Never invent fees or requirements — if a field is not present on the page, omit it.",
-          },
-          {
-            role: "user",
-            content: `Source URL: ${source.url}\nSource type: ${source.source_type}\n\n--- PAGE MARKDOWN ---\n${markdown}`,
-          },
-        ],
-        tools: [COURSE_TOOL],
-        tool_choice: { type: "function", function: { name: "extract_courses" } },
-      }),
-    });
+    const SYSTEM_PROMPT =
+      "You extract academic course/program data from university web pages. Return strict structured output using the provided tool. Never invent numeric fields (fees, IELTS, durations) — if not present on the page, omit them. Prefer the program's official detail page over directories. If a program runs at multiple campuses, emit one row per campus. For field_of_study, snap to the closest bucket: Business & Management, IT & Computer Science, Engineering, Health & Medicine, Hospitality & Tourism, Arts & Humanities.";
 
-    if (!aiRes.ok) {
-      const text = await aiRes.text();
-      if (aiRes.status === 402) {
-        await logMsg(supabase, job_id!, "error", "Lovable AI credits exhausted. Add credits in Settings > Workspace > Usage.");
-        throw new Error("AI credits exhausted");
+    async function callAI(userContent: string, tool: typeof COURSE_TOOL | typeof LINK_TOOL): Promise<any> {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userContent },
+          ],
+          tools: [tool],
+          tool_choice: { type: "function", function: { name: tool.function.name } },
+        }),
+      });
+      if (!r.ok) {
+        const text = await r.text();
+        if (r.status === 402) throw new Error("AI credits exhausted");
+        if (r.status === 429) throw new Error("Rate limited");
+        throw new Error(`AI error ${r.status}: ${text.slice(0, 300)}`);
       }
-      if (aiRes.status === 429) {
-        await logMsg(supabase, job_id!, "error", "AI gateway rate limit hit. Try again shortly.");
-        throw new Error("Rate limited");
-      }
-      await logMsg(supabase, job_id!, "error", `AI gateway error ${aiRes.status}`, { body: text.slice(0, 500) });
-      throw new Error(`AI error ${aiRes.status}`);
+      const j = await r.json();
+      const args = j?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+      if (!args) return null;
+      try { return JSON.parse(args); } catch { return null; }
     }
 
-    const aiJson = await aiRes.json();
-    const toolCall = aiJson?.choices?.[0]?.message?.tool_calls?.[0];
+    // Pass 1 — full extraction on the main URL
+    await logMsg(supabase, job_id!, "info", "Extracting courses (pass 1)");
     let courses: unknown[] = [];
-    if (toolCall?.function?.arguments) {
-      try {
-        const parsed = JSON.parse(toolCall.function.arguments);
-        courses = Array.isArray(parsed?.courses) ? parsed.courses : [];
-      } catch (e) {
-        await logMsg(supabase, job_id!, "error", "Failed to parse AI tool arguments", { error: String(e) });
+    try {
+      const parsed = await callAI(
+        `Source URL: ${source.url}\nSource type: ${source.source_type}\n\n--- PAGE MARKDOWN ---\n${markdown}`,
+        COURSE_TOOL,
+      );
+      courses = Array.isArray(parsed?.courses) ? parsed.courses : [];
+    } catch (e) {
+      await logMsg(supabase, job_id!, "error", String(e));
+      throw e;
+    }
+
+    // Detect thin "list page" extraction → do two-pass enrichment
+    const fieldsPerCourse = courses.length ? courses.reduce((acc: number, c) => {
+      const o = c as Record<string, unknown>;
+      let n = 0;
+      for (const k of ["tuition_fee", "ielts_overall", "intake_months", "duration_value", "is_pgwp_eligible", "course_description"]) {
+        if (o[k] != null && (!Array.isArray(o[k]) || (o[k] as unknown[]).length > 0)) n++;
       }
-    } else {
-      await logMsg(supabase, job_id!, "warn", "AI returned no tool call — no structured courses extracted");
+      return acc + n;
+    }, 0) / courses.length : 0;
+
+    let pagesScanned = 1;
+    if (courses.length > 40 && fieldsPerCourse < 1.5) {
+      await logMsg(supabase, job_id!, "info", `List page detected (${courses.length} thin rows, avg ${fieldsPerCourse.toFixed(1)} fields). Switching to two-pass detail crawl.`);
+      try {
+        const linkParsed = await callAI(
+          `This appears to be a program-list page. Return the program detail URLs only.\n\nSource URL: ${source.url}\n\n--- PAGE MARKDOWN ---\n${markdown}`,
+          LINK_TOOL,
+        );
+        const links: { course_title: string; program_url: string }[] = Array.isArray(linkParsed?.programs) ? linkParsed.programs : [];
+        const unique = Array.from(new Map(links.map((l) => [l.program_url, l])).values()).slice(0, MAX_DETAIL_FETCHES);
+        await logMsg(supabase, job_id!, "info", `Discovered ${links.length} program links, fetching ${unique.length} detail pages`);
+
+        const detailed: unknown[] = [];
+        for (const l of unique) {
+          try {
+            const dRes = await fetch(`https://r.jina.ai/${l.program_url}`, {
+              headers: { Accept: "text/markdown", "X-Return-Format": "markdown" },
+            });
+            if (!dRes.ok) continue;
+            let md = await dRes.text();
+            if (md.length > DETAIL_MAX_CHARS) md = md.slice(0, DETAIL_MAX_CHARS);
+            const parsed = await callAI(
+              `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${md}`,
+              COURSE_TOOL,
+            );
+            const items: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
+            for (const it of items) {
+              const o = it as Record<string, unknown>;
+              if (!o.program_url) o.program_url = l.program_url;
+              if (!o.course_title) o.course_title = l.course_title;
+              detailed.push(o);
+            }
+            pagesScanned++;
+          } catch (_) { /* skip bad page */ }
+        }
+        if (detailed.length > 0) {
+          courses = detailed;
+          await logMsg(supabase, job_id!, "info", `Two-pass yielded ${detailed.length} enriched courses from ${pagesScanned} pages`);
+        } else {
+          await logMsg(supabase, job_id!, "warn", "Two-pass returned 0 enriched courses; keeping pass-1 results");
+        }
+      } catch (e) {
+        await logMsg(supabase, job_id!, "warn", `Two-pass enrichment failed: ${String(e)}. Keeping pass-1 results.`);
+      }
     }
 
     await logMsg(supabase, job_id!, "info", `Extracted ${courses.length} candidate course(s)`);
@@ -264,16 +354,16 @@ Deno.serve(async (req) => {
     // Finalize job + source
     await supabase.from("upi_sync_jobs").update({
       status: rejected > 0 && upserted === 0 ? "failed" : (rejected > 0 ? "completed_with_errors" : "completed"),
-      pages_scanned: 1,
-      pages_discovered: 1,
+      pages_scanned: pagesScanned,
+      pages_discovered: pagesScanned,
       completed_at: new Date().toISOString(),
     }).eq("id", job_id!);
 
     await supabase.from("upi_institution_sources").update({
       crawl_status: "completed",
       last_synced_at: new Date().toISOString(),
-      pages_scanned: 1,
-      pages_found: 1,
+      pages_scanned: pagesScanned,
+      pages_found: pagesScanned,
       extracted_records_count: upserted,
       confidence_score: avgConfidence,
     }).eq("id", source.id);
