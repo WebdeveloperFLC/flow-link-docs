@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS uq_cf_courses_uni_name_level ON public.cf_courses (university_id, lower(name), study_level);
