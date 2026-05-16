@@ -23,6 +23,8 @@ import { OverviewPanel } from "../components/OverviewPanel";
 import { PromotionsPanel } from "../components/PromotionsPanel";
 import { CampaignsPanel } from "../components/CampaignsPanel";
 import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import { Lock } from "lucide-react";
 import { useMockSources } from "../hooks/useInstitutionData";
 
 export default function InstitutionDetailPage() {
