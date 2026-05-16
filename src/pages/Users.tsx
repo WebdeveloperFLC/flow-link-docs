@@ -23,10 +23,11 @@ import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog"
 interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
 
-const ALL_ROLES: AppRole[] = ["admin", "counselor", "documentation", "telecaller", "viewer"];
+const ALL_ROLES: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"];
 
 const ROLE_HELP: Record<AppRole, string> = {
   admin: "Full system access, settings and team role management",
+  commission_admin: "Full access to commissions, claims, agreements and invoicing",
   counselor: "Edit access: add clients, upload documents and fill client details",
   documentation: "Edit access: add clients, upload documents and fill client details",
   telecaller: "Lead calling and remarks; can hand leads to counselors",
@@ -36,6 +37,7 @@ const ROLE_HELP: Record<AppRole, string> = {
 
 const ROLE_SHORT: Record<AppRole, string> = {
   admin: "Full system access",
+  commission_admin: "Commission admin",
   counselor: "Edit access",
   documentation: "Edit access",
   telecaller: "Telecaller",
@@ -47,6 +49,7 @@ const roleOptionLabel = (role: AppRole) => {
   if (role === "counselor") return "Edit - Counselor";
   if (role === "documentation") return "Edit - Documentation";
   if (role === "telecaller") return "Telecaller";
+  if (role === "commission_admin") return "Commission admin";
   return ROLE_LABELS[role];
 };
 
