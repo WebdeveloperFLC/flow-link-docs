@@ -56,65 +56,84 @@ interface EntityInfo {
   email: string;
   phone: string;
   gst?: string;
+  pan?: string;
+  cin?: string;
+  bn?: string;
+  note?: string;
 }
 
 export function getEntityAddress(entity: string, branch: string): EntityInfo {
-  // India branch-level overrides — GST registration is state-wise in India,
-  // each branch has its own GSTIN and is legally required on the receipt.
-  if (entity === "Future Link India Pvt Ltd") {
-    const b = branch.toLowerCase();
-    if (b.includes("delhi")) {
-      return {
-        address: "M-11, Connaught Place, New Delhi 110001, India",
-        email: "accounts@futurelinkconsultants.in",
-        phone: "+91-11-4567-8900",
-        gst: "07AAFCF1234A1Z3",
-      };
-    }
-    if (b.includes("mumbai")) {
-      return {
-        address: "Unit 502, Bandra Kurla Complex, Mumbai 400051, Maharashtra, India",
-        email: "accounts@futurelinkconsultants.in",
-        phone: "+91-22-4567-8900",
-        gst: "27AAFCF1234A1Z1",
-      };
-    }
-    if (b.includes("bangalore")) {
-      return {
-        address: "4th Floor, UB City, Vittal Mallya Road, Bangalore 560001, Karnataka, India",
-        email: "accounts@futurelinkconsultants.in",
-        phone: "+91-80-4567-8900",
-        gst: "29AAFCF1234A1Z9",
-      };
-    }
-  }
-
+  // TODO: Add real GSTIN/PAN/CIN/BN/GST-HST values before going live.
   const addresses: Record<string, EntityInfo> = {
-    "Future Link Canada HQ": {
-      address: "123 Bay Street, Suite 400, Toronto, ON M5H 2R3, Canada",
-      email: "accounts@futurelinkconsultants.ca",
-      phone: "+1-416-555-0100",
-    },
-    "Future Link India Pvt Ltd": {
-      address: "Unit 502, Bandra Kurla Complex, Mumbai 400051, India",
-      email: "accounts@futurelinkconsultants.in",
-      phone: "+91-22-4567-8900",
-      gst: "27AAFCF1234A1Z1",
-    },
-    "Future Link USA Corp": {
-      address: "350 Fifth Avenue, Suite 2100, New York, NY 10118, USA",
+    // ── 3 INDIA COMPANIES ──
+    "Future Link Consultants Pvt Ltd": {
+      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
       email: "accounts@futurelinkconsultants.com",
-      phone: "+1-212-555-0200",
+      phone: "+91 265 XXX XXXX",
+      gst: "",
+      pan: "",
+      cin: "",
+      note: "All services — transitioning all entities here",
     },
-    "Future Link UAE": {
-      address: "Office 14B, Business Bay, Dubai, UAE",
-      email: "accounts@futurelinkconsultants.ae",
-      phone: "+971-4-555-0300",
+    "Future Link Visa Consultants Pvt Ltd": {
+      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
+      email: "accounts@futurelinkconsultants.com",
+      phone: "+91 265 XXX XXXX",
+      gst: "",
+      pan: "",
+      cin: "",
+      note: "Legacy entity — visa and immigration services",
+    },
+    "Future Link Academic Excellence Pvt Ltd": {
+      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
+      email: "accounts@futurelinkconsultants.com",
+      phone: "+91 265 XXX XXXX",
+      gst: "",
+      pan: "",
+      cin: "",
+      note: "Legacy entity — coaching services",
+    },
+    // ── 3 CANADA COMPANIES ──
+    "Future Link Consultants Inc": {
+      address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      email: "overseasrelations@futurelinkconsultants.com",
+      phone: "+1 416 902 4524",
+      gst: "",
+      bn: "",
+      note: "Main Canada operating company",
+    },
+    "Future Way Consultants Inc": {
+      address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      email: "overseasrelations@futurelinkconsultants.com",
+      phone: "+1 416 902 4524",
+      gst: "",
+      bn: "",
+      note: "Canada registered company",
+    },
+    "Ontario Inc 2709223": {
+      address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      email: "overseasrelations@futurelinkconsultants.com",
+      phone: "+1 416 902 4524",
+      bn: "",
+      note: "Ontario numbered company",
     },
   };
 
+  // Branch-level overrides (used when entity is not an exact match or for branch addresses on receipts).
+  const branchAddresses: Record<string, EntityInfo> = {
+    "Vadodara — Genda Circle": { address: "Genda Circle, Vadodara,\nGujarat 390023, India", email: "accounts@futurelinkconsultants.com", phone: "+91 265 XXX XXXX", gst: "" },
+    "Vadodara — Bhayli": { address: "Bhayli, Vadodara,\nGujarat 391410, India", email: "accounts@futurelinkconsultants.com", phone: "+91 265 XXX XXXX", gst: "" },
+    "Vadodara — Karelibaug": { address: "Karelibaug, Vadodara,\nGujarat 390018, India", email: "accounts@futurelinkconsultants.com", phone: "+91 265 XXX XXXX", gst: "" },
+    "Vadodara — Manjalpur": { address: "Manjalpur, Vadodara,\nGujarat 390011, India", email: "accounts@futurelinkconsultants.com", phone: "+91 265 XXX XXXX", gst: "" },
+    "Vadodara — Ajwa Road": { address: "Ajwa Road, Vadodara,\nGujarat 390019, India", email: "accounts@futurelinkconsultants.com", phone: "+91 265 XXX XXXX", gst: "" },
+    "Anand — Gujarat": { address: "Anand, Gujarat 388001, India", email: "accounts@futurelinkconsultants.com", phone: "+91 2692 XXX XXX", gst: "" },
+    "Toronto — Ontario": { address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada", email: "overseasrelations@futurelinkconsultants.com", phone: "+1 416 902 4524", gst: "" },
+    "Finksburg — Maryland": { address: "Finksburg, Maryland, USA", email: "accounts@futurelinkconsultants.com", phone: "", note: "Office only — no US legal entity. Payments via Canada or India." },
+  };
+
   return (
-    addresses[entity] ?? {
+    addresses[entity] ??
+    branchAddresses[branch] ?? {
       address: `${branch} Office — Future Link Consultants`,
       email: "accounts@futurelinkconsultants.com",
       phone: "Contact your branch",

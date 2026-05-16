@@ -105,10 +105,18 @@ const SEED: Record<MasterListKey, MasterItem[]> = {
     { code: "EXEMPT", label: "Exempt" },
   ],
   branches: [
-    { code: "TORONTO", label: "Toronto HQ" },
-    { code: "DELHI", label: "Delhi" },
-    { code: "MUMBAI", label: "Mumbai" },
-    { code: "DUBAI", label: "Dubai" },
+    // Vadodara branches
+    { code: "VAD-GENDA", label: "Vadodara — Genda Circle", system: true },
+    { code: "VAD-BHAYLI", label: "Vadodara — Bhayli", system: true },
+    { code: "VAD-KARELIBAUG", label: "Vadodara — Karelibaug", system: true },
+    { code: "VAD-MANJALPUR", label: "Vadodara — Manjalpur", system: true },
+    { code: "VAD-AJWA", label: "Vadodara — Ajwa Road", system: true },
+    // Other India
+    { code: "ANAND", label: "Anand — Gujarat", system: true },
+    // Canada
+    { code: "TORONTO", label: "Toronto — Ontario", system: true },
+    // USA
+    { code: "FINKSBURG", label: "Finksburg — Maryland", system: true },
   ],
   countries: [
     { code: "CA", label: "Canada" },
@@ -130,7 +138,7 @@ const SEED: Record<MasterListKey, MasterItem[]> = {
 };
 
 const store = createPersistedStore<Record<MasterListKey, MasterItem[]>>(
-  "accounting:masters:v3",
+  "accounting:masters:v4",
   SEED,
 );
 
