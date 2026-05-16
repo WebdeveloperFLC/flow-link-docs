@@ -2,6 +2,9 @@ export interface ThemeConfig {
   sidebarPosition: 'left' | 'right';
   sidebarCollapsed: boolean;
   sidebarWidth: 'compact' | 'normal' | 'wide';
+  sidebarMode: 'full' | 'icons-only' | 'hidden';
+  sidebarStyle: 'solid' | 'gradient';
+  sidebarGradient: string;
   contentDensity: 'compact' | 'comfortable' | 'spacious';
   primaryColor: string;
   primaryForeground: string;
@@ -23,6 +26,9 @@ export const DEFAULT_THEME: ThemeConfig = {
   sidebarPosition: 'left',
   sidebarCollapsed: false,
   sidebarWidth: 'normal',
+  sidebarMode: 'full',
+  sidebarStyle: 'solid',
+  sidebarGradient: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)',
   contentDensity: 'comfortable',
   primaryColor: '221 83% 53%',
   primaryForeground: '0 0% 100%',
@@ -51,7 +57,24 @@ export const THEME_PRESETS: { name: string; preview: string; config: ThemeConfig
   { name: 'Minimal Light', preview: '0 0% 20%', config: { ...DEFAULT_THEME, primaryColor: '0 0% 20%', sidebarColor: '0 0% 98%', sidebarTextColor: '0 0% 10%', borderRadius: 'small' } },
 ];
 
+export const SIDEBAR_GRADIENTS: { name: string; value: string }[] = [
+  { name: 'Navy → Black', value: 'linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%)' },
+  { name: 'Purple → Navy', value: 'linear-gradient(180deg, #2d1b69 0%, #0f172a 100%)' },
+  { name: 'Forest', value: 'linear-gradient(180deg, #1a4731 0%, #0f1f16 100%)' },
+  { name: 'Teal → Dark', value: 'linear-gradient(180deg, #0d4f4f 0%, #0a1f1f 100%)' },
+  { name: 'Charcoal', value: 'linear-gradient(180deg, #2d2d2d 0%, #111111 100%)' },
+  { name: 'Warm Dark', value: 'linear-gradient(180deg, #3d1f0f 0%, #1a0a00 100%)' },
+];
+
 const STORAGE_KEY = 'fl-theme-v1';
+const SAVED_THEMES_KEY = 'fl-saved-themes-v1';
+export const MAX_SAVED_THEMES = 5;
+
+export interface SavedTheme {
+  name: string;
+  config: ThemeConfig;
+  savedAt: string;
+}
 
 export function loadTheme(): ThemeConfig {
   try {
@@ -63,6 +86,67 @@ export function loadTheme(): ThemeConfig {
 
 export function saveTheme(config: ThemeConfig): void {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(config)); } catch {}
+}
+
+export function loadSavedThemes(): SavedTheme[] {
+  try {
+    const raw = localStorage.getItem(SAVED_THEMES_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return [];
+}
+
+export function persistSavedThemes(list: SavedTheme[]): void {
+  try { localStorage.setItem(SAVED_THEMES_KEY, JSON.stringify(list.slice(0, MAX_SAVED_THEMES))); } catch {}
+}
+
+// ---- Color conversion helpers --------------------------------------------
+
+export function hexToHsl(hex: string): string {
+  const m = hex.replace('#', '').trim();
+  if (!/^[0-9a-fA-F]{6}$/.test(m)) return '0 0% 0%';
+  const r = parseInt(m.substring(0, 2), 16) / 255;
+  const g = parseInt(m.substring(2, 4), 16) / 255;
+  const b = parseInt(m.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+      case g: h = ((b - r) / d + 2); break;
+      case b: h = ((r - g) / d + 4); break;
+    }
+    h /= 6;
+  }
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+export function hslToHex(hsl: string): string {
+  const parts = hsl.trim().split(/\s+/);
+  const h = (parseFloat(parts[0]) || 0) / 360;
+  const s = (parseFloat(parts[1]) || 0) / 100;
+  const l = (parseFloat(parts[2]) || 0) / 100;
+  let r: number, g: number, b: number;
+  if (s === 0) { r = g = b = l; }
+  else {
+    const hue2rgb = (p: number, q: number, t: number) => {
+      if (t < 0) t += 1; if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+  const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 const FONT_MAP: Record<ThemeConfig['fontFamily'], string> = {
@@ -108,6 +192,15 @@ export function applyTheme(config: ThemeConfig): void {
   root.style.setProperty('--fl-sidebar-bg', config.sidebarColor);
   root.style.setProperty('--fl-sidebar-text', config.sidebarTextColor);
 
+  // Sidebar background (solid or gradient)
+  if (config.sidebarStyle === 'gradient') {
+    root.style.setProperty('--fl-sidebar-gradient', config.sidebarGradient);
+    root.style.setProperty('--fl-sidebar-background', config.sidebarGradient);
+  } else {
+    root.style.setProperty('--fl-sidebar-gradient', 'none');
+    root.style.setProperty('--fl-sidebar-background', `hsl(${config.sidebarColor})`);
+  }
+
   const radiusMap = { none: '0px', small: '4px', medium: '8px', large: '12px', full: '9999px' } as const;
   root.style.setProperty('--radius', radiusMap[config.borderRadius]);
   root.style.setProperty('--fl-button-radius', radiusMap[config.buttonRadius]);
@@ -137,8 +230,13 @@ export function applyTheme(config: ThemeConfig): void {
   root.style.setProperty('--fl-spacing', densityMap[config.contentDensity]);
 
   const sidebarWidthMap = { compact: '14rem', normal: '16rem', wide: '18rem' } as const;
-  root.style.setProperty('--fl-sidebar-width', sidebarWidthMap[config.sidebarWidth]);
+  const effectiveWidth =
+    config.sidebarMode === 'icons-only' ? '3.5rem'
+    : config.sidebarMode === 'hidden' ? '0rem'
+    : sidebarWidthMap[config.sidebarWidth];
+  root.style.setProperty('--fl-sidebar-width', effectiveWidth);
 
   root.setAttribute('data-fl-sidebar-position', config.sidebarPosition);
+  root.setAttribute('data-fl-sidebar-mode', config.sidebarMode);
   root.setAttribute('data-fl-button-style', config.buttonStyle);
 }
