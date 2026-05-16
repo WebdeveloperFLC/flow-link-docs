@@ -1,14 +1,15 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
-import { Upload, ChevronRight, Check } from "lucide-react";
+import { Upload, ChevronRight, Check, FileText, Sparkles, Loader2, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -23,6 +24,12 @@ import type { CardStatementLine } from "@/accounting/types/cardReconciliation";
 import { buildLine, nextJournalNumber, asCurrency } from "@/accounting/lib/journalHelpers";
 import { formatCurrency } from "@/accounting/lib/format";
 import { genId } from "@/accounting/stores/_persist";
+import {
+  extractCardStatement,
+  mapToCardStatementLines,
+  autoSuggestCategory,
+  type ExtractionProgress,
+} from "@/accounting/lib/extractCardStatement";
 import { cn } from "@/lib/utils";
 
 const SAMPLE_CSV = "Date,Description,Amount,Reference\n2025-10-01,STAPLES OFFICE,45.99,REF001\n2025-10-03,UBER TRIP,22.50,REF002\n2025-10-05,NETFLIX,15.99,REF003\n";
@@ -78,6 +85,16 @@ export default function AccountingCardReconciliationNewPage() {
   // Step 2-3
   const [lines, setLines] = useState<CardStatementLine[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [aiLineIds, setAiLineIds] = useState<Set<string>>(new Set());
+  const [aiSummary, setAiSummary] = useState<{ total: number; matched: number } | null>(null);
+
+  // PDF extraction state
+  const [importTab, setImportTab] = useState<"pdf" | "csv">("pdf");
+  const [extracting, setExtracting] = useState(false);
+  const [progress, setProgress] = useState<ExtractionProgress | null>(null);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
@@ -104,10 +121,92 @@ export default function AccountingCardReconciliationNewPage() {
         category: "UNCATEGORISED",
         isPersonal: false,
       })));
+      setAiLineIds(new Set());
+      setAiSummary(null);
       toast.success(`Imported ${parsed.length} transactions`);
       setStep(2);
     };
     reader.readAsText(file);
+  }
+
+  async function handlePdfFile(file: File) {
+    if (file.size > 20 * 1024 * 1024) { toast.error("File too large (max 20MB)"); return; }
+    setPdfFileName(`${file.name} (${Math.round(file.size / 1024)} KB)`);
+    setExtractError(null);
+    setExtracting(true);
+    setProgress({ stage: "reading", message: "Reading PDF pages…" });
+
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    const last4 = (cardAcct?.name ?? "").match(/(\d{4})\s*$/)?.[1];
+
+    try {
+      const result = await extractCardStatement(
+        file,
+        { cardHolderName: cardHolder, cardLast4: last4, currency },
+        (p) => setProgress(p),
+        ctrl.signal,
+      );
+
+      if (!result.success || result.transactions.length === 0) {
+        setExtractError(
+          result.transactions.length === 0
+            ? "No transactions found. This can happen with scanned or image-only PDFs. Try the CSV upload instead."
+            : (result.errors?.[0] ?? "AI extraction failed.")
+        );
+        setImportTab("csv");
+        return;
+      }
+
+      // Auto-fill meta
+      if (result.meta.statementFrom && !fromDate) setFromDate(result.meta.statementFrom);
+      if (result.meta.statementTo && !toDate) setToDate(result.meta.statementTo);
+      if (typeof result.meta.openingBalance === "number") setOpening(String(result.meta.openingBalance));
+      if (typeof result.meta.closingBalance === "number") setClosing(String(result.meta.closingBalance));
+      if (result.meta.currency && result.meta.currency !== currency) setCurrency(result.meta.currency);
+
+      // Map + auto-suggest
+      const mapped = mapToCardStatementLines(result.transactions, currency);
+      const aiIds = new Set<string>();
+      let matched = 0;
+      const enriched = mapped.map((l) => {
+        const hint = autoSuggestCategory(l.description);
+        if (hint) {
+          matched++;
+          aiIds.add(l.id);
+          const acct = expAccts.find((a) => a.code === hint.coaAccountCode);
+          return {
+            ...l,
+            expenseCategory: hint.expenseCategory,
+            coaAccountId: acct?.id,
+            coaAccountName: acct?.name,
+          };
+        }
+        return l;
+      });
+
+      setLines(enriched);
+      setAiLineIds(aiIds);
+      setAiSummary({ total: enriched.length, matched });
+      toast.success(`Extracted ${enriched.length} transactions from ${result.pageCount} page(s)`);
+      setStep(2);
+    } catch (e) {
+      if ((e as Error).message === "aborted" || (e as Error).name === "AbortError") {
+        toast.info("Extraction cancelled");
+      } else {
+        setExtractError(e instanceof Error ? e.message : "AI extraction failed.");
+        setImportTab("csv");
+      }
+    } finally {
+      setExtracting(false);
+      setProgress(null);
+      abortRef.current = null;
+    }
+  }
+
+  function cancelExtraction() {
+    abortRef.current?.abort();
   }
 
   function downloadSample() {
@@ -257,22 +356,76 @@ export default function AccountingCardReconciliationNewPage() {
         {step === 1 && (
           <Card className="p-6 space-y-4">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Import statement</h2>
-            <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
-              <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
-              <div className="text-sm font-medium">Drop your credit card statement CSV here</div>
-              <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only</div>
-              <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-            </label>
-            <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most banks include columns for Date, Description, and Amount.</p>
-            <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template</Button>
+
+            <Tabs value={importTab} onValueChange={(v) => setImportTab(v as "pdf" | "csv")}>
+              <TabsList className="grid grid-cols-2 w-full md:w-auto">
+                <TabsTrigger value="pdf" className="gap-2"><Sparkles className="size-3.5" /> PDF statement (AI)</TabsTrigger>
+                <TabsTrigger value="csv" className="gap-2"><Upload className="size-3.5" /> CSV file</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="pdf" className="mt-4 space-y-3">
+                {extracting ? (
+                  <div className="border-2 border-dashed rounded-lg p-8 text-center space-y-4 bg-muted/20">
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="size-5 animate-spin text-primary" />
+                      <div className="font-medium">AI is reading your statement</div>
+                    </div>
+                    {pdfFileName && <div className="text-xs text-muted-foreground">{pdfFileName}</div>}
+                    <div className="max-w-sm mx-auto text-left space-y-1 text-xs">
+                      <ProgressLine label="Reading PDF pages" active={progress?.stage === "reading"} done={progress ? ["converting","extracting","organising","done"].includes(progress.stage) : false} />
+                      <ProgressLine label="Converting pages" active={progress?.stage === "converting"} done={progress ? ["extracting","organising","done"].includes(progress.stage) : false} />
+                      <ProgressLine label={progress?.stage === "extracting" ? progress.message : "Extracting transactions"} active={progress?.stage === "extracting"} done={progress ? ["organising","done"].includes(progress.stage) : false} />
+                      <ProgressLine label="Organising data" active={progress?.stage === "organising"} done={progress?.stage === "done"} />
+                    </div>
+                    <div className="text-xs text-muted-foreground">This usually takes 10–30 seconds depending on statement length.</div>
+                    <Button variant="ghost" size="sm" onClick={cancelExtraction} className="gap-1"><X className="size-3.5" /> Cancel</Button>
+                  </div>
+                ) : (
+                  <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer transition-colors">
+                    <FileText className="size-8 mx-auto mb-3 text-primary" />
+                    <div className="text-sm font-medium">Drop your PDF credit card statement here</div>
+                    <div className="text-xs text-muted-foreground mt-1">or click to browse · Max 20MB · PDF only</div>
+                    <div className="text-[11px] text-muted-foreground mt-2 inline-flex items-center gap-1"><Sparkles className="size-3" /> AI will extract all transactions automatically</div>
+                    <input type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePdfFile(f); }} />
+                  </label>
+                )}
+                {extractError && (
+                  <div className="rounded-md border border-destructive/40 bg-destructive/5 text-destructive text-xs p-3">
+                    {extractError}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">Works best with text-based PDF statements from Amex, Visa, Mastercard etc. Scanned images may extract less reliably.</p>
+              </TabsContent>
+
+              <TabsContent value="csv" className="mt-4 space-y-3">
+                <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
+                  <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
+                  <div className="text-sm font-medium">Drop your credit card statement CSV here</div>
+                  <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only</div>
+                  <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                </label>
+                <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most banks include columns for Date, Description, and Amount.</p>
+                <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template</Button>
+              </TabsContent>
+            </Tabs>
+
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep(0)}>Back</Button>
+              <Button variant="outline" onClick={() => setStep(0)} disabled={extracting}>Back</Button>
             </div>
           </Card>
         )}
 
         {step === 2 && (
           <Card className="p-6 space-y-4">
+            {aiSummary && (
+              <div className="rounded-md border border-primary/30 bg-primary/5 text-xs p-3 flex items-start gap-2">
+                <Sparkles className="size-4 text-primary mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-medium">{aiSummary.total} transactions extracted by AI.</span>{" "}
+                  {aiSummary.matched} auto-categorised based on merchant names. Review and adjust Business/Personal for each line.
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="text-sm">
                 Total: <strong>{lines.length}</strong> · ✓ Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong> · Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong> · ⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
