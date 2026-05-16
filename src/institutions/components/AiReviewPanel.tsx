@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface Props {
@@ -14,21 +15,40 @@ interface Props {
   onChanged: () => void;
 }
 
-export function AiReviewPanel({ open, onOpenChange, document: doc, institutionId, onChanged }: Props) {
+const DOC_KINDS = [
+  "program_sheet", "agreement", "commission_sheet", "brochure",
+  "promotion_campaign", "invoice_template", "renewal_document", "other",
+] as const;
+
+export function AiReviewPanel({ open, onOpenChange, document: docProp, institutionId, onChanged }: Props) {
+  const [doc, setDoc] = useState<any | null>(docProp);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [editedPayload, setEditedPayload] = useState<string>("");
+  const [docKind, setDocKind] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!doc) return;
-    setEditedPayload(JSON.stringify(doc.extracted_payload ?? {}, null, 2));
-    if (doc.file_path) {
-      supabase.storage
-        .from("institution-documents")
-        .createSignedUrl(doc.file_path, 600)
-        .then(({ data }) => setPreviewUrl(data?.signedUrl ?? ""));
-    }
-  }, [doc]);
+    if (!docProp) { setDoc(null); return; }
+    setDoc(docProp);
+    // Re-fetch the latest row so confidence / pipeline_status reflect the post-orchestrator state
+    supabase
+      .from("upi_uploaded_documents")
+      .select("*")
+      .eq("id", docProp.id)
+      .single()
+      .then(({ data }) => {
+        const fresh = data ?? docProp;
+        setDoc(fresh);
+        setEditedPayload(JSON.stringify(fresh.extracted_payload ?? {}, null, 2));
+        setDocKind(fresh.metadata?.doc_kind ?? "");
+        if (fresh.file_path) {
+          supabase.storage
+            .from("institution-documents")
+            .createSignedUrl(fresh.file_path, 600)
+            .then(({ data: sig }) => setPreviewUrl(sig?.signedUrl ?? ""));
+        }
+      });
+  }, [docProp]);
 
   if (!doc) return null;
 
@@ -58,7 +78,14 @@ export function AiReviewPanel({ open, onOpenChange, document: doc, institutionId
 
   const reprocess = async () => {
     setBusy(true);
-    const kind = doc.metadata?.doc_kind ?? "brochure";
+    const kind = docKind || doc.metadata?.doc_kind || "brochure";
+    // Persist the (possibly changed) doc_kind so downstream routing is correct on next runs too
+    if (kind !== doc.metadata?.doc_kind) {
+      await supabase
+        .from("upi_uploaded_documents")
+        .update({ metadata: { ...(doc.metadata ?? {}), doc_kind: kind } })
+        .eq("id", doc.id);
+    }
     const { error } = await supabase.functions.invoke("upi-document-orchestrator", {
       body: { document_id: doc.id, institution_id: institutionId, doc_kind: kind },
     });
@@ -66,6 +93,11 @@ export function AiReviewPanel({ open, onOpenChange, document: doc, institutionId
     if (error) toast.error(error.message);
     else { toast.success("Reprocessing started"); onChanged(); }
   };
+
+  const payloadIsEmpty = (() => {
+    try { const p = JSON.parse(editedPayload); return !p || (typeof p === "object" && Object.keys(p).length === 0); }
+    catch { return false; }
+  })();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -77,6 +109,16 @@ export function AiReviewPanel({ open, onOpenChange, document: doc, institutionId
             <Badge>{doc.confidence_score ?? 0}% confidence</Badge>
           </DialogTitle>
         </DialogHeader>
+        <div className="flex items-center gap-2 -mt-2 mb-2">
+          <label className="text-xs text-muted-foreground">Document type</label>
+          <Select value={docKind} onValueChange={setDocKind}>
+            <SelectTrigger className="h-8 w-64"><SelectValue placeholder="Pick a document type…" /></SelectTrigger>
+            <SelectContent>
+              {DOC_KINDS.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <span className="text-xs text-muted-foreground">Change and click Reprocess to re-route this file.</span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh]">
           <div className="border rounded overflow-hidden bg-muted/30 min-h-[50vh]">
             {previewUrl ? (
@@ -89,6 +131,11 @@ export function AiReviewPanel({ open, onOpenChange, document: doc, institutionId
             <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Extracted fields (editable JSON)
             </div>
+            {payloadIsEmpty && (
+              <div className="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
+                No fields extracted. The file was likely processed as the wrong document type — change the type above and click <span className="font-semibold">Reprocess</span>.
+              </div>
+            )}
             <Textarea
               value={editedPayload}
               onChange={(e) => setEditedPayload(e.target.value)}
