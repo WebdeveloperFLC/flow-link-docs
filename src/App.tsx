@@ -90,6 +90,8 @@ import AccountingPLPage from "./accounting/pages/reports/AccountingPLPage";
 import AccountingBSPage from "./accounting/pages/reports/AccountingBSPage";
 import AccountingCashFlowPage from "./accounting/pages/reports/AccountingCashFlowPage";
 import AccountingConsolidatedPage from "./accounting/pages/reports/AccountingConsolidatedPage";
+import AccountingTrialBalancePage from "./accounting/pages/reports/AccountingTrialBalancePage";
+import AccountingGeneralLedgerPage from "./accounting/pages/reports/AccountingGeneralLedgerPage";
 import AccountingTaxDashboardPage from "./accounting/pages/tax/AccountingTaxDashboardPage";
 import AccountingTaxCalendarPage from "./accounting/pages/tax/AccountingTaxCalendarPage";
 import AccountingNoticesPage from "./accounting/pages/tax/AccountingNoticesPage";
@@ -200,6 +202,9 @@ const App = () => (
             <Route path="/accounting/reports/bs" element={<AccountingProtectedRoute><AccountingBSPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/reports/cashflow" element={<AccountingProtectedRoute><AccountingCashFlowPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/reports/consolidated" element={<AccountingProtectedRoute><AccountingConsolidatedPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/trial-balance" element={<AccountingProtectedRoute><AccountingTrialBalancePage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/general-ledger" element={<AccountingProtectedRoute><AccountingGeneralLedgerPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reports/general-ledger/:accountId" element={<AccountingProtectedRoute><AccountingGeneralLedgerPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/tax" element={<AccountingProtectedRoute><AccountingTaxDashboardPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/tax/calendar" element={<AccountingProtectedRoute><AccountingTaxCalendarPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/tax/notices" element={<AccountingProtectedRoute><AccountingNoticesPage /></AccountingProtectedRoute>} />

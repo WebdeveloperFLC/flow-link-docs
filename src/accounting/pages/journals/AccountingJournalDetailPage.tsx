@@ -172,7 +172,12 @@ export default function AccountingJournalDetailPage() {
                     <td className="text-center text-muted-foreground text-xs py-2">{i + 1}</td>
                     <td className="px-2 py-2">
                       <span className="font-mono text-xs text-muted-foreground mr-2">{l.accountCode}</span>
-                      <span className={cn('font-medium', ACCOUNT_COLOR[l.accountType])}>{l.accountName}</span>
+                      <Link
+                        to={`/accounting/reports/general-ledger/${l.accountId}`}
+                        className={cn('font-medium hover:underline', ACCOUNT_COLOR[l.accountType])}
+                      >
+                        {l.accountName}
+                      </Link>
                     </td>
                     <td className="px-2 py-2 text-muted-foreground">{entry.entity}</td>
                     <td className="px-2 py-2 text-muted-foreground">{l.taxCode || '—'}</td>
