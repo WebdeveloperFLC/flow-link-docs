@@ -267,6 +267,26 @@ export default function AccountingIntercompanyNewPage() {
 
         <Card className="p-6 mb-4 space-y-4">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Account mapping</h2>
+          {fromEntity && toEntity && fromEntity !== toEntity && (
+            <div className="rounded-lg border border-dashed bg-muted/30 p-3 text-xs space-y-2">
+              <div className="font-semibold text-foreground">Suggested COA accounts for this pair</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono">
+                <div>
+                  <div className="text-muted-foreground uppercase tracking-wider mb-1">FROM — {fromName}</div>
+                  <div>Debit: <span className="text-foreground">Due from {toName}</span> <span className="text-muted-foreground">(Asset ~18xx)</span></div>
+                  <div>Credit: <span className="text-foreground">Revenue / Management fee</span> <span className="text-muted-foreground">(4xxx)</span></div>
+                </div>
+                <div>
+                  <div className="text-muted-foreground uppercase tracking-wider mb-1">TO — {toName}</div>
+                  <div>Debit: <span className="text-foreground">Expense account</span> <span className="text-muted-foreground">(5xxx or 6xxx)</span></div>
+                  <div>Credit: <span className="text-foreground">Due to {fromName}</span> <span className="text-muted-foreground">(Liability ~26xx)</span></div>
+                </div>
+              </div>
+              <p className="text-muted-foreground">
+                Create these accounts in COA before posting if they don't exist yet. Template seeds (1800–1805, 2600–2605, 4700–4702, 6700–6702) are included.
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card className="p-4 space-y-3 bg-muted/20">
               <div className="text-sm font-semibold">{fromName} will post:</div>
