@@ -18,7 +18,8 @@ import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import AccountingTableSkeleton from "../../components/shared/AccountingTableSkeleton";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import { fmtMoney } from "../../components/ap-ar/money";
-import { MOCK_BILLS, EXPENSE_CATEGORY_LABELS, type VendorBill, type BillStatus } from "../../data/mockAP";
+import { EXPENSE_CATEGORY_LABELS, type VendorBill, type BillStatus } from "../../data/mockAP";
+import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +36,7 @@ function daysFromToday(dateStr: string): number {
 
 export default function AccountingAPPage() {
   const navigate = useNavigate();
-  const [bills, setBills] = useState<VendorBill[]>(MOCK_BILLS);
+  const bills = useApBills();
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t); }, []);
 
@@ -52,6 +53,7 @@ export default function AccountingAPPage() {
 
   const [payDialog, setPayDialog] = useState<VendorBill | null>(null);
   const [voidDialog, setVoidDialog] = useState<VendorBill | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<VendorBill | null>(null);
 
   const entities = useMemo(() => Array.from(new Set(bills.map((b) => b.entity))), [bills]);
   const branches = useMemo(() => Array.from(new Set(bills.map((b) => b.branch))), [bills]);
@@ -96,12 +98,8 @@ export default function AccountingAPPage() {
     overdue: bills.filter((b) => b.status === "OVERDUE").length,
   };
 
-  function updateBill(id: string, patch: Partial<VendorBill>) {
-    setBills((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)));
-  }
-
   function approveBill(b: VendorBill) {
-    updateBill(b.id, { status: "APPROVED", approvedBy: "Current user" });
+    updateApBill(b.id, { status: "APPROVED", approvedBy: "Current user" });
     toast.success("Bill approved");
   }
 
@@ -249,6 +247,8 @@ export default function AccountingAPPage() {
                               <DropdownMenuItem className="text-destructive" onClick={() => setVoidDialog(b)}>Void</DropdownMenuItem>
                             </>
                           )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteDialog(b)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -270,7 +270,7 @@ export default function AccountingAPPage() {
         <AgingAnalysis bills={bills} />
 
         {payDialog && <RecordPaymentDialog bill={payDialog} onClose={() => setPayDialog(null)}
-          onConfirm={(patch) => { updateBill(payDialog.id, { status: "PAID", ...patch }); toast.success(`${payDialog.billNumber} marked as paid`); setPayDialog(null); }} />}
+          onConfirm={(patch) => { updateApBill(payDialog.id, { status: "PAID", ...patch }); toast.success(`${payDialog.billNumber} marked as paid`); setPayDialog(null); }} />}
 
         <AlertDialog open={!!voidDialog} onOpenChange={(o) => !o && setVoidDialog(null)}>
           <AlertDialogContent>
@@ -280,7 +280,20 @@ export default function AccountingAPPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { if (voidDialog) { updateBill(voidDialog.id, { status: "VOID" }); toast.success("Bill voided"); setVoidDialog(null); } }}>Void bill</AlertDialogAction>
+              <AlertDialogAction onClick={() => { if (voidDialog) { updateApBill(voidDialog.id, { status: "VOID" }); toast.success("Bill voided"); setVoidDialog(null); } }}>Void bill</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={!!deleteDialog} onOpenChange={(o) => !o && setDeleteDialog(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this bill?</AlertDialogTitle>
+              <AlertDialogDescription>{deleteDialog && `${deleteDialog.billNumber} — ${deleteDialog.vendor}. This permanently removes the record.`}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => { if (deleteDialog) { deleteApBill(deleteDialog.id); toast.success("Bill deleted"); setDeleteDialog(null); } }}>Delete</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
