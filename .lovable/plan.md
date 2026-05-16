@@ -1,53 +1,108 @@
-## What's actually in the database
+## Goal
 
-I queried `upi_uploaded_documents` for that file name. There are **two completely separate rows**, one per institution:
+Wipe all Institution-module data and reseed the Lovable Cloud database with 6 Canadian polytechnics, each fully populated across every tab the UI reads (Overview, Sources, Courses Staging, Agreements, Commissions + rules, Claims + Invoices, Promotions, Campaigns, AI Suggestions, Documents, Renewal Alerts). No source code, types, repositories, or components will be modified — the existing live-DB architecture already reads everything.
 
-| id (short) | institution | file_path | doc_kind | pipeline | conf | uploaded at |
-|---|---|---|---|---|---|---|
-| `aa1391f5…` | **Conestoga College** (`ebc42ff2…`) | `ebc42ff2…/…/Agent Contract RAA 2026 - … - signed.pdf` | `program_sheet` | extracted | 95 | 03:08 |
-| `617944ec…` | **Lethbridge Polytechnic** (`6f909159…`) | `6f909159…/…/Agent Contract RAA 2026 - … - signed.pdf` | `program_sheet` | extracted | 95 | 03:11 |
+## Scope
 
-So:
+In:
+- One destructive `DELETE` across all `upi_*` data tables (preserving taxonomy: countries, study/discipline areas, program levels, document categories, tags).
+- One large `INSERT` payload covering 6 institutions and all related rows, executed via the `supabase--insert` tool.
+- Realistic per-institution data: real program names, real URLs, internally-consistent commission math.
 
-1. There is **no cross-institution leak**. The same PDF was uploaded twice — once while the Conestoga detail page was open (03:08), then again 3 minutes later on Lethbridge (03:11). Each row has its own `institution_id` and its own storage path under that institution's folder. Repository scoping is working correctly.
-2. Both uploads were done with `Document type = "Program sheet"` (the dropdown default), so the orchestrator routed them to `upi-extract-programs-from-doc`, **not** `upi-analyze-agreement`. That's why:
-   - The Agreements and Commissions tabs in Lethbridge are still empty.
-   - The Review modal shows an empty `{}` payload — the program-sheet extractor returned zero courses for a contract PDF, so there is nothing to display.
-   - The screenshot still shows "uploaded · 70% confidence" because the modal was opened before the orchestrator finished and the local React state was stale.
+Out:
+- No schema changes, no new tables, no migration.
+- No edits to repositories, hooks, components, mock files, or `seedData.ts`. The user originally asked for `seedData.ts`, but with the chosen "seed into Lovable Cloud DB" option, a TS file is redundant and would be dead code (the repos read live DB only). Skipping it keeps the codebase clean.
+- No changes to existing uploaded PDFs in storage (file_path values point to placeholder paths only).
 
-## Fix plan (frontend only — no DB or edge changes)
+## Data per institution
 
-### A. Stop silent mis-routing of uploads
+Six rows in `upi_institutions`:
 
-`src/institutions/pages/InstitutionDetailPage.tsx` (Documents tab):
+| Slug | Name | City | Partner |
+|---|---|---|---|
+| `seneca-polytechnic` | Seneca Polytechnic | Toronto, ON | yes (since 2019) |
+| `conestoga-college` | Conestoga College | Kitchener, ON | yes (2017) |
+| `fanshawe-college` | Fanshawe College | London, ON | yes (2020) |
+| `humber-college` | Humber College | Toronto, ON | no (prospect) |
+| `centennial-college` | Centennial College | Toronto, ON | yes (2021) |
+| `george-brown-college` | George Brown College | Toronto, ON | yes (2018) |
 
-1. **Remove the silent default** for `docKind`. Initialize to `null` and require the user to pick a type before the file picker accepts a file. Disable the dropzone and show "Pick a document type first" until a kind is chosen.
-2. **Auto-suggest the kind from the file name** when a file is dropped (heuristic, user can still override):
-   - `/agreement|contract|raa|moa|mou/i` → `agreement`
-   - `/commission|payout|tariff/i` → `commission_sheet`
-   - `/program|course|brochure|prospect/i` → `program_sheet` / `brochure`
-   - `/invoice/i` → `invoice_template`
-   - `/renewal/i` → `renewal_document`
-   If a heuristic matches and it differs from the currently picked kind, show a one-line warning under the dropzone: *"Filename suggests `agreement` — switch?"* with a one-click switch button.
-3. **Show the active institution name above the upload zone** ("Uploading to: Lethbridge Polytechnic") so it is impossible to confuse which institution is receiving the file.
-4. **Refresh the docs list after the orchestrator returns** (`load()` is already called, but also re-fetch when the Review modal opens so the badge/confidence reflect the latest row).
+Each institution gets:
+- 3 sources (HTML listing, PDF brochure, Excel sheet) with realistic crawl status mix
+- 10 courses in `upi_courses_staging` with real program names (e.g. Seneca → Computer Programming & Analysis, Aviation Operations, Fashion Business Mgmt, etc.), tuitions 15K–22K CAD intl, IELTS 6.0–7.0, PGWP/co-op/PR flags realistic, review_status mix
+- 3 agreements (2 active, 1 expired) with `extracted_data` jsonb { commission_rate, payment_terms, territory }
+- 2 commissions tied to the agreements with the model types the user specified:
+  - Seneca: percentage, base 15%
+  - Conestoga: percentage, base 12% yearly
+  - Fanshawe: slab_tier (3 tiers: 1–9 = 10%, 10–24 = 12%, 25+ = 15%)
+  - Humber: fixed CAD 3,500 per student
+  - Centennial: percentage 14% semester-wise
+  - George Brown: hybrid (10% base + CAD 500 bonus per student over 10)
+- 2–4 `upi_commission_rules` per commission encoding the above so the existing Commission Simulator math works (`base_rate_percent` lives in `commissions.metadata`, rules carry tiers/bonuses)
+- 2 claim cycles (Fall 2025 + Winter 2026): one `submitted/partially_paid`, one `open`; `total_expected` = commission rate × avg tuition × student count
+- 2 invoices per cycle (FLC-2025-#### / FLC-2026-####), mix of `sent`, `paid`, `partially_paid`, `draft`
+- 3 promotions (fee waiver, scholarship, country-bonus) with realistic `target_countries` arrays
+- 2 marketing campaigns (email + whatsapp/social) with 3–4 sentence `generated_content`
+- 4–5 AI suggestions (renewal warning, claim deadline, rule conflict, carry-forward, scholarship reminder) with confidence 75–99
+- 2 uploaded documents (commission schedule PDF + program sheet XLSX), confidence 70–95
+- 1 renewal alert per expiring agreement
 
-### B. Make the Review modal correct & actionable
+## Technical notes
 
-`src/institutions/components/AiReviewPanel.tsx`:
+1. **Order of operations** (one SQL transaction via `supabase--insert`):
+   ```
+   DELETE FROM upi_renewal_alerts;
+   DELETE FROM upi_invoices;
+   DELETE FROM upi_claim_cycles;
+   DELETE FROM upi_commission_rules;
+   DELETE FROM upi_commissions;
+   DELETE FROM upi_agreement_versions;
+   DELETE FROM upi_agreements;
+   DELETE FROM upi_marketing_campaigns;
+   DELETE FROM upi_promotions;
+   DELETE FROM upi_ai_suggestions;
+   DELETE FROM upi_document_pipeline_events;
+   DELETE FROM upi_extraction_results;
+   DELETE FROM upi_uploaded_documents;
+   DELETE FROM upi_courses_staging;
+   DELETE FROM upi_course_intakes;
+   DELETE FROM upi_language_requirements;
+   DELETE FROM upi_eligibility_rules;
+   DELETE FROM upi_scholarship_rules;
+   DELETE FROM upi_sync_logs;
+   DELETE FROM upi_sync_jobs;
+   DELETE FROM upi_institution_sources;
+   DELETE FROM upi_campuses;
+   DELETE FROM upi_institution_tags;
+   DELETE FROM upi_institutions;
+   ```
+   Then a chain of `WITH inst AS (INSERT … RETURNING id, slug)` CTEs to insert institutions and use their returned ids to seed children, keeping everything in a single statement.
 
-1. **Re-fetch the document by id** when the modal opens, instead of trusting the prop. This eliminates the "70% confidence / uploaded" stale-state issue the screenshot shows.
-2. **Add a "Document type" selector** in the modal header. When the user changes it and clicks **Reprocess**, send the new kind to `upi-document-orchestrator`. Today Reprocess re-uses the existing (wrong) kind, so a mis-typed upload can never be fixed without re-uploading.
-3. **When `extracted_payload` is empty `{}`**, render a friendly hint instead of just an empty JSON box: *"No fields extracted — likely wrong document type. Try changing the type above and Reprocess."*
+2. **Schema alignment** (verified by inspecting `information_schema.columns`):
+   - `upi_courses_staging.is_pgwp_eligible` (not `pgwp_eligible`) — will map the user's spec to the actual column.
+   - `upi_courses_staging` has no `domestic_tuition`/`international_tuition` columns; will store international in `tuition_fee` (CAD) and put domestic into `metadata.domestic_tuition`. This matches what the existing Course Review page reads.
+   - `upi_commissions` has no `base_rate_percent` column — base rate goes into `metadata.base_rate_percent` (consistent with `CommissionsPanel.tsx` which already reads `meta.base_rate_percent`).
+   - `upi_promotions.target_countries` is jsonb, not text[] — values seeded as JSON arrays.
+   - `upi_ai_suggestions` uses `confidence` (not `confidence_score`).
+   - `upi_uploaded_documents.metadata.doc_kind` will be set so the existing review flow categorises correctly.
 
-### C. Clean up the existing two orphaned rows (manual, one-time)
+3. **No file uploads to storage** — `file_path` values are realistic strings (e.g. `seneca-polytechnic/agreements/2024-master-recruitment.pdf`) but no binary is uploaded. Download buttons will 404 until a real file is uploaded, which matches user expectation for seed data.
 
-The two rows above were uploaded as `program_sheet` against a contract PDF, so they produced no agreements/commissions. Two options for you to choose from (I'll ask in chat after plan approval):
-- **Reclassify and reprocess**: change `metadata.doc_kind` to `agreement` on the Lethbridge row and re-run the orchestrator so the Agreements and Commissions tabs populate.
-- **Delete both** and re-upload once on Lethbridge with the correct type.
+4. **Currency / math consistency** — for each cycle, `total_expected = rate × representative_tuition × eligible_student_count`, rounded to whole CAD. `total_received` is either 0 (open), ~70% of expected (partially_paid), or equal (submitted+paid).
 
-### Out of scope
-- No CRM pages outside the Institution module.
-- No DB migrations.
-- No edge function logic changes (the orchestrator fix from the previous turn stands).
-- No redesign of any tab.
+5. **Dates** anchored to "today = May 2026":
+   - Active agreements: `valid_from` 2024-08, `valid_to` 2027-03
+   - Expired ones: `valid_from` 2022-01, `valid_to` 2024-12
+   - Renewal alerts fire 30–180 days before `valid_to`
+   - Fall 2025 cycle: `claim_due_date` 2025-12-15, status `partially_paid`
+   - Winter 2026 cycle: `claim_due_date` 2026-06-30, status `open`
+   - Promotions: mix of currently-active and upcoming
+
+## Verification after seeding
+
+Quick `SELECT count(*)` per table grouped by institution + spot-check on `/institutions` and one detail page to confirm every tab renders. No code rebuild needed — just a hard refresh.
+
+## Risks
+
+- Destructive delete removes the two real agreements you uploaded earlier (Conestoga + Lethbridge "Agent Contract RAA 2026"). You confirmed wipe-fresh.
+- If any RLS/CHECK constraint rejects a row, the entire insert rolls back and I'll iterate; no partial state will be left behind.
