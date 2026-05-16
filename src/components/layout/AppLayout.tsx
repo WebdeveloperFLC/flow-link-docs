@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
+import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[] };
 
@@ -176,6 +177,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
       </aside>
 
       <main className="flex-1 overflow-auto">{children}</main>
+      <ThemeCustomizer />
     </div>
   );
 };
