@@ -120,7 +120,12 @@ function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false;
 }
 async function odooCallXmlRpc(url: string, ep: string, method: string, params: unknown[]) {
   const r = await fetch(url.replace(/\/$/, "") + ep, {
-    method: "POST", headers: { "Content-Type": "text/xml" },
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+      "Accept": "text/xml",
+      "User-Agent": "FLC-Lovable/1.0",
+    },
     body: buildCall(method, params),
   });
   const t = await r.text();
@@ -132,7 +137,11 @@ async function odooCallXmlRpc(url: string, ep: string, method: string, params: u
 async function odooCallJsonRpc(url: string, service: string, method: string, args: unknown[]) {
   const r = await fetch(url.replace(/\/$/, "") + "/jsonrpc", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "User-Agent": "FLC-Lovable/1.0",
+    },
     body: JSON.stringify({ jsonrpc: "2.0", method: "call", params: { service, method, args }, id: Date.now() }),
   });
   const t = await r.text();
@@ -146,14 +155,18 @@ async function odooCallJsonRpc(url: string, service: string, method: string, arg
   return parsed.result;
 }
 async function odooCall(url: string, ep: string, method: string, params: unknown[]) {
-  try { return await odooCallXmlRpc(url, ep, method, params); }
-  catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/CSRF|<!DOCTYPE|<html|HTTP 4\d\d/i.test(msg)) {
-      const service = ep.includes("/common") ? "common" : "object";
-      return await odooCallJsonRpc(url, service, method, params);
+  const service = ep.includes("/common") ? "common" : ep.includes("/db") ? "db" : "object";
+  // Prefer JSON-RPC (proxy/WAF friendly); fall back to XML-RPC on failure.
+  try {
+    return await odooCallJsonRpc(url, service, method, params);
+  } catch (eJson) {
+    try {
+      return await odooCallXmlRpc(url, ep, method, params);
+    } catch (eXml) {
+      const j = eJson instanceof Error ? eJson.message : String(eJson);
+      const x = eXml instanceof Error ? eXml.message : String(eXml);
+      throw new Error(`JSON-RPC failed: ${j} | XML-RPC failed: ${x}`);
     }
-    throw e;
   }
 }
 const exec = (url: string, db: string, uid: number, pw: string, model: string, method: string, args: unknown[], kwargs: Record<string, unknown> = {}) =>
@@ -313,11 +326,20 @@ Deno.serve(async (req) => {
       return json({ ok: false, error: "Odoo course catalogue not configured" }, 400);
     }
 
+    // Normalize URL to origin only — Odoo XML-RPC/JSON-RPC must hit the
+    // server root, not /web or /web/login (which trigger CSRF 400 errors).
+    let URL_NORM = URL_;
+    try {
+      const u = new URL(URL_);
+      URL_NORM = `${u.protocol}//${u.host}`;
+    } catch { /* keep raw value if parse fails */ }
+
     if (action === "diagnose") {
       const out: Record<string, unknown> = {
         ok: true,
         config: {
           url_full: URL_,
+          url_normalized: URL_NORM,
           url_pathname: (() => { try { return new URL(URL_).pathname; } catch { return null; } })(),
           url_host: (() => { try { return new URL(URL_).host; } catch { return null; } })(),
           db: DB,
@@ -331,7 +353,7 @@ Deno.serve(async (req) => {
       };
       // Probe server DB list
       try {
-        const dbs = await odooCall(URL_, "/xmlrpc/2/db", "list", []);
+        const dbs = await odooCall(URL_NORM, "/xmlrpc/2/db", "list", []);
         out.databases = dbs;
         out.db_match = Array.isArray(dbs) ? (dbs as string[]).includes(DB) : null;
       } catch (e) {
@@ -339,12 +361,12 @@ Deno.serve(async (req) => {
       }
       // Probe authentication
       try {
-        const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
+        const uid = await odooCall(URL_NORM, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
         out.auth_uid = uid;
         out.auth_ok = typeof uid === "number" && uid > 0;
         if (out.auth_ok) {
           try {
-            const cnt = await exec(URL_, DB, uid as number, KEY, "flc.course", "search_count", [[]]);
+            const cnt = await exec(URL_NORM, DB, uid as number, KEY, "flc.course", "search_count", [[]]);
             out.flc_course_count = cnt;
             out.flc_course_accessible = true;
           } catch (e) {
@@ -358,10 +380,10 @@ Deno.serve(async (req) => {
       return json(out);
     }
 
-    const uid = await odooCall(URL_, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
+    const uid = await odooCall(URL_NORM, "/xmlrpc/2/common", "authenticate", [DB, LOGIN, KEY, {}]);
     if (typeof uid !== "number" || uid <= 0) {
       throw new Error(
-        `Odoo authentication failed for db="${DB}" login="${LOGIN}" at ${URL_} (got ${JSON.stringify(uid)}). ` +
+        `Odoo authentication failed for db="${DB}" login="${LOGIN}" at ${URL_NORM} (got ${JSON.stringify(uid)}). ` +
         `Check ODOO_COURSES_URL / ODOO_COURSES_DB / ODOO_COURSES_LOGIN / ODOO_COURSES_API_KEY.`,
       );
     }
@@ -377,19 +399,19 @@ Deno.serve(async (req) => {
       // Total count
       let total = 0;
       try {
-        total = Number(await exec(URL_, DB, uid, KEY, "flc.course", "search_count", [domain])) || 0;
+        total = Number(await exec(URL_NORM, DB, uid, KEY, "flc.course", "search_count", [domain])) || 0;
       } catch { /* ignore */ }
 
       // Try with curated fields first; if the schema rejects unknown fields,
       // fall back to reading all fields so the UI can still show something.
       let rows: unknown[] = [];
       try {
-        rows = await exec(URL_, DB, uid, KEY, "flc.course", "search_read",
+        rows = await exec(URL_NORM, DB, uid, KEY, "flc.course", "search_read",
           [domain], { fields: READ_FIELDS, limit, offset, order }) as unknown[];
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         if (/Invalid field|does not exist|unknown/i.test(msg)) {
-          rows = await exec(URL_, DB, uid, KEY, "flc.course", "search_read",
+          rows = await exec(URL_NORM, DB, uid, KEY, "flc.course", "search_read",
             [domain], { limit, offset, order: "id desc" }) as unknown[];
         } else {
           throw e;
@@ -400,7 +422,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "describe") {
-      const fields = await exec(URL_, DB, uid, KEY, "flc.course", "fields_get", [],
+      const fields = await exec(URL_NORM, DB, uid, KEY, "flc.course", "fields_get", [],
         { attributes: ["string", "type", "required", "relation", "selection"] });
       return json({ ok: true, fields });
     }
