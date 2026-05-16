@@ -84,22 +84,11 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Client type</Label>
-                  <Select value={clientType} onValueChange={(v) => setClientType(v as ClientType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(CLIENT_TYPE_LABEL).map(([k, v]) =>
-                        <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <DynamicSelect listKey="client_categories" value={clientType} onValueChange={setClientType} addLabel="client type" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Country</Label>
-                  <Select value={country} onValueChange={setCountry}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {["CA","US","IN","GB","DE","AU"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cemail">Email</Label>
@@ -167,13 +156,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
               </div>
               <div className="grid gap-2">
                 <Label>Payment terms</Label>
-                <Select value={paymentTerms} onValueChange={setPaymentTerms}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Due on receipt","Installments","Net 7","Net 14","Net 30","Net 45","Net 60"].map(p =>
-                      <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <DynamicSelect listKey="payment_terms" value={paymentTerms} onValueChange={setPaymentTerms} addLabel="payment term" />
               </div>
             </div>
           </section>
