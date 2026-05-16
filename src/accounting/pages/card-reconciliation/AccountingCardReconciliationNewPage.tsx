@@ -34,6 +34,21 @@ import { cn } from "@/lib/utils";
 
 const SAMPLE_CSV = "Date,Description,Amount,Reference\n2025-10-01,STAPLES OFFICE,45.99,REF001\n2025-10-03,UBER TRIP,22.50,REF002\n2025-10-05,NETFLIX,15.99,REF003\n";
 
+type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
+
+function AiBadge({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300",
+        className,
+      )}
+    >
+      <Sparkles className="size-2.5" /> AI
+    </span>
+  );
+}
+
 function parseCSV(text: string): { date: string; description: string; amount: number }[] {
   const lines = text.split(/\r?\n/).filter(Boolean);
   if (lines.length < 2) return [];
@@ -96,6 +111,8 @@ export default function AccountingCardReconciliationNewPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [aiLineIds, setAiLineIds] = useState<Set<string>>(new Set());
   const [aiSummary, setAiSummary] = useState<{ total: number; matched: number } | null>(null);
+  const [aiMetaFields, setAiMetaFields] = useState<Set<AiMetaField>>(new Set());
+  const [aiMetaPrev, setAiMetaPrev] = useState<Partial<Record<AiMetaField, string>>>({});
 
   // PDF extraction state
   const [importTab, setImportTab] = useState<"pdf" | "csv">("pdf");
@@ -104,6 +121,35 @@ export default function AccountingCardReconciliationNewPage() {
   const [extractError, setExtractError] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  const isAi = (f: AiMetaField) => aiMetaFields.has(f);
+  const clearAiFlag = (f: AiMetaField) => {
+    if (!aiMetaFields.has(f)) return;
+    setAiMetaFields((prev) => { const n = new Set(prev); n.delete(f); return n; });
+  };
+  const revertAi = (f: AiMetaField) => {
+    const prev = aiMetaPrev[f];
+    if (prev === undefined) return;
+    if (f === "fromDate") setFromDate(prev);
+    else if (f === "toDate") setToDate(prev);
+    else if (f === "opening") setOpening(prev);
+    else if (f === "closing") setClosing(prev);
+    else if (f === "currency") setCurrency(prev);
+    clearAiFlag(f);
+  };
+  const aiHint = (f: AiMetaField) =>
+    isAi(f) ? (
+      <p className="mt-1 text-[10px] text-amber-700 dark:text-amber-400">
+        AI-filled from PDF
+        {aiMetaPrev[f] !== undefined && aiMetaPrev[f] !== "" && (
+          <> · was: <span className="font-mono">{aiMetaPrev[f]}</span></>
+        )}
+        {" · "}
+        <button type="button" onClick={() => revertAi(f)} className="underline hover:text-amber-900 dark:hover:text-amber-200">Revert</button>
+      </p>
+    ) : null;
+  const aiRing = (f: AiMetaField) =>
+    isAi(f) ? "ring-2 ring-amber-300 focus-visible:ring-amber-400 border-amber-300" : "";
 
   const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
@@ -144,6 +190,9 @@ export default function AccountingCardReconciliationNewPage() {
     setExtractError(null);
     setExtracting(true);
     setProgress({ stage: "reading", message: "Reading PDF pages…" });
+    // Reset AI meta markers for this fresh extraction
+    setAiMetaFields(new Set());
+    setAiMetaPrev({});
 
     const ctrl = new AbortController();
     abortRef.current = ctrl;
@@ -168,12 +217,32 @@ export default function AccountingCardReconciliationNewPage() {
         return;
       }
 
-      // Auto-fill meta
-      if (result.meta.statementFrom && !fromDate) setFromDate(result.meta.statementFrom);
-      if (result.meta.statementTo && !toDate) setToDate(result.meta.statementTo);
-      if (typeof result.meta.openingBalance === "number") setOpening(String(result.meta.openingBalance));
-      if (typeof result.meta.closingBalance === "number") setClosing(String(result.meta.closingBalance));
-      if (result.meta.currency && result.meta.currency !== currency) setCurrency(result.meta.currency);
+      // Auto-fill meta from AI (always overwrite when AI returns a usable value),
+      // recording the prior value so the user can revert.
+      const nextAi = new Set<AiMetaField>();
+      const nextPrev: Partial<Record<AiMetaField, string>> = {};
+      const tryFill = <T,>(
+        field: AiMetaField,
+        aiValue: T | undefined,
+        current: string,
+        accept: (v: T) => string | null,
+        setter: (s: string) => void,
+      ) => {
+        if (aiValue === undefined || aiValue === null) return;
+        const next = accept(aiValue);
+        if (next === null || next === "") return;
+        if (next === current) return;
+        nextPrev[field] = current;
+        nextAi.add(field);
+        setter(next);
+      };
+      tryFill("fromDate", result.meta.statementFrom, fromDate, (v) => (typeof v === "string" && v ? v : null), setFromDate);
+      tryFill("toDate",   result.meta.statementTo,   toDate,   (v) => (typeof v === "string" && v ? v : null), setToDate);
+      tryFill("opening",  result.meta.openingBalance, opening, (v) => (Number.isFinite(Number(v)) ? String(Number(v)) : null), setOpening);
+      tryFill("closing",  result.meta.closingBalance, closing, (v) => (Number.isFinite(Number(v)) ? String(Number(v)) : null), setClosing);
+      tryFill("currency", result.meta.currency, currency, (v) => (typeof v === "string" && /^[A-Za-z]{3}$/.test(v) ? v.toUpperCase() : null), setCurrency);
+      setAiMetaFields(nextAi);
+      setAiMetaPrev(nextPrev);
 
       // Map + auto-suggest
       const mapped = mapToCardStatementLines(result.transactions, currency);
@@ -347,11 +416,33 @@ export default function AccountingCardReconciliationNewPage() {
                   <SelectContent>{entities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label>Currency</Label><DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} /></div>
-              <div><Label>From date</Label><Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} /></div>
-              <div><Label>To date</Label><Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} /></div>
-              <div><Label>Opening balance</Label><Input type="number" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} /></div>
-              <div><Label>Closing balance</Label><Input type="number" step="0.01" value={closing} onChange={(e) => setClosing(e.target.value)} /></div>
+              <div>
+                <Label className="flex items-center gap-2">Currency {isAi("currency") && <AiBadge />}</Label>
+                <div className={cn("rounded-md", isAi("currency") && "ring-2 ring-amber-300 rounded-md")}>
+                  <DynamicSelect listKey="currencies" value={currency} onValueChange={(v) => { clearAiFlag("currency"); setCurrency(v); }} />
+                </div>
+                {aiHint("currency")}
+              </div>
+              <div>
+                <Label className="flex items-center gap-2">From date {isAi("fromDate") && <AiBadge />}</Label>
+                <Input type="date" value={fromDate} className={cn(aiRing("fromDate"))} onChange={(e) => { clearAiFlag("fromDate"); setFromDate(e.target.value); }} />
+                {aiHint("fromDate")}
+              </div>
+              <div>
+                <Label className="flex items-center gap-2">To date {isAi("toDate") && <AiBadge />}</Label>
+                <Input type="date" value={toDate} className={cn(aiRing("toDate"))} onChange={(e) => { clearAiFlag("toDate"); setToDate(e.target.value); }} />
+                {aiHint("toDate")}
+              </div>
+              <div>
+                <Label className="flex items-center gap-2">Opening balance {isAi("opening") && <AiBadge />}</Label>
+                <Input type="number" step="0.01" value={opening} className={cn(aiRing("opening"))} onChange={(e) => { clearAiFlag("opening"); setOpening(e.target.value); }} />
+                {aiHint("opening")}
+              </div>
+              <div>
+                <Label className="flex items-center gap-2">Closing balance {isAi("closing") && <AiBadge />}</Label>
+                <Input type="number" step="0.01" value={closing} className={cn(aiRing("closing"))} onChange={(e) => { clearAiFlag("closing"); setClosing(e.target.value); }} />
+                {aiHint("closing")}
+              </div>
             </div>
             <div className="flex justify-end">
               <Button onClick={() => {
@@ -433,6 +524,24 @@ export default function AccountingCardReconciliationNewPage() {
                   <span className="font-medium">{aiSummary.total} transactions extracted by AI.</span>{" "}
                   {aiSummary.matched} auto-categorised based on merchant names. Review and adjust Business/Personal for each line.
                 </div>
+              </div>
+            )}
+            {aiMetaFields.size > 0 && (
+              <div className="rounded-md border border-amber-300 bg-amber-50 dark:border-amber-500/40 dark:bg-amber-500/10 text-xs p-3 flex items-start justify-between gap-3 flex-wrap">
+                <div className="flex items-start gap-2">
+                  <Sparkles className="size-4 text-amber-600 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <div className="font-medium text-amber-900 dark:text-amber-200">AI also filled in your card details</div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-amber-800 dark:text-amber-300">
+                      {isAi("fromDate") && <span>Statement from: <strong>{fromDate}</strong></span>}
+                      {isAi("toDate") && <span>Statement to: <strong>{toDate}</strong></span>}
+                      {isAi("opening") && <span>Opening: <strong>{formatCurrency(Number(opening))}</strong></span>}
+                      {isAi("closing") && <span>Closing: <strong>{formatCurrency(Number(closing))}</strong></span>}
+                      {isAi("currency") && <span>Currency: <strong>{currency}</strong></span>}
+                    </div>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setStep(0)} className="border-amber-400 text-amber-900 hover:bg-amber-100 dark:text-amber-200">Review card details</Button>
               </div>
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
@@ -537,9 +646,15 @@ export default function AccountingCardReconciliationNewPage() {
             <Card className="p-6 space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Journal entry preview</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                <div><div className="text-xs text-muted-foreground">Date</div>{toDate}</div>
+                <div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">Date {isAi("toDate") && <AiBadge />}</div>
+                  {toDate}
+                </div>
                 <div><div className="text-xs text-muted-foreground">Entity</div>{entities.find(e=>e.id===entity)?.name ?? "—"}</div>
-                <div><div className="text-xs text-muted-foreground">Currency</div>{currency}</div>
+                <div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-1">Currency {isAi("currency") && <AiBadge />}</div>
+                  {currency}
+                </div>
                 <div><div className="text-xs text-muted-foreground">Status</div>{balanced ? <span className="text-green-600">✓ Balanced</span> : <span className="text-destructive">✗ Unbalanced</span>}</div>
               </div>
               <table className="w-full text-sm border-t border-b">
@@ -563,6 +678,12 @@ export default function AccountingCardReconciliationNewPage() {
                 </tbody>
               </table>
               <div className="bg-muted/30 rounded-lg p-3 text-sm space-y-1">
+                {(isAi("opening") || isAi("closing")) && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 pb-2 mb-2 border-b text-xs">
+                    <span className="flex items-center gap-1">Opening: <strong>{formatCurrency(Number(opening))}</strong> {isAi("opening") && <AiBadge />}</span>
+                    <span className="flex items-center gap-1">Closing: <strong>{formatCurrency(Number(closing))}</strong> {isAi("closing") && <AiBadge />}</span>
+                  </div>
+                )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
                 <div>Total card charges: <strong>{formatCurrency(totals.biz + totals.per)}</strong></div>

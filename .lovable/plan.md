@@ -1,62 +1,94 @@
-## Goal
+Tighten the AI auto-fill flow in `AccountingCardReconciliationNewPage.tsx` so the four meta fields the extractor returns (`statementFrom`, `statementTo`, `openingBalance`, `closingBalance`) reliably populate the Step 1 form, and make it obvious to the user which values came from AI vs. were typed manually. **Only this single page file is modified.** No edge function, store, or type changes.
 
-Three things, accounting module only (no CRM, no Commission, no Institutions, no new routes/pages):
+## Problems with the current behavior
 
-1. Truly empty all accounting data (entities, dashboards, reports, P&L, balance sheet, eliminations, drill-downs, quick approvals lists, fraud lists, tax items, KPI numbers, masters, COA, petty cash seeds, etc.) — keep ONLY users & roles (`MOCK_ACCOUNTING_USERS`, `accounting_users` table, roles).
-2. Invalidate the old persisted localStorage caches so previously-seeded data disappears on next load (this is why data is "still visible" after the last sweep — the persisted stores still have v2 cached arrays).
-3. Add a clearly visible **Back** button at the top of every accounting page.
+1. `statementFrom` / `statementTo` are only written when the field is empty (`if (... && !fromDate) setFromDate(...)`). But Step 0 validation already requires both dates before the user can reach Step 1's PDF uploader, so the dates are *always* non-empty and the AI value is *always* discarded.
+2. Opening / closing balances overwrite silently with no signal — the user can't tell which numbers came from AI.
+3. The user is on Step 1 (Import) when extraction runs, so they don't see the Step 0 fields change. They need a clear "AI filled these for you" cue plus a way to jump back and review.
+4. No undo / no per-field highlight — risky for an accounting workflow where wrong opening balances cascade into a wrong journal.
 
-## Why data is still visible
+## Changes (single file)
 
-- `accountingEntitiesStore.ts` `SEED` still has 3 entities → Settings → Entities still lists Canada HQ / USA Corp / India Pvt Ltd.
-- `accountingEntityStore.ts` `FALLBACK` still has entities → header entity switcher.
-- `mockReports.ts` still has `PL_DRILLDOWN`, `ELIMINATIONS`, `MOCK_ENTITIES`, `SAMPLE_COUNTERPARTIES` populated → consolidated report shows `($72,000)` and elimination details.
-- `AccountingOverviewPage.tsx` has **hardcoded** arrays inside the component (revenueByEntity, monthly, approvals, fraud, taxItems) and KPI numbers (`$4.8M`, `$3.1M`, etc.) — not driven by mock files at all.
-- Persisted stores (`accounting:journals:v2`, masters, COA, vendors, etc.) hold cached arrays in the user's browser from before the previous wipe — bumping their version key forces a fresh empty state.
+`src/accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage.tsx`
 
-## Changes
+### 1. Track which fields are AI-populated
 
-### A. Clear remaining seeded data (no logic changes, only replace arrays with `[]` / zeros)
+Add one state:
+```ts
+type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
+const [aiMetaFields, setAiMetaFields] = useState<Set<AiMetaField>>(new Set());
+```
 
-- `src/accounting/stores/accountingEntitiesStore.ts` — `SEED = []`
-- `src/accounting/stores/accountingEntityStore.ts` — `FALLBACK = []` (and guard any `[0]` usage)
-- `src/accounting/data/mockReports.ts` — empty `PL_DRILLDOWN`, `ELIMINATIONS`, `MOCK_ENTITIES`, `SAMPLE_COUNTERPARTIES`; keep type exports and `FX_RATES`
-- `src/accounting/pages/AccountingOverviewPage.tsx` — empty the inline arrays (`revenueByEntity`, `monthly`, `approvals`, `fraud`, `taxItems`, `quickActions` kept since it's navigation) and zero out the hardcoded KPI strings
-- Scan other pages for inline hardcoded arrays/numbers (reports pages, fraud page, tax page, approvals page) and zero them the same way
-- `src/accounting/stores/accountingMastersStore.ts`, `coaMasterStore.ts`, `pettyCashStore.tsx` — empty any remaining seed arrays
+Also keep the pre-AI values so the user can revert:
+```ts
+const [aiMetaPrev, setAiMetaPrev] = useState<Partial<Record<AiMetaField, string>>>({});
+```
 
-### B. Force-flush old persisted state
+### 2. Rewrite the meta merge in `handlePdfFile`
 
-Bump every `createPersistedStore` key suffix from `:v2` → `:v3` (and `:v1` → `:v2`) across:
-- `journalsStore`, `apBillsStore`, `arInvoicesStore`, `bankAccountsStore`, `clientsStore`, `coaStore`, `vendorsStore`, `vendorCategoriesStore`, `accountingMastersStore`, `coaMasterStore`, `accountingEntitiesStore`, `pettyCashStore`
+Replace the current "only if empty" block with an always-overwrite-when-AI-has-it block, recording prev values and marking the field:
 
-This makes existing users load the new empty seeds instead of cached arrays.
+- For each of `statementFrom`, `statementTo`, `openingBalance`, `closingBalance`, `currency`: if AI returned a value AND it differs from current → snapshot prev value, set the new value, add field to `aiMetaFields`.
+- Reset `aiMetaFields` / `aiMetaPrev` at the start of each extraction so re-uploading a different PDF starts fresh.
 
-### C. Add visible Back button on every accounting page
+### 3. Clear the AI marker on manual edit
 
-Modify `src/accounting/components/shared/AccountingPageHeader.tsx` only:
+Each of the four `onChange` handlers in Step 0 wraps a small helper:
+```ts
+const clearAiFlag = (f: AiMetaField) => {
+  if (!aiMetaFields.has(f)) return;
+  setAiMetaFields(prev => { const n = new Set(prev); n.delete(f); return n; });
+};
+```
+Call it inside the `onChange` for From date, To date, Opening, Closing, Currency.
 
-- Add a left-aligned **Back** button (ArrowLeft icon + "Back" label, `variant="outline"`, `size="sm"`) above/left of the title.
-- Wire to `navigate(-1)` via `useNavigate`.
-- Optional prop `hideBack` (default `false`) so the top-level Overview page can opt out if desired — but by default every page gets it.
+### 4. Visual highlight in Step 0
 
-Because every accounting page already renders `<AccountingPageHeader />`, this single change adds the Back button everywhere with no per-page edits.
+Add a small reusable wrapper (inline JSX, no new file):
+```tsx
+function AiFieldWrap({ active, onRevert, prev, children }) { ... }
+```
+When `active`:
+- `Label` shows a small inline `Sparkles` icon + amber-tinted badge `AI` (use existing `Badge variant="secondary"` with `className="bg-amber-100 text-amber-800 border-amber-200"` — already-used token style in this codebase).
+- The wrapped `Input` gets `className="ring-2 ring-amber-300 focus-visible:ring-amber-400"` via `cn(...)`.
+- Below the input: tiny muted line "AI-filled from PDF · was: {prev} · [Revert]" where Revert calls `setX(prev)` then `clearAiFlag(f)`.
 
-### D. Explicitly out of scope
+Apply wrapper to From date, To date, Opening balance, Closing balance, Currency.
 
-- `MOCK_ACCOUNTING_USERS` (kept)
-- `accounting_users` table, roles, auth (untouched)
-- CRM, Commission, Institutions files (untouched)
-- No new routes, no new pages, no new packages
+### 5. Banner in Step 1 (after extraction) and Step 2
 
-## Verification
+After a successful extraction, show a callout card above the existing AI summary:
 
-- Reload `/accounting`: KPIs show `$0` / `—`, charts empty, approvals/fraud/tax lists empty.
-- `/accounting/settings/entities`: empty list, only "Add entity" button.
-- `/accounting/reports/consolidated`: zero rows, no `$72,000`, no elimination details.
-- Every accounting route shows a Back button at the top that returns to the previous page.
-- No runtime errors (existing null-safety guards already in place).
+```
+✨ AI also filled in your card details
+   Statement period · Opening · Closing · Currency
+   [Review card details] ← jumps back to Step 0
+```
 
-## Question before I build
+The `[Review card details]` button calls `setStep(0)`. After review the user clicks Continue to return — existing step flow already supports that.
 
-The user message says "fix error" but doesn't name one. I'm reading it as "the data-still-visible issue is the error to fix" (matches the screenshots showing $72,000 + entities + $4.8M dashboard). If there's a different runtime error in the console, please paste it and I'll fold the fix in — otherwise I'll proceed with the plan above on approval.
+Also add the same compact summary at the top of Step 2 (Categorise) so it's visible during review.
+
+### 6. Step 3 (Generate journal) confirmation
+
+In the existing review summary, render the four meta values with the same amber `AI` badge if `aiMetaFields` still contains that field at post time, so the auditor can see which numbers came from extraction.
+
+### 7. Safety guardrails
+
+- If AI opening/closing differ from manually-entered values by more than a trivial amount, show a small "Was {prev} — replaced by AI" hint (already covered by the Revert affordance).
+- Validate that opening/closing are finite numbers before assigning (`Number.isFinite(meta.openingBalance)`).
+- Currency: only overwrite if AI returns a non-empty 3-letter code; never wipe to empty.
+
+## Technical notes
+
+- Pure React state additions; no new dependencies.
+- No changes to `extractCardStatement.ts`, edge function, store, or types.
+- Tailwind classes use existing semantic + neutral palette (amber for "AI" affordance is consistent with the existing `aiSummary` blue banner pattern; we keep blue for the "extracted N transactions" banner and use amber strictly for the meta-fields callout so the two are distinct).
+- Aborted / failed extractions don't touch any meta field or marker set.
+- Re-uploading a PDF resets the marker set before applying new values.
+
+## Out of scope
+
+- No changes to line-level AI highlighting (already implemented via `aiLineIds`).
+- No CRM, Commission, or other accounting pages touched.
+- No store or schema changes.
