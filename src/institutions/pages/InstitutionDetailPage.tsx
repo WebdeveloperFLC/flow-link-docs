@@ -50,9 +50,24 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
-  const [docKind, setDocKind] = useState<
-    "program_sheet" | "agreement" | "commission_sheet" | "brochure" | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"
-  >("program_sheet");
+  type DocKind =
+    | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
+    | "promotion_campaign" | "invoice_template" | "renewal_document" | "other";
+  const [docKind, setDocKind] = useState<DocKind | "">("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [suggestedKind, setSuggestedKind] = useState<DocKind | null>(null);
+
+  const guessKindFromName = (name: string): DocKind | null => {
+    const n = name.toLowerCase();
+    if (/agreement|contract|\braa\b|\bmoa\b|\bmou\b/.test(n)) return "agreement";
+    if (/commission|payout|tariff/.test(n)) return "commission_sheet";
+    if (/invoice/.test(n)) return "invoice_template";
+    if (/renewal/.test(n)) return "renewal_document";
+    if (/program|course|prospect/.test(n)) return "program_sheet";
+    if (/brochure|flyer/.test(n)) return "brochure";
+    if (/promo|campaign|offer/.test(n)) return "promotion_campaign";
+    return null;
+  };
   const [askPrompt, setAskPrompt] = useState("");
   const [askAnswer, setAskAnswer] = useState("");
   const [asking, setAsking] = useState(false);
@@ -155,6 +170,10 @@ export default function InstitutionDetailPage() {
   };
 
   const uploadDoc = async (file: File) => {
+    if (!docKind) {
+      toast.error("Pick a document type first");
+      return;
+    }
     setBusy(true);
     const path = `${id}/${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("institution-documents").upload(path, file);
