@@ -80,8 +80,15 @@ Deno.serve(async (req) => {
     const confidence_score = Number.isFinite(resultConf)
       ? Math.max(0, Math.min(100, Math.round(resultConf)))
       : 95;
-    const metadataPatch: Record<string, unknown> = {};
-    if (agreementId) metadataPatch.linked_agreement_id = agreementId;
+    let mergedMetadata: Record<string, unknown> | undefined;
+    if (agreementId) {
+      const { data: cur } = await supabase
+        .from("upi_uploaded_documents")
+        .select("metadata")
+        .eq("id", document_id)
+        .single();
+      mergedMetadata = { ...((cur?.metadata as Record<string, unknown>) ?? {}), linked_agreement_id: agreementId };
+    }
     await supabase.from("upi_uploaded_documents")
       .update({
         pipeline_status: "extracted",
@@ -89,9 +96,7 @@ Deno.serve(async (req) => {
         is_processed: true,
         confidence_score,
         extracted_payload: data ?? {},
-        ...(Object.keys(metadataPatch).length
-          ? { metadata: metadataPatch }
-          : {}),
+        ...(mergedMetadata ? { metadata: mergedMetadata } : {}),
       })
       .eq("id", document_id);
 
