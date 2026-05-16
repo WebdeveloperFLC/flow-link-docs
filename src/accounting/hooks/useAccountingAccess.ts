@@ -10,7 +10,7 @@ interface AccessState {
 }
 
 export function useAccountingAccess(): AccessState {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<AccessState>({
     loading: true,
     hasAccess: false,
@@ -36,7 +36,9 @@ export function useAccountingAccess(): AccessState {
       const isActiveAccountingUser = row?.status === "ACTIVE";
       setState({
         loading: false,
-        hasAccess: isAdmin || isActiveAccountingUser,
+        // CRM admin no longer auto-grants accounting access.
+        // Only a row in accounting_users (status ACTIVE) grants access.
+        hasAccess: isActiveAccountingUser,
         isBootstrap: false,
         accountingRole: row?.role ?? null,
       });
@@ -44,7 +46,7 @@ export function useAccountingAccess(): AccessState {
     return () => {
       cancelled = true;
     };
-  }, [user, isAdmin, authLoading]);
+  }, [user, authLoading]);
 
   return state;
 }

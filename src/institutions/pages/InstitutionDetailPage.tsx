@@ -23,6 +23,8 @@ import { OverviewPanel } from "../components/OverviewPanel";
 import { PromotionsPanel } from "../components/PromotionsPanel";
 import { CampaignsPanel } from "../components/CampaignsPanel";
 import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
+import { useAuth } from "@/contexts/AuthContext";
+import { Lock } from "lucide-react";
 import { useMockSources } from "../hooks/useInstitutionData";
 
 export default function InstitutionDetailPage() {
@@ -50,6 +52,18 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
+  const { isCommissionAdmin, isAccountingMember } = useAuth();
+  const canSeeCommissions = isCommissionAdmin || isAccountingMember;
+  const LockedPanel = ({ label }: { label: string }) => (
+    <Card className="p-10 max-w-xl mx-auto text-center space-y-2">
+      <Lock className="size-6 mx-auto text-muted-foreground" />
+      <div className="text-base font-medium">{label} are restricted</div>
+      <div className="text-sm text-muted-foreground">
+        Only Commission admins or Accounting admins can view {label.toLowerCase()}.
+        Ask an admin to grant the <b>Commission admin</b> role or add you to Accounting users.
+      </div>
+    </Card>
+  );
   type DocKind =
     | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
     | "promotion_campaign" | "invoice_template" | "renewal_document" | "other";
@@ -243,9 +257,9 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="sources">Sources</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="agreements">Agreements</TabsTrigger>
-            <TabsTrigger value="commissions">Commissions</TabsTrigger>
-            <TabsTrigger value="claims">Claims</TabsTrigger>
+            {canSeeCommissions && <TabsTrigger value="agreements">Agreements</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="commissions">Commissions</TabsTrigger>}
+            {canSeeCommissions && <TabsTrigger value="claims">Claims</TabsTrigger>}
             <TabsTrigger value="promotions">Promotions</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
@@ -443,15 +457,15 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="agreements">
-            <AgreementsPanel institutionId={id} />
+            {canSeeCommissions ? <AgreementsPanel institutionId={id} /> : <LockedPanel label="Agreements" />}
           </TabsContent>
 
           <TabsContent value="commissions">
-            <CommissionsPanel institutionId={id} />
+            {canSeeCommissions ? <CommissionsPanel institutionId={id} /> : <LockedPanel label="Commissions" />}
           </TabsContent>
 
           <TabsContent value="claims">
-            <ClaimsPanel institutionId={id} />
+            {canSeeCommissions ? <ClaimsPanel institutionId={id} /> : <LockedPanel label="Claims" />}
           </TabsContent>
 
           <TabsContent value="promotions">

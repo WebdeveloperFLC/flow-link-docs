@@ -7903,10 +7903,12 @@ export type Database = {
         Returns: Json
       }
       is_accounting_admin: { Args: { _uid: string }; Returns: boolean }
+      is_accounting_user: { Args: { _uid: string }; Returns: boolean }
       is_chat_channel_member: {
         Args: { _channel: string; _uid: string }
         Returns: boolean
       }
+      is_commission_admin: { Args: { _uid: string }; Returns: boolean }
       is_portal_user_for: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -7962,6 +7964,7 @@ export type Database = {
         | "viewer"
         | "telecaller"
         | "client"
+        | "commission_admin"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
       assessment_lead_source: "invite" | "referral" | "existing_client"
       assessment_session_status:
@@ -8138,6 +8141,7 @@ export const Constants = {
         "viewer",
         "telecaller",
         "client",
+        "commission_admin",
       ],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: ["invite", "referral", "existing_client"],
