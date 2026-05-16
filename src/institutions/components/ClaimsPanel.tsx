@@ -783,3 +783,177 @@ function InvoicePreview({ invoice }: { invoice: Invoice }) {
     </div>
   );
 }
+
+// ---------- printable claim (print-only) ----------
+function PrintableClaim({ cycle, students, invoice }: { cycle: any; students: Student[]; invoice: Invoice | null }) {
+  const inst = invoice?.institution_name ?? cycle?.institution_name ?? "Institution";
+  const eligible = students.filter((s) => s.commission_status === "eligible" || s.commission_status === "paid");
+  const blocked = students.filter((s) => s.commission_status === "blocked");
+  const carried = students.filter((s) => s.commission_status === "carried_forward");
+  const totalEligible = eligible.reduce((sum, s) => sum + Number(s.commission_amount ?? 0), 0);
+  return (
+    <div style={{ fontFamily: "Helvetica, Arial, sans-serif", color: "#000" }}>
+      <div style={{ borderBottom: "2px solid #000", paddingBottom: 10, marginBottom: 16 }}>
+        <div style={{ fontSize: 18, fontWeight: 700 }}>{FLC_AGENCY.name}</div>
+        <div style={{ fontSize: 10 }}>{FLC_AGENCY.address}</div>
+        <div style={{ fontSize: 10 }}>{FLC_AGENCY.phone} · {FLC_AGENCY.email} · {FLC_AGENCY.website}</div>
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 14, fontWeight: 700 }}>Commission Claim — {cycle?.period_label}</div>
+        <div style={{ fontSize: 11 }}>Institution: <strong>{inst}</strong>{invoice?.institution_address ? ` · ${invoice.institution_address}` : ""}</div>
+        {cycle?.intake && <div style={{ fontSize: 11 }}>Intake / Term: {cycle.intake}</div>}
+        {cycle?.claim_due_date && <div style={{ fontSize: 11 }}>Claim due: {new Date(cycle.claim_due_date).toLocaleDateString()}</div>}
+      </div>
+
+      <table style={{ marginBottom: 12 }}>
+        <thead>
+          <tr>
+            <th>#</th><th>Name</th><th>Program</th><th>Intake</th>
+            <th style={{ textAlign: "right" }}>Tuition</th>
+            <th style={{ textAlign: "right" }}>Rate</th>
+            <th style={{ textAlign: "right" }}>Commission</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {students.map((s, idx) => (
+            <tr key={s.id}>
+              <td>{idx + 1}</td>
+              <td>{s.student_name}</td>
+              <td>{s.program_name}</td>
+              <td>{s.intake_term ?? ""}</td>
+              <td style={{ textAlign: "right" }}>{fmt(s.tuition_paid_amount ?? s.tuition_amount)}</td>
+              <td style={{ textAlign: "right" }}>{s.commission_rate_applied != null ? `${s.commission_rate_applied}%` : "Fixed"}</td>
+              <td style={{ textAlign: "right" }}>{fmt(s.commission_amount)}</td>
+              <td>{s.commission_status}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {blocked.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Blocked students ({blocked.length})</div>
+          <ul style={{ paddingLeft: 16, fontSize: 10 }}>
+            {blocked.map((s) => (
+              <li key={s.id}>{s.student_name} — {s.block_reason ? (BLOCK_CLAUSE[s.block_reason] ?? s.block_reason) : "Unknown"}{s.block_notes ? ` (${s.block_notes})` : ""}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {carried.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Carried forward ({carried.length})</div>
+          <ul style={{ paddingLeft: 16, fontSize: 10 }}>
+            {carried.map((s) => (
+              <li key={s.id}>{s.student_name} — {s.carry_forward_reason ?? "—"}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <table style={{ width: 320 }}>
+          <tbody>
+            <tr><td>Eligible students</td><td style={{ textAlign: "right" }}>{eligible.length}</td></tr>
+            <tr><td>Blocked students</td><td style={{ textAlign: "right" }}>{blocked.length}</td></tr>
+            <tr><td>Carried forward</td><td style={{ textAlign: "right" }}>{carried.length}</td></tr>
+            <tr><td><strong>Total commission (eligible)</strong></td><td style={{ textAlign: "right" }}><strong>{fmt(totalEligible)}</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      {invoice && (
+        <div style={{ borderTop: "1px solid #999", paddingTop: 8, marginBottom: 12, fontSize: 11 }}>
+          <div style={{ fontWeight: 700 }}>Invoice Summary</div>
+          <div>{invoice.invoice_number} · {invoice.status.toUpperCase()} · {fmt(invoice.total_amount, invoice.currency)}</div>
+          <div>Invoice date: {new Date(invoice.invoice_date).toLocaleDateString()}{invoice.due_date ? ` · Due: ${new Date(invoice.due_date).toLocaleDateString()}` : ""}</div>
+        </div>
+      )}
+
+      <div style={{ fontSize: 9, color: "#444", borderTop: "1px solid #999", paddingTop: 6 }}>
+        Generated by {FLC_AGENCY.name} on {new Date().toLocaleString()}
+      </div>
+    </div>
+  );
+}
+
+// ---------- printable invoice (print-only) ----------
+function PrintableInvoice({ invoice, items }: { invoice: Invoice; items: LineItem[] }) {
+  return (
+    <div style={{ fontFamily: "Helvetica, Arial, sans-serif", color: "#000" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "2px solid #000", paddingBottom: 10, marginBottom: 16 }}>
+        <div>
+          <div style={{ fontSize: 18, fontWeight: 700 }}>{FLC_AGENCY.name}</div>
+          <div style={{ fontSize: 10 }}>{FLC_AGENCY.address}</div>
+          <div style={{ fontSize: 10 }}>{FLC_AGENCY.phone} · {FLC_AGENCY.email}</div>
+          <div style={{ fontSize: 10 }}>{FLC_AGENCY.website}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 22, letterSpacing: 4 }}>INVOICE</div>
+          <div style={{ fontSize: 11, fontFamily: "monospace" }}>{invoice.invoice_number}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 16, fontSize: 11 }}>
+        <div>
+          <div style={{ fontWeight: 700, fontSize: 9, textTransform: "uppercase", color: "#555" }}>Bill To</div>
+          <div style={{ fontWeight: 700 }}>{invoice.institution_name}</div>
+          <div>{invoice.institution_address}</div>
+          <div>{invoice.institution_email}</div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div>Invoice date: <strong>{new Date(invoice.invoice_date).toLocaleDateString()}</strong></div>
+          {invoice.due_date && <div>Due date: <strong>{new Date(invoice.due_date).toLocaleDateString()}</strong></div>}
+          <div>Status: <strong>{invoice.status.toUpperCase()}</strong></div>
+        </div>
+      </div>
+
+      <table style={{ marginBottom: 16 }}>
+        <thead>
+          <tr>
+            <th>#</th><th>Student</th><th>Program</th><th>Intake</th>
+            <th style={{ textAlign: "right" }}>Tuition (CAD)</th>
+            <th style={{ textAlign: "right" }}>Rate</th>
+            <th style={{ textAlign: "right" }}>Amount (CAD)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((it, idx) => (
+            <tr key={it.id}>
+              <td>{idx + 1}</td>
+              <td>{it.student_name}</td>
+              <td>{it.program_name}</td>
+              <td>{it.intake_term}</td>
+              <td style={{ textAlign: "right" }}>{fmt(it.tuition_amount, invoice.currency)}</td>
+              <td style={{ textAlign: "right" }}>{it.commission_rate != null ? `${it.commission_rate}%` : "Fixed"}</td>
+              <td style={{ textAlign: "right" }}>{fmt(it.line_amount, invoice.currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+        <table style={{ width: 320 }}>
+          <tbody>
+            <tr><td>Subtotal</td><td style={{ textAlign: "right" }}>{fmt(invoice.subtotal, invoice.currency)}</td></tr>
+            <tr><td>HST</td><td style={{ textAlign: "right" }}>0 — international commission</td></tr>
+            <tr><td><strong>Total</strong></td><td style={{ textAlign: "right" }}><strong>{fmt(invoice.total_amount, invoice.currency)}</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ fontSize: 10, borderTop: "1px solid #999", paddingTop: 8, marginBottom: 12 }}>
+        <div style={{ fontWeight: 700 }}>Payment Instructions</div>
+        <div>Payment by EFT or direct deposit to {FLC_AGENCY.name}. Quote invoice number <strong>{invoice.invoice_number}</strong> as reference.</div>
+        {invoice.notes && <div style={{ marginTop: 4 }}><strong>Notes:</strong> {invoice.notes}</div>}
+      </div>
+
+      <div style={{ fontSize: 9, color: "#555", borderTop: "1px solid #999", paddingTop: 6 }}>
+        This invoice is generated by {FLC_AGENCY.name}. GST/HST registration details available on request.
+        Generated on {new Date().toLocaleString()}.
+      </div>
+    </div>
+  );
+}
