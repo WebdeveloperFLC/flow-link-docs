@@ -52,6 +52,7 @@ const COURSE_TOOL = {
               has_scholarship: { type: "boolean" },
               is_coop: { type: "boolean" },
               is_pr_pathway: { type: "boolean" },
+              is_pgwp_eligible: { type: "boolean", description: "True if program is designated PGWP-eligible (Post-Graduation Work Permit, Canada)" },
               is_online: { type: "boolean" },
               is_part_time: { type: "boolean" },
               program_url: { type: "string" },
