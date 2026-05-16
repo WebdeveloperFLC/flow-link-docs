@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
           institution_id,
           title: docRow?.file_name ?? "Untitled agreement",
           file_path: docRow?.file_path ?? null,
-          agreement_type: "partner",
+          agreement_type: "partnership",
           status: "active",
         })
         .select()
