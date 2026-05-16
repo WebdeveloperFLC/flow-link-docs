@@ -108,6 +108,14 @@ import AccountingPettyCashDetailPage from "./accounting/pages/petty-cash/Account
 import AccountingPettyCashAuditPage from "./accounting/pages/petty-cash/AccountingPettyCashAuditPage";
 import AccountingPettyCashReplenishmentPage from "./accounting/pages/petty-cash/AccountingPettyCashReplenishmentPage";
 import { PettyCashProvider } from "./accounting/stores/pettyCashStore";
+import AccountingIntercompanyPage from "./accounting/pages/intercompany/AccountingIntercompanyPage";
+import AccountingIntercompanyNewPage from "./accounting/pages/intercompany/AccountingIntercompanyNewPage";
+import AccountingIntercompanyDetailPage from "./accounting/pages/intercompany/AccountingIntercompanyDetailPage";
+import AccountingReimbursementsPage from "./accounting/pages/reimbursements/AccountingReimbursementsPage";
+import AccountingReimbursementNewPage from "./accounting/pages/reimbursements/AccountingReimbursementNewPage";
+import AccountingReimbursementDetailPage from "./accounting/pages/reimbursements/AccountingReimbursementDetailPage";
+import AccountingCardReconciliationPage from "./accounting/pages/card-reconciliation/AccountingCardReconciliationPage";
+import AccountingCardReconciliationNewPage from "./accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage";
 import InstitutionsListPage from "./institutions/pages/InstitutionsListPage";
 import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
 import CourseReviewPage from "./institutions/pages/CourseReviewPage";
@@ -220,6 +228,14 @@ const App = () => (
             <Route path="/accounting/petty-cash/audit" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashAuditPage /></PettyCashProvider></AccountingProtectedRoute>} />
             <Route path="/accounting/petty-cash/replenishment" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashReplenishmentPage /></PettyCashProvider></AccountingProtectedRoute>} />
             <Route path="/accounting/petty-cash/:id" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashDetailPage /></PettyCashProvider></AccountingProtectedRoute>} />
+            <Route path="/accounting/intercompany" element={<AccountingProtectedRoute><AccountingIntercompanyPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/intercompany/new" element={<AccountingProtectedRoute><AccountingIntercompanyNewPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/intercompany/:id" element={<AccountingProtectedRoute><AccountingIntercompanyDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reimbursements" element={<AccountingProtectedRoute><AccountingReimbursementsPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reimbursements/new" element={<AccountingProtectedRoute><AccountingReimbursementNewPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/reimbursements/:id" element={<AccountingProtectedRoute><AccountingReimbursementDetailPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/card-reconciliation" element={<AccountingProtectedRoute><AccountingCardReconciliationPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/card-reconciliation/new" element={<AccountingProtectedRoute><AccountingCardReconciliationNewPage /></AccountingProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />

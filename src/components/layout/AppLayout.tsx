@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale, ArrowLeftRight, ReceiptText, CreditCard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -40,6 +40,9 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/coa", icon: Layers, label: "Chart of accounts" },
   { to: "/accounting/bank-accounts", icon: Landmark, label: "Bank accounts" },
   { to: "/accounting/petty-cash", icon: Wallet, label: "Petty cash" },
+  { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company" },
+  { to: "/accounting/reimbursements", icon: ReceiptText, label: "Reimbursements" },
+  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Card reconciliation" },
   { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
   { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
   { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
