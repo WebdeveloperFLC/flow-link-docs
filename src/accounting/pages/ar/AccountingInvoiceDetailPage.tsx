@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Receipt } from "lucide-react";
+import { ArrowLeft, FileText, Receipt, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import { fmtMoney } from "../../components/ap-ar/money";
-import { MOCK_INVOICES, SERVICE_TYPE_LABELS, type CustomerInvoice } from "../../data/mockAR";
+import { SERVICE_TYPE_LABELS } from "../../data/mockAR";
+import { useArInvoices, updateArInvoice, deleteArInvoice } from "../../stores/arInvoicesStore";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import AccountingReceiptModal from "../../components/receipts/AccountingReceiptModal";
 import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
@@ -19,7 +20,8 @@ const TODAY = new Date("2024-11-01");
 export default function AccountingInvoiceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [inv, setInv] = useState<CustomerInvoice | undefined>(MOCK_INVOICES.find((i) => i.id === id));
+  const invoices = useArInvoices();
+  const inv = invoices.find((i) => i.id === id);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const bank = useMemo(() => inv?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === inv.linkedBankAccountId) : null, [inv]);
@@ -42,9 +44,9 @@ export default function AccountingInvoiceDetailPage() {
           <AccountingPageHeader title={inv.invoiceNumber} subtitle={`AR — Invoices / ${inv.invoiceNumber}`}
             actions={<>
               <AccountingStatusBadge status={inv.status} />
-              {inv.status === "DRAFT" && <Button variant="outline" onClick={() => { setInv({ ...inv, status: "SENT" }); toast.success("Invoice sent"); }}>Send invoice</Button>}
-              {(inv.status === "SENT" || inv.status === "OVERDUE" || inv.status === "PARTIALLY_PAID") && <Button onClick={() => { setInv({ ...inv, status: "PAID", paidDate: new Date().toISOString().slice(0, 10), receivedAmount: inv.totalAmount, outstandingBalance: 0 }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
-              {(inv.status === "DRAFT" || inv.status === "SENT") && <Button variant="destructive" onClick={() => { setInv({ ...inv, status: "VOID" }); toast.success("Voided"); }}>Void</Button>}
+              {inv.status === "DRAFT" && <Button variant="outline" onClick={() => { updateArInvoice(inv.id, { status: "SENT" }); toast.success("Invoice sent"); }}>Send invoice</Button>}
+              {(inv.status === "SENT" || inv.status === "OVERDUE" || inv.status === "PARTIALLY_PAID") && <Button onClick={() => { updateArInvoice(inv.id, { status: "PAID", paidDate: new Date().toISOString().slice(0, 10), receivedAmount: inv.totalAmount, outstandingBalance: 0 }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
+              {(inv.status === "DRAFT" || inv.status === "SENT") && <Button variant="destructive" onClick={() => { updateArInvoice(inv.id, { status: "VOID" }); toast.success("Voided"); }}>Void</Button>}
               {(inv.status === "PAID" || inv.status === "PARTIALLY_PAID") && (
                 <Button variant="outline" onClick={() => {
                   const r = buildReceiptData(inv, inv.receivedAmount, inv.paidDate ?? new Date().toISOString().slice(0, 10), inv.paymentMethod ?? "Other", inv.paymentReference);
@@ -53,6 +55,7 @@ export default function AccountingInvoiceDetailPage() {
               )}
               <Button variant="ghost" onClick={() => navigate("/accounting/clients")}>View client ledger</Button>
               <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
+              <Button variant="ghost" className="text-destructive" onClick={() => { if (confirm(`Delete ${inv.invoiceNumber}? This cannot be undone.`)) { deleteArInvoice(inv.id); toast.success("Invoice deleted"); navigate("/accounting/ar"); } }}><Trash2 className="size-4 mr-1" /> Delete</Button>
             </>} />
         </div>
 
