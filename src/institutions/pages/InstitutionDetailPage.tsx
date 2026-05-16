@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, RefreshCw, Sparkles, Plus } from "lucide-react";
+import { Upload, RefreshCw, Sparkles, Plus, ArrowUp } from "lucide-react";
 import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
 
 export default function InstitutionDetailPage() {
@@ -26,6 +26,9 @@ export default function InstitutionDetailPage() {
   const [suggestions, setSuggestions] = useState<UpiSuggestion[]>([]);
   const [newSourceUrl, setNewSourceUrl] = useState("");
   const [newSourceType, setNewSourceType] = useState("website_url");
+  const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
+  const [syncingAll, setSyncingAll] = useState(false);
+  const urlInputRef = useRef<HTMLInputElement>(null);
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
@@ -55,11 +58,26 @@ export default function InstitutionDetailPage() {
 
   const addSource = async () => {
     if (!newSourceUrl.trim()) return toast.error("URL required");
-    const { error } = await supabase.from("upi_institution_sources").insert({
-      institution_id: id, source_type: newSourceType, url: newSourceUrl.trim(),
-    });
-    if (error) return toast.error(error.message);
-    setNewSourceUrl(""); load(); toast.success("Source added");
+    const { data, error } = await supabase
+      .from("upi_institution_sources")
+      .insert({ institution_id: id, source_type: newSourceType, url: newSourceUrl.trim() })
+      .select()
+      .single();
+    if (error) {
+      console.error("[addSource] insert failed", error);
+      return toast.error(`Add source failed: ${error.message}`);
+    }
+    console.log("[addSource] inserted", data);
+    setNewSourceUrl("");
+    await load();
+    if (data?.id) {
+      setHighlightSourceId(data.id);
+      setTimeout(() => {
+        document.getElementById(`source-row-${data.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 50);
+      setTimeout(() => setHighlightSourceId(null), 2500);
+    }
+    toast.success("Source added — click Sync now to fetch courses");
   };
 
   const syncNow = async (source: UpiSource) => {
@@ -74,6 +92,24 @@ export default function InstitutionDetailPage() {
       const res = data as { extracted?: number; upserted?: number; rejected?: number };
       toast.success(`Sync complete — ${res?.upserted ?? 0} course(s) staged for review`);
     }
+    load();
+  };
+
+  const syncAll = async () => {
+    if (sources.length === 0) return;
+    setSyncingAll(true);
+    let total = 0;
+    for (const s of sources) {
+      try {
+        const { data, error } = await supabase.functions.invoke("upi-sync-source", { body: { source_id: s.id } });
+        if (error) toast.error(`${s.url}: ${error.message}`);
+        else total += (data as any)?.upserted ?? 0;
+      } catch (e: any) {
+        toast.error(`${s.url}: ${e?.message ?? "failed"}`);
+      }
+    }
+    setSyncingAll(false);
+    toast.success(`Sync all complete — ${total} course(s) staged`);
     load();
   };
 
@@ -167,21 +203,45 @@ export default function InstitutionDetailPage() {
               <select className="h-10 px-3 rounded-md border bg-background text-sm" value={newSourceType} onChange={(e) => setNewSourceType(e.target.value)}>
                 {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
               </select>
-              <Input className="flex-1 min-w-[260px]" placeholder="https://university.edu/programs" value={newSourceUrl} onChange={(e) => setNewSourceUrl(e.target.value)} />
+              <Input ref={urlInputRef} className="flex-1 min-w-[260px]" placeholder="https://university.edu/programs" value={newSourceUrl} onChange={(e) => setNewSourceUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSource()} />
               <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+              {sources.length > 0 && (
+                <Button variant="secondary" onClick={syncAll} disabled={syncingAll}>
+                  <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
+                </Button>
+              )}
             </Card>
             <div className="space-y-2">
               {sources.map((s) => (
-                <Card key={s.id} className="p-4 flex items-center gap-4">
+                <Card
+                  key={s.id}
+                  id={`source-row-${s.id}`}
+                  className={`p-4 flex items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
+                >
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{s.url ?? s.file_path}</div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
                   </div>
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
-                  <Button size="sm" variant="outline" onClick={() => syncNow(s)}><RefreshCw className="size-4" /> Sync now</Button>
+                  <Button onClick={() => syncNow(s)} className="shrink-0">
+                    <RefreshCw className="size-4" /> Sync now
+                  </Button>
                 </Card>
               ))}
-              {sources.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No sources yet.</div>}
+              {sources.length === 0 && (
+                <Card className="p-8 border-dashed">
+                  <div className="flex flex-col items-center gap-2 text-center">
+                    <ArrowUp className="size-6 text-primary animate-bounce" />
+                    <div className="font-medium">No sources yet</div>
+                    <div className="text-sm text-muted-foreground max-w-md">
+                      Paste a program-listing URL above (e.g. <code className="text-xs">https://conestogac.on.ca/fulltime-programs</code>), click <strong>Add source</strong>, then a <strong>Sync now</strong> button will appear on the new row.
+                    </div>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={() => urlInputRef.current?.focus()}>
+                      Focus URL field
+                    </Button>
+                  </div>
+                </Card>
+              )}
             </div>
           </TabsContent>
 

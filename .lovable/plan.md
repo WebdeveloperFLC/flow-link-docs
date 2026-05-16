@@ -1,61 +1,36 @@
-## Goal
+# Why you don't see "Sync now"
 
-Make the **Sync Now** button on an institution's Program Source actually fetch the page, extract course data with AI, and populate the Course Review queue — using only free services (no Anthropic, no Firecrawl, no new API keys).
+The button is rendered per source row in **Institution → Sources tab**. A database check shows `upi_institution_sources` is empty — no sources exist yet for any institution, so no row (and no Sync button) is drawn. The Add-source step is either failing silently (RLS / missing field) or wasn't completed.
 
-## Stack (all free)
+# Plan (UI + diagnostics only, no schema or business-logic changes)
 
-- **Scraper**: [Jina Reader](https://r.jina.ai) — prepend `https://r.jina.ai/` to any URL, returns clean markdown. No key, no signup, generous free tier.
-- **Extractor**: Lovable AI Gateway with `google/gemini-2.5-flash` (free until Nov 6, 2026). Already wired via `LOVABLE_API_KEY`.
-- **Storage**: existing `upi_sync_jobs`, `upi_sync_logs`, `upi_courses_staging` tables.
+### 1. Diagnose the silent add-source failure
+- Wrap `addSource` in `InstitutionDetailPage.tsx` with explicit success/error logging and a visible toast on every outcome (including network errors).
+- Log the inserted row (or the full Supabase error object) so we can see RLS denials in the console.
+- If RLS is the cause, confirm `upi_institution_sources` has an INSERT policy for `authenticated` users tied to the parent institution. If missing, surface this as a follow-up migration (not done in this pass — flagged so we don't silently change policies).
 
-If a site is JS-heavy and Jina returns thin content, we log a warning and the user can later switch that one source to Firecrawl (optional add-on).
+### 2. Make the Sources tab obvious
+- Replace the plain "No sources yet." text with a styled empty-state card containing:
+  - A short instruction ("Add a program URL above, then click Sync now to fetch courses").
+  - An arrow / pointer up to the Add-source form.
+- Auto-focus the URL input when the Sources tab opens and the list is empty.
 
-## What to build
+### 3. Make Sync now more prominent
+- Change the per-row Sync button from `variant="outline" size="sm"` to the default solid primary variant and give it its own column so it never wraps below the badge on narrow widths.
+- Add a sticky "Sync all sources" button at the top of the Sources tab when ≥1 source exists, which loops through and invokes `upi-sync-source` for each.
 
-### 1. New edge function: `upi-sync-source`
+### 4. Add a tiny smoke-test affordance
+- After a successful `addSource`, automatically scroll the new row into view and briefly highlight it so it's clear the row (and its Sync button) exist.
 
-`supabase/functions/upi-sync-source/index.ts` (verify_jwt = true)
+# Files touched
+- `src/institutions/pages/InstitutionDetailPage.tsx` — only the Sources tab + `addSource` / `syncNow` handlers.
 
-Input: `{ source_id: string }`
+# Out of scope
+- No DB migrations, no RLS changes, no edits to `upi-sync-source` edge function, no changes to other tabs or pages.
+- If diagnostics in step 1 reveal an RLS block, I'll report it back and propose a separate migration before changing policies.
 
-Flow:
-1. Load the `upi_institution_sources` row + parent institution.
-2. Create/update an `upi_sync_jobs` row → `status = 'running'`, `started_at = now()`.
-3. Append `upi_sync_logs` entries at each step (`info` / `warning` / `error`) so the UI streams progress via the existing Realtime subscription.
-4. Fetch the page via Jina: `GET https://r.jina.ai/<source.url>` with header `Accept: text/markdown`. Truncate to ~80k chars to stay inside Gemini's context.
-5. For `listing_page` / `tuition_page` / `scholarship_page` / `international_page` / `website_url`: call Gemini Flash with **tool-calling** (structured output) to extract an array of courses. Schema mirrors the columns already in `upi_courses_staging`: `course_title`, `program_level`, `field_of_study`, `duration_months`, `tuition_fee`, `currency`, `intake_months[]`, `ielts_overall`, `ielts_reading/listening/writing/speaking`, `has_scholarship`, `is_pr_pathway`, `source_url`, `confidence` (0–100), `metadata` (jsonb catch-all).
-6. For each extracted course, compute `dedup_hash = md5(institution_id + '||' + lower(title) + '||' + source.url)` and **upsert** into `upi_courses_staging` with `review_status = 'pending_review'`. Reuse the existing `upi-upsert-courses` helper.
-7. Update the job: `status = 'completed'`, `pages_scanned`, `items_extracted`, `finished_at`. Update the source's `last_synced_at`, `crawl_status`, `confidence_score`.
-8. On any failure: `status = 'failed'`, write an `error` log line, surface the message in the UI toast.
-
-Error handling: catch Gemini 402 / 429 and write a clear log line ("AI credits exhausted" / "Rate limited, retry shortly") instead of a generic 500.
-
-### 2. Wire the UI button
-
-In `src/institutions/pages/InstitutionDetailPage.tsx`, replace the `syncNow` handler so it:
-- Inserts the job row (as today) **and** invokes `supabase.functions.invoke('upi-sync-source', { body: { source_id } })`.
-- Toast on completion; the Sources list already re-renders from the realtime logs/jobs subscription.
-
-No other UI changes — the existing status badges (`queued` / `running` / `completed` / `failed`) and Course Review page will pick up the new rows automatically.
-
-### 3. config.toml
-
-Add `[functions.upi-sync-source]` with `verify_jwt = true` (default; included for clarity).
-
-## Out of scope (saving for later)
-
-- Firecrawl fallback for JS-only sites — add only when a real site fails.
-- Scheduled cron sync — on-demand only for now (matches your earlier choice).
-- Document/PDF processing — already covered by `upi-process-document`, untouched.
-- Anthropic — not needed.
-
-## Cost
-
-$0 to start. Jina is free, Gemini Flash is free on Lovable AI through Nov 6, 2026. After that, Flash is roughly $0.075 per 1M input tokens — a typical program-listing sync is well under 1¢.
-
-## Acceptance test
-
-1. Add Conestoga → add source `https://www.conestogac.on.ca/en/programs-and-courses.html` → click **Sync Now**.
-2. Status badge moves `queued → running → completed`.
-3. Sync logs show "Fetched N chars from Jina", "Extracted N courses", "Upserted N rows".
-4. `/institutions/review` shows the new courses with `pending_review` status and confidence badges.
+# Acceptance test
+1. Open any institution → Sources tab → empty state is visible with clear instructions and focused input.
+2. Paste a URL, click Add source → toast confirms, row appears highlighted, Sync now button is visibly the primary action on that row.
+3. Click Sync now → existing flow (job created, `upi-sync-source` invoked, toast with upserted count).
+4. If add-source fails, the exact error message appears in a destructive toast and the console.
