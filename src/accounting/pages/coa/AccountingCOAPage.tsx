@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Layers, Plus, Search, MoreHorizontal, Pencil, Trash2, Power, ChevronDown, ChevronRight } from "lucide-react";
+import { Layers, Plus, Search, MoreHorizontal, Pencil, Trash2, Power, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import type { ColDef, GridApi, GridReadyEvent, ICellRendererParams } from "ag-grid-community";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
@@ -30,6 +31,7 @@ const ALL = "__all__";
 
 export default function AccountingCOAPage() {
   const accounts = useAccounts();
+  const navigate = useNavigate();
   const groups = useGroups();
   const types = useTypes();
   const entities = useEntities();
@@ -165,6 +167,9 @@ export default function AccountingCOAPage() {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => openEdit(a)}><Pencil className="size-3.5 mr-2" /> Edit</DropdownMenuItem>
               <DropdownMenuItem onClick={() => openAddChild(a)}><Plus className="size-3.5 mr-2" /> Add child</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate(`/accounting/reports/general-ledger/${a.id}`)}>
+                <BookOpen className="size-3.5 mr-2" /> View ledger
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => { toggleAccountStatus(a.id); toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`); }}>
                 <Power className="size-3.5 mr-2" /> {a.status === "ACTIVE" ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
