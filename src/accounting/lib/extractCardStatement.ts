@@ -1,4 +1,5 @@
 import { rasterizePdfToJpegs, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
+import { supabase } from "@/integrations/supabase/client";
 import type { CardStatementLine } from "@/accounting/types/cardReconciliation";
 
 export interface ExtractedTransaction {
@@ -33,8 +34,19 @@ export interface ExtractionProgress {
   total?: number;
 }
 
-const FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-card-statement`;
-const ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+function describeFunctionError(error: unknown): string {
+  if (!error) return "Unknown OCR service error";
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  if (typeof error === "object") {
+    const e = error as Record<string, unknown>;
+    return [e.message, e.name, e.status, e.context]
+      .filter(Boolean)
+      .map((v) => (typeof v === "string" ? v : JSON.stringify(v)))
+      .join(" — ") || "Unknown OCR service error";
+  }
+  return "Unknown OCR service error";
+}
 
 async function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -101,16 +113,20 @@ export async function extractCardStatement(
     });
 
     try {
-      const resp = await fetch(FUNCTION_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(ANON_KEY ? { Authorization: `Bearer ${ANON_KEY}`, apikey: ANON_KEY } : {}),
-        },
-        body: JSON.stringify({ pages: batch, ...options }),
-        signal,
+      const { data, error } = await supabase.functions.invoke("extract-card-statement", {
+        body: { pages: batch, ...options },
       });
-      const data = await resp.json();
+      if (signal?.aborted) throw new Error("aborted");
+      if (error) {
+        errors.push(`Batch failed: ${describeFunctionError(error)}`);
+        processed += batch.length;
+        continue;
+      }
+      if (!data || typeof data !== "object") {
+        errors.push("Batch failed: OCR service returned an empty response");
+        processed += batch.length;
+        continue;
+      }
       if (Array.isArray(data?.transactions)) allTx.push(...data.transactions);
       if (Array.isArray(data?.errors)) errors.push(...data.errors);
       if (data?.meta && typeof data.meta === "object") {
