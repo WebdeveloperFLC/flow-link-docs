@@ -3,119 +3,37 @@
 
 export type EntityCode = "CA" | "US" | "IN" | "AE";
 
-export const MONTHLY_DATA = [
-  { month: "Nov-23", revenue: 340000, expenses: 228000, gross: 112000 },
-  { month: "Dec-23", revenue: 290000, expenses: 198000, gross: 92000 },
-  { month: "Jan-24", revenue: 410000, expenses: 267000, gross: 143000 },
-  { month: "Feb-24", revenue: 395000, expenses: 251000, gross: 144000 },
-  { month: "Mar-24", revenue: 448000, expenses: 289000, gross: 159000 },
-  { month: "Apr-24", revenue: 421000, expenses: 274000, gross: 147000 },
-  { month: "May-24", revenue: 467000, expenses: 301000, gross: 166000 },
-  { month: "Jun-24", revenue: 438000, expenses: 285000, gross: 153000 },
-  { month: "Jul-24", revenue: 492000, expenses: 318000, gross: 174000 },
-  { month: "Aug-24", revenue: 478000, expenses: 309000, gross: 169000 },
-  { month: "Sep-24", revenue: 461000, expenses: 295000, gross: 166000 },
-  { month: "Oct-24", revenue: 416000, expenses: 271000, gross: 145000 },
-] as const;
+export const MONTHLY_DATA: ReadonlyArray<{ month: string; revenue: number; expenses: number; gross: number }> = [];
 
-export const ENTITY_DATA = [
-  { entity: "Canada HQ", revenue: 2100000, expenses: 1380000, profit: 720000, margin: 34.3, country: "CA", currency: "CAD", flag: "🇨🇦" },
-  { entity: "USA Corp", revenue: 1400000, expenses: 924000, profit: 476000, margin: 34.0, country: "US", currency: "USD", flag: "🇺🇸" },
-  { entity: "India Pvt Ltd", revenue: 980000, expenses: 637000, profit: 343000, margin: 35.0, country: "IN", currency: "INR", flag: "🇮🇳" },
-  { entity: "Future Link Academy", revenue: 520000, expenses: 338000, profit: 182000, margin: 35.0, country: "IN", currency: "INR", flag: "🇮🇳" },
-  { entity: "Future Link UAE", revenue: 320000, expenses: 214000, profit: 106000, margin: 33.1, country: "AE", currency: "AED", flag: "🇦🇪" },
-] as const;
+export const ENTITY_DATA: ReadonlyArray<{ entity: string; revenue: number; expenses: number; profit: number; margin: number; country: string; currency: string; flag: string }> = [];
 
 export type PLLine = { code: string; name: string; current: number; prior: number };
 
 export const PL_DATA = {
-  revenue: [
-    { code: "4000", name: "Consulting & visa fees", current: 1840000, prior: 1560000 },
-    { code: "4100", name: "Coaching revenue — IELTS/TOEFL/PTE", current: 980000, prior: 820000 },
-    { code: "4200", name: "Language training revenue", current: 620000, prior: 490000 },
-    { code: "4300", name: "Study abroad packages", current: 480000, prior: 380000 },
-    { code: "4400", name: "Accommodation & ancillary", current: 180000, prior: 140000 },
-    { code: "4500", name: "Other income", current: 72000, prior: 58000 },
-  ] as PLLine[],
-  costOfRevenue: [
-    { code: "5010", name: "University liaison fees", current: 280000, prior: 240000 },
-    { code: "5020", name: "Exam slot booking costs", current: 180000, prior: 155000 },
-    { code: "5030", name: "Visa filing costs", current: 145000, prior: 122000 },
-    { code: "5040", name: "Translation & attestation", current: 62000, prior: 48000 },
-  ] as PLLine[],
-  operatingExpenses: [
-    { code: "5000", name: "Salaries & wages", current: 820000, prior: 740000 },
-    { code: "5100", name: "Rent & utilities", current: 384000, prior: 356000 },
-    { code: "5200", name: "Travel & transport", current: 142000, prior: 118000 },
-    { code: "5300", name: "Technology & software", current: 98000, prior: 82000 },
-    { code: "5400", name: "Marketing & advertising", current: 124000, prior: 96000 },
-    { code: "5500", name: "Professional fees", current: 68000, prior: 54000 },
-    { code: "5600", name: "Bank charges", current: 18000, prior: 16000 },
-    { code: "5700", name: "Insurance", current: 24000, prior: 22000 },
-    { code: "5800", name: "Depreciation", current: 36000, prior: 32000 },
-    { code: "5900", name: "Miscellaneous", current: 28000, prior: 24000 },
-  ] as PLLine[],
-  taxExpense: 186000,
-  priorTaxExpense: 152000,
+  revenue: [] as PLLine[],
+  costOfRevenue: [] as PLLine[],
+  operatingExpenses: [] as PLLine[],
+  taxExpense: 0,
+  priorTaxExpense: 0,
 };
 
 export const BS_DATA = {
   assets: {
-    current: [
-      { code: "1000", name: "Cash & equivalents", amount: 328000 },
-      { code: "1100", name: "Bank accounts — total", amount: 590000 },
-      { code: "1200", name: "Accounts receivable", amount: 620000 },
-      { code: "1300", name: "Prepaid expenses", amount: 48000 },
-      { code: "1400", name: "Other current assets", amount: 32000 },
-    ],
-    nonCurrent: [
-      { code: "1500", name: "Office equipment (net)", amount: 124000 },
-      { code: "1600", name: "Furniture & fixtures", amount: 68000 },
-      { code: "1700", name: "Security deposits", amount: 180000 },
-      { code: "1800", name: "Intangible assets", amount: 42000 },
-    ],
+    current: [] as { code: string; name: string; amount: number }[],
+    nonCurrent: [] as { code: string; name: string; amount: number }[],
   },
   liabilities: {
-    current: [
-      { code: "2000", name: "Accounts payable", amount: 284000 },
-      { code: "2100", name: "GST/HST payable", amount: 124000 },
-      { code: "2200", name: "TDS payable", amount: 48000 },
-      { code: "2300", name: "Accrued expenses", amount: 86000 },
-      { code: "2400", name: "Deferred revenue", amount: 142000 },
-    ],
-    nonCurrent: [
-      { code: "2500", name: "Security deposits received", amount: 36000 },
-      { code: "2600", name: "Loans payable", amount: 280000 },
-    ],
+    current: [] as { code: string; name: string; amount: number }[],
+    nonCurrent: [] as { code: string; name: string; amount: number }[],
   },
-  equity: [
-    { code: "3000", name: "Share capital", amount: 500000 },
-    { code: "3100", name: "Retained earnings", amount: 324000 },
-    { code: "3200", name: "Current year profit", amount: 208000 },
-  ],
+  equity: [] as { code: string; name: string; amount: number }[],
 };
 
 export const CF_DATA = {
-  operating: [
-    { label: "Net profit", amount: 208000 },
-    { label: "Add: Depreciation", amount: 36000 },
-    { label: "(Increase) in accounts receivable", amount: -124000 },
-    { label: "Increase in accounts payable", amount: 48000 },
-    { label: "Increase in deferred revenue", amount: 62000 },
-    { label: "(Decrease) in tax payable", amount: -18000 },
-    { label: "Other operating changes", amount: 14000 },
-  ],
-  investing: [
-    { label: "Purchase of equipment", amount: -68000 },
-    { label: "Security deposits paid", amount: -24000 },
-    { label: "Proceeds from asset disposal", amount: 12000 },
-  ],
-  financing: [
-    { label: "Loan repayments", amount: -60000 },
-    { label: "Capital introduced", amount: 100000 },
-    { label: "Drawings", amount: -48000 },
-  ],
-  openingCash: 480000,
+  operating: [] as { label: string; amount: number }[],
+  investing: [] as { label: string; amount: number }[],
+  financing: [] as { label: string; amount: number }[],
+  openingCash: 0,
 };
 
 // Indicative rates — converts native currencies to CAD for the consolidated view
