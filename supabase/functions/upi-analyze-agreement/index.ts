@@ -81,6 +81,8 @@ Deno.serve(async (req) => {
     const aiJson = await aiRes.json();
     const toolCall = aiJson.choices?.[0]?.message?.tool_calls?.[0];
     const data = toolCall ? JSON.parse(toolCall.function.arguments) : { model_type: "fixed", rules: [] };
+    const confidence = (toolCall && Array.isArray(data.rules) && data.rules.length > 0) ? 95 : 60;
+    (data as any).confidence = confidence;
 
     const { data: comm } = await supabase.from("upi_commissions").insert({
       institution_id, agreement_id,
@@ -106,10 +108,10 @@ Deno.serve(async (req) => {
       title: `Commission proposed from "${ag.title}"`,
       description: `Model: ${data.model_type} · ${(data.rules ?? []).length} rules`,
       suggestion_data: data,
-      confidence: 80,
+      confidence,
     });
 
-    return new Response(JSON.stringify({ ok: true, commission_id: comm?.id }), {
+    return new Response(JSON.stringify({ ok: true, commission_id: comm?.id, agreement_id, confidence }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
