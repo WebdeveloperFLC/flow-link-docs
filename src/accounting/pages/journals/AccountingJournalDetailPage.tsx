@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Decimal from "decimal.js";
-import { Check, FileText, Plus, Send, X } from "lucide-react";
+import { Check, FileText, Plus, Send, Trash2, X } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,7 +15,8 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import { formatCurrency } from "../../lib/format";
-import { MOCK_JOURNALS, Journal, AccountType } from "../../data/mockJournals";
+import { Journal, AccountType } from "../../data/mockJournals";
+import { useJournals, updateJournal, deleteJournal } from "../../stores/journalsStore";
 
 const ACCOUNT_COLOR: Record<AccountType, string> = {
   ASSET: 'text-blue-600',
@@ -37,9 +38,10 @@ function fmtDate(s?: string) {
 export default function AccountingJournalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const initial = MOCK_JOURNALS.find(j => j.id === id);
-  const [entry, setEntry] = useState<Journal | undefined>(initial);
+  const journals = useJournals();
+  const entry = journals.find(j => j.id === id);
   const [voidOpen, setVoidOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const totals = useMemo(() => {
     if (!entry) return { dr: 0, cr: 0 };
@@ -65,13 +67,21 @@ export default function AccountingJournalDetailPage() {
   }
 
   const confirmVoid = () => {
-    setEntry(prev => prev ? {
-      ...prev, status: 'VOIDED',
+    if (!entry) return;
+    updateJournal(entry.id, {
+      status: 'VOIDED',
       voidedAt: new Date().toISOString(),
       voidReason: 'Voided from detail view',
-    } : prev);
+    });
     toast.success(`${entry.entryNumber} voided`);
     setVoidOpen(false);
+  };
+
+  const confirmDelete = () => {
+    if (!entry) return;
+    deleteJournal(entry.id);
+    toast.success(`${entry.entryNumber} deleted`);
+    navigate('/accounting/journals');
   };
 
   return (
@@ -99,6 +109,13 @@ export default function AccountingJournalDetailPage() {
               Void
             </Button>
           )}
+          <Button
+            variant="ghost"
+            className="text-destructive"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="w-4 h-4 mr-1" /> Delete
+          </Button>
         </div>
       </div>
 
@@ -237,6 +254,26 @@ export default function AccountingJournalDetailPage() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Void
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete journal entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Permanently remove {entry.entryNumber}? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
