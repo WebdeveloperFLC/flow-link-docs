@@ -50,9 +50,24 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
-  const [docKind, setDocKind] = useState<
-    "program_sheet" | "agreement" | "commission_sheet" | "brochure" | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"
-  >("program_sheet");
+  type DocKind =
+    | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
+    | "promotion_campaign" | "invoice_template" | "renewal_document" | "other";
+  const [docKind, setDocKind] = useState<DocKind | "">("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [suggestedKind, setSuggestedKind] = useState<DocKind | null>(null);
+
+  const guessKindFromName = (name: string): DocKind | null => {
+    const n = name.toLowerCase();
+    if (/agreement|contract|\braa\b|\bmoa\b|\bmou\b/.test(n)) return "agreement";
+    if (/commission|payout|tariff/.test(n)) return "commission_sheet";
+    if (/invoice/.test(n)) return "invoice_template";
+    if (/renewal/.test(n)) return "renewal_document";
+    if (/program|course|prospect/.test(n)) return "program_sheet";
+    if (/brochure|flyer/.test(n)) return "brochure";
+    if (/promo|campaign|offer/.test(n)) return "promotion_campaign";
+    return null;
+  };
   const [askPrompt, setAskPrompt] = useState("");
   const [askAnswer, setAskAnswer] = useState("");
   const [asking, setAsking] = useState(false);
@@ -155,6 +170,10 @@ export default function InstitutionDetailPage() {
   };
 
   const uploadDoc = async (file: File) => {
+    if (!docKind) {
+      toast.error("Pick a document type first");
+      return;
+    }
     setBusy(true);
     const path = `${id}/${Date.now()}-${file.name}`;
     const { error: upErr } = await supabase.storage.from("institution-documents").upload(path, file);
@@ -344,11 +363,15 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="documents">
             <Card className="p-6 mb-4">
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
+                Uploading to: <span className="font-semibold">{inst.name}</span>
+                <span className="text-muted-foreground"> · {inst.country_name ?? "—"}</span>
+              </div>
               <div className="flex items-end gap-3 mb-4">
                 <div className="space-y-1 w-64">
                   <label className="text-xs text-muted-foreground">Document type</label>
-                  <Select value={docKind} onValueChange={(v) => setDocKind(v as any)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                  <Select value={docKind} onValueChange={(v) => { setDocKind(v as DocKind); setSuggestedKind(null); }}>
+                    <SelectTrigger><SelectValue placeholder="Pick a document type…" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="program_sheet">Program sheet (extract programs)</SelectItem>
                       <SelectItem value="agreement">Agreement</SelectItem>
@@ -362,15 +385,42 @@ export default function InstitutionDetailPage() {
                   </Select>
                 </div>
                 <p className="text-xs text-muted-foreground flex-1">
-                  {docKind === "program_sheet"
+                  {!docKind
+                    ? "Pick a document type — this controls how AI processes the file."
+                    : docKind === "program_sheet"
                     ? "AI will extract every program and stage them for review."
                     : "AI will extract structured fields and surface as suggestions."}
                 </p>
               </div>
-              <label className="block border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/40">
+              {suggestedKind && suggestedKind !== docKind && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
+                  <span>
+                    Filename suggests <span className="font-semibold">{suggestedKind}</span>
+                    {docKind ? <> — currently picked <span className="font-semibold">{docKind}</span>.</> : "."}
+                  </span>
+                  <Button size="sm" variant="outline" onClick={() => { setDocKind(suggestedKind); setSuggestedKind(null); }}>
+                    Switch to {suggestedKind}
+                  </Button>
+                </div>
+              )}
+              <label className={`block border-2 border-dashed rounded-lg p-8 text-center ${docKind ? "cursor-pointer hover:bg-muted/40" : "opacity-60 cursor-not-allowed"}`}>
                 <Upload className="size-6 mx-auto mb-2 text-muted-foreground" />
-                <div className="text-sm">Click or drop a file to upload</div>
-                <input type="file" className="hidden" onChange={(e) => e.target.files?.[0] && uploadDoc(e.target.files[0])} disabled={busy} />
+                <div className="text-sm">{docKind ? "Click or drop a file to upload" : "Pick a document type above first"}</div>
+                <input
+                  type="file"
+                  className="hidden"
+                  disabled={busy || !docKind}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    const guess = guessKindFromName(f.name);
+                    if (guess && guess !== docKind) {
+                      setSuggestedKind(guess);
+                    }
+                    uploadDoc(f);
+                    e.target.value = "";
+                  }}
+                />
               </label>
             </Card>
             <div className="space-y-2">
