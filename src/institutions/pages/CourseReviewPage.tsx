@@ -113,8 +113,8 @@ export default function CourseReviewPage() {
     setSelected(s);
   };
   const toggleAll = () => {
-    if (selected.size === rows.length) setSelected(new Set());
-    else setSelected(new Set(rows.map((r) => r.id)));
+    if (selected.size === visibleRows.length) setSelected(new Set());
+    else setSelected(new Set(visibleRows.map((r) => r.id)));
   };
   const selectedIds = Array.from(selected);
 
