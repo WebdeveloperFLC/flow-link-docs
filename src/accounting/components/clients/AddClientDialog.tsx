@@ -31,11 +31,11 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
   const [phone, setPhone] = useState("");
   const [taxId, setTaxId] = useState("");
 
-  const [counselorId, setCounselorId] = useState<string>(MOCK_STAFF[0].id);
-  const [servicePackage, setServicePackage] = useState<string>(SERVICE_PACKAGES[0]);
-  const [visaCategory, setVisaCategory] = useState<string>(VISA_CATEGORIES[0]);
-  const [intake, setIntake] = useState<string>(INTAKES[2]);
-  const [leadSource, setLeadSource] = useState<string>(LEAD_SOURCES[0]);
+  const [counselorId, setCounselorId] = useState<string>(MOCK_STAFF[0]?.id ?? "");
+  const [servicePackage, setServicePackage] = useState<string>(SERVICE_PACKAGES[0] ?? "");
+  const [visaCategory, setVisaCategory] = useState<string>(VISA_CATEGORIES[0] ?? "");
+  const [intake, setIntake] = useState<string>(INTAKES[2] ?? INTAKES[0] ?? "");
+  const [leadSource, setLeadSource] = useState<string>(LEAD_SOURCES[0] ?? "");
   const [paymentTerms, setPaymentTerms] = useState<string>("DUE_ON_RECEIPT");
   const [notes, setNotes] = useState("");
 
