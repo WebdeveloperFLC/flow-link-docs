@@ -20,8 +20,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import {
-  MOCK_DOCUMENTS, MockDocument, OCRStatus, ExtractedData,
+  MockDocument, OCRStatus, ExtractedData,
 } from "../../data/mockDocuments";
+import {
+  useDocuments, updateDocument, deleteDocument, getDocumentFile,
+} from "../../stores/documentsStore";
+import { extractCardStatement, mapToCardStatementLines } from "../../lib/extractCardStatement";
 import { MOCK_ACCOUNTS } from "../../data/mockJournals";
 
 const ENTITIES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
@@ -36,7 +40,7 @@ type FilterMode = 'all' | 'review' | 'complete' | 'failed';
 
 export default function AccountingOCRPage() {
   const navigate = useNavigate();
-  const [docs, setDocs] = useState<MockDocument[]>(MOCK_DOCUMENTS);
+  const docs = useDocuments();
   const [filter, setFilter] = useState<FilterMode>('all');
   const [index, setIndex] = useState(0);
   // Field edits keyed by doc id
@@ -96,22 +100,86 @@ export default function AccountingOCRPage() {
   const back = () => setIndex(i => Math.max(0, i - 1));
 
   const removeFromQueue = (msg: string) => {
-    setDocs(prev => prev.map(d =>
-      d.id === current.id ? { ...d, approvalStatus: confirm === 'reject' ? 'REJECTED' : 'PENDING', ocrStatus: 'COMPLETE' } : d
-    ));
-    // simply hide it from the working queue
-    setDocs(prev => prev.filter(d => d.id !== current.id));
+    if (confirm === 'reject') {
+      updateDocument(current.id, { approvalStatus: 'REJECTED', ocrStatus: 'COMPLETE' });
+    } else {
+      // mark as duplicate then drop
+      deleteDocument(current.id);
+    }
     setIndex(i => Math.min(i, Math.max(0, queue.length - 2)));
     toast.success(msg);
     setConfirm(null);
   };
 
-  const reRunOCR = () => {
-    setDocs(prev => prev.map(d => d.id === current.id ? { ...d, ocrStatus: 'PROCESSING' as OCRStatus } : d));
-    setTimeout(() => {
-      setDocs(prev => prev.map(d => d.id === current.id ? { ...d, ocrStatus: 'COMPLETE' as OCRStatus } : d));
-      toast.success('OCR re-processing complete');
-    }, 2000);
+  const reRunOCR = async () => {
+    const file = getDocumentFile(current.id);
+    if (!file) {
+      toast.error('Original file is no longer in session. Please re-upload to re-extract.');
+      return;
+    }
+    updateDocument(current.id, { ocrStatus: 'PROCESSING' as OCRStatus });
+    try {
+      const result = await extractCardStatement(file, {});
+      if (!result.success || result.transactions.length === 0) {
+        updateDocument(current.id, {
+          ocrStatus: 'FAILED',
+          ocrError: result.errors?.[0] ?? 'No transactions found',
+        });
+        toast.error('OCR re-run failed');
+        return;
+      }
+      updateDocument(current.id, {
+        ocrStatus: 'COMPLETE',
+        docType: 'BANK_STATEMENT',
+        extracted: {
+          vendorName: result.meta.cardHolderName || 'Bank statement',
+          invoiceNumber: result.meta.cardLast4 ? `••${result.meta.cardLast4}` : undefined,
+          invoiceDate: result.meta.statementFrom,
+          dueDate: result.meta.statementTo,
+          subtotal: result.meta.openingBalance,
+          totalAmount: result.meta.closingBalance,
+          currency: result.meta.currency || 'CAD',
+          confidence: 0.9,
+        },
+        lineItems: result.transactions,
+      });
+      toast.success(`Re-extracted ${result.transactions.length} transactions`);
+    } catch (e) {
+      updateDocument(current.id, {
+        ocrStatus: 'FAILED',
+        ocrError: e instanceof Error ? e.message : 'Extraction failed',
+      });
+      toast.error('OCR re-run failed');
+    }
+  };
+
+  const sendToCardReconciliation = () => {
+    if (!current.lineItems || current.lineItems.length === 0) {
+      toast.error('No extracted transactions to send');
+      return;
+    }
+    const lines = mapToCardStatementLines(
+      current.lineItems,
+      current.extracted?.currency || 'CAD',
+    );
+    try {
+      sessionStorage.setItem(
+        'pending-card-statement',
+        JSON.stringify({
+          docId: current.id,
+          filename: current.filename,
+          meta: {
+            statementFrom: current.extracted?.invoiceDate,
+            statementTo: current.extracted?.dueDate,
+            openingBalance: current.extracted?.subtotal,
+            closingBalance: current.extracted?.totalAmount,
+            currency: current.extracted?.currency || 'CAD',
+          },
+          lines,
+        }),
+      );
+    } catch {}
+    navigate('/accounting/card-reconciliation/new');
   };
 
   return (
@@ -147,6 +215,30 @@ export default function AccountingOCRPage() {
         </Card>
 
         {ext && <ConfidenceBanner confidence={conf} />}
+
+        {current.lineItems && current.lineItems.length > 0 && (
+          <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 flex items-center gap-3 mb-3 dark:bg-indigo-500/10 dark:border-indigo-500/30">
+            <FileText className="w-4 h-4 text-indigo-600 flex-shrink-0" />
+            <div className="flex-1 text-sm text-indigo-900 dark:text-indigo-200">
+              <span className="font-medium">{current.lineItems.length} transactions</span> extracted from this statement
+              {current.extracted?.invoiceDate && current.extracted?.dueDate && (
+                <> · {current.extracted.invoiceDate} → {current.extracted.dueDate}</>
+              )}
+            </div>
+            <Button size="sm" onClick={sendToCardReconciliation}>
+              Send to Card reconciliation
+            </Button>
+          </div>
+        )}
+
+        {current.ocrStatus === 'FAILED' && current.ocrError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 flex items-start gap-2 mb-3 dark:bg-red-500/10 dark:border-red-500/30">
+            <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
+            <span className="text-sm text-red-900 dark:text-red-300">
+              Extraction failed: {current.ocrError}
+            </span>
+          </div>
+        )}
 
         {ext?.isDuplicateSuspected && (
           <div className="bg-amber-50 border border-amber-300 rounded-lg p-2.5 flex items-center gap-2 mb-3 dark:bg-amber-500/10 dark:border-amber-500/30">

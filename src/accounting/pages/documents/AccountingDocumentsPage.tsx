@@ -21,7 +21,8 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
-import { MOCK_DOCUMENTS, MockDocument, OCRStatus, ApprovalStatus, DocType } from "../../data/mockDocuments";
+import { MockDocument, OCRStatus, ApprovalStatus, DocType } from "../../data/mockDocuments";
+import { useDocuments, updateDocument, deleteDocument } from "../../stores/documentsStore";
 
 const ENTITIES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
 const DOC_TYPES: DocType[] = [
@@ -73,7 +74,7 @@ function entryNumberOf(jid: string) {
 
 export default function AccountingDocumentsPage() {
   const navigate = useNavigate();
-  const [docs, setDocs] = useState<MockDocument[]>(MOCK_DOCUMENTS);
+  const docs = useDocuments();
   const [search, setSearch] = useState('');
   const [docType, setDocType] = useState('all');
   const [entity, setEntity] = useState('all');
@@ -110,10 +111,10 @@ export default function AccountingDocumentsPage() {
   const doConfirm = () => {
     if (!confirm) return;
     if (confirm.kind === 'reject') {
-      setDocs(prev => prev.map(d => d.id === confirm.doc.id ? { ...d, approvalStatus: 'REJECTED' } : d));
+      updateDocument(confirm.doc.id, { approvalStatus: 'REJECTED' });
       toast.success(`${confirm.doc.filename} rejected`);
     } else {
-      setDocs(prev => prev.filter(d => d.id !== confirm.doc.id));
+      deleteDocument(confirm.doc.id);
       toast.success(`${confirm.doc.filename} deleted`);
     }
     setConfirm(null);

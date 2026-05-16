@@ -1,94 +1,65 @@
-Tighten the AI auto-fill flow in `AccountingCardReconciliationNewPage.tsx` so the four meta fields the extractor returns (`statementFrom`, `statementTo`, `openingBalance`, `closingBalance`) reliably populate the Step 1 form, and make it obvious to the user which values came from AI vs. were typed manually. **Only this single page file is modified.** No edge function, store, or type changes.
+## What's actually happening (root cause)
 
-## Problems with the current behavior
+You uploaded the TD Canada Trust PDF on **Accounting → Documents → Upload**. The progress bar finished and you saw "uploaded successfully", but **no record appears anywhere** — not in Recent uploads, Document library, or OCR queue.
 
-1. `statementFrom` / `statementTo` are only written when the field is empty (`if (... && !fromDate) setFromDate(...)`). But Step 0 validation already requires both dates before the user can reach Step 1's PDF uploader, so the dates are *always* non-empty and the AI value is *always* discarded.
-2. Opening / closing balances overwrite silently with no signal — the user can't tell which numbers came from AI.
-3. The user is on Step 1 (Import) when extraction runs, so they don't see the Step 0 fields change. They need a clear "AI filled these for you" cue plus a way to jump back and review.
-4. No undo / no per-field highlight — risky for an accounting workflow where wrong opening balances cascade into a wrong journal.
+Reason: the entire upload flow is a **front-end mock**. In `src/accounting/pages/documents/AccountingUploadPage.tsx` the "Upload all" handler only animates a progress bar in local component state and never writes the file anywhere. All three Documents pages then read from the same seed array `MOCK_DOCUMENTS = []` (in `src/accounting/data/mockDocuments.ts`), so any uploaded file is forgotten the moment the toast appears.
 
-## Changes (single file)
+Files involved:
+- `src/accounting/data/mockDocuments.ts` — seed array is empty; no store.
+- `src/accounting/pages/documents/AccountingUploadPage.tsx` — fake `setInterval` "upload"; reads `MOCK_DOCUMENTS` for Recent uploads.
+- `src/accounting/pages/documents/AccountingDocumentsPage.tsx` — library reads `MOCK_DOCUMENTS`.
+- `src/accounting/pages/documents/AccountingOCRPage.tsx` — review queue reads `MOCK_DOCUMENTS`.
 
-`src/accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage.tsx`
+Nothing was wrong with the PDF or the AI extractor — the file simply was never persisted.
 
-### 1. Track which fields are AI-populated
+## Fix
 
-Add one state:
-```ts
-type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
-const [aiMetaFields, setAiMetaFields] = useState<Set<AiMetaField>>(new Set());
-```
+Make uploads actually persist (localStorage-backed) and, for PDF statements, automatically run them through the existing AI extractor (`src/accounting/lib/extractCardStatement.ts`) so the record shows up populated everywhere — Recent uploads, Library, and OCR review queue.
 
-Also keep the pre-AI values so the user can revert:
-```ts
-const [aiMetaPrev, setAiMetaPrev] = useState<Partial<Record<AiMetaField, string>>>({});
-```
+### Files added
 
-### 2. Rewrite the meta merge in `handlePdfFile`
+1. **`src/accounting/stores/documentsStore.ts`** — new
+   - Built on existing `createPersistedStore` (`_persist.ts`) — same pattern as `cardReconciliationStore`, `intercompanyStore`, etc.
+   - Storage key: `accounting:documents:v1`.
+   - Holds `MockDocument[]` (reusing existing type from `mockDocuments.ts`).
+   - Exports: `useDocuments()`, `getDocuments()`, `addDocument(input)`, `updateDocument(id, patch)`, `deleteDocument(id)`, plus an optional `pushExtractedLines(docId, lines)` helper for handing data to card reconciliation.
+   - Records file metadata only (name, size, type, mime). The raw PDF bytes are *not* stored in localStorage — too large. We keep a transient in-memory `Map<string, File>` so the OCR page can re-render / re-process the file during the same session; after page refresh the metadata + extracted JSON survive, the original blob does not (we tell the user this in a small inline note).
 
-Replace the current "only if empty" block with an always-overwrite-when-AI-has-it block, recording prev values and marking the field:
+### Files modified (3 page files + 1 mock file)
 
-- For each of `statementFrom`, `statementTo`, `openingBalance`, `closingBalance`, `currency`: if AI returned a value AND it differs from current → snapshot prev value, set the new value, add field to `aiMetaFields`.
-- Reset `aiMetaFields` / `aiMetaPrev` at the start of each extraction so re-uploading a different PDF starts fresh.
+2. **`src/accounting/data/mockDocuments.ts`**
+   - Keep the type exports as-is. No structural changes.
 
-### 3. Clear the AI marker on manual edit
+3. **`src/accounting/pages/documents/AccountingUploadPage.tsx`**
+   - Replace the fake `setInterval` "upload" with a real handler:
+     - For each queued file: call `addDocument({ filename, fileType, fileSizeKB, docType: 'OTHER', ocrStatus: 'PENDING', approvalStatus: 'PENDING', entity, uploadedBy, uploadedAt: now, tags: [] })`. We still animate progress for UX, but the record is created up-front.
+     - If `fileType === 'pdf'` → immediately mark `ocrStatus = 'PROCESSING'`, then call `extractCardStatement(file)` (the proven path already used by Card reconciliation). On success: set `ocrStatus = 'COMPLETE'`, populate `extracted` with `{ vendorName: cardHolderName ?? "Bank statement", invoiceDate: meta.statementFrom, dueDate: meta.statementTo, subtotal: meta.openingBalance, totalAmount: meta.closingBalance, currency: meta.currency, confidence: 0.9 }`, and stash transactions on the doc via `extracted.lineItems` (extend `ExtractedData` with an optional `lineItems?: ExtractedTransaction[]`). Also auto-set `docType: 'BANK_STATEMENT'`. On failure: `ocrStatus = 'FAILED'` + capture error.
+     - For non-PDF: leave `ocrStatus = 'PENDING'`.
+   - "Recent uploads" reads from `useDocuments()` merged with `MOCK_DOCUMENTS` (still empty, but kept for shape compatibility) and sorts by `uploadedAt` desc.
 
-Each of the four `onChange` handlers in Step 0 wraps a small helper:
-```ts
-const clearAiFlag = (f: AiMetaField) => {
-  if (!aiMetaFields.has(f)) return;
-  setAiMetaFields(prev => { const n = new Set(prev); n.delete(f); return n; });
-};
-```
-Call it inside the `onChange` for From date, To date, Opening, Closing, Currency.
+4. **`src/accounting/pages/documents/AccountingDocumentsPage.tsx`**
+   - Replace `useState<MockDocument[]>(MOCK_DOCUMENTS)` with `const docs = useDocuments()` so the library reflects real uploads. Local mutating UI (status changes etc.) routes through `updateDocument`.
 
-### 4. Visual highlight in Step 0
+5. **`src/accounting/pages/documents/AccountingOCRPage.tsx`**
+   - Same swap: read from `useDocuments()` instead of seeding state from `MOCK_DOCUMENTS`. All mutations (`reRunOCR`, approve, reject) go through `updateDocument` / `deleteDocument`.
+   - For a `BANK_STATEMENT` PDF with extracted `lineItems`, add a button **"Send to Card reconciliation"** that pushes the doc + lines into the existing card-reconciliation new flow via `sessionStorage` key `pending-card-statement` and navigates to `/accounting/card-reconciliation/new`. (The card-reconciliation page already accepts `CardStatementLine[]`; a thin reader at the top of `AccountingCardReconciliationNewPage.tsx` will pick it up if present — additive only.)
+   - Re-run OCR for a PDF actually re-invokes `extractCardStatement` if the original `File` blob is still in the in-memory map; otherwise shows "Original file not in session — please re-upload to re-extract."
 
-Add a small reusable wrapper (inline JSX, no new file):
-```tsx
-function AiFieldWrap({ active, onRevert, prev, children }) { ... }
-```
-When `active`:
-- `Label` shows a small inline `Sparkles` icon + amber-tinted badge `AI` (use existing `Badge variant="secondary"` with `className="bg-amber-100 text-amber-800 border-amber-200"` — already-used token style in this codebase).
-- The wrapped `Input` gets `className="ring-2 ring-amber-300 focus-visible:ring-amber-400"` via `cn(...)`.
-- Below the input: tiny muted line "AI-filled from PDF · was: {prev} · [Revert]" where Revert calls `setX(prev)` then `clearAiFlag(f)`.
+### What you'll see after the fix
 
-Apply wrapper to From date, To date, Opening balance, Closing balance, Currency.
+- Drop the TD Canada Trust PDF on Upload centre → progress completes → a record appears immediately in **Recent uploads**, **Document library**, and **OCR review queue**.
+- For PDFs, after a few seconds the OCR badge flips from Processing → Complete and the extracted statement period + opening/closing balances + transaction count are visible on the document.
+- Click **Send to Card reconciliation** on the document to pre-fill the card-reconciliation wizard with all extracted lines (same flow as uploading the PDF directly inside that wizard).
 
-### 5. Banner in Step 1 (after extraction) and Step 2
+### Scope guardrails
 
-After a successful extraction, show a callout card above the existing AI summary:
-
-```
-✨ AI also filled in your card details
-   Statement period · Opening · Closing · Currency
-   [Review card details] ← jumps back to Step 0
-```
-
-The `[Review card details]` button calls `setStep(0)`. After review the user clicks Continue to return — existing step flow already supports that.
-
-Also add the same compact summary at the top of Step 2 (Categorise) so it's visible during review.
-
-### 6. Step 3 (Generate journal) confirmation
-
-In the existing review summary, render the four meta values with the same amber `AI` badge if `aiMetaFields` still contains that field at post time, so the auditor can see which numbers came from extraction.
-
-### 7. Safety guardrails
-
-- If AI opening/closing differ from manually-entered values by more than a trivial amount, show a small "Was {prev} — replaced by AI" hint (already covered by the Revert affordance).
-- Validate that opening/closing are finite numbers before assigning (`Number.isFinite(meta.openingBalance)`).
-- Currency: only overwrite if AI returns a non-empty 3-letter code; never wipe to empty.
-
-## Technical notes
-
-- Pure React state additions; no new dependencies.
-- No changes to `extractCardStatement.ts`, edge function, store, or types.
-- Tailwind classes use existing semantic + neutral palette (amber for "AI" affordance is consistent with the existing `aiSummary` blue banner pattern; we keep blue for the "extracted N transactions" banner and use amber strictly for the meta-fields callout so the two are distinct).
-- Aborted / failed extractions don't touch any meta field or marker set.
-- Re-uploading a PDF resets the marker set before applying new values.
-
-## Out of scope
-
-- No changes to line-level AI highlighting (already implemented via `aiLineIds`).
 - No CRM, Commission, or other accounting pages touched.
-- No store or schema changes.
+- No edge function changes — reuses the existing `extract-card-statement` function.
+- No new npm packages.
+- Existing `MockDocument` / `ExtractedData` types extended only by an optional `lineItems?` field.
+- Card-reconciliation pages get one tiny additive read at mount; no rewrites.
+
+### Out of scope (call out if you want them later)
+
+- Persisting raw PDF bytes across sessions (would require Lovable Cloud Storage). Today metadata + extracted data persist; the original file is session-scoped.
+- A real backend documents table with RLS.
