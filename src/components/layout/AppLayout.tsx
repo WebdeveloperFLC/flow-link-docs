@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -52,6 +52,12 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant" },
   { to: "/accounting/settings/entities", icon: Building2, label: "Entities" },
   { to: "/accounting/settings/users", icon: UserCog, label: "Users & roles" },
+];
+
+const institutionsNav: NavItem[] = [
+  { to: "/institutions", icon: School, label: "Institutions", end: true },
+  { to: "/institutions/review", icon: ListChecks, label: "Course Review" },
+  { to: "/institutions/suggestions", icon: Lightbulb, label: "AI Suggestions" },
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
@@ -119,6 +125,29 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               ))}
             </>
           )}
+
+          <div className="border-t border-sidebar-border my-2" />
+          <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+            Institutions
+          </div>
+          {institutionsNav.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
+                )
+              }
+            >
+              <item.icon className="size-4" />
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
 
         <div className="p-3 border-t border-sidebar-border space-y-2">
