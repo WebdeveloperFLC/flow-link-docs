@@ -5,9 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, AlertTriangle, Trash2 } from "lucide-react";
 import { DynamicFieldGroup } from "./DynamicFieldGroup";
 import { useAgreements, useRenewalCountdown, renewalThreshold } from "../hooks/useInstitutionData";
+import { ALLOW_TEST_DELETIONS } from "../config";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function CountdownChip({ validTo }: { validTo?: string | null }) {
   const days = useRenewalCountdown(validTo);
@@ -19,10 +22,18 @@ function CountdownChip({ validTo }: { validTo?: string | null }) {
 }
 
 export function AgreementsPanel({ institutionId }: { institutionId: string }) {
-  const { data: agreements, loading } = useAgreements(institutionId);
+  const { data: agreements, loading, reload } = useAgreements(institutionId) as any;
   const [view, setView] = useState<any | null>(null);
   const [edit, setEdit] = useState<any | null>(null);
   const [versions, setVersions] = useState<any | null>(null);
+
+  const deleteAgreement = async (a: any) => {
+    if (!confirm(`Delete agreement "${a.title}"?\n\nThis is irreversible.`)) return;
+    const { error } = await supabase.from("upi_agreements").delete().eq("id", a.id);
+    if (error) return toast.error(error.message);
+    toast.success("Agreement deleted");
+    reload?.();
+  };
 
   const sorted = useMemo(
     () => [...agreements].sort((a: any, b: any) => (a.valid_to ?? "").localeCompare(b.valid_to ?? "")),
@@ -38,6 +49,9 @@ export function AgreementsPanel({ institutionId }: { institutionId: string }) {
       {sorted.map((a: any) => {
         const ext = a.extracted_data ?? {};
         const countries = Array.isArray(ext.countries_allowed) ? ext.countries_allowed.join(", ") : "—";
+        const validation = ext.validation as
+          | { missing_fields?: string[]; low_confidence_fields?: string[]; notes?: string[]; needs_review?: boolean }
+          | undefined;
         return (
           <Card key={a.id} className="p-4">
             <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -55,6 +69,35 @@ export function AgreementsPanel({ institutionId }: { institutionId: string }) {
                   <div className="text-sm mt-2 bg-muted/40 rounded p-2 border border-border/50">
                     <span className="text-xs uppercase tracking-wider text-muted-foreground mr-2">AI summary</span>
                     {ext.ai_summary}
+                  </div>
+                )}
+                {validation?.needs_review && (
+                  <div className="text-sm mt-2 rounded p-2 border border-amber-300 bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-800">
+                    <div className="flex items-center gap-2 font-medium">
+                      <AlertTriangle className="size-4" /> Extraction needs review
+                    </div>
+                    {(validation.missing_fields?.length ?? 0) > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <span className="text-xs uppercase tracking-wider opacity-70 mr-1">Missing</span>
+                        {validation.missing_fields!.map((f) => (
+                          <Badge key={f} variant="outline" className="border-amber-400 text-amber-900 dark:text-amber-200">{f}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {(validation.low_confidence_fields?.length ?? 0) > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        <span className="text-xs uppercase tracking-wider opacity-70 mr-1">Low confidence</span>
+                        {validation.low_confidence_fields!.map((f) => (
+                          <Badge key={f} variant="outline" className="border-amber-400 text-amber-900 dark:text-amber-200">{f}</Badge>
+                        ))}
+                      </div>
+                    )}
+                    {(validation.notes?.length ?? 0) > 0 && (
+                      <ul className="mt-1 list-disc pl-5 text-xs">
+                        {validation.notes!.map((n, i) => <li key={i}>{n}</li>)}
+                      </ul>
+                    )}
+                    <div className="mt-1 text-xs opacity-80">Use "Edit dynamic fields" to fill the missing items.</div>
                   </div>
                 )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs">
@@ -76,6 +119,11 @@ export function AgreementsPanel({ institutionId }: { institutionId: string }) {
                   <DropdownMenuItem onClick={() => setView({ ...a, _focus: "ai" })}>Extract AI summary</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setView({ ...a, _focus: "renewal" })}>Renewal review</DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setVersions(a)}>Version history</DropdownMenuItem>
+                  {ALLOW_TEST_DELETIONS && (
+                    <DropdownMenuItem onClick={() => deleteAgreement(a)} className="text-destructive focus:text-destructive">
+                      <Trash2 className="size-4 mr-2" /> Delete agreement
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
