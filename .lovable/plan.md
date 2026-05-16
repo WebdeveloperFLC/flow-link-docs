@@ -1,74 +1,111 @@
-# Update Agreement Seed Data — Future Link Consultants Inc. RAA Format
+# Claims Export + Planned Client→Institution Bridge
 
-Replace existing seed agreements for all 6 institutions with the canonical Recruitment Agency Agreement structure used by Future Link Consultants Inc. Only agreements, agreement_versions, related ai_suggestions, and the agreement-classified documents change. No UI, routing, schema, or other seed data is touched.
+## Status
+- Part 1 (export): build now, fully active.
+- Part 2 (bridge): scaffold dormant, no triggers fire, no existing behavior changes.
+- Part 3 (docs): written alongside the dormant code.
 
-## Scope
+---
 
-Affects only these tables (data-level, via `supabase--insert`):
-- `upi_agreements` — replace 18 existing rows (3 per institution) with 6 canonical rows
-- `upi_agreement_versions` — repopulate (1 row per institution, +1 extra for Fanshawe = 7 rows)
-- `upi_ai_suggestions` — delete existing `suggestion_type='renewal'` rows and reinsert the 4 specified
-- `upi_uploaded_documents` — delete existing agreement-classified rows and insert 6 new ones
-- `upi_extraction_results` — delete rows tied to old agreement docs and insert 10 entities per new agreement doc (60 total)
+## Part 1 — Claims tab export buttons
 
-Out of scope (untouched): commissions, commission rules, claim cycles, invoices, students, promotions, campaigns, sources, courses, and all other AI suggestion types. No code/UI changes.
+All changes confined to `src/institutions/components/ClaimsPanel.tsx` plus one new helper file. No new npm packages — use `window.print()` for PDF and a tiny CSV builder.
 
-## Operation order
+### 1.1 New helper: `src/institutions/lib/claimsExport.ts`
+- `buildClaimCsv(cycle, students, institution)` — returns CSV string with the exact 19 columns specified.
+- `downloadCsv(filename, csv)` — Blob + anchor download.
+- `filenameForClaim(institution, term, date)` — `FLC_Claim_[Institution]_[Term]_[YYYY-MM-DD].csv` (spaces → `_`).
+- `formatCAD(n)` helper for consistent currency formatting.
 
-1. `DELETE` dependent rows first to avoid FK breakage:
-   - `upi_extraction_results` for agreement docs
-   - `upi_uploaded_documents` where classification.type ~ agreement
-   - `upi_agreement_versions`
-   - `upi_ai_suggestions WHERE suggestion_type = 'renewal'`
-   - `upi_agreements` (CASCADE-safe since commissions reference agreements; **keep existing commission→agreement IDs intact** by reusing one of the existing agreement IDs per institution — see "ID strategy" below)
+### 1.2 New components (inside ClaimsPanel or co-located)
+- **`PrintableClaim`** — hidden by default (`hidden print:block`), rendered into a dedicated print root. Contains:
+  - FLC header (name, 5 Vandorf Street address, phone, email, website)
+  - Institution name + address (from agreement metadata)
+  - Cycle name + term
+  - Eligible students table: Name | Program | Intake | Tuition | Rate | Amount | Status
+  - Blocked students section with reason badges
+  - Carried-forward section
+  - Totals (eligible, blocked, total CAD)
+  - Invoice summary block when an invoice exists for the cycle
+- **`PrintableInvoice`** — hidden print-only invoice with FLC header, Bill-To, invoice meta, line items, subtotal, HST note (0 — international commission), total, payment instructions pulled from agreement `extracted_data.payment_terms`, footer.
 
-2. `INSERT` new rows with the exact values from the spec.
+### 1.3 Print CSS
+Add a small `@media print` block in `src/index.css` (scoped via classes — does not affect screen):
+- `body * { visibility: hidden }` then `.fl-print-root, .fl-print-root *  { visibility: visible }`
+- Hide app chrome via `.print\\:hidden` Tailwind utility on header/sidebar wrappers is already available — we just rely on the print root being absolutely positioned at top-left and everything else hidden.
+- A4 page margins, table borders, no background colors except header band.
 
-## ID strategy (preserves commissions linkage)
+A single shared `printElement(rootId)` helper sets a body class, calls `window.print()`, then clears it on `afterprint`.
 
-Existing commissions reference `a1aaaaaa-...-000N00000001` (the Main Recruitment Agreement) per institution. The new canonical RAA per institution will **reuse those same IDs** so `upi_commissions.agreement_id` stays valid. The other two old IDs (`a2…`, `a3…`) are deleted.
+### 1.4 Buttons added to Claims tab
+Per cycle card header (right-aligned button group, sm size, outline variant):
+- **Print** → renders `PrintableClaim` for that cycle then `window.print()`.
+- **Download CSV** → calls `buildClaimCsv` + `downloadCsv`.
+- **Download PDF** → same flow as Print (browser print → Save as PDF). Tooltip clarifies.
 
-## Row contents (high level)
+Per invoice row:
+- **Download Invoice PDF** → renders `PrintableInvoice` then `window.print()`.
 
-### upi_agreements (6 rows)
-Per institution, fields populated exactly as specified:
-- `title = 'Recruitment Agency Agreement'`
-- `agreement_type = 'commission'`
-- `valid_from`, `valid_to`, `status`, `signed_date`, `signed_by_institution`, `signed_by_us`
-- `renewal_reminder_days` set to align with each "X days to renewal" hint (60 default; 30 for George Brown/Conestoga/Centennial)
-- `notes` = "Agent Contract RAA {YEAR} - Future Link Consultants Inc."
-- `extracted_data` jsonb contains every key in the spec plus `ai_summary` (2 sentences as specified)
-- `metadata` jsonb includes agency and institution contact blocks (address, phone, website, agent email, signing authority + email)
+All buttons are additive; existing Generate Invoice / Mark Paid actions untouched.
 
-### upi_agreement_versions
-- 1 row per institution → "v1 — Current active version" pointing to active RAA
-- Fanshawe extra row → "v1 — Expired 2022 pilot agreement (2020-01-01 → 2021-12-31)" with change_summary describing replacement
+---
 
-### upi_ai_suggestions (4 rows, exactly as specified)
-George Brown CRITICAL, Conestoga 45-day, Centennial 45-day, Fanshawe expired-501-days. `confidence`, `title`, `description`, `institution_id`, `suggestion_type='renewal'`, `status='pending'`.
+## Part 2 — Dormant Client→Institution bridge
 
-### upi_uploaded_documents (6 rows)
-One per institution with:
-- `file_name = 'Agent_Contract_RAA_{YEAR}_{Institution}_FLC.pdf'`
-- `file_type='pdf'`, `confidence_score=94`, `review_status='approved'`, `is_processed=true`
-- `classification` jsonb as specified
-- `raw_text` = 2–3 sentence summary of the agreement's key terms (rate, validity, governing law)
-- `metadata.linked_agreement_id` = the agreement ID for that institution
+### 2.1 New file `src/institutions/planned/clientIntegrationBridge.ts`
+TypeScript module, fully typed, **never imported by runtime code**. Contains:
+- File-level banner comment: `PLANNED — NOT ACTIVE. Do not import from runtime.`
+- Type defs for the 5 trigger event payloads (VisaApproved, TuitionPaid, ApplicationSubmitted, ConsentFormSubmitted, StudentDeferred).
+- `matchClientToCommissionStudent(clientId)` with priority order (passport → email → name+institution+intake → student_id_at_institution). Returns match or logs `match_failed`.
+- Five handler stubs: `onVisaApproved`, `onTuitionPaid`, `onApplicationSubmitted`, `onConsentFormSubmitted`, `onStudentDeferred` — each starts with `// TODO(activation):` and `if (!BRIDGE_ENABLED) return;` (constant exported as `false`).
+- Eligibility checker `evaluateCommissionEligibility(student)` returning the boolean checklist from the spec.
+- Each function has a JSDoc block describing its trigger, action, and AI-suggestion message template.
 
-### upi_extraction_results (60 rows = 10 per doc)
-The 10 entity_type/entity_value/confidence triples per spec, each linked to the corresponding document.
+### 2.2 Dormant Supabase functions
+A migration file `supabase/migrations/<ts>_planned_bridge_functions.sql` creating four PL/pgSQL functions: `on_visa_approved`, `on_tuition_paid`, `on_application_submitted`, `on_consent_form_submitted`. Each body wrapped in `IF false THEN ... END IF;` and prefixed with `-- PLANNED: Enable after testing complete`. **No triggers attached** to any table.
 
-## Technical notes
+### 2.3 `clients` table planned columns (safe nullable adds)
+Same migration adds nullable columns to existing `public.clients`:
+- `linked_institution_id uuid REFERENCES upi_institutions(id) ON DELETE SET NULL`
+- `linked_student_record_id uuid REFERENCES upi_commission_students(id) ON DELETE SET NULL`
+- `institution_student_id text`
+- `consent_form_submitted boolean`
+- `consent_form_date date`
+- `study_permit_number text`
+- `study_permit_approved_date date`
+- `study_permit_expiry date`
 
-- All inserts use deterministic UUIDs derived from the institution slot (1–6) so re-runs are idempotent.
-- `created_by` for ai_suggestions = `'ai_extractor'` (matches existing pattern in seed data).
-- No schema migration needed — every required column already exists on the target tables (verified via information_schema).
-- AI summary text is plain English, 2 sentences, no Lorem ipsum, mentions both commission rate/model and expiry urgency.
+All `ADD COLUMN IF NOT EXISTS`, all nullable, no defaults that change behavior, no triggers.
 
-## Verification after apply
+### 2.4 Manual "Link to Client" UI stub
+In ClaimsPanel student row: small `Link2` icon button + label "Link to Client". Wired to a `Tooltip` reading "Coming soon — manual linking UI in development". No modal, no handler — disabled visual state only.
 
-Run two `SELECT` checks:
-1. `SELECT institution_id, title, status, valid_to FROM upi_agreements ORDER BY institution_id` → expect 6 rows, all titled "Recruitment Agency Agreement".
-2. `SELECT institution_id, suggestion_type, title FROM upi_ai_suggestions WHERE suggestion_type='renewal'` → expect the 4 specified.
+### 2.5 Dashboard indicator card
+Add to `OverviewPanel.tsx` (or the existing institution dashboard grid) a greyed-out card:
+- Title: "Client → Commission Sync"
+- Subtitle: "Auto-sync planned — manual linking active"
+- Badge: "In Development" (muted variant)
+- No click handler, opacity-60, dashed border to signal placeholder.
 
-Then visit `/institutions/<id>` Agreements tab for each institution to confirm the panel renders the new agreement (the existing `AgreementsPanel` already reads from `upi_agreements` and surfaces `extracted_data.ai_summary`, governing law, deadlines, sub-agent flag — no UI change needed).
+---
+
+## Part 3 — Documentation
+
+Create `src/institutions/planned/INTEGRATION_PLAN.md` with the exact content from the user's spec (overview, activation checklist, data flow diagram, field-mapping table, manual-override section).
+
+---
+
+## Files touched
+- New: `src/institutions/lib/claimsExport.ts`
+- New: `src/institutions/planned/clientIntegrationBridge.ts`
+- New: `src/institutions/planned/INTEGRATION_PLAN.md`
+- New migration: `supabase/migrations/<ts>_planned_bridge_functions.sql` (dormant funcs + nullable `clients` columns)
+- Edit: `src/institutions/components/ClaimsPanel.tsx` (export buttons, printable components, Link-to-Client stub)
+- Edit: `src/institutions/components/OverviewPanel.tsx` (dormant indicator card)
+- Edit: `src/index.css` (print media block scoped to `.fl-print-root`)
+
+## Safety guarantees
+- No changes to existing claim/invoice logic, mutations, or RPC calls.
+- No triggers attached; dormant functions are no-ops (`IF false`).
+- New `clients` columns are nullable with no defaults — zero behavioral impact.
+- No new npm dependencies.

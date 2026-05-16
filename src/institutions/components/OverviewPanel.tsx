@@ -64,6 +64,16 @@ export function OverviewPanel({ institutionId }: { institutionId: string }) {
         <UpcomingDeadlines agreements={agreements} cycles={cycles} />
       </div>
 
+      <Card className="p-4 border-dashed opacity-60">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <div className="text-sm font-semibold">Client → Commission Sync</div>
+            <div className="text-xs text-muted-foreground">Auto-sync planned — manual linking active</div>
+          </div>
+          <Badge variant="outline">In Development</Badge>
+        </div>
+      </Card>
+
       <AiHighlights suggestions={suggestions} />
     </div>
   );
