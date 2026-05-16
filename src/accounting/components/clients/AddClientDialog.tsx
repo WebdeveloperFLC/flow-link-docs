@@ -11,10 +11,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES, CLIENT_TYPE_LABEL,
+  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES,
 } from "../../data/mockStaff";
 import { addClient } from "../../stores/clientsStore";
 import type { Client, ClientType } from "../../types/clients";
+import DynamicSelect from "../shared/DynamicSelect";
 
 interface Props {
   open: boolean;
@@ -24,7 +25,7 @@ interface Props {
 
 export default function AddClientDialog({ open, onOpenChange, onCreated }: Props) {
   const [name, setName] = useState("");
-  const [clientType, setClientType] = useState<ClientType>("STUDENT");
+  const [clientType, setClientType] = useState<string>("STUDENT");
   const [country, setCountry] = useState("CA");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,7 +36,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
   const [visaCategory, setVisaCategory] = useState<string>(VISA_CATEGORIES[0]);
   const [intake, setIntake] = useState<string>(INTAKES[2]);
   const [leadSource, setLeadSource] = useState<string>(LEAD_SOURCES[0]);
-  const [paymentTerms, setPaymentTerms] = useState<string>("Due on receipt");
+  const [paymentTerms, setPaymentTerms] = useState<string>("DUE_ON_RECEIPT");
   const [notes, setNotes] = useState("");
 
   const handleSave = () => {
@@ -45,7 +46,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
       id: `c-${Date.now()}`,
       name, legalName: name,
       segment: clientType === "CORPORATE" ? "ENTERPRISE" : "INDIVIDUAL",
-      clientType,
+      clientType: clientType as ClientType,
       country, taxId: taxId || "—",
       paymentTerms,
       currency: country === "CA" ? "CAD" : country === "US" ? "USD" : "INR",
