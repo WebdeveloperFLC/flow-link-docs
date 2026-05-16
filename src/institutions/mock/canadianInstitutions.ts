@@ -56,8 +56,7 @@ export const mockAgreements: MockAgreement[] = [
 ];
 
 // Additional agreements covering expiring / expired / draft states + more institutions
-export const mockAgreementsExtended: MockAgreement[] = [
-  ...mockAgreements,
+const _agreementsExtra: MockAgreement[] = [
   {
     id: "mock-agr-centennial",
     institution_id: "mock-inst-centennial",
@@ -117,8 +116,7 @@ export const mockAgreementsExtended: MockAgreement[] = [
   },
 ];
 
-export const mockCommissionsExtended: MockCommission[] = [
-  ...mockCommissions,
+const _commissionsExtra: MockCommission[] = [
   {
     id: "mock-com-centennial",
     institution_id: "mock-inst-centennial",
@@ -149,8 +147,7 @@ export const mockCommissionsExtended: MockCommission[] = [
   },
 ];
 
-export const mockCommissionRulesExtended: MockCommissionRule[] = [
-  ...mockCommissionRules,
+const _commissionRulesExtra: MockCommissionRule[] = [
   { id: "r4", commission_id: "mock-com-centennial", rule_name: "Per-student flat", rule_type: "fixed", payout_amount: 2200, payout_type: "fixed", payout_currency: "CAD" },
   { id: "r5", commission_id: "mock-com-centennial", rule_name: "Bangladesh country bonus", rule_type: "country_bonus", payout_amount: 300, payout_type: "fixed", condition_field: "country", condition_operator: "=", condition_value: "Bangladesh", payout_currency: "CAD" },
   { id: "r6", commission_id: "mock-com-fanshawe", rule_name: "Slab 1-20", rule_type: "slab_tier", payout_amount: 10, payout_type: "percentage", min_value: 1, max_value: 20, payout_currency: "CAD" },
@@ -158,22 +155,19 @@ export const mockCommissionRulesExtended: MockCommissionRule[] = [
   { id: "r8", commission_id: "mock-com-seneca", rule_name: "May intake bonus (alt)", rule_type: "bonus", payout_amount: 1.5, payout_type: "percentage", condition_field: "intake", condition_operator: "=", condition_value: "May", payout_currency: "CAD" },
 ];
 
-export const mockClaimCyclesExtended: MockClaimCycle[] = [
-  ...mockClaimCycles,
+const _claimCyclesExtra: MockClaimCycle[] = [
   { id: "cc-4", institution_id: "mock-inst-centennial", period_label: "Fall 2025", intake: "September 2025", status: "submitted", claim_due_date: "2025-11-30", invoice_due_date: "2025-12-30", total_expected: 56000, total_received: 0, currency: "CAD" },
   { id: "cc-5", institution_id: "mock-inst-fanshawe", period_label: "Winter 2025", intake: "January 2025", status: "disputed", claim_due_date: "2025-03-30", invoice_due_date: "2025-04-30", total_expected: 22000, total_received: 8000, currency: "CAD" },
   { id: "cc-6", institution_id: "mock-inst-seneca", period_label: "Summer 2026", intake: "May 2026", status: "open", claim_due_date: "2026-07-15", invoice_due_date: "2026-08-15", total_expected: 98000, total_received: 0, currency: "CAD" },
 ];
 
-export const mockInvoicesExtended: MockInvoice[] = [
-  ...mockInvoices,
+const _invoicesExtra: MockInvoice[] = [
   { id: "inv-3", institution_id: "mock-inst-centennial", claim_cycle_id: "cc-4", invoice_no: "FLC-2025-0140", amount: 56000, currency: "CAD", status: "sent", sent_at: "2025-12-01T00:00:00Z" },
   { id: "inv-4", institution_id: "mock-inst-fanshawe", claim_cycle_id: "cc-5", invoice_no: "FLC-2025-0050", amount: 8000, currency: "CAD", status: "paid", sent_at: "2025-04-01T00:00:00Z", paid_at: "2025-05-10T00:00:00Z" },
   { id: "inv-5", institution_id: "mock-inst-fanshawe", claim_cycle_id: "cc-5", invoice_no: "FLC-2025-0051", amount: 14000, currency: "CAD", status: "disputed", sent_at: "2025-04-15T00:00:00Z" },
 ];
 
-export const mockPromotionsExtended: MockPromotion[] = [
-  ...mockPromotions,
+const _promotionsExtra: MockPromotion[] = [
   { id: "promo-3", institution_id: "mock-inst-centennial", title: "Bangladesh bonus +CAD 300", promo_type: "bonus_commission", valid_from: "2026-01-01", valid_to: "2026-12-31", target_countries: ["Bangladesh"], is_active: true, auto_detected: true },
   { id: "promo-4", institution_id: "mock-inst-fanshawe", title: "September intake offer", promo_type: "intake_offer", valid_from: "2026-06-01", valid_to: "2026-09-30", target_countries: ["India"], is_active: false, auto_detected: false },
 ];
