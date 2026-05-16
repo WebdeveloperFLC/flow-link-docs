@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -48,6 +48,8 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR" },
   { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals" },
   { to: "/accounting/reports", icon: BarChart2, label: "Reports" },
+  { to: "/accounting/reports/trial-balance", icon: Scale, label: "Trial balance" },
+  { to: "/accounting/reports/general-ledger", icon: BookOpen, label: "General ledger" },
   { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance" },
   { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit" },
   { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation" },
