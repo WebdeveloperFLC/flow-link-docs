@@ -7962,6 +7962,7 @@ export type Database = {
         | "viewer"
         | "telecaller"
         | "client"
+        | "commission_admin"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
       assessment_lead_source: "invite" | "referral" | "existing_client"
       assessment_session_status:
@@ -8138,6 +8139,7 @@ export const Constants = {
         "viewer",
         "telecaller",
         "client",
+        "commission_admin",
       ],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: ["invite", "referral", "existing_client"],
