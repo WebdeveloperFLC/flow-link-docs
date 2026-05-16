@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Upload, FileText, Image as ImageIcon, FileSpreadsheet,
-  CheckCircle, X,
+  CheckCircle, X, Info,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import { MockDocument, OCRStatus } from "../../data/mockDocuments";
 import {
   addDocument, updateDocument, useDocuments,
 } from "../../stores/documentsStore";
-import { extractCardStatement } from "../../lib/extractCardStatement";
 
 type QStatus = 'queued' | 'uploading' | 'complete' | 'error';
 interface QFile {
@@ -47,6 +46,7 @@ const OCR_BADGE: Record<OCRStatus, { cls: string; label: string; pulse?: boolean
   PROCESSING: { cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', label: 'Processing', pulse: true },
   COMPLETE: { cls: 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300', label: 'Complete' },
   FAILED: { cls: 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400', label: 'Failed' },
+  MANUAL: { cls: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300', label: 'Manual entry' },
 };
 
 function OCRBadge({ status }: { status: OCRStatus }) {
@@ -115,7 +115,7 @@ export default function AccountingUploadPage() {
           fileType: q.type,
           fileSizeKB: q.sizeKB,
           docType: isPdf ? 'BANK_STATEMENT' : 'OTHER',
-          ocrStatus: (isPdf ? 'PROCESSING' : 'PENDING') as OCRStatus,
+          ocrStatus: 'PENDING' as OCRStatus,
           approvalStatus: 'PENDING',
           entity: 'Canada HQ',
           uploadedBy: 'You',
@@ -124,41 +124,7 @@ export default function AccountingUploadPage() {
         },
         q.file,
       );
-
-      // 3. For PDFs, kick off the real AI extraction in the background.
-      if (isPdf) {
-        extractCardStatement(q.file, {})
-          .then((result) => {
-            if (!result.success || result.transactions.length === 0) {
-              updateDocument(created.id, {
-                ocrStatus: 'FAILED',
-                ocrError: result.errors?.[0] ?? 'No transactions found in PDF',
-              });
-              return;
-            }
-            updateDocument(created.id, {
-              ocrStatus: 'COMPLETE',
-              docType: 'BANK_STATEMENT',
-              extracted: {
-                vendorName: result.meta.cardHolderName || 'Bank statement',
-                invoiceNumber: result.meta.cardLast4 ? `••${result.meta.cardLast4}` : undefined,
-                invoiceDate: result.meta.statementFrom,
-                dueDate: result.meta.statementTo,
-                subtotal: result.meta.openingBalance,
-                totalAmount: result.meta.closingBalance,
-                currency: result.meta.currency || 'CAD',
-                confidence: 0.9,
-              },
-              lineItems: result.transactions,
-            });
-          })
-          .catch((err) => {
-            updateDocument(created.id, {
-              ocrStatus: 'FAILED',
-              ocrError: err instanceof Error ? err.message : 'Extraction failed',
-            });
-          });
-      }
+      void created;
     });
 
     // 4. After all bars finish, surface the success card.
@@ -214,6 +180,16 @@ export default function AccountingUploadPage() {
               {['PDF', 'JPG', 'PNG', 'XLSX', 'CSV'].map(t => (
                 <span key={t} className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full">{t}</span>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6 border-blue-200 bg-blue-50/50 dark:border-blue-500/30 dark:bg-blue-500/5">
+          <CardContent className="p-4 flex gap-3">
+            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm space-y-1.5 text-blue-900 dark:text-blue-100">
+              <p><strong>Bank statements:</strong> Upload here to store a record, then use "Send to Card Reconciliation" to extract transactions automatically with AI.</p>
+              <p><strong>Invoices &amp; receipts:</strong> Upload here and use "Pre-fill AP Bill" or "Pre-fill Journal Entry" to auto-populate forms.</p>
             </div>
           </CardContent>
         </Card>
