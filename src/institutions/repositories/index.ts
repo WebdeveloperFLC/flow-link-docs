@@ -10,126 +10,145 @@ import {
 } from "../mock/canadianInstitutions";
 import { mockStudents, mockPayments } from "../mock/students";
 import { mockCampaigns, mockSources, mockSuggestions } from "../mock/campaigns";
+import {
+  getInstitutionRecords,
+  pickMockTemplate,
+  rekeyToInstitution,
+} from "../lib/scope";
 
 /**
- * Repository layer. Live Supabase rows always take precedence.
- * Mock data is only used to seed empty results during demo/dev,
- * and is never merged with real rows.
+ * Repository layer.
+ *
+ * Rules:
+ *  - Live DB rows are strictly scoped by institution_id and ALWAYS win when present.
+ *  - When no live rows exist AND USE_MOCK_DATA is on, seed a single deterministic
+ *    template (per institution id) rekeyed to that institution. Never merge or
+ *    leak rows across institutions.
+ *  - Otherwise return [] so the UI shows its empty state.
  */
 
-async function liveOrMock<T>(live: PromiseLike<T[]>, mock: T[]): Promise<T[]> {
+async function fetchLiveScoped<T extends { institution_id?: string | null }>(
+  table: string,
+  institutionId: string | undefined,
+  order?: { col: string; ascending?: boolean },
+): Promise<T[]> {
+  if (!institutionId) return [];
   try {
-    const rows = await live;
-    if (rows.length > 0) return rows;
+    let q = supabase.from(table as any).select("*").eq("institution_id", institutionId);
+    if (order) q = q.order(order.col, { ascending: order.ascending ?? false });
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []) as T[];
   } catch {
-    // fall through to mock
+    return [];
   }
-  if (USE_MOCK_DATA) return mock;
-  return [];
 }
 
-/**
- * When DB returns no rows for a real institution id, we still want the demo
- * tabs to be testable. Mock IDs (`mock-inst-*`) won't match real UUIDs, so
- * fall back to ALL mock rows when filtering by-institution yields nothing.
- */
-function mockForInst<T extends { institution_id?: string | null }>(rows: T[], institutionId?: string) {
-  if (!institutionId) return rows;
-  const filtered = rows.filter((r) => r.institution_id === institutionId);
-  return filtered.length > 0 ? filtered : rows;
+function seedFromTemplate<T extends { institution_id?: string | null }>(
+  institutionId: string | undefined,
+  allMock: T[],
+): T[] {
+  if (!institutionId || !USE_MOCK_DATA) return [];
+  const templateId = pickMockTemplate(institutionId);
+  const templateRows = getInstitutionRecords(templateId, allMock);
+  return rekeyToInstitution(templateRows, institutionId);
+}
+
+async function scopedListOrSeed<T extends { institution_id?: string | null }>(
+  table: string,
+  institutionId: string | undefined,
+  allMock: T[],
+  order?: { col: string; ascending?: boolean },
+): Promise<T[]> {
+  const live = await fetchLiveScoped<T>(table, institutionId, order);
+  if (live.length > 0) return live;
+  return seedFromTemplate(institutionId, allMock);
 }
 
 // --- Agreements
 export const agreementsRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_agreements")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockAgreements, institutionId) as any[]);
-  },
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_agreements", institutionId, mockAgreements, { col: "created_at" }),
 };
 
-// --- Commissions
+// --- Commissions (+ rules)
 export const commissionsRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_commissions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockCommissions, institutionId) as any[]);
-  },
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_commissions", institutionId, mockCommissions, { col: "created_at" }),
   async rules(commissionIds: string[]) {
     if (commissionIds.length === 0) return [];
-    const live = supabase
-      .from("upi_commission_rules")
-      .select("*")
-      .in("commission_id", commissionIds)
-      .then((r) => {
-        if (r.error) throw r.error;
-        return r.data ?? [];
-      });
-    const liveRows = await live;
-    if (liveRows.length > 0) return liveRows as any[];
+    try {
+      const { data, error } = await supabase
+        .from("upi_commission_rules")
+        .select("*")
+        .in("commission_id", commissionIds);
+      if (error) throw error;
+      if ((data ?? []).length > 0) return data as any[];
+    } catch {
+      // fall through to mock
+    }
     if (!USE_MOCK_DATA) return [];
+    // Mock rules use mock commission ids; since seedFromTemplate preserves
+    // commission ids for the chosen template, this in-keeps the snapshot.
     return mockCommissionRules.filter((r) => commissionIds.includes(r.commission_id)) as any[];
   },
 };
 
 // --- Claim cycles
 export const claimCyclesRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_claim_cycles")
-      .select("*")
-      .order("claim_due_date", { ascending: true })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockClaimCycles, institutionId) as any[]);
-  },
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_claim_cycles", institutionId, mockClaimCycles, { col: "claim_due_date", ascending: true }),
 };
 
 // --- Invoices
 export const invoicesRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_invoices")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockInvoices, institutionId) as any[]);
-  },
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_invoices", institutionId, mockInvoices, { col: "created_at" }),
 };
 
 // --- Promotions
 export const promotionsRepo = {
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_promotions", institutionId, mockPromotions, { col: "created_at" }),
+};
+
+// --- Campaigns
+export const campaignsRepo = {
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_marketing_campaigns", institutionId, mockCampaigns as any[], { col: "created_at" }),
+};
+
+// --- AI suggestions
+export const suggestionsRepo = {
+  list: (institutionId?: string) =>
+    scopedListOrSeed<any>("upi_ai_suggestions", institutionId, mockSuggestions as any[], { col: "created_at" }),
+};
+
+// --- Sources (mock-only fallback)
+export const sourcesMockRepo = {
   async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_promotions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockPromotions, institutionId) as any[]);
+    if (!USE_MOCK_DATA || !institutionId) return [];
+    return seedFromTemplate(institutionId, mockSources);
   },
 };
 
-// --- Renewal alerts
+// --- Students (mock-only)
+export const studentsRepo = {
+  async list(institutionId?: string) {
+    if (!USE_MOCK_DATA || !institutionId) return [];
+    return seedFromTemplate(institutionId, mockStudents);
+  },
+};
+
+// --- Payments (mock-only, not institution-scoped)
+export const paymentsRepo = {
+  async list() {
+    if (!USE_MOCK_DATA) return [];
+    return mockPayments;
+  },
+};
+
+// --- Renewal alerts (live only — filtered by agreement ids)
 export const renewalAlertsRepo = {
   async list(agreementIds?: string[]) {
     let q = supabase.from("upi_renewal_alerts").select("*").eq("status", "pending");
@@ -140,7 +159,7 @@ export const renewalAlertsRepo = {
   },
 };
 
-// --- Document pipeline events
+// --- Document pipeline events (live only — scoped per document)
 export const pipelineRepo = {
   async listByDocument(documentId: string) {
     const { data, error } = await supabase
@@ -150,59 +169,5 @@ export const pipelineRepo = {
       .order("created_at", { ascending: true });
     if (error) throw error;
     return data ?? [];
-  },
-};
-
-// --- Students (mock-only for now)
-export const studentsRepo = {
-  async list(institutionId?: string) {
-    if (!USE_MOCK_DATA) return [];
-    return institutionId ? mockForInst(mockStudents, institutionId) : mockStudents;
-  },
-};
-
-// --- Payments (mock-only)
-export const paymentsRepo = {
-  async list() {
-    if (!USE_MOCK_DATA) return [];
-    return mockPayments;
-  },
-};
-
-// --- Campaigns
-export const campaignsRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_marketing_campaigns")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockCampaigns as any[], institutionId));
-  },
-};
-
-// --- Sources mock fallback (only used when DB has none)
-export const sourcesMockRepo = {
-  async list(institutionId?: string) {
-    if (!USE_MOCK_DATA) return [];
-    return mockForInst(mockSources, institutionId);
-  },
-};
-
-// --- AI suggestions
-export const suggestionsRepo = {
-  async list(institutionId?: string) {
-    const live = supabase
-      .from("upi_ai_suggestions")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .then((r) => {
-        if (r.error) throw r.error;
-        return (institutionId ? (r.data ?? []).filter((d: any) => d.institution_id === institutionId) : (r.data ?? [])) as any[];
-      });
-    return liveOrMock(live, mockForInst(mockSuggestions as any[], institutionId));
   },
 };
