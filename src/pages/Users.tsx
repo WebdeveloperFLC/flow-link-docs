@@ -233,7 +233,12 @@ const Users = () => {
         </Card>
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
-          <p>Roles control access: <b>Administrator</b> manages everything · <b>Edit</b> users can add clients, upload documents and fill all details · <b>Viewer</b> is read-only. Users only see clients they own, are assigned to, or have been shared via team or per-client access.</p>
+          <p>
+            <b>Administrator</b> manages the CRM (clients, documents, telephony, institutions, settings) but <b>does not</b> see Accounting or Commissions.{" "}
+            <b>Commission admin</b> manages commissions, claims, agreements and invoicing.{" "}
+            <b>Accounting</b> access is managed separately in <code>/accounting/settings/users</code>.{" "}
+            <b>Edit</b> users add clients/documents · <b>Viewer</b> is read-only. Per-section overrides via the <b>Module access</b> action.
+          </p>
         </div>
       </div>
       <Dialog open={!!resetUser} onOpenChange={(o) => { if (!o) setResetUser(null); }}>
