@@ -490,10 +490,15 @@ export default function AccountingCardReconciliationNewPage() {
                         </td>
                         <td className="p-2">
                           {l.category === "BUSINESS" && (
-                            <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
-                              <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="…" /></SelectTrigger>
-                              <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
-                            </Select>
+                            <div className="flex items-center gap-1">
+                              <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
+                                <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="…" /></SelectTrigger>
+                                <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
+                              </Select>
+                              {aiLineIds.has(l.id) && (
+                                <span title="Suggested by AI" className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold">AI</span>
+                              )}
+                            </div>
                           )}
                         </td>
                         <td className="p-2">
