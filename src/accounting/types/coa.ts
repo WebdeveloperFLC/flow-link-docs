@@ -15,16 +15,25 @@ export interface AccountType {
   system?: boolean;
 }
 
+export interface AccountSubType {
+  code: string;
+  label: string;
+  typeCode: string;
+  system?: boolean;
+}
+
 export interface CoaAccount {
   id: string;
   code: string;
   name: string;
   groupCode: string;
   typeCode: string;
+  subTypeCode?: string | null;
   parentId: string | null;
   currency: string;
   entityId: string | null; // null = all entities
   taxCode?: string | null;
+  normalBalance?: AccountNature;
   openingBalance: number;
   currentBalance: number;
   status: CoaAccountStatus;
@@ -38,10 +47,12 @@ export interface CoaAccountInput {
   name: string;
   groupCode: string;
   typeCode: string;
+  subTypeCode?: string | null;
   parentId: string | null;
   currency: string;
   entityId: string | null;
   taxCode?: string | null;
+  normalBalance?: AccountNature;
   openingBalance: number;
   status: CoaAccountStatus;
   description?: string;
