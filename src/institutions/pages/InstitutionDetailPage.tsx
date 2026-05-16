@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen } from "lucide-react";
+import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen, Send, MessageSquarePlus } from "lucide-react";
 import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
+import { RunCampaignDialog } from "../components/RunCampaignDialog";
 
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
@@ -32,6 +34,16 @@ export default function InstitutionDetailPage() {
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
+  const [docKind, setDocKind] = useState<"program_sheet" | "agreement" | "commission_sheet" | "brochure">("program_sheet");
+  const [askPrompt, setAskPrompt] = useState("");
+  const [askAnswer, setAskAnswer] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
+
+  const INSTITUTION_TYPES = [
+    "Public University", "Private University", "Public College", "Private College",
+    "Polytechnic", "Community College", "Language School", "Pathway Provider", "Other",
+  ];
 
   const load = async () => {
     const [i, s, d, a, c, p, mc, sg] = await Promise.all([
@@ -128,10 +140,19 @@ export default function InstitutionDetailPage() {
     if (upErr) { setBusy(false); return toast.error(upErr.message); }
     const { data: doc, error: dErr } = await supabase.from("upi_uploaded_documents").insert({
       institution_id: id, file_name: file.name, file_path: path, file_size_bytes: file.size, mime_type: file.type,
+      metadata: { doc_kind: docKind },
     }).select().single();
     if (dErr) { setBusy(false); return toast.error(dErr.message); }
     toast.success("Uploaded — processing…");
-    await supabase.functions.invoke("upi-process-document", { body: { document_id: doc!.id, institution_id: id } });
+    if (docKind === "program_sheet") {
+      const { data, error } = await supabase.functions.invoke("upi-extract-programs-from-doc", {
+        body: { document_id: doc!.id, institution_id: id },
+      });
+      if (error) toast.error(error.message);
+      else toast.success(`Extracted ${(data as any)?.found ?? 0} program(s) — review in Course Review`);
+    } else {
+      await supabase.functions.invoke("upi-process-document", { body: { document_id: doc!.id, institution_id: id } });
+    }
     setBusy(false); load();
   };
 
@@ -156,6 +177,19 @@ export default function InstitutionDetailPage() {
 
   const updateSuggestion = async (sId: string, status: "accepted" | "dismissed" | "deferred") => {
     await supabase.from("upi_ai_suggestions").update({ status, reviewed_at: new Date().toISOString() }).eq("id", sId);
+    load();
+  };
+
+  const askAi = async (mode?: "generate") => {
+    setAsking(true); setAskAnswer("");
+    const { data, error } = await supabase.functions.invoke("upi-ask-suggestions", {
+      body: { institution_id: id, prompt: askPrompt, mode },
+    });
+    setAsking(false);
+    if (error) return toast.error(error.message);
+    const res = data as { answer?: string; suggestions_count?: number };
+    setAskAnswer(res?.answer ?? "");
+    if (res?.suggestions_count) toast.success(`${res.suggestions_count} new suggestion(s) saved`);
     load();
   };
 
@@ -184,7 +218,15 @@ export default function InstitutionDetailPage() {
               <Input placeholder="Website" value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => saveInst({ website_url: e.target.value })} />
               <Input placeholder="Email" value={inst.email ?? ""} onChange={(e) => setInst({ ...inst, email: e.target.value })} onBlur={(e) => saveInst({ email: e.target.value })} />
               <Input placeholder="Phone" value={inst.phone ?? ""} onChange={(e) => setInst({ ...inst, phone: e.target.value })} onBlur={(e) => saveInst({ phone: e.target.value })} />
-              <Input placeholder="Type (public/private/college/university)" value={inst.institution_type ?? ""} onChange={(e) => setInst({ ...inst, institution_type: e.target.value })} onBlur={(e) => saveInst({ institution_type: e.target.value })} />
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Type</label>
+                <Select value={inst.institution_type ?? ""} onValueChange={(v) => { setInst({ ...inst, institution_type: v }); saveInst({ institution_type: v }); }}>
+                  <SelectTrigger><SelectValue placeholder="Pick institution type" /></SelectTrigger>
+                  <SelectContent>
+                    {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <Textarea placeholder="Notes" value={inst.notes ?? ""} onChange={(e) => setInst({ ...inst, notes: e.target.value })} onBlur={(e) => saveInst({ notes: e.target.value })} />
               <div className="flex items-center gap-3">
                 <Switch checked={inst.is_partner} onCheckedChange={(v) => saveInst({ is_partner: v })} />
@@ -263,6 +305,25 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="documents">
             <Card className="p-6 mb-4">
+              <div className="flex items-end gap-3 mb-4">
+                <div className="space-y-1 w-64">
+                  <label className="text-xs text-muted-foreground">Document type</label>
+                  <Select value={docKind} onValueChange={(v) => setDocKind(v as any)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="program_sheet">Program sheet (extract programs)</SelectItem>
+                      <SelectItem value="agreement">Agreement</SelectItem>
+                      <SelectItem value="commission_sheet">Commission sheet</SelectItem>
+                      <SelectItem value="brochure">Brochure / other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-muted-foreground flex-1">
+                  {docKind === "program_sheet"
+                    ? "AI will extract every program and stage them for review."
+                    : "AI will extract structured fields and surface as suggestions."}
+                </p>
+              </div>
               <label className="block border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-muted/40">
                 <Upload className="size-6 mx-auto mb-2 text-muted-foreground" />
                 <div className="text-sm">Click or drop a file to upload</div>
@@ -315,8 +376,15 @@ export default function InstitutionDetailPage() {
             <div className="space-y-2">
               {promos.map((p) => (
                 <Card key={p.id} className="p-4">
-                  <div className="font-medium">{p.title}</div>
-                  <div className="text-xs text-muted-foreground">{p.promo_type} · {p.is_active ? "Active" : "Inactive"} {p.auto_detected && "· AI detected"}</div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium">{p.title}</div>
+                      <div className="text-xs text-muted-foreground">{p.promo_type} · {p.is_active ? "Active" : "Inactive"} {p.auto_detected && "· AI detected"}</div>
+                    </div>
+                    <Button size="sm" onClick={() => setCampaignPromo({ id: p.id, title: p.title })}>
+                      <Send className="size-4 mr-1" /> Run campaign
+                    </Button>
+                  </div>
                 </Card>
               ))}
               {promos.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No promotions yet.</div>}
@@ -356,6 +424,27 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="suggestions">
+            <Card className="p-4 mb-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <Textarea
+                  rows={2}
+                  placeholder="Ask AI about this institution — e.g. 'Which programs should I prioritize publishing?'"
+                  value={askPrompt}
+                  onChange={(e) => setAskPrompt(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => askAi()} disabled={asking}>
+                  <MessageSquarePlus className="size-4 mr-1" /> {asking ? "Thinking…" : "Ask AI"}
+                </Button>
+                <Button variant="outline" onClick={() => askAi("generate")} disabled={asking}>
+                  <Sparkles className="size-4 mr-1" /> Generate suggestions
+                </Button>
+              </div>
+              {askAnswer && (
+                <div className="rounded border bg-muted/30 p-3 text-sm whitespace-pre-wrap">{askAnswer}</div>
+              )}
+            </Card>
             <div className="space-y-2">
               {suggestions.map((s) => (
                 <Card key={s.id} className="p-4">
@@ -385,6 +474,13 @@ export default function InstitutionDetailPage() {
 
         <div className="mt-6"><Link to="/institutions" className="text-sm text-muted-foreground hover:text-foreground">← Back to institutions</Link></div>
       </div>
+      <RunCampaignDialog
+        open={!!campaignPromo}
+        onOpenChange={(v) => !v && setCampaignPromo(null)}
+        institutionId={id}
+        promotion={campaignPromo}
+        onSent={load}
+      />
     </AppLayout>
   );
 }
