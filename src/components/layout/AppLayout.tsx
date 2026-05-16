@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -9,6 +9,8 @@ import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
+import { useTheme } from "@/components/theme/ThemeProvider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[] };
 
@@ -66,118 +68,159 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
+  const { theme } = useTheme();
+  const [hiddenOpen, setHiddenOpen] = useState(false);
+  const sidebarMode = theme.sidebarMode;
+  const iconsOnly = sidebarMode === "icons-only";
+  const isHidden = sidebarMode === "hidden";
+  const sidebarBg =
+    theme.sidebarStyle === "gradient" ? theme.sidebarGradient : undefined;
+
+  const navItemClass = (isActive: boolean) =>
+    cn(
+      "flex items-center rounded-lg text-sm font-medium transition-all",
+      iconsOnly ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5",
+      isActive
+        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
+        : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
+    );
+
+  const renderNavLink = (item: NavItem) => {
+    const link = (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        end={item.end}
+        className={({ isActive }) => navItemClass(isActive)}
+      >
+        <item.icon className="size-4 shrink-0" />
+        {!iconsOnly && <span className="truncate">{item.label}</span>}
+      </NavLink>
+    );
+    if (!iconsOnly) return link;
+    return (
+      <Tooltip key={item.to} delayDuration={100}>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right">{item.label}</TooltipContent>
+      </Tooltip>
+    );
+  };
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen flex bg-background">
-      <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border">
-        <div className="px-4 py-5 border-b border-sidebar-border bg-white">
+      {isHidden && (
+        <button
+          type="button"
+          onClick={() => setHiddenOpen(true)}
+          aria-label="Open navigation"
+          className="fixed top-3 left-3 z-40 flex h-9 w-9 items-center justify-center rounded-md bg-sidebar text-sidebar-foreground shadow-md border border-sidebar-border"
+        >
+          <Menu className="size-4" />
+        </button>
+      )}
+      {isHidden && hiddenOpen && (
+        <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setHiddenOpen(false)} />
+      )}
+      <aside
+        className={cn(
+          "bg-sidebar text-sidebar-foreground flex flex-col border-r border-sidebar-border transition-all duration-200",
+          iconsOnly ? "w-14" : "w-64",
+          isHidden && "fixed top-0 left-0 bottom-0 z-50 w-64",
+          isHidden && !hiddenOpen && "-translate-x-full"
+        )}
+        style={sidebarBg ? { background: sidebarBg } : undefined}
+      >
+        <div className={cn("border-b border-sidebar-border bg-white flex items-center justify-between", iconsOnly ? "px-2 py-3" : "px-4 py-5")}>
           <img
             src={flcLogo}
             alt="Future Link Consultants"
-            className="w-full h-auto max-h-16 object-contain"
+            className={cn("object-contain", iconsOnly ? "h-8 w-8" : "w-full h-auto max-h-16")}
           />
+          {isHidden && (
+            <button
+              type="button"
+              onClick={() => setHiddenOpen(false)}
+              aria-label="Close navigation"
+              className="text-foreground/60 hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
 
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {nav
             .filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)))
-            .map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
-                )
-              }
-            >
-              <item.icon className="size-4" />
-              {item.label}
-            </NavLink>
-          ))}
+            .map(renderNavLink)}
 
           {!accountingAccessLoading && hasAccountingAccess && (
             <>
               <div className="border-t border-sidebar-border my-2" />
-              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-                Accounting
-              </div>
-              {accountingNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
-                )
-              }
-            >
-              <item.icon className="size-4" />
-              {item.label}
-            </NavLink>
-              ))}
+              {!iconsOnly && (
+                <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                  Accounting
+                </div>
+              )}
+              {accountingNav.map(renderNavLink)}
             </>
           )}
 
           {isAdmin && <>
-          <div className="border-t border-sidebar-border my-2" />
-          <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-            Institutions
-          </div>
-          {institutionsNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
-                )
-              }
-            >
-              <item.icon className="size-4" />
-              {item.label}
-            </NavLink>
-          ))}
+            <div className="border-t border-sidebar-border my-2" />
+            {!iconsOnly && (
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                Institutions
+              </div>
+            )}
+            {institutionsNav.map(renderNavLink)}
           </>}
         </nav>
 
-        <div className="p-3 border-t border-sidebar-border space-y-2">
-          <div className="px-3 py-2 flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
-              <div className={cn("inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primaryRole])}>
-                <Shield className="size-2.5 inline mr-1" />
-                {ROLE_LABELS[primaryRole]}
+        <div className={cn("border-t border-sidebar-border space-y-2", iconsOnly ? "p-2" : "p-3")}>
+          {!iconsOnly && (
+            <div className="px-3 py-2 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
+                <div className={cn("inline-block mt-1.5 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[primaryRole])}>
+                  <Shield className="size-2.5 inline mr-1" />
+                  {ROLE_LABELS[primaryRole]}
+                </div>
               </div>
+              <HandoffBell />
             </div>
-            <HandoffBell />
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-white"
-            onClick={async () => { await signOut(); navigate("/auth"); }}
-          >
-            <LogOut className="size-4 mr-2" />
-            Sign out
-          </Button>
+          )}
+          {iconsOnly ? (
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-white"
+                  onClick={async () => { await signOut(); navigate("/auth"); }}
+                >
+                  <LogOut className="size-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sign out</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-white"
+              onClick={async () => { await signOut(); navigate("/auth"); }}
+            >
+              <LogOut className="size-4 mr-2" />
+              Sign out
+            </Button>
+          )}
         </div>
       </aside>
 
       <main className="flex-1 overflow-auto">{children}</main>
       <ThemeCustomizer />
     </div>
+    </TooltipProvider>
   );
 };
