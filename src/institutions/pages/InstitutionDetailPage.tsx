@@ -19,6 +19,11 @@ import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
 import { ClaimsPanel } from "../components/ClaimsPanel";
 import { AiReviewPanel } from "../components/AiReviewPanel";
+import { OverviewPanel } from "../components/OverviewPanel";
+import { PromotionsPanel } from "../components/PromotionsPanel";
+import { CampaignsPanel } from "../components/CampaignsPanel";
+import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
+import { useMockSources } from "../hooks/useInstitutionData";
 
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
@@ -44,6 +49,8 @@ export default function InstitutionDetailPage() {
   const [asking, setAsking] = useState(false);
   const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
   const [reviewDoc, setReviewDoc] = useState<any | null>(null);
+
+  const { data: mockSourceRows } = useMockSources(id);
 
   const INSTITUTION_TYPES = [
     "Public University", "Private University", "Public College", "Private College",
@@ -216,8 +223,10 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview">
+          <TabsContent value="overview" className="space-y-6">
+            <OverviewPanel institutionId={id} />
             <Card className="p-6 space-y-3 max-w-2xl">
+              <div className="text-sm font-medium">Institution profile</div>
               <Input value={inst.name} onChange={(e) => setInst({ ...inst, name: e.target.value })} onBlur={(e) => saveInst({ name: e.target.value })} />
               <Input placeholder="Country" value={inst.country_name ?? ""} onChange={(e) => setInst({ ...inst, country_name: e.target.value })} onBlur={(e) => saveInst({ country_name: e.target.value })} />
               <Input placeholder="Website" value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => saveInst({ website_url: e.target.value })} />
@@ -292,6 +301,21 @@ export default function InstitutionDetailPage() {
                 </Card>
               ))}
               {sources.length === 0 && (
+                <>
+                {mockSourceRows.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    <div className="text-xs text-muted-foreground">Demo sources (mock — replaced when real sources sync)</div>
+                    {mockSourceRows.map((m: any) => (
+                      <Card key={m.id} className="p-4 flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{m.name}</div>
+                          <div className="text-xs text-muted-foreground">{m.source_type} · {m.status} · {m.confidence_score}% confidence{m.linked_agreement_id ? ` · linked to ${m.linked_agreement_id}` : ""}</div>
+                        </div>
+                        <Badge variant={m.status === "completed" ? "default" : m.status === "failed" ? "destructive" : "secondary"}>{m.status}</Badge>
+                      </Card>
+                    ))}
+                  </div>
+                )}
                 <Card className="p-8 border-dashed">
                   <div className="flex flex-col items-center gap-2 text-center">
                     <ArrowUp className="size-6 text-primary animate-bounce" />
@@ -304,6 +328,7 @@ export default function InstitutionDetailPage() {
                     </Button>
                   </div>
                 </Card>
+                </>
               )}
             </div>
           </TabsContent>
@@ -367,22 +392,7 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="promotions">
-            <div className="space-y-2">
-              {promos.map((p) => (
-                <Card key={p.id} className="p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">{p.title}</div>
-                      <div className="text-xs text-muted-foreground">{p.promo_type} · {p.is_active ? "Active" : "Inactive"} {p.auto_detected && "· AI detected"}</div>
-                    </div>
-                    <Button size="sm" onClick={() => setCampaignPromo({ id: p.id, title: p.title })}>
-                      <Send className="size-4 mr-1" /> Run campaign
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-              {promos.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No promotions yet.</div>}
-            </div>
+            <PromotionsPanel institutionId={id} onRunCampaign={(p) => setCampaignPromo(p)} />
           </TabsContent>
 
           <TabsContent value="campaigns">
@@ -404,17 +414,7 @@ export default function InstitutionDetailPage() {
                 </>
               )}
             </Card>
-            <div className="space-y-2">
-              {campaigns.map((c) => (
-                <Card key={c.id} className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="font-medium capitalize">{c.channel}</div>
-                    <Badge>{c.status}</Badge>
-                  </div>
-                  <div className="text-xs text-muted-foreground whitespace-pre-wrap line-clamp-3">{c.generated_content}</div>
-                </Card>
-              ))}
-            </div>
+            <CampaignsPanel institutionId={id} />
           </TabsContent>
 
           <TabsContent value="suggestions">
@@ -439,30 +439,7 @@ export default function InstitutionDetailPage() {
                 <div className="rounded border bg-muted/30 p-3 text-sm whitespace-pre-wrap">{askAnswer}</div>
               )}
             </Card>
-            <div className="space-y-2">
-              {suggestions.map((s) => (
-                <Card key={s.id} className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="outline">{s.suggestion_type}</Badge>
-                        <span className="text-xs text-muted-foreground">{s.confidence}% confidence</span>
-                      </div>
-                      <div className="font-medium">{s.title}</div>
-                      <div className="text-xs text-muted-foreground">{s.description}</div>
-                    </div>
-                    {s.status === "pending" && (
-                      <div className="flex gap-1">
-                        <Button size="sm" onClick={() => updateSuggestion(s.id, "accepted")}>Accept</Button>
-                        <Button size="sm" variant="outline" onClick={() => updateSuggestion(s.id, "dismissed")}>Dismiss</Button>
-                      </div>
-                    )}
-                    {s.status !== "pending" && <Badge variant="secondary">{s.status}</Badge>}
-                  </div>
-                </Card>
-              ))}
-              {suggestions.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No suggestions yet.</div>}
-            </div>
+            <AiSuggestionsPanel institutionId={id} />
           </TabsContent>
         </Tabs>
 
