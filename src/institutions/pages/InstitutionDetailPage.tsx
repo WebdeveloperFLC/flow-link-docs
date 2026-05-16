@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen, Send, MessageSquarePlus } from "lucide-react";
 import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
 import { RunCampaignDialog } from "../components/RunCampaignDialog";
+import { AgreementsPanel } from "../components/AgreementsPanel";
+import { CommissionsPanel } from "../components/CommissionsPanel";
+import { AiReviewPanel } from "../components/AiReviewPanel";
 
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
@@ -39,6 +42,7 @@ export default function InstitutionDetailPage() {
   const [askAnswer, setAskAnswer] = useState("");
   const [asking, setAsking] = useState(false);
   const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
+  const [reviewDoc, setReviewDoc] = useState<any | null>(null);
 
   const INSTITUTION_TYPES = [
     "Public University", "Private University", "Public College", "Private College",
@@ -143,16 +147,15 @@ export default function InstitutionDetailPage() {
       metadata: { doc_kind: docKind },
     }).select().single();
     if (dErr) { setBusy(false); return toast.error(dErr.message); }
-    toast.success("Uploaded — processing…");
-    if (docKind === "program_sheet") {
-      const { data, error } = await supabase.functions.invoke("upi-extract-programs-from-doc", {
-        body: { document_id: doc!.id, institution_id: id },
-      });
-      if (error) toast.error(error.message);
-      else toast.success(`Extracted ${(data as any)?.found ?? 0} program(s) — review in Course Review`);
-    } else {
-      await supabase.functions.invoke("upi-process-document", { body: { document_id: doc!.id, institution_id: id } });
-    }
+    toast.success("Uploaded — AI pipeline started");
+    await supabase.from("upi_document_pipeline_events").insert({
+      document_id: doc!.id, state: "uploaded", message: `Uploaded as ${docKind}`,
+    });
+    const { data: orch, error: orchErr } = await supabase.functions.invoke("upi-document-orchestrator", {
+      body: { document_id: doc!.id, institution_id: id, doc_kind: docKind },
+    });
+    if (orchErr) toast.error(orchErr.message);
+    else toast.success("Extraction complete — open Review to verify");
     setBusy(false); load();
   };
 
@@ -335,9 +338,14 @@ export default function InstitutionDetailPage() {
                 <Card key={d.id} className="p-4 flex items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{d.file_name}</div>
-                    <div className="text-xs text-muted-foreground">{d.mime_type ?? "?"} · confidence {d.confidence_score}% · {d.review_status}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% · pipeline: {d.pipeline_status ?? d.review_status}
+                    </div>
                   </div>
-                  <Badge variant={d.is_processed ? "default" : "secondary"}>{d.is_processed ? "Processed" : "Pending"}</Badge>
+                  <Badge variant={d.pipeline_status === "approved" ? "default" : d.pipeline_status === "failed" ? "destructive" : "secondary"}>
+                    {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
+                  </Badge>
+                  <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
                 </Card>
               ))}
               {docs.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No documents yet.</div>}
@@ -345,31 +353,11 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="agreements">
-            <div className="space-y-2">
-              {agreements.map((a) => (
-                <Card key={a.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div><div className="font-medium">{a.title}</div><div className="text-xs text-muted-foreground">{a.agreement_type} · {a.status} · valid {a.valid_from ?? "?"} → {a.valid_to ?? "?"}</div></div>
-                    <Badge>{a.status}</Badge>
-                  </div>
-                </Card>
-              ))}
-              {agreements.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No agreements yet.</div>}
-            </div>
+            <AgreementsPanel institutionId={id} />
           </TabsContent>
 
           <TabsContent value="commissions">
-            <div className="space-y-2">
-              {commissions.map((c) => (
-                <Card key={c.id} className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div><div className="font-medium">{c.name}</div><div className="text-xs text-muted-foreground">{c.model_type} · {c.currency} · {c.is_active ? "Active" : c.is_proposed ? "Proposed" : "Inactive"}</div></div>
-                    {c.is_proposed && <Badge variant="secondary">Proposed</Badge>}
-                  </div>
-                </Card>
-              ))}
-              {commissions.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No commissions yet.</div>}
-            </div>
+            <CommissionsPanel institutionId={id} />
           </TabsContent>
 
           <TabsContent value="promotions">
@@ -480,6 +468,13 @@ export default function InstitutionDetailPage() {
         institutionId={id}
         promotion={campaignPromo}
         onSent={load}
+      />
+      <AiReviewPanel
+        open={!!reviewDoc}
+        onOpenChange={(v) => !v && setReviewDoc(null)}
+        document={reviewDoc}
+        institutionId={id}
+        onChanged={load}
       />
     </AppLayout>
   );
