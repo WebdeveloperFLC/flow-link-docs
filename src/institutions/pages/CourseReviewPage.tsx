@@ -186,7 +186,11 @@ export default function CourseReviewPage() {
               </thead>
               <tbody>
                 {rows.length === 0 && (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No courses match the filters.</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">
+                    {statusFilter === "published"
+                      ? "Nothing published yet. Approve rows under \"approved\" status, then click Bulk Publish to push them to Course Finder."
+                      : "No courses match the filters."}
+                  </td></tr>
                 )}
                 {rows.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-accent/30">
@@ -205,7 +209,19 @@ export default function CourseReviewPage() {
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "approved")}><Check className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "rejected")}><X className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setEditing(r)}><Pencil className="size-4" /></Button>
-                        <Button size="sm" variant="ghost" title="Publish to Course Finder" onClick={() => publish([r.id])}><Upload className="size-4" /></Button>
+                        {r.review_status === "published" && r.published_course_id ? (
+                          <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
+                            <Link to={`/courses?courseId=${r.published_course_id}`} target="_blank"><ExternalLink className="size-4" /></Link>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title={r.review_status === "approved" ? "Publish to Course Finder" : "Approve this row first"}
+                            disabled={r.review_status !== "approved" && r.review_status !== "needs_update"}
+                            onClick={() => publish([r.id])}
+                          ><Upload className="size-4" /></Button>
+                        )}
                       </div>
                     </td>
                   </tr>
