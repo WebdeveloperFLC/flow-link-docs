@@ -5334,6 +5334,148 @@ export type Database = {
           },
         ]
       }
+      upi_commission_invoices: {
+        Row: {
+          agency_address: string | null
+          agency_email: string | null
+          agency_gst_hst_number: string | null
+          agency_name: string | null
+          agency_phone: string | null
+          approved_date: string | null
+          claim_cycle_id: string | null
+          commission_id: string | null
+          created_at: string | null
+          currency: string | null
+          due_date: string | null
+          eligible_students: number | null
+          id: string
+          institution_address: string | null
+          institution_contact: string | null
+          institution_email: string | null
+          institution_id: string | null
+          institution_name: string | null
+          internal_notes: string | null
+          invoice_date: string
+          invoice_number: string
+          metadata: Json | null
+          notes: string | null
+          overdue_since: string | null
+          paid_date: string | null
+          payment_method: string | null
+          payment_received_amount: number | null
+          payment_received_date: string | null
+          payment_reference: string | null
+          status: string | null
+          submitted_date: string | null
+          subtotal: number
+          tax_amount: number | null
+          tax_type: string | null
+          total_amount: number
+          total_students: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          agency_address?: string | null
+          agency_email?: string | null
+          agency_gst_hst_number?: string | null
+          agency_name?: string | null
+          agency_phone?: string | null
+          approved_date?: string | null
+          claim_cycle_id?: string | null
+          commission_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          eligible_students?: number | null
+          id?: string
+          institution_address?: string | null
+          institution_contact?: string | null
+          institution_email?: string | null
+          institution_id?: string | null
+          institution_name?: string | null
+          internal_notes?: string | null
+          invoice_date: string
+          invoice_number: string
+          metadata?: Json | null
+          notes?: string | null
+          overdue_since?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_received_amount?: number | null
+          payment_received_date?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          submitted_date?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          tax_type?: string | null
+          total_amount?: number
+          total_students?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          agency_address?: string | null
+          agency_email?: string | null
+          agency_gst_hst_number?: string | null
+          agency_name?: string | null
+          agency_phone?: string | null
+          approved_date?: string | null
+          claim_cycle_id?: string | null
+          commission_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          due_date?: string | null
+          eligible_students?: number | null
+          id?: string
+          institution_address?: string | null
+          institution_contact?: string | null
+          institution_email?: string | null
+          institution_id?: string | null
+          institution_name?: string | null
+          internal_notes?: string | null
+          invoice_date?: string
+          invoice_number?: string
+          metadata?: Json | null
+          notes?: string | null
+          overdue_since?: string | null
+          paid_date?: string | null
+          payment_method?: string | null
+          payment_received_amount?: number | null
+          payment_received_date?: string | null
+          payment_reference?: string | null
+          status?: string | null
+          submitted_date?: string | null
+          subtotal?: number
+          tax_amount?: number | null
+          tax_type?: string | null
+          total_amount?: number
+          total_students?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_invoices_claim_cycle_id_fkey"
+            columns: ["claim_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "upi_claim_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_invoices_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_commission_rules: {
         Row: {
           commission_id: string
@@ -5401,6 +5543,202 @@ export type Database = {
             columns: ["commission_id"]
             isOneToOne: false
             referencedRelation: "upi_commissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_commission_students: {
+        Row: {
+          block_notes: string | null
+          block_reason: string | null
+          campus: string | null
+          carried_from_cycle_id: string | null
+          carry_forward_reason: string | null
+          carry_forward_to_cycle_id: string | null
+          cas_issued_date: string | null
+          claim_cycle_id: string
+          client_id: string | null
+          commission_amount: number | null
+          commission_calculated_date: string | null
+          commission_id: string | null
+          commission_paid_date: string | null
+          commission_rate_applied: number | null
+          commission_status: string | null
+          consent_form_date: string | null
+          consent_form_submitted: boolean | null
+          consent_form_withdrawn: boolean | null
+          consent_withdrawal_before_sp: boolean | null
+          consent_withdrawal_date: string | null
+          country_of_origin: string | null
+          created_at: string | null
+          enrollment_confirmed_date: string | null
+          enrollment_status: string | null
+          id: string
+          institution_id: string | null
+          institution_validation_notes: string | null
+          intake_month: string | null
+          intake_term: string | null
+          intake_year: number | null
+          invoice_id: string | null
+          is_carried_forward: boolean | null
+          is_full_time: boolean | null
+          metadata: Json | null
+          nationality: string | null
+          passport_number: string | null
+          program_duration: string | null
+          program_level: string | null
+          program_name: string
+          registered_credits: number | null
+          student_email: string | null
+          student_id_at_institution: string | null
+          student_name: string
+          study_permit_approved_date: string | null
+          study_permit_expiry: string | null
+          study_permit_number: string | null
+          submitted_by_agency_date: string | null
+          tuition_amount: number | null
+          tuition_currency: string | null
+          tuition_full_payment_date: string | null
+          tuition_paid_amount: number | null
+          tuition_paid_date: string | null
+          tuition_payment_plan: boolean | null
+          updated_at: string | null
+          validated_by_institution_date: string | null
+        }
+        Insert: {
+          block_notes?: string | null
+          block_reason?: string | null
+          campus?: string | null
+          carried_from_cycle_id?: string | null
+          carry_forward_reason?: string | null
+          carry_forward_to_cycle_id?: string | null
+          cas_issued_date?: string | null
+          claim_cycle_id: string
+          client_id?: string | null
+          commission_amount?: number | null
+          commission_calculated_date?: string | null
+          commission_id?: string | null
+          commission_paid_date?: string | null
+          commission_rate_applied?: number | null
+          commission_status?: string | null
+          consent_form_date?: string | null
+          consent_form_submitted?: boolean | null
+          consent_form_withdrawn?: boolean | null
+          consent_withdrawal_before_sp?: boolean | null
+          consent_withdrawal_date?: string | null
+          country_of_origin?: string | null
+          created_at?: string | null
+          enrollment_confirmed_date?: string | null
+          enrollment_status?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_validation_notes?: string | null
+          intake_month?: string | null
+          intake_term?: string | null
+          intake_year?: number | null
+          invoice_id?: string | null
+          is_carried_forward?: boolean | null
+          is_full_time?: boolean | null
+          metadata?: Json | null
+          nationality?: string | null
+          passport_number?: string | null
+          program_duration?: string | null
+          program_level?: string | null
+          program_name: string
+          registered_credits?: number | null
+          student_email?: string | null
+          student_id_at_institution?: string | null
+          student_name: string
+          study_permit_approved_date?: string | null
+          study_permit_expiry?: string | null
+          study_permit_number?: string | null
+          submitted_by_agency_date?: string | null
+          tuition_amount?: number | null
+          tuition_currency?: string | null
+          tuition_full_payment_date?: string | null
+          tuition_paid_amount?: number | null
+          tuition_paid_date?: string | null
+          tuition_payment_plan?: boolean | null
+          updated_at?: string | null
+          validated_by_institution_date?: string | null
+        }
+        Update: {
+          block_notes?: string | null
+          block_reason?: string | null
+          campus?: string | null
+          carried_from_cycle_id?: string | null
+          carry_forward_reason?: string | null
+          carry_forward_to_cycle_id?: string | null
+          cas_issued_date?: string | null
+          claim_cycle_id?: string
+          client_id?: string | null
+          commission_amount?: number | null
+          commission_calculated_date?: string | null
+          commission_id?: string | null
+          commission_paid_date?: string | null
+          commission_rate_applied?: number | null
+          commission_status?: string | null
+          consent_form_date?: string | null
+          consent_form_submitted?: boolean | null
+          consent_form_withdrawn?: boolean | null
+          consent_withdrawal_before_sp?: boolean | null
+          consent_withdrawal_date?: string | null
+          country_of_origin?: string | null
+          created_at?: string | null
+          enrollment_confirmed_date?: string | null
+          enrollment_status?: string | null
+          id?: string
+          institution_id?: string | null
+          institution_validation_notes?: string | null
+          intake_month?: string | null
+          intake_term?: string | null
+          intake_year?: number | null
+          invoice_id?: string | null
+          is_carried_forward?: boolean | null
+          is_full_time?: boolean | null
+          metadata?: Json | null
+          nationality?: string | null
+          passport_number?: string | null
+          program_duration?: string | null
+          program_level?: string | null
+          program_name?: string
+          registered_credits?: number | null
+          student_email?: string | null
+          student_id_at_institution?: string | null
+          student_name?: string
+          study_permit_approved_date?: string | null
+          study_permit_expiry?: string | null
+          study_permit_number?: string | null
+          submitted_by_agency_date?: string | null
+          tuition_amount?: number | null
+          tuition_currency?: string | null
+          tuition_full_payment_date?: string | null
+          tuition_paid_amount?: number | null
+          tuition_paid_date?: string | null
+          tuition_payment_plan?: boolean | null
+          updated_at?: string | null
+          validated_by_institution_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_commission_students_claim_cycle_id_fkey"
+            columns: ["claim_cycle_id"]
+            isOneToOne: false
+            referencedRelation: "upi_claim_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_commission_id_fkey"
+            columns: ["commission_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_commission_students_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
             referencedColumns: ["id"]
           },
         ]
@@ -6171,6 +6509,66 @@ export type Database = {
             columns: ["country_id"]
             isOneToOne: false
             referencedRelation: "upi_countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upi_invoice_line_items: {
+        Row: {
+          commission_rate: number | null
+          description: string
+          id: string
+          intake_term: string | null
+          invoice_id: string
+          line_amount: number
+          notes: string | null
+          program_name: string | null
+          sort_order: number | null
+          student_id: string | null
+          student_name: string | null
+          tuition_amount: number | null
+        }
+        Insert: {
+          commission_rate?: number | null
+          description: string
+          id?: string
+          intake_term?: string | null
+          invoice_id: string
+          line_amount: number
+          notes?: string | null
+          program_name?: string | null
+          sort_order?: number | null
+          student_id?: string | null
+          student_name?: string | null
+          tuition_amount?: number | null
+        }
+        Update: {
+          commission_rate?: number | null
+          description?: string
+          id?: string
+          intake_term?: string | null
+          invoice_id?: string
+          line_amount?: number
+          notes?: string | null
+          program_name?: string | null
+          sort_order?: number | null
+          student_id?: string | null
+          student_name?: string | null
+          tuition_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upi_invoice_line_items_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
             referencedColumns: ["id"]
           },
         ]
