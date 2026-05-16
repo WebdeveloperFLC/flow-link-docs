@@ -11,8 +11,12 @@ import { toast } from "sonner";
 import {
   AlertTriangle, CalendarClock, ChevronDown, FileText, Printer, Send,
   ArrowRightCircle, Eye, CheckCircle2, Ban, Clock, FilePlus2,
+  Download, FileDown, Link2,
 } from "lucide-react";
 import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
+import {
+  FLC_AGENCY, buildClaimCsv, downloadCsv, filenameForClaim, printWithRoot,
+} from "../lib/claimsExport";
 
 // ---------- types ----------
 interface Student {
@@ -142,6 +146,8 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   const [viewStudent, setViewStudent] = useState<Student | null>(null);
   const [viewInvoice, setViewInvoice] = useState<Invoice | null>(null);
   const [submitFor, setSubmitFor] = useState<{ cycleId: string; cycleLabel: string } | null>(null);
+  const [printCycle, setPrintCycle] = useState<{ cycle: any; students: Student[]; invoice: Invoice | null } | null>(null);
+  const [printInvoice, setPrintInvoice] = useState<{ invoice: Invoice; items: LineItem[] } | null>(null);
 
   const loadAll = async () => {
     setLoading(true);
@@ -245,6 +251,33 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     loadAll();
   };
 
+  const exportCycleCsv = (cycle: any) => {
+    const rows = byCycle.get(cycle.id) ?? [];
+    const lookup: Record<string, { invoice_number: string }> = {};
+    for (const i of invoices) lookup[i.id] = { invoice_number: i.invoice_number };
+    const csv = buildClaimCsv(rows, lookup);
+    const filename = filenameForClaim(
+      (cycle.institution_name as string) || "Institution",
+      (cycle.period_label as string) || "Cycle",
+    );
+    downloadCsv(filename, csv);
+  };
+
+  const printCycleNow = (cycle: any) => {
+    const rows = byCycle.get(cycle.id) ?? [];
+    const inv = invByCycle.get(cycle.id) ?? null;
+    setPrintCycle({ cycle, students: rows, invoice: inv });
+    printWithRoot(() => setPrintCycle(null));
+  };
+
+  const downloadInvoicePdf = async (inv: Invoice) => {
+    const { data } = await supabase
+      .from("upi_invoice_line_items")
+      .select("*").eq("invoice_id", inv.id).order("sort_order");
+    setPrintInvoice({ invoice: inv, items: (data ?? []) as any });
+    printWithRoot(() => setPrintInvoice(null));
+  };
+
   if (loading || lc) return <div className="text-sm text-muted-foreground p-4">Loading claims…</div>;
 
   return (
@@ -312,6 +345,20 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
+                    <Button size="sm" variant="outline" onClick={() => printCycleNow(c)}>
+                      <Printer className="size-4 mr-1" /> Print
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => exportCycleCsv(c)}>
+                      <Download className="size-4 mr-1" /> CSV
+                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button size="sm" variant="outline" onClick={() => printCycleNow(c)}>
+                          <FileDown className="size-4 mr-1" /> PDF
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Uses your browser's "Save as PDF" in the print dialog.</TooltipContent>
+                    </Tooltip>
                     {eligible.length > 0 && (
                       <Button size="sm" variant="outline" onClick={() => setSubmitFor({ cycleId: c.id, cycleLabel: c.period_label })}>
                         <Send className="size-4 mr-1" /> Submit Claim
@@ -373,6 +420,16 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-1">
                                   <Button size="sm" variant="ghost" onClick={() => setViewStudent(s)}><Eye className="size-3.5" /></Button>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span>
+                                        <Button size="sm" variant="ghost" disabled aria-label="Link to client">
+                                          <Link2 className="size-3.5" />
+                                        </Button>
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Coming soon — manual linking UI in development</TooltipContent>
+                                  </Tooltip>
                                   {s.commission_status === "carried_forward" && s.carry_forward_to_cycle_id && (
                                     <Button size="sm" variant="ghost" onClick={() => moveToNextCycle(s)} title="Move to next cycle">
                                       <ArrowRightCircle className="size-3.5" />
@@ -465,6 +522,9 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                         <Button size="sm" variant="outline" onClick={() => setViewInvoice(inv)}>
                           <Eye className="size-3.5 mr-1" /> View invoice
                         </Button>
+                        <Button size="sm" variant="outline" onClick={() => downloadInvoicePdf(inv)}>
+                          <FileDown className="size-3.5 mr-1" /> Download PDF
+                        </Button>
                         {["sent", "submitted", "approved"].includes(inv.status) && (
                           <Button size="sm" onClick={() => markInvoicePaid(inv)}>
                             <CheckCircle2 className="size-3.5 mr-1" /> Mark as Paid
@@ -556,6 +616,22 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Hidden print roots — visible only via @media print when fl-print-active */}
+        {printCycle && (
+          <div className="fl-print-root">
+            <PrintableClaim
+              cycle={printCycle.cycle}
+              students={printCycle.students}
+              invoice={printCycle.invoice}
+            />
+          </div>
+        )}
+        {printInvoice && (
+          <div className="fl-print-root">
+            <PrintableInvoice invoice={printInvoice.invoice} items={printInvoice.items} />
+          </div>
+        )}
       </div>
     </TooltipProvider>
   );
