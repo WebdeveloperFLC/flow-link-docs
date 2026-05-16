@@ -9,13 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
 import { CoaAccount, CoaAccountInput, CoaAccountStatus } from "../../types/coa";
-import { useGroups, useTypes } from "../../stores/coaMasterStore";
+import { useGroups, useTypes, useSubTypes, HIDDEN_TYPE_CODES } from "../../stores/coaMasterStore";
 import { addAccount, getAccounts, getDescendantIds, updateAccount } from "../../stores/coaStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
-
-const CURRENCIES = ["CAD", "USD", "INR", "EUR", "GBP", "AED", "AUD", "SGD", "CZK"];
+import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
+import DynamicSelect from "../shared/DynamicSelect";
 
 interface Props {
   open: boolean;
@@ -30,6 +30,7 @@ const NONE = "__none__";
 export default function AccountFormDialog({ open, onOpenChange, initial, forcedParentId }: Props) {
   const groups = useGroups();
   const types = useTypes();
+  const subTypes = useSubTypes();
   const entities = useEntities();
   const accounts = getAccounts();
 
@@ -37,16 +38,19 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const [name, setName] = useState("");
   const [groupCode, setGroupCode] = useState("");
   const [typeCode, setTypeCode] = useState("");
+  const [subTypeCode, setSubTypeCode] = useState<string>(NONE);
   const [parentId, setParentId] = useState<string>(NONE);
   const [currency, setCurrency] = useState("CAD");
   const [entityId, setEntityId] = useState<string>(NONE);
-  const [taxCode, setTaxCode] = useState("");
+  const [taxCode, setTaxCode] = useState("NONE");
+  const [normalBalance, setNormalBalance] = useState<"DEBIT" | "CREDIT">("DEBIT");
   const [openingBalance, setOpeningBalance] = useState<string>("0");
   const [status, setStatus] = useState<CoaAccountStatus>("ACTIVE");
   const [description, setDescription] = useState("");
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
+  const [subTypeDialogOpen, setSubTypeDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -55,10 +59,12 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setName(initial.name);
       setGroupCode(initial.groupCode);
       setTypeCode(initial.typeCode);
+      setSubTypeCode(initial.subTypeCode ?? NONE);
       setParentId(initial.parentId ?? NONE);
       setCurrency(initial.currency);
       setEntityId(initial.entityId ?? NONE);
-      setTaxCode(initial.taxCode ?? "");
+      setTaxCode(initial.taxCode ?? "NONE");
+      setNormalBalance(initial.normalBalance ?? (groups.find((g) => g.code === initial.groupCode)?.nature ?? "DEBIT"));
       setOpeningBalance(String(initial.openingBalance));
       setStatus(initial.status);
       setDescription(initial.description ?? "");
@@ -68,10 +74,12 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setName("");
       setGroupCode(parent?.groupCode ?? groups[0]?.code ?? "");
       setTypeCode(parent?.typeCode ?? "");
+      setSubTypeCode(parent?.subTypeCode ?? NONE);
       setParentId(forcedParentId ?? NONE);
       setCurrency(parent?.currency ?? "CAD");
       setEntityId(parent?.entityId ?? NONE);
-      setTaxCode("");
+      setTaxCode("NONE");
+      setNormalBalance(groups.find((g) => g.code === (parent?.groupCode ?? groups[0]?.code))?.nature ?? "DEBIT");
       setOpeningBalance("0");
       setStatus("ACTIVE");
       setDescription("");
@@ -79,9 +87,19 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial, forcedParentId]);
 
+  // Account groups + types available for selection (hide BANK type — Banks module owns those).
+  const selectableTypes = useMemo(
+    () => types.filter((t) => !HIDDEN_TYPE_CODES.has(t.code)),
+    [types],
+  );
+
   const typesForGroup = useMemo(
-    () => types.filter((t) => t.groupCode === groupCode),
-    [types, groupCode],
+    () => selectableTypes.filter((t) => t.groupCode === groupCode),
+    [selectableTypes, groupCode],
+  );
+  const subTypesForType = useMemo(
+    () => subTypes.filter((s) => s.typeCode === typeCode),
+    [subTypes, typeCode],
   );
 
   const eligibleParents = useMemo(() => {
@@ -101,13 +119,22 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
     // Reset type if no longer matches
     if (!types.some((t) => t.code === typeCode && t.groupCode === v)) {
       setTypeCode("");
+      setSubTypeCode(NONE);
     }
+    const grp = groups.find((g) => g.code === v);
+    if (grp) setNormalBalance(grp.nature);
     setParentId(NONE);
   };
 
   const handleTypeChange = (v: string) => {
     if (v === ADD_NEW) { setTypeDialogOpen(true); return; }
     setTypeCode(v);
+    setSubTypeCode(NONE);
+  };
+
+  const handleSubTypeChange = (v: string) => {
+    if (v === ADD_NEW) { setSubTypeDialogOpen(true); return; }
+    setSubTypeCode(v);
   };
 
   const submit = () => {
@@ -116,10 +143,12 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       name: name.trim(),
       groupCode,
       typeCode,
+      subTypeCode: subTypeCode === NONE ? null : subTypeCode,
       parentId: parentId === NONE ? null : parentId,
       currency,
       entityId: entityId === NONE ? null : entityId,
-      taxCode: taxCode.trim() || null,
+      taxCode: taxCode && taxCode !== "NONE" ? taxCode : null,
+      normalBalance,
       openingBalance: Number(openingBalance) || 0,
       status,
       description: description.trim() || undefined,
@@ -186,6 +215,21 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               </div>
 
               <div className="grid gap-2">
+                <Label>Sub-type</Label>
+                <Select value={subTypeCode} onValueChange={handleSubTypeChange} disabled={!typeCode}>
+                  <SelectTrigger><SelectValue placeholder={typeCode ? "Optional" : "Pick type first"} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>— None —</SelectItem>
+                    {subTypesForType.map((s) => <SelectItem key={s.code} value={s.code}>{s.label}</SelectItem>)}
+                    <SelectSeparator />
+                    <SelectItem value={ADD_NEW}>
+                      <span className="flex items-center gap-1.5 text-primary"><Plus className="size-3.5" /> Add new sub-type</span>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
                 <Label>Parent account</Label>
                 <Select value={parentId} onValueChange={setParentId} disabled={!groupCode}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -198,12 +242,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               </div>
               <div className="grid gap-2">
                 <Label>Currency</Label>
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />
               </div>
 
               <div className="grid gap-2">
@@ -218,7 +257,18 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               </div>
               <div className="grid gap-2">
                 <Label>Tax mapping</Label>
-                <Input value={taxCode} onChange={(e) => setTaxCode(e.target.value)} placeholder="e.g. HST-13%, GST-18%" />
+                <DynamicSelect listKey="tax_codes" value={taxCode} onValueChange={setTaxCode} addLabel="tax code" />
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Normal balance</Label>
+                <Select value={normalBalance} onValueChange={(v) => setNormalBalance(v as "DEBIT" | "CREDIT")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DEBIT">Debit</SelectItem>
+                    <SelectItem value="CREDIT">Credit</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid gap-2">
@@ -259,6 +309,12 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
         onOpenChange={setTypeDialogOpen}
         defaultGroupCode={groupCode}
         onCreated={(c) => setTypeCode(c)}
+      />
+      <AddSubTypeInlineDialog
+        open={subTypeDialogOpen}
+        onOpenChange={setSubTypeDialogOpen}
+        defaultTypeCode={typeCode}
+        onCreated={(c) => setSubTypeCode(c)}
       />
     </>
   );
