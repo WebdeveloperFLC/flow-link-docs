@@ -13,10 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type Row = any;
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
+const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
 
 const ConfidenceBadge = ({ score }: { score: number | null }) => {
   const s = score ?? 0;
@@ -111,6 +113,17 @@ export default function CourseReviewPage() {
     <AppLayout>
       <PageHeader title="Course Review" description="Review and publish AI-extracted courses awaiting approval." />
       <div className="p-6 space-y-4">
+        {statusFilter === "published" && (
+          <Card className="p-4 flex items-center gap-3 bg-success/5 border-success/20">
+            <Info className="size-4 text-success" />
+            <div className="flex-1 text-sm">
+              These programs are <strong>live in Course Finder</strong>. Students can see them on the public catalog.
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/courses" target="_blank">View in Course Finder <ExternalLink className="size-3 ml-1" /></Link>
+            </Button>
+          </Card>
+        )}
         <Card className="p-4 flex flex-wrap gap-3 items-end">
           <div className="space-y-1">
             <Label className="text-xs">Status</Label>
@@ -173,7 +186,11 @@ export default function CourseReviewPage() {
               </thead>
               <tbody>
                 {rows.length === 0 && (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">No courses match the filters.</td></tr>
+                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">
+                    {statusFilter === "published"
+                      ? "Nothing published yet. Approve rows under \"approved\" status, then click Bulk Publish to push them to Course Finder."
+                      : "No courses match the filters."}
+                  </td></tr>
                 )}
                 {rows.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-accent/30">
@@ -192,7 +209,19 @@ export default function CourseReviewPage() {
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "approved")}><Check className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "rejected")}><X className="size-4" /></Button>
                         <Button size="sm" variant="ghost" onClick={() => setEditing(r)}><Pencil className="size-4" /></Button>
-                        <Button size="sm" variant="ghost" title="Publish to Course Finder" onClick={() => publish([r.id])}><Upload className="size-4" /></Button>
+                        {r.review_status === "published" && r.published_course_id ? (
+                          <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
+                            <Link to={`/courses?courseId=${r.published_course_id}`} target="_blank"><ExternalLink className="size-4" /></Link>
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title={r.review_status === "approved" ? "Publish to Course Finder" : "Approve this row first"}
+                            disabled={r.review_status !== "approved" && r.review_status !== "needs_update"}
+                            onClick={() => publish([r.id])}
+                          ><Upload className="size-4" /></Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -285,7 +314,21 @@ function EditSheet({ row, onClose, onSaved, institutions, levels }: {
             {field("duolingo_overall", "Duolingo", "number")}
             {field("gpa_requirement", "GPA req")}
             {field("source_url", "Source URL")}
-            {field("review_status", "Review status")}
+            <div className="space-y-1">
+              <Label className="text-xs">Review status</Label>
+              <Select
+                value={MANUAL_STATUSES.includes(draft.review_status) ? draft.review_status : "pending_review"}
+                onValueChange={(v) => setDraft({ ...draft, review_status: v })}
+                disabled={draft.review_status === "published"}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MANUAL_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {draft.review_status === "published" && <SelectItem value="published">published (live)</SelectItem>}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">To publish, use the Publish button — it pushes to Course Finder.</p>
+            </div>
             {field("confidence_score", "Confidence", "number")}
             <div className="space-y-1">
               <Label className="text-xs">PGWP eligible</Label>
