@@ -1,50 +1,84 @@
-## What's going on
 
-I checked the database and the publish function directly:
+## Scope
 
-- `upi_courses_staging` has **575 pending_review, 4 approved, 0 published, 0 rejected**.
-- `upi-publish-courses` has **zero invocation logs** — the Publish button has never actually been clicked successfully against any row.
-- The function itself works (I called it directly and it returned 200 OK).
-- `cf_courses` has 20 rows (your existing seed data) — none from the staging pipeline yet.
+Upgrades to `InstitutionDetailPage`, `CourseReviewPage`, and a few edge functions. No DB schema changes unless noted in **Technical** below.
 
-So the reason you don't see anything when you filter by "published" is that **nothing has actually been published yet**. You likely either:
-- Changed the **status filter** dropdown to "published" (that just filters the view, it doesn't publish anything), or
-- Used the edit sheet to change `review_status` to "published" manually (which only writes the column — it doesn't push to CourseFinder), or
-- Clicked the small Upload (↑) icon but didn't notice the toast / error.
+---
 
-The publish action that actually pushes to CourseFinder is the **Bulk Publish button** (appears when rows are selected) and the **Upload (↑) icon** in each row's Actions column. There's no clear separation in the UI today between "change a label" and "push to CourseFinder", which is exactly the confusion.
+## 1. Overview tab — Type as a dropdown
 
-## Fix — three small UI changes
+Replace the free-text "Type" input with a `Select` (Public, Private, College, University, Polytechnic, Community College, Language School, Other). Persist the chosen value to `institution_type` exactly as today.
 
-### 1. Make Publish the only way to set status="published"
+## 2. Documents tab — Program-sheet upload that creates programs
 
-- Remove `published` from the manual status dropdown in the Edit sheet. Status `published` is owned by the system — only the publish function should set it.
-- Keep `pending_review / approved / rejected / needs_update` as the manually editable set.
+Today, uploads go to `upi-process-document` for generic metadata. Change behaviour:
 
-### 2. Make the Publish workflow visible
+- Add a **"Document type"** chooser on the upload card: `Program sheet`, `Agreement`, `Commission sheet`, `Brochure / other`.
+- When **Program sheet** is chosen, after upload route the file to a new edge function `upi-extract-programs-from-doc` that:
+  - Parses PDF/XLSX/CSV via existing parsing libs.
+  - Calls Lovable AI (`google/gemini-3-flash-preview`) with a tool-calling schema covering all `KNOWN` course fields in `upi-upsert-courses` plus PGWP/co-op flags.
+  - Calls `upi-upsert-courses` directly so rows land in `upi_courses_staging` for review — same review flow as web sync.
+- When **Agreement** or **Commission sheet** is chosen, route to a new `upi-extract-structured` function that asks the AI for the right shape and writes rows to `upi_agreements` / `upi_commissions` (see §4).
 
-- When `statusFilter === "published"`, show an info banner at the top: *"These programs are live in Course Finder."* with a button **View in Course Finder →** linking to `/courses`.
-- Add a small **"Open in Course Finder"** link in each published row's Actions cell (uses the stored `published_course_id`).
-- Disable the row-level Publish button unless `review_status === 'approved'` and tooltip it: *"Approve this row first"*.
+## 3. Course Review — dynamic/extra fields and free-form search
 
-### 3. Surface publish errors / counts loudly
+- **Free-form search bar** at the top of `/institutions/review` that filters across `course_title`, `campus_name`, `city`, intake months, IELTS, PGWP, level, currency, etc. (a single client-side `searchText` that tests `JSON.stringify(row).toLowerCase()`).
+- **Add-field button** in the Edit sheet: lets users add ad-hoc fields that are stored in the existing `metadata` JSON. This is already half-built (custom metadata) — surface it as a primary action so users can add more fields when AI extracts something new.
+- **PGWP column** is already in place; verify the upsert function maps `is_pgwp_eligible` (it does) — no change needed.
 
-- After invoking `upi-publish-courses`, show:
-  - Success: green toast with **"Published N programs to Course Finder"** + a "View" action that opens `/courses`.
-  - Partial failure: warning toast listing the first 2 errors so you can see *why* a row failed (missing institution, missing country, etc.) instead of a silent "0 published".
-  - Network/function error: red toast with the error message.
+## 4. Auto-detect Agreements & Commissions
 
-That way the next time you click Bulk Publish on the 4 approved Seneca rows, you'll get a clear "Published 4 → View in Course Finder" and see them on `/courses` filtered by Canada immediately.
+Extend `upi-sync-source` and the new doc extractor to also call AI with a second tool schema that returns:
 
-## Files changed
+- `agreements[]` → upsert into `upi_agreements` (title, agreement_type, valid_from, valid_to, status='proposed').
+- `commissions[]` → upsert into `upi_commissions` (name, model_type, rate, currency, is_proposed=true).
 
-- `src/institutions/pages/CourseReviewPage.tsx` — banner when filter = published, "Open in Course Finder" link per row, disabled Publish for non-approved, richer toast.
-- Edit-sheet status options in the same file — drop `published` from manual choices.
+Both surface in their tabs with a "Proposed — accept?" badge so users can approve.
 
-No backend / DB / edge function changes needed.
+## 5. Promotions — one-click campaign run
 
-## Acceptance
+In the Promotions tab, add a **"Run campaign"** button per promotion. Clicking it:
 
-- Filtering by `published` either shows a non-empty list **or** an explicit "Nothing published yet — approve rows, then click Bulk Publish" empty state.
-- Clicking Bulk Publish on the 4 approved rows produces a toast with a count and a "View in Course Finder" action; the rows then appear under the published filter and at `/courses`.
-- The Edit sheet no longer lets a user fake "published" status without actually pushing to CourseFinder.
+1. Opens a dialog to pick recipients from `clients` table (multi-select with search by name/email/phone).
+2. Picks a channel (email/whatsapp/sms).
+3. Picks **sender identity**: "Send as me" (current user signature) or "Send on behalf of…" (other team member dropdown — uses their signature).
+4. Calls `upi-generate-content` for the body, then sends via existing `email-send` / WhatsApp edge functions.
+5. Logs into `upi_marketing_campaigns` with recipients in metadata.
+
+## 6. AI Suggestions tab — make it interactive
+
+Currently the tab only lists rows from `upi_ai_suggestions`. Add:
+
+- A **prompt box** at the top: "Ask AI about this institution…" with a Send button.
+- On submit, call a new `upi-ask-suggestions` edge function with the institution + sources + programs + agreements context, returning a written answer plus 0..N structured suggestions that get inserted into `upi_ai_suggestions`.
+- A **"Generate suggestions"** quick button that auto-prompts for common areas (missing data, pricing anomalies, expiring agreements, new programs to publish).
+
+## 7. Fix 0% confidence for Seneca Polytechnic
+
+Root cause: `upi-sync-source` writes `confidence_score: 0` to `upi_institution_sources` when the AI returns courses without per-source aggregation. Fix:
+
+- After upsert, compute `confidence_score` for the source row as the average `confidence_score` of staged courses for that `source_id`, and update the row.
+- Also fallback to 75 if AI returned courses but didn't include a score (most rows already have one — the bug is the source-level aggregation).
+
+---
+
+## Files touched
+
+- `src/institutions/pages/InstitutionDetailPage.tsx` — type Select, doc-type chooser, run-campaign dialog, AI-ask box.
+- `src/institutions/pages/CourseReviewPage.tsx` — free-form search bar.
+- `src/institutions/components/RunCampaignDialog.tsx` *(new)* — recipient picker + sender identity.
+- `src/institutions/components/AskAiPanel.tsx` *(new)* — prompt box for AI Suggestions.
+- `supabase/functions/upi-extract-programs-from-doc/index.ts` *(new)*.
+- `supabase/functions/upi-extract-structured/index.ts` *(new, agreements/commissions)*.
+- `supabase/functions/upi-ask-suggestions/index.ts` *(new)*.
+- `supabase/functions/upi-sync-source/index.ts` — also extract agreements/commissions; aggregate source confidence.
+
+No migrations needed — all tables (`upi_agreements`, `upi_commissions`, `upi_ai_suggestions`, `upi_marketing_campaigns`, `clients`) already exist.
+
+---
+
+## Open questions before I build
+
+1. For **Run campaign**, do you want WhatsApp/SMS now, or email-only in v1 with WhatsApp added later?
+2. For **sender identity "on behalf of"**, can any team member send as any other, or should it be restricted to admins/managers?
+3. Should AI-detected agreements/commissions auto-create as `status='proposed'` (requires manual accept) or auto-active?
