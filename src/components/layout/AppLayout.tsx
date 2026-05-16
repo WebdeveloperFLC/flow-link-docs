@@ -81,7 +81,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
       "flex items-center rounded-lg text-sm font-medium transition-all",
       iconsOnly ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5",
       isActive
-        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
+        ? "nav-item-active bg-sidebar-accent text-sidebar-accent-foreground shadow-elev-sm"
         : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-white"
     );
 
@@ -218,7 +218,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main key={typeof window !== "undefined" ? window.location.pathname : "main"} className="flex-1 overflow-auto page-transition">{children}</main>
       <ThemeCustomizer />
     </div>
     </TooltipProvider>
