@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
+import { useClaimCycles, useInvoices, useStudents } from "../hooks/useInstitutionData";
+import { classifyForCycle } from "../lib/claimEngine";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, FileText, CalendarClock, AlertTriangle } from "lucide-react";
@@ -31,6 +32,7 @@ function daysUntil(date?: string | null): number | null {
 export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   const { data: cycles, loading: lc, reload: rc } = useClaimCycles(institutionId);
   const { data: invoices, loading: li, reload: ri } = useInvoices(institutionId);
+  const { data: students } = useStudents(institutionId);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ period_label: "", intake: "", claim_due_date: "", total_expected: "", currency: "CAD" });
 
@@ -130,6 +132,7 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
           const dleft = daysUntil(c.claim_due_date);
           const overdue = dleft != null && dleft < 0 && !["closed", "paid"].includes(c.status);
           const invs = invByCycle.get(c.id) ?? [];
+          const grp = classifyForCycle(students as any, c.id);
           return (
             <Card key={c.id} className="p-4 space-y-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -155,6 +158,37 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                   {c.status !== "closed" && <Button size="sm" variant="ghost" onClick={() => updateCycleStatus(c.id, "closed")}>Close</Button>}
                 </div>
               </div>
+              {(grp.eligible.length + grp.blocked.length + grp.carried.length + grp.carryToNext.length) > 0 && (
+                <div className="border-t pt-2">
+                  <div className="flex flex-wrap gap-2 text-xs mb-2">
+                    <Badge variant="default">Eligible {grp.eligible.length}</Badge>
+                    <Badge variant="destructive">Blocked {grp.blocked.length}</Badge>
+                    <Badge variant="outline">Carried forward {grp.carried.length}</Badge>
+                    <Badge variant="secondary">To carry next {grp.carryToNext.length}</Badge>
+                    {grp.duplicates.length > 0 && <Badge variant="destructive">Duplicates {grp.duplicates.length}</Badge>}
+                    <Badge variant="secondary">Net {grp.amount.toLocaleString()} {c.currency}</Badge>
+                  </div>
+                  <details>
+                    <summary className="text-xs text-muted-foreground cursor-pointer">Students breakdown</summary>
+                    <div className="mt-2 space-y-1 text-xs">
+                      {[...grp.eligible, ...grp.blocked, ...grp.carried, ...grp.carryToNext].map((s) => (
+                        <div key={s.id} className="flex items-center justify-between gap-2">
+                          <span className="truncate">
+                            {s.full_name} <span className="text-muted-foreground">— {s.country} · {s.program}</span>
+                          </span>
+                          <span className="flex items-center gap-2 whitespace-nowrap">
+                            <Badge variant="outline" className="text-[10px]">{s.intake_original}{s.intake_processed !== s.intake_original ? ` → ${s.intake_processed}` : ""}</Badge>
+                            <Badge variant={s.status === "eligible" ? "default" : s.status === "carried_forward" ? "outline" : "destructive"} className="text-[10px]">
+                              {s.status}
+                            </Badge>
+                            <span className="text-muted-foreground">{s.tuition.toLocaleString()} {s.currency}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              )}
               {invs.length > 0 && (
                 <div className="border-t pt-2 space-y-1">
                   <div className="text-xs font-medium text-muted-foreground">Invoices</div>

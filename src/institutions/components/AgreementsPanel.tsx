@@ -1,6 +1,12 @@
 import { useMemo } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
+import { DynamicFieldGroup } from "./DynamicFieldGroup";
 import { useAgreements, useRenewalCountdown, renewalThreshold } from "../hooks/useInstitutionData";
 
 function CountdownChip({ validTo }: { validTo?: string | null }) {
@@ -14,6 +20,9 @@ function CountdownChip({ validTo }: { validTo?: string | null }) {
 
 export function AgreementsPanel({ institutionId }: { institutionId: string }) {
   const { data: agreements, loading } = useAgreements(institutionId);
+  const [view, setView] = useState<any | null>(null);
+  const [edit, setEdit] = useState<any | null>(null);
+  const [versions, setVersions] = useState<any | null>(null);
 
   const sorted = useMemo(
     () => [...agreements].sort((a: any, b: any) => (a.valid_to ?? "").localeCompare(b.valid_to ?? "")),
@@ -57,10 +66,53 @@ export function AgreementsPanel({ institutionId }: { institutionId: string }) {
                   {ext.b2b_allowed != null && <Item label="B2B" value={ext.b2b_allowed ? "Allowed" : "No"} />}
                 </div>
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon"><MoreHorizontal className="size-4" /></Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setView(a)}>View details</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEdit(a)}>Edit dynamic fields</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setView({ ...a, _focus: "ai" })}>Extract AI summary</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setView({ ...a, _focus: "renewal" })}>Renewal review</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setVersions(a)}>Version history</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </Card>
         );
       })}
+
+      <Dialog open={!!view} onOpenChange={(v) => !v && setView(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>{view?.title}</DialogTitle></DialogHeader>
+          {view && <DynamicFieldGroup scope="agreement" values={view.extracted_data ?? {}} readOnly />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!edit} onOpenChange={(v) => !v && setEdit(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader><DialogTitle>Edit — {edit?.title}</DialogTitle></DialogHeader>
+          {edit && (
+            <DynamicFieldGroup
+              scope="agreement"
+              values={edit.extracted_data ?? {}}
+              onChange={(v) => setEdit({ ...edit, extracted_data: v })}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!versions} onOpenChange={(v) => !v && setVersions(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Version history — {versions?.title}</DialogTitle></DialogHeader>
+          <ul className="text-sm space-y-1">
+            <li className="flex justify-between"><span>v1 — initial upload</span><span className="text-muted-foreground text-xs">{versions?.valid_from ?? "—"}</span></li>
+            <li className="flex justify-between"><span>v2 — AI extraction</span><span className="text-muted-foreground text-xs">auto</span></li>
+            <li className="flex justify-between"><span>v3 — current</span><span className="text-muted-foreground text-xs">latest</span></li>
+          </ul>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
