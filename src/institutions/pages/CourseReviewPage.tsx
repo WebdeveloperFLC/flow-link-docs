@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 
 type Row = any;
@@ -36,6 +36,7 @@ export default function CourseReviewPage() {
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [instFilter, setInstFilter] = useState<string>(initialInst);
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [searchText, setSearchText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Row | null>(null);
 
@@ -58,6 +59,14 @@ export default function CourseReviewPage() {
   };
   useEffect(() => { loadAux(); }, []);
   useEffect(() => { load(); }, [statusFilter, instFilter, levelFilter]);
+
+  const visibleRows = useMemo(() => {
+    const q = searchText.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((r) => {
+      try { return JSON.stringify(r).toLowerCase().includes(q); } catch { return true; }
+    });
+  }, [rows, searchText]);
 
   const instName = useMemo(() => {
     const m = new Map(institutions.map((i) => [i.id, i.name]));
@@ -104,8 +113,8 @@ export default function CourseReviewPage() {
     setSelected(s);
   };
   const toggleAll = () => {
-    if (selected.size === rows.length) setSelected(new Set());
-    else setSelected(new Set(rows.map((r) => r.id)));
+    if (selected.size === visibleRows.length) setSelected(new Set());
+    else setSelected(new Set(visibleRows.map((r) => r.id)));
   };
   const selectedIds = Array.from(selected);
 
@@ -125,6 +134,18 @@ export default function CourseReviewPage() {
           </Card>
         )}
         <Card className="p-4 flex flex-wrap gap-3 items-end">
+          <div className="space-y-1 flex-1 min-w-[220px]">
+            <Label className="text-xs">Search</Label>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                placeholder="Type anything — title, IELTS, intake, PGWP, campus…"
+                className="pl-8"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+            </div>
+          </div>
           <div className="space-y-1">
             <Label className="text-xs">Status</Label>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -171,7 +192,7 @@ export default function CourseReviewPage() {
             <table className="w-full text-sm">
               <thead className="bg-muted/50">
                 <tr className="text-left">
-                  <th className="p-3 w-10"><Checkbox checked={selected.size > 0 && selected.size === rows.length} onCheckedChange={toggleAll} /></th>
+                  <th className="p-3 w-10"><Checkbox checked={selected.size > 0 && selected.size === visibleRows.length} onCheckedChange={toggleAll} /></th>
                   <th className="p-3">Course</th>
                   <th className="p-3">Institution</th>
                   <th className="p-3">Level</th>
@@ -185,14 +206,16 @@ export default function CourseReviewPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 && (
+                {visibleRows.length === 0 && (
                   <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">
-                    {statusFilter === "published"
+                    {searchText
+                      ? `No programs match "${searchText}".`
+                      : statusFilter === "published"
                       ? "Nothing published yet. Approve rows under \"approved\" status, then click Bulk Publish to push them to Course Finder."
                       : "No courses match the filters."}
                   </td></tr>
                 )}
-                {rows.map((r) => (
+                {visibleRows.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-accent/30">
                     <td className="p-3"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} /></td>
                     <td className="p-3 font-medium">{r.course_title}</td>
