@@ -10,7 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
-import { MOCK_DOCUMENTS, MockDocument, OCRStatus } from "../../data/mockDocuments";
+import { MockDocument, OCRStatus } from "../../data/mockDocuments";
+import {
+  addDocument, updateDocument, useDocuments,
+} from "../../stores/documentsStore";
+import { extractCardStatement } from "../../lib/extractCardStatement";
 
 type QStatus = 'queued' | 'uploading' | 'complete' | 'error';
 interface QFile {
@@ -62,9 +66,10 @@ export default function AccountingUploadPage() {
   const [dragOver, setDragOver] = useState(false);
   const [done, setDone] = useState(false);
 
+  const allDocs = useDocuments();
   const recent = useMemo(
-    () => [...MOCK_DOCUMENTS].sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt)).slice(0, 10),
-    []
+    () => [...allDocs].sort((a, b) => b.uploadedAt.localeCompare(a.uploadedAt)).slice(0, 10),
+    [allDocs]
   );
 
   const addFiles = (fl: FileList | null) => {
@@ -84,29 +89,83 @@ export default function AccountingUploadPage() {
   const uploadAll = () => {
     const queued = queue.filter(q => q.status === 'queued' || q.status === 'error');
     if (!queued.length) return;
+
     queued.forEach((q) => {
+      // 1. Flip UI to "uploading" and animate the bar to 100% quickly.
       setQueue(prev => prev.map(p => p.id === q.id ? { ...p, status: 'uploading', progress: 0 } : p));
       const iv = setInterval(() => {
         setQueue(prev => {
           const target = prev.find(p => p.id === q.id);
           if (!target) { clearInterval(iv); return prev; }
-          const next = Math.min(100, target.progress + 8 + Math.random() * 6);
+          const next = Math.min(100, target.progress + 12 + Math.random() * 8);
           if (next >= 100) {
             clearInterval(iv);
-            const updated = prev.map(p => p.id === q.id ? { ...p, status: 'complete' as QStatus, progress: 100 } : p);
-            const allDone = updated.every(p => p.status === 'complete');
-            if (allDone) {
-              setTimeout(() => {
-                toast.success(`${updated.length} files uploaded and queued for OCR processing`);
-                setDone(true);
-              }, 100);
-            }
-            return updated;
+            return prev.map(p => p.id === q.id ? { ...p, status: 'complete' as QStatus, progress: 100 } : p);
           }
           return prev.map(p => p.id === q.id ? { ...p, progress: next } : p);
         });
-      }, 100);
+      }, 80);
+
+      // 2. Create the real document record straight away so it appears in
+      //    Recent uploads / Library / OCR queue immediately.
+      const isPdf = q.type === 'pdf';
+      const created = addDocument(
+        {
+          filename: q.name,
+          fileType: q.type,
+          fileSizeKB: q.sizeKB,
+          docType: isPdf ? 'BANK_STATEMENT' : 'OTHER',
+          ocrStatus: (isPdf ? 'PROCESSING' : 'PENDING') as OCRStatus,
+          approvalStatus: 'PENDING',
+          entity: 'Canada HQ',
+          uploadedBy: 'You',
+          uploadedAt: new Date().toISOString(),
+          tags: [],
+        },
+        q.file,
+      );
+
+      // 3. For PDFs, kick off the real AI extraction in the background.
+      if (isPdf) {
+        extractCardStatement(q.file, {})
+          .then((result) => {
+            if (!result.success || result.transactions.length === 0) {
+              updateDocument(created.id, {
+                ocrStatus: 'FAILED',
+                ocrError: result.errors?.[0] ?? 'No transactions found in PDF',
+              });
+              return;
+            }
+            updateDocument(created.id, {
+              ocrStatus: 'COMPLETE',
+              docType: 'BANK_STATEMENT',
+              extracted: {
+                vendorName: result.meta.cardHolderName || 'Bank statement',
+                invoiceNumber: result.meta.cardLast4 ? `••${result.meta.cardLast4}` : undefined,
+                invoiceDate: result.meta.statementFrom,
+                dueDate: result.meta.statementTo,
+                subtotal: result.meta.openingBalance,
+                totalAmount: result.meta.closingBalance,
+                currency: result.meta.currency || 'CAD',
+                confidence: 0.9,
+              },
+              lineItems: result.transactions,
+            });
+          })
+          .catch((err) => {
+            updateDocument(created.id, {
+              ocrStatus: 'FAILED',
+              ocrError: err instanceof Error ? err.message : 'Extraction failed',
+            });
+          });
+      }
     });
+
+    // 4. After all bars finish, surface the success card.
+    setTimeout(() => {
+      toast.success(`${queued.length} file(s) uploaded`);
+      setDone(true);
+    }, 1200);
   };
 
   const reset = () => { setQueue([]); setDone(false); };
