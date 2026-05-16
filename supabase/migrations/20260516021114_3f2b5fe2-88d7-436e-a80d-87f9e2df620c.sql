@@ -1,0 +1,1 @@
+ALTER TABLE public.upi_courses_staging ADD COLUMN IF NOT EXISTS is_pgwp_eligible boolean;
