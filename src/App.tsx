@@ -109,6 +109,7 @@ import InstitutionsListPage from "./institutions/pages/InstitutionsListPage";
 import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
 import CourseReviewPage from "./institutions/pages/CourseReviewPage";
 import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
+import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -162,10 +163,10 @@ const App = () => (
             <Route path="/assessment-admin" element={<ProtectedRoute><AssessmentAdmin /></ProtectedRoute>} />
             <Route path="/noc-admin" element={<ProtectedRoute><NocAdmin /></ProtectedRoute>} />
             <Route path="/germany-rules" element={<ProtectedRoute><GermanyRulesAdmin /></ProtectedRoute>} />
-            <Route path="/institutions" element={<ProtectedRoute><InstitutionsListPage /></ProtectedRoute>} />
-            <Route path="/institutions/review" element={<ProtectedRoute><CourseReviewPage /></ProtectedRoute>} />
-            <Route path="/institutions/suggestions" element={<ProtectedRoute><AiSuggestionsPage /></ProtectedRoute>} />
-            <Route path="/institutions/:id" element={<ProtectedRoute><InstitutionDetailPage /></ProtectedRoute>} />
+            <Route path="/institutions" element={<InstitutionsProtectedRoute><InstitutionsListPage /></InstitutionsProtectedRoute>} />
+            <Route path="/institutions/review" element={<InstitutionsProtectedRoute><CourseReviewPage /></InstitutionsProtectedRoute>} />
+            <Route path="/institutions/suggestions" element={<InstitutionsProtectedRoute><AiSuggestionsPage /></InstitutionsProtectedRoute>} />
+            <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
