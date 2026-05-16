@@ -48,6 +48,7 @@ export default function AccountingIntercompanyNewPage() {
 
   const [txnDate, setTxnDate] = useState(new Date().toISOString().slice(0, 10));
   const [description, setDescription] = useState("");
+  const [transactionType, setTransactionType] = useState("");
   const [reference, setReference] = useState("");
   const [fromEntity, setFromEntity] = useState("");
   const [toEntity, setToEntity] = useState("");
@@ -136,6 +137,7 @@ export default function AccountingIntercompanyNewPage() {
 
     const created = addIntercompany({
       txnNumber, txnDate, fromEntity, toEntity, description, reference,
+      transactionType: transactionType || undefined,
       currency, fxRate: Number(fxRate) || 1, amount: calc.amount,
       taxType: taxType || undefined,
       taxRate: taxRate ? Number(taxRate) : undefined,
