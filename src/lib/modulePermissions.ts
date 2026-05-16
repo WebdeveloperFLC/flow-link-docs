@@ -13,10 +13,8 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "documents", label: "Documents", description: "Upload, review and manage client documents." },
   { key: "tasks", label: "Tasks", description: "Task board and reminders." },
   { key: "telephony", label: "Telephony / Calls", description: "Call queue, dialer, call history." },
-  { key: "institutions", label: "Institutions", description: "Partner institutions, agreements." },
-  { key: "commissions", label: "Commissions & Claims", description: "Commission cycles, invoices, claims." },
+  { key: "institutions", label: "Institutions", description: "Partner institutions (commissions/claims managed separately)." },
   { key: "assessments", label: "Assessments", description: "Assessment sessions and PDFs." },
-  { key: "accounting", label: "Accounting (entry)", description: "Access the accounting module home." },
   { key: "reports", label: "Reports & Analytics", description: "Dashboards and reports (UI-gated)." },
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
   { key: "settings", label: "Settings", description: "Org settings, integrations, branding." },
@@ -24,6 +22,7 @@ export const CRM_MODULES: ModuleDef[] = [
 
 export type RoleKey =
   | "admin"
+  | "commission_admin"
   | "counselor"
   | "documentation"
   | "telecaller"
@@ -39,20 +38,21 @@ const NONE = { view: false, edit: false, delete: false };
 
 export const ROLE_DEFAULTS: Record<RoleKey, PermissionMap> = {
   admin: Object.fromEntries(CRM_MODULES.map((m) => [m.key, ALL])),
+  commission_admin: Object.fromEntries(CRM_MODULES.map((m) => [m.key, VIEW])),
   counselor: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: VIEW,
-    institutions: VIEW, commissions: VIEW, assessments: EDIT,
-    accounting: NONE, reports: VIEW, letter_templates: EDIT, settings: NONE,
+    institutions: VIEW, assessments: EDIT,
+    reports: VIEW, letter_templates: EDIT, settings: NONE,
   },
   documentation: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: NONE,
-    institutions: VIEW, commissions: VIEW, assessments: VIEW,
-    accounting: NONE, reports: VIEW, letter_templates: EDIT, settings: NONE,
+    institutions: VIEW, assessments: VIEW,
+    reports: VIEW, letter_templates: EDIT, settings: NONE,
   },
   telecaller: {
     clients: VIEW, documents: NONE, tasks: EDIT, telephony: EDIT,
-    institutions: NONE, commissions: NONE, assessments: NONE,
-    accounting: NONE, reports: NONE, letter_templates: NONE, settings: NONE,
+    institutions: NONE, assessments: NONE,
+    reports: NONE, letter_templates: NONE, settings: NONE,
   },
   viewer: Object.fromEntries(CRM_MODULES.map((m) => [m.key, VIEW])),
   client: Object.fromEntries(CRM_MODULES.map((m) => [m.key, NONE])),
