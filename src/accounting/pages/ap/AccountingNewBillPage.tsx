@@ -11,16 +11,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
-import { EXPENSE_CATEGORY_LABELS, MOCK_BILLS } from "../../data/mockAP";
+import DynamicSelect from "../../components/shared/DynamicSelect";
+import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import { useVendors } from "../../stores/vendorsStore";
+import { addApBill } from "../../stores/apBillsStore";
+import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
-const ENTITIES = ["Future Link Canada HQ", "Future Link USA Corp", "Future Link India Pvt Ltd", "Future Link Academy", "Future Link UAE"];
-const BRANCHES = ["Head Office", "Mumbai Office", "Delhi Office", "Bangalore Office", "Toronto Office", "Vancouver Office", "Dubai Office"];
 const DEPARTMENTS = ["Operations", "Marketing", "Academics", "Visa & Immigration", "Finance & Accounts", "HR & Admin", "Technology", "Management"];
-const TAX_CODES = ["GST-5%", "HST-13%", "IGST-18%", "CGST-9%", "SGST-9%", "TDS-10%", "TCS-1%", "VAT-5%", "VAT-15%", "ZERO-RATED", "EXEMPT"];
-const PAY_METHODS = ["Bank Transfer", "Cheque", "Cash", "Credit Card", "UPI", "Wire Transfer", "NEFT", "RTGS", "IMPS"];
-const COUNTRIES = ["India", "Canada", "USA", "UAE", "UK", "Australia", "Germany", "Other"];
-const CURRENCIES = ["CAD", "USD", "INR", "AED", "GBP", "AUD", "EUR"];
 const TAG_SUGGESTIONS = ["urgent", "recurring", "reimbursable", "petty-cash", "capex"];
 
 const fullSchema = z.object({
@@ -30,9 +29,14 @@ const fullSchema = z.object({
 
 export default function AccountingNewBillPage() {
   const navigate = useNavigate();
+  const vendors = useVendors();
+  const entities = useEntities();
+  const taxCodes = useMaster("tax_codes");
+
   const [vendor, setVendor] = useState(""); const [vendorEmail, setVendorEmail] = useState(""); const [vendorPhone, setVendorPhone] = useState("");
   const [category, setCategory] = useState(""); const [department, setDepartment] = useState("");
-  const [entity, setEntity] = useState(""); const [branch, setBranch] = useState(""); const [country, setCountry] = useState("Canada"); const [currency, setCurrency] = useState("CAD");
+  const [entityId, setEntityId] = useState(""); const [branchId, setBranchId] = useState("");
+  const [country, setCountry] = useState("CA"); const [currency, setCurrency] = useState("CAD");
   const [billNumber, setBillNumber] = useState(""); const [billDate, setBillDate] = useState(new Date().toISOString().slice(0, 10)); const [dueDate, setDueDate] = useState("");
   const [subtotal, setSubtotal] = useState<number>(0); const [taxCode, setTaxCode] = useState(""); const [taxAmount, setTaxAmount] = useState<number>(0);
   const [description, setDescription] = useState(""); const [notes, setNotes] = useState("");
@@ -41,24 +45,50 @@ export default function AccountingNewBillPage() {
   const [filename, setFilename] = useState("");
 
   const total = +(subtotal + taxAmount).toFixed(2);
-  const vendorOptions = Array.from(new Set(MOCK_BILLS.map((b) => b.vendor)));
+  const topEntities = entities.filter((e) => !e.parentId);
+  const branches = entities.filter((e) => e.parentId === entityId);
+  const entityName = entities.find((e) => e.id === entityId)?.name ?? "";
+  const branchName = entities.find((e) => e.id === branchId)?.name ?? "";
 
   function applyTax(code: string) {
     setTaxCode(code);
-    const m = code.match(/(\d+(?:\.\d+)?)%/);
+    const label = taxCodes.find((t) => t.code === code)?.label ?? code;
+    const m = label.match(/(\d+(?:\.\d+)?)\s*%/);
     if (m) setTaxAmount(+(subtotal * (parseFloat(m[1]) / 100)).toFixed(2));
+  }
+
+  function buildPayload(status: VendorBill["status"]): Omit<VendorBill, "id"> {
+    const cc = (["CA","US","IN","AE"] as const).includes(country as never) ? (country as VendorBill["branchCountry"]) : "OTHER";
+    const cur = (["CAD","USD","INR","AED","GBP","AUD","EUR"] as const).includes(currency as never) ? (currency as VendorBill["currency"]) : "CAD";
+    const pm = (["BANK_TRANSFER","CHEQUE","CASH","CREDIT_CARD","UPI","WIRE","OTHER"] as const).includes(payMethod as never) ? (payMethod as VendorBill["paymentMethod"]) : undefined;
+    return {
+      billNumber, vendor, vendorEmail: vendorEmail || undefined, vendorPhone: vendorPhone || undefined,
+      vendorCategory: "OTHER" as VendorBill["vendorCategory"],
+      entity: entityName || "—", branch: branchName || entityName || "—", branchCountry: cc,
+      department: department || undefined, description: description || "—",
+      billDate, dueDate, currency: cur, subtotal,
+      taxCode: masterLabel("tax_codes", taxCode) || taxCode || "NONE",
+      taxAmount, totalAmount: total,
+      status, linkedCOACode: "2000", linkedBankAccountId: bankId || undefined,
+      paymentMethod: pm, notes: notes || undefined,
+      createdBy: "Current user", tags: tags.length ? tags : undefined,
+    };
   }
 
   function save(asDraft: boolean) {
     if (asDraft) {
-      if (!vendor || !billNumber || !entity) { toast.error("Vendor, bill number and entity are required to save a draft"); return; }
+      if (!vendor || !billNumber || !entityId) { toast.error("Vendor, bill number and entity are required to save a draft"); return; }
+      addApBill(buildPayload("DRAFT"));
       toast.success("Draft saved"); navigate("/accounting/ap"); return;
     }
-    const r = fullSchema.safeParse({ vendor, billNumber, entity, currency, billDate, dueDate, subtotal, description });
+    const r = fullSchema.safeParse({ vendor, billNumber, entity: entityName, currency, billDate, dueDate, subtotal, description });
     if (!r.success) { toast.error(r.error.errors[0]?.message ?? "Please complete required fields"); return; }
     if (dueDate < billDate) { toast.error("Due date must be on or after bill date"); return; }
+    addApBill(buildPayload("PENDING_REVIEW"));
     toast.success("Bill submitted for review"); navigate("/accounting/ap");
   }
+
+  const vendorOptions = vendors.map((v) => v.name);
 
   return (
     <AppLayout>
@@ -81,10 +111,20 @@ export default function AccountingNewBillPage() {
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Entity & branch</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
-          <Field label="Entity *"><FreeCombobox value={entity} onChange={setEntity} options={[...ENTITIES, "Other — type your own"]} /></Field>
-          <Field label="Branch"><FreeCombobox value={branch} onChange={setBranch} options={[...BRANCHES, "Other — type your own"]} /></Field>
-          <Field label="Branch country"><PlainSelect value={country} onChange={setCountry} options={COUNTRIES} /></Field>
-          <Field label="Currency *"><PlainSelect value={currency} onChange={setCurrency} options={CURRENCIES} /></Field>
+          <Field label="Entity *">
+            <Select value={entityId} onValueChange={(v) => { setEntityId(v); setBranchId(""); }}>
+              <SelectTrigger><SelectValue placeholder="Select entity" /></SelectTrigger>
+              <SelectContent>{topEntities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label="Branch">
+            <Select value={branchId || "__none__"} onValueChange={(v) => setBranchId(v === "__none__" ? "" : v)} disabled={!entityId || branches.length === 0}>
+              <SelectTrigger><SelectValue placeholder={branches.length ? "Select branch" : "No branches"} /></SelectTrigger>
+              <SelectContent><SelectItem value="__none__">—</SelectItem>{branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label="Branch country"><DynamicSelect listKey="countries" value={country} onValueChange={setCountry} /></Field>
+          <Field label="Currency *"><DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} /></Field>
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Bill details</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
@@ -92,7 +132,7 @@ export default function AccountingNewBillPage() {
           <Field label="Bill date *"><Input type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} /></Field>
           <Field label="Due date *"><Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} /></Field>
           <Field label="Subtotal *"><Input type="number" min={0} step={0.01} value={subtotal || ""} onChange={(e) => setSubtotal(parseFloat(e.target.value) || 0)} /></Field>
-          <Field label="Tax code"><FreeCombobox value={taxCode} onChange={applyTax} options={[...TAX_CODES, "Other — type your own"]} /></Field>
+          <Field label="Tax code"><DynamicSelect listKey="tax_codes" value={taxCode} onValueChange={applyTax} /></Field>
           <Field label="Tax amount"><Input type="number" min={0} step={0.01} value={taxAmount || ""} onChange={(e) => setTaxAmount(parseFloat(e.target.value) || 0)} /></Field>
           <Field label="Total"><Input value={total.toFixed(2)} readOnly className="bg-muted" /></Field>
           <div className="col-span-2"><Field label="Description *"><Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe what this bill is for…" /></Field></div>
@@ -102,9 +142,15 @@ export default function AccountingNewBillPage() {
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Linked COA account"><Input value={coa} onChange={(e) => setCoa(e.target.value)} /></Field>
           <Field label="Linked bank account">
-            <PlainSelect value={bankId} onChange={setBankId} options={SEED_BANK_ACCOUNTS.filter((b) => b.currency === currency).map((b) => b.nickname)} />
+            <Select value={bankId || "__none__"} onValueChange={(v) => setBankId(v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Select bank…" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">—</SelectItem>
+                {SEED_BANK_ACCOUNTS.filter((b) => b.currency === currency).map((b) => <SelectItem key={b.id} value={b.id}>{b.nickname} · ••••{b.accountNumber.slice(-4)}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </Field>
-          <Field label="Payment method"><FreeCombobox value={payMethod} onChange={setPayMethod} options={[...PAY_METHODS, "Other — type your own"]} /></Field>
+          <Field label="Payment method"><DynamicSelect listKey="payment_methods" value={payMethod} onValueChange={setPayMethod} /></Field>
           <Field label="Tags">
             <div className="flex flex-wrap gap-1.5 items-center min-h-9 px-2 py-1 border border-input rounded-md">
               {tags.map((t) => <span key={t} className="bg-accent text-xs px-2 py-0.5 rounded inline-flex items-center gap-1">{t}<button type="button" onClick={() => setTags(tags.filter((x) => x !== t))}>×</button></span>)}
@@ -126,12 +172,4 @@ export default function AccountingNewBillPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return <div className="grid gap-1.5"><Label className="text-xs">{label}</Label>{children}</div>;
-}
-function PlainSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
-  return (
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
-      <SelectContent>{options.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}</SelectContent>
-    </Select>
-  );
 }
