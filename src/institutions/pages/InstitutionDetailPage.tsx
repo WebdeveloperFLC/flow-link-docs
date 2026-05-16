@@ -63,12 +63,18 @@ export default function InstitutionDetailPage() {
   };
 
   const syncNow = async (source: UpiSource) => {
-    const { data: job, error } = await supabase.from("upi_sync_jobs").insert({
-      source_id: source.id, institution_id: id, status: "queued",
-    }).select().single();
-    if (error) return toast.error(error.message);
-    toast.success("Sync queued");
-    await supabase.from("upi_sync_logs").insert({ job_id: job!.id, level: "info", message: "Job queued from UI" });
+    toast.info("Starting sync…");
+    await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
+    const { data, error } = await supabase.functions.invoke("upi-sync-source", {
+      body: { source_id: source.id },
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      const res = data as { extracted?: number; upserted?: number; rejected?: number };
+      toast.success(`Sync complete — ${res?.upserted ?? 0} course(s) staged for review`);
+    }
+    load();
   };
 
   const uploadDoc = async (file: File) => {
