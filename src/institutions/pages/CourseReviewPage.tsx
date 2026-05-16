@@ -314,7 +314,21 @@ function EditSheet({ row, onClose, onSaved, institutions, levels }: {
             {field("duolingo_overall", "Duolingo", "number")}
             {field("gpa_requirement", "GPA req")}
             {field("source_url", "Source URL")}
-            {field("review_status", "Review status")}
+            <div className="space-y-1">
+              <Label className="text-xs">Review status</Label>
+              <Select
+                value={MANUAL_STATUSES.includes(draft.review_status) ? draft.review_status : "pending_review"}
+                onValueChange={(v) => setDraft({ ...draft, review_status: v })}
+                disabled={draft.review_status === "published"}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {MANUAL_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {draft.review_status === "published" && <SelectItem value="published">published (live)</SelectItem>}
+                </SelectContent>
+              </Select>
+              <p className="text-[10px] text-muted-foreground">To publish, use the Publish button — it pushes to Course Finder.</p>
+            </div>
             {field("confidence_score", "Confidence", "number")}
             <div className="space-y-1">
               <Label className="text-xs">PGWP eligible</Label>
