@@ -7,6 +7,35 @@ const corsHeaders = {
 };
 
 const MAX_CHARS = 80_000;
+const DETAIL_MAX_CHARS = 40_000;
+const MAX_DETAIL_FETCHES = 25;
+
+const LINK_TOOL = {
+  type: "function",
+  function: {
+    name: "extract_program_links",
+    description: "From a program-list page, return distinct academic program names and their detail page URLs. Ignore navigation, news, blog or generic info pages.",
+    parameters: {
+      type: "object",
+      properties: {
+        programs: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              course_title: { type: "string" },
+              program_url: { type: "string" },
+            },
+            required: ["course_title", "program_url"],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ["programs"],
+      additionalProperties: false,
+    },
+  },
+};
 
 const COURSE_TOOL = {
   type: "function",
@@ -53,9 +82,25 @@ const COURSE_TOOL = {
               is_coop: { type: "boolean" },
               is_pr_pathway: { type: "boolean" },
               is_pgwp_eligible: { type: "boolean", description: "True if program is designated PGWP-eligible (Post-Graduation Work Permit, Canada)" },
+              stem_eligible: { type: "boolean" },
               is_online: { type: "boolean" },
               is_part_time: { type: "boolean" },
               program_url: { type: "string" },
+              apply_url: { type: "string", description: "Direct application/apply-now URL if different from program_url" },
+              field_of_study: {
+                type: "string",
+                description: "Closest match: Business & Management, IT & Computer Science, Engineering, Health & Medicine, Hospitality & Tourism, Arts & Humanities",
+              },
+              specialization: { type: "string" },
+              gpa_requirement: { type: "string" },
+              application_fee: { type: "number" },
+              has_scholarship: { type: "boolean" },
+              scholarship_detail: { type: "string" },
+              career_outcomes: { type: "string", description: "Short summary of job/career outcomes" },
+              pr_visa_notes: { type: "string", description: "Notes on PR or visa pathways relevant to this program" },
+              intake_year: { type: "number" },
+              campus_name: { type: "string" },
+              course_description: { type: "string", description: "Concise 1-2 sentence description" },
               confidence_score: {
                 type: "number",
                 description: "0-100 confidence that the extracted data is correct",
