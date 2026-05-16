@@ -1,64 +1,26 @@
 import { useState } from 'react';
-import { Paintbrush, Sun, Moon, Monitor } from 'lucide-react';
+import { Paintbrush, Sun, Moon, Monitor, Trash2, Save, PanelLeft, PanelLeftClose, EyeOff } from 'lucide-react';
+import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from './ThemeProvider';
 import { ColorSwatch } from './ColorSwatch';
 import { FontPicker } from './FontPicker';
-import { THEME_PRESETS, ThemeConfig } from '@/lib/themeStore';
-
-// ---- Helpers --------------------------------------------------------------
-
-function hexToHsl(hex: string): string {
-  const m = hex.replace('#', '');
-  const r = parseInt(m.substring(0, 2), 16) / 255;
-  const g = parseInt(m.substring(2, 4), 16) / 255;
-  const b = parseInt(m.substring(4, 6), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
-  const l = (max + min) / 2;
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
-      case g: h = ((b - r) / d + 2); break;
-      case b: h = ((r - g) / d + 4); break;
-    }
-    h /= 6;
-  }
-  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
-}
-
-function hslToHex(hsl: string): string {
-  const parts = hsl.split(/\s+/);
-  const h = parseFloat(parts[0]) / 360;
-  const s = parseFloat(parts[1]) / 100;
-  const l = parseFloat(parts[2]) / 100;
-  let r: number, g: number, b: number;
-  if (s === 0) { r = g = b = l; }
-  else {
-    const hue2rgb = (p: number, q: number, t: number) => {
-      if (t < 0) t += 1; if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    };
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1 / 3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1 / 3);
-  }
-  const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-// ---- Constants ------------------------------------------------------------
+import {
+  THEME_PRESETS,
+  SIDEBAR_GRADIENTS,
+  ThemeConfig,
+  hexToHsl,
+  hslToHex,
+  loadSavedThemes,
+  persistSavedThemes,
+  SavedTheme,
+  MAX_SAVED_THEMES,
+} from '@/lib/themeStore';
 
 const PRIMARY_COLORS = [
   '#2563eb', '#4f46e5', '#7c3aed', '#db2777', '#dc2626',
@@ -82,18 +44,122 @@ const DENSITY_OPTIONS: { key: ThemeConfig['contentDensity']; label: string; gap:
   { key: 'spacious', label: 'Spacious', gap: '14px' },
 ];
 
-// ---- Component ------------------------------------------------------------
+const RADIUS_PX: Record<ThemeConfig['borderRadius'], string> = {
+  none: '0px', small: '4px', medium: '8px', large: '12px', full: '9999px',
+};
+
+// ---- Sub-components ------------------------------------------------------
+
+function HexColorPicker({ value, onChange, label }: { value: string; onChange: (hsl: string) => void; label: string }) {
+  const hex = (() => { try { return hslToHex(value); } catch { return '#000000'; } })();
+  const [text, setText] = useState(hex);
+
+  // Keep text in sync when external value changes
+  if (text.toLowerCase() !== hex.toLowerCase() && document.activeElement?.getAttribute('data-hex-input') !== label) {
+    // no-op; text is managed locally; we sync on blur and on swatch click via key change
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      <input
+        type="color"
+        value={hex}
+        onChange={(e) => { setText(e.target.value); onChange(hexToHsl(e.target.value)); }}
+        className="h-9 w-12 rounded-md border border-border cursor-pointer bg-transparent p-0.5"
+        aria-label={`${label} color picker`}
+      />
+      <Input
+        data-hex-input={label}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => {
+          const v = text.startsWith('#') ? text : `#${text}`;
+          if (/^#[0-9a-fA-F]{6}$/.test(v)) { onChange(hexToHsl(v)); setText(v.toLowerCase()); }
+          else setText(hex);
+        }}
+        placeholder="#000000"
+        className="h-9 font-mono text-xs uppercase"
+      />
+    </div>
+  );
+}
+
+function LivePreview({ theme }: { theme: ThemeConfig }) {
+  const sidebarBg = theme.sidebarStyle === 'gradient' ? theme.sidebarGradient : `hsl(${theme.sidebarColor})`;
+  const radius = RADIUS_PX[theme.borderRadius];
+  return (
+    <div className="w-full h-[120px] rounded-xl overflow-hidden border border-border flex shadow-sm">
+      <div className="w-1/5 flex flex-col items-center gap-2 py-3" style={{ background: sidebarBg }}>
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="block w-5 h-5 rounded-full"
+            style={{
+              background: i === 0 ? `hsl(${theme.primaryColor})` : `hsl(${theme.sidebarTextColor} / 0.35)`,
+            }}
+          />
+        ))}
+      </div>
+      <div className="flex-1 p-3 flex flex-col gap-2" style={{ background: `hsl(${theme.backgroundColor})` }}>
+        <div
+          className="flex-1 p-2 flex flex-col gap-1.5 border"
+          style={{ background: `hsl(${theme.cardColor})`, borderRadius: radius, borderColor: 'hsl(var(--border))' }}
+        >
+          <div className="h-1.5 w-2/3 rounded-full" style={{ background: 'hsl(var(--muted-foreground) / 0.4)' }} />
+          <div className="h-1.5 w-1/2 rounded-full" style={{ background: 'hsl(var(--muted-foreground) / 0.25)' }} />
+          <div className="mt-auto">
+            <span
+              className="inline-block px-3 py-1 text-[10px] font-medium"
+              style={{
+                background: `hsl(${theme.primaryColor})`,
+                color: `hsl(${theme.primaryForeground})`,
+                borderRadius: RADIUS_PX[theme.buttonRadius],
+              }}
+            >Button</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---- Main component ------------------------------------------------------
 
 export function ThemeCustomizer() {
   const { user } = useAuth();
   const { theme, setTheme, resetTheme, applyPreset } = useTheme();
   const [open, setOpen] = useState(false);
+  const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(() => loadSavedThemes());
+  const [newThemeName, setNewThemeName] = useState('');
 
   if (!user) return null;
 
-  const primaryHex = (() => { try { return hslToHex(theme.primaryColor); } catch { return '#2563eb'; } })();
-  const sidebarHex = (() => { try { return hslToHex(theme.sidebarColor); } catch { return '#0f172a'; } })();
-  const sidebarTextHex = (() => { try { return hslToHex(theme.sidebarTextColor); } catch { return '#ffffff'; } })();
+  const handleSaveTheme = () => {
+    const name = newThemeName.trim();
+    if (!name) { toast.error('Please enter a theme name'); return; }
+    if (savedThemes.length >= MAX_SAVED_THEMES) {
+      toast.error(`Max ${MAX_SAVED_THEMES} themes. Delete one first.`); return;
+    }
+    if (savedThemes.some((t) => t.name.toLowerCase() === name.toLowerCase())) {
+      toast.error('A theme with this name already exists'); return;
+    }
+    const next = [...savedThemes, { name, config: theme, savedAt: new Date().toISOString() }];
+    setSavedThemes(next);
+    persistSavedThemes(next);
+    setNewThemeName('');
+    toast.success(`Theme saved as "${name}"`);
+  };
+
+  const handleApplySaved = (t: SavedTheme) => {
+    applyPreset({ name: t.name, preview: t.config.primaryColor, config: t.config });
+    toast.success(`Applied "${t.name}"`);
+  };
+
+  const handleDeleteSaved = (name: string) => {
+    const next = savedThemes.filter((t) => t.name !== name);
+    setSavedThemes(next);
+    persistSavedThemes(next);
+  };
 
   return (
     <>
@@ -107,7 +173,7 @@ export function ThemeCustomizer() {
       </button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-[380px] overflow-y-auto">
+        <SheetContent side="right" className="w-full sm:max-w-[400px] overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Customise appearance</SheetTitle>
             <SheetDescription className="text-xs">
@@ -116,6 +182,9 @@ export function ThemeCustomizer() {
           </SheetHeader>
 
           <div className="py-4 space-y-6">
+            {/* 0. Live preview */}
+            <LivePreview theme={theme} />
+
             {/* 1. Presets */}
             <section>
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Quick themes</div>
@@ -137,6 +206,44 @@ export function ThemeCustomizer() {
                     </button>
                   );
                 })}
+              </div>
+
+              {/* My themes */}
+              {savedThemes.length > 0 && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">My themes</div>
+                  <div className="space-y-1.5">
+                    {savedThemes.map((t) => (
+                      <div key={t.name} className="flex items-center gap-2 p-1.5 rounded-md border border-border">
+                        <span className="block w-4 h-4 rounded-full shrink-0" style={{ background: `hsl(${t.config.primaryColor})` }} />
+                        <span className="text-xs flex-1 truncate">{t.name}</span>
+                        <Button size="sm" variant="ghost" className="h-6 px-2 text-[11px]" onClick={() => handleApplySaved(t)}>Apply</Button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSaved(t.name)}
+                          className="p-1 text-muted-foreground hover:text-destructive"
+                          aria-label={`Delete ${t.name}`}
+                        >
+                          <Trash2 className="size-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Save current theme */}
+              <div className="mt-3 flex items-center gap-2">
+                <Input
+                  value={newThemeName}
+                  onChange={(e) => setNewThemeName(e.target.value)}
+                  placeholder="Name this theme..."
+                  className="h-8 text-xs"
+                  maxLength={30}
+                />
+                <Button size="sm" onClick={handleSaveTheme} className="h-8 shrink-0">
+                  <Save className="size-3.5 mr-1" /> Save
+                </Button>
               </div>
             </section>
 
@@ -177,6 +284,35 @@ export function ThemeCustomizer() {
             <section className="space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sidebar</div>
 
+              {/* Sidebar mode */}
+              <div>
+                <div className="text-xs mb-1.5">Mode</div>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { key: 'full', label: 'Full', icon: PanelLeft },
+                    { key: 'icons-only', label: 'Icons', icon: PanelLeftClose },
+                    { key: 'hidden', label: 'Hidden', icon: EyeOff },
+                  ] as const).map((m) => {
+                    const active = theme.sidebarMode === m.key;
+                    const Icon = m.icon;
+                    return (
+                      <button
+                        key={m.key}
+                        type="button"
+                        onClick={() => setTheme({ sidebarMode: m.key })}
+                        className={cn(
+                          'flex flex-col items-center justify-center gap-1 py-2 rounded-md border text-[11px] transition-colors',
+                          active ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-accent/40',
+                        )}
+                      >
+                        <Icon className="size-4" />
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div>
                 <div className="text-xs mb-1.5">Position</div>
                 <div className="grid grid-cols-2 gap-2">
@@ -211,26 +347,69 @@ export function ThemeCustomizer() {
                 </div>
               </div>
 
+              {/* Sidebar style: solid / gradient */}
               <div>
-                <div className="text-xs mb-1.5">Sidebar color</div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {SIDEBAR_BG_COLORS.map((c) => (
-                    <ColorSwatch
-                      key={c}
-                      color={c}
-                      selected={sidebarHex.toLowerCase() === c.toLowerCase()}
-                      onClick={() => setTheme({ sidebarColor: hexToHsl(c) })}
-                    />
+                <div className="text-xs mb-1.5">Style</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {(['solid', 'gradient'] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setTheme({ sidebarStyle: s })}
+                      className={cn(
+                        'py-1.5 rounded-md border text-xs capitalize',
+                        theme.sidebarStyle === s ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-accent/40',
+                      )}
+                    >{s}</button>
                   ))}
-                  <input
-                    type="color"
-                    value={sidebarHex}
-                    onChange={(e) => setTheme({ sidebarColor: hexToHsl(e.target.value) })}
-                    className="h-7 w-7 rounded-full border border-border cursor-pointer bg-transparent"
-                    aria-label="Custom sidebar color"
-                  />
                 </div>
               </div>
+
+              {theme.sidebarStyle === 'gradient' ? (
+                <div>
+                  <div className="text-xs mb-1.5">Gradient</div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {SIDEBAR_GRADIENTS.map((g) => {
+                      const active = theme.sidebarGradient === g.value;
+                      return (
+                        <button
+                          key={g.name}
+                          type="button"
+                          onClick={() => setTheme({ sidebarGradient: g.value })}
+                          title={g.name}
+                          className={cn(
+                            'h-12 rounded-md border transition-all',
+                            active ? 'border-primary ring-2 ring-primary ring-offset-1 ring-offset-background' : 'border-border',
+                          )}
+                          style={{ background: g.value }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <div className="text-xs mb-1.5">Sidebar color</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {SIDEBAR_BG_COLORS.map((c) => (
+                        <ColorSwatch
+                          key={c}
+                          color={c}
+                          selected={hslToHex(theme.sidebarColor).toLowerCase() === c.toLowerCase()}
+                          onClick={() => setTheme({ sidebarColor: hexToHsl(c) })}
+                        />
+                      ))}
+                    </div>
+                    <HexColorPicker
+                      key={`sb-${theme.sidebarColor}`}
+                      value={theme.sidebarColor}
+                      onChange={(hsl) => setTheme({ sidebarColor: hsl })}
+                      label="sidebar"
+                    />
+                  </div>
+                </>
+              )}
 
               <div>
                 <div className="text-xs mb-1.5">Text color</div>
@@ -239,17 +418,10 @@ export function ThemeCustomizer() {
                     <ColorSwatch
                       key={c}
                       color={c}
-                      selected={sidebarTextHex.toLowerCase() === c.toLowerCase()}
+                      selected={hslToHex(theme.sidebarTextColor).toLowerCase() === c.toLowerCase()}
                       onClick={() => setTheme({ sidebarTextColor: hexToHsl(c) })}
                     />
                   ))}
-                  <input
-                    type="color"
-                    value={sidebarTextHex}
-                    onChange={(e) => setTheme({ sidebarTextColor: hexToHsl(e.target.value) })}
-                    className="h-7 w-7 rounded-full border border-border cursor-pointer bg-transparent"
-                    aria-label="Custom sidebar text color"
-                  />
                 </div>
               </div>
             </section>
@@ -260,26 +432,23 @@ export function ThemeCustomizer() {
             <section>
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Primary color</div>
               <div className="text-xs text-muted-foreground mb-2">Used for buttons, links, and highlights</div>
-              <div className="grid grid-cols-5 gap-2 mb-2">
+              <div className="grid grid-cols-5 gap-2">
                 {PRIMARY_COLORS.map((c) => (
                   <ColorSwatch
                     key={c}
                     color={c}
                     size={32}
-                    selected={primaryHex.toLowerCase() === c.toLowerCase()}
+                    selected={hslToHex(theme.primaryColor).toLowerCase() === c.toLowerCase()}
                     onClick={() => setTheme({ primaryColor: hexToHsl(c), accentColor: hexToHsl(c) })}
                   />
                 ))}
               </div>
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <input
-                  type="color"
-                  value={primaryHex}
-                  onChange={(e) => setTheme({ primaryColor: hexToHsl(e.target.value), accentColor: hexToHsl(e.target.value) })}
-                  className="h-7 w-7 rounded-full border border-border cursor-pointer bg-transparent"
-                />
-                Custom
-              </label>
+              <HexColorPicker
+                key={`pri-${theme.primaryColor}`}
+                value={theme.primaryColor}
+                onChange={(hsl) => setTheme({ primaryColor: hsl, accentColor: hsl })}
+                label="primary"
+              />
             </section>
 
             <Separator />
