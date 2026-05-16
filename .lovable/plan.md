@@ -1,84 +1,76 @@
 
-## Scope
+## Goal
 
-Upgrades to `InstitutionDetailPage`, `CourseReviewPage`, and a few edge functions. No DB schema changes unless noted in **Technical** below.
+Make the sync pipeline always drill into individual program detail pages (e.g. `…/programs/fulltime/AIG.html`) instead of stopping at a listing page (`…/programs/list.html`). This applies to every institution and country, so Seneca-style data — tuition, IELTS/PTE/TOEFL, application fee, intakes, duration, co-op, PGWP, processing time, scholarships — is reliably extracted.
 
----
+## Problem today
 
-## 1. Overview tab — Type as a dropdown
+`supabase/functions/upi-sync-source/index.ts` only switches to two‑pass detail crawling when pass‑1 returns **more than 40 thin courses with <1.5 filled fields**. Listing pages with fewer rows, or pages where the AI hallucinates a few fields, never trigger detail crawling. Result: Seneca and similar sources land in staging with mostly empty fees/IELTS/duration and 0–low confidence.
 
-Replace the free-text "Type" input with a `Select` (Public, Private, College, University, Polytechnic, Community College, Language School, Other). Persist the chosen value to `institution_type` exactly as today.
+## Solution
 
-## 2. Documents tab — Program-sheet upload that creates programs
+Make detail‑page crawling the **default behavior** for any source whose URL looks like a program list, and broaden the trigger so it fires whenever data quality is weak — not only on huge pages.
 
-Today, uploads go to `upi-process-document` for generic metadata. Change behaviour:
+### 1. Always discover program links first
 
-- Add a **"Document type"** chooser on the upload card: `Program sheet`, `Agreement`, `Commission sheet`, `Brochure / other`.
-- When **Program sheet** is chosen, after upload route the file to a new edge function `upi-extract-programs-from-doc` that:
-  - Parses PDF/XLSX/CSV via existing parsing libs.
-  - Calls Lovable AI (`google/gemini-3-flash-preview`) with a tool-calling schema covering all `KNOWN` course fields in `upi-upsert-courses` plus PGWP/co-op flags.
-  - Calls `upi-upsert-courses` directly so rows land in `upi_courses_staging` for review — same review flow as web sync.
-- When **Agreement** or **Commission sheet** is chosen, route to a new `upi-extract-structured` function that asks the AI for the right shape and writes rows to `upi_agreements` / `upi_commissions` (see §4).
+For any `source_type` in `(website, program_list, sitemap, list_page)` or URL containing `/programs`, `/courses`, `/list`, `/study`, `/academics`:
 
-## 3. Course Review — dynamic/extra fields and free-form search
+1. Fetch the page via Jina Reader (existing).
+2. Run the existing `LINK_TOOL` AI call **first** to extract `{ course_title, program_url }[]`.
+3. Normalize URLs (resolve relative paths against the source origin, dedupe, strip query/hash, drop obvious non-program links: `/news`, `/blog`, `/events`, `/about`, `/admissions` unless `/admissions/programs`).
+4. If ≥ 3 distinct detail links are discovered → enter detail-crawl mode. Otherwise fall back to single‑page extraction.
 
-- **Free-form search bar** at the top of `/institutions/review` that filters across `course_title`, `campus_name`, `city`, intake months, IELTS, PGWP, level, currency, etc. (a single client-side `searchText` that tests `JSON.stringify(row).toLowerCase()`).
-- **Add-field button** in the Edit sheet: lets users add ad-hoc fields that are stored in the existing `metadata` JSON. This is already half-built (custom metadata) — surface it as a primary action so users can add more fields when AI extracts something new.
-- **PGWP column** is already in place; verify the upsert function maps `is_pgwp_eligible` (it does) — no change needed.
+### 2. Detail-crawl mode (mandatory per-program fetch)
 
-## 4. Auto-detect Agreements & Commissions
+- Raise `MAX_DETAIL_FETCHES` from 25 → **120** (configurable per source via new `upi_institution_sources.max_pages` column if it exists; otherwise constant).
+- Keep concurrency at 5, add small jitter to avoid Jina rate spikes.
+- For each detail URL: fetch via Jina, call `COURSE_TOOL` with a stricter prompt instructing the AI: "This is a single program's detail page — emit exactly one course row unless the page lists multiple delivery options/campuses, in which case one row per campus."
+- Always set `program_url` and `source_url` to the detail URL.
 
-Extend `upi-sync-source` and the new doc extractor to also call AI with a second tool schema that returns:
+### 3. Multi-step discovery for institution roots
 
-- `agreements[]` → upsert into `upi_agreements` (title, agreement_type, valid_from, valid_to, status='proposed').
-- `commissions[]` → upsert into `upi_commissions` (name, model_type, rate, currency, is_proposed=true).
+If the source URL is the institution homepage or a high-level `/programs` hub (heuristic: link extractor returns >50 URLs but most look like categories — paths end in `/area-of-study/*`, `/faculties/*`, `/schools/*`), do a **two-level expansion**:
 
-Both surface in their tabs with a "Proposed — accept?" badge so users can approve.
+1. From homepage → discover category/listing URLs.
+2. From each category → discover program detail URLs.
+3. Cap total fetches at `MAX_DETAIL_FETCHES`.
 
-## 5. Promotions — one-click campaign run
+This handles Seneca's hierarchy: `/programs` → `/international/programs/list.html` → individual `…/fulltime/<CODE>.html` pages.
 
-In the Promotions tab, add a **"Run campaign"** button per promotion. Clicking it:
+### 4. Stronger extraction schema
 
-1. Opens a dialog to pick recipients from `clients` table (multi-select with search by name/email/phone).
-2. Picks a channel (email/whatsapp/sms).
-3. Picks **sender identity**: "Send as me" (current user signature) or "Send on behalf of…" (other team member dropdown — uses their signature).
-4. Calls `upi-generate-content` for the body, then sends via existing `email-send` / WhatsApp edge functions.
-5. Logs into `upi_marketing_campaigns` with recipients in metadata.
+Extend `COURSE_TOOL` properties (additive — existing fields stay) so the AI is explicitly prompted for the fields the user listed:
 
-## 6. AI Suggestions tab — make it interactive
+- `application_fee` (exists) — keep
+- `processing_time_weeks` (new, number)
+- `is_coop` (exists) — keep
+- `coop_duration_months` (new, number)
+- `is_pgwp_eligible` (exists)
+- `intake_months`, `intake_year` (exist)
+- `tuition_fee` + `tuition_fee_per` + `currency` (exist)
+- `ielts_overall`, `pte_overall`, `toefl_overall`, `duolingo_overall` (exist)
+- `seats_available` (new, number, optional)
+- `program_code` (new, string — e.g. "AIG")
 
-Currently the tab only lists rows from `upi_ai_suggestions`. Add:
+Update `upi-upsert-courses` `KNOWN` list to include the three new fields and add columns to `upi_courses_staging` via a migration if missing.
 
-- A **prompt box** at the top: "Ask AI about this institution…" with a Send button.
-- On submit, call a new `upi-ask-suggestions` edge function with the institution + sources + programs + agreements context, returning a written answer plus 0..N structured suggestions that get inserted into `upi_ai_suggestions`.
-- A **"Generate suggestions"** quick button that auto-prompts for common areas (missing data, pricing anomalies, expiring agreements, new programs to publish).
+### 5. Confidence aggregation fix
 
-## 7. Fix 0% confidence for Seneca Polytechnic
+Already partially fixed (default 70). Add: if a detail page returned 0 numeric fields filled, downgrade that row's `confidence_score` to 40 so reviewers see it needs attention. Source‑level confidence remains average of row scores.
 
-Root cause: `upi-sync-source` writes `confidence_score: 0` to `upi_institution_sources` when the AI returns courses without per-source aggregation. Fix:
+### 6. Logging
 
-- After upsert, compute `confidence_score` for the source row as the average `confidence_score` of staged courses for that `source_id`, and update the row.
-- Also fallback to 75 if AI returned courses but didn't include a score (most rows already have one — the bug is the source-level aggregation).
-
----
+Add `pages_discovered` / `pages_scanned` to job logs at each phase: `discovered N category links`, `discovered N program links`, `fetched N/M detail pages`, `extracted N courses with avg X fields filled`.
 
 ## Files touched
 
-- `src/institutions/pages/InstitutionDetailPage.tsx` — type Select, doc-type chooser, run-campaign dialog, AI-ask box.
-- `src/institutions/pages/CourseReviewPage.tsx` — free-form search bar.
-- `src/institutions/components/RunCampaignDialog.tsx` *(new)* — recipient picker + sender identity.
-- `src/institutions/components/AskAiPanel.tsx` *(new)* — prompt box for AI Suggestions.
-- `supabase/functions/upi-extract-programs-from-doc/index.ts` *(new)*.
-- `supabase/functions/upi-extract-structured/index.ts` *(new, agreements/commissions)*.
-- `supabase/functions/upi-ask-suggestions/index.ts` *(new)*.
-- `supabase/functions/upi-sync-source/index.ts` — also extract agreements/commissions; aggregate source confidence.
+- `supabase/functions/upi-sync-source/index.ts` — make detail crawl mandatory, two-level expansion, new prompts, new schema fields, URL normalization helper.
+- `supabase/functions/upi-upsert-courses/index.ts` — extend `KNOWN` with `processing_time_weeks`, `coop_duration_months`, `program_code`, `seats_available`.
+- New migration — add `processing_time_weeks int`, `coop_duration_months int`, `program_code text`, `seats_available int` to `upi_courses_staging` and `upi_courses`.
+- `src/institutions/pages/CourseReviewPage.tsx` — show the new columns in the table (optional, can defer).
 
-No migrations needed — all tables (`upi_agreements`, `upi_commissions`, `upi_ai_suggestions`, `upi_marketing_campaigns`, `clients`) already exist.
+## Open questions
 
----
-
-## Open questions before I build
-
-1. For **Run campaign**, do you want WhatsApp/SMS now, or email-only in v1 with WhatsApp added later?
-2. For **sender identity "on behalf of"**, can any team member send as any other, or should it be restricted to admins/managers?
-3. Should AI-detected agreements/commissions auto-create as `status='proposed'` (requires manual accept) or auto-active?
+1. Cap per-source detail fetches at **120** (≈ 8–10 min wall clock with concurrency 5) — OK, or higher/lower?
+2. Should we also persist `program_code` as a unique key per institution to avoid duplicate inserts when the same program appears under multiple list pages?
+3. Add the new columns now (migration) or stash everything in `metadata` JSON first and migrate later?
