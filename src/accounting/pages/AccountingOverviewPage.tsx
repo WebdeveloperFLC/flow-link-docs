@@ -24,48 +24,15 @@ import {
   AccountingEntityProvider, useAccountingEntity,
 } from "../stores/accountingEntityStore";
 
-const revenueByEntity = [
-  { entity: "Canada HQ", revenue: 2100000 },
-  { entity: "USA Corp", revenue: 1400000 },
-  { entity: "India Mumbai", revenue: 800000 },
-  { entity: "India Delhi", revenue: 520000 },
-];
+const revenueByEntity: { entity: string; revenue: number }[] = [];
 
-const monthly = [
-  { month: "Oct", revenue: 340000, expenses: 228000 },
-  { month: "Nov", revenue: 380000, expenses: 241000 },
-  { month: "Dec", revenue: 290000, expenses: 198000 },
-  { month: "Jan", revenue: 410000, expenses: 267000 },
-  { month: "Feb", revenue: 395000, expenses: 251000 },
-  { month: "Mar", revenue: 448000, expenses: 289000 },
-  { month: "Apr", revenue: 421000, expenses: 274000 },
-  { month: "May", revenue: 467000, expenses: 301000 },
-  { month: "Jun", revenue: 438000, expenses: 285000 },
-  { month: "Jul", revenue: 492000, expenses: 318000 },
-  { month: "Aug", revenue: 478000, expenses: 309000 },
-  { month: "Sep", revenue: 461000, expenses: 295000 },
-];
+const monthly: { month: string; revenue: number; expenses: number }[] = [];
 
-const approvals = [
-  { dot: "bg-red-500", text: "Vendor payment — Acme Supplies Ltd", amount: "CAD 18,400", pillText: "Final auditor", pillCls: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400" },
-  { dot: "bg-amber-500", text: "Office rent — Delhi branch", amount: "CAD 4,200", pillText: "Auditor 2", pillCls: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
-  { dot: "bg-amber-500", text: "Travel reimbursement — Oct trip", amount: "CAD 1,870", pillText: "Auditor 1", pillCls: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
-  { dot: "bg-blue-500", text: "Payroll run — Canada October", amount: "CAD 142,000", pillText: "OTP pending", pillCls: "bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400" },
-  { dot: "bg-green-500", text: "Software licences — Annual", amount: "CAD 8,900", pillText: "Approved", pillCls: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400" },
-];
+const approvals: { dot: string; text: string; amount: string; pillText: string; pillCls: string }[] = [];
 
-const fraud = [
-  { dot: "bg-red-500", text: "Duplicate invoice — TechPro Solutions", pillText: "Critical", pillCls: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400" },
-  { dot: "bg-red-500", text: "Unapproved vendor — FastPay Services", pillText: "Critical", pillCls: "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400" },
-  { dot: "bg-amber-500", text: "Off-hours submissions × 3 this week", pillText: "Warning", pillCls: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
-];
+const fraud: { dot: string; text: string; pillText: string; pillCls: string }[] = [];
 
-const taxItems = [
-  { dot: "bg-red-500", text: "GST/HST Q3 — Canada", due: "Due Nov 1", cls: "text-red-500" },
-  { dot: "bg-amber-500", text: "TDS return Q2 — India", due: "Due Oct 31", cls: "text-amber-600 dark:text-amber-400" },
-  { dot: "bg-green-500", text: "GSTR-3B — India October", due: "Due Nov 20", cls: "text-green-600 dark:text-green-400" },
-  { dot: "bg-green-500", text: "Sales tax Q3 — USA", due: "Due Nov 15", cls: "text-green-600 dark:text-green-400" },
-];
+const taxItems: { dot: string; text: string; due: string; cls: string }[] = [];
 
 const quickActions = [
   { icon: BookOpen, label: "New journal", route: "/accounting/journals/new" },
@@ -130,11 +97,11 @@ function OverviewInner() {
 
         {/* KPI ROW */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <AccountingKPICard label="Total revenue (YTD)" value={4820000} currency="CAD" delta="18.4% vs last year" deltaDirection="up" icon={TrendingUp} />
-          <AccountingKPICard label="Total expenses (YTD)" value={3140000} currency="CAD" delta="12.1% vs last year" deltaDirection="down" icon={Receipt} />
-          <AccountingKPICard label="Net profit (YTD)" value={1680000} currency="CAD" delta="31.2% vs last year" deltaDirection="up" icon={DollarSign} />
-          <AccountingKPICard label="Outstanding AR" value={620000} currency="CAD" delta="43 invoices overdue" deltaDirection="down" icon={ArrowUpCircle} />
-          <AccountingKPICard label="Outstanding AP" value={284000} currency="CAD" delta="12 bills pending" deltaDirection="neutral" icon={ArrowDownCircle} />
+          <AccountingKPICard label="Total revenue (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={TrendingUp} />
+          <AccountingKPICard label="Total expenses (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={Receipt} />
+          <AccountingKPICard label="Net profit (YTD)" value={0} currency="CAD" delta="No data" deltaDirection="neutral" icon={DollarSign} />
+          <AccountingKPICard label="Outstanding AR" value={0} currency="CAD" delta="No invoices" deltaDirection="neutral" icon={ArrowUpCircle} />
+          <AccountingKPICard label="Outstanding AP" value={0} currency="CAD" delta="No bills" deltaDirection="neutral" icon={ArrowDownCircle} />
         </div>
 
         {/* MIDDLE ROW */}
