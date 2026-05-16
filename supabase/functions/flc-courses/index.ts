@@ -120,7 +120,12 @@ function parseResponse(xml: string): { ok: true; value: unknown } | { ok: false;
 }
 async function odooCallXmlRpc(url: string, ep: string, method: string, params: unknown[]) {
   const r = await fetch(url.replace(/\/$/, "") + ep, {
-    method: "POST", headers: { "Content-Type": "text/xml" },
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+      "Accept": "text/xml",
+      "User-Agent": "FLC-Lovable/1.0",
+    },
     body: buildCall(method, params),
   });
   const t = await r.text();
@@ -132,7 +137,11 @@ async function odooCallXmlRpc(url: string, ep: string, method: string, params: u
 async function odooCallJsonRpc(url: string, service: string, method: string, args: unknown[]) {
   const r = await fetch(url.replace(/\/$/, "") + "/jsonrpc", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "User-Agent": "FLC-Lovable/1.0",
+    },
     body: JSON.stringify({ jsonrpc: "2.0", method: "call", params: { service, method, args }, id: Date.now() }),
   });
   const t = await r.text();
@@ -146,14 +155,18 @@ async function odooCallJsonRpc(url: string, service: string, method: string, arg
   return parsed.result;
 }
 async function odooCall(url: string, ep: string, method: string, params: unknown[]) {
-  try { return await odooCallXmlRpc(url, ep, method, params); }
-  catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    if (/CSRF|<!DOCTYPE|<html|HTTP 4\d\d/i.test(msg)) {
-      const service = ep.includes("/common") ? "common" : "object";
-      return await odooCallJsonRpc(url, service, method, params);
+  const service = ep.includes("/common") ? "common" : ep.includes("/db") ? "db" : "object";
+  // Prefer JSON-RPC (proxy/WAF friendly); fall back to XML-RPC on failure.
+  try {
+    return await odooCallJsonRpc(url, service, method, params);
+  } catch (eJson) {
+    try {
+      return await odooCallXmlRpc(url, ep, method, params);
+    } catch (eXml) {
+      const j = eJson instanceof Error ? eJson.message : String(eJson);
+      const x = eXml instanceof Error ? eXml.message : String(eXml);
+      throw new Error(`JSON-RPC failed: ${j} | XML-RPC failed: ${x}`);
     }
-    throw e;
   }
 }
 const exec = (url: string, db: string, uid: number, pw: string, model: string, method: string, args: unknown[], kwargs: Record<string, unknown> = {}) =>
