@@ -17,6 +17,7 @@ import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
 import { RunCampaignDialog } from "../components/RunCampaignDialog";
 import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
+import { ClaimsPanel } from "../components/ClaimsPanel";
 import { AiReviewPanel } from "../components/AiReviewPanel";
 
 export default function InstitutionDetailPage() {
@@ -209,6 +210,7 @@ export default function InstitutionDetailPage() {
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="agreements">Agreements</TabsTrigger>
             <TabsTrigger value="commissions">Commissions</TabsTrigger>
+            <TabsTrigger value="claims">Claims</TabsTrigger>
             <TabsTrigger value="promotions">Promotions</TabsTrigger>
             <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
             <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
@@ -358,6 +360,10 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="commissions">
             <CommissionsPanel institutionId={id} />
+          </TabsContent>
+
+          <TabsContent value="claims">
+            <ClaimsPanel institutionId={id} />
           </TabsContent>
 
           <TabsContent value="promotions">
