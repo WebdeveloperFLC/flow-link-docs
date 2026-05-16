@@ -14,18 +14,8 @@ import { useAccounts } from "../../stores/coaStore";
 import { MOCK_OWNERS } from "../../data/mockOwners";
 import type { OwnerProfile } from "../../types/owners";
 import LinkedCoaAccountSelect from "./LinkedCoaAccountSelect";
+import DynamicSelect from "../shared/DynamicSelect";
 
-const COUNTRIES = [
-  { code: "CA", label: "Canada" },
-  { code: "US", label: "United States" },
-  { code: "IN", label: "India" },
-  { code: "GB", label: "United Kingdom" },
-  { code: "AE", label: "United Arab Emirates" },
-  { code: "AU", label: "Australia" },
-  { code: "SG", label: "Singapore" },
-  { code: "DE", label: "Germany" },
-];
-const CURRENCIES = ["CAD", "USD", "INR", "EUR", "GBP", "AED", "AUD", "SGD"];
 const NONE = "__none__";
 
 interface Props {
@@ -168,10 +158,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           <Section title="Entity & linking" subtitle="Where this account lives in the org and which ledger it posts to.">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Country">
-                <Select value={country} onValueChange={setCountry}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{COUNTRIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
-                </Select>
+                <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
               </Field>
               <Field label="Entity / company">
                 <Select value={entityId} onValueChange={setEntityId}>
@@ -204,10 +191,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                 <LinkedCoaAccountSelect value={coaAccountId} onChange={setCoaAccountId} />
               </Field>
               <Field label="Currency">
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+                <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />
               </Field>
             </div>
           </Section>
