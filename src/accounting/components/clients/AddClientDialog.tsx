@@ -11,10 +11,11 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES, CLIENT_TYPE_LABEL,
+  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES,
 } from "../../data/mockStaff";
 import { addClient } from "../../stores/clientsStore";
 import type { Client, ClientType } from "../../types/clients";
+import DynamicSelect from "../shared/DynamicSelect";
 
 interface Props {
   open: boolean;
@@ -24,7 +25,7 @@ interface Props {
 
 export default function AddClientDialog({ open, onOpenChange, onCreated }: Props) {
   const [name, setName] = useState("");
-  const [clientType, setClientType] = useState<ClientType>("STUDENT");
+  const [clientType, setClientType] = useState<string>("STUDENT");
   const [country, setCountry] = useState("CA");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -35,7 +36,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
   const [visaCategory, setVisaCategory] = useState<string>(VISA_CATEGORIES[0]);
   const [intake, setIntake] = useState<string>(INTAKES[2]);
   const [leadSource, setLeadSource] = useState<string>(LEAD_SOURCES[0]);
-  const [paymentTerms, setPaymentTerms] = useState<string>("Due on receipt");
+  const [paymentTerms, setPaymentTerms] = useState<string>("DUE_ON_RECEIPT");
   const [notes, setNotes] = useState("");
 
   const handleSave = () => {
@@ -45,7 +46,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
       id: `c-${Date.now()}`,
       name, legalName: name,
       segment: clientType === "CORPORATE" ? "ENTERPRISE" : "INDIVIDUAL",
-      clientType,
+      clientType: clientType as ClientType,
       country, taxId: taxId || "—",
       paymentTerms,
       currency: country === "CA" ? "CAD" : country === "US" ? "USD" : "INR",
@@ -83,22 +84,11 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Client type</Label>
-                  <Select value={clientType} onValueChange={(v) => setClientType(v as ClientType)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(CLIENT_TYPE_LABEL).map(([k, v]) =>
-                        <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <DynamicSelect listKey="client_categories" value={clientType} onValueChange={setClientType} addLabel="client type" />
                 </div>
                 <div className="grid gap-2">
                   <Label>Country</Label>
-                  <Select value={country} onValueChange={setCountry}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {["CA","US","IN","GB","DE","AU"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cemail">Email</Label>
@@ -166,13 +156,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
               </div>
               <div className="grid gap-2">
                 <Label>Payment terms</Label>
-                <Select value={paymentTerms} onValueChange={setPaymentTerms}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {["Due on receipt","Installments","Net 7","Net 14","Net 30","Net 45","Net 60"].map(p =>
-                      <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <DynamicSelect listKey="payment_terms" value={paymentTerms} onValueChange={setPaymentTerms} addLabel="payment term" />
               </div>
             </div>
           </section>
