@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
-import { Users, FileStack, FileCheck2, AlertTriangle, ArrowUpRight } from "lucide-react";
+import { Users, FileStack, FileCheck2, AlertTriangle, ArrowUpRight, Building2, Handshake, ListChecks, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({ clients: 0, documents: 0, binders: 0, missing: 0 });
+  const [upiStats, setUpiStats] = useState({ institutions: 0, partners: 0, coursesPending: 0, suggestionsPending: 0 });
   const [recentClients, setRecent] = useState<{ id: string; full_name: string; application_id: string; country: string; application_type: string }[]>([]);
 
   useEffect(() => {
@@ -28,6 +29,19 @@ const Dashboard = () => {
         .order("created_at", { ascending: false })
         .limit(5);
       setRecent(data ?? []);
+
+      const [ti, pi, cp, sp] = await Promise.all([
+        supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_active", true),
+        supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_partner", true),
+        supabase.from("upi_courses_staging").select("*", { count: "exact", head: true }).eq("review_status", "pending_review"),
+        supabase.from("upi_ai_suggestions").select("*", { count: "exact", head: true }).eq("status", "pending"),
+      ]);
+      setUpiStats({
+        institutions: ti.count ?? 0,
+        partners: pi.count ?? 0,
+        coursesPending: cp.count ?? 0,
+        suggestionsPending: sp.count ?? 0,
+      });
     })();
   }, []);
 
@@ -36,6 +50,13 @@ const Dashboard = () => {
     { label: "Documents Processed", value: stats.documents, icon: FileStack, accent: "text-primary" },
     { label: "Binders Generated", value: stats.binders, icon: FileCheck2, accent: "text-success" },
     { label: "Pending Review", value: Math.max(0, stats.clients - stats.binders), icon: AlertTriangle, accent: "text-secondary" },
+  ];
+
+  const upiCards = [
+    { label: "Total Institutions", value: upiStats.institutions, icon: Building2, accent: "text-primary", to: "/institutions" },
+    { label: "Partner Institutions", value: upiStats.partners, icon: Handshake, accent: "text-success", to: "/institutions" },
+    { label: "Courses Pending Review", value: upiStats.coursesPending, icon: ListChecks, accent: "text-secondary", to: "/institutions/review" },
+    { label: "AI Suggestions Pending", value: upiStats.suggestionsPending, icon: Sparkles, accent: "text-primary", to: "/institutions/suggestions" },
   ];
 
   return (
@@ -55,6 +76,24 @@ const Dashboard = () => {
                 </div>
               </div>
             </Card>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {upiCards.map((c) => (
+            <Link key={c.label} to={c.to}>
+              <Card className="p-5 shadow-elev-sm hover:shadow-elev-md transition-shadow cursor-pointer">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</div>
+                    <div className="text-3xl font-bold mt-2 tabular-nums">{c.value}</div>
+                  </div>
+                  <div className="size-10 rounded-lg bg-accent flex items-center justify-center">
+                    <c.icon className={`size-5 ${c.accent}`} />
+                  </div>
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
 
