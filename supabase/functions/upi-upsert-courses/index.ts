@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const KNOWN = new Set([
@@ -16,10 +16,10 @@ const KNOWN = new Set([
   "is_part_time","commission_info","bonus_info","confidence_score","source_last_updated",
 ]);
 
-function md5(s: string) {
-  // deno-lint-ignore no-explicit-any
-  const h = (createHash as any)("md5");
-  h.update(s); return h.toString();
+async function sha256Hex(s: string): Promise<string> {
+  const bytes = new TextEncoder().encode(s);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 Deno.serve(async (req) => {
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
           if (KNOWN.has(k)) known[k] = v; else metadata[k] = v;
         }
         if (!known.course_title) { rejected++; continue; }
-        const dedup = md5(`${known.institution_id ?? ""}||${String(known.course_title).toLowerCase()}||${known.source_url ?? ""}`);
+        const dedup = await sha256Hex(`${known.institution_id ?? ""}||${String(known.course_title).toLowerCase()}||${known.source_url ?? ""}`);
 
         const { data: existing } = await supabase.from("upi_courses_staging")
           .select("id, review_status").eq("dedup_hash", dedup).maybeSingle();
@@ -51,8 +51,12 @@ Deno.serve(async (req) => {
         const payload = { ...known, dedup_hash: dedup, metadata, review_status, updated_at: new Date().toISOString() };
 
         const { error } = await supabase.from("upi_courses_staging").upsert(payload, { onConflict: "dedup_hash" });
-        if (error) { rejected++; if (job_id) await supabase.from("upi_sync_logs").insert({ job_id, level: "error", message: error.message }); }
-        else upserted++;
+        if (error) {
+          rejected++;
+          if (job_id) await supabase.from("upi_sync_logs").insert({ job_id, level: "error", message: error.message, detail: { course_title: known.course_title } });
+        } else {
+          upserted++;
+        }
       } catch (e) {
         rejected++;
         if (job_id) await supabase.from("upi_sync_logs").insert({ job_id, level: "error", message: String(e) });
