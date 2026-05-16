@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -24,11 +25,14 @@ const ConfidenceBadge = ({ score }: { score: number | null }) => {
 };
 
 export default function CourseReviewPage() {
+  const [searchParams] = useSearchParams();
+  const initialInst = searchParams.get("institutionId") ?? "all";
+  const initialStatus = searchParams.get("status") ?? "pending_review";
   const [rows, setRows] = useState<Row[]>([]);
   const [institutions, setInstitutions] = useState<{ id: string; name: string }[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>("pending_review");
-  const [instFilter, setInstFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [instFilter, setInstFilter] = useState<string>(initialInst);
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Row | null>(null);

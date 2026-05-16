@@ -242,7 +242,9 @@ Deno.serve(async (req) => {
         },
       });
       if (upErr) {
-        await logMsg(supabase, job_id!, "error", `Upsert failed: ${upErr.message}`);
+        await logMsg(supabase, job_id!, "error", `Upsert failed: ${upErr.message}`, { error: upErr });
+      } else if ((upRes as any)?.error) {
+        await logMsg(supabase, job_id!, "error", `Upsert returned error`, { body: upRes });
       } else {
         upserted = (upRes as any)?.upserted ?? 0;
         rejected = (upRes as any)?.rejected ?? 0;

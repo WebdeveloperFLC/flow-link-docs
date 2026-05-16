@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, RefreshCw, Sparkles, Plus, ArrowUp } from "lucide-react";
+import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen } from "lucide-react";
 import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
 
 export default function InstitutionDetailPage() {
@@ -113,6 +113,14 @@ export default function InstitutionDetailPage() {
     load();
   };
 
+  const deleteSource = async (s: UpiSource) => {
+    if (!confirm(`Delete this source?\n\n${s.url ?? s.file_path}\n\nExtracted programs will remain in Course Review.`)) return;
+    const { error } = await supabase.from("upi_institution_sources").delete().eq("id", s.id);
+    if (error) return toast.error(error.message);
+    toast.success("Source deleted");
+    load();
+  };
+
   const uploadDoc = async (file: File) => {
     setBusy(true);
     const path = `${id}/${Date.now()}-${file.name}`;
@@ -210,6 +218,11 @@ export default function InstitutionDetailPage() {
                   <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
                 </Button>
               )}
+              <Button asChild variant="outline">
+                <Link to={`/institutions/review?institutionId=${id}`}>
+                  <BookOpen className="size-4" /> View programs
+                </Link>
+              </Button>
             </Card>
             <div className="space-y-2">
               {sources.map((s) => (
@@ -225,6 +238,9 @@ export default function InstitutionDetailPage() {
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
                   <Button onClick={() => syncNow(s)} className="shrink-0">
                     <RefreshCw className="size-4" /> Sync now
+                  </Button>
+                  <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteSource(s)} title="Delete source">
+                    <Trash2 className="size-4" />
                   </Button>
                 </Card>
               ))}
