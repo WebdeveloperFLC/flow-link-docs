@@ -2,7 +2,7 @@ export type DocType =
   | 'INVOICE' | 'RECEIPT' | 'BANK_STATEMENT' | 'BILL' | 'CHALLAN'
   | 'TAX_NOTICE' | 'PAYMENT_PROOF' | 'CONTRACT' | 'EXPENSE_SLIP' | 'OTHER';
 
-export type OCRStatus = 'PENDING' | 'PROCESSING' | 'COMPLETE' | 'FAILED';
+export type OCRStatus = 'PENDING' | 'PROCESSING' | 'COMPLETE' | 'FAILED' | 'MANUAL';
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface ExtractedData {

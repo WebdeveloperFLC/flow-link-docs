@@ -49,6 +49,7 @@ const OCR_BADGE: Record<OCRStatus, { cls: string; label: string; pulse?: boolean
   PROCESSING: { cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', label: 'Processing', pulse: true },
   COMPLETE: { cls: 'bg-green-50 text-green-700 dark:bg-green-500/15 dark:text-green-300', label: 'Complete' },
   FAILED: { cls: 'bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400', label: 'Failed' },
+  MANUAL: { cls: 'bg-slate-100 text-slate-700 dark:bg-slate-500/15 dark:text-slate-300', label: 'Manual entry' },
 };
 const APPROVAL_BADGE: Record<ApprovalStatus, string> = {
   PENDING: 'bg-muted text-muted-foreground',
@@ -258,6 +259,37 @@ export default function AccountingDocumentsPage() {
                           <DropdownMenuItem onClick={() => toast.info(`Opening ${d.filename}`)}>View</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => toast.success(`Downloading ${d.filename}`)}>Download</DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate('/accounting/journals')}>Link to journal</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          {d.docType === 'BANK_STATEMENT' && (
+                            <DropdownMenuItem onClick={() => {
+                              updateDocument(d.id, { ocrStatus: 'MANUAL' });
+                              navigate('/accounting/card-reconciliation/new', { state: { prefillFile: d.filename, prefillName: d.filename } });
+                            }}>
+                              Send to Card Reconciliation →
+                            </DropdownMenuItem>
+                          )}
+                          {(d.docType === 'INVOICE' || d.docType === 'BILL') && (
+                            <DropdownMenuItem onClick={() => {
+                              updateDocument(d.id, { ocrStatus: 'MANUAL' });
+                              navigate('/accounting/ap/new', { state: { fromDoc: d.id } });
+                            }}>
+                              Pre-fill AP Bill →
+                            </DropdownMenuItem>
+                          )}
+                          {d.docType === 'RECEIPT' && (
+                            <DropdownMenuItem onClick={() => {
+                              updateDocument(d.id, { ocrStatus: 'MANUAL' });
+                              navigate('/accounting/journals/new', { state: { fromDoc: d.id } });
+                            }}>
+                              Pre-fill Journal Entry →
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem onClick={() => {
+                            updateDocument(d.id, { ocrStatus: 'PENDING', ocrError: undefined });
+                            toast.success('OCR status reset to Pending');
+                          }}>
+                            Reset OCR status
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => setConfirm({ kind: 'reject', doc: d })}
