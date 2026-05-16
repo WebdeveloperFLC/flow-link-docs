@@ -678,6 +678,12 @@ export default function AccountingCardReconciliationNewPage() {
                 </tbody>
               </table>
               <div className="bg-muted/30 rounded-lg p-3 text-sm space-y-1">
+                {(isAi("opening") || isAi("closing")) && (
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 pb-2 mb-2 border-b text-xs">
+                    <span className="flex items-center gap-1">Opening: <strong>{formatCurrency(Number(opening))}</strong> {isAi("opening") && <AiBadge />}</span>
+                    <span className="flex items-center gap-1">Closing: <strong>{formatCurrency(Number(closing))}</strong> {isAi("closing") && <AiBadge />}</span>
+                  </div>
+                )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
                 <div>Total card charges: <strong>{formatCurrency(totals.biz + totals.per)}</strong></div>
