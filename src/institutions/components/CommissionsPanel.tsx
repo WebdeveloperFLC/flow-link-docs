@@ -10,7 +10,7 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
   const { data: commissions, loading } = useCommissions(institutionId);
   const ids = useMemo(() => commissions.map((c: any) => c.id), [commissions]);
   const { data: rules } = useCommissionRules(ids);
-  const [sim, setSim] = useState({ tuition: 18000, country: "India", intake: "May", program_level: "PG Diploma", student_count: 1 });
+  const [sim, setSim] = useState({ tuition: 18000, currency: "CAD", country: "India", intake: "May", program_level: "PG Diploma", student_count: 1 });
 
   if (loading) return <div className="text-sm text-muted-foreground py-8 text-center">Loading commissions…</div>;
   if (commissions.length === 0)
