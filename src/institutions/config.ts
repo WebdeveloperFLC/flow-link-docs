@@ -8,6 +8,14 @@ const env = (import.meta as any).env ?? {};
 export const USE_MOCK_DATA: boolean =
   String(env.VITE_USE_MOCK_DATA ?? "true").toLowerCase() !== "false";
 
+/**
+ * While the system is in testing with seed mock data, allow per-row
+ * deletions in the documents/agreements/promotions/suggestions UI.
+ * Flip VITE_USE_MOCK_DATA=false (or replace this expression) before go-live.
+ */
+export const ALLOW_TEST_DELETIONS: boolean =
+  String(env.VITE_ALLOW_TEST_DELETIONS ?? String(USE_MOCK_DATA)).toLowerCase() !== "false";
+
 export const RENEWAL_THRESHOLDS_DAYS = [180, 120, 90, 60, 30, 7];
 
 export const CONFIDENCE = {
