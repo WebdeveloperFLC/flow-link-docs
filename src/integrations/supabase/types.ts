@@ -2662,6 +2662,8 @@ export type Database = {
           application_id: string
           application_type: string
           budget: number | null
+          consent_form_date: string | null
+          consent_form_submitted: boolean | null
           country: string
           country_code: string | null
           created_at: string
@@ -2671,6 +2673,7 @@ export type Database = {
           extra_items: Json
           full_name: string
           id: string
+          institution_student_id: string | null
           intake: string | null
           interested_country: string | null
           interested_course: string | null
@@ -2679,6 +2682,8 @@ export type Database = {
           lead_source: string | null
           lead_stage: string | null
           lead_temperature: string | null
+          linked_institution_id: string | null
+          linked_student_record_id: string | null
           next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
@@ -2691,6 +2696,9 @@ export type Database = {
           preferred_language: string | null
           priority: string | null
           status: string
+          study_permit_approved_date: string | null
+          study_permit_expiry: string | null
+          study_permit_number: string | null
           suppressed_template_items: string[]
           tags: string[]
           template_id: string | null
@@ -2703,6 +2711,8 @@ export type Database = {
           application_id?: string
           application_type: string
           budget?: number | null
+          consent_form_date?: string | null
+          consent_form_submitted?: boolean | null
           country: string
           country_code?: string | null
           created_at?: string
@@ -2712,6 +2722,7 @@ export type Database = {
           extra_items?: Json
           full_name: string
           id?: string
+          institution_student_id?: string | null
           intake?: string | null
           interested_country?: string | null
           interested_course?: string | null
@@ -2720,6 +2731,8 @@ export type Database = {
           lead_source?: string | null
           lead_stage?: string | null
           lead_temperature?: string | null
+          linked_institution_id?: string | null
+          linked_student_record_id?: string | null
           next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
@@ -2732,6 +2745,9 @@ export type Database = {
           preferred_language?: string | null
           priority?: string | null
           status?: string
+          study_permit_approved_date?: string | null
+          study_permit_expiry?: string | null
+          study_permit_number?: string | null
           suppressed_template_items?: string[]
           tags?: string[]
           template_id?: string | null
@@ -2744,6 +2760,8 @@ export type Database = {
           application_id?: string
           application_type?: string
           budget?: number | null
+          consent_form_date?: string | null
+          consent_form_submitted?: boolean | null
           country?: string
           country_code?: string | null
           created_at?: string
@@ -2753,6 +2771,7 @@ export type Database = {
           extra_items?: Json
           full_name?: string
           id?: string
+          institution_student_id?: string | null
           intake?: string | null
           interested_country?: string | null
           interested_course?: string | null
@@ -2761,6 +2780,8 @@ export type Database = {
           lead_source?: string | null
           lead_stage?: string | null
           lead_temperature?: string | null
+          linked_institution_id?: string | null
+          linked_student_record_id?: string | null
           next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
@@ -2773,6 +2794,9 @@ export type Database = {
           preferred_language?: string | null
           priority?: string | null
           status?: string
+          study_permit_approved_date?: string | null
+          study_permit_expiry?: string | null
+          study_permit_number?: string | null
           suppressed_template_items?: string[]
           tags?: string[]
           template_id?: string | null
@@ -2781,6 +2805,20 @@ export type Database = {
           whatsapp?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "clients_linked_institution_id_fkey"
+            columns: ["linked_institution_id"]
+            isOneToOne: false
+            referencedRelation: "upi_institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_linked_student_record_id_fkey"
+            columns: ["linked_student_record_id"]
+            isOneToOne: false
+            referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "clients_template_id_fkey"
             columns: ["template_id"]
@@ -7708,6 +7746,8 @@ export type Database = {
           application_id: string
           application_type: string
           budget: number | null
+          consent_form_date: string | null
+          consent_form_submitted: boolean | null
           country: string
           country_code: string | null
           created_at: string
@@ -7717,6 +7757,7 @@ export type Database = {
           extra_items: Json
           full_name: string
           id: string
+          institution_student_id: string | null
           intake: string | null
           interested_country: string | null
           interested_course: string | null
@@ -7725,6 +7766,8 @@ export type Database = {
           lead_source: string | null
           lead_stage: string | null
           lead_temperature: string | null
+          linked_institution_id: string | null
+          linked_student_record_id: string | null
           next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
@@ -7737,6 +7780,9 @@ export type Database = {
           preferred_language: string | null
           priority: string | null
           status: string
+          study_permit_approved_date: string | null
+          study_permit_expiry: string | null
+          study_permit_number: string | null
           suppressed_template_items: string[]
           tags: string[]
           template_id: string | null
