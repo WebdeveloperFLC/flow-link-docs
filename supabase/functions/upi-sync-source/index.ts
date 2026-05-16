@@ -325,10 +325,15 @@ Deno.serve(async (req) => {
 
     await logMsg(supabase, job_id!, "info", `Extracted ${courses.length} candidate course(s)`);
 
-    // Inject source_url where missing
+    // Inject source_url + default confidence where missing
     courses = courses.map((c) => {
       const obj = c as Record<string, unknown>;
       if (!obj.source_url) obj.source_url = source.url;
+      if (obj.confidence_score == null || typeof obj.confidence_score !== "number" || obj.confidence_score === 0) {
+        // AI sometimes omits the score — assume moderate confidence so the
+        // source doesn't read as 0% when extraction actually succeeded.
+        obj.confidence_score = 70;
+      }
       return obj;
     });
 
