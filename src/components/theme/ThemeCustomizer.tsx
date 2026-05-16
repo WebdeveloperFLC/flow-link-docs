@@ -563,6 +563,81 @@ export function ThemeCustomizer() {
                 })}
               </div>
             </section>
+
+            <Separator />
+
+            {/* 9. Card style */}
+            <section>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Card style</div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['solid', 'glass', 'flat'] as const).map((c) => {
+                  const active = theme.cardStyle === c;
+                  const previewStyle =
+                    c === 'solid'
+                      ? 'bg-card border border-border shadow-sm'
+                      : c === 'glass'
+                      ? 'bg-card/60 border border-border/50 backdrop-blur'
+                      : 'bg-transparent border border-border';
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setTheme({ cardStyle: c })}
+                      className={cn(
+                        'flex flex-col items-center gap-1 p-2 rounded-md border transition-colors',
+                        active ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent/40',
+                      )}
+                    >
+                      <span className={cn('rounded', previewStyle)} style={{ width: 60, height: 40 }} />
+                      <span className="text-[10px] text-muted-foreground capitalize">{c}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* 10. Nav active style */}
+            <section>
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Nav style</div>
+              <div className="grid grid-cols-4 gap-2">
+                {([
+                  { key: 'pill', label: 'Pill' },
+                  { key: 'border-left', label: 'Left' },
+                  { key: 'glow', label: 'Glow' },
+                  { key: 'underline', label: 'Under' },
+                ] as const).map((s) => {
+                  const active = theme.navActiveStyle === s.key;
+                  const activeItemStyle =
+                    s.key === 'pill'
+                      ? { background: 'hsl(var(--primary) / 0.15)', borderRadius: 4 }
+                      : s.key === 'border-left'
+                      ? { background: 'hsl(var(--primary) / 0.1)', borderLeft: '2px solid hsl(var(--primary))' }
+                      : s.key === 'glow'
+                      ? { background: 'hsl(var(--primary) / 0.15)', boxShadow: '0 0 6px hsl(var(--primary) / 0.6)', borderRadius: 4 }
+                      : { borderBottom: '2px solid hsl(var(--primary))' };
+                  return (
+                    <button
+                      key={s.key}
+                      type="button"
+                      onClick={() => setTheme({ navActiveStyle: s.key })}
+                      className={cn(
+                        'flex flex-col items-center gap-1 p-1.5 rounded-md border transition-colors',
+                        active ? 'border-primary bg-primary/5' : 'border-border hover:bg-accent/40',
+                      )}
+                    >
+                      <span className="flex flex-col gap-1 p-1 rounded bg-sidebar w-full" style={{ minHeight: 40 }}>
+                        <span className="h-1.5 w-full rounded-sm" style={{ background: 'hsl(var(--sidebar-foreground) / 0.25)' }} />
+                        <span className="h-1.5 w-full" style={activeItemStyle} />
+                        <span className="h-1.5 w-full rounded-sm" style={{ background: 'hsl(var(--sidebar-foreground) / 0.25)' }} />
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">{s.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
           </div>
 
           <SheetFooter className="flex-row justify-between gap-2 sm:justify-between border-t pt-3 mt-2">
