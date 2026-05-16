@@ -353,9 +353,10 @@ export default function AccountingTrialBalancePage() {
 }
 
 function GroupSection({
-  label, rows, dr, cr, colSpan, comparative, rows2ById, onRow, Amount,
+  label, rows, dr, cr, comparative, rows2ById, onRow, Amount,
 }: {
-  label: string; rows: Row[]; dr: Decimal; cr: Decimal; colSpan: number;
+  label: string; rows: Row[]; dr: Decimal; cr: Decimal;
+  colSpan: number;
   comparative: boolean; rows2ById: Map<string, Row>;
   onRow: (id: string) => void;
   Amount: (p: { row: Row; kind: "DR" | "CR" }) => JSX.Element;
@@ -363,9 +364,10 @@ function GroupSection({
   return (
     <>
       <tr className="bg-muted/50 font-medium text-sm">
-        <td colSpan={colSpan - 2} className="px-3 py-2 uppercase tracking-wide">{label}</td>
+        <td colSpan={3} className="px-3 py-2 uppercase tracking-wide">{label}</td>
         <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(dr.toNumber())}</td>
         <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(cr.toNumber())}</td>
+        {comparative && (<><td /><td /></>)}
       </tr>
       {rows.map((r) => {
         const r2 = rows2ById.get(r.accountId);
@@ -390,9 +392,10 @@ function GroupSection({
         );
       })}
       <tr className="bg-muted/20 font-medium text-xs">
-        <td colSpan={colSpan - 2} className="px-3 py-1.5 text-muted-foreground">Total {label}</td>
+        <td colSpan={3} className="px-3 py-1.5 text-muted-foreground">Total {label}</td>
         <td className="px-3 py-1.5 text-right font-mono tabular-nums">{formatCurrency(dr.toNumber())}</td>
         <td className="px-3 py-1.5 text-right font-mono tabular-nums">{formatCurrency(cr.toNumber())}</td>
+        {comparative && (<><td /><td /></>)}
       </tr>
     </>
   );
