@@ -1,15 +1,9 @@
 import { useSyncExternalStore } from "react";
 import { SettingsEntity } from "../types/settings";
 
-const STORAGE_KEY = "accounting:entities:v1";
+const STORAGE_KEY = "accounting:entities:v2";
 
-const SEED: SettingsEntity[] = [
-  { id: "e1", name: "Future Link Canada HQ", type: "COMPANY", parentId: null, country: "CA", currency: "CAD", fiscalYearStart: "04-01", taxIds: [{ label: "GST", value: "789456123BC0001" }] },
-  { id: "e2", name: "Future Link USA Corp", type: "COMPANY", parentId: null, country: "US", currency: "USD", fiscalYearStart: "01-01", taxIds: [{ label: "EIN", value: "84-1234567" }] },
-  { id: "e3", name: "Future Link India Pvt Ltd", type: "COMPANY", parentId: null, country: "IN", currency: "INR", fiscalYearStart: "04-01", taxIds: [{ label: "GSTIN", value: "27AABCU9603R1ZM" }, { label: "PAN", value: "AABCU9603R" }] },
-  { id: "e4", name: "India — Delhi Branch", type: "BRANCH", parentId: "e3", country: "IN", currency: "INR", fiscalYearStart: "04-01", taxIds: [{ label: "GSTIN", value: "07AABCU9603R2ZK" }] },
-  { id: "e5", name: "Future Link Academy", type: "BRAND", parentId: "e3", country: "IN", currency: "INR", fiscalYearStart: "04-01", taxIds: [] },
-];
+const SEED: SettingsEntity[] = [];
 
 let entities: SettingsEntity[] = (() => {
   if (typeof window === "undefined") return SEED;

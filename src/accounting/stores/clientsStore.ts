@@ -2,7 +2,7 @@ import { createPersistedStore, genId } from "./_persist";
 import { MOCK_CLIENTS } from "../data/mockClients";
 import type { Client } from "../types/clients";
 
-const store = createPersistedStore<Client[]>("accounting:clients:v2", MOCK_CLIENTS);
+const store = createPersistedStore<Client[]>("accounting:clients:v3", MOCK_CLIENTS);
 
 export const useClients = () => store.use();
 export const getClients = () => store.get();
