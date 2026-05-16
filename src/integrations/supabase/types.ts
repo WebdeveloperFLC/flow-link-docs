@@ -2867,6 +2867,36 @@ export type Database = {
           },
         ]
       }
+      course_finder_saved_filters: {
+        Row: {
+          created_at: string
+          id: string
+          is_shared: boolean
+          name: string
+          owner_id: string
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          name: string
+          owner_id: string
+          payload?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_shared?: boolean
+          name?: string
+          owner_id?: string
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_wallet: {
         Row: {
           available_points: number
