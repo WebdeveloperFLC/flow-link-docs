@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import { fmtMoney } from "../../components/ap-ar/money";
-import { MOCK_BILLS, EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
+import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
+import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 
 const TODAY = new Date("2024-11-01");
@@ -17,7 +18,8 @@ const TODAY = new Date("2024-11-01");
 export default function AccountingBillDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [bill, setBill] = useState<VendorBill | undefined>(MOCK_BILLS.find((b) => b.id === id));
+  const bills = useApBills();
+  const bill = bills.find((b) => b.id === id);
   const bank = useMemo(() => bill?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === bill.linkedBankAccountId) : null, [bill]);
 
   if (!bill) return (
@@ -37,10 +39,11 @@ export default function AccountingBillDetailPage() {
           <AccountingPageHeader title={bill.billNumber} subtitle={`AP — Bills / ${bill.billNumber}`}
             actions={<>
               <AccountingStatusBadge status={bill.status} />
-              {bill.status === "PENDING_REVIEW" && <Button variant="outline" onClick={() => { setBill({ ...bill, status: "APPROVED" }); toast.success("Approved"); }}>Approve</Button>}
-              {(bill.status === "APPROVED" || bill.status === "OVERDUE") && <Button onClick={() => { setBill({ ...bill, status: "PAID", paymentDate: new Date().toISOString().slice(0, 10) }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
-              {bill.status === "DRAFT" && <><Button variant="outline" onClick={() => toast.info("Edit coming soon")}>Edit</Button><Button variant="destructive" onClick={() => { setBill({ ...bill, status: "VOID" }); toast.success("Voided"); }}>Void</Button></>}
+              {bill.status === "PENDING_REVIEW" && <Button variant="outline" onClick={() => { updateApBill(bill.id, { status: "APPROVED" }); toast.success("Approved"); }}>Approve</Button>}
+              {(bill.status === "APPROVED" || bill.status === "OVERDUE") && <Button onClick={() => { updateApBill(bill.id, { status: "PAID", paymentDate: new Date().toISOString().slice(0, 10) }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
+              {bill.status === "DRAFT" && <><Button variant="outline" onClick={() => toast.info("Edit coming soon")}>Edit</Button><Button variant="destructive" onClick={() => { updateApBill(bill.id, { status: "VOID" }); toast.success("Voided"); }}>Void</Button></>}
               <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
+              <Button variant="ghost" className="text-destructive" onClick={() => { if (confirm(`Delete ${bill.billNumber}? This cannot be undone.`)) { deleteApBill(bill.id); toast.success("Bill deleted"); navigate("/accounting/ap"); } }}><Trash2 className="size-4 mr-1" /> Delete</Button>
             </>} />
         </div>
 
