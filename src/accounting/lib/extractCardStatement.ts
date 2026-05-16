@@ -113,16 +113,20 @@ export async function extractCardStatement(
     });
 
     try {
-      const resp = await fetch(FUNCTION_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(ANON_KEY ? { Authorization: `Bearer ${ANON_KEY}`, apikey: ANON_KEY } : {}),
-        },
-        body: JSON.stringify({ pages: batch, ...options }),
-        signal,
+      const { data, error } = await supabase.functions.invoke("extract-card-statement", {
+        body: { pages: batch, ...options },
       });
-      const data = await resp.json();
+      if (signal?.aborted) throw new Error("aborted");
+      if (error) {
+        errors.push(`Batch failed: ${describeFunctionError(error)}`);
+        processed += batch.length;
+        continue;
+      }
+      if (!data || typeof data !== "object") {
+        errors.push("Batch failed: OCR service returned an empty response");
+        processed += batch.length;
+        continue;
+      }
       if (Array.isArray(data?.transactions)) allTx.push(...data.transactions);
       if (Array.isArray(data?.errors)) errors.push(...data.errors);
       if (data?.meta && typeof data.meta === "object") {
