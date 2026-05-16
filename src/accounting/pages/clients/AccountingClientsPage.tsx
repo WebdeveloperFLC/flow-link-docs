@@ -14,7 +14,8 @@ import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AddClientDialog from "../../components/clients/AddClientDialog";
 import LinkCrmClientDialog from "../../components/clients/LinkCrmClientDialog";
-import { MOCK_CLIENTS, CLIENT_SEGMENT_LABEL } from "../../data/mockClients";
+import { CLIENT_SEGMENT_LABEL } from "../../data/mockClients";
+import { useClients } from "../../stores/clientsStore";
 import {
   MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, CLIENT_TYPE_LABEL,
 } from "../../data/mockStaff";
@@ -23,8 +24,8 @@ import type { Client } from "../../types/clients";
 
 export default function AccountingClientsPage() {
   const navigate = useNavigate();
-  const [, force] = useState(0);
-  const refresh = () => force(n => n + 1);
+  const clients = useClients();
+  const refresh = () => {};
   const [addOpen, setAddOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
@@ -37,7 +38,7 @@ export default function AccountingClientsPage() {
   const [paymentStatus, setPaymentStatus] = useState<string>("ALL");
   const [status, setStatus] = useState<string>("ALL");
 
-  const rows = useMemo(() => MOCK_CLIENTS.filter(c =>
+  const rows = useMemo(() => clients.filter(c =>
     (country === "ALL" || c.country === country) &&
     (clientType === "ALL" || c.clientType === clientType) &&
     (servicePackage === "ALL" || c.servicePackage === servicePackage) &&
@@ -47,7 +48,7 @@ export default function AccountingClientsPage() {
     (paymentStatus === "ALL" ||
       (paymentStatus === "OUTSTANDING" ? c.outstandingReceivable > 0 : c.outstandingReceivable === 0)) &&
     (status === "ALL" || c.status === status),
-  ), [country, clientType, servicePackage, counselorId, visaCategory, intake, paymentStatus, status]);
+  ), [clients, country, clientType, servicePackage, counselorId, visaCategory, intake, paymentStatus, status]);
 
   const cols = useMemo<ColDef<Client>[]>(() => [
     {
@@ -177,7 +178,7 @@ export default function AccountingClientsPage() {
                   <SelectItem key={s} value={s}>{s.replace("_"," ")}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Badge variant="outline" className="ml-auto">{rows.length} of {MOCK_CLIENTS.length} clients</Badge>
+            <Badge variant="outline" className="ml-auto">{rows.length} of {clients.length} clients</Badge>
           </div>
         </Card>
 

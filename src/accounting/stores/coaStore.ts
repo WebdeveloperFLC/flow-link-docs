@@ -1,18 +1,28 @@
 import { useSyncExternalStore } from "react";
 import { CoaAccount, CoaAccountInput } from "../types/coa";
 import { SEED_ACCOUNTS } from "../data/mockCoa";
-import { getTypes } from "./coaMasterStore";
+import { getTypes, HIDDEN_TYPE_CODES } from "./coaMasterStore";
 
 const STORAGE_KEY = "accounting:coa-accounts:v1";
+
+/** Strip bank-typed rows — banks are owned by the Banks module now. */
+function scrubBankAccounts(list: CoaAccount[]): CoaAccount[] {
+  return list.filter((a) => !HIDDEN_TYPE_CODES.has(a.typeCode));
+}
 
 let accounts: CoaAccount[] = (() => {
   if (typeof window === "undefined") return SEED_ACCOUNTS;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as CoaAccount[];
+    if (raw) return scrubBankAccounts(JSON.parse(raw) as CoaAccount[]);
   } catch {}
-  return SEED_ACCOUNTS;
+  return scrubBankAccounts(SEED_ACCOUNTS);
 })();
+
+// Persist the scrub immediately so the migration sticks.
+if (typeof window !== "undefined") {
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {}
+}
 
 const listeners = new Set<() => void>();
 function emit() {

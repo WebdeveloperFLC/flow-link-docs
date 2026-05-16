@@ -1,8 +1,9 @@
 import { useSyncExternalStore } from "react";
-import { AccountGroup, AccountType, AccountNature } from "../types/coa";
+import { AccountGroup, AccountType, AccountSubType, AccountNature } from "../types/coa";
 
 const GROUPS_KEY = "accounting:coa-groups:v1";
 const TYPES_KEY = "accounting:coa-types:v1";
+const SUBTYPES_KEY = "accounting:coa-subtypes:v1";
 
 const SEED_GROUPS: AccountGroup[] = [
   { code: "ASSET", label: "Assets", nature: "DEBIT", system: true },
@@ -17,7 +18,6 @@ const SEED_GROUPS: AccountGroup[] = [
 
 const SEED_TYPES: AccountType[] = [
   // Assets
-  { code: "BANK", label: "Bank", groupCode: "ASSET", system: true },
   { code: "CASH", label: "Cash", groupCode: "ASSET", system: true },
   { code: "PETTY_CASH", label: "Petty Cash", groupCode: "ASSET", system: true },
   { code: "AR", label: "Accounts Receivable", groupCode: "ASSET", system: true },
@@ -54,6 +54,24 @@ const SEED_TYPES: AccountType[] = [
   { code: "PETTY_CASH_EXP", label: "Petty Cash Expenses", groupCode: "EXPENSE", system: true },
 ];
 
+/**
+ * Bank accounts live in the dedicated Banks module — not as a CoA type.
+ * We keep the constant so legacy data (existing localStorage rows referring
+ * to BANK) can still be filtered/migrated, but BANK is never offered as a
+ * type option in the CoA picker.
+ */
+export const HIDDEN_TYPE_CODES = new Set<string>(["BANK"]);
+
+const SEED_SUBTYPES: AccountSubType[] = [
+  // Examples — sub-types are optional and can be extended inline.
+  { code: "AR_STUDENTS",   label: "Students",        typeCode: "AR", system: true },
+  { code: "AR_CORPORATES", label: "Corporates",      typeCode: "AR", system: true },
+  { code: "AP_VENDORS",    label: "Vendors",         typeCode: "AP", system: true },
+  { code: "AP_UNIVERSITIES", label: "Universities",  typeCode: "AP", system: true },
+  { code: "FIXED_FURNITURE", label: "Furniture",     typeCode: "FIXED_ASSET", system: true },
+  { code: "FIXED_COMPUTERS", label: "Computers",     typeCode: "FIXED_ASSET", system: true },
+];
+
 function load<T>(key: string, seed: T[]): T[] {
   if (typeof window === "undefined") return seed;
   try {
@@ -65,9 +83,19 @@ function load<T>(key: string, seed: T[]): T[] {
 
 let groups: AccountGroup[] = load(GROUPS_KEY, SEED_GROUPS);
 let types: AccountType[] = load(TYPES_KEY, SEED_TYPES);
+let subTypes: AccountSubType[] = load(SUBTYPES_KEY, SEED_SUBTYPES);
+
+// One-time migration: scrub legacy BANK type from any persisted list.
+if (typeof window !== "undefined") {
+  if (types.some((t) => HIDDEN_TYPE_CODES.has(t.code))) {
+    types = types.filter((t) => !HIDDEN_TYPE_CODES.has(t.code));
+    try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {}
+  }
+}
 
 const groupListeners = new Set<() => void>();
 const typeListeners = new Set<() => void>();
+const subTypeListeners = new Set<() => void>();
 
 function emitGroups() {
   try { window.localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); } catch {}
@@ -76,6 +104,10 @@ function emitGroups() {
 function emitTypes() {
   try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {}
   typeListeners.forEach((l) => l());
+}
+function emitSubTypes() {
+  try { window.localStorage.setItem(SUBTYPES_KEY, JSON.stringify(subTypes)); } catch {}
+  subTypeListeners.forEach((l) => l());
 }
 
 export function useGroups(): AccountGroup[] {
@@ -92,15 +124,23 @@ export function useTypes(): AccountType[] {
     () => types,
   );
 }
+export function useSubTypes(): AccountSubType[] {
+  return useSyncExternalStore(
+    (l) => { subTypeListeners.add(l); return () => subTypeListeners.delete(l); },
+    () => subTypes,
+    () => subTypes,
+  );
+}
 export const getGroups = () => groups;
 export const getTypes = () => types;
+export const getSubTypes = () => subTypes;
 
 function slugCode(label: string, prefix = ""): string {
   const base = label.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
   let code = prefix ? `${prefix}_${base}` : base;
   let n = 1;
   const exists = (c: string) =>
-    groups.some((g) => g.code === c) || types.some((t) => t.code === c);
+    groups.some((g) => g.code === c) || types.some((t) => t.code === c) || subTypes.some((s) => s.code === c);
   while (exists(code)) { n++; code = `${base}_${n}`; }
   return code;
 }
@@ -120,5 +160,14 @@ export function addType(label: string, groupCode: string): AccountType | null {
   const created: AccountType = { code: slugCode(label, groupCode), label: label.trim(), groupCode };
   types = [...types, created];
   emitTypes();
+  return created;
+}
+
+export function addSubType(label: string, typeCode: string): AccountSubType | null {
+  if (!label.trim() || !typeCode) return null;
+  if (subTypes.some((s) => s.typeCode === typeCode && s.label.toLowerCase() === label.trim().toLowerCase())) return null;
+  const created: AccountSubType = { code: slugCode(label, typeCode), label: label.trim(), typeCode };
+  subTypes = [...subTypes, created];
+  emitSubTypes();
   return created;
 }
