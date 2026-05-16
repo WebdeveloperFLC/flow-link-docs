@@ -3,16 +3,7 @@ import {
   PettyCategory, ApprovalLevel, PettyCashStatus,
 } from "../types/pettyCash";
 
-export const PETTY_BRANCHES: PettyBranch[] = [
-  { id: "br-ahd", code: "AHD", name: "Ahmedabad Branch", custodianName: "Rakesh Patel", custodianEmail: "rakesh.patel@futurelink.in", secondaryApproverName: "Meera Shah", openingFloat: 10000, currentBalance: 6420, lastVerifiedAt: "2026-05-13T18:30:00Z", lastVerifiedDelta: 0 },
-  { id: "br-del", code: "DEL", name: "Delhi Branch", custodianName: "Anjali Verma", custodianEmail: "anjali.verma@futurelink.in", secondaryApproverName: "Sandeep Kapoor", openingFloat: 10000, currentBalance: 2150, lastVerifiedAt: "2026-05-14T18:00:00Z", lastVerifiedDelta: -120 },
-  { id: "br-mum", code: "MUM", name: "Mumbai Branch", custodianName: "Vikas Joshi", custodianEmail: "vikas.joshi@futurelink.in", secondaryApproverName: "Priya Iyer", openingFloat: 10000, currentBalance: 7830, lastVerifiedAt: "2026-05-14T19:15:00Z", lastVerifiedDelta: 0 },
-  { id: "br-pun", code: "PUN", name: "Pune Branch", custodianName: "Neha Deshmukh", custodianEmail: "neha.deshmukh@futurelink.in", openingFloat: 10000, currentBalance: 4280, lastVerifiedAt: "2026-05-13T17:45:00Z", lastVerifiedDelta: 50 },
-  { id: "br-chd", code: "CHD", name: "Chandigarh Branch", custodianName: "Harpreet Singh", custodianEmail: "harpreet.singh@futurelink.in", secondaryApproverName: "Manjit Kaur", openingFloat: 10000, currentBalance: 1980, lastVerifiedAt: "2026-05-12T18:00:00Z", lastVerifiedDelta: 0 },
-  { id: "br-sur", code: "SUR", name: "Surat Branch", custodianName: "Bhavesh Mehta", custodianEmail: "bhavesh.mehta@futurelink.in", openingFloat: 10000, currentBalance: 8650, lastVerifiedAt: "2026-05-14T18:30:00Z", lastVerifiedDelta: 0 },
-  { id: "br-blr", code: "BLR", name: "Bangalore Branch", custodianName: "Karthik Reddy", custodianEmail: "karthik.reddy@futurelink.in", secondaryApproverName: "Lakshmi Rao", openingFloat: 10000, currentBalance: 3420, lastVerifiedAt: "2026-05-14T19:00:00Z", lastVerifiedDelta: -75 },
-  { id: "br-hyd", code: "HYD", name: "Hyderabad Branch", custodianName: "Sushmita Naidu", custodianEmail: "sushmita.naidu@futurelink.in", secondaryApproverName: "Ravi Teja", openingFloat: 10000, currentBalance: 5210, lastVerifiedAt: "2026-05-13T18:15:00Z", lastVerifiedDelta: 0 },
-];
+export const PETTY_BRANCHES: PettyBranch[] = [];
 
 export function approvalLevelFor(amount: number): ApprovalLevel {
   if (amount < 500) return "auto";
@@ -178,27 +169,11 @@ function buildVouchers(): PettyCashVoucher[] {
   return out;
 }
 
-export const PETTY_VOUCHERS: PettyCashVoucher[] = buildVouchers();
+export const PETTY_VOUCHERS: PettyCashVoucher[] = [];
 
-export const PETTY_REPLENISHMENTS: PettyCashReplenishment[] = [
-  { id: "rp-001", branchId: "br-del", currentBalance: 2150, requestedAmount: 7500, status: "REQUESTED", requestedBy: "Anjali Verma", requestedAt: daysAgo(0, 10) },
-  { id: "rp-002", branchId: "br-chd", currentBalance: 1980, requestedAmount: 8000, approvedAmount: 8000, status: "APPROVED", requestedBy: "Harpreet Singh", requestedAt: daysAgo(1, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(0, 11) },
-  { id: "rp-003", branchId: "br-blr", currentBalance: 2300, requestedAmount: 7000, approvedAmount: 7000, status: "PAID", requestedBy: "Karthik Reddy", requestedAt: daysAgo(8, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(7, 11), paidAt: daysAgo(6, 14) },
-  { id: "rp-004", branchId: "br-pun", currentBalance: 1800, requestedAmount: 8500, status: "REJECTED", requestedBy: "Neha Deshmukh", requestedAt: daysAgo(5, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(4, 12), note: "Replenish only after pending vouchers cleared" },
-  { id: "rp-005", branchId: "br-mum", currentBalance: 2100, requestedAmount: 8000, status: "PAID", requestedBy: "Vikas Joshi", requestedAt: daysAgo(15, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(14, 11), paidAt: daysAgo(13, 14) },
-  { id: "rp-006", branchId: "br-hyd", currentBalance: 4200, requestedAmount: 5000, approvedAmount: 5000, status: "APPROVED", requestedBy: "Sushmita Naidu", requestedAt: daysAgo(2, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(1, 11) },
-  { id: "rp-007", branchId: "br-ahd", currentBalance: 3200, requestedAmount: 6800, status: "PAID", requestedBy: "Rakesh Patel", requestedAt: daysAgo(20, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(19, 11), paidAt: daysAgo(18, 14) },
-  { id: "rp-008", branchId: "br-sur", currentBalance: 2900, requestedAmount: 7200, status: "PAID", requestedBy: "Bhavesh Mehta", requestedAt: daysAgo(22, 10), approvedBy: "Finance — Ritu Khanna", approvedAt: daysAgo(21, 11), paidAt: daysAgo(20, 14) },
-];
+export const PETTY_REPLENISHMENTS: PettyCashReplenishment[] = [];
 
-export const PETTY_VERIFICATIONS: PettyCashVerification[] = [
-  { id: "vf-001", branchId: "br-del", date: dateOnly(0), expectedCash: 2270, actualCash: 2150, delta: -120, by: "Anjali Verma", note: "Cash short — under investigation" },
-  { id: "vf-002", branchId: "br-blr", date: dateOnly(0), expectedCash: 3495, actualCash: 3420, delta: -75, by: "Karthik Reddy" },
-  { id: "vf-003", branchId: "br-pun", date: dateOnly(1), expectedCash: 4230, actualCash: 4280, delta: 50, by: "Neha Deshmukh", note: "Cash over — likely uncounted change" },
-  { id: "vf-004", branchId: "br-ahd", date: dateOnly(1), expectedCash: 6420, actualCash: 6420, delta: 0, by: "Rakesh Patel" },
-  { id: "vf-005", branchId: "br-mum", date: dateOnly(0), expectedCash: 7830, actualCash: 7830, delta: 0, by: "Vikas Joshi" },
-  { id: "vf-006", branchId: "br-hyd", date: dateOnly(1), expectedCash: 5210, actualCash: 5210, delta: 0, by: "Sushmita Naidu" },
-];
+export const PETTY_VERIFICATIONS: PettyCashVerification[] = [];
 
 export function isToday(iso: string): boolean {
   const d = new Date(iso);

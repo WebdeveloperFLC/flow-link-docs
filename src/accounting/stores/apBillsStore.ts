@@ -2,7 +2,7 @@ import { createPersistedStore, genId } from "./_persist";
 import { MOCK_BILLS } from "../data/mockAP";
 import type { VendorBill } from "../data/mockAP";
 
-const store = createPersistedStore<VendorBill[]>("accounting:ap-bills:v1", MOCK_BILLS);
+const store = createPersistedStore<VendorBill[]>("accounting:ap-bills:v2", MOCK_BILLS);
 
 export const useApBills = () => store.use();
 export const getApBills = () => store.get();

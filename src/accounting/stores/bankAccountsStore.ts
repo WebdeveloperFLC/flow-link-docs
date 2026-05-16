@@ -3,7 +3,7 @@ import { BankAccount, BankAccountInput, DefaultKind } from "../types/bankAccount
 import { SEED_BANK_ACCOUNTS } from "../data/mockBankAccounts";
 import { getAccounts } from "./coaStore";
 
-const STORAGE_KEY = "accounting:bank-accounts:v1";
+const STORAGE_KEY = "accounting:bank-accounts:v2";
 
 let bankAccounts: BankAccount[] = (() => {
   if (typeof window === "undefined") return SEED_BANK_ACCOUNTS;

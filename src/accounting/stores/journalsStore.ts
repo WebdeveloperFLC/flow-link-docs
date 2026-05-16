@@ -2,7 +2,7 @@ import { createPersistedStore, genId } from "./_persist";
 import { MOCK_JOURNALS } from "../data/mockJournals";
 import type { Journal } from "../data/mockJournals";
 
-const store = createPersistedStore<Journal[]>("accounting:journals:v1", MOCK_JOURNALS);
+const store = createPersistedStore<Journal[]>("accounting:journals:v2", MOCK_JOURNALS);
 
 export const useJournals = () => store.use();
 export const getJournals = () => store.get();

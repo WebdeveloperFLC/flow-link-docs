@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { addSubType, useTypes } from "../../stores/coaMasterStore";
+import { addSubType, useTypes, HIDDEN_TYPE_CODES } from "../../stores/coaMasterStore";
 
 interface Props {
   open: boolean;
@@ -15,7 +15,8 @@ interface Props {
 }
 
 export default function AddSubTypeInlineDialog({ open, onOpenChange, defaultTypeCode, onCreated }: Props) {
-  const types = useTypes();
+  const allTypes = useTypes();
+  const types = useMemo(() => allTypes.filter((t) => !HIDDEN_TYPE_CODES.has(t.code)), [allTypes]);
   const [label, setLabel] = useState("");
   const [typeCode, setTypeCode] = useState(defaultTypeCode ?? types[0]?.code ?? "");
 
@@ -38,8 +39,8 @@ export default function AddSubTypeInlineDialog({ open, onOpenChange, defaultType
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>Add sub-type</DialogTitle>
-          <DialogDescription>Sub-types refine an account type (for example: AR · Students).</DialogDescription>
+          <DialogTitle>Add account sub-type</DialogTitle>
+          <DialogDescription>Sub-types refine how accounts are categorised within a type.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
@@ -53,7 +54,7 @@ export default function AddSubTypeInlineDialog({ open, onOpenChange, defaultType
           </div>
           <div className="grid gap-2">
             <Label>Sub-type name</Label>
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Students" autoFocus />
+            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Digital Wallets, NRE Account" autoFocus />
           </div>
         </div>
         <DialogFooter>

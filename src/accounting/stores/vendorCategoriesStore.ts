@@ -7,6 +7,7 @@ import {
   useMaster, getMaster, addMasterItem, masterLabel,
   type MasterItem,
 } from "./accountingMastersStore";
+import { removeMasterItem } from "./accountingMastersStore";
 
 export interface VendorCategoryItem { code: string; label: string }
 
@@ -20,6 +21,9 @@ export const addVendorCategory = (label: string): VendorCategoryItem | null => {
   const created: MasterItem | null = addMasterItem("vendor_categories", label);
   return created ? { code: created.code, label: created.label } : null;
 };
+
+export const removeVendorCategory = (code: string): boolean =>
+  removeMasterItem("vendor_categories", code);
 
 export const vendorCategoryLabelMap = (): Record<string, string> =>
   Object.fromEntries(getMaster("vendor_categories").map((c) => [c.code, c.label]));

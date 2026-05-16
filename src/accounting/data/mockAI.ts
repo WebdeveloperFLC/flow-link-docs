@@ -1,12 +1,6 @@
 import { ChatMessage, Conversation, RichBlock } from "../types/aiChat";
 
-export const QUICK_QUESTIONS = [
-  "Why did expenses spike in October?",
-  "Show outstanding receivables over 90 days",
-  "Which vendors have duplicate invoices?",
-  "What are my tax deadlines this month?",
-  "Explain the Canada branch P&L drop",
-];
+export const QUICK_QUESTIONS = [];
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -157,26 +151,4 @@ export function mockReply(prompt: string): ChatMessage {
   );
 }
 
-export const SEED_CONVERSATIONS: Conversation[] = [
-  {
-    id: "c1",
-    title: "October expense spike",
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    messages: [
-      msg("user", "Why did expenses spike in October?"),
-      mockReply("Why did expenses spike in October?"),
-    ],
-  },
-  {
-    id: "c2",
-    title: "Receivables over 90 days",
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    messages: [],
-  },
-  {
-    id: "c3",
-    title: "Q2 tax deadlines",
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    messages: [],
-  },
-];
+export const SEED_CONVERSATIONS: Conversation[] = [];

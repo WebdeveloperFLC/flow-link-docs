@@ -178,28 +178,4 @@ function isoDaysAgo(days: number, hourOffset = 9): string {
   return d.toISOString();
 }
 
-export const MOCK_APPROVALS: PaymentRequest[] = SEEDS.map((s, i) => {
-  const submittedAt = isoDaysAgo(s.daysPending);
-  const steps = buildSteps(s.status, s.currentStep, s.rejectionReason, submittedAt);
-  return {
-    id: `pr${i + 1}`,
-    requestNumber: `PR-2024-${String(i + 1).padStart(4, '0')}`,
-    entity: s.entity,
-    payeeName: s.payeeName,
-    amount: s.amount,
-    currency: s.currency,
-    description: s.description,
-    dueDate: s.dueDate,
-    status: s.status,
-    currentStep: s.currentStep,
-    submittedBy: s.submittedBy,
-    submittedAt,
-    approvedAt: s.status === 'APPROVED' ? isoDaysAgo(0, 14) : undefined,
-    rejectedAt: s.status === 'REJECTED' ? isoDaysAgo(0, 11) : undefined,
-    rejectionReason: s.rejectionReason,
-    linkedJournalId: s.linkedJournalId,
-    linkedDocumentId: s.linkedDocumentId,
-    daysPending: s.daysPending,
-    steps,
-  };
-});
+export const MOCK_APPROVALS: PaymentRequest[] = [];

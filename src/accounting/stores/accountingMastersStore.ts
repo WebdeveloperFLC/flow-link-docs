@@ -130,7 +130,7 @@ const SEED: Record<MasterListKey, MasterItem[]> = {
 };
 
 const store = createPersistedStore<Record<MasterListKey, MasterItem[]>>(
-  "accounting:masters:v1",
+  "accounting:masters:v2",
   SEED,
 );
 
