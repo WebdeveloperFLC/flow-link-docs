@@ -183,6 +183,18 @@ export default function AccountingIntercompanyNewPage() {
               placeholder="e.g. CRM development services — India billing Canada Q3 2025"
             />
           </div>
+          <div>
+            <Label>Transaction type (optional)</Label>
+            <DynamicSelect
+              listKey="intercompany_types"
+              value={transactionType}
+              onValueChange={setTransactionType}
+              placeholder="Select type…"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Categorises the transaction for reporting (e.g. Management fee, Loan, Staff cost recharge).
+            </p>
+          </div>
         </Card>
 
         <Card className="p-6 mb-4 space-y-4">
