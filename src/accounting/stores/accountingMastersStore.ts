@@ -1,4 +1,5 @@
 import { createPersistedStore } from "./_persist";
+import { supabase } from "@/integrations/supabase/client";
 
 export type MasterListKey =
   | "currencies"
@@ -171,6 +172,65 @@ if (typeof window !== "undefined") {
   } catch {}
 }
 
+// ──────────────────────────────────────────────────────────────
+// Supabase sync layer (hybrid: localStorage cache + background DB)
+// ──────────────────────────────────────────────────────────────
+
+type MasterRow = {
+  id: string;
+  list_key: string;
+  code: string;
+  label: string;
+  is_system: boolean | null;
+  metadata: unknown;
+};
+
+let hydrated = false;
+let rlsLogged = false;
+async function hydrateFromSupabase() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const { data, error } = await supabase
+      .from("accounting_masters")
+      .select("*");
+    if (error) {
+      if (!rlsLogged) {
+        console.warn("[mastersStore] Supabase read failed, using local cache:", error.message);
+        rlsLogged = true;
+      }
+      return;
+    }
+    if (!data || data.length === 0) return;
+    const cur = store.get();
+    const next: Record<MasterListKey, MasterItem[]> = { ...cur };
+    // Group DB rows by list_key
+    const byKey = new Map<string, MasterItem[]>();
+    for (const r of data as unknown as MasterRow[]) {
+      const item: MasterItem = {
+        code: r.code,
+        label: r.label,
+        system: r.is_system ?? false,
+        metadata: (r.metadata as Record<string, unknown> | null) ?? undefined,
+      };
+      const arr = byKey.get(r.list_key) ?? [];
+      arr.push(item);
+      byKey.set(r.list_key, arr);
+    }
+    // Merge: DB row overrides local by (list_key, code)
+    for (const [key, dbItems] of byKey.entries()) {
+      const localList = (next[key as MasterListKey] ?? []) as MasterItem[];
+      const dbCodes = new Set(dbItems.map((i) => i.code));
+      const keepLocal = localList.filter((i) => !dbCodes.has(i.code));
+      next[key as MasterListKey] = [...keepLocal, ...dbItems];
+    }
+    store.set(next);
+  } catch (e) {
+    console.warn("[mastersStore] Supabase hydration error:", e);
+  }
+}
+void hydrateFromSupabase();
+
 function slug(label: string) {
   return label.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");
 }
@@ -202,6 +262,22 @@ export function addMasterItem(
   while (list.some((i) => i.code === code)) { n++; code = `${slug(trimmed)}_${n}`; }
   const item: MasterItem = { code, label: trimmed, metadata };
   store.set({ ...all, [key]: [...list, item] });
+  void (async () => {
+    const { error } = await supabase
+      .from("accounting_masters")
+      .insert({
+        list_key: key,
+        code,
+        label: trimmed,
+        is_system: false,
+        metadata: (metadata ?? {}) as never,
+      } as never);
+    if (error) {
+      console.error("[mastersStore] addMasterItem failed:", error.message);
+      const cur = store.get();
+      store.set({ ...cur, [key]: (cur[key] ?? []).filter((i) => i.code !== code) });
+    }
+  })();
   return item;
 }
 
@@ -211,5 +287,17 @@ export function removeMasterItem(key: MasterListKey, code: string): boolean {
   const target = list.find((i) => i.code === code);
   if (!target || target.system) return false;
   store.set({ ...all, [key]: list.filter((i) => i.code !== code) });
+  void (async () => {
+    const { error } = await supabase
+      .from("accounting_masters")
+      .delete()
+      .eq("list_key", key)
+      .eq("code", code);
+    if (error) {
+      console.error("[mastersStore] removeMasterItem failed:", error.message);
+      const cur = store.get();
+      store.set({ ...cur, [key]: [...(cur[key] ?? []), target] });
+    }
+  })();
   return true;
 }
