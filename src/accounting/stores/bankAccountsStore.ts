@@ -185,7 +185,7 @@ async function dbInsert(b: BankAccount) {
   try {
     const { data: u } = await supabase.auth.getUser();
     const payload = { ...mapToDb(b), created_by: u?.user?.id ?? null };
-    const { error } = await supabase.from("accounting_bank_accounts").insert(payload);
+    const { error } = await supabase.from("accounting_bank_accounts").insert(payload as any);
     if (error) throw error;
   } catch (e: any) {
     console.warn("[bankAccountsStore] insert failed", e);
@@ -200,7 +200,7 @@ async function dbUpdate(id: string, prev: BankAccount, next: BankAccount) {
   try {
     const { error } = await supabase
       .from("accounting_bank_accounts")
-      .update(mapToDb(next))
+      .update(mapToDb(next) as any)
       .eq("id", id);
     if (error) throw error;
   } catch (e: any) {
