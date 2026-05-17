@@ -174,6 +174,35 @@ export default function AccountingCardReconciliationNewPage() {
     isAi(f) ? "ring-2 ring-amber-300 focus-visible:ring-amber-400 border-amber-300" : "";
 
   const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
+  const bankAndCardAccounts = useMemo(() => accounts.filter((account) => {
+    if (account.status !== "ACTIVE") return false;
+    const group = (account.groupCode || (account as any).group || "").toUpperCase();
+    const type  = (account.typeCode  || (account as any).type  || "").toUpperCase();
+    const name  = (account.name || "").toUpperCase();
+    const tags: string[] = (account as any).automationTags || [];
+
+    const isBank =
+      (group === "ASSET" || group === "ASSETS") && (
+        type.includes("BANK") || type.includes("CASH") || type.includes("CURRENT") ||
+        name.includes("BANK") || name.includes("TD") || name.includes("RBC") ||
+        name.includes("HDFC") || name.includes("ICICI") || name.includes("SBI") ||
+        name.includes("FCNR") || tags.includes("bank")
+      );
+
+    const isCreditCard =
+      (group === "LIABILITY" || group === "LIABILITIES") && (
+        type.includes("CREDIT_CARD") || type.includes("CREDIT CARD") ||
+        name.includes("CARD") || name.includes("AMEX") ||
+        name.includes("VISA") || name.includes("MASTERCARD") ||
+        tags.includes("credit_card")
+      );
+
+    const isIntercompany =
+      tags.includes("intercompany") ||
+      name.includes("DUE TO") || name.includes("DUE FROM");
+
+    return (isBank || isCreditCard) && !isIntercompany;
+  }), [accounts]);
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
   const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
   const defaultIncomeAcct = useMemo(
@@ -467,9 +496,19 @@ export default function AccountingCardReconciliationNewPage() {
             <div>
               <Label>Card account</Label>
               <Select value={cardAccountId} onValueChange={setCardAccountId}>
-                <SelectTrigger><SelectValue placeholder="Select credit card account…" /></SelectTrigger>
-                <SelectContent className="max-h-64">{liabAccts.map((a) => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
+                <SelectTrigger><SelectValue placeholder="Select bank or card account…" /></SelectTrigger>
+                <SelectContent className="max-h-64">{bankAndCardAccounts.map((a) => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
               </Select>
+              {bankAndCardAccounts.length === 0 && (
+                <div className="mt-2 rounded-md border border-dashed border-muted-foreground/30 bg-muted/30 p-3 text-[13px] text-muted-foreground">
+                  No bank or card accounts found in Chart of Accounts. Go to Chart of Accounts → New account and add your bank account first.
+                  <div className="mt-2">
+                    <Button size="sm" variant="outline" onClick={() => navigate("/accounting/coa")}>
+                      Add bank account to COA →
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><Label>Card holder name</Label><Input value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} /></div>
