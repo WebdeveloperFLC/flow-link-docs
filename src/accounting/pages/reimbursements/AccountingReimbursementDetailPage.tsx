@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Printer, Check, X, Send, Wallet, FileText } from "lucide-react";
+import { Printer, Check, X, Send, Wallet, FileText, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingKPICard from "@/accounting/components/shared/AccountingKPICard";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
+import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
 import { useReimbursements, updateReimbursement, deleteReimbursement } from "@/accounting/stores/reimbursementsStore";
 import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
