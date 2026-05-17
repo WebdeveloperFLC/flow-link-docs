@@ -318,6 +318,7 @@ export default function AccountingPettyCashDashboardPage() {
                       <th className="text-left px-3">Paid to</th>
                       <th className="text-right px-3">Amount</th>
                       <th className="text-left px-3">Status</th>
+                      <th className="px-3"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -331,6 +332,23 @@ export default function AccountingPettyCashDashboardPage() {
                         <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(v.amount, "INR")}</td>
                         <td className="px-3 py-2">
                           <StatusPill status={v.status} />
+                        </td>
+                        <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-7">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setDeleteTarget(v.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}
