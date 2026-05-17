@@ -215,10 +215,195 @@ export function mapToCardStatementLines(
     id: (crypto as any).randomUUID?.() ?? `cl-${Math.random().toString(36).slice(2)}`,
     date: t.date,
     description: t.description,
-    amount: Math.abs(t.amount),
+    amount: t.amount, // signed: negative = debit/expense, positive = credit/income
     category: "UNCATEGORISED",
     isPersonal: false,
     merchantName: guessedMerchant(t.description),
     notes: "",
   }));
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// Smart CSV parser for bank / card statements
+// ───────────────────────────────────────────────────────────────────────────
+
+export type CsvFormat = "TD" | "GENERIC_AMOUNT" | "CREDIT_CARD" | "UNKNOWN";
+
+export interface CsvMapping {
+  dateCol: number;
+  descCol: number;
+  desc2Col?: number;
+  debitCol?: number;
+  creditCol?: number;
+  amountCol?: number;
+  balanceCol?: number;
+}
+
+export interface CsvParseResult {
+  format: CsvFormat;
+  formatLabel: string;
+  headers: string[];
+  rows: string[][];
+  mapping: CsvMapping;
+  parsed: { date: string; description: string; amount: number }[];
+}
+
+function splitCsvLine(line: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQ && line[i + 1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (ch === "," && !inQ) {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out.map((c) => c.trim());
+}
+
+function parseNum(s: string): number {
+  if (!s) return 0;
+  let v = s.replace(/[$\s,]/g, "");
+  let neg = false;
+  if (/^\(.*\)$/.test(v)) { neg = true; v = v.slice(1, -1); }
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 0;
+  return neg ? -n : n;
+}
+
+export function normaliseDate(s: string): string {
+  if (!s) return "";
+  const t = s.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
+  const slash = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (slash) {
+    let [, a, b, y] = slash;
+    if (y.length === 2) y = (Number(y) > 50 ? "19" : "20") + y;
+    const ai = parseInt(a, 10);
+    const bi = parseInt(b, 10);
+    let dd: number; let mm: number;
+    if (ai > 12) { dd = ai; mm = bi; }
+    else if (bi > 12) { mm = ai; dd = bi; }
+    else { dd = ai; mm = bi; } // ambiguous → DD/MM/YYYY (TD Canadian default)
+    return `${y}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+  }
+  const dash = t.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if (dash) {
+    const [, a, b, y] = dash;
+    const ai = parseInt(a, 10); const bi = parseInt(b, 10);
+    const dd = ai > 12 ? ai : bi > 12 ? bi : ai;
+    const mm = ai > 12 ? bi : bi > 12 ? ai : bi;
+    return `${y}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
+  }
+  return t;
+}
+
+function findCol(headers: string[], patterns: RegExp[]): number {
+  for (const p of patterns) {
+    const i = headers.findIndex((h) => p.test(h));
+    if (i >= 0) return i;
+  }
+  return -1;
+}
+
+function findAllCols(headers: string[], pattern: RegExp): number[] {
+  const out: number[] = [];
+  headers.forEach((h, i) => { if (pattern.test(h)) out.push(i); });
+  return out;
+}
+
+export function detectCsvMapping(headers: string[]): { format: CsvFormat; formatLabel: string; mapping: CsvMapping } {
+  const lower = headers.map((h) => h.toLowerCase());
+  const hasDebit = lower.some((h) => /\b(debit|withdrawals?|money\s*out)\b/.test(h));
+  const hasCredit = lower.some((h) => /\b(credit|deposits?|money\s*in)\b/.test(h));
+  const hasBalance = lower.some((h) => /balance/.test(h));
+  const hasAmount = lower.some((h) => /\b(amount|amt)\b/.test(h));
+
+  const dateCol = findCol(lower, [/^date$/, /date/]);
+  const descCols = findAllCols(lower, /(description|desc|narration|merchant|details?|particulars?)/);
+  const descCol = descCols[0] ?? -1;
+  const desc2Col = descCols[1];
+  const balanceCol = findCol(lower, [/balance/]);
+
+  // TD-style: separate debit & credit columns (+ optional balance)
+  if (hasDebit && hasCredit) {
+    const debitCol = findCol(lower, [/^debit$/, /debit/, /withdrawals?/, /money\s*out/]);
+    const creditCol = findCol(lower, [/^credit$/, /credit/, /deposits?/, /money\s*in/]);
+    const isTd = hasBalance;
+    return {
+      format: isTd ? "TD" : "GENERIC_AMOUNT",
+      formatLabel: isTd ? "TD Canada Trust format" : "Generic bank statement (debit/credit columns)",
+      mapping: { dateCol, descCol, desc2Col, debitCol, creditCol, balanceCol: balanceCol >= 0 ? balanceCol : undefined },
+    };
+  }
+
+  if (hasAmount) {
+    const amountCol = findCol(lower, [/^amount$/, /amount/, /\bamt\b/]);
+    const looksCard = lower.some((h) => /(card|transaction|posted|merchant)/.test(h)) && !hasBalance;
+    return {
+      format: looksCard ? "CREDIT_CARD" : "GENERIC_AMOUNT",
+      formatLabel: looksCard ? "Credit card statement" : "Generic bank statement",
+      mapping: { dateCol, descCol, desc2Col, amountCol, balanceCol: balanceCol >= 0 ? balanceCol : undefined },
+    };
+  }
+
+  return {
+    format: "UNKNOWN",
+    formatLabel: "Unknown format — please map fields",
+    mapping: { dateCol, descCol, desc2Col, balanceCol: balanceCol >= 0 ? balanceCol : undefined },
+  };
+}
+
+export function applyCsvMapping(
+  rows: string[][],
+  mapping: CsvMapping,
+): { date: string; description: string; amount: number }[] {
+  const out: { date: string; description: string; amount: number }[] = [];
+  for (const cells of rows) {
+    const dateRaw = mapping.dateCol >= 0 ? cells[mapping.dateCol] ?? "" : "";
+    const date = normaliseDate(dateRaw);
+    if (!date) continue;
+    const d1 = mapping.descCol >= 0 ? cells[mapping.descCol] ?? "" : "";
+    const d2 = mapping.desc2Col !== undefined ? cells[mapping.desc2Col] ?? "" : "";
+    const description = `${d1} ${d2}`.replace(/\s+/g, " ").trim();
+    if (!description) continue;
+
+    let amount = 0;
+    if (mapping.debitCol !== undefined || mapping.creditCol !== undefined) {
+      const debit = mapping.debitCol !== undefined ? parseNum(cells[mapping.debitCol] ?? "") : 0;
+      const credit = mapping.creditCol !== undefined ? parseNum(cells[mapping.creditCol] ?? "") : 0;
+      if (debit > 0) amount = -Math.abs(debit);
+      else if (credit > 0) amount = Math.abs(credit);
+      else continue; // skip empty rows
+    } else if (mapping.amountCol !== undefined) {
+      amount = parseNum(cells[mapping.amountCol] ?? "");
+      if (amount === 0) continue;
+    } else {
+      continue;
+    }
+    out.push({ date, description, amount });
+  }
+  return out;
+}
+
+export function parseStatementCsv(text: string): CsvParseResult {
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) {
+    return {
+      format: "UNKNOWN", formatLabel: "Empty file",
+      headers: [], rows: [], mapping: { dateCol: -1, descCol: -1 }, parsed: [],
+    };
+  }
+  const headers = splitCsvLine(lines[0]);
+  const rows = lines.slice(1).map(splitCsvLine);
+  const { format, formatLabel, mapping } = detectCsvMapping(headers);
+  const parsed = applyCsvMapping(rows, mapping);
+  return { format, formatLabel, headers, rows, mapping, parsed };
 }
