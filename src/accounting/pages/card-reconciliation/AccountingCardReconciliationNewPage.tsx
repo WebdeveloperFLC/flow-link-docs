@@ -894,81 +894,41 @@ export default function AccountingCardReconciliationNewPage() {
                     <th className="text-left p-2">Date</th>
                     <th className="text-left p-2">Description</th>
                     <th className="text-right p-2">Amount</th>
-                    <th className="text-left p-2">Category</th>
-                    <th className="text-left p-2">Expense type</th>
-                    <th className="text-left p-2">COA account</th>
+                    <th className="text-left p-2">Category & account</th>
+                    <th className="text-left p-2">Client ref</th>
+                    <th className="p-2"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {lines.map((l) => {
-                    const bg = l.category === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
-                      : l.category === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
-                      : (l.category as LineCategory) === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+                    const splits = (l as any).splits as SplitLine[] | undefined;
+                    const hasSplits = !!(splits && splits.length > 0);
+                    const cat = (l.category as LineCategory);
+                    const bg = hasSplits ? "bg-muted/40"
+                      : cat === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
+                      : cat === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+                      : cat === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+                      : cat === "CLIENT_FUNDS" ? "bg-purple-50/50 dark:bg-purple-500/10"
                       : "bg-amber-50/30 dark:bg-amber-500/5";
                     return (
-                      <tr key={l.id} className={cn("border-b", bg)}>
-                        <td className="p-2"><input type="checkbox" checked={selected.has(l.id)} onChange={(e) => {
-                          const n = new Set(selected); e.target.checked ? n.add(l.id) : n.delete(l.id); setSelected(n);
-                        }} /></td>
-                        <td className="p-2 whitespace-nowrap">{l.date}</td>
-                        <td className="p-2">{l.description}</td>
-                       <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
-                         <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(l.amount))}</div>
-                         <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
-                           {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
-                         </div>
-                       </td>
-                        <td className="p-2">
-                          <div className="flex gap-1">
-                            {(["BUSINESS","PERSONAL","INCOME","UNCATEGORISED"] as const).map((c) => {
-                              const active = (l.category as LineCategory) === c;
-                              const cls = c === "BUSINESS" ? "bg-green-600 text-white"
-                                : c === "PERSONAL" ? "bg-red-600 text-white"
-                                : c === "INCOME" ? "bg-emerald-700 text-white"
-                                : "bg-muted-foreground/30";
-                              const labels: Record<string, string> = {
-                                BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income", UNCATEGORISED: "Skip",
-                              };
-                              return (
-                                <button key={c} onClick={() => {
-                                  const patch: any = { category: c, isPersonal: c === "PERSONAL" };
-                                  if (c === "BUSINESS" && !l.coaAccountId) {
-                                    const sug = suggestAccount(l.description, expAccts);
-                                    patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
-                                  } else if (c === "INCOME") {
-                                    patch.coaAccountId = defaultIncomeAcct?.id;
-                                    patch.coaAccountName = defaultIncomeAcct?.name;
-                                  }
-                                  updateLine(l.id, patch);
-                                }} className={cn("text-[10px] px-1.5 py-0.5 rounded",
-                                  active ? cls : "bg-muted text-muted-foreground hover:bg-muted/70"
-                                )}>{labels[c]}</button>
-                              );
-                            })}
-                          </div>
-                        </td>
-                        <td className="p-2">
-                          {l.category === "BUSINESS" && (
-                            <div className="flex items-center gap-1">
-                              <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
-                                <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="…" /></SelectTrigger>
-                                <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
-                              </Select>
-                              {aiLineIds.has(l.id) && (
-                                <span title="Suggested by AI" className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold">AI</span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-2">
-                          {((l.category as LineCategory) === "BUSINESS" || (l.category as LineCategory) === "INCOME") && (
-                            <Select value={l.coaAccountId ?? ""} onValueChange={(v) => updateLine(l.id, { coaAccountId: v, coaAccountName: expAccts.find(a=>a.id===v)?.name })}>
-                              <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Account…" /></SelectTrigger>
-                              <SelectContent className="max-h-64">{((l.category as LineCategory) === "INCOME" ? incomeAccts : expAccts).map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
-                            </Select>
-                          )}
-                        </td>
-                      </tr>
+                      <FragmentRow
+                        key={l.id}
+                        line={l}
+                        splits={splits}
+                        hasSplits={hasSplits}
+                        bg={bg}
+                        selected={selected}
+                        setSelected={setSelected}
+                        updateLine={updateLine}
+                        updateSplit={updateSplit}
+                        splitTransaction={splitTransaction}
+                        unsplitTransaction={unsplitTransaction}
+                        expAccts={expAccts}
+                        incomeAccts={incomeAccts}
+                        clientFundsAccts={clientFundsAccts}
+                        defaultIncomeAcct={defaultIncomeAcct}
+                        aiLineIds={aiLineIds}
+                      />
                     );
                   })}
                 </tbody>
