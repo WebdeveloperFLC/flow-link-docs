@@ -716,7 +716,11 @@ export default function AccountingCardReconciliationNewPage() {
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="text-sm">
-                Total: <strong>{lines.length}</strong> · ✓ Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong> · Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong> · ⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
+                Total: <strong>{lines.length}</strong>
+                {" · "}Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong>
+                {" · "}Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong>
+                {" · "}Income: <strong className="text-emerald-700">{lines.filter(l=>(l.category as LineCategory)==="INCOME").length}</strong>
+                {" · "}⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setBulkCategory(lines.filter(l=>l.category==="UNCATEGORISED").map(l=>l.id), "BUSINESS")}>Mark remaining business</Button>
@@ -752,19 +756,39 @@ export default function AccountingCardReconciliationNewPage() {
                         }} /></td>
                         <td className="p-2 whitespace-nowrap">{l.date}</td>
                         <td className="p-2">{l.description}</td>
-                        <td className="p-2 text-right tabular-nums">{formatCurrency(l.amount)}</td>
+                       <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
+                         <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(l.amount))}</div>
+                         <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
+                           {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
+                         </div>
+                       </td>
                         <td className="p-2">
                           <div className="flex gap-1">
-                            {(["BUSINESS","PERSONAL","UNCATEGORISED"] as const).map((c) => (
-                              <button key={c} onClick={() => updateLine(l.id, {
-                                category: c, isPersonal: c === "PERSONAL",
-                                coaAccountId: c === "BUSINESS" && !l.coaAccountId ? suggestAccount(l.description, expAccts)?.id : l.coaAccountId,
-                              })} className={cn("text-[10px] px-1.5 py-0.5 rounded",
-                                l.category === c
-                                  ? (c === "BUSINESS" ? "bg-green-600 text-white" : c === "PERSONAL" ? "bg-red-600 text-white" : "bg-muted-foreground/30")
-                                  : "bg-muted text-muted-foreground hover:bg-muted/70"
-                              )}>{c === "UNCATEGORISED" ? "Skip" : c[0] + c.slice(1).toLowerCase()}</button>
-                            ))}
+                            {(["BUSINESS","PERSONAL","INCOME","UNCATEGORISED"] as const).map((c) => {
+                              const active = (l.category as LineCategory) === c;
+                              const cls = c === "BUSINESS" ? "bg-green-600 text-white"
+                                : c === "PERSONAL" ? "bg-red-600 text-white"
+                                : c === "INCOME" ? "bg-emerald-700 text-white"
+                                : "bg-muted-foreground/30";
+                              const labels: Record<string, string> = {
+                                BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income", UNCATEGORISED: "Skip",
+                              };
+                              return (
+                                <button key={c} onClick={() => {
+                                  const patch: any = { category: c, isPersonal: c === "PERSONAL" };
+                                  if (c === "BUSINESS" && !l.coaAccountId) {
+                                    const sug = suggestAccount(l.description, expAccts);
+                                    patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
+                                  } else if (c === "INCOME") {
+                                    patch.coaAccountId = defaultIncomeAcct?.id;
+                                    patch.coaAccountName = defaultIncomeAcct?.name;
+                                  }
+                                  updateLine(l.id, patch);
+                                }} className={cn("text-[10px] px-1.5 py-0.5 rounded",
+                                  active ? cls : "bg-muted text-muted-foreground hover:bg-muted/70"
+                                )}>{labels[c]}</button>
+                              );
+                            })}
                           </div>
                         </td>
                         <td className="p-2">
@@ -781,10 +805,10 @@ export default function AccountingCardReconciliationNewPage() {
                           )}
                         </td>
                         <td className="p-2">
-                          {l.category === "BUSINESS" && (
+                          {((l.category as LineCategory) === "BUSINESS" || (l.category as LineCategory) === "INCOME") && (
                             <Select value={l.coaAccountId ?? ""} onValueChange={(v) => updateLine(l.id, { coaAccountId: v, coaAccountName: expAccts.find(a=>a.id===v)?.name })}>
                               <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Account…" /></SelectTrigger>
-                              <SelectContent className="max-h-64">{expAccts.map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
+                              <SelectContent className="max-h-64">{((l.category as LineCategory) === "INCOME" ? incomeAccts : expAccts).map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
                             </Select>
                           )}
                         </td>
