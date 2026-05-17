@@ -240,6 +240,18 @@ export default function AccountingOwnersPage() {
           editing={editing}
           onSave={handleSave}
         />
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              setOwners(prev => prev.filter(o => o.id !== deleteTarget));
+              setDeleteTarget(null);
+              toast.success('Deleted successfully');
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );
