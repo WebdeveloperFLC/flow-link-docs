@@ -445,7 +445,7 @@ export default function AccountingCardReconciliationNewPage() {
   return (
     <AppLayout>
       <div className="p-6 max-w-6xl mx-auto">
-        <AccountingPageHeader title="Import card statement" />
+        <AccountingPageHeader title="Import bank / card statement" />
 
         {/* Step indicator */}
         <div className="flex items-center justify-between mb-6 bg-muted/30 rounded-lg p-3">
@@ -569,14 +569,105 @@ export default function AccountingCardReconciliationNewPage() {
               </TabsContent>
 
               <TabsContent value="csv" className="mt-4 space-y-3">
-                <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
-                  <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
-                  <div className="text-sm font-medium">Drop your credit card statement CSV here</div>
-                  <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only</div>
-                  <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-                </label>
-                <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most banks include columns for Date, Description, and Amount.</p>
-                <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template</Button>
+                {!csvPreview && (
+                  <>
+                    <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
+                      <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
+                      <div className="text-sm font-medium">Drop your bank or credit card statement CSV here</div>
+                      <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only · TD Canada Trust auto-detected</div>
+                      <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                    </label>
+                    <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most Canadian banks include Date, Description, Debit, Credit and Balance columns.</p>
+                    <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template (TD format)</Button>
+                  </>
+                )}
+
+                {csvPreview && csvMapping && (() => {
+                  const previewParsed = applyCsvMapping(csvPreview.rows, csvMapping).slice(0, 5);
+                  const known = csvPreview.format !== "UNKNOWN";
+                  const roles: { key: keyof CsvMapping; label: string }[] = [
+                    { key: "dateCol", label: "Date" },
+                    { key: "descCol", label: "Description" },
+                    { key: "desc2Col", label: "Description 2 (optional)" },
+                    { key: "debitCol", label: "Debit (money out)" },
+                    { key: "creditCol", label: "Credit (money in)" },
+                    { key: "amountCol", label: "Amount (signed)" },
+                    { key: "balanceCol", label: "Balance (ignored)" },
+                  ];
+                  return (
+                    <div className="space-y-3">
+                      <div className={cn(
+                        "rounded-md border text-xs p-3",
+                        known ? "border-green-300 bg-green-50 text-green-900 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300"
+                              : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"
+                      )}>
+                        <strong>Detected:</strong> {csvPreview.formatLabel} · {csvPreview.rows.length} data rows
+                      </div>
+
+                      <div className="overflow-x-auto rounded-md border">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/50 text-muted-foreground">
+                            <tr>
+                              <th className="text-left p-2">Date</th>
+                              <th className="text-left p-2">Description</th>
+                              <th className="text-right p-2">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewParsed.length === 0 && (
+                              <tr><td colSpan={3} className="p-3 text-muted-foreground text-center">No rows parsed with current mapping — try "Re-map columns manually".</td></tr>
+                            )}
+                            {previewParsed.map((p, i) => (
+                              <tr key={i} className="border-t">
+                                <td className="p-2 whitespace-nowrap">{p.date}</td>
+                                <td className="p-2">{p.description}</td>
+                                <td className={cn("p-2 text-right tabular-nums font-medium", p.amount < 0 ? "text-red-600" : "text-green-600")}>
+                                  {p.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(p.amount))}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Balance column is ignored. Negative = debit (money out), positive = credit (money in).</p>
+
+                      {csvManual && (
+                        <div className="rounded-md border p-3 space-y-2 bg-muted/20">
+                          <div className="text-xs font-medium">Map CSV columns manually</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {roles.map((r) => (
+                              <div key={r.key} className="flex items-center gap-2 text-xs">
+                                <span className="w-44 text-muted-foreground">{r.label}</span>
+                                <Select
+                                  value={String(csvMapping[r.key] ?? "")}
+                                  onValueChange={(v) => setCsvMapping({ ...csvMapping, [r.key]: v === "" ? undefined : Number(v) })}
+                                >
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="— none —" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="-1">— none —</SelectItem>
+                                    {csvPreview.headers.map((h, i) => (
+                                      <SelectItem key={i} value={String(i)}>{h || `Column ${i + 1}`}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => { setCsvPreview(null); setCsvMapping(null); setCsvManual(false); }}>Choose a different file</Button>
+                        <div className="flex items-center gap-3">
+                          <Button variant="link" size="sm" className="px-0" onClick={() => setCsvManual((v) => !v)}>
+                            {csvManual ? "Hide manual mapper" : "Re-map columns manually"}
+                          </Button>
+                          <Button size="sm" onClick={confirmCsvImport}>Confirm and categorise →</Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </TabsContent>
             </Tabs>
 
