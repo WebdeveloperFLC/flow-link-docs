@@ -89,7 +89,7 @@ function lineFromDb(row: any): JournalLine {
     accountId: row.account_id ?? row.account_code ?? "",
     accountCode: row.account_code ?? a?.code ?? "",
     accountName: row.account_name ?? a?.name ?? "",
-    accountType: (a?.type ?? "EXPENSE") as AccountType,
+    accountType: (((a as any)?.type ?? (a as any)?.typeCode) ?? "EXPENSE") as AccountType,
     debit: Number(row.debit) || 0,
     credit: Number(row.credit) || 0,
     description: row.description ?? "",
