@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
-import { Upload, ChevronRight, Check, FileText, Sparkles, Loader2, X } from "lucide-react";
+import { Upload, ChevronRight, Check, FileText, Sparkles, Loader2, X, Split as SplitIcon, Undo2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,30 @@ import { cn } from "@/lib/utils";
 
 const SAMPLE_CSV = "Date,Description,Debit,Credit,Balance\n01/10/2025,STAPLES OFFICE,45.99,,1954.01\n03/10/2025,UBER TRIP,22.50,,1931.51\n05/10/2025,CLIENT PAYMENT,,500.00,2431.51\n";
 
-type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "UNCATEGORISED";
+type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "CLIENT_FUNDS" | "UNCATEGORISED";
+
+type SplitLine = {
+  id: string;
+  amount: number; // unsigned magnitude; sign derived from parent
+  category: LineCategory;
+  coaAccountId?: string;
+  coaAccountName?: string;
+  clientRef?: string;
+  expenseCategory?: string;
+};
+
+type EffectiveLine = {
+  id: string;
+  parentId?: string;
+  date: string;
+  description: string;
+  amount: number; // signed
+  category: LineCategory;
+  coaAccountId?: string;
+  coaAccountName?: string;
+  clientRef?: string;
+  expenseCategory?: string;
+};
 
 type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
 
@@ -205,6 +228,11 @@ export default function AccountingCardReconciliationNewPage() {
   }), [accounts]);
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
   const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
+  const clientFundsAccts = useMemo(() => accounts.filter((account) => {
+    if (account.status !== "ACTIVE") return false;
+    const tags: string[] = (account as any).automationTags || [];
+    return tags.includes("client_funds") || tags.includes("pass_through");
+  }), [accounts]);
   const defaultIncomeAcct = useMemo(
     () => incomeAccts[0] ?? accounts.find((a) => a.groupCode === "ASSET" && /receivable/i.test(a.name)),
     [accounts, incomeAccts],
@@ -213,13 +241,56 @@ export default function AccountingCardReconciliationNewPage() {
   const cardAcct = accounts.find((a) => a.id === cardAccountId);
   const drawingsAcct = useMemo(() => accounts.find((a) => /drawing/i.test(a.name)) ?? accounts.find((a) => a.groupCode === "EQUITY"), [accounts]);
 
-  const totals = useMemo(() => {
-    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const inc = lines.filter((l) => (l.category as LineCategory) === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const un = lines.filter((l) => l.category === "UNCATEGORISED").length;
-    return { biz, per, inc, un, total: lines.reduce((s, l) => s + Math.abs(l.amount), 0) };
+  const effective: EffectiveLine[] = useMemo(() => {
+    const out: EffectiveLine[] = [];
+    for (const l of lines) {
+      const splits = (l as any).splits as SplitLine[] | undefined;
+      if (splits && splits.length > 0) {
+        const sign = l.amount < 0 ? -1 : 1;
+        for (const s of splits) {
+          out.push({
+            id: s.id,
+            parentId: l.id,
+            date: l.date,
+            description: l.description,
+            amount: sign * Math.abs(Number(s.amount) || 0),
+            category: s.category,
+            coaAccountId: s.coaAccountId,
+            coaAccountName: s.coaAccountName,
+            clientRef: s.clientRef,
+            expenseCategory: s.expenseCategory,
+          });
+        }
+      } else {
+        out.push({
+          id: l.id,
+          date: l.date,
+          description: l.description,
+          amount: l.amount,
+          category: l.category as LineCategory,
+          coaAccountId: l.coaAccountId,
+          coaAccountName: l.coaAccountName,
+          clientRef: (l as any).clientRef,
+          expenseCategory: l.expenseCategory,
+        });
+      }
+    }
+    return out;
   }, [lines]);
+
+  const totals = useMemo(() => {
+    const biz = effective.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const per = effective.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const inc = effective.filter((l) => l.category === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const cf  = effective.filter((l) => l.category === "CLIENT_FUNDS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const bizN = effective.filter((l) => l.category === "BUSINESS").length;
+    const perN = effective.filter((l) => l.category === "PERSONAL").length;
+    const incN = effective.filter((l) => l.category === "INCOME").length;
+    const cfN  = effective.filter((l) => l.category === "CLIENT_FUNDS").length;
+    const un = effective.filter((l) => l.category === "UNCATEGORISED").length;
+    return { biz, per, inc, cf, bizN, perN, incN, cfN, un,
+      total: effective.reduce((s, l) => s + Math.abs(l.amount), 0) };
+  }, [effective]);
 
   function handleFile(file: File) {
     if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return; }
@@ -376,6 +447,40 @@ export default function AccountingCardReconciliationNewPage() {
     setLines((prev) => prev.map((l) => l.id === id ? { ...l, ...patch } : l));
   }
 
+  function updateSplit(parentId: string, splitId: string, patch: Partial<SplitLine>) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== parentId) return l;
+      const splits = ((l as any).splits as SplitLine[] | undefined) ?? [];
+      const next = splits.map((s) => s.id === splitId ? { ...s, ...patch } : s);
+      return { ...l, splits: next } as any;
+    }));
+  }
+
+  function splitTransaction(id: string) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      if ((l as any).splits) return l;
+      const amt = Math.abs(l.amount);
+      const half = Math.round((amt / 2) * 100) / 100;
+      const splits: SplitLine[] = [
+        { id: genId("sp"), amount: half, category: (l.category as LineCategory) ?? "UNCATEGORISED",
+          coaAccountId: l.coaAccountId, coaAccountName: l.coaAccountName,
+          expenseCategory: l.expenseCategory, clientRef: (l as any).clientRef },
+        { id: genId("sp"), amount: Math.round((amt - half) * 100) / 100, category: "UNCATEGORISED" },
+      ];
+      return { ...l, splits } as any;
+    }));
+  }
+
+  function unsplitTransaction(id: string) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      const next: any = { ...l };
+      delete next.splits;
+      return next;
+    }));
+  }
+
   function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL" | "INCOME") {
     setLines((prev) => prev.map((l) => {
       if (!ids.includes(l.id)) return l;
@@ -392,40 +497,44 @@ export default function AccountingCardReconciliationNewPage() {
     }));
   }
 
-  function generateJournal(): { journalLines: any[]; balanced: boolean } {
+  function generateJournal(): { journalLines: any[]; kinds: string[]; balanced: boolean } {
+    const journalLines: any[] = [];
+    const kinds: string[] = [];
+    const push = (jl: any | null, kind: string) => { if (jl) { journalLines.push(jl); kinds.push(kind); } };
+
     const bizByAcct = new Map<string, number>();
-    lines.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
+    effective.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
       bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
     const incomeByAcct = new Map<string, number>();
-    lines.filter((l) => (l.category as LineCategory) === "INCOME" && l.coaAccountId).forEach((l) => {
+    effective.filter((l) => l.category === "INCOME" && l.coaAccountId).forEach((l) => {
       incomeByAcct.set(l.coaAccountId!, (incomeByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
-    const journalLines: any[] = [];
     bizByAcct.forEach((amt, accId) => {
-      const line = buildLine({ id: genId("jl"), accountId: accId, debit: amt, description: "Card statement business" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: accId, debit: amt, description: "Card statement business" }), "BUSINESS");
     });
     if (totals.per > 0 && drawingsAcct) {
-      const line = buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" }), "PERSONAL");
     }
     incomeByAcct.forEach((amt, accId) => {
-      const line = buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" }), "INCOME");
     });
-    const expensesNet = totals.biz + totals.per; // money out → credit card/bank
+    // Client funds — per-line so clientRef appears in narration
+    effective.filter((l) => l.category === "CLIENT_FUNDS" && l.coaAccountId).forEach((l) => {
+      const desc = l.clientRef ? `${l.description} [${l.clientRef}]` : l.description;
+      push(buildLine({ id: genId("jl"), accountId: l.coaAccountId!, credit: Math.abs(l.amount), description: desc }), "CLIENT_FUNDS");
+    });
+    const expensesNet = totals.biz + totals.per;
     if (expensesNet > 0) {
-      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" });
-      if (cardLine) journalLines.push(cardLine);
+      push(buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" }), "CARD");
     }
-    if (totals.inc > 0) {
-      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, debit: totals.inc, description: "Statement receipts (in)" });
-      if (cardLine) journalLines.push(cardLine);
+    const cashIn = totals.inc + totals.cf;
+    if (cashIn > 0) {
+      push(buildLine({ id: genId("jl"), accountId: cardAccountId, debit: cashIn, description: "Statement receipts (in)" }), "CARD");
     }
     const dr = journalLines.reduce((s, l) => s + l.debit, 0);
     const cr = journalLines.reduce((s, l) => s + l.credit, 0);
-    return { journalLines, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
+    return { journalLines, kinds, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
   }
 
   function postJournal() {
