@@ -821,6 +821,17 @@ export default function AccountingCardReconciliationNewPage() {
   }
 
   function postJournal() {
+    // Guard: every split row must sum to its parent's amount.
+    const badSplit = lines.find((l) => {
+      const sp = (l as any).splits as SplitLine[] | undefined;
+      if (!sp || sp.length === 0) return false;
+      const sum = sp.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+      return Math.abs(sum - Math.abs(l.amount)) >= 0.005;
+    });
+    if (badSplit) {
+      toast.error("One or more split transactions don't add up to the original amount");
+      return;
+    }
     const { journalLines, balanced } = generateJournal();
     if (!balanced) { toast.error("Journal does not balance"); return; }
     const monthLabel = toDate ? new Date(toDate).toLocaleString("en-CA", { month: "short", year: "numeric" }) : "Statement";
