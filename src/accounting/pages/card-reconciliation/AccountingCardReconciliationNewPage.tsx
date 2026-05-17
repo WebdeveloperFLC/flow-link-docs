@@ -28,11 +28,17 @@ import {
   extractCardStatement,
   mapToCardStatementLines,
   autoSuggestCategory,
+  parseStatementCsv,
+  applyCsvMapping,
+  type CsvParseResult,
+  type CsvMapping,
   type ExtractionProgress,
 } from "@/accounting/lib/extractCardStatement";
 import { cn } from "@/lib/utils";
 
-const SAMPLE_CSV = "Date,Description,Amount,Reference\n2025-10-01,STAPLES OFFICE,45.99,REF001\n2025-10-03,UBER TRIP,22.50,REF002\n2025-10-05,NETFLIX,15.99,REF003\n";
+const SAMPLE_CSV = "Date,Description,Debit,Credit,Balance\n01/10/2025,STAPLES OFFICE,45.99,,1954.01\n03/10/2025,UBER TRIP,22.50,,1931.51\n05/10/2025,CLIENT PAYMENT,,500.00,2431.51\n";
+
+type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "UNCATEGORISED";
 
 type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
 
@@ -47,23 +53,6 @@ function AiBadge({ className }: { className?: string }) {
       <Sparkles className="size-2.5" /> AI
     </span>
   );
-}
-
-function parseCSV(text: string): { date: string; description: string; amount: number }[] {
-  const lines = text.split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
-  const header = lines[0].split(",").map((s) => s.trim().toLowerCase());
-  const di = header.findIndex((h) => h.includes("date"));
-  const desci = header.findIndex((h) => h.includes("desc") || h.includes("narrat") || h.includes("merch"));
-  const ai = header.findIndex((h) => h.includes("amount") || h.includes("debit") || h.includes("value"));
-  return lines.slice(1).map((row) => {
-    const cells = row.split(",");
-    return {
-      date: (cells[di] ?? "").trim(),
-      description: (cells[desci] ?? "").trim(),
-      amount: Math.abs(Number((cells[ai] ?? "0").replace(/[^0-9.\-]/g, ""))),
-    };
-  }).filter((r) => r.date && r.description && r.amount > 0);
 }
 
 function suggestAccount(desc: string, expAccts: { id: string; code: string; name: string }[]) {
@@ -121,6 +110,11 @@ export default function AccountingCardReconciliationNewPage() {
   const [extractError, setExtractError] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // CSV mapping confirmation
+  const [csvPreview, setCsvPreview] = useState<CsvParseResult | null>(null);
+  const [csvMapping, setCsvMapping] = useState<CsvMapping | null>(null);
+  const [csvManual, setCsvManual] = useState(false);
 
   // Hand-off from Documents → OCR → Send to Card reconciliation
   useEffect(() => {
@@ -181,35 +175,61 @@ export default function AccountingCardReconciliationNewPage() {
 
   const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
+  const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
+  const defaultIncomeAcct = useMemo(
+    () => incomeAccts[0] ?? accounts.find((a) => a.groupCode === "ASSET" && /receivable/i.test(a.name)),
+    [accounts, incomeAccts],
+  );
 
   const cardAcct = accounts.find((a) => a.id === cardAccountId);
   const drawingsAcct = useMemo(() => accounts.find((a) => /drawing/i.test(a.name)) ?? accounts.find((a) => a.groupCode === "EQUITY"), [accounts]);
 
   const totals = useMemo(() => {
-    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + l.amount, 0);
-    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + l.amount, 0);
+    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const inc = lines.filter((l) => (l.category as LineCategory) === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
     const un = lines.filter((l) => l.category === "UNCATEGORISED").length;
-    return { biz, per, un, total: lines.reduce((s, l) => s + l.amount, 0) };
+    return { biz, per, inc, un, total: lines.reduce((s, l) => s + Math.abs(l.amount), 0) };
   }, [lines]);
 
   function handleFile(file: File) {
     if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-      const parsed = parseCSV(String(e.target?.result ?? ""));
-      if (parsed.length === 0) { toast.error("Could not parse CSV"); return; }
-      setLines(parsed.map((p) => ({
-        id: genId("cl"),
-        date: p.date, description: p.description, amount: p.amount,
-        category: "UNCATEGORISED",
-        isPersonal: false,
-      })));
-      setAiLineIds(new Set());
-      setAiSummary(null);
-      toast.success(`Imported ${parsed.length} transactions`);
-      setStep(2);
+      const result = parseStatementCsv(String(e.target?.result ?? ""));
+      if (!result.headers.length) { toast.error("Could not read CSV"); return; }
+      setCsvPreview(result);
+      setCsvMapping(result.mapping);
+      setCsvManual(result.format === "UNKNOWN");
     };
     reader.readAsText(file);
+  }
+
+  function confirmCsvImport() {
+    if (!csvPreview || !csvMapping) return;
+    const parsed = applyCsvMapping(csvPreview.rows, csvMapping);
+    if (parsed.length === 0) { toast.error("No transactions parsed with this mapping"); return; }
+    setLines(parsed.map((p) => {
+      const isIncome = p.amount > 0;
+      const incomeAcct = isIncome ? defaultIncomeAcct : undefined;
+      return {
+        id: genId("cl"),
+        date: p.date,
+        description: p.description,
+        amount: p.amount, // signed
+        category: (isIncome ? "INCOME" : "UNCATEGORISED") as any,
+        isPersonal: false,
+        coaAccountId: incomeAcct?.id,
+        coaAccountName: incomeAcct?.name,
+      };
+    }));
+    setAiLineIds(new Set());
+    setAiSummary(null);
+    toast.success(`Imported ${parsed.length} transactions`);
+    setCsvPreview(null);
+    setCsvMapping(null);
+    setCsvManual(false);
+    setStep(2);
   }
 
   async function handlePdfFile(file: File) {
