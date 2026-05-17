@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
-import { Upload, ChevronRight, Check, FileText, Sparkles, Loader2, X } from "lucide-react";
+import { Upload, ChevronRight, Check, FileText, Sparkles, Loader2, X, Split as SplitIcon, Undo2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,30 @@ import { cn } from "@/lib/utils";
 
 const SAMPLE_CSV = "Date,Description,Debit,Credit,Balance\n01/10/2025,STAPLES OFFICE,45.99,,1954.01\n03/10/2025,UBER TRIP,22.50,,1931.51\n05/10/2025,CLIENT PAYMENT,,500.00,2431.51\n";
 
-type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "UNCATEGORISED";
+type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "CLIENT_FUNDS" | "UNCATEGORISED";
+
+type SplitLine = {
+  id: string;
+  amount: number; // unsigned magnitude; sign derived from parent
+  category: LineCategory;
+  coaAccountId?: string;
+  coaAccountName?: string;
+  clientRef?: string;
+  expenseCategory?: string;
+};
+
+type EffectiveLine = {
+  id: string;
+  parentId?: string;
+  date: string;
+  description: string;
+  amount: number; // signed
+  category: LineCategory;
+  coaAccountId?: string;
+  coaAccountName?: string;
+  clientRef?: string;
+  expenseCategory?: string;
+};
 
 type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
 
@@ -64,6 +87,289 @@ function suggestAccount(desc: string, expAccts: { id: string; code: string; name
   if (/google ads|facebook ads|marketing/.test(d)) return find(["marketing"]) ?? null;
   if (/restaurant|coffee|meals|dinner|lunch/.test(d)) return find(["meal"]) ?? null;
   return null;
+}
+
+/** Toggle button row for the 4 categories (+ Skip). Shared between parent rows and split sub-rows. */
+function CategoryToggle({
+  value,
+  onChange,
+}: {
+  value: LineCategory;
+  onChange: (c: LineCategory) => void;
+}) {
+  const cats: LineCategory[] = ["BUSINESS", "PERSONAL", "INCOME", "CLIENT_FUNDS", "UNCATEGORISED"];
+  const labels: Record<LineCategory, string> = {
+    BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income",
+    CLIENT_FUNDS: "Client funds", UNCATEGORISED: "Skip",
+  };
+  const activeCls: Record<LineCategory, string> = {
+    BUSINESS: "bg-green-600 text-white border-green-600",
+    PERSONAL: "bg-red-600 text-white border-red-600",
+    INCOME: "bg-emerald-700 text-white border-emerald-700",
+    CLIENT_FUNDS: "bg-purple-600 text-white border-purple-600",
+    UNCATEGORISED: "bg-muted-foreground/30 border-muted-foreground/30",
+  };
+  const inactiveCls: Record<LineCategory, string> = {
+    BUSINESS: "border-muted text-muted-foreground hover:bg-muted/70",
+    PERSONAL: "border-muted text-muted-foreground hover:bg-muted/70",
+    INCOME: "border-muted text-muted-foreground hover:bg-muted/70",
+    CLIENT_FUNDS: "border-purple-300 text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-500/10",
+    UNCATEGORISED: "border-muted text-muted-foreground hover:bg-muted/70",
+  };
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {cats.map((c) => {
+        const active = value === c;
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onChange(c)}
+            className={cn(
+              "text-[10px] px-1.5 py-0.5 rounded border",
+              active ? activeCls[c] : inactiveCls[c],
+            )}
+          >
+            {labels[c]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Account dropdown for a single line/split based on its category. */
+function AccountPicker({
+  category,
+  value,
+  onChange,
+  expAccts,
+  incomeAccts,
+  clientFundsAccts,
+}: {
+  category: LineCategory;
+  value?: string;
+  onChange: (id: string, name: string | undefined) => void;
+  expAccts: { id: string; code: string; name: string }[];
+  incomeAccts: { id: string; code: string; name: string }[];
+  clientFundsAccts: { id: string; code: string; name: string }[];
+}) {
+  if (category !== "BUSINESS" && category !== "INCOME" && category !== "CLIENT_FUNDS") return null;
+  const list = category === "INCOME" ? incomeAccts
+    : category === "CLIENT_FUNDS" ? clientFundsAccts
+    : expAccts;
+  const placeholder = category === "CLIENT_FUNDS" ? "Select client funds account" : "Account…";
+  return (
+    <Select value={value ?? ""} onValueChange={(v) => onChange(v, list.find(a => a.id === v)?.name)}>
+      <SelectTrigger className={cn("h-7 text-xs", category === "CLIENT_FUNDS" && "border-purple-300")}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-64">
+        {list.length === 0 && (
+          <div className="p-2 text-xs text-muted-foreground">No accounts</div>
+        )}
+        {list.map((a) => (
+          <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/** A single parent row + (optionally) two split sub-rows below. */
+function FragmentRow(props: {
+  line: CardStatementLine;
+  splits: SplitLine[] | undefined;
+  hasSplits: boolean;
+  bg: string;
+  selected: Set<string>;
+  setSelected: (s: Set<string>) => void;
+  updateLine: (id: string, patch: Partial<CardStatementLine>) => void;
+  updateSplit: (parentId: string, splitId: string, patch: Partial<SplitLine>) => void;
+  splitTransaction: (id: string) => void;
+  unsplitTransaction: (id: string) => void;
+  expAccts: { id: string; code: string; name: string }[];
+  incomeAccts: { id: string; code: string; name: string }[];
+  clientFundsAccts: { id: string; code: string; name: string }[];
+  defaultIncomeAcct: { id: string; name: string } | undefined;
+  aiLineIds: Set<string>;
+}) {
+  const {
+    line: l, splits, hasSplits, bg, selected, setSelected,
+    updateLine, updateSplit, splitTransaction, unsplitTransaction,
+    expAccts, incomeAccts, clientFundsAccts, defaultIncomeAcct, aiLineIds,
+  } = props;
+
+  const cat = (l.category as LineCategory);
+  const clientRef = (l as any).clientRef as string | undefined;
+
+  const applyCategoryToParent = (c: LineCategory) => {
+    const patch: any = { category: c, isPersonal: c === "PERSONAL" };
+    if (c === "BUSINESS" && !l.coaAccountId) {
+      const sug = suggestAccount(l.description, expAccts);
+      patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
+    } else if (c === "INCOME") {
+      patch.coaAccountId = defaultIncomeAcct?.id;
+      patch.coaAccountName = defaultIncomeAcct?.name;
+    } else if (c === "CLIENT_FUNDS") {
+      patch.coaAccountId = undefined;
+      patch.coaAccountName = undefined;
+    }
+    updateLine(l.id, patch);
+  };
+
+  const splitSum = (splits ?? []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const original = Math.abs(l.amount);
+  const splitBalanced = Math.abs(splitSum - original) < 0.005;
+  const remaining = Math.round((original - splitSum) * 100) / 100;
+
+  return (
+    <>
+      <tr className={cn("border-b align-top", bg)}>
+        <td className="p-2">
+          <input type="checkbox" checked={selected.has(l.id)} onChange={(e) => {
+            const n = new Set(selected); e.target.checked ? n.add(l.id) : n.delete(l.id); setSelected(n);
+          }} />
+        </td>
+        <td className="p-2 whitespace-nowrap">{l.date}</td>
+        <td className="p-2">{l.description}</td>
+        <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
+          <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(original)}</div>
+          <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
+            {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
+          </div>
+        </td>
+        <td className="p-2 space-y-1">
+          {!hasSplits ? (
+            <>
+              <CategoryToggle value={cat} onChange={applyCategoryToParent} />
+              {cat === "CLIENT_FUNDS" && (
+                <div className="text-[10px] text-purple-600">Pass-through — will not affect P&amp;L</div>
+              )}
+              {cat === "BUSINESS" && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Expense type…" /></SelectTrigger>
+                    <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                  {aiLineIds.has(l.id) && (
+                    <span title="Suggested by AI" className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold">AI</span>
+                  )}
+                </div>
+              )}
+              <div className="mt-1">
+                <AccountPicker
+                  category={cat}
+                  value={l.coaAccountId}
+                  onChange={(id, name) => updateLine(l.id, { coaAccountId: id, coaAccountName: name })}
+                  expAccts={expAccts}
+                  incomeAccts={incomeAccts}
+                  clientFundsAccts={clientFundsAccts}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="text-[11px] text-muted-foreground italic">Split into {splits!.length} lines below</div>
+          )}
+        </td>
+        <td className="p-2">
+          {!hasSplits && (
+            <Input
+              placeholder="Client name / purpose"
+              value={clientRef ?? ""}
+              onChange={(e) => updateLine(l.id, { clientRef: e.target.value } as any)}
+              className="h-7 text-xs w-40 border-dashed placeholder:text-xs"
+            />
+          )}
+        </td>
+        <td className="p-2 text-right">
+          {!hasSplits ? (
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => splitTransaction(l.id)}>
+              <SplitIcon className="size-3 mr-1" /> Split
+            </Button>
+          ) : (
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => unsplitTransaction(l.id)}>
+              <Undo2 className="size-3 mr-1" /> Unsplit
+            </Button>
+          )}
+        </td>
+      </tr>
+      {hasSplits && splits!.map((s, idx) => {
+        const sCat = s.category;
+        const sBg = sCat === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
+          : sCat === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+          : sCat === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+          : sCat === "CLIENT_FUNDS" ? "bg-purple-50/50 dark:bg-purple-500/10"
+          : "bg-amber-50/30 dark:bg-amber-500/5";
+        return (
+          <tr key={s.id} className={cn("border-b align-top", sBg)}>
+            <td className="p-2"></td>
+            <td className="p-2 text-[11px] text-muted-foreground pl-6">↳ Split {idx + 1}</td>
+            <td className="p-2 text-[11px] text-muted-foreground">{l.description}</td>
+            <td className="p-2 text-right">
+              <Input
+                type="number"
+                step="0.01"
+                value={String(s.amount)}
+                onChange={(e) => updateSplit(l.id, s.id, { amount: Number(e.target.value) || 0 })}
+                className="h-7 text-xs w-24 ml-auto tabular-nums text-right"
+              />
+            </td>
+            <td className="p-2 space-y-1">
+              <CategoryToggle
+                value={sCat}
+                onChange={(c) => {
+                  const patch: Partial<SplitLine> = { category: c };
+                  if (c !== "BUSINESS" && c !== "INCOME" && c !== "CLIENT_FUNDS") {
+                    patch.coaAccountId = undefined; patch.coaAccountName = undefined;
+                  }
+                  updateSplit(l.id, s.id, patch);
+                }}
+              />
+              {sCat === "CLIENT_FUNDS" && (
+                <div className="text-[10px] text-purple-600">Pass-through — will not affect P&amp;L</div>
+              )}
+              <div className="mt-1">
+                <AccountPicker
+                  category={sCat}
+                  value={s.coaAccountId}
+                  onChange={(id, name) => updateSplit(l.id, s.id, { coaAccountId: id, coaAccountName: name })}
+                  expAccts={expAccts}
+                  incomeAccts={incomeAccts}
+                  clientFundsAccts={clientFundsAccts}
+                />
+              </div>
+            </td>
+            <td className="p-2">
+              <Input
+                placeholder="Client name / purpose"
+                value={s.clientRef ?? ""}
+                onChange={(e) => updateSplit(l.id, s.id, { clientRef: e.target.value })}
+                className="h-7 text-xs w-40 border-dashed placeholder:text-xs"
+              />
+            </td>
+            <td className="p-2"></td>
+          </tr>
+        );
+      })}
+      {hasSplits && (
+        <tr className="border-b bg-muted/20">
+          <td colSpan={7} className="px-3 py-1.5 text-[11px] text-right">
+            {splitBalanced ? (
+              <span className="text-green-600">
+                {splits!.map(s => formatCurrency(Number(s.amount) || 0)).join(" + ")} = {formatCurrency(original)} ✓
+              </span>
+            ) : (
+              <span className="text-red-600">
+                {splits!.map(s => formatCurrency(Number(s.amount) || 0)).join(" + ")} = {formatCurrency(splitSum)} ✗
+                {" "}({remaining >= 0 ? `${formatCurrency(Math.abs(remaining))} remaining` : `over by ${formatCurrency(Math.abs(remaining))}`})
+              </span>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
+  );
 }
 
 const STEPS = ["Card details", "Import statement", "Categorise", "Generate journal"];
@@ -205,6 +511,11 @@ export default function AccountingCardReconciliationNewPage() {
   }), [accounts]);
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
   const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
+  const clientFundsAccts = useMemo(() => accounts.filter((account) => {
+    if (account.status !== "ACTIVE") return false;
+    const tags: string[] = (account as any).automationTags || [];
+    return tags.includes("client_funds") || tags.includes("pass_through");
+  }), [accounts]);
   const defaultIncomeAcct = useMemo(
     () => incomeAccts[0] ?? accounts.find((a) => a.groupCode === "ASSET" && /receivable/i.test(a.name)),
     [accounts, incomeAccts],
@@ -213,13 +524,56 @@ export default function AccountingCardReconciliationNewPage() {
   const cardAcct = accounts.find((a) => a.id === cardAccountId);
   const drawingsAcct = useMemo(() => accounts.find((a) => /drawing/i.test(a.name)) ?? accounts.find((a) => a.groupCode === "EQUITY"), [accounts]);
 
-  const totals = useMemo(() => {
-    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const inc = lines.filter((l) => (l.category as LineCategory) === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
-    const un = lines.filter((l) => l.category === "UNCATEGORISED").length;
-    return { biz, per, inc, un, total: lines.reduce((s, l) => s + Math.abs(l.amount), 0) };
+  const effective: EffectiveLine[] = useMemo(() => {
+    const out: EffectiveLine[] = [];
+    for (const l of lines) {
+      const splits = (l as any).splits as SplitLine[] | undefined;
+      if (splits && splits.length > 0) {
+        const sign = l.amount < 0 ? -1 : 1;
+        for (const s of splits) {
+          out.push({
+            id: s.id,
+            parentId: l.id,
+            date: l.date,
+            description: l.description,
+            amount: sign * Math.abs(Number(s.amount) || 0),
+            category: s.category,
+            coaAccountId: s.coaAccountId,
+            coaAccountName: s.coaAccountName,
+            clientRef: s.clientRef,
+            expenseCategory: s.expenseCategory,
+          });
+        }
+      } else {
+        out.push({
+          id: l.id,
+          date: l.date,
+          description: l.description,
+          amount: l.amount,
+          category: l.category as LineCategory,
+          coaAccountId: l.coaAccountId,
+          coaAccountName: l.coaAccountName,
+          clientRef: (l as any).clientRef,
+          expenseCategory: l.expenseCategory,
+        });
+      }
+    }
+    return out;
   }, [lines]);
+
+  const totals = useMemo(() => {
+    const biz = effective.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const per = effective.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const inc = effective.filter((l) => l.category === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const cf  = effective.filter((l) => l.category === "CLIENT_FUNDS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const bizN = effective.filter((l) => l.category === "BUSINESS").length;
+    const perN = effective.filter((l) => l.category === "PERSONAL").length;
+    const incN = effective.filter((l) => l.category === "INCOME").length;
+    const cfN  = effective.filter((l) => l.category === "CLIENT_FUNDS").length;
+    const un = effective.filter((l) => l.category === "UNCATEGORISED").length;
+    return { biz, per, inc, cf, bizN, perN, incN, cfN, un,
+      total: effective.reduce((s, l) => s + Math.abs(l.amount), 0) };
+  }, [effective]);
 
   function handleFile(file: File) {
     if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return; }
@@ -376,6 +730,40 @@ export default function AccountingCardReconciliationNewPage() {
     setLines((prev) => prev.map((l) => l.id === id ? { ...l, ...patch } : l));
   }
 
+  function updateSplit(parentId: string, splitId: string, patch: Partial<SplitLine>) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== parentId) return l;
+      const splits = ((l as any).splits as SplitLine[] | undefined) ?? [];
+      const next = splits.map((s) => s.id === splitId ? { ...s, ...patch } : s);
+      return { ...l, splits: next } as any;
+    }));
+  }
+
+  function splitTransaction(id: string) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      if ((l as any).splits) return l;
+      const amt = Math.abs(l.amount);
+      const half = Math.round((amt / 2) * 100) / 100;
+      const splits: SplitLine[] = [
+        { id: genId("sp"), amount: half, category: (l.category as LineCategory) ?? "UNCATEGORISED",
+          coaAccountId: l.coaAccountId, coaAccountName: l.coaAccountName,
+          expenseCategory: l.expenseCategory, clientRef: (l as any).clientRef },
+        { id: genId("sp"), amount: Math.round((amt - half) * 100) / 100, category: "UNCATEGORISED" },
+      ];
+      return { ...l, splits } as any;
+    }));
+  }
+
+  function unsplitTransaction(id: string) {
+    setLines((prev) => prev.map((l) => {
+      if (l.id !== id) return l;
+      const next: any = { ...l };
+      delete next.splits;
+      return next;
+    }));
+  }
+
   function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL" | "INCOME") {
     setLines((prev) => prev.map((l) => {
       if (!ids.includes(l.id)) return l;
@@ -392,43 +780,58 @@ export default function AccountingCardReconciliationNewPage() {
     }));
   }
 
-  function generateJournal(): { journalLines: any[]; balanced: boolean } {
+  function generateJournal(): { journalLines: any[]; kinds: string[]; balanced: boolean } {
+    const journalLines: any[] = [];
+    const kinds: string[] = [];
+    const push = (jl: any | null, kind: string) => { if (jl) { journalLines.push(jl); kinds.push(kind); } };
+
     const bizByAcct = new Map<string, number>();
-    lines.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
+    effective.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
       bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
     const incomeByAcct = new Map<string, number>();
-    lines.filter((l) => (l.category as LineCategory) === "INCOME" && l.coaAccountId).forEach((l) => {
+    effective.filter((l) => l.category === "INCOME" && l.coaAccountId).forEach((l) => {
       incomeByAcct.set(l.coaAccountId!, (incomeByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
-    const journalLines: any[] = [];
     bizByAcct.forEach((amt, accId) => {
-      const line = buildLine({ id: genId("jl"), accountId: accId, debit: amt, description: "Card statement business" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: accId, debit: amt, description: "Card statement business" }), "BUSINESS");
     });
     if (totals.per > 0 && drawingsAcct) {
-      const line = buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" }), "PERSONAL");
     }
     incomeByAcct.forEach((amt, accId) => {
-      const line = buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" });
-      if (line) journalLines.push(line);
+      push(buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" }), "INCOME");
     });
-    const expensesNet = totals.biz + totals.per; // money out → credit card/bank
+    // Client funds — per-line so clientRef appears in narration
+    effective.filter((l) => l.category === "CLIENT_FUNDS" && l.coaAccountId).forEach((l) => {
+      const desc = l.clientRef ? `${l.description} [${l.clientRef}]` : l.description;
+      push(buildLine({ id: genId("jl"), accountId: l.coaAccountId!, credit: Math.abs(l.amount), description: desc }), "CLIENT_FUNDS");
+    });
+    const expensesNet = totals.biz + totals.per;
     if (expensesNet > 0) {
-      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" });
-      if (cardLine) journalLines.push(cardLine);
+      push(buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" }), "CARD");
     }
-    if (totals.inc > 0) {
-      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, debit: totals.inc, description: "Statement receipts (in)" });
-      if (cardLine) journalLines.push(cardLine);
+    const cashIn = totals.inc + totals.cf;
+    if (cashIn > 0) {
+      push(buildLine({ id: genId("jl"), accountId: cardAccountId, debit: cashIn, description: "Statement receipts (in)" }), "CARD");
     }
     const dr = journalLines.reduce((s, l) => s + l.debit, 0);
     const cr = journalLines.reduce((s, l) => s + l.credit, 0);
-    return { journalLines, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
+    return { journalLines, kinds, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
   }
 
   function postJournal() {
+    // Guard: every split row must sum to its parent's amount.
+    const badSplit = lines.find((l) => {
+      const sp = (l as any).splits as SplitLine[] | undefined;
+      if (!sp || sp.length === 0) return false;
+      const sum = sp.reduce((s, x) => s + (Number(x.amount) || 0), 0);
+      return Math.abs(sum - Math.abs(l.amount)) >= 0.005;
+    });
+    if (badSplit) {
+      toast.error("One or more split transactions don't add up to the original amount");
+      return;
+    }
     const { journalLines, balanced } = generateJournal();
     if (!balanced) { toast.error("Journal does not balance"); return; }
     const monthLabel = toDate ? new Date(toDate).toLocaleString("en-CA", { month: "short", year: "numeric" }) : "Statement";
@@ -761,12 +1164,12 @@ export default function AccountingCardReconciliationNewPage() {
               </div>
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="text-sm">
-                Total: <strong>{lines.length}</strong>
-                {" · "}Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong>
-                {" · "}Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong>
-                {" · "}Income: <strong className="text-emerald-700">{lines.filter(l=>(l.category as LineCategory)==="INCOME").length}</strong>
-                {" · "}⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
+              <div className="text-xs space-x-3">
+                <span>✓ Business: <strong className="text-green-600">{totals.bizN}</strong> — {formatCurrency(totals.biz)}</span>
+                <span>Personal: <strong className="text-red-600">{totals.perN}</strong> — {formatCurrency(totals.per)}</span>
+                <span>Income: <strong className="text-emerald-700">{totals.incN}</strong> — {formatCurrency(totals.inc)}</span>
+                <span>Client funds: <strong className="text-purple-600">{totals.cfN}</strong> — {formatCurrency(totals.cf)} <span className="text-purple-600/70">(pass-through)</span></span>
+                <span>⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong> remaining</span>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setBulkCategory(lines.filter(l=>l.category==="UNCATEGORISED").map(l=>l.id), "BUSINESS")}>Mark remaining business</Button>
@@ -785,81 +1188,41 @@ export default function AccountingCardReconciliationNewPage() {
                     <th className="text-left p-2">Date</th>
                     <th className="text-left p-2">Description</th>
                     <th className="text-right p-2">Amount</th>
-                    <th className="text-left p-2">Category</th>
-                    <th className="text-left p-2">Expense type</th>
-                    <th className="text-left p-2">COA account</th>
+                    <th className="text-left p-2">Category & account</th>
+                    <th className="text-left p-2">Client ref</th>
+                    <th className="p-2"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {lines.map((l) => {
-                    const bg = l.category === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
-                      : l.category === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
-                      : (l.category as LineCategory) === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+                    const splits = (l as any).splits as SplitLine[] | undefined;
+                    const hasSplits = !!(splits && splits.length > 0);
+                    const cat = (l.category as LineCategory);
+                    const bg = hasSplits ? "bg-muted/40"
+                      : cat === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
+                      : cat === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+                      : cat === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+                      : cat === "CLIENT_FUNDS" ? "bg-purple-50/50 dark:bg-purple-500/10"
                       : "bg-amber-50/30 dark:bg-amber-500/5";
                     return (
-                      <tr key={l.id} className={cn("border-b", bg)}>
-                        <td className="p-2"><input type="checkbox" checked={selected.has(l.id)} onChange={(e) => {
-                          const n = new Set(selected); e.target.checked ? n.add(l.id) : n.delete(l.id); setSelected(n);
-                        }} /></td>
-                        <td className="p-2 whitespace-nowrap">{l.date}</td>
-                        <td className="p-2">{l.description}</td>
-                       <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
-                         <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(l.amount))}</div>
-                         <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
-                           {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
-                         </div>
-                       </td>
-                        <td className="p-2">
-                          <div className="flex gap-1">
-                            {(["BUSINESS","PERSONAL","INCOME","UNCATEGORISED"] as const).map((c) => {
-                              const active = (l.category as LineCategory) === c;
-                              const cls = c === "BUSINESS" ? "bg-green-600 text-white"
-                                : c === "PERSONAL" ? "bg-red-600 text-white"
-                                : c === "INCOME" ? "bg-emerald-700 text-white"
-                                : "bg-muted-foreground/30";
-                              const labels: Record<string, string> = {
-                                BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income", UNCATEGORISED: "Skip",
-                              };
-                              return (
-                                <button key={c} onClick={() => {
-                                  const patch: any = { category: c, isPersonal: c === "PERSONAL" };
-                                  if (c === "BUSINESS" && !l.coaAccountId) {
-                                    const sug = suggestAccount(l.description, expAccts);
-                                    patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
-                                  } else if (c === "INCOME") {
-                                    patch.coaAccountId = defaultIncomeAcct?.id;
-                                    patch.coaAccountName = defaultIncomeAcct?.name;
-                                  }
-                                  updateLine(l.id, patch);
-                                }} className={cn("text-[10px] px-1.5 py-0.5 rounded",
-                                  active ? cls : "bg-muted text-muted-foreground hover:bg-muted/70"
-                                )}>{labels[c]}</button>
-                              );
-                            })}
-                          </div>
-                        </td>
-                        <td className="p-2">
-                          {l.category === "BUSINESS" && (
-                            <div className="flex items-center gap-1">
-                              <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
-                                <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="…" /></SelectTrigger>
-                                <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
-                              </Select>
-                              {aiLineIds.has(l.id) && (
-                                <span title="Suggested by AI" className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold">AI</span>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td className="p-2">
-                          {((l.category as LineCategory) === "BUSINESS" || (l.category as LineCategory) === "INCOME") && (
-                            <Select value={l.coaAccountId ?? ""} onValueChange={(v) => updateLine(l.id, { coaAccountId: v, coaAccountName: expAccts.find(a=>a.id===v)?.name })}>
-                              <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Account…" /></SelectTrigger>
-                              <SelectContent className="max-h-64">{((l.category as LineCategory) === "INCOME" ? incomeAccts : expAccts).map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
-                            </Select>
-                          )}
-                        </td>
-                      </tr>
+                      <FragmentRow
+                        key={l.id}
+                        line={l}
+                        splits={splits}
+                        hasSplits={hasSplits}
+                        bg={bg}
+                        selected={selected}
+                        setSelected={setSelected}
+                        updateLine={updateLine}
+                        updateSplit={updateSplit}
+                        splitTransaction={splitTransaction}
+                        unsplitTransaction={unsplitTransaction}
+                        expAccts={expAccts}
+                        incomeAccts={incomeAccts}
+                        clientFundsAccts={clientFundsAccts}
+                        defaultIncomeAcct={defaultIncomeAcct}
+                        aiLineIds={aiLineIds}
+                      />
                     );
                   })}
                 </tbody>
@@ -882,7 +1245,18 @@ export default function AccountingCardReconciliationNewPage() {
         )}
 
         {step === 3 && (() => {
-          const { journalLines, balanced } = generateJournal();
+          const { journalLines, kinds, balanced } = generateJournal();
+          const kindBadge = (k: string) => {
+            const map: Record<string, { cls: string; label: string }> = {
+              BUSINESS:     { cls: "bg-amber-100 text-amber-800 border-amber-300",   label: "Business" },
+              PERSONAL:     { cls: "bg-red-100 text-red-800 border-red-300",         label: "Personal" },
+              INCOME:       { cls: "bg-green-100 text-green-800 border-green-300",   label: "Income" },
+              CLIENT_FUNDS: { cls: "bg-purple-100 text-purple-800 border-purple-300", label: "Pass-through" },
+              CARD:         { cls: "bg-muted text-muted-foreground border-muted",     label: "Bank/Card" },
+            };
+            const m = map[k] ?? map.CARD;
+            return <span className={cn("inline-block text-[10px] px-1.5 py-0.5 rounded border", m.cls)}>{m.label}</span>;
+          };
           return (
             <Card className="p-6 space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Journal entry preview</h2>
@@ -900,19 +1274,29 @@ export default function AccountingCardReconciliationNewPage() {
               </div>
               <table className="w-full text-sm border-t border-b">
                 <thead className="text-xs text-muted-foreground bg-muted/30">
-                  <tr><th className="text-left px-3 py-2">#</th><th className="text-left px-3 py-2">Account</th><th className="text-right px-3 py-2">DR</th><th className="text-right px-3 py-2">CR</th></tr>
+                  <tr>
+                    <th className="text-left px-3 py-2">#</th>
+                    <th className="text-left px-3 py-2">Account</th>
+                    <th className="text-left px-3 py-2">Type</th>
+                    <th className="text-right px-3 py-2">DR</th>
+                    <th className="text-right px-3 py-2">CR</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {journalLines.map((l, i) => (
                     <tr key={i} className="border-t">
                       <td className="px-3 py-1.5">{i+1}</td>
-                      <td className="px-3 py-1.5">{l.accountCode} — {l.accountName}</td>
+                      <td className="px-3 py-1.5">
+                        <div>{l.accountCode} — {l.accountName}</div>
+                        {l.description && <div className="text-[10px] text-muted-foreground">{l.description}</div>}
+                      </td>
+                      <td className="px-3 py-1.5">{kindBadge(kinds[i])}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{l.debit ? formatCurrency(l.debit) : "—"}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{l.credit ? formatCurrency(l.credit) : "—"}</td>
                     </tr>
                   ))}
                   <tr className="border-t bg-muted/30 font-semibold">
-                    <td colSpan={2} className="px-3 py-1.5 text-right">Totals</td>
+                    <td colSpan={3} className="px-3 py-1.5 text-right">Totals</td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{formatCurrency(journalLines.reduce((s,l)=>s+l.debit,0))}</td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{formatCurrency(journalLines.reduce((s,l)=>s+l.credit,0))}</td>
                   </tr>
@@ -927,10 +1311,16 @@ export default function AccountingCardReconciliationNewPage() {
                 )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
-                {totals.inc > 0 && (
-                  <div>Income / receipts: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
-                )}
-                <div>Total statement activity: <strong>{formatCurrency(totals.biz + totals.per + totals.inc)}</strong></div>
+                <div>Income received: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
+                <div>
+                  Client funds (pass-through): <strong className="text-purple-700">{formatCurrency(totals.cf)}</strong>
+                  <div className="text-[11px] text-muted-foreground pl-2">These do not affect your P&amp;L</div>
+                </div>
+                <div className="border-t mt-2 pt-2">
+                  Net P&amp;L impact: <strong>{formatCurrency(totals.inc - totals.biz)}</strong>
+                  <span className="text-[11px] text-muted-foreground"> (income − business expenses)</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground">Total statement activity: {formatCurrency(totals.biz + totals.per + totals.inc + totals.cf)}</div>
                 {cardType === "PERSONAL" && totals.biz > 0 && (
                   <div className="pt-1 border-t mt-2">Reimbursable to card holder: <strong>{formatCurrency(totals.biz)}</strong></div>
                 )}
