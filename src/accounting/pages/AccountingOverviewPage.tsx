@@ -8,6 +8,7 @@ import {
 import {
   TrendingUp, Receipt, DollarSign, ArrowUpCircle, ArrowDownCircle,
   Sparkles, BookOpen, Upload, ScanLine, CheckSquare, BarChart2, Calendar,
+  ChevronDown, ChevronRight, AlertTriangle, Trash2,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LabelList,
@@ -17,6 +18,8 @@ import AccountingPageHeader from "../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../components/shared/AccountingKPICard";
 import OnboardingChecklist from "../components/shared/OnboardingChecklist";
 import DarkModeToggle from "../components/shared/DarkModeToggle";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { isOnboardingDismissed } from "../stores/onboardingStore";
 import { useState } from "react";
 import { formatCurrency, formatCompact } from "../lib/format";
