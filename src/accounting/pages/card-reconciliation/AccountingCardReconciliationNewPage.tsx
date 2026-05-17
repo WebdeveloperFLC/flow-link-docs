@@ -881,7 +881,10 @@ export default function AccountingCardReconciliationNewPage() {
                 )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
-                <div>Total card charges: <strong>{formatCurrency(totals.biz + totals.per)}</strong></div>
+                {totals.inc > 0 && (
+                  <div>Income / receipts: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
+                )}
+                <div>Total statement activity: <strong>{formatCurrency(totals.biz + totals.per + totals.inc)}</strong></div>
                 {cardType === "PERSONAL" && totals.biz > 0 && (
                   <div className="pt-1 border-t mt-2">Reimbursable to card holder: <strong>{formatCurrency(totals.biz)}</strong></div>
                 )}
