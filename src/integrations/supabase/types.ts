@@ -333,6 +333,115 @@ export type Database = {
           },
         ]
       }
+      accounting_clients: {
+        Row: {
+          account_manager: string | null
+          address: string | null
+          client_type: string | null
+          counselor_id: string | null
+          counselor_name: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          email: string | null
+          id: string
+          intake: string | null
+          lead_source: string | null
+          legal_name: string | null
+          linked_coa_id: string | null
+          linked_crm_client_id: string | null
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          segment: string | null
+          service_package: string | null
+          status: string | null
+          tax_id: string | null
+          updated_at: string
+          visa_category: string | null
+        }
+        Insert: {
+          account_manager?: string | null
+          address?: string | null
+          client_type?: string | null
+          counselor_id?: string | null
+          counselor_name?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          id?: string
+          intake?: string | null
+          lead_source?: string | null
+          legal_name?: string | null
+          linked_coa_id?: string | null
+          linked_crm_client_id?: string | null
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          segment?: string | null
+          service_package?: string | null
+          status?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          visa_category?: string | null
+        }
+        Update: {
+          account_manager?: string | null
+          address?: string | null
+          client_type?: string | null
+          counselor_id?: string | null
+          counselor_name?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          id?: string
+          intake?: string | null
+          lead_source?: string | null
+          legal_name?: string | null
+          linked_coa_id?: string | null
+          linked_crm_client_id?: string | null
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          segment?: string | null
+          service_package?: string | null
+          status?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          visa_category?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_clients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_clients_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_clients_linked_coa_id_fkey"
+            columns: ["linked_coa_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_coa: {
         Row: {
           ai_category: string | null
