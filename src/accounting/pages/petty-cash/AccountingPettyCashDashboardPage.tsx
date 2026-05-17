@@ -381,6 +381,18 @@ export default function AccountingPettyCashDashboardPage() {
       <ManageBranchesDialog open={showManageBranches} onOpenChange={setShowManageBranches} />
       <ManagePeopleDialog open={showManagePeople} onOpenChange={setShowManagePeople} />
       <ManageCategoriesDialog open={showManageCategories} onOpenChange={setShowManageCategories} />
+
+      <DeleteRecordDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteVoucher(deleteTarget);
+            setDeleteTarget(null);
+            toast.success("Deleted successfully");
+          }
+        }}
+      />
     </AppLayout>
   );
 }
