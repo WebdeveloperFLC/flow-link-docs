@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { SERVICE_TYPE_LABELS } from "../../data/mockAR";
 import { useArInvoices, updateArInvoice, deleteArInvoice } from "../../stores/arInvoicesStore";
@@ -24,6 +25,7 @@ export default function AccountingInvoiceDetailPage() {
   const inv = invoices.find((i) => i.id === id);
   const [selectedReceipt, setSelectedReceipt] = useState<ReceiptData | null>(null);
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const bank = useMemo(() => inv?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === inv.linkedBankAccountId) : null, [inv]);
 
   if (!inv) return (
@@ -55,7 +57,7 @@ export default function AccountingInvoiceDetailPage() {
               )}
               <Button variant="ghost" onClick={() => navigate("/accounting/clients")}>View client ledger</Button>
               <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
-              <Button variant="ghost" className="text-destructive" onClick={() => { if (confirm(`Delete ${inv.invoiceNumber}? This cannot be undone.`)) { deleteArInvoice(inv.id); toast.success("Invoice deleted"); navigate("/accounting/ar"); } }}><Trash2 className="size-4 mr-1" /> Delete</Button>
+              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setShowDelete(true)}><Trash2 className="h-4 w-4 mr-2" /> Delete</Button>
             </>} />
         </div>
 
@@ -114,6 +116,17 @@ export default function AccountingInvoiceDetailPage() {
           onClose={() => { setReceiptModalOpen(false); setSelectedReceipt(null); }}
         />
       )}
+
+      <DeleteRecordDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        onConfirm={() => {
+          deleteArInvoice(inv.id);
+          setShowDelete(false);
+          toast.success("Deleted successfully");
+          navigate("/accounting/ar");
+        }}
+      />
     </AppLayout>
   );
 }
