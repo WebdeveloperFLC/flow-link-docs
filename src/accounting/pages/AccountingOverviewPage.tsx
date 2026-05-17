@@ -226,8 +226,85 @@ function OverviewInner() {
             ))}
           </div>
         </Card>
+
+        <DevToolsSection />
       </div>
     </AppLayout>
+  );
+}
+
+function DevToolsSection() {
+  const [open, setOpen] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const handleClearAll = () => {
+    const keys = [
+      "accounting:coa:v4",
+      "accounting:coa-accounts:v5",
+      "accounting:bank-accounts:v2",
+      "accounting:bank-accounts:v3",
+      "accounting:vendors:v2",
+      "accounting:vendors:v3",
+      "accounting:clients:v2",
+      "accounting:clients:v3",
+      "accounting:ap-bills:v2",
+      "accounting:ap-bills:v3",
+      "accounting:ar-invoices:v2",
+      "accounting:ar-invoices:v3",
+      "accounting:journals:v2",
+      "accounting:journals:v3",
+      "accounting:petty-cash:v2",
+      "accounting:intercompany:v1",
+      "accounting:reimbursements:v1",
+      "accounting:card-reconciliation:v1",
+      "accounting:masters:v5",
+    ];
+    keys.forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+    toast.success("All test data cleared");
+    setTimeout(() => location.reload(), 1000);
+  };
+  return (
+    <div className="mt-8">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        Developer & Testing Tools
+      </button>
+      {open && (
+        <Card className="mt-3 border-destructive/30 border-dashed p-5">
+          <div className="mb-3">
+            <div className="text-sm font-semibold text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Clear all accounting test data
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Permanently deletes all journals, bills, invoices, vendors, clients, bank accounts,
+              COA accounts, petty cash, inter-company transactions, reimbursements and reconciliations.
+              Entity structure and system masters are preserved.
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">Type DELETE ALL to confirm:</p>
+            <Input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="Type DELETE ALL"
+              className="max-w-xs font-mono"
+            />
+            <Button
+              variant="destructive"
+              disabled={confirmText !== "DELETE ALL"}
+              onClick={handleClearAll}
+              className="max-w-xs"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear all test data
+            </Button>
+          </div>
+        </Card>
+      )}
+    </div>
   );
 }
 
