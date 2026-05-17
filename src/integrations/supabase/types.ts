@@ -445,6 +445,53 @@ export type Database = {
           },
         ]
       }
+      accounting_entities: {
+        Row: {
+          country: string | null
+          created_at: string
+          currency: string | null
+          fiscal_year_start: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          tax_ids: Json | null
+          type: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          fiscal_year_start?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          tax_ids?: Json | null
+          type: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          currency?: string | null
+          fiscal_year_start?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          tax_ids?: Json | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_entities_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_journal_lines: {
         Row: {
           account_code: string | null
@@ -614,6 +661,57 @@ export type Database = {
           {
             foreignKeyName: "accounting_journals_voided_by_fkey"
             columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_masters: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_system: boolean | null
+          label: string
+          list_key: string
+          metadata: Json | null
+          sort_order: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          label: string
+          list_key: string
+          metadata?: Json | null
+          sort_order?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_system?: boolean | null
+          label?: string
+          list_key?: string
+          metadata?: Json | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_masters_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_masters_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "vw_counselor_productivity"
             referencedColumns: ["user_id"]
