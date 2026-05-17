@@ -243,6 +243,17 @@ export default function AccountingReimbursementDetailPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        <DeleteRecordDialog
+          open={deleteOpen}
+          onOpenChange={setDeleteOpen}
+          onConfirm={() => {
+            deleteReimbursement(claim.id);
+            setDeleteOpen(false);
+            toast.success("Deleted successfully");
+            navigate("/accounting/reimbursements");
+          }}
+        />
       </div>
     </AppLayout>
   );
