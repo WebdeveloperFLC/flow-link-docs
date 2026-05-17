@@ -14,6 +14,118 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_coa: {
+        Row: {
+          ai_category: string | null
+          automation_tags: string[] | null
+          branch: string | null
+          code: string
+          country: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          current_balance: number | null
+          description: string | null
+          entity_id: string | null
+          group_code: string
+          id: string
+          is_active: boolean | null
+          manual_entries_allowed: boolean | null
+          name: string
+          normal_balance: string | null
+          notes: string | null
+          opening_balance: number | null
+          parent_id: string | null
+          reconciliation_enabled: boolean | null
+          reporting_group: string | null
+          requires_approval: boolean | null
+          sub_type_code: string | null
+          tax_code: string | null
+          type_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_category?: string | null
+          automation_tags?: string[] | null
+          branch?: string | null
+          code: string
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_balance?: number | null
+          description?: string | null
+          entity_id?: string | null
+          group_code: string
+          id?: string
+          is_active?: boolean | null
+          manual_entries_allowed?: boolean | null
+          name: string
+          normal_balance?: string | null
+          notes?: string | null
+          opening_balance?: number | null
+          parent_id?: string | null
+          reconciliation_enabled?: boolean | null
+          reporting_group?: string | null
+          requires_approval?: boolean | null
+          sub_type_code?: string | null
+          tax_code?: string | null
+          type_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_category?: string | null
+          automation_tags?: string[] | null
+          branch?: string | null
+          code?: string
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          current_balance?: number | null
+          description?: string | null
+          entity_id?: string | null
+          group_code?: string
+          id?: string
+          is_active?: boolean | null
+          manual_entries_allowed?: boolean | null
+          name?: string
+          normal_balance?: string | null
+          notes?: string | null
+          opening_balance?: number | null
+          parent_id?: string | null
+          reconciliation_enabled?: boolean | null
+          reporting_group?: string | null
+          requires_approval?: boolean | null
+          sub_type_code?: string | null
+          tax_code?: string | null
+          type_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_coa_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_coa_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_coa_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_user_module_permissions: {
         Row: {
           accounting_user_id: string
