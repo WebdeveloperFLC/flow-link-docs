@@ -748,6 +748,7 @@ export default function AccountingCardReconciliationNewPage() {
                   {lines.map((l) => {
                     const bg = l.category === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
                       : l.category === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+                      : (l.category as LineCategory) === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
                       : "bg-amber-50/30 dark:bg-amber-500/5";
                     return (
                       <tr key={l.id} className={cn("border-b", bg)}>
