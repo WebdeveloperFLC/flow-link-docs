@@ -870,12 +870,12 @@ export default function AccountingCardReconciliationNewPage() {
               </div>
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
-              <div className="text-sm">
-                Total: <strong>{lines.length}</strong>
-                {" · "}Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong>
-                {" · "}Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong>
-                {" · "}Income: <strong className="text-emerald-700">{lines.filter(l=>(l.category as LineCategory)==="INCOME").length}</strong>
-                {" · "}⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
+              <div className="text-xs space-x-3">
+                <span>✓ Business: <strong className="text-green-600">{totals.bizN}</strong> — {formatCurrency(totals.biz)}</span>
+                <span>Personal: <strong className="text-red-600">{totals.perN}</strong> — {formatCurrency(totals.per)}</span>
+                <span>Income: <strong className="text-emerald-700">{totals.incN}</strong> — {formatCurrency(totals.inc)}</span>
+                <span>Client funds: <strong className="text-purple-600">{totals.cfN}</strong> — {formatCurrency(totals.cf)} <span className="text-purple-600/70">(pass-through)</span></span>
+                <span>⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong> remaining</span>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setBulkCategory(lines.filter(l=>l.category==="UNCATEGORISED").map(l=>l.id), "BUSINESS")}>Mark remaining business</Button>
