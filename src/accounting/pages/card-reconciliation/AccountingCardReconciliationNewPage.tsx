@@ -236,7 +236,7 @@ export default function AccountingCardReconciliationNewPage() {
 
   function confirmCsvImport() {
     if (!csvPreview || !csvMapping) return;
-    const parsed = applyCsvMapping(csvPreview.rows, csvMapping);
+    const parsed = applyCsvMapping(csvPreview.rows, csvMapping, csvPreview.headerless ? { preferMDY: true } : undefined);
     if (parsed.length === 0) { toast.error("No transactions parsed with this mapping"); return; }
     setLines(parsed.map((p) => {
       const isIncome = p.amount > 0;
