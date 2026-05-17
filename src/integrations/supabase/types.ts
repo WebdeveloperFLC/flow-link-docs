@@ -126,6 +126,181 @@ export type Database = {
           },
         ]
       }
+      accounting_journal_lines: {
+        Row: {
+          account_code: string | null
+          account_id: string | null
+          account_name: string | null
+          branch: string | null
+          created_at: string
+          credit: number | null
+          debit: number | null
+          description: string | null
+          id: string
+          journal_id: string
+          line_number: number
+          tax_code: string | null
+        }
+        Insert: {
+          account_code?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          branch?: string | null
+          created_at?: string
+          credit?: number | null
+          debit?: number | null
+          description?: string | null
+          id?: string
+          journal_id: string
+          line_number: number
+          tax_code?: string | null
+        }
+        Update: {
+          account_code?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          branch?: string | null
+          created_at?: string
+          credit?: number | null
+          debit?: number | null
+          description?: string | null
+          id?: string
+          journal_id?: string
+          line_number?: number
+          tax_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_journal_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_journal_lines_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_journals: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          entity: string
+          entry_date: string
+          fx_rate: number | null
+          id: string
+          is_balanced: boolean | null
+          journal_number: string
+          narration: string
+          posted_at: string | null
+          posted_by: string | null
+          reference: string | null
+          source_type: string | null
+          status: string | null
+          total_credit: number | null
+          total_debit: number | null
+          updated_at: string
+          void_reason: string | null
+          voided_at: string | null
+          voided_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          entity: string
+          entry_date: string
+          fx_rate?: number | null
+          id?: string
+          is_balanced?: boolean | null
+          journal_number: string
+          narration: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          source_type?: string | null
+          status?: string | null
+          total_credit?: number | null
+          total_debit?: number | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          entity?: string
+          entry_date?: string
+          fx_rate?: number | null
+          id?: string
+          is_balanced?: boolean | null
+          journal_number?: string
+          narration?: string
+          posted_at?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          source_type?: string | null
+          status?: string | null
+          total_credit?: number | null
+          total_debit?: number | null
+          updated_at?: string
+          void_reason?: string | null
+          voided_at?: string | null
+          voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_journals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_posted_by_fkey"
+            columns: ["posted_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_journals_voided_by_fkey"
+            columns: ["voided_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_user_module_permissions: {
         Row: {
           accounting_user_id: string
