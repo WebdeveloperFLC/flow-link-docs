@@ -14,6 +14,121 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_bank_accounts: {
+        Row: {
+          account_holder: string | null
+          account_number: string | null
+          bank_name: string | null
+          branch: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          current_balance: number | null
+          entity: string
+          iban: string | null
+          id: string
+          ifsc_code: string | null
+          institution_number: string | null
+          is_default_payment: boolean | null
+          is_default_payroll: boolean | null
+          last_reconciled_date: string | null
+          linked_coa_code: string | null
+          linked_coa_id: string | null
+          nickname: string
+          notes: string | null
+          opening_balance: number | null
+          reconciliation_enabled: boolean | null
+          reconciliation_status: string | null
+          status: string | null
+          swift_bic: string | null
+          transit_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          branch?: string | null
+          country: string
+          created_at?: string
+          created_by?: string | null
+          currency: string
+          current_balance?: number | null
+          entity: string
+          iban?: string | null
+          id?: string
+          ifsc_code?: string | null
+          institution_number?: string | null
+          is_default_payment?: boolean | null
+          is_default_payroll?: boolean | null
+          last_reconciled_date?: string | null
+          linked_coa_code?: string | null
+          linked_coa_id?: string | null
+          nickname: string
+          notes?: string | null
+          opening_balance?: number | null
+          reconciliation_enabled?: boolean | null
+          reconciliation_status?: string | null
+          status?: string | null
+          swift_bic?: string | null
+          transit_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string | null
+          account_number?: string | null
+          bank_name?: string | null
+          branch?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          current_balance?: number | null
+          entity?: string
+          iban?: string | null
+          id?: string
+          ifsc_code?: string | null
+          institution_number?: string | null
+          is_default_payment?: boolean | null
+          is_default_payroll?: boolean | null
+          last_reconciled_date?: string | null
+          linked_coa_code?: string | null
+          linked_coa_id?: string | null
+          nickname?: string
+          notes?: string | null
+          opening_balance?: number | null
+          reconciliation_enabled?: boolean | null
+          reconciliation_status?: string | null
+          status?: string | null
+          swift_bic?: string | null
+          transit_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_bank_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_bank_accounts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_bank_accounts_linked_coa_id_fkey"
+            columns: ["linked_coa_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_coa: {
         Row: {
           ai_category: string | null
