@@ -1234,7 +1234,18 @@ export default function AccountingCardReconciliationNewPage() {
         )}
 
         {step === 3 && (() => {
-          const { journalLines, balanced } = generateJournal();
+          const { journalLines, kinds, balanced } = generateJournal();
+          const kindBadge = (k: string) => {
+            const map: Record<string, { cls: string; label: string }> = {
+              BUSINESS:     { cls: "bg-amber-100 text-amber-800 border-amber-300",   label: "Business" },
+              PERSONAL:     { cls: "bg-red-100 text-red-800 border-red-300",         label: "Personal" },
+              INCOME:       { cls: "bg-green-100 text-green-800 border-green-300",   label: "Income" },
+              CLIENT_FUNDS: { cls: "bg-purple-100 text-purple-800 border-purple-300", label: "Pass-through" },
+              CARD:         { cls: "bg-muted text-muted-foreground border-muted",     label: "Bank/Card" },
+            };
+            const m = map[k] ?? map.CARD;
+            return <span className={cn("inline-block text-[10px] px-1.5 py-0.5 rounded border", m.cls)}>{m.label}</span>;
+          };
           return (
             <Card className="p-6 space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Journal entry preview</h2>
@@ -1252,19 +1263,29 @@ export default function AccountingCardReconciliationNewPage() {
               </div>
               <table className="w-full text-sm border-t border-b">
                 <thead className="text-xs text-muted-foreground bg-muted/30">
-                  <tr><th className="text-left px-3 py-2">#</th><th className="text-left px-3 py-2">Account</th><th className="text-right px-3 py-2">DR</th><th className="text-right px-3 py-2">CR</th></tr>
+                  <tr>
+                    <th className="text-left px-3 py-2">#</th>
+                    <th className="text-left px-3 py-2">Account</th>
+                    <th className="text-left px-3 py-2">Type</th>
+                    <th className="text-right px-3 py-2">DR</th>
+                    <th className="text-right px-3 py-2">CR</th>
+                  </tr>
                 </thead>
                 <tbody>
                   {journalLines.map((l, i) => (
                     <tr key={i} className="border-t">
                       <td className="px-3 py-1.5">{i+1}</td>
-                      <td className="px-3 py-1.5">{l.accountCode} — {l.accountName}</td>
+                      <td className="px-3 py-1.5">
+                        <div>{l.accountCode} — {l.accountName}</div>
+                        {l.description && <div className="text-[10px] text-muted-foreground">{l.description}</div>}
+                      </td>
+                      <td className="px-3 py-1.5">{kindBadge(kinds[i])}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{l.debit ? formatCurrency(l.debit) : "—"}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{l.credit ? formatCurrency(l.credit) : "—"}</td>
                     </tr>
                   ))}
                   <tr className="border-t bg-muted/30 font-semibold">
-                    <td colSpan={2} className="px-3 py-1.5 text-right">Totals</td>
+                    <td colSpan={3} className="px-3 py-1.5 text-right">Totals</td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{formatCurrency(journalLines.reduce((s,l)=>s+l.debit,0))}</td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{formatCurrency(journalLines.reduce((s,l)=>s+l.credit,0))}</td>
                   </tr>
@@ -1279,10 +1300,16 @@ export default function AccountingCardReconciliationNewPage() {
                 )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
-                {totals.inc > 0 && (
-                  <div>Income / receipts: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
-                )}
-                <div>Total statement activity: <strong>{formatCurrency(totals.biz + totals.per + totals.inc)}</strong></div>
+                <div>Income received: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
+                <div>
+                  Client funds (pass-through): <strong className="text-purple-700">{formatCurrency(totals.cf)}</strong>
+                  <div className="text-[11px] text-muted-foreground pl-2">These do not affect your P&amp;L</div>
+                </div>
+                <div className="border-t mt-2 pt-2">
+                  Net P&amp;L impact: <strong>{formatCurrency(totals.inc - totals.biz)}</strong>
+                  <span className="text-[11px] text-muted-foreground"> (income − business expenses)</span>
+                </div>
+                <div className="text-[11px] text-muted-foreground">Total statement activity: {formatCurrency(totals.biz + totals.per + totals.inc + totals.cf)}</div>
                 {cardType === "PERSONAL" && totals.biz > 0 && (
                   <div className="pt-1 border-t mt-2">Reimbursable to card holder: <strong>{formatCurrency(totals.biz)}</strong></div>
                 )}
