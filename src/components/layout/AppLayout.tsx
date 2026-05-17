@@ -42,7 +42,7 @@ const accountingNav: NavItem[] = [
   { to: "/accounting/petty-cash", icon: Wallet, label: "Petty cash" },
   { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company" },
   { to: "/accounting/reimbursements", icon: ReceiptText, label: "Reimbursements" },
-  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Card reconciliation" },
+  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Statement reconciliation" },
   { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
   { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
   { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
