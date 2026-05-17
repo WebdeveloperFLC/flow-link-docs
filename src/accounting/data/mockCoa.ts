@@ -62,4 +62,97 @@ export const SEED_ACCOUNTS: CoaAccount[] = [
   }),
   a("ic-6701", "6701", "Software Development — Intercompany", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, { normalBalance: "DEBIT" }),
   a("ic-6702", "6702", "Staff Cost Recharge — Intercompany", "EXPENSE", "SALARIES", "CAD", 0, 0, null, null, { normalBalance: "DEBIT" }),
+
+  // ── CLIENT FUNDS HELD (Liabilities) — pass-through, never revenue ──
+  a("cf-2401", "2401", "Client Funds — Tuition Held", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Tuition fees received from clients to be paid to institutions",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2402", "2402", "Client Funds — Embassy / Visa Fees", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Embassy and visa filing fees received from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2403", "2403", "Client Funds — Application Fees", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "College/university application fees received from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2404", "2404", "Client Funds — GIC Held", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "GIC amounts received from students — to be transferred to bank",
+    ...({ automationTags: ["client_funds", "pass_through", "GIC"] } as any),
+  }),
+  a("cf-2405", "2405", "Client Funds — Other Expenses", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Other client funds received for expenses on their behalf",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2406", "2406", "Client Funds — Biometrics Fees", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Biometrics fees collected from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2407", "2407", "Client Funds — Medical / Police", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Medical exam and police certificate fees collected from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+
+  // ── REVENUE (actual FLC income) ──
+  a("rev-4101", "4101", "Canada Student Visa Fees — Revenue", "REVENUE", "VISA_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "FLC consulting fee for Canada student visa service",
+    ...({ automationTags: ["visa_revenue"] } as any),
+  }),
+  a("rev-4102", "4102", "Immigration Consulting Fees", "REVENUE", "IMMIGRATION_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "PR, Express Entry, PNP, work permit consulting fees",
+    ...({ automationTags: ["visa_revenue"] } as any),
+  }),
+  a("rev-4103", "4103", "Study Abroad Consulting Fees", "REVENUE", "VISA_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+  a("rev-4104", "4104", "Visitor / Super Visa Fees", "REVENUE", "VISA_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["visa_revenue"] } as any),
+  }),
+  a("rev-4301", "4301", "Canada Institution Commission", "REVENUE", "COMMISSION_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["institution_commission"] } as any),
+  }),
+  a("rev-4302", "4302", "UK Institution Commission", "REVENUE", "COMMISSION_REV", "GBP", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["institution_commission"] } as any),
+  }),
+  a("rev-4303", "4303", "Australia Institution Commission", "REVENUE", "COMMISSION_REV", "AUD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["institution_commission"] } as any),
+  }),
+
+  // ── EXPENSE pass-through (offsets client-fund liabilities) ──
+  a("exp-5101", "5101", "Embassy Fees Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    description: "Embassy/visa fees paid on behalf of clients — offset by 2402",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("exp-5102", "5102", "Tuition Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    description: "Tuition paid to institutions on behalf of clients — offset by 2401",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("exp-5103", "5103", "Application Fees Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    description: "Application fees paid to institutions on behalf of clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+
+  // ── SUSPENSE ──
+  a("sus-9001", "9001", "Suspense — Unclassified", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Temporary account for unclassified transactions. Clear monthly.",
+    ...({ automationTags: ["suspense"] } as any),
+  }),
 ];
