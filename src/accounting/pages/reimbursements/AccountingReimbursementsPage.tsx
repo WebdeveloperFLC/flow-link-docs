@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ReceiptText, Search } from "lucide-react";
+import { Plus, ReceiptText, Search, MoreHorizontal, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingEmptyState from "@/accounting/components/shared/AccountingEmptyState";
 import AccountingKPICard from "@/accounting/components/shared/AccountingKPICard";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
-import { useReimbursements } from "@/accounting/stores/reimbursementsStore";
+import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
+import { useReimbursements, deleteReimbursement } from "@/accounting/stores/reimbursementsStore";
 import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
 import { formatCurrency } from "@/accounting/lib/format";
 import { asCurrency } from "@/accounting/lib/journalHelpers";
@@ -24,6 +27,7 @@ export default function AccountingReimbursementsPage() {
   const [status, setStatus] = useState("all");
   const [entity, setEntity] = useState("all");
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const filtered = useMemo(() =>
     claims.filter((c) =>
@@ -121,6 +125,23 @@ export default function AccountingReimbursementsPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatCurrency(c.personalAmount)}</td>
                       <td className="px-4 py-3 text-right tabular-nums font-medium">{formatCurrency(c.reimbursableAmount)}</td>
                       <td className="px-4 py-3"><AccountingStatusBadge status={c.status} /></td>
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-7">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(c.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -128,6 +149,18 @@ export default function AccountingReimbursementsPage() {
             </div>
           )}
         </Card>
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              deleteReimbursement(deleteTarget);
+              setDeleteTarget(null);
+              toast.success("Deleted successfully");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );
