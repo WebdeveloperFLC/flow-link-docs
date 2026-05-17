@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, MoreHorizontal, Plus, User, Users, Shield, Building2 } from 'lucide-react';
+import { Briefcase, MoreHorizontal, Plus, User, Users, Shield, Building2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import DeleteRecordDialog from '../../components/shared/DeleteRecordDialog';
 
 import {
   MOCK_OWNERS, MOCK_FINANCIAL_ACCOUNTS, getAccountsForOwner,
