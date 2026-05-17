@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ArrowLeftRight, Search } from "lucide-react";
+import { Plus, ArrowLeftRight, Search, MoreHorizontal, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,15 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingEmptyState from "@/accounting/components/shared/AccountingEmptyState";
 import AccountingKPICard from "@/accounting/components/shared/AccountingKPICard";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
-import { useIntercompany } from "@/accounting/stores/intercompanyStore";
+import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
+import { useIntercompany, deleteIntercompany } from "@/accounting/stores/intercompanyStore";
+import { updateJournal, getJournal } from "@/accounting/stores/journalsStore";
 import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
 import { useMaster, masterLabel } from "@/accounting/stores/accountingMastersStore";
 import { formatCurrency } from "@/accounting/lib/format";
@@ -26,6 +30,7 @@ export default function AccountingIntercompanyPage() {
   const [status, setStatus] = useState("all");
   const [txnType, setTxnType] = useState("all");
   const [search, setSearch] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const txnTypes = useMaster("intercompany_types");
 
   const filtered = useMemo(() =>
@@ -214,6 +219,23 @@ export default function AccountingIntercompanyPage() {
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">{t.fxRate}</td>
                       <td className="px-4 py-3"><AccountingStatusBadge status={t.status} /></td>
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-7">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(t.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -221,6 +243,25 @@ export default function AccountingIntercompanyPage() {
             </div>
           )}
         </Card>
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              const txn = txns.find((t) => t.id === deleteTarget);
+              if (txn?.fromJournalId && getJournal(txn.fromJournalId)) {
+                updateJournal(txn.fromJournalId, { status: "VOIDED" });
+              }
+              if (txn?.toJournalId && getJournal(txn.toJournalId)) {
+                updateJournal(txn.toJournalId, { status: "VOIDED" });
+              }
+              deleteIntercompany(deleteTarget);
+              setDeleteTarget(null);
+              toast.success("Deleted successfully");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );
