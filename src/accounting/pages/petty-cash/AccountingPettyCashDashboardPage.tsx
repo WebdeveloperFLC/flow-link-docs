@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet, AlertTriangle, Clock, ShieldAlert, TrendingDown, Plus,
-  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2,
+  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2, MoreHorizontal, Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import { usePettyCash } from "../../stores/pettyCashStore";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { formatCurrency } from "../../lib/format";
 import { PettyCategory } from "../../types/pettyCash";
 import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
@@ -25,8 +26,9 @@ import { ManageCategoriesDialog } from "../../components/petty-cash/ManageCatego
 
 export default function AccountingPettyCashDashboardPage() {
   const navigate = useNavigate();
-  const { branches, vouchers, categories, getBranchSummary, getCategoryBreakdown, getMonthlyTrend } = usePettyCash();
+  const { branches, vouchers, categories, getBranchSummary, getCategoryBreakdown, getMonthlyTrend, deleteVoucher } = usePettyCash();
   const { isAdmin } = usePettyCashAdmin();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
