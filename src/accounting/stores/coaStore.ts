@@ -75,7 +75,7 @@ function mapFromDb(r: CoaRow): CoaAccount {
   };
 }
 
-function mapToDb(a: CoaAccount | CoaAccountInput): Record<string, unknown> {
+function mapToDb(a: CoaAccount | CoaAccountInput) {
   return {
     code: a.code.trim(),
     name: a.name.trim(),
@@ -91,7 +91,7 @@ function mapToDb(a: CoaAccount | CoaAccountInput): Record<string, unknown> {
     current_balance: "currentBalance" in a ? a.currentBalance : a.openingBalance,
     is_active: ("status" in a ? a.status : "ACTIVE") === "ACTIVE",
     description: a.description ?? null,
-  };
+  } as const;
 }
 
 let hydrated = false;
@@ -207,7 +207,7 @@ export function addAccount(input: CoaAccountInput): { ok: true; account: CoaAcco
   // Background: persist to Supabase, then swap temp id for real id.
   void (async () => {
     const userId = await getUserId();
-    const payload = { ...mapToDb(created), created_by: userId };
+    const payload = { ...mapToDb(created), created_by: userId } as never;
     const { data, error } = await supabase
       .from("accounting_coa")
       .insert(payload)
@@ -244,7 +244,7 @@ export function updateAccount(id: string, input: CoaAccountInput): { ok: true } 
     if (!updated) return;
     const { error } = await supabase
       .from("accounting_coa")
-      .update(mapToDb(updated))
+      .update(mapToDb(updated) as never)
       .eq("id", id);
     if (error) {
       console.error("[coaStore] updateAccount failed:", error.message);
