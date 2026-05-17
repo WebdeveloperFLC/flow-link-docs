@@ -155,4 +155,87 @@ export const SEED_ACCOUNTS: CoaAccount[] = [
     description: "Temporary account for unclassified transactions. Clear monthly.",
     ...({ automationTags: ["suspense"] } as any),
   }),
+
+  // ── CLIENT FUNDS — additional pass-through ──
+  a("cf-2408", "2408", "Client Funds — WES Evaluation", "LIABILITY", "AP", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "WES credential evaluation fees collected from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2409", "2409", "Client Funds — Notarization", "LIABILITY", "AP", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Notarization, photocopy, affidavit costs collected",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2410", "2410", "Client Funds — Loan Processing", "LIABILITY", "AP", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Bank loan processing fees collected from clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("cf-2411", "2411", "Client Funds — Courier / Dispatch", "LIABILITY", "AP", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "Courier and document dispatch fees",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+
+  // ── REVENUE — FLC service & coaching (India INR) ──
+  a("rev-4201", "4201", "IELTS Coaching Revenue", "REVENUE", "COACHING_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["coaching_revenue"] } as any),
+  }),
+  a("rev-4202", "4202", "PTE Coaching Revenue", "REVENUE", "COACHING_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["coaching_revenue"] } as any),
+  }),
+  a("rev-4203", "4203", "French / German Language Coaching", "REVENUE", "COACHING_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["coaching_revenue"] } as any),
+  }),
+  a("rev-4204", "4204", "Mock Test / Study Material Revenue", "REVENUE", "COACHING_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["coaching_revenue"] } as any),
+  }),
+  a("rev-4105", "4105", "Loan Assistance Fee", "REVENUE", "VISA_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "FLC fee for education loan assistance",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+  a("rev-4401", "4401", "Application Service Charge", "REVENUE", "VISA_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "FLC charge for processing college applications",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+  a("rev-4402", "4402", "Documentation / Notarization Charges", "REVENUE", "VISA_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "FLC handling charge for notarization and documentation",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+  a("rev-4403", "4403", "Courier / Dispatch Charges", "REVENUE", "VISA_REV", "INR", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+  a("rev-4404", "4404", "WES / Credential Evaluation Service", "REVENUE", "VISA_REV", "CAD", 0, 0, null, null, {
+    normalBalance: "CREDIT",
+    description: "FLC fee for WES evaluation assistance",
+    ...({ automationTags: ["consulting_revenue"] } as any),
+  }),
+
+  // ── PASS-THROUGH EXPENSES (FLC pays third party) ──
+  a("exp-5104", "5104", "WES Fees Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    description: "WES fees paid on behalf of clients",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("exp-5105", "5105", "Notarization Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "INR", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("exp-5106", "5106", "Biometrics Paid — Client", "EXPENSE", "PROFESSIONAL_FEES", "CAD", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
+  a("exp-5107", "5107", "Loan Processing Paid — Bank", "EXPENSE", "PROFESSIONAL_FEES", "INR", 0, 0, null, null, {
+    normalBalance: "DEBIT",
+    ...({ automationTags: ["client_funds", "pass_through"] } as any),
+  }),
 ];
