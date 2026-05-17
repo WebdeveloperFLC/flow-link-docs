@@ -14,7 +14,15 @@ let accounts: CoaAccount[] = (() => {
   if (typeof window === "undefined") return SEED_ACCOUNTS;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return scrubBankAccounts(JSON.parse(raw) as CoaAccount[]);
+    if (raw) {
+      const existing = scrubBankAccounts(JSON.parse(raw) as CoaAccount[]);
+      // Merge: add any new seed accounts (by code) that aren't already stored.
+      const existingCodes = new Set(existing.map((a) => a.code));
+      const additions = scrubBankAccounts(SEED_ACCOUNTS).filter(
+        (s) => !existingCodes.has(s.code),
+      );
+      return additions.length ? [...existing, ...additions] : existing;
+    }
   } catch {}
   return scrubBankAccounts(SEED_ACCOUNTS);
 })();
