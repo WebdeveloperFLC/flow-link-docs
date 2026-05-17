@@ -42,6 +42,7 @@ export default function AccountingReimbursementDetailPage() {
   const [payMode, setPayMode] = useState("BANK_TRANSFER");
   const [payRef, setPayRef] = useState("");
   const [payAccount, setPayAccount] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (!claim) {
     return (
@@ -108,11 +109,11 @@ export default function AccountingReimbursementDetailPage() {
             <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => window.print()} className="gap-2"><Printer className="size-4" /> Print</Button>
               {claim.status === "DRAFT" && (
-                <>
-                  <Button variant="outline" onClick={() => { updateReimbursement(claim.id, { status: "SUBMITTED", submittedAt: new Date().toISOString() }); toast.success("Submitted"); }} className="gap-2"><Send className="size-4" /> Submit</Button>
-                  <Button variant="outline" onClick={() => { deleteReimbursement(claim.id); toast.success("Deleted"); navigate("/accounting/reimbursements"); }} className="text-destructive">Delete</Button>
-                </>
+                <Button variant="outline" onClick={() => { updateReimbursement(claim.id, { status: "SUBMITTED", submittedAt: new Date().toISOString() }); toast.success("Submitted"); }} className="gap-2"><Send className="size-4" /> Submit</Button>
               )}
+              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 gap-2" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
               {(claim.status === "SUBMITTED" || claim.status === "UNDER_REVIEW") && (
                 <>
                   {claim.status === "SUBMITTED" && (
