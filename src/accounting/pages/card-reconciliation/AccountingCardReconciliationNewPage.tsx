@@ -28,11 +28,17 @@ import {
   extractCardStatement,
   mapToCardStatementLines,
   autoSuggestCategory,
+  parseStatementCsv,
+  applyCsvMapping,
+  type CsvParseResult,
+  type CsvMapping,
   type ExtractionProgress,
 } from "@/accounting/lib/extractCardStatement";
 import { cn } from "@/lib/utils";
 
-const SAMPLE_CSV = "Date,Description,Amount,Reference\n2025-10-01,STAPLES OFFICE,45.99,REF001\n2025-10-03,UBER TRIP,22.50,REF002\n2025-10-05,NETFLIX,15.99,REF003\n";
+const SAMPLE_CSV = "Date,Description,Debit,Credit,Balance\n01/10/2025,STAPLES OFFICE,45.99,,1954.01\n03/10/2025,UBER TRIP,22.50,,1931.51\n05/10/2025,CLIENT PAYMENT,,500.00,2431.51\n";
+
+type LineCategory = "BUSINESS" | "PERSONAL" | "INCOME" | "UNCATEGORISED";
 
 type AiMetaField = "fromDate" | "toDate" | "opening" | "closing" | "currency";
 
@@ -47,23 +53,6 @@ function AiBadge({ className }: { className?: string }) {
       <Sparkles className="size-2.5" /> AI
     </span>
   );
-}
-
-function parseCSV(text: string): { date: string; description: string; amount: number }[] {
-  const lines = text.split(/\r?\n/).filter(Boolean);
-  if (lines.length < 2) return [];
-  const header = lines[0].split(",").map((s) => s.trim().toLowerCase());
-  const di = header.findIndex((h) => h.includes("date"));
-  const desci = header.findIndex((h) => h.includes("desc") || h.includes("narrat") || h.includes("merch"));
-  const ai = header.findIndex((h) => h.includes("amount") || h.includes("debit") || h.includes("value"));
-  return lines.slice(1).map((row) => {
-    const cells = row.split(",");
-    return {
-      date: (cells[di] ?? "").trim(),
-      description: (cells[desci] ?? "").trim(),
-      amount: Math.abs(Number((cells[ai] ?? "0").replace(/[^0-9.\-]/g, ""))),
-    };
-  }).filter((r) => r.date && r.description && r.amount > 0);
 }
 
 function suggestAccount(desc: string, expAccts: { id: string; code: string; name: string }[]) {
@@ -121,6 +110,11 @@ export default function AccountingCardReconciliationNewPage() {
   const [extractError, setExtractError] = useState<string | null>(null);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+
+  // CSV mapping confirmation
+  const [csvPreview, setCsvPreview] = useState<CsvParseResult | null>(null);
+  const [csvMapping, setCsvMapping] = useState<CsvMapping | null>(null);
+  const [csvManual, setCsvManual] = useState(false);
 
   // Hand-off from Documents → OCR → Send to Card reconciliation
   useEffect(() => {
@@ -181,35 +175,61 @@ export default function AccountingCardReconciliationNewPage() {
 
   const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
   const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
+  const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
+  const defaultIncomeAcct = useMemo(
+    () => incomeAccts[0] ?? accounts.find((a) => a.groupCode === "ASSET" && /receivable/i.test(a.name)),
+    [accounts, incomeAccts],
+  );
 
   const cardAcct = accounts.find((a) => a.id === cardAccountId);
   const drawingsAcct = useMemo(() => accounts.find((a) => /drawing/i.test(a.name)) ?? accounts.find((a) => a.groupCode === "EQUITY"), [accounts]);
 
   const totals = useMemo(() => {
-    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + l.amount, 0);
-    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + l.amount, 0);
+    const biz = lines.filter((l) => l.category === "BUSINESS").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const per = lines.filter((l) => l.category === "PERSONAL").reduce((s, l) => s + Math.abs(l.amount), 0);
+    const inc = lines.filter((l) => (l.category as LineCategory) === "INCOME").reduce((s, l) => s + Math.abs(l.amount), 0);
     const un = lines.filter((l) => l.category === "UNCATEGORISED").length;
-    return { biz, per, un, total: lines.reduce((s, l) => s + l.amount, 0) };
+    return { biz, per, inc, un, total: lines.reduce((s, l) => s + Math.abs(l.amount), 0) };
   }, [lines]);
 
   function handleFile(file: File) {
     if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return; }
     const reader = new FileReader();
     reader.onload = (e) => {
-      const parsed = parseCSV(String(e.target?.result ?? ""));
-      if (parsed.length === 0) { toast.error("Could not parse CSV"); return; }
-      setLines(parsed.map((p) => ({
-        id: genId("cl"),
-        date: p.date, description: p.description, amount: p.amount,
-        category: "UNCATEGORISED",
-        isPersonal: false,
-      })));
-      setAiLineIds(new Set());
-      setAiSummary(null);
-      toast.success(`Imported ${parsed.length} transactions`);
-      setStep(2);
+      const result = parseStatementCsv(String(e.target?.result ?? ""));
+      if (!result.headers.length) { toast.error("Could not read CSV"); return; }
+      setCsvPreview(result);
+      setCsvMapping(result.mapping);
+      setCsvManual(result.format === "UNKNOWN");
     };
     reader.readAsText(file);
+  }
+
+  function confirmCsvImport() {
+    if (!csvPreview || !csvMapping) return;
+    const parsed = applyCsvMapping(csvPreview.rows, csvMapping);
+    if (parsed.length === 0) { toast.error("No transactions parsed with this mapping"); return; }
+    setLines(parsed.map((p) => {
+      const isIncome = p.amount > 0;
+      const incomeAcct = isIncome ? defaultIncomeAcct : undefined;
+      return {
+        id: genId("cl"),
+        date: p.date,
+        description: p.description,
+        amount: p.amount, // signed
+        category: (isIncome ? "INCOME" : "UNCATEGORISED") as any,
+        isPersonal: false,
+        coaAccountId: incomeAcct?.id,
+        coaAccountName: incomeAcct?.name,
+      };
+    }));
+    setAiLineIds(new Set());
+    setAiSummary(null);
+    toast.success(`Imported ${parsed.length} transactions`);
+    setCsvPreview(null);
+    setCsvMapping(null);
+    setCsvManual(false);
+    setStep(2);
   }
 
   async function handlePdfFile(file: File) {
@@ -327,18 +347,30 @@ export default function AccountingCardReconciliationNewPage() {
     setLines((prev) => prev.map((l) => l.id === id ? { ...l, ...patch } : l));
   }
 
-  function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL") {
-    setLines((prev) => prev.map((l) => ids.includes(l.id) ? {
-      ...l, category: cat, isPersonal: cat === "PERSONAL",
-      coaAccountId: cat === "BUSINESS" && !l.coaAccountId
-        ? suggestAccount(l.description, expAccts)?.id : l.coaAccountId,
-    } : l));
+  function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL" | "INCOME") {
+    setLines((prev) => prev.map((l) => {
+      if (!ids.includes(l.id)) return l;
+      let coaAccountId = l.coaAccountId;
+      let coaAccountName = l.coaAccountName;
+      if (cat === "BUSINESS" && !coaAccountId) {
+        const sug = suggestAccount(l.description, expAccts);
+        coaAccountId = sug?.id; coaAccountName = sug?.name;
+      } else if (cat === "INCOME") {
+        coaAccountId = defaultIncomeAcct?.id;
+        coaAccountName = defaultIncomeAcct?.name;
+      }
+      return { ...l, category: cat as any, isPersonal: cat === "PERSONAL", coaAccountId, coaAccountName };
+    }));
   }
 
   function generateJournal(): { journalLines: any[]; balanced: boolean } {
     const bizByAcct = new Map<string, number>();
     lines.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
-      bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + l.amount);
+      bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
+    });
+    const incomeByAcct = new Map<string, number>();
+    lines.filter((l) => (l.category as LineCategory) === "INCOME" && l.coaAccountId).forEach((l) => {
+      incomeByAcct.set(l.coaAccountId!, (incomeByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
     const journalLines: any[] = [];
     bizByAcct.forEach((amt, accId) => {
@@ -349,8 +381,19 @@ export default function AccountingCardReconciliationNewPage() {
       const line = buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" });
       if (line) journalLines.push(line);
     }
-    const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: totals.biz + totals.per, description: "Card statement settlement" });
-    if (cardLine) journalLines.push(cardLine);
+    incomeByAcct.forEach((amt, accId) => {
+      const line = buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" });
+      if (line) journalLines.push(line);
+    });
+    const expensesNet = totals.biz + totals.per; // money out → credit card/bank
+    if (expensesNet > 0) {
+      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" });
+      if (cardLine) journalLines.push(cardLine);
+    }
+    if (totals.inc > 0) {
+      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, debit: totals.inc, description: "Statement receipts (in)" });
+      if (cardLine) journalLines.push(cardLine);
+    }
     const dr = journalLines.reduce((s, l) => s + l.debit, 0);
     const cr = journalLines.reduce((s, l) => s + l.credit, 0);
     return { journalLines, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
@@ -402,7 +445,7 @@ export default function AccountingCardReconciliationNewPage() {
   return (
     <AppLayout>
       <div className="p-6 max-w-6xl mx-auto">
-        <AccountingPageHeader title="Import card statement" />
+        <AccountingPageHeader title="Import bank / card statement" />
 
         {/* Step indicator */}
         <div className="flex items-center justify-between mb-6 bg-muted/30 rounded-lg p-3">
@@ -526,14 +569,113 @@ export default function AccountingCardReconciliationNewPage() {
               </TabsContent>
 
               <TabsContent value="csv" className="mt-4 space-y-3">
-                <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
-                  <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
-                  <div className="text-sm font-medium">Drop your credit card statement CSV here</div>
-                  <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only</div>
-                  <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-                </label>
-                <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most banks include columns for Date, Description, and Amount.</p>
-                <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template</Button>
+                {!csvPreview && (
+                  <>
+                    <label className="block border-2 border-dashed border-muted rounded-lg p-10 text-center hover:bg-muted/30 cursor-pointer">
+                      <Upload className="size-8 mx-auto mb-3 text-muted-foreground" />
+                      <div className="text-sm font-medium">Drop your bank or credit card statement CSV here</div>
+                      <div className="text-xs text-muted-foreground mt-1">Or click to browse · Max 5MB · CSV only · TD Canada Trust auto-detected</div>
+                      <input type="file" accept=".csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
+                    </label>
+                    <p className="text-xs text-muted-foreground">Download your statement from your bank's website as CSV. Most Canadian banks include Date, Description, Debit, Credit and Balance columns.</p>
+                    <Button variant="link" size="sm" onClick={downloadSample} className="px-0">Download sample CSV template (TD format)</Button>
+                  </>
+                )}
+
+                {csvPreview && csvMapping && (() => {
+                  const previewParsed = applyCsvMapping(csvPreview.rows, csvMapping).slice(0, 5);
+                  const known = csvPreview.format !== "UNKNOWN";
+                  const roles: { key: keyof CsvMapping; label: string }[] = [
+                    { key: "dateCol", label: "Date" },
+                    { key: "descCol", label: "Description" },
+                    { key: "desc2Col", label: "Description 2 (optional)" },
+                    { key: "debitCol", label: "Debit (money out)" },
+                    { key: "creditCol", label: "Credit (money in)" },
+                    { key: "amountCol", label: "Amount (signed)" },
+                    { key: "balanceCol", label: "Balance (ignored)" },
+                  ];
+                  return (
+                    <div className="space-y-3">
+                      <div className={cn(
+                        "rounded-md border text-xs p-3",
+                        known ? "border-green-300 bg-green-50 text-green-900 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300"
+                              : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"
+                      )}>
+                        <strong>Detected:</strong> {csvPreview.formatLabel} · {csvPreview.rows.length} data rows
+                      </div>
+
+                      <div className="overflow-x-auto rounded-md border">
+                        <table className="w-full text-xs">
+                          <thead className="bg-muted/50 text-muted-foreground">
+                            <tr>
+                              <th className="text-left p-2">Date</th>
+                              <th className="text-left p-2">Description</th>
+                              <th className="text-right p-2">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewParsed.length === 0 && (
+                              <tr><td colSpan={3} className="p-3 text-muted-foreground text-center">No rows parsed with current mapping — try "Re-map columns manually".</td></tr>
+                            )}
+                            {previewParsed.map((p, i) => (
+                              <tr key={i} className="border-t">
+                                <td className="p-2 whitespace-nowrap">{p.date}</td>
+                                <td className="p-2">{p.description}</td>
+                                <td className={cn("p-2 text-right tabular-nums font-medium", p.amount < 0 ? "text-red-600" : "text-green-600")}>
+                                  {p.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(p.amount))}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">Balance column is ignored. Negative = debit (money out), positive = credit (money in).</p>
+
+                      {csvManual && (
+                        <div className="rounded-md border p-3 space-y-2 bg-muted/20">
+                          <div className="text-xs font-medium">Map CSV columns manually</div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {roles.map((r) => (
+                              <div key={r.key} className="flex items-center gap-2 text-xs">
+                                <span className="w-44 text-muted-foreground">{r.label}</span>
+                                <Select
+                                  value={String(csvMapping[r.key] ?? "")}
+                                  onValueChange={(v) => {
+                                    const n = Number(v);
+                                    const next: any = { ...csvMapping };
+                                    if (!v || n < 0) {
+                                      if (r.key === "dateCol" || r.key === "descCol") next[r.key] = -1;
+                                      else next[r.key] = undefined;
+                                    } else next[r.key] = n;
+                                    setCsvMapping(next);
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="— none —" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="-1">— none —</SelectItem>
+                                    {csvPreview.headers.map((h, i) => (
+                                      <SelectItem key={i} value={String(i)}>{h || `Column ${i + 1}`}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => { setCsvPreview(null); setCsvMapping(null); setCsvManual(false); }}>Choose a different file</Button>
+                        <div className="flex items-center gap-3">
+                          <Button variant="link" size="sm" className="px-0" onClick={() => setCsvManual((v) => !v)}>
+                            {csvManual ? "Hide manual mapper" : "Re-map columns manually"}
+                          </Button>
+                          <Button size="sm" onClick={confirmCsvImport}>Confirm and categorise →</Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </TabsContent>
             </Tabs>
 
@@ -574,7 +716,11 @@ export default function AccountingCardReconciliationNewPage() {
             )}
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="text-sm">
-                Total: <strong>{lines.length}</strong> · ✓ Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong> · Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong> · ⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
+                Total: <strong>{lines.length}</strong>
+                {" · "}Business: <strong className="text-green-600">{lines.filter(l=>l.category==="BUSINESS").length}</strong>
+                {" · "}Personal: <strong>{lines.filter(l=>l.category==="PERSONAL").length}</strong>
+                {" · "}Income: <strong className="text-emerald-700">{lines.filter(l=>(l.category as LineCategory)==="INCOME").length}</strong>
+                {" · "}⚠ Uncategorised: <strong className="text-amber-600">{totals.un}</strong>
               </div>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setBulkCategory(lines.filter(l=>l.category==="UNCATEGORISED").map(l=>l.id), "BUSINESS")}>Mark remaining business</Button>
@@ -602,6 +748,7 @@ export default function AccountingCardReconciliationNewPage() {
                   {lines.map((l) => {
                     const bg = l.category === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
                       : l.category === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+                      : (l.category as LineCategory) === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
                       : "bg-amber-50/30 dark:bg-amber-500/5";
                     return (
                       <tr key={l.id} className={cn("border-b", bg)}>
@@ -610,19 +757,39 @@ export default function AccountingCardReconciliationNewPage() {
                         }} /></td>
                         <td className="p-2 whitespace-nowrap">{l.date}</td>
                         <td className="p-2">{l.description}</td>
-                        <td className="p-2 text-right tabular-nums">{formatCurrency(l.amount)}</td>
+                       <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
+                         <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(Math.abs(l.amount))}</div>
+                         <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
+                           {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
+                         </div>
+                       </td>
                         <td className="p-2">
                           <div className="flex gap-1">
-                            {(["BUSINESS","PERSONAL","UNCATEGORISED"] as const).map((c) => (
-                              <button key={c} onClick={() => updateLine(l.id, {
-                                category: c, isPersonal: c === "PERSONAL",
-                                coaAccountId: c === "BUSINESS" && !l.coaAccountId ? suggestAccount(l.description, expAccts)?.id : l.coaAccountId,
-                              })} className={cn("text-[10px] px-1.5 py-0.5 rounded",
-                                l.category === c
-                                  ? (c === "BUSINESS" ? "bg-green-600 text-white" : c === "PERSONAL" ? "bg-red-600 text-white" : "bg-muted-foreground/30")
-                                  : "bg-muted text-muted-foreground hover:bg-muted/70"
-                              )}>{c === "UNCATEGORISED" ? "Skip" : c[0] + c.slice(1).toLowerCase()}</button>
-                            ))}
+                            {(["BUSINESS","PERSONAL","INCOME","UNCATEGORISED"] as const).map((c) => {
+                              const active = (l.category as LineCategory) === c;
+                              const cls = c === "BUSINESS" ? "bg-green-600 text-white"
+                                : c === "PERSONAL" ? "bg-red-600 text-white"
+                                : c === "INCOME" ? "bg-emerald-700 text-white"
+                                : "bg-muted-foreground/30";
+                              const labels: Record<string, string> = {
+                                BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income", UNCATEGORISED: "Skip",
+                              };
+                              return (
+                                <button key={c} onClick={() => {
+                                  const patch: any = { category: c, isPersonal: c === "PERSONAL" };
+                                  if (c === "BUSINESS" && !l.coaAccountId) {
+                                    const sug = suggestAccount(l.description, expAccts);
+                                    patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
+                                  } else if (c === "INCOME") {
+                                    patch.coaAccountId = defaultIncomeAcct?.id;
+                                    patch.coaAccountName = defaultIncomeAcct?.name;
+                                  }
+                                  updateLine(l.id, patch);
+                                }} className={cn("text-[10px] px-1.5 py-0.5 rounded",
+                                  active ? cls : "bg-muted text-muted-foreground hover:bg-muted/70"
+                                )}>{labels[c]}</button>
+                              );
+                            })}
                           </div>
                         </td>
                         <td className="p-2">
@@ -639,10 +806,10 @@ export default function AccountingCardReconciliationNewPage() {
                           )}
                         </td>
                         <td className="p-2">
-                          {l.category === "BUSINESS" && (
+                          {((l.category as LineCategory) === "BUSINESS" || (l.category as LineCategory) === "INCOME") && (
                             <Select value={l.coaAccountId ?? ""} onValueChange={(v) => updateLine(l.id, { coaAccountId: v, coaAccountName: expAccts.find(a=>a.id===v)?.name })}>
                               <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Account…" /></SelectTrigger>
-                              <SelectContent className="max-h-64">{expAccts.map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
+                              <SelectContent className="max-h-64">{((l.category as LineCategory) === "INCOME" ? incomeAccts : expAccts).map(a => <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>)}</SelectContent>
                             </Select>
                           )}
                         </td>
@@ -714,7 +881,10 @@ export default function AccountingCardReconciliationNewPage() {
                 )}
                 <div>Business expenses: <strong>{formatCurrency(totals.biz)}</strong></div>
                 <div>Personal (drawings): <strong>{formatCurrency(totals.per)}</strong></div>
-                <div>Total card charges: <strong>{formatCurrency(totals.biz + totals.per)}</strong></div>
+                {totals.inc > 0 && (
+                  <div>Income / receipts: <strong className="text-emerald-700">{formatCurrency(totals.inc)}</strong></div>
+                )}
+                <div>Total statement activity: <strong>{formatCurrency(totals.biz + totals.per + totals.inc)}</strong></div>
                 {cardType === "PERSONAL" && totals.biz > 0 && (
                   <div className="pt-1 border-t mt-2">Reimbursable to card holder: <strong>{formatCurrency(totals.biz)}</strong></div>
                 )}
