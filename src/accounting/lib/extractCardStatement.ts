@@ -246,6 +246,7 @@ export interface CsvParseResult {
   rows: string[][];
   mapping: CsvMapping;
   parsed: { date: string; description: string; amount: number }[];
+  headerless?: boolean;
 }
 
 function splitCsvLine(line: string): string[] {
@@ -278,7 +279,7 @@ function parseNum(s: string): number {
   return neg ? -n : n;
 }
 
-export function normaliseDate(s: string): string {
+export function normaliseDate(s: string, opts?: { preferMDY?: boolean }): string {
   if (!s) return "";
   const t = s.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
@@ -291,6 +292,7 @@ export function normaliseDate(s: string): string {
     let dd: number; let mm: number;
     if (ai > 12) { dd = ai; mm = bi; }
     else if (bi > 12) { mm = ai; dd = bi; }
+    else if (opts?.preferMDY) { mm = ai; dd = bi; } // MM/DD/YYYY (TD headerless)
     else { dd = ai; mm = bi; } // ambiguous → DD/MM/YYYY (TD Canadian default)
     return `${y}-${String(mm).padStart(2, "0")}-${String(dd).padStart(2, "0")}`;
   }
@@ -364,11 +366,12 @@ export function detectCsvMapping(headers: string[]): { format: CsvFormat; format
 export function applyCsvMapping(
   rows: string[][],
   mapping: CsvMapping,
+  opts?: { preferMDY?: boolean },
 ): { date: string; description: string; amount: number }[] {
   const out: { date: string; description: string; amount: number }[] = [];
   for (const cells of rows) {
     const dateRaw = mapping.dateCol >= 0 ? cells[mapping.dateCol] ?? "" : "";
-    const date = normaliseDate(dateRaw);
+    const date = normaliseDate(dateRaw, opts);
     if (!date) continue;
     const d1 = mapping.descCol >= 0 ? cells[mapping.descCol] ?? "" : "";
     const d2 = mapping.desc2Col !== undefined ? cells[mapping.desc2Col] ?? "" : "";
@@ -393,6 +396,25 @@ export function applyCsvMapping(
   return out;
 }
 
+const MDY_RE = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isTdHeaderlessRow(row: string[]): boolean {
+  if (!row || row.length !== 5) return false;
+  const d = (row[0] ?? "").trim();
+  if (!MDY_RE.test(d) && !ISO_RE.test(d)) return false;
+  const numOrEmpty = (s: string) => {
+    const v = (s ?? "").replace(/[$,\s()]/g, "");
+    return v === "" || /^-?\d+(\.\d+)?$/.test(v);
+  };
+  return (
+    numOrEmpty(row[2]) &&
+    numOrEmpty(row[3]) &&
+    numOrEmpty(row[4]) &&
+    (row[4] ?? "").trim() !== ""
+  );
+}
+
 export function parseStatementCsv(text: string): CsvParseResult {
   const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   if (lines.length < 2) {
@@ -401,9 +423,27 @@ export function parseStatementCsv(text: string): CsvParseResult {
       headers: [], rows: [], mapping: { dateCol: -1, descCol: -1 }, parsed: [],
     };
   }
-  const headers = splitCsvLine(lines[0]);
+  const allRows = lines.map(splitCsvLine);
+
+  // Headerless TD Canada Trust: 5 cols, first col MM/DD/YYYY or YYYY-MM-DD
+  if (isTdHeaderlessRow(allRows[0])) {
+    const mapping: CsvMapping = { dateCol: 0, descCol: 1, debitCol: 2, creditCol: 3, balanceCol: 4 };
+    const headers = ["Date", "Description", "Debit", "Credit", "Balance"];
+    const parsed = applyCsvMapping(allRows, mapping, { preferMDY: true });
+    return {
+      format: "TD",
+      formatLabel: "TD Canada Trust format (no headers)",
+      headers,
+      rows: allRows,
+      mapping,
+      parsed,
+      headerless: true,
+    };
+  }
+
+  const headers = allRows[0];
   const rows = lines.slice(1).map(splitCsvLine);
   const { format, formatLabel, mapping } = detectCsvMapping(headers);
   const parsed = applyCsvMapping(rows, mapping);
-  return { format, formatLabel, headers, rows, mapping, parsed };
+  return { format, formatLabel, headers, rows, mapping, parsed, headerless: false };
 }

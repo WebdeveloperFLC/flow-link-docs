@@ -236,7 +236,7 @@ export default function AccountingCardReconciliationNewPage() {
 
   function confirmCsvImport() {
     if (!csvPreview || !csvMapping) return;
-    const parsed = applyCsvMapping(csvPreview.rows, csvMapping);
+    const parsed = applyCsvMapping(csvPreview.rows, csvMapping, csvPreview.headerless ? { preferMDY: true } : undefined);
     if (parsed.length === 0) { toast.error("No transactions parsed with this mapping"); return; }
     setLines(parsed.map((p) => {
       const isIncome = p.amount > 0;
@@ -622,7 +622,8 @@ export default function AccountingCardReconciliationNewPage() {
                 )}
 
                 {csvPreview && csvMapping && (() => {
-                  const previewParsed = applyCsvMapping(csvPreview.rows, csvMapping).slice(0, 5);
+                  const headerless = !!csvPreview.headerless;
+                  const previewParsed = applyCsvMapping(csvPreview.rows, csvMapping, headerless ? { preferMDY: true } : undefined).slice(0, 5);
                   const known = csvPreview.format !== "UNKNOWN";
                   const roles: { key: keyof CsvMapping; label: string }[] = [
                     { key: "dateCol", label: "Date" },
@@ -640,7 +641,11 @@ export default function AccountingCardReconciliationNewPage() {
                         known ? "border-green-300 bg-green-50 text-green-900 dark:border-green-500/40 dark:bg-green-500/10 dark:text-green-300"
                               : "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-300"
                       )}>
-                        <strong>Detected:</strong> {csvPreview.formatLabel} · {csvPreview.rows.length} data rows
+                        {headerless ? (
+                          <><strong>Detected:</strong> TD Canada Trust format (no headers) — mapped automatically · {csvPreview.rows.length} rows</>
+                        ) : (
+                          <><strong>Detected:</strong> {csvPreview.formatLabel} · {csvPreview.rows.length} data rows</>
+                        )}
                       </div>
 
                       <div className="overflow-x-auto rounded-md border">
@@ -670,7 +675,7 @@ export default function AccountingCardReconciliationNewPage() {
                       </div>
                       <p className="text-[11px] text-muted-foreground">Balance column is ignored. Negative = debit (money out), positive = credit (money in).</p>
 
-                      {csvManual && (
+                      {csvManual && !headerless && (
                         <div className="rounded-md border p-3 space-y-2 bg-muted/20">
                           <div className="text-xs font-medium">Map CSV columns manually</div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -706,9 +711,11 @@ export default function AccountingCardReconciliationNewPage() {
                       <div className="flex items-center justify-between flex-wrap gap-2">
                         <Button variant="ghost" size="sm" onClick={() => { setCsvPreview(null); setCsvMapping(null); setCsvManual(false); }}>Choose a different file</Button>
                         <div className="flex items-center gap-3">
-                          <Button variant="link" size="sm" className="px-0" onClick={() => setCsvManual((v) => !v)}>
-                            {csvManual ? "Hide manual mapper" : "Re-map columns manually"}
-                          </Button>
+                          {!headerless && (
+                            <Button variant="link" size="sm" className="px-0" onClick={() => setCsvManual((v) => !v)}>
+                              {csvManual ? "Hide manual mapper" : "Re-map columns manually"}
+                            </Button>
+                          )}
                           <Button size="sm" onClick={confirmCsvImport}>Confirm and categorise →</Button>
                         </div>
                       </div>
