@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import { CoaAccount, CoaAccountInput } from "../types/coa";
 import { SEED_ACCOUNTS } from "../data/mockCoa";
 import { getTypes, HIDDEN_TYPE_CODES } from "./coaMasterStore";
+import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "accounting:coa-accounts:v5";
 
@@ -36,6 +37,97 @@ const listeners = new Set<() => void>();
 function emit() {
   try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {}
   listeners.forEach((l) => l());
+}
+
+// ──────────────────────────────────────────────────────────────
+// Supabase sync layer (hybrid: localStorage cache + background DB)
+// ──────────────────────────────────────────────────────────────
+
+type CoaRow = {
+  id: string; code: string; name: string;
+  group_code: string; type_code: string | null; sub_type_code: string | null;
+  parent_id: string | null; entity_id: string | null;
+  currency: string | null; normal_balance: string | null; tax_code: string | null;
+  opening_balance: string | number | null; current_balance: string | number | null;
+  is_active: boolean | null; description: string | null;
+  created_at: string;
+};
+
+function mapFromDb(r: CoaRow): CoaAccount {
+  return {
+    id: r.id,
+    code: r.code,
+    name: r.name,
+    groupCode: r.group_code,
+    typeCode: r.type_code ?? "",
+    subTypeCode: r.sub_type_code,
+    parentId: r.parent_id,
+    currency: r.currency ?? "CAD",
+    entityId: r.entity_id,
+    taxCode: r.tax_code,
+    normalBalance: (r.normal_balance as "DEBIT" | "CREDIT" | null) ?? undefined,
+    openingBalance: Number(r.opening_balance ?? 0),
+    currentBalance: Number(r.current_balance ?? 0),
+    status: r.is_active === false ? "INACTIVE" : "ACTIVE",
+    description: r.description ?? undefined,
+    txnCount: 0,
+    createdAt: r.created_at,
+  };
+}
+
+function mapToDb(a: CoaAccount | CoaAccountInput): Record<string, unknown> {
+  return {
+    code: a.code.trim(),
+    name: a.name.trim(),
+    group_code: a.groupCode,
+    type_code: a.typeCode || null,
+    sub_type_code: a.subTypeCode ?? null,
+    parent_id: a.parentId ?? null,
+    entity_id: a.entityId ?? null,
+    currency: a.currency,
+    normal_balance: a.normalBalance ?? null,
+    tax_code: a.taxCode ?? null,
+    opening_balance: a.openingBalance,
+    current_balance: "currentBalance" in a ? a.currentBalance : a.openingBalance,
+    is_active: ("status" in a ? a.status : "ACTIVE") === "ACTIVE",
+    description: a.description ?? null,
+  };
+}
+
+let hydrated = false;
+let rlsBlockedLogged = false;
+async function hydrateFromSupabase() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const { data, error } = await supabase
+      .from("accounting_coa")
+      .select("*")
+      .order("code");
+    if (error) {
+      if (!rlsBlockedLogged) {
+        console.warn("[coaStore] Supabase read failed, using local cache:", error.message);
+        rlsBlockedLogged = true;
+      }
+      return;
+    }
+    if (!data) return;
+    // If DB is empty, keep local cache as-is so the user still has seeds.
+    if (data.length === 0) return;
+    accounts = scrubBankAccounts(data.map(mapFromDb));
+    emit();
+  } catch (e) {
+    console.warn("[coaStore] Supabase hydration error:", e);
+  }
+}
+// Fire-and-forget hydration on module load.
+void hydrateFromSupabase();
+
+async function getUserId(): Promise<string | null> {
+  try {
+    const { data } = await supabase.auth.getUser();
+    return data.user?.id ?? null;
+  } catch { return null; }
 }
 
 export function useAccounts(): CoaAccount[] {
@@ -112,26 +204,80 @@ export function addAccount(input: CoaAccountInput): { ok: true; account: CoaAcco
   };
   accounts = [...accounts, created];
   emit();
+  // Background: persist to Supabase, then swap temp id for real id.
+  void (async () => {
+    const userId = await getUserId();
+    const payload = { ...mapToDb(created), created_by: userId };
+    const { data, error } = await supabase
+      .from("accounting_coa")
+      .insert(payload)
+      .select()
+      .single();
+    if (error) {
+      console.error("[coaStore] addAccount failed:", error.message);
+      // Revert optimistic insert
+      accounts = accounts.filter((a) => a.id !== created.id);
+      emit();
+      return;
+    }
+    if (data) {
+      const real = mapFromDb(data as CoaRow);
+      accounts = accounts.map((a) => (a.id === created.id ? real : a));
+      emit();
+    }
+  })();
   return { ok: true, account: created };
 }
 
 export function updateAccount(id: string, input: CoaAccountInput): { ok: true } | { ok: false; error: ValidationError } {
   const err = validate(input, id);
   if (err) return { ok: false, error: err };
+  const prev = accounts.find((a) => a.id === id);
   accounts = accounts.map((a) =>
     a.id === id
       ? { ...a, ...input, code: input.code.trim(), name: input.name.trim() }
       : a,
   );
   emit();
+  void (async () => {
+    const updated = accounts.find((a) => a.id === id);
+    if (!updated) return;
+    const { error } = await supabase
+      .from("accounting_coa")
+      .update(mapToDb(updated))
+      .eq("id", id);
+    if (error) {
+      console.error("[coaStore] updateAccount failed:", error.message);
+      if (prev) {
+        accounts = accounts.map((a) => (a.id === id ? prev : a));
+        emit();
+      }
+    }
+  })();
   return { ok: true };
 }
 
 export function toggleAccountStatus(id: string) {
+  const prev = accounts.find((a) => a.id === id);
   accounts = accounts.map((a) =>
     a.id === id ? { ...a, status: a.status === "ACTIVE" ? "INACTIVE" : "ACTIVE" } : a,
   );
   emit();
+  void (async () => {
+    const next = accounts.find((a) => a.id === id);
+    if (!next) return;
+    const { error } = await supabase
+      .from("accounting_coa")
+      .update({ is_active: next.status === "ACTIVE" })
+      .eq("id", id);
+    if (error) {
+      console.error("[coaStore] toggleAccountStatus failed:", error.message);
+      if (prev) {
+        accounts = accounts.map((a) => (a.id === id ? prev : a));
+        emit();
+      }
+    }
+  })();
 }
 
 export interface DeleteCheck { canDelete: boolean; reason?: string }
@@ -151,7 +297,21 @@ export function canDeleteAccount(id: string): DeleteCheck {
 export function deleteAccount(id: string): { ok: boolean; error?: string } {
   const check = canDeleteAccount(id);
   if (!check.canDelete) return { ok: false, error: check.reason };
+  const removed = accounts.find((a) => a.id === id);
   accounts = accounts.filter((a) => a.id !== id);
   emit();
+  void (async () => {
+    const { error } = await supabase
+      .from("accounting_coa")
+      .delete()
+      .eq("id", id);
+    if (error) {
+      console.error("[coaStore] deleteAccount failed:", error.message);
+      if (removed) {
+        accounts = [...accounts, removed];
+        emit();
+      }
+    }
+  })();
   return { ok: true };
 }
