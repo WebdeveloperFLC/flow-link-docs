@@ -640,7 +640,10 @@ export default function AccountingCardReconciliationNewPage() {
                                 <span className="w-44 text-muted-foreground">{r.label}</span>
                                 <Select
                                   value={String(csvMapping[r.key] ?? "")}
-                                  onValueChange={(v) => setCsvMapping({ ...csvMapping, [r.key]: v === "" ? undefined : Number(v) })}
+                                  onValueChange={(v) => {
+                                    const n = Number(v);
+                                    setCsvMapping({ ...csvMapping, [r.key]: !v || n < 0 ? undefined : n });
+                                  }}
                                 >
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="— none —" /></SelectTrigger>
                                   <SelectContent>
