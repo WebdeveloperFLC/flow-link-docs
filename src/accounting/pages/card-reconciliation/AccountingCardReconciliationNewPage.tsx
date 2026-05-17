@@ -347,18 +347,30 @@ export default function AccountingCardReconciliationNewPage() {
     setLines((prev) => prev.map((l) => l.id === id ? { ...l, ...patch } : l));
   }
 
-  function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL") {
-    setLines((prev) => prev.map((l) => ids.includes(l.id) ? {
-      ...l, category: cat, isPersonal: cat === "PERSONAL",
-      coaAccountId: cat === "BUSINESS" && !l.coaAccountId
-        ? suggestAccount(l.description, expAccts)?.id : l.coaAccountId,
-    } : l));
+  function setBulkCategory(ids: string[], cat: "BUSINESS" | "PERSONAL" | "INCOME") {
+    setLines((prev) => prev.map((l) => {
+      if (!ids.includes(l.id)) return l;
+      let coaAccountId = l.coaAccountId;
+      let coaAccountName = l.coaAccountName;
+      if (cat === "BUSINESS" && !coaAccountId) {
+        const sug = suggestAccount(l.description, expAccts);
+        coaAccountId = sug?.id; coaAccountName = sug?.name;
+      } else if (cat === "INCOME") {
+        coaAccountId = defaultIncomeAcct?.id;
+        coaAccountName = defaultIncomeAcct?.name;
+      }
+      return { ...l, category: cat as any, isPersonal: cat === "PERSONAL", coaAccountId, coaAccountName };
+    }));
   }
 
   function generateJournal(): { journalLines: any[]; balanced: boolean } {
     const bizByAcct = new Map<string, number>();
     lines.filter((l) => l.category === "BUSINESS" && l.coaAccountId).forEach((l) => {
-      bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + l.amount);
+      bizByAcct.set(l.coaAccountId!, (bizByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
+    });
+    const incomeByAcct = new Map<string, number>();
+    lines.filter((l) => (l.category as LineCategory) === "INCOME" && l.coaAccountId).forEach((l) => {
+      incomeByAcct.set(l.coaAccountId!, (incomeByAcct.get(l.coaAccountId!) ?? 0) + Math.abs(l.amount));
     });
     const journalLines: any[] = [];
     bizByAcct.forEach((amt, accId) => {
@@ -369,8 +381,19 @@ export default function AccountingCardReconciliationNewPage() {
       const line = buildLine({ id: genId("jl"), accountId: drawingsAcct.id, debit: totals.per, description: "Personal drawings" });
       if (line) journalLines.push(line);
     }
-    const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: totals.biz + totals.per, description: "Card statement settlement" });
-    if (cardLine) journalLines.push(cardLine);
+    incomeByAcct.forEach((amt, accId) => {
+      const line = buildLine({ id: genId("jl"), accountId: accId, credit: amt, description: "Statement income / receipt" });
+      if (line) journalLines.push(line);
+    });
+    const expensesNet = totals.biz + totals.per; // money out → credit card/bank
+    if (expensesNet > 0) {
+      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, credit: expensesNet, description: "Statement settlement (out)" });
+      if (cardLine) journalLines.push(cardLine);
+    }
+    if (totals.inc > 0) {
+      const cardLine = buildLine({ id: genId("jl"), accountId: cardAccountId, debit: totals.inc, description: "Statement receipts (in)" });
+      if (cardLine) journalLines.push(cardLine);
+    }
     const dr = journalLines.reduce((s, l) => s + l.debit, 0);
     const cr = journalLines.reduce((s, l) => s + l.credit, 0);
     return { journalLines, balanced: new Decimal(dr).minus(cr).abs().lt(0.01) };
