@@ -3,7 +3,7 @@ import { CoaAccount, CoaAccountInput } from "../types/coa";
 import { SEED_ACCOUNTS } from "../data/mockCoa";
 import { getTypes, HIDDEN_TYPE_CODES } from "./coaMasterStore";
 
-const STORAGE_KEY = "accounting:coa-accounts:v4";
+const STORAGE_KEY = "accounting:coa-accounts:v5";
 
 /** Strip bank-typed rows — banks are owned by the Banks module now. */
 function scrubBankAccounts(list: CoaAccount[]): CoaAccount[] {
