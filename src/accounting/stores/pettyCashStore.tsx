@@ -58,6 +58,7 @@ interface Ctx {
   addPerson: (input: { name: string; email?: string; role: PettyPersonRole }) => PettyPerson;
   addBranch: (input: { name: string; code: string; custodianName: string; secondaryApproverName?: string; openingFloat: number; custodianEmail?: string }) => PettyBranch;
   updateBranch: (id: string, patch: Partial<PettyBranch>) => void;
+  deleteVoucher: (id: string) => void;
   getBranchSummary: (branchId: string) => BranchSummary;
   getCategoryBreakdown: (filterBranchId?: string) => { category: PettyCategory; amount: number }[];
   getMonthlyTrend: () => { month: string; amount: number }[];
@@ -243,6 +244,10 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
     setBranches(prev => prev.map(b => b.id === id ? { ...b, ...patch } : b));
   }, []);
 
+  const deleteVoucher = useCallback((id: string) => {
+    setVouchers(prev => prev.filter(v => v.id !== id));
+  }, []);
+
   const getBranchSummary = useCallback((branchId: string): BranchSummary => {
     const branch = branches.find(b => b.id === branchId)!;
     const branchVouchers = vouchers.filter(v => v.branchId === branchId);
@@ -282,8 +287,9 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
     submitVerification, requestReplenishment, approveReplenishment,
     rejectReplenishment, markReplenishmentPaid,
     addCategory, updateCategory, addPerson, addBranch, updateBranch,
+    deleteVoucher,
     getBranchSummary, getCategoryBreakdown, getMonthlyTrend,
-  }), [branches, vouchers, replenishments, verifications, categories, people, addVoucher, approveVoucher, rejectVoucher, markReimbursed, submitVerification, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid, addCategory, updateCategory, addPerson, addBranch, updateBranch, getBranchSummary, getCategoryBreakdown, getMonthlyTrend]);
+  }), [branches, vouchers, replenishments, verifications, categories, people, addVoucher, approveVoucher, rejectVoucher, markReimbursed, submitVerification, requestReplenishment, approveReplenishment, rejectReplenishment, markReplenishmentPaid, addCategory, updateCategory, addPerson, addBranch, updateBranch, deleteVoucher, getBranchSummary, getCategoryBreakdown, getMonthlyTrend]);
 
   return <PettyCashContext.Provider value={value}>{children}</PettyCashContext.Provider>;
 }
