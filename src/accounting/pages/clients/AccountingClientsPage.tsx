@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Plus, Link2 } from "lucide-react";
+import { ExternalLink, Plus, Link2, MoreHorizontal, Trash2 } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -9,13 +9,16 @@ import { Badge } from "@/components/ui/badge";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AddClientDialog from "../../components/clients/AddClientDialog";
 import LinkCrmClientDialog from "../../components/clients/LinkCrmClientDialog";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { CLIENT_SEGMENT_LABEL } from "../../data/mockClients";
-import { useClients } from "../../stores/clientsStore";
+import { useClients, deleteClient } from "../../stores/clientsStore";
 import {
   MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, CLIENT_TYPE_LABEL,
 } from "../../data/mockStaff";
@@ -28,6 +31,7 @@ export default function AccountingClientsPage() {
   const refresh = () => {};
   const [addOpen, setAddOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const [country, setCountry] = useState<string>("ALL");
   const [clientType, setClientType] = useState<string>("ALL");
@@ -86,14 +90,31 @@ export default function AccountingClientsPage() {
     { headerName: "Status", field: "status", width: 130,
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} /> },
     {
-      headerName: "Actions", width: 140, sortable: false, filter: false,
+      headerName: "Actions", width: 180, sortable: false, filter: false,
       cellRenderer: (p: { data: Client }) => (
-        <button
-          className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
-          onClick={() => navigate(`/accounting/clients/${p.data.id}`)}
-        >
-          View ledger <ExternalLink className="size-3" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+            onClick={() => navigate(`/accounting/clients/${p.data.id}`)}
+          >
+            View ledger <ExternalLink className="size-3" />
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-7" onClick={(e) => e.stopPropagation()}>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setDeleteTarget(p.data.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
     },
   ], [navigate]);
@@ -193,6 +214,18 @@ export default function AccountingClientsPage() {
 
         <AddClientDialog open={addOpen} onOpenChange={setAddOpen} onCreated={refresh} />
         <LinkCrmClientDialog open={linkOpen} onOpenChange={setLinkOpen} onLinked={refresh} />
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              deleteClient(deleteTarget);
+              setDeleteTarget(null);
+              toast.success("Deleted successfully");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );
