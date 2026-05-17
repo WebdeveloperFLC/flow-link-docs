@@ -89,6 +89,289 @@ function suggestAccount(desc: string, expAccts: { id: string; code: string; name
   return null;
 }
 
+/** Toggle button row for the 4 categories (+ Skip). Shared between parent rows and split sub-rows. */
+function CategoryToggle({
+  value,
+  onChange,
+}: {
+  value: LineCategory;
+  onChange: (c: LineCategory) => void;
+}) {
+  const cats: LineCategory[] = ["BUSINESS", "PERSONAL", "INCOME", "CLIENT_FUNDS", "UNCATEGORISED"];
+  const labels: Record<LineCategory, string> = {
+    BUSINESS: "Business", PERSONAL: "Personal", INCOME: "Income",
+    CLIENT_FUNDS: "Client funds", UNCATEGORISED: "Skip",
+  };
+  const activeCls: Record<LineCategory, string> = {
+    BUSINESS: "bg-green-600 text-white border-green-600",
+    PERSONAL: "bg-red-600 text-white border-red-600",
+    INCOME: "bg-emerald-700 text-white border-emerald-700",
+    CLIENT_FUNDS: "bg-purple-600 text-white border-purple-600",
+    UNCATEGORISED: "bg-muted-foreground/30 border-muted-foreground/30",
+  };
+  const inactiveCls: Record<LineCategory, string> = {
+    BUSINESS: "border-muted text-muted-foreground hover:bg-muted/70",
+    PERSONAL: "border-muted text-muted-foreground hover:bg-muted/70",
+    INCOME: "border-muted text-muted-foreground hover:bg-muted/70",
+    CLIENT_FUNDS: "border-purple-300 text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-500/10",
+    UNCATEGORISED: "border-muted text-muted-foreground hover:bg-muted/70",
+  };
+  return (
+    <div className="flex gap-1 flex-wrap">
+      {cats.map((c) => {
+        const active = value === c;
+        return (
+          <button
+            key={c}
+            type="button"
+            onClick={() => onChange(c)}
+            className={cn(
+              "text-[10px] px-1.5 py-0.5 rounded border",
+              active ? activeCls[c] : inactiveCls[c],
+            )}
+          >
+            {labels[c]}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Account dropdown for a single line/split based on its category. */
+function AccountPicker({
+  category,
+  value,
+  onChange,
+  expAccts,
+  incomeAccts,
+  clientFundsAccts,
+}: {
+  category: LineCategory;
+  value?: string;
+  onChange: (id: string, name: string | undefined) => void;
+  expAccts: { id: string; code: string; name: string }[];
+  incomeAccts: { id: string; code: string; name: string }[];
+  clientFundsAccts: { id: string; code: string; name: string }[];
+}) {
+  if (category !== "BUSINESS" && category !== "INCOME" && category !== "CLIENT_FUNDS") return null;
+  const list = category === "INCOME" ? incomeAccts
+    : category === "CLIENT_FUNDS" ? clientFundsAccts
+    : expAccts;
+  const placeholder = category === "CLIENT_FUNDS" ? "Select client funds account" : "Account…";
+  return (
+    <Select value={value ?? ""} onValueChange={(v) => onChange(v, list.find(a => a.id === v)?.name)}>
+      <SelectTrigger className={cn("h-7 text-xs", category === "CLIENT_FUNDS" && "border-purple-300")}>
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent className="max-h-64">
+        {list.length === 0 && (
+          <div className="p-2 text-xs text-muted-foreground">No accounts</div>
+        )}
+        {list.map((a) => (
+          <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+/** A single parent row + (optionally) two split sub-rows below. */
+function FragmentRow(props: {
+  line: CardStatementLine;
+  splits: SplitLine[] | undefined;
+  hasSplits: boolean;
+  bg: string;
+  selected: Set<string>;
+  setSelected: (s: Set<string>) => void;
+  updateLine: (id: string, patch: Partial<CardStatementLine>) => void;
+  updateSplit: (parentId: string, splitId: string, patch: Partial<SplitLine>) => void;
+  splitTransaction: (id: string) => void;
+  unsplitTransaction: (id: string) => void;
+  expAccts: { id: string; code: string; name: string }[];
+  incomeAccts: { id: string; code: string; name: string }[];
+  clientFundsAccts: { id: string; code: string; name: string }[];
+  defaultIncomeAcct: { id: string; name: string } | undefined;
+  aiLineIds: Set<string>;
+}) {
+  const {
+    line: l, splits, hasSplits, bg, selected, setSelected,
+    updateLine, updateSplit, splitTransaction, unsplitTransaction,
+    expAccts, incomeAccts, clientFundsAccts, defaultIncomeAcct, aiLineIds,
+  } = props;
+
+  const cat = (l.category as LineCategory);
+  const clientRef = (l as any).clientRef as string | undefined;
+
+  const applyCategoryToParent = (c: LineCategory) => {
+    const patch: any = { category: c, isPersonal: c === "PERSONAL" };
+    if (c === "BUSINESS" && !l.coaAccountId) {
+      const sug = suggestAccount(l.description, expAccts);
+      patch.coaAccountId = sug?.id; patch.coaAccountName = sug?.name;
+    } else if (c === "INCOME") {
+      patch.coaAccountId = defaultIncomeAcct?.id;
+      patch.coaAccountName = defaultIncomeAcct?.name;
+    } else if (c === "CLIENT_FUNDS") {
+      patch.coaAccountId = undefined;
+      patch.coaAccountName = undefined;
+    }
+    updateLine(l.id, patch);
+  };
+
+  const splitSum = (splits ?? []).reduce((s, x) => s + (Number(x.amount) || 0), 0);
+  const original = Math.abs(l.amount);
+  const splitBalanced = Math.abs(splitSum - original) < 0.005;
+  const remaining = Math.round((original - splitSum) * 100) / 100;
+
+  return (
+    <>
+      <tr className={cn("border-b align-top", bg)}>
+        <td className="p-2">
+          <input type="checkbox" checked={selected.has(l.id)} onChange={(e) => {
+            const n = new Set(selected); e.target.checked ? n.add(l.id) : n.delete(l.id); setSelected(n);
+          }} />
+        </td>
+        <td className="p-2 whitespace-nowrap">{l.date}</td>
+        <td className="p-2">{l.description}</td>
+        <td className={cn("p-2 text-right tabular-nums font-medium", l.amount < 0 ? "text-red-600" : "text-green-600")}>
+          <div>{l.amount < 0 ? "-" : "+"}{formatCurrency(original)}</div>
+          <div className="text-[9px] font-normal uppercase tracking-wide opacity-70">
+            {l.amount < 0 ? "Debit (out)" : "Credit (in)"}
+          </div>
+        </td>
+        <td className="p-2 space-y-1">
+          {!hasSplits ? (
+            <>
+              <CategoryToggle value={cat} onChange={applyCategoryToParent} />
+              {cat === "CLIENT_FUNDS" && (
+                <div className="text-[10px] text-purple-600">Pass-through — will not affect P&amp;L</div>
+              )}
+              {cat === "BUSINESS" && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Select value={l.expenseCategory ?? ""} onValueChange={(v) => updateLine(l.id, { expenseCategory: v })}>
+                    <SelectTrigger className="h-7 text-xs"><SelectValue placeholder="Expense type…" /></SelectTrigger>
+                    <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                  {aiLineIds.has(l.id) && (
+                    <span title="Suggested by AI" className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary font-semibold">AI</span>
+                  )}
+                </div>
+              )}
+              <div className="mt-1">
+                <AccountPicker
+                  category={cat}
+                  value={l.coaAccountId}
+                  onChange={(id, name) => updateLine(l.id, { coaAccountId: id, coaAccountName: name })}
+                  expAccts={expAccts}
+                  incomeAccts={incomeAccts}
+                  clientFundsAccts={clientFundsAccts}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="text-[11px] text-muted-foreground italic">Split into {splits!.length} lines below</div>
+          )}
+        </td>
+        <td className="p-2">
+          {!hasSplits && (
+            <Input
+              placeholder="Client name / purpose"
+              value={clientRef ?? ""}
+              onChange={(e) => updateLine(l.id, { clientRef: e.target.value } as any)}
+              className="h-7 text-xs w-40 border-dashed placeholder:text-xs"
+            />
+          )}
+        </td>
+        <td className="p-2 text-right">
+          {!hasSplits ? (
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => splitTransaction(l.id)}>
+              <SplitIcon className="size-3 mr-1" /> Split
+            </Button>
+          ) : (
+            <Button size="sm" variant="ghost" className="h-7 px-2 text-[11px]" onClick={() => unsplitTransaction(l.id)}>
+              <Undo2 className="size-3 mr-1" /> Unsplit
+            </Button>
+          )}
+        </td>
+      </tr>
+      {hasSplits && splits!.map((s, idx) => {
+        const sCat = s.category;
+        const sBg = sCat === "BUSINESS" ? "bg-green-50/40 dark:bg-green-500/5"
+          : sCat === "PERSONAL" ? "bg-red-50/40 dark:bg-red-500/5"
+          : sCat === "INCOME" ? "bg-emerald-50/40 dark:bg-emerald-500/10"
+          : sCat === "CLIENT_FUNDS" ? "bg-purple-50/50 dark:bg-purple-500/10"
+          : "bg-amber-50/30 dark:bg-amber-500/5";
+        return (
+          <tr key={s.id} className={cn("border-b align-top", sBg)}>
+            <td className="p-2"></td>
+            <td className="p-2 text-[11px] text-muted-foreground pl-6">↳ Split {idx + 1}</td>
+            <td className="p-2 text-[11px] text-muted-foreground">{l.description}</td>
+            <td className="p-2 text-right">
+              <Input
+                type="number"
+                step="0.01"
+                value={String(s.amount)}
+                onChange={(e) => updateSplit(l.id, s.id, { amount: Number(e.target.value) || 0 })}
+                className="h-7 text-xs w-24 ml-auto tabular-nums text-right"
+              />
+            </td>
+            <td className="p-2 space-y-1">
+              <CategoryToggle
+                value={sCat}
+                onChange={(c) => {
+                  const patch: Partial<SplitLine> = { category: c };
+                  if (c !== "BUSINESS" && c !== "INCOME" && c !== "CLIENT_FUNDS") {
+                    patch.coaAccountId = undefined; patch.coaAccountName = undefined;
+                  }
+                  updateSplit(l.id, s.id, patch);
+                }}
+              />
+              {sCat === "CLIENT_FUNDS" && (
+                <div className="text-[10px] text-purple-600">Pass-through — will not affect P&amp;L</div>
+              )}
+              <div className="mt-1">
+                <AccountPicker
+                  category={sCat}
+                  value={s.coaAccountId}
+                  onChange={(id, name) => updateSplit(l.id, s.id, { coaAccountId: id, coaAccountName: name })}
+                  expAccts={expAccts}
+                  incomeAccts={incomeAccts}
+                  clientFundsAccts={clientFundsAccts}
+                />
+              </div>
+            </td>
+            <td className="p-2">
+              <Input
+                placeholder="Client name / purpose"
+                value={s.clientRef ?? ""}
+                onChange={(e) => updateSplit(l.id, s.id, { clientRef: e.target.value })}
+                className="h-7 text-xs w-40 border-dashed placeholder:text-xs"
+              />
+            </td>
+            <td className="p-2"></td>
+          </tr>
+        );
+      })}
+      {hasSplits && (
+        <tr className="border-b bg-muted/20">
+          <td colSpan={7} className="px-3 py-1.5 text-[11px] text-right">
+            {splitBalanced ? (
+              <span className="text-green-600">
+                {splits!.map(s => formatCurrency(Number(s.amount) || 0)).join(" + ")} = {formatCurrency(original)} ✓
+              </span>
+            ) : (
+              <span className="text-red-600">
+                {splits!.map(s => formatCurrency(Number(s.amount) || 0)).join(" + ")} = {formatCurrency(splitSum)} ✗
+                {" "}({remaining >= 0 ? `${formatCurrency(Math.abs(remaining))} remaining` : `over by ${formatCurrency(Math.abs(remaining))}`})
+              </span>
+            )}
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 const STEPS = ["Card details", "Import statement", "Categorise", "Generate journal"];
 
 function ProgressLine({ label, active, done }: { label: string; active?: boolean; done?: boolean }) {
