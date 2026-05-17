@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeftRight, Printer, Ban } from "lucide-react";
+import { ArrowLeftRight, Printer, Ban, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
-import { useIntercompany, updateIntercompany } from "@/accounting/stores/intercompanyStore";
+import { useIntercompany, updateIntercompany, deleteIntercompany } from "@/accounting/stores/intercompanyStore";
 import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
 import { useJournals, updateJournal } from "@/accounting/stores/journalsStore";
 import { formatCurrency } from "@/accounting/lib/format";
@@ -24,6 +24,7 @@ export default function AccountingIntercompanyDetailPage() {
   const journals = useJournals();
   const entities = useEntities();
   const [voidOpen, setVoidOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const txn = txns.find((t) => t.id === id);
   if (!txn) {
@@ -62,6 +63,9 @@ export default function AccountingIntercompanyDetailPage() {
               {txn.status === "POSTED" && (
                 <Button variant="outline" onClick={() => setVoidOpen(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Void</Button>
               )}
+              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10 gap-2" onClick={() => setDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" /> Delete
+              </Button>
             </div>
           }
         />
@@ -135,6 +139,33 @@ export default function AccountingIntercompanyDetailPage() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction onClick={handleVoid}>Void transaction</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this record?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will also void both linked journal entries. Cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (txn.fromJournalId) updateJournal(txn.fromJournalId, { status: "VOIDED" });
+                  if (txn.toJournalId) updateJournal(txn.toJournalId, { status: "VOIDED" });
+                  deleteIntercompany(txn.id);
+                  setDeleteOpen(false);
+                  toast.success("Deleted successfully");
+                  navigate("/accounting/intercompany");
+                }}
+              >
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

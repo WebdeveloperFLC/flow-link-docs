@@ -1,18 +1,23 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Upload, CreditCard } from "lucide-react";
+import { Upload, CreditCard, MoreHorizontal, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingEmptyState from "@/accounting/components/shared/AccountingEmptyState";
 import AccountingKPICard from "@/accounting/components/shared/AccountingKPICard";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
-import { useCardReconciliations } from "@/accounting/stores/cardReconciliationStore";
+import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
+import { useCardReconciliations, deleteCardReconciliation } from "@/accounting/stores/cardReconciliationStore";
 import { formatCurrency } from "@/accounting/lib/format";
 
 export default function AccountingCardReconciliationPage() {
   const navigate = useNavigate();
   const recs = useCardReconciliations();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const year = new Date().getFullYear();
   const ytd = recs.filter((r) => r.statementFrom.startsWith(String(year)));
@@ -64,6 +69,7 @@ export default function AccountingCardReconciliationPage() {
                     <th className="text-right px-4 py-3">Personal</th>
                     <th className="text-right px-4 py-3">Uncat.</th>
                     <th className="text-left px-4 py-3">Status</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -78,6 +84,23 @@ export default function AccountingCardReconciliationPage() {
                       <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">{formatCurrency(r.totalPersonalAmount)}</td>
                       <td className="px-4 py-3 text-right tabular-nums">{r.totalUncategorised}</td>
                       <td className="px-4 py-3"><AccountingStatusBadge status={r.status} /></td>
+                      <td className="px-4 py-3 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-7">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => setDeleteTarget(r.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -85,6 +108,18 @@ export default function AccountingCardReconciliationPage() {
             </div>
           )}
         </Card>
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              deleteCardReconciliation(deleteTarget);
+              setDeleteTarget(null);
+              toast.success("Deleted successfully");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );

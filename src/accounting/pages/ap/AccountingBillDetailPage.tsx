@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { ArrowLeft, FileText, Trash2 } from "lucide-react";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
@@ -20,6 +21,7 @@ export default function AccountingBillDetailPage() {
   const navigate = useNavigate();
   const bills = useApBills();
   const bill = bills.find((b) => b.id === id);
+  const [showDelete, setShowDelete] = useState(false);
   const bank = useMemo(() => bill?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === bill.linkedBankAccountId) : null, [bill]);
 
   if (!bill) return (
@@ -43,7 +45,7 @@ export default function AccountingBillDetailPage() {
               {(bill.status === "APPROVED" || bill.status === "OVERDUE") && <Button onClick={() => { updateApBill(bill.id, { status: "PAID", paymentDate: new Date().toISOString().slice(0, 10) }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
               {bill.status === "DRAFT" && <><Button variant="outline" onClick={() => toast.info("Edit coming soon")}>Edit</Button><Button variant="destructive" onClick={() => { updateApBill(bill.id, { status: "VOID" }); toast.success("Voided"); }}>Void</Button></>}
               <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
-              <Button variant="ghost" className="text-destructive" onClick={() => { if (confirm(`Delete ${bill.billNumber}? This cannot be undone.`)) { deleteApBill(bill.id); toast.success("Bill deleted"); navigate("/accounting/ap"); } }}><Trash2 className="size-4 mr-1" /> Delete</Button>
+              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setShowDelete(true)}><Trash2 className="h-4 w-4 mr-2" /> Delete</Button>
             </>} />
         </div>
 
@@ -87,6 +89,17 @@ export default function AccountingBillDetailPage() {
           {bill.status === "VOID" && <Timeline color="bg-destructive" label={`Voided${bill.notes ? ` — ${bill.notes}` : ""}`} ts={bill.billDate} />}
         </CardContent></Card>
       </div>
+
+      <DeleteRecordDialog
+        open={showDelete}
+        onOpenChange={setShowDelete}
+        onConfirm={() => {
+          deleteApBill(bill.id);
+          setShowDelete(false);
+          toast.success("Deleted successfully");
+          navigate("/accounting/ap");
+        }}
+      />
     </AppLayout>
   );
 }

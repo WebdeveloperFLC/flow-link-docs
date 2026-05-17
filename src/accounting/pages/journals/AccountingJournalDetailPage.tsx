@@ -267,9 +267,13 @@ export default function AccountingJournalDetailPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete journal entry</AlertDialogTitle>
+            <AlertDialogTitle>
+              {entry.status === 'POSTED' ? 'Delete posted journal entry?' : 'Delete this record?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Permanently remove {entry.entryNumber}? This cannot be undone.
+              {entry.status === 'POSTED'
+                ? 'Warning: This journal has been posted. Deleting it will affect your trial balance and general ledger. During testing this is allowed.'
+                : 'This action cannot be undone. The record will be permanently removed.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -278,7 +282,7 @@ export default function AccountingJournalDetailPage() {
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {entry.status === 'POSTED' ? 'Delete anyway' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

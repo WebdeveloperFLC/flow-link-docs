@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet, AlertTriangle, Clock, ShieldAlert, TrendingDown, Plus,
-  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2,
+  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2, MoreHorizontal, Trash2,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import { usePettyCash } from "../../stores/pettyCashStore";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { formatCurrency } from "../../lib/format";
 import { PettyCategory } from "../../types/pettyCash";
 import { usePettyCashAdmin } from "../../hooks/usePettyCashAdmin";
@@ -25,8 +26,9 @@ import { ManageCategoriesDialog } from "../../components/petty-cash/ManageCatego
 
 export default function AccountingPettyCashDashboardPage() {
   const navigate = useNavigate();
-  const { branches, vouchers, categories, getBranchSummary, getCategoryBreakdown, getMonthlyTrend } = usePettyCash();
+  const { branches, vouchers, categories, getBranchSummary, getCategoryBreakdown, getMonthlyTrend, deleteVoucher } = usePettyCash();
   const { isAdmin } = usePettyCashAdmin();
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [from, setFrom] = useState<string>("");
@@ -316,6 +318,7 @@ export default function AccountingPettyCashDashboardPage() {
                       <th className="text-left px-3">Paid to</th>
                       <th className="text-right px-3">Amount</th>
                       <th className="text-left px-3">Status</th>
+                      <th className="px-3"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -329,6 +332,23 @@ export default function AccountingPettyCashDashboardPage() {
                         <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(v.amount, "INR")}</td>
                         <td className="px-3 py-2">
                           <StatusPill status={v.status} />
+                        </td>
+                        <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="size-7">
+                                <MoreHorizontal className="size-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => setDeleteTarget(v.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" /> Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </td>
                       </tr>
                     ))}
@@ -361,6 +381,18 @@ export default function AccountingPettyCashDashboardPage() {
       <ManageBranchesDialog open={showManageBranches} onOpenChange={setShowManageBranches} />
       <ManagePeopleDialog open={showManagePeople} onOpenChange={setShowManagePeople} />
       <ManageCategoriesDialog open={showManageCategories} onOpenChange={setShowManageCategories} />
+
+      <DeleteRecordDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteVoucher(deleteTarget);
+            setDeleteTarget(null);
+            toast.success("Deleted successfully");
+          }
+        }}
+      />
     </AppLayout>
   );
 }

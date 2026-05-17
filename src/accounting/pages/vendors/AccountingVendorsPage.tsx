@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, ExternalLink } from "lucide-react";
+import { Plus, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -8,11 +8,14 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AddVendorDialog from "../../components/vendors/AddVendorDialog";
-import { useVendors } from "../../stores/vendorsStore";
+import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
+import { useVendors, deleteVendor } from "../../stores/vendorsStore";
 import { useVendorCategories, getVendorCategoryLabel } from "../../stores/vendorCategoriesStore";
 import { formatCurrency } from "../../lib/format";
 import type { Vendor } from "../../types/vendors";
@@ -22,6 +25,7 @@ export default function AccountingVendorsPage() {
   const categories = useVendorCategories();
   const vendors = useVendors();
   const [open, setOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [country, setCountry] = useState<string>("ALL");
   const [category, setCategory] = useState<string>("ALL");
   const [status, setStatus] = useState<string>("ALL");
@@ -67,14 +71,31 @@ export default function AccountingVendorsPage() {
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} />,
     },
     {
-      headerName: "Actions", width: 140, sortable: false, filter: false,
+      headerName: "Actions", width: 180, sortable: false, filter: false,
       cellRenderer: (p: { data: Vendor }) => (
-        <button
-          className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
-          onClick={() => navigate(`/accounting/vendors/${p.data.id}`)}
-        >
-          View ledger <ExternalLink className="size-3" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+            onClick={() => navigate(`/accounting/vendors/${p.data.id}`)}
+          >
+            View ledger <ExternalLink className="size-3" />
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-7" onClick={(e) => e.stopPropagation()}>
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setDeleteTarget(p.data.id)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       ),
     },
   ], [navigate]);
@@ -132,6 +153,18 @@ export default function AccountingVendorsPage() {
         </Card>
 
         <AddVendorDialog open={open} onOpenChange={setOpen} />
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              deleteVendor(deleteTarget);
+              setDeleteTarget(null);
+              toast.success("Deleted successfully");
+            }
+          }}
+        />
       </div>
     </AppLayout>
   );

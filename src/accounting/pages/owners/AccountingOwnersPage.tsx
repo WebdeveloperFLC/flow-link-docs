@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, MoreHorizontal, Plus, User, Users, Shield, Building2 } from 'lucide-react';
+import { Briefcase, MoreHorizontal, Plus, User, Users, Shield, Building2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import DeleteRecordDialog from '../../components/shared/DeleteRecordDialog';
 
 import {
   MOCK_OWNERS, MOCK_FINANCIAL_ACCOUNTS, getAccountsForOwner,
@@ -81,6 +82,7 @@ export default function AccountingOwnersPage() {
   const [activeOnly, setActiveOnly] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<OwnerProfile | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -195,6 +197,12 @@ export default function AccountingOwnersPage() {
                           }}
                           className="text-destructive"
                         >Deactivate</DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteTarget(o.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" /> Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -231,6 +239,18 @@ export default function AccountingOwnersPage() {
           onOpenChange={open => { setModalOpen(open); if (!open) setEditing(null); }}
           editing={editing}
           onSave={handleSave}
+        />
+
+        <DeleteRecordDialog
+          open={!!deleteTarget}
+          onOpenChange={(o) => !o && setDeleteTarget(null)}
+          onConfirm={() => {
+            if (deleteTarget) {
+              setOwners(prev => prev.filter(o => o.id !== deleteTarget));
+              setDeleteTarget(null);
+              toast.success('Deleted successfully');
+            }
+          }}
         />
       </div>
     </AppLayout>
