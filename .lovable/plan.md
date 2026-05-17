@@ -1,68 +1,54 @@
+## Goal
 
-# Migrate coaStore to Supabase (hybrid, zero-breakage)
+Migrate `accountingEntitiesStore` then `accountingMastersStore` to Supabase using the same hybrid optimistic-cache + background sync pattern as `coaStore`. No page/component edits — public API signatures stay identical (`useEntities`, `getEntities`, `addEntity`, `updateEntity`, `deleteEntity`, `useMaster`, `getMaster`, `masterLabel`, `addMasterItem`, `removeMasterItem`).
 
-## Strategy: keep sync API, hydrate from Supabase in background
+## Order
 
-Rewriting `useAccounts()` to async React Query would force changes in 14 consumer files (pages, dialogs, helpers, even another store) and risks breaking working flows. Instead, keep every exported signature identical and add Supabase as the source of truth behind the cache.
+1. `accountingEntitiesStore.ts` only — verify build, report, stop.
+2. After confirmation: `accountingMastersStore.ts` only — verify build, report, stop.
 
-**No page or component file gets edited in this turn.** Only `coaStore.ts` changes.
+---
 
-## File changes (this turn)
+## Step 1 — accountingEntitiesStore
 
-Only `src/accounting/stores/coaStore.ts`.
+Target table: `accounting_entities` (cols: `id uuid`, `name`, `type`, `parent_id`, `country`, `currency`, `fiscal_year_start`, `tax_ids jsonb`, `is_active`, `created_by`).
 
-## Behavior
+Changes inside `accountingEntitiesStore.ts` only:
+- Keep `SEED`, localStorage cache, `useSyncExternalStore` subscribe model unchanged.
+- Add `mapFromDb` / `mapToDb` (snake_case ↔ camelCase, `taxIds` ↔ `tax_ids` jsonb).
+- Add `hydrateFromSupabase()` fired once on module load: SELECT `accounting_entities`, merge by id with local cache (DB rows win), emit. On error: keep local cache, console.warn.
+- `addEntity`: generate uuid via `crypto.randomUUID()` (replacing `e${Date.now()...}`), optimistic insert into local array + emit, then background `supabase.from('accounting_entities').insert({...mapToDb, created_by: auth.uid}).select().single()`. On error: revert + sonner toast.
+- `updateEntity`: optimistic patch + emit, then background `update(mapToDb(patch)).eq('id', id)`. On error: revert + toast.
+- `deleteEntity`: keep current child re-parent logic locally + emit, then background `delete().eq('id', id)` for the deleted row AND `update({ parent_id: newParent }).eq('parent_id', id)` for re-parented children. On error: revert + toast.
+- String-id seed rows (e.g. `e-flc-india`) stay local-only — DB inserts skipped for any id not matching uuid regex (these are seed-only references already used by other stores as `entityId` keys, never written by users).
 
-### Cache
-- Module-level `accounts: CoaAccount[]` cache, same as today.
-- Initial value: localStorage (current behavior) so the UI renders instantly.
-- On module import, kick off an async `fetchFromSupabase()` that replaces the cache and notifies subscribers when it resolves.
-- LocalStorage is still written on every change as a fallback so offline reloads keep working.
+Verify: build passes, `/accounting/settings/entities` still lists seeds, add/edit/delete still works locally, new rows appear in `accounting_entities` table.
 
-### Reads (unchanged signatures)
-- `useAccounts(): CoaAccount[]` — sync, via `useSyncExternalStore` (unchanged).
-- `getAccounts(): CoaAccount[]` — sync, returns cache (unchanged).
-- `getDescendantIds(id)` — unchanged.
+---
 
-### Mutations (unchanged signatures, optimistic + background sync)
-- `addAccount(input)`:
-  1. Run existing client-side `validate()` (unchanged).
-  2. Optimistically push into cache with a temp UUID; emit.
-  3. Fire `supabase.from('accounting_coa').insert(...).select().single()` in background.
-  4. On success: swap temp record for the DB row (real id, timestamps); emit again.
-  5. On error: revert the optimistic insert, console.error, surface via `sonner` toast.
-- `updateAccount(id, input)`:
-  - Same pattern: optimistic update, background `update().eq('id', id)`, revert on failure.
-- `deleteAccount(id)`:
-  - Run `canDeleteAccount(id)` first (txnCount/children guard preserved).
-  - Optimistic remove, background `delete().eq('id', id)`, revert on failure.
-- `toggleAccountStatus(id)`:
-  - Optimistic flip, background `update({is_active: ...})`.
+## Step 2 — accountingMastersStore
 
-Return shapes (`{ ok: true } | { ok: false; error }`) are preserved exactly so call sites in `AccountFormDialog.tsx` and `AccountingCOAPage.tsx` keep compiling.
+Target table: `accounting_masters` (cols: `id uuid`, `list_key`, `code`, `label`, `is_system`, `sort_order`, `metadata jsonb`, `UNIQUE(list_key, code)`).
 
-### Mapping
-- Internal helpers `mapFromDb(row)` and `mapToDb(account)` translate between snake_case DB columns and camelCase TS type.
-- `automation_tags`, `ai_category`, `reporting_group`, `notes`, `is_active`, `reconciliation_enabled`, `requires_approval`, `manual_entries_allowed`, `sub_type_code` columns map back/forth even though current `CoaAccount` type doesn't expose them all yet — extra fields are preserved on round-trip via a private `__raw` stash so we don't lose data when reading & writing back.
+Shape difference: store holds `Record<MasterListKey, MasterItem[]>` keyed by list. DB stores flat rows with `list_key`. Mapping handled inside store.
 
-### Auth handling
-- `created_by` is set to `auth.user.id` if available; otherwise null.
-- If the user isn't an `accounting_users` member, RLS blocks reads — the store falls back to localStorage cache and logs a single console warning. No UI crash.
+Changes inside `accountingMastersStore.ts` only (keep `createPersistedStore` for local cache):
+- Add `hydrateFromSupabase()` on module load: SELECT `accounting_masters`, group by `list_key`, merge with local SEED+cache (DB rows override by `(list_key, code)`), call `store.set(merged)`.
+- `addMasterItem`: keep existing slug + dedupe logic, optimistic `store.set`, then background `insert({ list_key: key, code, label, metadata, is_system: false })`. On error: revert + toast.
+- `removeMasterItem`: keep `system` guard, optimistic remove, then background `delete().eq('list_key', key).eq('code', code)`. On error: revert + toast.
+- Keep legacy `accounting:vendor-categories:v1` migration block as-is.
+- `useMaster` / `getMaster` / `masterLabel` signatures unchanged.
 
-## Phase 2 verification
+Seed items stay local; only user-added items (`is_system: false`) round-trip to DB. Hydration merges DB rows over seeds so deletions/edits of seed-overrides work later.
 
-After the edit:
-- Build must pass (`tsc` runs automatically in the harness).
-- Smoke check: visiting `/accounting/coa` shows the existing seed accounts (from localStorage cache) immediately, then quietly refreshes with whatever is in Supabase (initially empty, so cache wins until first write).
-- Add/Edit/Delete from the COA page should now persist to Supabase.
+Verify: build passes, `/accounting/settings/masters` (or wherever DynamicSelect is used) still shows all seed lists, adding a new currency/tax code persists to `accounting_masters`.
 
-## Out of scope (this turn)
+---
 
-- Other stores (`journalsStore`, `bankAccountsStore`, etc.) — unchanged.
-- Page/component edits — unchanged.
-- One-time `migrateToSupabase.ts` utility — deferred until the user is ready to wire up the Overview "Migrate data" button (recommended after a few stores are done).
-- Realtime subscriptions — not enabled.
+## Out of scope this round
 
-## Stop condition
+- No changes to `journalsStore`, pages, dialogs, or `accountingEntityStore.ts` (singleton wrapper).
+- No realtime, no bulk seed-to-DB migration script.
+- No CRM, no commissions.
 
-After the file edit + build verification, stop and wait for confirmation before moving to `journalsStore`.
+After Step 1 I will report files changed and wait for your go-ahead before Step 2.
