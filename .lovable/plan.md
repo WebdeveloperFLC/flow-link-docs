@@ -1,62 +1,99 @@
-## Add headerless TD Canada Trust auto-detection
 
-Only modify:
-- `src/accounting/lib/extractCardStatement.ts`
-- `src/accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage.tsx`
+# Connect Accounting Module to Supabase
 
-### Problem
-Current `parseStatementCsv` assumes line 1 is a header row. TD Canada Trust exports have no headers and 5 columns: `Date(MM/DD/YYYY), Description, Debit, Credit, Balance`. They currently fall through as UNKNOWN and trigger the manual mapper.
+Migrate the accounting module's localStorage-backed stores to real Supabase tables, one domain at a time. CRM and Commission files will not be touched.
 
-### Changes
+## Scope summary
 
-**1. `extractCardStatement.ts`**
+- 5 SQL migrations (COA, Journals + lines, Bank Accounts, Vendors/AP/AR, Entities + Masters)
+- 8 stores rewritten to call Supabase via React Query
+- All consuming pages updated to handle async data (loading / error states)
+- One-time localStorage → Supabase migration utility surfaced on `AccountingOverviewPage`
+- No new npm packages (React Query already present)
 
-Add a headerless TD detector used before header-based detection:
+## Phase 1 — Database migrations
 
-```ts
-const MDY = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
+Each migration is a separate timestamped file in `supabase/migrations/` so they can be reviewed independently.
 
-function isTdHeaderless(firstRow: string[]): boolean {
-  if (firstRow.length !== 5) return false;
-  const d = firstRow[0]?.trim() ?? "";
-  if (!MDY.test(d) && !ISO.test(d)) return false;
-  // cols 3,4 must be numeric-ish or empty; col 5 numeric (balance)
-  const numOrEmpty = (s: string) => {
-    const v = (s ?? "").replace(/[$,\s()]/g, "");
-    return v === "" || /^-?\d+(\.\d+)?$/.test(v);
-  };
-  return numOrEmpty(firstRow[2]) && numOrEmpty(firstRow[3]) && numOrEmpty(firstRow[4]) && firstRow[4].trim() !== "";
-}
-```
+1. **`accounting_coa`** — chart of accounts with `UNIQUE(code, entity_id)`, self-referencing parent, indexes on code/entity/group.
+2. **`accounting_journals` + `accounting_journal_lines`** — header + lines with `ON DELETE CASCADE`. Includes `generate_journal_number()` trigger producing `JE-YYYY-NNNN`. Indexes on date/entity/status and on lines by journal/account.
+3. **`accounting_bank_accounts`** — full bank metadata, FK to `accounting_coa`, defaults flags.
+4. **`accounting_vendors` + `accounting_ap_bills` + `accounting_ar_invoices`** — AP/AR with FKs and status indexes.
+5. **`accounting_entities` + `accounting_masters`** — self-referencing entities (parent_id), masters with `UNIQUE(list_key, code)`.
 
-In `parseStatementCsv`, before treating line 1 as a header:
-- Split all lines into `string[][]`.
-- If `isTdHeaderless(allRows[0])`, return:
-  - `format: "TD"`,
-  - `formatLabel: "TD Canada Trust format (no headers)"`,
-  - `headers: ["Date","Description","Debit","Credit","Balance"]` (synthetic),
-  - `rows: allRows` (treat every row as data),
-  - `mapping: { dateCol: 0, descCol: 1, debitCol: 2, creditCol: 3, balanceCol: 4 }`,
-  - `parsed: applyCsvMapping(allRows, mapping)`.
+**Security (every table):**
+- `ENABLE ROW LEVEL SECURITY`
+- Policy `accounting_users_all FOR ALL USING (EXISTS … accounting_users WHERE auth_user_id = auth.uid() AND status = 'ACTIVE')`
+  - Note: existing `is_accounting_user()` helper uses `status = 'ACTIVE'` (uppercase). The user's spec uses `'active'`. I will use **`'ACTIVE'`** to match the existing function and seeded data — otherwise no one will be able to read anything. Will flag this in the plan.
+- `journal_lines` policy gates via parent journal access (same EXISTS check works since access is module-wide).
 
-Also extend `normaliseDate`: when a `MM/DD/YYYY` slash format is detected and the headerless TD path is taken, interpret as MM/DD/YYYY. Keep current behavior for the ambiguous header path. Implementation: add an optional `preferMDY` boolean param to `normaliseDate`, threaded through `applyCsvMapping` via an options arg. The TD-headerless branch calls `applyCsvMapping(rows, mapping, { preferMDY: true })`. Default behavior unchanged.
+**Triggers:** Add `updated_at` touch triggers (`public.touch_updated_at` already exists) on every table that has `updated_at`.
 
-Export an additional flag `headerless: boolean` on `CsvParseResult` so the UI can render the auto-detect banner and skip the manual mapper.
+## Phase 2 — Store rewrites
 
-**2. `AccountingCardReconciliationNewPage.tsx`**
+Each store keeps its **exported function names** but becomes async + React-Query backed. Files affected:
 
-Where the parsed CSV result is consumed (mapping confirmation Step 1 UI):
-- If `result.format === "TD" && result.headerless`, render a green banner:
-  > Detected: TD Canada Trust format (no headers) — mapped automatically
-- Skip the manual column re-mapper UI for this case (still show the 5-row preview).
-- Continue straight to the transactions table using `result.parsed`.
+| Store | Table(s) |
+|---|---|
+| `coaStore.ts` | `accounting_coa` |
+| `journalsStore.ts` | `accounting_journals` + `accounting_journal_lines` |
+| `bankAccountsStore.ts` | `accounting_bank_accounts` |
+| `vendorsStore.ts` | `accounting_vendors` |
+| `apBillsStore.ts` | `accounting_ap_bills` |
+| `arInvoicesStore.ts` | `accounting_ar_invoices` |
+| `accountingEntitiesStore.ts` | `accounting_entities` |
+| `accountingMastersStore.ts` | `accounting_masters` |
 
-No other logic changes; downstream signed-amount handling already supports debit/credit columns.
+Pattern per store:
+- `mapFromDb` / `mapToDb` converters between snake_case DB rows and existing camelCase TS types.
+- `getX()` async, returns `[]` on error (console-logged).
+- `addX / updateX / deleteX` async; invalidate the relevant query key after mutation.
+- `useX()` becomes a React-Query hook returning `{ data, isLoading, error }`.
 
-### Out of scope
-CRM, Commission, other files, no new packages.
+**Important breaking-shape considerations:**
+- Today `useAccounts()` etc. return `T[]` synchronously. Switching to `{ data, isLoading }` is a **breaking API change** for every call site. To minimize churn I will:
+  - Provide `useX()` that returns `{ data: T[], isLoading, error }` (new shape).
+  - Update **every** call site in the accounting module that destructures the old array form. List of pages will be enumerated during implementation; expect ~20–30 files.
+- Validation logic currently in stores (e.g. COA `validate()`, bank account `validate()`) is preserved client-side and runs before the Supabase insert. Server-side uniqueness will rely on DB constraints; errors mapped back to `{ ok: false, error }` shape.
+- `deleteBankAccount` / `canDeleteAccount` txn-count checks: `txnCount` field doesn't exist server-side yet. For now, these checks degrade to "always allowed" with a TODO; will be re-implemented after journals are wired and we can count journal lines per account.
 
-### Acceptance
-- A 5-column TD CSV with no header and `MM/DD/YYYY` first column auto-detects, banner shows, mapper is skipped, debits become negative, credits positive, balance ignored.
-- CSVs with header rows continue to use the existing detection path unchanged.
+## Phase 3 — Page updates
+
+Every page that calls `useAccounts/useJournals/useBankAccounts/useVendors/useApBills/useArInvoices/useEntities/useMasters` (or `getX()` synchronously) gets:
+- `isLoading` → skeleton loader (use existing skeleton components where present, otherwise a simple `<Skeleton />` row list)
+- `error` → small inline error block with retry (`refetch()`)
+- Empty results → existing `AccountingEmptyState`
+
+Mutation call sites (Add/Edit/Delete dialogs) become `async` and `await` the store function, then `queryClient.invalidateQueries`. Sonner toasts and `DeleteRecordDialog` flows remain unchanged.
+
+## Phase 4 — One-time data migration
+
+New file `src/accounting/lib/migrateToSupabase.ts`:
+- Reads each known localStorage key (`accounting:coa-accounts:v5`, `accounting:journals:v3`, `accounting:bank-accounts:v3`, `accounting:vendors:v3`, `accounting:ap-bills:v3`, `accounting:ar-invoices:v3`, `accounting:entities:v3`, `accounting:masters:v?`).
+- Counts records per domain.
+- `migrateLocalStorageToSupabase()` inserts in dependency order: entities → masters → COA → bank accounts → vendors → journals (+ lines) → AP bills → AR invoices.
+- Uses upserts on natural keys (`code` for COA, `journal_number`, `bill_number`, `invoice_number`) so re-runs are idempotent.
+- On success: removes the migrated localStorage keys, returns `{ migrated, errors[] }`.
+
+UI hook in `AccountingOverviewPage.tsx` "Developer & Testing Tools" section:
+- "Scan local data" → shows per-domain counts.
+- "Migrate N records to cloud" button → runs migration, shows progress + success toast, then clears local keys.
+- Hidden once no local data is detected.
+
+## Open items / decisions
+
+1. **`accounting_users.status` casing** — existing helper uses `'ACTIVE'`; the spec text says `'active'`. I'll use `'ACTIVE'` so policies actually match existing rows. Confirm if you'd rather lowercase the seed data instead.
+2. **`profiles(id)` FK on `created_by`** — `profiles` table exists per existing functions, so this is fine.
+3. **Auth requirement** — accounting routes are already gated by `AccountingProtectedRoute`; assuming user is always authenticated when these stores run. No anonymous fallback.
+4. **Realtime** — not enabled in this pass. Can be added later per table if needed.
+5. **`accountingMastersStore`** — I'll inspect the current localStorage shape during implementation to map fields correctly; structure shown in plan is the target schema.
+
+## Deliverables checklist
+
+- [ ] 5 migration files in `supabase/migrations/`
+- [ ] 8 stores rewritten (signatures preserved where possible, return shape becomes async)
+- [ ] All accounting pages updated for `isLoading` / `error`
+- [ ] `migrateToSupabase.ts` utility + Overview page button
+- [ ] RLS enabled + verified on all 9 new tables
+- [ ] No CRM or Commission file touched
+- [ ] No new npm packages
