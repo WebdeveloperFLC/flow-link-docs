@@ -1,72 +1,62 @@
-## Fix bank/card account dropdown in Statement Reconciliation
+## Add headerless TD Canada Trust auto-detection
 
-Only modify `src/accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage.tsx`. `coaStore.ts` does not need changes — accounts already expose `groupCode`, `typeCode`, and `name`.
+Only modify:
+- `src/accounting/lib/extractCardStatement.ts`
+- `src/accounting/pages/card-reconciliation/AccountingCardReconciliationNewPage.tsx`
 
-### Current bug
-Line 176 uses `accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE")` for `liabAccts`, and the Step 1 dropdown (line 471) renders `liabAccts`. This surfaces inter-company "Due to …" liability accounts (2600–2605) and excludes the actual TD bank asset accounts (e.g. 1206 "TD BANK – CAD OPERATING").
+### Problem
+Current `parseStatementCsv` assumes line 1 is a header row. TD Canada Trust exports have no headers and 5 columns: `Date(MM/DD/YYYY), Description, Debit, Credit, Balance`. They currently fall through as UNKNOWN and trigger the manual mapper.
 
 ### Changes
 
-1. Add a new memoized filter `bankAndCardAccounts` next to `liabAccts`:
+**1. `extractCardStatement.ts`**
 
-   ```ts
-   const bankAndCardAccounts = useMemo(() => accounts.filter((account) => {
-     if (account.status !== "ACTIVE") return false;
-     const group = (account.groupCode || (account as any).group || "").toUpperCase();
-     const type  = (account.typeCode  || (account as any).type  || "").toUpperCase();
-     const name  = (account.name || "").toUpperCase();
-     const tags: string[] = (account as any).automationTags || [];
+Add a headerless TD detector used before header-based detection:
 
-     const isBank =
-       (group === "ASSET" || group === "ASSETS") && (
-         type.includes("BANK") || type.includes("CASH") || type.includes("CURRENT") ||
-         name.includes("BANK") || name.includes("TD") || name.includes("RBC") ||
-         name.includes("HDFC") || name.includes("ICICI") || name.includes("SBI") ||
-         name.includes("FCNR") || tags.includes("bank")
-       );
+```ts
+const MDY = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
 
-     const isCreditCard =
-       (group === "LIABILITY" || group === "LIABILITIES") && (
-         type.includes("CREDIT_CARD") || type.includes("CREDIT CARD") ||
-         name.includes("CARD") || name.includes("AMEX") ||
-         name.includes("VISA") || name.includes("MASTERCARD") ||
-         tags.includes("credit_card")
-       );
+function isTdHeaderless(firstRow: string[]): boolean {
+  if (firstRow.length !== 5) return false;
+  const d = firstRow[0]?.trim() ?? "";
+  if (!MDY.test(d) && !ISO.test(d)) return false;
+  // cols 3,4 must be numeric-ish or empty; col 5 numeric (balance)
+  const numOrEmpty = (s: string) => {
+    const v = (s ?? "").replace(/[$,\s()]/g, "");
+    return v === "" || /^-?\d+(\.\d+)?$/.test(v);
+  };
+  return numOrEmpty(firstRow[2]) && numOrEmpty(firstRow[3]) && numOrEmpty(firstRow[4]) && firstRow[4].trim() !== "";
+}
+```
 
-     const isIntercompany =
-       tags.includes("intercompany") ||
-       name.includes("DUE TO") || name.includes("DUE FROM");
+In `parseStatementCsv`, before treating line 1 as a header:
+- Split all lines into `string[][]`.
+- If `isTdHeaderless(allRows[0])`, return:
+  - `format: "TD"`,
+  - `formatLabel: "TD Canada Trust format (no headers)"`,
+  - `headers: ["Date","Description","Debit","Credit","Balance"]` (synthetic),
+  - `rows: allRows` (treat every row as data),
+  - `mapping: { dateCol: 0, descCol: 1, debitCol: 2, creditCol: 3, balanceCol: 4 }`,
+  - `parsed: applyCsvMapping(allRows, mapping)`.
 
-     return (isBank || isCreditCard) && !isIntercompany;
-   }), [accounts]);
-   ```
+Also extend `normaliseDate`: when a `MM/DD/YYYY` slash format is detected and the headerless TD path is taken, interpret as MM/DD/YYYY. Keep current behavior for the ambiguous header path. Implementation: add an optional `preferMDY` boolean param to `normaliseDate`, threaded through `applyCsvMapping` via an options arg. The TD-headerless branch calls `applyCsvMapping(rows, mapping, { preferMDY: true })`. Default behavior unchanged.
 
-   Note: project's CoA uses singular `ASSET` / `LIABILITY` group codes, but the filter accepts both singular and plural forms per the spec so it also works if `account.group` is ever populated.
+Export an additional flag `headerless: boolean` on `CsvParseResult` so the UI can render the auto-detect banner and skip the manual mapper.
 
-2. Replace dropdown content (line 471) to render `bankAndCardAccounts` instead of `liabAccts`. Update placeholder to "Select bank or card account…".
+**2. `AccountingCardReconciliationNewPage.tsx`**
 
-3. Below the Select, when `bankAndCardAccounts.length === 0`, render an inline empty-state:
+Where the parsed CSV result is consumed (mapping confirmation Step 1 UI):
+- If `result.format === "TD" && result.headerless`, render a green banner:
+  > Detected: TD Canada Trust format (no headers) — mapped automatically
+- Skip the manual column re-mapper UI for this case (still show the 5-row preview).
+- Continue straight to the transactions table using `result.parsed`.
 
-   ```tsx
-   {bankAndCardAccounts.length === 0 && (
-     <div className="mt-2 rounded-md border border-dashed border-muted-foreground/30 bg-muted/30 p-3 text-[13px] text-muted-foreground">
-       No bank or card accounts found in Chart of Accounts.
-       Go to Chart of Accounts → New account and add your bank account first.
-       <div className="mt-2">
-         <Button size="sm" variant="outline" onClick={() => navigate("/accounting/coa")}>
-           Add bank account to COA →
-         </Button>
-       </div>
-     </div>
-   )}
-   ```
-
-4. Leave `liabAccts` in place (still used elsewhere if referenced) — only the Step 1 dropdown switches to `bankAndCardAccounts`. All journal posting logic, downstream steps, and CSV parser untouched.
+No other logic changes; downstream signed-amount handling already supports debit/credit columns.
 
 ### Out of scope
-CRM, Commission, other accounting pages, `coaStore.ts`, no new packages.
+CRM, Commission, other files, no new packages.
 
 ### Acceptance
-- Step 1 "Card account" dropdown lists asset bank accounts (incl. 1206 TD BANK – CAD OPERATING) and any credit-card liabilities.
-- Inter-company 2600–2605 "Due to …" accounts no longer appear.
-- Empty CoA shows the helpful message + "Add bank account to COA →" button linking to `/accounting/coa`.
+- A 5-column TD CSV with no header and `MM/DD/YYYY` first column auto-detects, banner shows, mapper is skipped, debits become negative, credits positive, balance ignored.
+- CSVs with header rows continue to use the existing detection path unchanged.
