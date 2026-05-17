@@ -642,7 +642,12 @@ export default function AccountingCardReconciliationNewPage() {
                                   value={String(csvMapping[r.key] ?? "")}
                                   onValueChange={(v) => {
                                     const n = Number(v);
-                                    setCsvMapping({ ...csvMapping, [r.key]: !v || n < 0 ? undefined : n });
+                                    const next: any = { ...csvMapping };
+                                    if (!v || n < 0) {
+                                      if (r.key === "dateCol" || r.key === "descCol") next[r.key] = -1;
+                                      else next[r.key] = undefined;
+                                    } else next[r.key] = n;
+                                    setCsvMapping(next);
                                   }}
                                 >
                                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="— none —" /></SelectTrigger>
