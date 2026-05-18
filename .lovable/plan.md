@@ -1,78 +1,82 @@
+# Fix: admin sees 0 bills and "No accounts found" in Create Journal
 
-# Phase 2.1 — Commission Module Cleanup (revised, ready to execute)
+## Root cause
 
-Scope unchanged. `BRIDGE_ENABLED` stays false; `clientIntegrationBridge.ts` untouched; no new tables; `commissionEngine.ts` untouched; accounting untouched.
+It's not RLS or missing permissions. Confirmed via DB:
+- `accounting_ap_bills` has 2 rows (Shree Ram Enterprise, EONS Immigration).
+- Admin Santosh (`19a39fcc-…`) exists in `accounting_users` as `SUPER_ADMIN / ACTIVE`, so `is_accounting_user(auth.uid())` would return true.
+- Balveer (`417404c4-…`) is `ACCOUNTANT / ACTIVE`.
 
-## Task 1 — RLS SELECT policies
+Network trace from the admin's session shows the problem: the `GET /rest/v1/accounting_ap_bills` request goes out with **only the anon `apikey`** and no user `Authorization` Bearer header, while the `accounting_users` request a few seconds later carries the proper user JWT.
 
-New migration:
+Reason: every accounting store does this at module-import time:
 
-```sql
-CREATE POLICY commission_admin_select_upi_commission_students
-  ON public.upi_commission_students
-  FOR SELECT TO authenticated
-  USING (public.is_commission_admin(auth.uid()));
-
-CREATE POLICY commission_admin_select_upi_commission_invoices
-  ON public.upi_commission_invoices
-  FOR SELECT TO authenticated
-  USING (public.is_commission_admin(auth.uid()));
+```ts
+if (typeof window !== "undefined") void hydrateFromSupabase();
 ```
 
-## Task 2 — Real repos in `src/institutions/repositories/index.ts`
+Module import happens before `supabase-js` has finished restoring the session from `localStorage` and attaching the user's access token to outgoing requests. PostgREST therefore treats the request as anon, `auth.uid()` is `null`, `is_accounting_user(null)` is `false`, and RLS returns `[]`. The local store overwrites whatever was cached, so the UI shows zero.
 
-- `studentsRepo.list(institutionId, claimCycleId?)` → `upi_commission_students` filtered by `institution_id` and optional `claim_cycle_id`.
-- `paymentsRepo.list(institutionId?)` → derived from `upi_commission_invoices` where `payment_received_date IS NOT NULL`, projected to `{ id, invoice_id, amount, currency, paid_at, method, reference }`. No dedicated payments table exists in the schema.
+This affects 9 stores — all eager-hydrating at import:
+`apBillsStore`, `arInvoicesStore`, `journalsStore`, `coaStore`, `vendorsStore`, `clientsStore`, `accountingEntitiesStore`, `bankAccountsStore`, `accountingMastersStore`.
 
-Both use the existing `fetchLiveScoped` error-swallowing pattern.
+That's why:
+- Admin "sees 0 of 0 bills" even though Balveer's 2 bills exist.
+- The Create-Journal account picker says "No accounts found" — the same race emptied `coaStore` (the 1 COA row in DB is gone from local state).
+- Whether it appears for a given user is a coin flip based on how fast the session is restored from `localStorage` on that machine.
 
-## Task 3 — Delete dead code from `claimEngine.ts`
+## Fix
 
-- Remove `import { MockStudent }`, `interface CycleEligibility`, `const BLOCKED`, and `classifyForCycle`.
-- Keep `detectRuleConflicts` + `RuleConflict` untouched (used by `CommissionsPanel.tsx`).
-- Prepend header comment recording the live-vocabulary mapping (eligible/paid/blocked/carried/pending) and noting that legacy mock-only statuses `pending_dues`, `missing_consent`, `withdrawn`, `deferred` are dropped.
-- Add (export) `CommissionStudent` type alias in `src/institutions/types/upi.ts` from `Database['public']['Tables']['upi_commission_students']['Row']` for Phase 2.2.
-- Run `rg -n classifyForCycle src` after the edit; report results.
+Gate every store's first hydrate on the auth session being ready, and re-hydrate when the user signs in.
 
-## Task 4 — `/commissions` route
+### 1. New helper `src/accounting/stores/_hydrationGate.ts`
 
-**Decision 1 (redirect pattern):** match `InstitutionsProtectedRoute` — render an "Access restricted" `Card` inside `AppLayout` rather than redirect. `AccountingProtectedRoute`'s redirect+toast pattern is older and less informative for top-level modules.
+```ts
+import { supabase } from "@/integrations/supabase/client";
 
-**Decision 2 (flag derivation):** fix drift in `AuthContext`. Add `isAccountingAdmin` derived from `accounting_users.role IN ('SUPER_ADMIN','FINANCE_ADMIN') AND status='ACTIVE'`, then redefine `isCommissionAdmin = roles.includes('commission_admin') || isAccountingAdmin`. Use this single flag for both the route guard and sidebar entry. Bootstrap-mode (no SUPER/FINANCE admin exists) is not mirrored client-side — documented as a known minor gap (one-time setup friction).
+export function runWhenAuthReady(fn: () => void | Promise<void>) {
+  if (typeof window === "undefined") return;
 
-New files:
-- `src/institutions/components/CommissionsProtectedRoute.tsx` — mirrors `InstitutionsProtectedRoute`, gates on `isCommissionAdmin`.
-- `src/pages/CommissionsPage.tsx` — two cards:
-  - Claim cycles table (joins `upi_claim_cycles` to `upi_institutions` by `institution_id` for the display name; column `institution_name` does not exist).
-  - Invoices grouped by `upi_commission_invoices.status`.
+  // First load: wait for session restore from localStorage, then run.
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) void fn();
+  });
 
-Edits:
-- `src/contexts/AuthContext.tsx` — refine flag derivation per Decision 2 above. `loadRoles` already queries `accounting_users` for status; extend its select to include `role` and set `isAccountingAdmin` state. Keep `isAccountingMember` unchanged (used elsewhere).
-- `src/App.tsx` — register `/commissions` route.
-- `src/components/layout/AppLayout.tsx` — add a small `commissionsNav` (single entry, `Receipt` icon already imported) rendered above the Institutions block, gated on `isCommissionAdmin`.
-
-## Files touched
-
-```text
-new   supabase/migrations/<ts>_commission_admin_select_policies.sql
-edit  src/institutions/repositories/index.ts
-edit  src/institutions/lib/claimEngine.ts
-edit  src/institutions/types/upi.ts
-edit  src/contexts/AuthContext.tsx
-new   src/institutions/components/CommissionsProtectedRoute.tsx
-new   src/pages/CommissionsPage.tsx
-edit  src/App.tsx
-edit  src/components/layout/AppLayout.tsx
+  // Re-run on sign-in (covers logout→login without page reload).
+  supabase.auth.onAuthStateChange((event, session) => {
+    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
+      void fn();
+    }
+  });
+}
 ```
 
-## Final reply will include
+### 2. Update the 9 stores
 
-1. Files created/modified
-2. Migration filename
-3. `paymentsRepo` approach + rationale
-4. MockStudent statuses with no live equivalent (dropped + noted)
-5. Confirmation `BRIDGE_ENABLED` still false, `clientIntegrationBridge.ts` untouched
-6. `rg classifyForCycle src` results
-7. Which redirect pattern was matched (Institutions-style Access Restricted card) and why
-8. AuthContext flag drift summary + the fix applied
-9. Out-of-scope oddities noticed
+In each file, replace the eager call:
+
+```ts
+if (typeof window !== "undefined") void hydrateFromSupabase();
+```
+
+with:
+
+```ts
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
+```
+
+For `coaStore` (which has a `hydrated` boolean guard), reset that guard before re-hydrate so the post-login re-run actually fetches, or change the guard to "in-flight" rather than "ever-ran".
+
+### Out of scope
+
+- No DB / RLS changes — current policies are correct.
+- No change to `useAccountingAccess` — admin already passes.
+- No change to mock-data fallback behavior.
+
+## Verification
+
+1. Hard-reload `/accounting/ap` as Santosh: the 2 bills appear; aging shows CA$5,884.25 in Current.
+2. Open `003/26-27` → "Create journal": the account search returns the 1 seeded COA row instead of "No accounts found".
+3. Log out → log back in as Balveer in the same tab: bills/COA still load (covers the `onAuthStateChange` path).
+4. Confirm network trace: `GET /rest/v1/accounting_ap_bills` now carries the user JWT in `Authorization`.

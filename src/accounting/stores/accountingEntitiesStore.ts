@@ -220,7 +220,8 @@ async function hydrateFromSupabase() {
     console.warn("[entitiesStore] Supabase hydration error:", e);
   }
 }
-void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 async function getUserId(): Promise<string | null> {
   try {

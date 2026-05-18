@@ -129,7 +129,8 @@ async function hydrateFromSupabase() {
     console.warn("[bankAccountsStore] hydrate failed, using local cache", e);
   }
 }
-if (typeof window !== "undefined") void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 export interface ValidationError { field: string; message: string }
 

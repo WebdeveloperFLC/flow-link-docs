@@ -94,11 +94,9 @@ function mapToDb(a: CoaAccount | CoaAccountInput) {
   } as const;
 }
 
-let hydrated = false;
 let rlsBlockedLogged = false;
 async function hydrateFromSupabase() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
+  if (typeof window === "undefined") return;
   try {
     const { data, error } = await supabase
       .from("accounting_coa")
@@ -120,8 +118,8 @@ async function hydrateFromSupabase() {
     console.warn("[coaStore] Supabase hydration error:", e);
   }
 }
-// Fire-and-forget hydration on module load.
-void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 async function getUserId(): Promise<string | null> {
   try {
