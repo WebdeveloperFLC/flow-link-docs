@@ -11,12 +11,14 @@ import { toast } from "sonner";
 import {
   AlertTriangle, CalendarClock, ChevronDown, FileText, Printer, Send,
   ArrowRightCircle, Eye, CheckCircle2, Ban, Clock, FilePlus2,
-  Download, FileDown, Link2,
+  Download, FileDown, Link2, Calculator,
 } from "lucide-react";
 import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
 import {
   FLC_AGENCY, buildClaimCsv, downloadCsv, filenameForClaim, printWithRoot,
 } from "../lib/claimsExport";
+import { simulateCommission, type RuleLike } from "../lib/commissionEngine";
+import type { CommissionStudent } from "../types/upi";
 
 // ---------- types ----------
 interface Student {
@@ -48,6 +50,7 @@ interface Student {
   commission_status: string;
   commission_amount: number | null;
   commission_rate_applied: number | null;
+  commission_calculated_date: string | null;
   commission_paid_date: string | null;
   block_reason: string | null;
   block_notes: string | null;
@@ -160,6 +163,116 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
     setLoading(false);
   };
   useEffect(() => { loadAll(); }, [institutionId]);
+
+  // ---------- recalculation ----------
+  const FROZEN_STATUSES = new Set(["paid", "blocked", "carried_forward"]);
+
+  async function fetchActiveCommissionAndRules() {
+    const { data: commissions, error: cErr } = await supabase
+      .from("upi_commissions")
+      .select("*")
+      .eq("institution_id", institutionId)
+      .eq("is_active", true)
+      .limit(1);
+    if (cErr) throw cErr;
+    const commission = commissions?.[0];
+    if (!commission) throw new Error("No active commission configured for this institution");
+    const { data: rules, error: rErr } = await supabase
+      .from("upi_commission_rules")
+      .select("*")
+      .eq("commission_id", commission.id);
+    if (rErr) throw rErr;
+    const { data: inst } = await supabase
+      .from("upi_institutions")
+      .select("country_name")
+      .eq("id", institutionId)
+      .maybeSingle();
+    return { commission, rules: (rules ?? []) as unknown as RuleLike[], institutionCountry: inst?.country_name ?? null };
+  }
+
+  async function recalcOne(
+    s: CommissionStudent | Student,
+    ctx: { commission: any; rules: RuleLike[]; institutionCountry: string | null },
+    opts: { silent?: boolean } = {},
+  ): Promise<{ ok: boolean; amount: number; currency: string }> {
+    if (FROZEN_STATUSES.has(s.commission_status)) return { ok: false, amount: 0, currency: "CAD" };
+    if (s.tuition_amount == null) {
+      if (!opts.silent) toast.warning(`Skipped ${s.student_name} — no tuition amount recorded`);
+      return { ok: false, amount: 0, currency: "CAD" };
+    }
+    const meta: any = ctx.commission.metadata ?? {};
+    const base = {
+      base_rate_percent: ctx.commission.base_rate_percent ?? meta.base_rate_percent ?? 0,
+      currency: ctx.commission.currency ?? "CAD",
+    };
+    const breakdown = simulateCommission(base, ctx.rules, {
+      tuition: Number(s.tuition_amount) || 0,
+      currency: base.currency,
+      country: (s as any).country_of_origin ?? ctx.institutionCountry ?? undefined,
+      intake: s.intake_term ?? undefined,
+      program_level: s.program_level ?? undefined,
+      student_count: 1,
+    });
+    const nowIso = new Date().toISOString();
+    const { error } = await supabase
+      .from("upi_commission_students")
+      .update({
+        commission_amount: breakdown.total,
+        commission_rate_applied: base.base_rate_percent,
+        commission_calculated_date: nowIso,
+      } as any)
+      .eq("id", s.id);
+    if (error) {
+      if (!opts.silent) toast.error(error.message);
+      return { ok: false, amount: 0, currency: breakdown.currency };
+    }
+    setStudents((prev) => prev.map((row) => row.id === s.id ? {
+      ...row,
+      commission_amount: breakdown.total,
+      commission_rate_applied: base.base_rate_percent,
+      commission_calculated_date: nowIso,
+    } : row));
+    return { ok: true, amount: breakdown.total, currency: breakdown.currency };
+  }
+
+  const [recalcBusy, setRecalcBusy] = useState<string | null>(null);
+
+  const recalcStudent = async (s: Student) => {
+    if (FROZEN_STATUSES.has(s.commission_status)) return;
+    try {
+      setRecalcBusy(s.id);
+      const ctx = await fetchActiveCommissionAndRules();
+      const res = await recalcOne(s as CommissionStudent, ctx);
+      if (res.ok) toast.success(`Commission recalculated: ${res.currency} ${res.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Recalculation failed");
+    } finally {
+      setRecalcBusy(null);
+    }
+  };
+
+  const recalcCycle = async (cycleId: string) => {
+    const list = (byCycle.get(cycleId) ?? []).filter((r) => !FROZEN_STATUSES.has(r.commission_status));
+    if (list.length === 0) return toast.info("Nothing to recalculate in this cycle");
+    try {
+      setRecalcBusy(cycleId);
+      const ctx = await fetchActiveCommissionAndRules();
+      const t = toast.loading(`Recalculating ${list.length} students...`);
+      let count = 0;
+      let sum = 0;
+      let currency = ctx.commission.currency ?? "CAD";
+      for (const s of list) {
+        const res = await recalcOne(s as CommissionStudent, ctx);
+        if (res.ok) { count += 1; sum += res.amount; currency = res.currency; }
+      }
+      toast.dismiss(t);
+      toast.success(`Recalculated ${count} students. Total: ${currency} ${sum.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Recalculation failed");
+    } finally {
+      setRecalcBusy(null);
+    }
+  };
 
   const byCycle = useMemo(() => {
     const m = new Map<string, Student[]>();
@@ -364,6 +477,24 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                         <Send className="size-4 mr-1" /> Submit Claim
                       </Button>
                     )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={c.status !== "draft" || recalcBusy === c.id}
+                            onClick={() => recalcCycle(c.id)}
+                          >
+                            <Calculator className="size-4 mr-1" />
+                            {recalcBusy === c.id ? "Recalculating…" : "Recalculate All"}
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {c.status !== "draft" && (
+                        <TooltipContent>Amounts are frozen once a cycle is submitted</TooltipContent>
+                      )}
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -400,7 +531,14 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                               </TableCell>
                               <TableCell className="text-sm">{s.intake_term ?? "—"}</TableCell>
                               <TableCell className="text-right text-sm">{fmt(s.tuition_paid_amount ?? s.tuition_amount)}</TableCell>
-                              <TableCell className="text-right text-sm font-medium">{fmt(s.commission_amount)}</TableCell>
+                              <TableCell className="text-right text-sm font-medium">
+                                <div>{fmt(s.commission_amount)}</div>
+                                <div className="text-[10px] text-muted-foreground font-normal">
+                                  {s.commission_calculated_date
+                                    ? `Calculated ${new Date(s.commission_calculated_date).toLocaleDateString()}`
+                                    : "Not yet calculated"}
+                                </div>
+                              </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${sb.cls}`}>{sb.label}</span>
@@ -420,6 +558,17 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-1">
                                   <Button size="sm" variant="ghost" onClick={() => setViewStudent(s)}><Eye className="size-3.5" /></Button>
+                                  {(s.commission_status === "eligible" || s.commission_status === "pending") && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      disabled={recalcBusy === s.id}
+                                      onClick={() => recalcStudent(s)}
+                                      title="Recalculate commission"
+                                    >
+                                      <Calculator className="size-3.5" />
+                                    </Button>
+                                  )}
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <span>

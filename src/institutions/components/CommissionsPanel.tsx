@@ -91,6 +91,20 @@ export function CommissionsPanel({ institutionId }: { institutionId: string }) {
 
             <div className="border rounded p-3">
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Commission simulator</div>
+              {(() => {
+                const unconditionalBase = cRules.filter(
+                  (r: any) => r.rule_type === "base" && (r.condition_field == null || r.condition_field === ""),
+                );
+                if (unconditionalBase.length === 0) return null;
+                return (
+                  <div className="mb-2 flex items-start gap-2 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    <AlertTriangle className="size-4 mt-0.5 shrink-0" />
+                    <div>
+                      <strong>Warning:</strong> {unconditionalBase.length} base rule(s) have no conditions set and will apply to ALL students regardless of program, country, or intake. Review rules before running Recalculate All.
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2">
                 <LabelInput label="Tuition" value={sim.tuition} onChange={(v) => setSim({ ...sim, tuition: Number(v) || 0 })} />
                 <LabelInput label="Country" value={sim.country} onChange={(v) => setSim({ ...sim, country: v })} />
