@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { create } from "zustand";
+import { useEffect, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import type { AccountingRole } from "../types/accountingUsers";
@@ -8,82 +7,91 @@ import { acctEmptyMap, AcctPermissionMap, ACCT_MODULES } from "../lib/accounting
 export type AcctSectionKey = string;
 export type AcctLevel = "view" | "edit" | "delete";
 
-interface PermState {
+interface PermStateData {
   loading: boolean;
   loaded: boolean;
   accountingUserId: string | null;
   role: AccountingRole | null;
   isAdmin: boolean;
   map: AcctPermissionMap;
-  load: (authUserId: string) => Promise<void>;
-  reset: () => void;
 }
 
 function isAdminRole(role: AccountingRole | null) {
   return role === "SUPER_ADMIN" || role === "FINANCE_ADMIN";
 }
 
-export const useAccountingPermissionsStore = create<PermState>((set, get) => ({
+let state: PermStateData = {
   loading: false,
   loaded: false,
   accountingUserId: null,
   role: null,
   isAdmin: false,
   map: acctEmptyMap(),
-  reset: () =>
-    set({ loading: false, loaded: false, accountingUserId: null, role: null, isAdmin: false, map: acctEmptyMap() }),
-  load: async (authUserId: string) => {
-    if (get().loading) return;
-    set({ loading: true });
-    try {
-      const { data: rows } = await supabase
-        .from("accounting_users" as any)
-        .select("id, role, status")
-        .eq("auth_user_id", authUserId)
-        .limit(1);
-      const row: any = rows?.[0];
-      if (!row || row.status !== "ACTIVE") {
-        set({ loading: false, loaded: true, accountingUserId: null, role: null, isAdmin: false, map: acctEmptyMap() });
-        return;
-      }
-      const role = row.role as AccountingRole;
-      const admin = isAdminRole(role);
-      const map = acctEmptyMap();
-      if (admin) {
-        for (const m of ACCT_MODULES) map[m.key] = { view: true, edit: true, delete: true };
-        set({ loading: false, loaded: true, accountingUserId: row.id, role, isAdmin: true, map });
-        return;
-      }
-      const { data: perms } = await supabase
-        .from("accounting_user_module_permissions" as any)
-        .select("module, can_view, can_edit, can_delete")
-        .eq("accounting_user_id", row.id);
-      for (const p of (perms ?? []) as any[]) {
-        if (!map[p.module]) continue;
-        map[p.module] = { view: !!p.can_view, edit: !!p.can_edit, delete: !!p.can_delete };
-      }
-      set({ loading: false, loaded: true, accountingUserId: row.id, role, isAdmin: false, map });
-    } catch {
-      set({ loading: false, loaded: true });
+};
+const listeners = new Set<() => void>();
+function setState(patch: Partial<PermStateData>) {
+  state = { ...state, ...patch };
+  listeners.forEach((l) => l());
+}
+function subscribe(l: () => void) { listeners.add(l); return () => { listeners.delete(l); }; }
+function getSnapshot() { return state; }
+
+async function loadPermissions(authUserId: string) {
+  if (state.loading) return;
+  setState({ loading: true });
+  try {
+    const { data: rows } = await supabase
+      .from("accounting_users" as any)
+      .select("id, role, status")
+      .eq("auth_user_id", authUserId)
+      .limit(1);
+    const row: any = rows?.[0];
+    if (!row || row.status !== "ACTIVE") {
+      setState({ loading: false, loaded: true, accountingUserId: null, role: null, isAdmin: false, map: acctEmptyMap() });
+      return;
     }
-  },
-}));
+    const role = row.role as AccountingRole;
+    const admin = isAdminRole(role);
+    const map = acctEmptyMap();
+    if (admin) {
+      for (const m of ACCT_MODULES) map[m.key] = { view: true, edit: true, delete: true };
+      setState({ loading: false, loaded: true, accountingUserId: row.id, role, isAdmin: true, map });
+      return;
+    }
+    const { data: perms } = await supabase
+      .from("accounting_user_module_permissions" as any)
+      .select("module, can_view, can_edit, can_delete")
+      .eq("accounting_user_id", row.id);
+    for (const p of (perms ?? []) as any[]) {
+      if (!map[p.module]) continue;
+      map[p.module] = { view: !!p.can_view, edit: !!p.can_edit, delete: !!p.can_delete };
+    }
+    setState({ loading: false, loaded: true, accountingUserId: row.id, role, isAdmin: false, map });
+  } catch {
+    setState({ loading: false, loaded: true });
+  }
+}
+function resetPermissions() {
+  setState({ loading: false, loaded: false, accountingUserId: null, role: null, isAdmin: false, map: acctEmptyMap() });
+}
+
+function useStore() {
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+}
 
 /** Bootstraps permission load; safe to call from any top-level accounting screen. */
 export function useAccountingPermissionsBootstrap() {
   const { user } = useAuth();
-  const load = useAccountingPermissionsStore((s) => s.load);
-  const reset = useAccountingPermissionsStore((s) => s.reset);
-  const loaded = useAccountingPermissionsStore((s) => s.loaded);
+  const s = useStore();
   useEffect(() => {
-    if (!user) { reset(); return; }
-    if (!loaded) load(user.id);
-  }, [user, loaded, load, reset]);
+    if (!user) { resetPermissions(); return; }
+    if (!s.loaded) loadPermissions(user.id);
+  }, [user, s.loaded]);
 }
 
 export function usePermission(section: AcctSectionKey, level: AcctLevel = "view") {
   useAccountingPermissionsBootstrap();
-  const s = useAccountingPermissionsStore();
+  const s = useStore();
   const entry = s.map[section] ?? { view: false, edit: false, delete: false };
   let allowed = false;
   if (s.isAdmin) allowed = true;
@@ -95,7 +103,7 @@ export function usePermission(section: AcctSectionKey, level: AcctLevel = "view"
 
 export function useCan() {
   useAccountingPermissionsBootstrap();
-  const s = useAccountingPermissionsStore();
+  const s = useStore();
   return {
     can: (section: AcctSectionKey, level: AcctLevel = "view") => {
       if (s.isAdmin) return true;
@@ -110,6 +118,6 @@ export function useCan() {
 
 /** Force refresh, e.g. after the admin matrix saves changes. */
 export function refreshAccountingPermissions(authUserId: string) {
-  useAccountingPermissionsStore.setState({ loaded: false });
-  return useAccountingPermissionsStore.getState().load(authUserId);
+  setState({ loaded: false });
+  return loadPermissions(authUserId);
 }
