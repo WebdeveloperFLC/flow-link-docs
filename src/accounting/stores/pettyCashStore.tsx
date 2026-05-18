@@ -349,7 +349,8 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
 
   const deleteVoucher = useCallback((id: string) => {
     setVouchers(prev => prev.filter(v => v.id !== id));
-  }, []);
+    void syncDelete(id);
+  }, [syncDelete]);
 
   const getBranchSummary = useCallback((branchId: string): BranchSummary => {
     const branch = branches.find(b => b.id === branchId)!;
