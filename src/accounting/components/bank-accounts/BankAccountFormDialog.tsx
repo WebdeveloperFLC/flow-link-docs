@@ -179,10 +179,14 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
               </Field>
               <Field
                 label="Sub-entity / division (optional)"
-                hint="Internal org branch (e.g. regional office). Leave blank if the company has no sub-entities."
+                hint={
+                  entityId && branches.length === 0
+                    ? "No sub-entities for this company. Add one in Settings → Entities (set Parent = this company)."
+                    : "Internal org branch (e.g. regional office). Leave blank if the company has no sub-entities."
+                }
               >
                 <Select value={branchId} onValueChange={setBranchId} disabled={!entityId || branches.length === 0}>
-                  <SelectTrigger><SelectValue placeholder={branches.length ? "Select branch" : "No branches"} /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={branches.length ? "Select sub-entity" : "No sub-entities — add in Settings → Entities"} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None —</SelectItem>
                     {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
@@ -205,7 +209,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
               <Field label="Account nickname"><Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="HDFC Operating" /></Field>
               <Field
                 label="Account holder name"
-                hint="Legal name as printed on the bank's records (usually the company's legal name)."
+                hint="Legal name as printed on the bank's records. Usually the company's legal name, but can differ for joint, escrow, DBA, or trust accounts."
               >
                 <Input value={holderName} onChange={(e) => setHolderName(e.target.value)} />
               </Field>
