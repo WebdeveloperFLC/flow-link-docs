@@ -34,6 +34,7 @@ import {
 } from '../../stores/ownersStore';
 import { MOCK_DOCUMENTS } from '../../data/mockDocuments';
 import type { AccountType, FinancialAccount } from '../../types/owners';
+import DirectorsSection from '../../components/owners/DirectorsSection';
 
 const TYPE_PILL: Record<string, string> = {
   CORPORATION: 'bg-blue-100 text-blue-700',
@@ -194,6 +195,9 @@ export default function AccountingOwnerDetailPage() {
         <Tabs defaultValue="accounts">
           <TabsList>
             <TabsTrigger value="accounts">Accounts</TabsTrigger>
+            {owner.category === 'BUSINESS' && (
+              <TabsTrigger value="directors">Directors</TabsTrigger>
+            )}
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -226,6 +230,12 @@ export default function AccountingOwnerDetailPage() {
               );
             })}
           </TabsContent>
+
+          {owner.category === 'BUSINESS' && (
+            <TabsContent value="directors" className="mt-4">
+              <DirectorsSection companyId={owner.id} />
+            </TabsContent>
+          )}
 
           <TabsContent value="documents" className="mt-4">
             {linkedDocs.length === 0 ? (
