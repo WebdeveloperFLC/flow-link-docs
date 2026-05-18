@@ -224,8 +224,9 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
     if (status === "APPROVED" && input.paymentType === "petty_cash") {
       setBranches(prev => prev.map(b => b.id === branch.id ? { ...b, currentBalance: b.currentBalance - input.amount } : b));
     }
+    void syncInsert(voucher);
     return voucher;
-  }, [branches, vouchers.length]);
+  }, [branches, vouchers.length, syncInsert]);
 
   const approveVoucher = useCallback((id: string, _level: ApprovalLevel, by = "Current user") => {
     setVouchers(prev => prev.map(v => {
@@ -236,17 +237,21 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
       if (v.status !== "APPROVED" && v.paymentType === "petty_cash") {
         setBranches(prev2 => prev2.map(b => b.id === v.branchId ? { ...b, currentBalance: b.currentBalance - v.amount } : b));
       }
-      return { ...v, status: newStatus, approvalTrail: trail };
+      const next = { ...v, status: newStatus, approvalTrail: trail };
+      void syncUpdate(next);
+      return next;
     }));
-  }, []);
+  }, [syncUpdate]);
 
   const rejectVoucher = useCallback((id: string, by = "Current user", note?: string) => {
     setVouchers(prev => prev.map(v => {
       if (v.id !== id) return v;
       const trail = v.approvalTrail.map(s => s.status === "pending" ? { ...s, status: "rejected" as const, by, at: new Date().toISOString(), note } : s);
-      return { ...v, status: "REJECTED" as const, approvalTrail: trail };
+      const next = { ...v, status: "REJECTED" as const, approvalTrail: trail };
+      void syncUpdate(next);
+      return next;
     }));
-  }, []);
+  }, [syncUpdate]);
 
   const markReimbursed = useCallback((id: string, by = "Finance — Ritu Khanna") => {
     setVouchers(prev => prev.map(v => {
@@ -256,9 +261,11 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
       if (v.reimbursementMethod === "cash") {
         setBranches(prev2 => prev2.map(b => b.id === v.branchId ? { ...b, currentBalance: b.currentBalance - v.amount } : b));
       }
-      return { ...v, status: "REIMBURSED" as const, approvalTrail: trail };
+      const next = { ...v, status: "REIMBURSED" as const, approvalTrail: trail };
+      void syncUpdate(next);
+      return next;
     }));
-  }, []);
+  }, [syncUpdate]);
 
   const submitVerification = useCallback((branchId: string, actualCash: number, by: string, note?: string) => {
     const branch = branches.find(b => b.id === branchId)!;
