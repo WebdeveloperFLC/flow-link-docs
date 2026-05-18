@@ -7,6 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { BankAccount, BankAccountInput } from "../../types/bankAccounts";
 import { addBankAccount, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
@@ -30,7 +34,6 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
 
   const [country, setCountry] = useState("CA");
   const [entityId, setEntityId] = useState("");
-  const [ownerProfileId, setOwnerProfileId] = useState("");
   const [branchId, setBranchId] = useState<string>(NONE);
   const [coaAccountId, setCoaAccountId] = useState("");
   const [currency, setCurrency] = useState("CAD");
@@ -57,19 +60,22 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   const [isDefaultTax, setIsDefaultTax] = useState(false);
   const [reconciliationEnabled, setReconciliationEnabled] = useState(true);
   const [active, setActive] = useState(true);
+  const [signatoryIds, setSignatoryIds] = useState<string[]>([]);
+  const [sigOpen, setSigOpen] = useState(false);
 
   // Top-level entities (companies); branches are nested children of an entity
   const topEntities = entities.filter((e) => !e.parentId);
   const branches = entities.filter((e) => e.parentId === entityId);
   const ownersList = useOwners();
-  const ownerOptions = ownersList.filter((o) => o.isActive && (!country || o.country === country));
+  const signatoryOptions = ownersList.filter(
+    (o) => o.isActive && o.category === "PERSONAL",
+  );
 
   useEffect(() => {
     if (!open) return;
     if (initial) {
       setCountry(initial.country);
       setEntityId(initial.entityId);
-      setOwnerProfileId(initial.ownerProfileId ?? "");
       setBranchId(initial.branchId ?? NONE);
       setCoaAccountId(initial.coaAccountId);
       setCurrency(initial.currency);
@@ -93,9 +99,9 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setIsDefaultTax(initial.isDefaultTax);
       setReconciliationEnabled(initial.reconciliationEnabled);
       setActive(initial.status === "ACTIVE");
+      setSignatoryIds(initial.authorisedSignatoryIds ?? []);
     } else {
       setCountry("CA"); setEntityId(""); setBranchId(NONE);
-      setOwnerProfileId("");
       setCoaAccountId(""); setCurrency("CAD");
       setBankName(""); setNickname(""); setHolderName(""); setAccountNumber("");
       setIban(""); setSwift(""); setIfsc(""); setRoutingNumber(""); setTransitNumber("");
@@ -103,6 +109,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setRmName(""); setRmEmail(""); setRmPhone("");
       setIsDefaultPayment(false); setIsDefaultPayroll(false); setIsDefaultTax(false);
       setReconciliationEnabled(true); setActive(true);
+      setSignatoryIds([]);
     }
   }, [open, initial]);
 
@@ -119,8 +126,9 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   const submit = () => {
     const input: BankAccountInput = {
       country, entityId, branchId: branchId === NONE ? null : branchId,
-      ownerProfileId,
+      ownerProfileId: initial?.ownerProfileId ?? "",
       coaAccountId, currency,
+      authorisedSignatoryIds: signatoryIds,
       bankName: bankName.trim(), nickname: nickname.trim(),
       holderName: holderName.trim(), accountNumber: accountNumber.trim(),
       iban: iban.trim() || undefined,
@@ -161,7 +169,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
               <Field label="Country">
                 <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
               </Field>
-              <Field label="Entity / company">
+              <Field label="Entity / company" hint="The company that owns this account on the books.">
                 <Select value={entityId} onValueChange={setEntityId}>
                   <SelectTrigger><SelectValue placeholder="Select entity" /></SelectTrigger>
                   <SelectContent>
@@ -169,17 +177,10 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Owner">
-                <Select value={ownerProfileId} onValueChange={setOwnerProfileId}>
-                  <SelectTrigger><SelectValue placeholder={ownerOptions.length ? "Select owner" : "No owners for country"} /></SelectTrigger>
-                  <SelectContent>
-                    {ownerOptions.map((o) => (
-                      <SelectItem key={o.id} value={o.id}>{ownerLabel(o)}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Branch / sub-branch (optional)">
+              <Field
+                label="Sub-entity / division (optional)"
+                hint="Internal org branch (e.g. regional office). Leave blank if the company has no sub-entities."
+              >
                 <Select value={branchId} onValueChange={setBranchId} disabled={!entityId || branches.length === 0}>
                   <SelectTrigger><SelectValue placeholder={branches.length ? "Select branch" : "No branches"} /></SelectTrigger>
                   <SelectContent>
@@ -202,7 +203,12 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
             <div className="grid grid-cols-2 gap-3">
               <Field label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HDFC Bank" /></Field>
               <Field label="Account nickname"><Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="HDFC Operating" /></Field>
-              <Field label="Account holder name"><Input value={holderName} onChange={(e) => setHolderName(e.target.value)} /></Field>
+              <Field
+                label="Account holder name"
+                hint="Legal name as printed on the bank's records (usually the company's legal name)."
+              >
+                <Input value={holderName} onChange={(e) => setHolderName(e.target.value)} />
+              </Field>
               <Field label="Account number"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></Field>
               <Field label="IBAN"><Input value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} placeholder="GB29 NWBK..." /></Field>
               <Field label="SWIFT / BIC"><Input value={swift} onChange={(e) => setSwift(e.target.value.toUpperCase())} placeholder="HDFCINBB" /></Field>
@@ -212,6 +218,20 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
               <Field label="Branch code"><Input value={branchCode} onChange={(e) => setBranchCode(e.target.value)} /></Field>
               <Field label="Bank branch name"><Input value={branchName} onChange={(e) => setBranchName(e.target.value)} /></Field>
               <Field label="Bank branch address"><Input value={branchAddress} onChange={(e) => setBranchAddress(e.target.value)} /></Field>
+            </div>
+            <div className="mt-3">
+              <Field
+                label="Authorised signatories (optional)"
+                hint="Individuals with signing authority on this account (e.g. directors with joint signing). Sourced from personal owner profiles."
+              >
+                <SignatoriesMultiSelect
+                  options={signatoryOptions}
+                  value={signatoryIds}
+                  onChange={setSignatoryIds}
+                  open={sigOpen}
+                  onOpenChange={setSigOpen}
+                />
+              </Field>
             </div>
           </Section>
 
@@ -240,7 +260,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button
             onClick={submit}
-            disabled={!entityId || !ownerProfileId || !coaAccountId || !bankName.trim() || !nickname.trim() || !holderName.trim() || !accountNumber.trim()}
+            disabled={!entityId || !coaAccountId || !bankName.trim() || !nickname.trim() || !holderName.trim() || !accountNumber.trim()}
           >
             {initial ? "Save changes" : "Add bank account"}
           </Button>
@@ -270,11 +290,82 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1.5">
       <Label className="text-[11.5px]">{label}</Label>
       {children}
+      {hint && <div className="text-[11px] text-muted-foreground leading-snug">{hint}</div>}
+    </div>
+  );
+}
+
+function SignatoriesMultiSelect({
+  options, value, onChange, open, onOpenChange,
+}: {
+  options: OwnerProfile[];
+  value: string[];
+  onChange: (v: string[]) => void;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const selected = options.filter((o) => value.includes(o.id));
+  const toggle = (id: string) => {
+    onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
+  };
+  return (
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+            <span className="text-muted-foreground">
+              {selected.length ? `${selected.length} selected` : options.length ? "Select signatories" : "No personal owner profiles available"}
+            </span>
+            <ChevronsUpDown className="ml-2 size-4 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+          <div className="max-h-64 overflow-y-auto py-1">
+            {options.length === 0 ? (
+              <div className="px-3 py-2 text-[12px] text-muted-foreground">
+                Add directors as PERSONAL owner profiles first.
+              </div>
+            ) : (
+              options.map((o) => {
+                const checked = value.includes(o.id);
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => toggle(o.id)}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] hover:bg-accent"
+                  >
+                    <Check className={cn("size-4", checked ? "opacity-100" : "opacity-0")} />
+                    <span className="truncate">{ownerLabel(o)}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {selected.map((o) => (
+            <Badge key={o.id} variant="secondary" className="gap-1 pr-1">
+              <span>{ownerLabel(o)}</span>
+              <button
+                type="button"
+                onClick={() => toggle(o.id)}
+                className="ml-1 rounded-sm hover:bg-muted-foreground/20"
+                aria-label={`Remove ${ownerLabel(o)}`}
+              >
+                <X className="size-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -255,6 +255,7 @@ export type Database = {
         Row: {
           account_holder: string | null
           account_number: string | null
+          authorised_signatory_ids: string[]
           bank_name: string | null
           branch: string | null
           country: string
@@ -285,6 +286,7 @@ export type Database = {
         Insert: {
           account_holder?: string | null
           account_number?: string | null
+          authorised_signatory_ids?: string[]
           bank_name?: string | null
           branch?: string | null
           country: string
@@ -315,6 +317,7 @@ export type Database = {
         Update: {
           account_holder?: string | null
           account_number?: string | null
+          authorised_signatory_ids?: string[]
           bank_name?: string | null
           branch?: string | null
           country?: string

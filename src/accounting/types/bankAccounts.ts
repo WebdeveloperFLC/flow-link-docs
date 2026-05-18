@@ -10,6 +10,8 @@ export interface BankAccount {
   ownerProfileId: string;     // linked owner (business / personal / family-office)
   coaAccountId: string;       // linked COA ledger id
   currency: string;
+  // Authorised signatories — individuals (PERSONAL owner profiles) with signing authority
+  authorisedSignatoryIds?: string[];
   // Bank details
   bankName: string;
   nickname: string;

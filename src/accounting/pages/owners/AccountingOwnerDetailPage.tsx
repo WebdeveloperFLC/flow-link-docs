@@ -86,8 +86,19 @@ function sectionOf(a: FinancialAccount): Section {
 }
 
 const SECTION_LABEL: Record<Section, string> = {
-  BANK: 'Bank accounts', INVESTMENT: 'Investments',
+  BANK: 'Personal bank accounts', INVESTMENT: 'Investments',
   INSURANCE: 'Insurance policies', LIABILITY: 'Loans & liabilities',
+};
+
+const SECTION_SUBTITLE: Partial<Record<Section, string>> = {
+  BANK: 'Tracked privately for net-worth. Not posted to company books.',
+};
+
+const SECTION_ADD_LABEL: Record<Section, string> = {
+  BANK: 'Add personal account',
+  INVESTMENT: 'Add account',
+  INSURANCE: 'Add account',
+  LIABILITY: 'Add account',
 };
 
 export default function AccountingOwnerDetailPage() {
@@ -210,6 +221,8 @@ export default function AccountingOwnerDetailPage() {
                 <SectionBlock
                   key={sec}
                   title={SECTION_LABEL[sec]}
+                  subtitle={SECTION_SUBTITLE[sec]}
+                  addLabel={SECTION_ADD_LABEL[sec]}
                   count={list.length}
                   onAdd={() => openAdd(sec)}
                 >
@@ -326,7 +339,7 @@ export default function AccountingOwnerDetailPage() {
   );
 }
 
-function SectionBlock({ title, count, onAdd, children }: { title: string; count: number; onAdd: () => void; children: React.ReactNode }) {
+function SectionBlock({ title, subtitle, addLabel, count, onAdd, children }: { title: string; subtitle?: string; addLabel?: string; count: number; onAdd: () => void; children: React.ReactNode }) {
   const [open, setOpen] = useState(true);
   return (
     <Card>
@@ -335,11 +348,16 @@ function SectionBlock({ title, count, onAdd, children }: { title: string; count:
           <CollapsibleTrigger asChild>
             <button className="flex items-center gap-2 text-left">
               {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-              <h3 className="font-semibold">{title}</h3>
-              <span className="text-xs text-muted-foreground">({count})</span>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">{title}</h3>
+                  <span className="text-xs text-muted-foreground">({count})</span>
+                </div>
+                {subtitle && <div className="text-[11.5px] text-muted-foreground font-normal">{subtitle}</div>}
+              </div>
             </button>
           </CollapsibleTrigger>
-          <Button variant="ghost" size="sm" onClick={onAdd}><Plus className="size-3.5" /> Add account</Button>
+          <Button variant="ghost" size="sm" onClick={onAdd}><Plus className="size-3.5" /> {addLabel ?? 'Add account'}</Button>
         </div>
         <CollapsibleContent className="px-4 pb-4">{children}</CollapsibleContent>
       </Collapsible>
