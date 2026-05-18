@@ -113,7 +113,7 @@ export default function AccountingConsolidatedPage() {
       ["Expenses", +totals.consolidatedExp.toFixed(2)],
       ["Gross profit", +totals.consolidatedProfit.toFixed(2)],
       ["Net profit", +totals.consolidatedProfit.toFixed(2)],
-      ["Margin", margin],
+      ["Margin %", margin],
     ];
   };
 
@@ -122,13 +122,12 @@ export default function AccountingConsolidatedPage() {
     const rows = buildExportRows();
     const base = `consolidated-report-${today}`;
     if (fmt === "csv") {
-      // For CSV present margin as % for readability
-      const csvRows = rows.map((r) => {
-        if (r[0] === "Margin" && typeof r[1] === "number") {
-          return ["Margin %", +((r[1] as number) * 100).toFixed(2)];
-        }
-        return r;
-      });
+      // CSV has no number formats — expand the fraction to a percent number
+      const csvRows = rows.map((r) =>
+        r[0] === "Margin %" && typeof r[1] === "number"
+          ? ["Margin %", +(((r[1] as number) * 100).toFixed(2))]
+          : r,
+      );
       downloadCsv(`${base}.csv`, csvRows);
       return;
     }
@@ -150,8 +149,8 @@ export default function AccountingConsolidatedPage() {
         out[6] = CUR_CAD; out[7] = CUR_CAD; out[8] = CUR_CAD; // CAD
         return out;
       }
-      // Margin row
-      if (first === "Margin") {
+      // Margin row — render as percent
+      if (first === "Margin %") {
         out[1] = PCT;
         return out;
       }
