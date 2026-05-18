@@ -114,5 +114,5 @@ export function renderXlsxCell(spec: SheetSpec, row: number, col: number): { raw
   const cell = (ws as Record<string, XLSX.CellObject>)[ref];
   if (!cell) return { raw: undefined, text: "" };
   const text = cell.z ? XLSX.SSF.format(String(cell.z), cell.v as number) : String(cell.v);
-  return { raw: cell.v, z: cell.z, text };
+  return { raw: cell.v, z: cell.z ? String(cell.z) : undefined, text };
 }
