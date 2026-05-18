@@ -25,10 +25,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 import {
-  MOCK_FINANCIAL_ACCOUNTS, getAccountsForOwner, getOwnerById,
   ownerDisplayName, ownerInitials, avatarColorClass, countryFlag,
   formatAccountAmount, formatMaskedAccount, categoryOf,
 } from '../../data/mockOwners';
+import {
+  useOwners, useAccountsForOwner,
+  createFinancialAccount, updateFinancialAccount,
+} from '../../stores/ownersStore';
 import { MOCK_DOCUMENTS } from '../../data/mockDocuments';
 import type { AccountType, FinancialAccount } from '../../types/owners';
 
@@ -88,9 +91,9 @@ const SECTION_LABEL: Record<Section, string> = {
 
 export default function AccountingOwnerDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
-  const owner = getOwnerById(id);
-
-  const [accounts, setAccounts] = useState<FinancialAccount[]>(() => getAccountsForOwner(id));
+  const owners = useOwners();
+  const owner = owners.find((o) => o.id === id);
+  const accounts = useAccountsForOwner(id);
   const [notes, setNotes] = useState<{ ts: string; text: string }[]>([]);
   const [noteDraft, setNoteDraft] = useState('');
   const [accountModalOpen, setAccountModalOpen] = useState(false);
@@ -131,13 +134,16 @@ export default function AccountingOwnerDetailPage() {
     setAccountModalOpen(true);
   }
 
-  function saveAccount(a: FinancialAccount) {
-    setAccounts(prev => {
-      const exists = prev.find(x => x.id === a.id);
-      if (exists) return prev.map(x => x.id === a.id ? a : x);
-      return [a, ...prev];
-    });
-    toast.success(editingAccount ? 'Account updated' : 'Account added');
+  async function saveAccount(a: FinancialAccount) {
+    if (editingAccount) {
+      await updateFinancialAccount(a.id, a);
+      toast.success('Account updated');
+    } else {
+      const { id: _ignored, createdAt: _c, updatedAt: _u, tenantId: _t, ...rest } = a;
+      void _ignored; void _c; void _u; void _t;
+      const created = await createFinancialAccount(rest);
+      if (created) toast.success('Account added');
+    }
     setAccountModalOpen(false); setEditingAccount(null);
   }
 

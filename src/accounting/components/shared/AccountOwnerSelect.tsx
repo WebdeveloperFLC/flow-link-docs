@@ -1,5 +1,6 @@
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MOCK_FINANCIAL_ACCOUNTS, MOCK_OWNERS, formatMaskedAccount, ownerDisplayName } from '../../data/mockOwners';
+import { formatMaskedAccount, ownerDisplayName } from '../../data/mockOwners';
+import { useOwners, useFinancialAccounts } from '../../stores/ownersStore';
 import type { FinancialAccount, OwnerProfile } from '../../types/owners';
 
 interface Props {
@@ -12,10 +13,14 @@ interface Props {
 
 export default function AccountOwnerSelect({
   value, onChange,
-  accounts = MOCK_FINANCIAL_ACCOUNTS,
-  owners = MOCK_OWNERS,
+  accounts: accountsProp,
+  owners: ownersProp,
   placeholder = 'Select an account',
 }: Props) {
+  const liveAccounts = useFinancialAccounts();
+  const liveOwners = useOwners();
+  const accounts = accountsProp ?? liveAccounts;
+  const owners = ownersProp ?? liveOwners;
   const grouped = owners
     .map(o => ({ owner: o, accts: accounts.filter(a => a.ownerProfileId === o.id) }))
     .filter(g => g.accts.length > 0);

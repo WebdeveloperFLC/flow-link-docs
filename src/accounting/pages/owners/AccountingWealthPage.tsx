@@ -17,9 +17,10 @@ import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 import {
-  MOCK_OWNERS, MOCK_FINANCIAL_ACCOUNTS, ownerDisplayName, categoryOf,
+  ownerDisplayName, categoryOf,
   convertTo, formatAccountAmount,
 } from '../../data/mockOwners';
+import { useOwners, useFinancialAccounts } from '../../stores/ownersStore';
 import type { FinancialAccount } from '../../types/owners';
 
 const DISPLAY_CCY: ('INR'|'CAD'|'USD')[] = ['INR','CAD','USD'];
@@ -107,14 +108,23 @@ function buildEvents(accounts: FinancialAccount[], asOf: Date, days = 90): Event
 }
 
 export default function AccountingWealthPage() {
-  const [selectedOwners, setSelectedOwners] = useState<string[]>(MOCK_OWNERS.map(o => o.id));
+  const allOwners = useOwners();
+  const allAccounts = useFinancialAccounts();
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
+  // Default-select all owners once they're loaded.
+  useMemo(() => {
+    if (selectedOwners.length === 0 && allOwners.length > 0) {
+      setSelectedOwners(allOwners.map(o => o.id));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allOwners.length]);
   const [displayCcy, setDisplayCcy] = useState<'INR'|'CAD'|'USD'>('INR');
   const [asOf, setAsOf] = useState(() => new Date().toISOString().slice(0, 10));
   const [paid, setPaid] = useState<Set<string>>(new Set());
 
   const accounts = useMemo(
-    () => MOCK_FINANCIAL_ACCOUNTS.filter(a => selectedOwners.includes(a.ownerProfileId)),
-    [selectedOwners]
+    () => allAccounts.filter(a => selectedOwners.includes(a.ownerProfileId)),
+    [allAccounts, selectedOwners]
   );
 
   const totals = useMemo(() => {
@@ -160,7 +170,10 @@ export default function AccountingWealthPage() {
     return 'text-foreground';
   }
 
-  function ownerName(id: string) { return ownerDisplayName(MOCK_OWNERS.find(o => o.id === id)!); }
+  function ownerName(id: string) {
+    const o = allOwners.find(o => o.id === id);
+    return o ? ownerDisplayName(o) : '—';
+  }
 
   function markPaid(e: Event) {
     setPaid(prev => { const s = new Set(prev); s.add(`${e.accountId}-${e.date}-${e.type}`); return s; });
@@ -179,12 +192,12 @@ export default function AccountingWealthPage() {
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" className="min-w-[180px] justify-start">
-                Owners ({selectedOwners.length}/{MOCK_OWNERS.length})
+                Owners ({selectedOwners.length}/{allOwners.length})
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-72 max-h-80 overflow-y-auto">
               <div className="space-y-2">
-                {MOCK_OWNERS.map(o => (
+                {allOwners.map(o => (
                   <label key={o.id} className="flex items-center gap-2 text-sm cursor-pointer">
                     <Checkbox
                       checked={selectedOwners.includes(o.id)}

@@ -11,7 +11,7 @@ import { BankAccount, BankAccountInput } from "../../types/bankAccounts";
 import { addBankAccount, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
 import { useAccounts } from "../../stores/coaStore";
-import { MOCK_OWNERS } from "../../data/mockOwners";
+import { useOwners } from "../../stores/ownersStore";
 import type { OwnerProfile } from "../../types/owners";
 import LinkedCoaAccountSelect from "./LinkedCoaAccountSelect";
 import DynamicSelect from "../shared/DynamicSelect";
@@ -61,7 +61,8 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   // Top-level entities (companies); branches are nested children of an entity
   const topEntities = entities.filter((e) => !e.parentId);
   const branches = entities.filter((e) => e.parentId === entityId);
-  const ownerOptions = MOCK_OWNERS.filter((o) => o.isActive && (!country || o.country === country));
+  const ownersList = useOwners();
+  const ownerOptions = ownersList.filter((o) => o.isActive && (!country || o.country === country));
 
   useEffect(() => {
     if (!open) return;
