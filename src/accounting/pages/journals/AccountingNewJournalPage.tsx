@@ -52,6 +52,7 @@ export default function AccountingNewJournalPage() {
   const existing = id ? allJournals.find(j => j.id === id) : undefined;
   const [searchParams] = useSearchParams();
   const entities = useEntities();
+  const accounts = useAccounts();
 
   const [entity, setEntity] = useState(existing?.entity ?? '');
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? new Date().toISOString().slice(0, 10));
@@ -105,8 +106,8 @@ export default function AccountingNewJournalPage() {
     setSourceType('OCR_UPLOAD');
 
     const account =
-      MOCK_ACCOUNTS.find(a => a.code === glAccount) ||
-      (glAccount ? MOCK_ACCOUNTS.find(a => a.name.toLowerCase().includes(glAccount.toLowerCase())) : undefined);
+      accounts.find(a => a.code === glAccount) ||
+      (glAccount ? accounts.find(a => a.name.toLowerCase().includes(glAccount.toLowerCase())) : undefined);
 
     const prefilled: LineForm = {
       ...emptyLine(),
@@ -172,10 +173,11 @@ export default function AccountingNewJournalPage() {
 
   function persist(status: Journal['status']): string {
     const lineModels = lines.filter(l => l.accountId).flatMap(l => {
-      const a = MOCK_ACCOUNTS.find(x => x.id === l.accountId);
+      const a = accounts.find(x => x.id === l.accountId);
       if (!a) return [];
       return [{
-        id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name, accountType: a.type,
+        id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name,
+        accountType: toAccountType(a.groupCode),
         debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0,
         description: l.description, taxCode: l.taxCode,
       }];
