@@ -1,60 +1,88 @@
-## Problem
+## What's actually happening
 
-For Georgian College the sync **discovers 152 program links** but only **21 detail pages succeed**, so only 23–27 courses get saved instead of ~150. Every other detail page is silently dropped.
+Looking at `upi_sync_jobs` + `upi_sync_logs`:
+
+- Latest job logged `Discovered 154 direct program links` and `Detail-crawling 154 of 154 program pages` — then **nothing for 10+ minutes**.
+- 3 jobs are stuck in `status = running` (one started 22:51, one 22:53, one 23:00).
+- All prior completed jobs only ever scanned 21 pages — because the function dies after that and the job is never marked completed.
+- UI shows "21/21 pages, running, 68% confidence" — that's stale data from the last *completed* job; the current one never updates `pages_scanned` until it finishes (which it never does).
+
+### Root cause
+
+`upi-sync-source` does **all 154 detail fetches inline** inside one `EdgeRuntime.waitUntil(...)` call:
+- 154 Jina fetches + 154 Gemini AI calls, in batches of 3.
+- Even at ~3s per batch that's 150s+ of wall time, and each AI call also uses CPU time.
+- Supabase Edge Functions kill background work after the wall/CPU budget — silently — so the job never reaches the "Upserted X" step and `status` is never updated.
+
+`JINA_API_KEY` and retries don't help because the killer is the function lifetime, not the per-request failures.
+
+## Fix — Queue + batch worker
+
+Split discovery from extraction so each invocation does a small, bounded amount of work.
+
+### 1. New table: `upi_sync_queue`
 
 ```
-Discovered 152 direct program links from root
-Detail-crawling 120 of 152 program pages
-Detail crawl yielded 27 programs from 21 pages   ← 99 pages vanished
+id              uuid pk
+job_id          uuid (fk upi_sync_jobs)
+source_id       uuid
+institution_id  uuid
+program_url     text
+course_title    text
+status          text  -- 'pending' | 'processing' | 'done' | 'failed'
+attempts        int   default 0
+last_error      text
+created_at      timestamptz
+updated_at      timestamptz
+unique (job_id, program_url)
+index (job_id, status)
 ```
 
-## Root cause
+RLS: service-role only (matches other `upi_*` tables).
 
-In `supabase/functions/upi-sync-source/index.ts`, `fetchMarkdown()` does:
+### 2. Rewrite `upi-sync-source` (discovery only)
 
-```ts
-const r = await fetch(`https://r.jina.ai/${url}`, ...);
-if (!r.ok) return null;     // silent — no log, no retry
-```
+- Fetch root + (if needed) category pages — unchanged.
+- Discover program links (still capped at `MAX_DETAIL_FETCHES`).
+- **Insert all links into `upi_sync_queue` with status `pending`** instead of fetching them inline.
+- Update `upi_sync_jobs.pages_discovered = links.length`, leave `status = running`.
+- Invoke `upi-sync-process-batch` once (fire-and-forget) and return 202.
+- Fallback single-page extraction path (when <3 links) stays inline — it's small.
 
-`r.jina.ai` rate-limits unauthenticated traffic aggressively. With `CONCURRENCY = 5` firing 120 requests, most return 429/5xx and are dropped without trace. The only successes are the first batch (~20 pages), which matches `pages_scanned = 21`.
+### 3. New function: `upi-sync-process-batch`
 
-Same issue on the link-discovery side: when category-page fetches fail they're silently skipped.
+Takes `{ job_id }`. On each invocation:
 
-## Fix (single file: `supabase/functions/upi-sync-source/index.ts`)
+1. Claim up to `BATCH_SIZE = 8` pending rows for this job (update status → `processing`).
+2. For each: Jina fetch + Gemini extract (same logic as today's detail-crawl loop), with the existing retry/stub behaviour.
+3. Call `upi-upsert-courses` with the batch's extracted courses.
+4. Mark rows `done` (or `failed` with `last_error`); increment `upi_sync_jobs.pages_scanned` and `records_upserted`.
+5. Check remaining pending rows for this job:
+   - **>0** → invoke itself again (fire-and-forget via `EdgeRuntime.waitUntil(fetch(...))`) and return.
+   - **0** → finalize: set `upi_sync_jobs.status = completed` (or `completed_with_errors`), set `completed_at`, update `upi_institution_sources.crawl_status = completed`, `last_synced_at`, `extracted_records_count`, `confidence_score`.
 
-1. **Retry + backoff in `fetchMarkdown`**
-   - Up to 3 attempts with exponential backoff (1s, 3s, 7s) for 429 / 5xx / network errors.
-   - Honor `Retry-After` header when present.
-   - Use `JINA_API_KEY` (Bearer header) if the secret is set — Jina's authenticated tier has ~10× the rate limit. If missing, fall back to anonymous.
-   - Return `{ ok, md, status, error }` instead of `string | null` so callers can log.
+Each invocation now does ≤8 Jina + 8 AI calls (~15–25s wall) — well inside the budget. 154 programs → ~20 chained invocations, fully observable via `upi_sync_logs` and the queue table.
 
-2. **Surface failures**
-   - Log per-URL failures via `logMsg(..., "warn", ...)` with status and URL (truncated to keep log volume reasonable — log first 5, then a summary count).
-   - Track `failedFetches` and include it in the final summary log.
+`BATCH_SIZE`, `CONCURRENCY=3`, `BATCH_PAUSE_MS`, and `FETCH_RETRIES` stay configurable at the top of the file.
 
-3. **Lower default concurrency, configurable**
-   - Drop `CONCURRENCY` from 5 → 3 for detail crawl.
-   - Add a small `await sleep(150ms)` between batches to smooth bursts.
+### 4. Cleanup migration
 
-4. **Don't drop a program when its detail page fails**
-   - When detail fetch fails for a discovered link, still emit a minimal course row using `{ course_title, program_url, confidence_score: 30, source_url }` so the program appears in the list and can be retried/edited later, instead of disappearing entirely.
+- Mark the 3 currently stuck jobs (`7071a1c4…`, `2659902c…`, `d88e4c7a…`) as `failed` with `error_summary = 'Killed by runtime — superseded by queued sync'`.
+- Reset both Georgian `upi_institution_sources` rows to `crawl_status = idle` so the user can re-trigger.
 
-5. **Raise `MAX_DETAIL_FETCHES` from 120 → 200**
-   - Georgian's 152 links exceeded 120 silently. New cap covers typical college catalogs.
+### 5. Frontend
 
-6. **Add a Jina secret check at startup**
-   - If `JINA_API_KEY` missing, log once: `"JINA_API_KEY not set — using anonymous Jina Reader (rate-limited). Add the secret for full coverage."` so the user knows why coverage is partial.
+No UI changes needed — the existing Sources panel already polls `upi_sync_jobs` / source status. `pages_scanned` will now update incrementally as batches complete (better UX than the current "stuck at 21" feel).
+
+### Out of scope
+
+- No changes to `upi-upsert-courses`, `upi-publish-courses`, or `upi-extract-programs-from-doc`.
+- No schema changes to `upi_courses_staging`, `cf_courses`, `upi_institutions`.
+- No auth/UI changes.
 
 ## After deploy
 
-- Re-run "Sync now" on both Georgian College sources.
-- Expected: `pages_scanned ≈ 150`, `Upserted ≈ 130–150`, with any failed pages logged explicitly and still appearing as low-confidence stubs.
-
-## Optional follow-up (not in this fix)
-
-Ask the user whether to add the `JINA_API_KEY` secret now — anonymous Jina will still hit rate limits on very large catalogs even with retries.
-
-## Out of scope
-
-No schema changes. No changes to `upi-upsert-courses`, the UI, or other modules.
+- User clicks **Sync now** on Georgian.
+- Within ~5s: queue populated with ~150 rows, job stays `running`.
+- Over the next 1–3 minutes: `pages_scanned` ticks up in batches of 8; programs appear in the staging list as they're extracted.
+- Job ends in `completed` with ~130–150 records upserted (low-confidence stubs for any Jina failures, same as today).
