@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { SettingsEntity } from "../types/settings";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "accounting:entities:v4";
 
@@ -223,13 +224,6 @@ async function hydrateFromSupabase() {
 import { runWhenAuthReady } from "./_hydrationGate";
 runWhenAuthReady(hydrateFromSupabase);
 
-async function getUserId(): Promise<string | null> {
-  try {
-    const { data } = await supabase.auth.getUser();
-    return data.user?.id ?? null;
-  } catch { return null; }
-}
-
 export function useEntities(): SettingsEntity[] {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
@@ -244,8 +238,7 @@ export function addEntity(e: Omit<SettingsEntity, "id">): SettingsEntity {
   emit();
   if (isUuid(created.id)) {
     void (async () => {
-      const userId = await getUserId();
-      const payload = { id: created.id, ...mapToDb(created), created_by: userId } as never;
+      const payload = { id: created.id, ...mapToDb(created) } as never;
       const { data, error } = await supabase
         .from("accounting_entities")
         .insert(payload)
@@ -253,6 +246,7 @@ export function addEntity(e: Omit<SettingsEntity, "id">): SettingsEntity {
         .single();
       if (error) {
         console.error("[entitiesStore] addEntity failed:", error.message);
+        toast.error(`Failed to save entity: ${error.message}`);
         entities = entities.filter((x) => x.id !== created.id);
         emit();
         return;
@@ -281,6 +275,7 @@ export function updateEntity(id: string, patch: Partial<SettingsEntity>) {
         .eq("id", id);
       if (error) {
         console.error("[entitiesStore] updateEntity failed:", error.message);
+        toast.error(`Failed to update entity: ${error.message}`);
         if (prev) {
           entities = entities.map((e) => (e.id === id ? prev : e));
           emit();
@@ -319,6 +314,7 @@ export function deleteEntity(id: string) {
         .eq("id", id);
       if (error) {
         console.error("[entitiesStore] deleteEntity failed:", error.message);
+        toast.error(`Failed to delete entity: ${error.message}`);
         entities = prevAll;
         emit();
       }
