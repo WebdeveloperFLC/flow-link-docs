@@ -18,7 +18,7 @@ import BankAccountFormDialog, { ownerLabel } from "../../components/bank-account
 import { useBankAccounts, deleteBankAccount, toggleStatus, setDefault, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
-import { MOCK_OWNERS } from "../../data/mockOwners";
+import { useOwners } from "../../stores/ownersStore";
 import { MOCK_JOURNALS } from "../../data/mockJournals";
 import { formatCurrency } from "../../lib/format";
 import { DefaultKind } from "../../types/bankAccounts";
@@ -30,11 +30,12 @@ export default function AccountingBankAccountDetailPage() {
   const ledgers = useAccounts();
   const entities = useEntities();
 
+  const ownersList = useOwners();
   const account = accounts.find((a) => a.id === id);
   const ledger = account ? ledgers.find((l) => l.id === account.coaAccountId) : null;
   const entity = account ? entities.find((e) => e.id === account.entityId) : null;
   const branch = account?.branchId ? entities.find((e) => e.id === account.branchId) : null;
-  const owner = account ? MOCK_OWNERS.find((o) => o.id === account.ownerProfileId) : null;
+  const owner = account ? ownersList.find((o) => o.id === account.ownerProfileId) : null;
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
