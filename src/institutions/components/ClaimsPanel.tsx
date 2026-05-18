@@ -50,6 +50,7 @@ interface Student {
   commission_status: string;
   commission_amount: number | null;
   commission_rate_applied: number | null;
+  commission_calculated_date: string | null;
   commission_paid_date: string | null;
   block_reason: string | null;
   block_notes: string | null;
