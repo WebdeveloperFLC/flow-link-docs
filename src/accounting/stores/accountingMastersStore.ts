@@ -14,7 +14,11 @@ export type MasterListKey =
   | "branches"
   | "countries"
   | "units"
-  | "intercompany_types";
+  | "intercompany_types"
+  | "service_packages"
+  | "visa_categories"
+  | "intakes"
+  | "lead_sources";
 
 export interface MasterItem {
   code: string;
@@ -149,6 +153,10 @@ const SEED: Record<MasterListKey, MasterItem[]> = {
     { code: "CAPITAL", label: "Capital contribution", system: true },
     { code: "OTHER", label: "Other", system: true },
   ],
+  service_packages: [],
+  visa_categories: [],
+  intakes: [],
+  lead_sources: [],
 };
 
 const store = createPersistedStore<Record<MasterListKey, MasterItem[]>>(
