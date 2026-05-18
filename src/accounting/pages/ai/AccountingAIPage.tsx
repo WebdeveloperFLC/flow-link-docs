@@ -36,10 +36,37 @@ Future Link Consultants is a multi-country education and immigration consultancy
 
 LEGAL ENTITIES:
 
-INDIA (3 registered companies):
-1. Future Link Consultants Pvt Ltd — Primary entity (all services transitioning here). Gujarat GSTIN (to be updated). Branches: Vadodara Genda Circle (HO), Bhayli, Karelibaug, Manjalpur, Ajwa Road, Anand.
-2. Future Link Visa Consultants Pvt Ltd — Legacy entity (immigration & visa services). Gujarat GSTIN (to be updated).
-3. Future Link Academic Excellence Pvt Ltd — Legacy entity (coaching services). Gujarat GSTIN (to be updated).
+INDIA LEGAL ENTITIES (MCA verified):
+
+1. Future Link Consultants Private Limited
+   CIN: U74999GJ2021PTC123559
+   PAN: AAECF6140K
+   TAN: BRDF00780D
+   GSTIN: 24AAECF6140K1ZP
+   Incorporated: 24 June 2021
+   Address: Shop 215-216, Atlantis, Vadivadi, Sarabhai Compound, Vadodara, Gujarat 390023
+   Directors: Santosh Dwarkadas Ramrakhiani, Krishaa Santosh Ramrakhiani
+   Status: PRIMARY entity — all services transitioning here from legacy entities
+   Branches: Vadodara Genda Circle (HO), Bhayli, Karelibaug, Manjalpur, Ajwa Road, Anand.
+
+2. Future Link Visa Consultants Pvt Ltd
+   CIN: U74900GJ2009PTC057220
+   PAN: AABCF3724G
+   GSTIN: 24AABCF3724G1Z1
+   Incorporated: 10 June 2009
+   Address: 216 Atlantis, Opp Vadodara Central, Nr. Genda Circle, Vadodara, Gujarat 390023
+   Directors: Santosh Dwarkadas Ramrakhiani, Krishaa Santosh Ramrakhiani
+   Status: Legacy — immigration & visa services (transitioning to FL Consultants)
+
+3. Future Link Academic Excellence Pvt Ltd
+   CIN: U74991GJ2017PTC096530
+   PAN: AADCF0528Q
+   GSTIN: to be confirmed
+   Incorporated: 27 March 2017
+   Formerly: Future Link Educational and Immigration Services Pvt Ltd (name changed April 2017)
+   Address: 216 Atlantis Complex, Opp Vadodara Central, Nr. Genda Circle, Vadodara 390023
+   Directors: Santosh Dwarkadas Ramrakhiani, Krishaa Santosh Ramrakhiani
+   Status: Legacy — coaching services (transitioning to FL Consultants)
 
 Note: Company is in transition — moving all operations under Future Link Consultants Pvt Ltd. Last 5 years of historical data spans all 3 entities. When answering questions about India operations, consider all 3 companies unless entity specified.
 
