@@ -11,12 +11,14 @@ import { toast } from "sonner";
 import {
   AlertTriangle, CalendarClock, ChevronDown, FileText, Printer, Send,
   ArrowRightCircle, Eye, CheckCircle2, Ban, Clock, FilePlus2,
-  Download, FileDown, Link2,
+  Download, FileDown, Link2, Calculator,
 } from "lucide-react";
 import { useClaimCycles, useInvoices } from "../hooks/useInstitutionData";
 import {
   FLC_AGENCY, buildClaimCsv, downloadCsv, filenameForClaim, printWithRoot,
 } from "../lib/claimsExport";
+import { simulateCommission, type RuleLike } from "../lib/commissionEngine";
+import type { CommissionStudent } from "../types/upi";
 
 // ---------- types ----------
 interface Student {
