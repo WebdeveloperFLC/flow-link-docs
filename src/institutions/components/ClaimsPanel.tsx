@@ -164,6 +164,116 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
   };
   useEffect(() => { loadAll(); }, [institutionId]);
 
+  // ---------- recalculation ----------
+  const FROZEN_STATUSES = new Set(["paid", "blocked", "carried_forward"]);
+
+  async function fetchActiveCommissionAndRules() {
+    const { data: commissions, error: cErr } = await supabase
+      .from("upi_commissions")
+      .select("*")
+      .eq("institution_id", institutionId)
+      .eq("is_active", true)
+      .limit(1);
+    if (cErr) throw cErr;
+    const commission = commissions?.[0];
+    if (!commission) throw new Error("No active commission configured for this institution");
+    const { data: rules, error: rErr } = await supabase
+      .from("upi_commission_rules")
+      .select("*")
+      .eq("commission_id", commission.id);
+    if (rErr) throw rErr;
+    const { data: inst } = await supabase
+      .from("upi_institutions")
+      .select("country_name")
+      .eq("id", institutionId)
+      .maybeSingle();
+    return { commission, rules: (rules ?? []) as unknown as RuleLike[], institutionCountry: inst?.country_name ?? null };
+  }
+
+  async function recalcOne(
+    s: CommissionStudent | Student,
+    ctx: { commission: any; rules: RuleLike[]; institutionCountry: string | null },
+    opts: { silent?: boolean } = {},
+  ): Promise<{ ok: boolean; amount: number; currency: string }> {
+    if (FROZEN_STATUSES.has(s.commission_status)) return { ok: false, amount: 0, currency: "CAD" };
+    if (s.tuition_amount == null) {
+      if (!opts.silent) toast.warning(`Skipped ${s.student_name} — no tuition amount recorded`);
+      return { ok: false, amount: 0, currency: "CAD" };
+    }
+    const meta: any = ctx.commission.metadata ?? {};
+    const base = {
+      base_rate_percent: ctx.commission.base_rate_percent ?? meta.base_rate_percent ?? 0,
+      currency: ctx.commission.currency ?? "CAD",
+    };
+    const breakdown = simulateCommission(base, ctx.rules, {
+      tuition: Number(s.tuition_amount) || 0,
+      currency: base.currency,
+      country: (s as any).country_of_origin ?? ctx.institutionCountry ?? undefined,
+      intake: s.intake_term ?? undefined,
+      program_level: s.program_level ?? undefined,
+      student_count: 1,
+    });
+    const nowIso = new Date().toISOString();
+    const { error } = await supabase
+      .from("upi_commission_students")
+      .update({
+        commission_amount: breakdown.total,
+        commission_rate_applied: base.base_rate_percent,
+        commission_calculated_date: nowIso,
+      } as any)
+      .eq("id", s.id);
+    if (error) {
+      if (!opts.silent) toast.error(error.message);
+      return { ok: false, amount: 0, currency: breakdown.currency };
+    }
+    setStudents((prev) => prev.map((row) => row.id === s.id ? {
+      ...row,
+      commission_amount: breakdown.total,
+      commission_rate_applied: base.base_rate_percent,
+      commission_calculated_date: nowIso,
+    } : row));
+    return { ok: true, amount: breakdown.total, currency: breakdown.currency };
+  }
+
+  const [recalcBusy, setRecalcBusy] = useState<string | null>(null);
+
+  const recalcStudent = async (s: Student) => {
+    if (FROZEN_STATUSES.has(s.commission_status)) return;
+    try {
+      setRecalcBusy(s.id);
+      const ctx = await fetchActiveCommissionAndRules();
+      const res = await recalcOne(s as CommissionStudent, ctx);
+      if (res.ok) toast.success(`Commission recalculated: ${res.currency} ${res.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Recalculation failed");
+    } finally {
+      setRecalcBusy(null);
+    }
+  };
+
+  const recalcCycle = async (cycleId: string) => {
+    const list = (byCycle.get(cycleId) ?? []).filter((r) => !FROZEN_STATUSES.has(r.commission_status));
+    if (list.length === 0) return toast.info("Nothing to recalculate in this cycle");
+    try {
+      setRecalcBusy(cycleId);
+      const ctx = await fetchActiveCommissionAndRules();
+      const t = toast.loading(`Recalculating ${list.length} students...`);
+      let count = 0;
+      let sum = 0;
+      let currency = ctx.commission.currency ?? "CAD";
+      for (const s of list) {
+        const res = await recalcOne(s as CommissionStudent, ctx);
+        if (res.ok) { count += 1; sum += res.amount; currency = res.currency; }
+      }
+      toast.dismiss(t);
+      toast.success(`Recalculated ${count} students. Total: ${currency} ${sum.toLocaleString(undefined, { maximumFractionDigits: 2 })}`);
+    } catch (e: any) {
+      toast.error(e.message ?? "Recalculation failed");
+    } finally {
+      setRecalcBusy(null);
+    }
+  };
+
   const byCycle = useMemo(() => {
     const m = new Map<string, Student[]>();
     for (const s of students) {
