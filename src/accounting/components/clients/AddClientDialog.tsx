@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
@@ -10,12 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, LEAD_SOURCES,
-} from "../../data/mockStaff";
 import { addClient } from "../../stores/clientsStore";
 import type { Client, ClientType } from "../../types/clients";
 import DynamicSelect from "../shared/DynamicSelect";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -31,17 +29,56 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
   const [phone, setPhone] = useState("");
   const [taxId, setTaxId] = useState("");
 
-  const [counselorId, setCounselorId] = useState<string>(MOCK_STAFF[0]?.id ?? "");
-  const [servicePackage, setServicePackage] = useState<string>(SERVICE_PACKAGES[0] ?? "");
-  const [visaCategory, setVisaCategory] = useState<string>(VISA_CATEGORIES[0] ?? "");
-  const [intake, setIntake] = useState<string>(INTAKES[2] ?? INTAKES[0] ?? "");
-  const [leadSource, setLeadSource] = useState<string>(LEAD_SOURCES[0] ?? "");
+  const [counselorId, setCounselorId] = useState<string>("");
+  const [counselors, setCounselors] = useState<Array<{ id: string; name: string; role: string }>>([]);
+  const [counselorsLoading, setCounselorsLoading] = useState(true);
+  const [servicePackage, setServicePackage] = useState<string>("");
+  const [visaCategory, setVisaCategory] = useState<string>("");
+  const [intake, setIntake] = useState<string>("");
+  const [leadSource, setLeadSource] = useState<string>("");
   const [paymentTerms, setPaymentTerms] = useState<string>("DUE_ON_RECEIPT");
   const [notes, setNotes] = useState("");
 
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      setCounselorsLoading(true);
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["counselor", "admin"] as any);
+      const ids = Array.from(new Set((roleRows ?? []).map((r: any) => r.user_id)));
+      if (ids.length === 0) {
+        if (!cancelled) { setCounselors([]); setCounselorsLoading(false); }
+        return;
+      }
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", ids);
+      const roleByUser = new Map<string, string>();
+      (roleRows ?? []).forEach((r: any) => {
+        // prefer "counselor" label if user has both
+        if (!roleByUser.has(r.user_id) || r.role === "counselor") roleByUser.set(r.user_id, r.role);
+      });
+      const list = (profiles ?? []).map((p: any) => ({
+        id: p.id,
+        name: p.full_name || p.email || "(unnamed)",
+        role: roleByUser.get(p.id) ?? "user",
+      }));
+      list.sort((a, b) => a.name.localeCompare(b.name));
+      if (!cancelled) {
+        setCounselors(list);
+        setCounselorsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [open]);
+
   const handleSave = () => {
     if (!name.trim()) { toast.error("Client name is required"); return; }
-    const counselor = MOCK_STAFF.find(s => s.id === counselorId);
+    const counselor = counselors.find(s => s.id === counselorId);
     const created: Client = {
       id: `c-${Date.now()}`,
       name, legalName: name,
@@ -111,48 +148,34 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>Assigned counselor</Label>
-                <Select value={counselorId} onValueChange={setCounselorId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                <Select value={counselorId} onValueChange={setCounselorId} disabled={counselorsLoading || counselors.length === 0}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      counselorsLoading ? "Loading…"
+                      : counselors.length === 0 ? "No counselors found — add users first"
+                      : "Select a counselor"
+                    } />
+                  </SelectTrigger>
                   <SelectContent>
-                    {MOCK_STAFF.map(s => <SelectItem key={s.id} value={s.id}>{s.name} · {s.role}</SelectItem>)}
+                    {counselors.map(s => <SelectItem key={s.id} value={s.id}>{s.name} · {s.role}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Service package</Label>
-                <Select value={servicePackage} onValueChange={setServicePackage}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {SERVICE_PACKAGES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Service package <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
+                <DynamicSelect listKey="service_packages" value={servicePackage} onValueChange={setServicePackage} addLabel="service package" />
               </div>
               <div className="grid gap-2">
-                <Label>Visa category</Label>
-                <Select value={visaCategory} onValueChange={setVisaCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {VISA_CATEGORIES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Visa category <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
+                <DynamicSelect listKey="visa_categories" value={visaCategory} onValueChange={setVisaCategory} addLabel="visa category" />
               </div>
               <div className="grid gap-2">
-                <Label>Intake / session</Label>
-                <Select value={intake} onValueChange={setIntake}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {INTAKES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Intake / session <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
+                <DynamicSelect listKey="intakes" value={intake} onValueChange={setIntake} addLabel="intake" />
               </div>
               <div className="grid gap-2">
-                <Label>Lead source</Label>
-                <Select value={leadSource} onValueChange={setLeadSource}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {LEAD_SOURCES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Lead source <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
+                <DynamicSelect listKey="lead_sources" value={leadSource} onValueChange={setLeadSource} addLabel="lead source" />
               </div>
               <div className="grid gap-2">
                 <Label>Payment terms</Label>
