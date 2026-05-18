@@ -21,11 +21,13 @@ import { cn } from '@/lib/utils';
 import DeleteRecordDialog from '../../components/shared/DeleteRecordDialog';
 
 import {
-  MOCK_OWNERS, MOCK_FINANCIAL_ACCOUNTS, getAccountsForOwner,
   ownerDisplayName, ownerInitials, avatarColorClass, countryFlag, maskTaxId,
-  formatAccountAmount, formatINR, categoryOf,
+  formatAccountAmount, categoryOf,
 } from '../../data/mockOwners';
-import type { OwnerProfile, OwnerCategory, BusinessOwnerType, PersonalOwnerType } from '../../types/owners';
+import {
+  useOwners, useFinancialAccounts, createOwner, updateOwner, deleteOwner,
+} from '../../stores/ownersStore';
+import type { OwnerProfile, OwnerCategory, BusinessOwnerType, PersonalOwnerType, FinancialAccount } from '../../types/owners';
 
 const TYPE_PILL: Record<string, string> = {
   CORPORATION: 'bg-blue-100 text-blue-700',
@@ -53,8 +55,8 @@ function ownerType(o: OwnerProfile): string {
   return (o.businessType ?? o.personalType ?? '');
 }
 
-function totalsForOwner(ownerId: string) {
-  const accts = getAccountsForOwner(ownerId);
+function totalsForOwner(ownerId: string, allAccounts: FinancialAccount[]) {
+  const accts = allAccounts.filter((a) => a.ownerProfileId === ownerId);
   const byCcy: Record<string, { assets: number; liabilities: number }> = {};
   for (const a of accts) {
     const bal = a.currentBalance ?? 0;
@@ -75,7 +77,8 @@ function formatTotalsLine(byCcy: Record<string, { assets: number; liabilities: n
 }
 
 export default function AccountingOwnersPage() {
-  const [owners, setOwners] = useState<OwnerProfile[]>(MOCK_OWNERS);
+  const owners = useOwners();
+  const allAccounts = useFinancialAccounts();
   const [tab, setTab] = useState<'all' | 'business' | 'personal' | 'family'>('all');
   const [search, setSearch] = useState('');
   const [country, setCountry] = useState<string>('all');
@@ -103,13 +106,14 @@ export default function AccountingOwnersPage() {
     });
   }, [owners, tab, search, country, activeOnly]);
 
-  function handleSave(o: OwnerProfile) {
-    setOwners(prev => {
-      const exists = prev.find(x => x.id === o.id);
-      if (exists) return prev.map(x => x.id === o.id ? o : x);
-      return [o, ...prev];
-    });
-    toast.success(editing ? 'Owner profile updated' : 'Owner profile created');
+  async function handleSave(o: OwnerProfile) {
+    if (editing) {
+      await updateOwner(o.id, o);
+      toast.success('Owner profile updated');
+    } else {
+      const created = await createOwner(o);
+      if (created) toast.success('Owner profile created');
+    }
     setModalOpen(false); setEditing(null);
   }
 
@@ -164,7 +168,7 @@ export default function AccountingOwnersPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {filtered.map(o => {
-              const t = totalsForOwner(o.id);
+              const t = totalsForOwner(o.id, allAccounts);
               const type = ownerType(o);
               return (
                 <Card key={o.id} className="p-5 hover:shadow-md transition-shadow">
@@ -191,8 +195,8 @@ export default function AccountingOwnersPage() {
                         <DropdownMenuItem asChild><Link to={`/accounting/owners/${o.id}`}>Add account</Link></DropdownMenuItem>
                         <DropdownMenuItem asChild><Link to={`/accounting/owners/${o.id}`}>View all accounts</Link></DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => {
-                            setOwners(prev => prev.map(x => x.id === o.id ? { ...x, isActive: false } : x));
+                          onClick={async () => {
+                            await updateOwner(o.id, { isActive: false });
                             toast.success('Owner profile deactivated');
                           }}
                           className="text-destructive"
@@ -244,9 +248,9 @@ export default function AccountingOwnersPage() {
         <DeleteRecordDialog
           open={!!deleteTarget}
           onOpenChange={(o) => !o && setDeleteTarget(null)}
-          onConfirm={() => {
+          onConfirm={async () => {
             if (deleteTarget) {
-              setOwners(prev => prev.filter(o => o.id !== deleteTarget));
+              await deleteOwner(deleteTarget);
               setDeleteTarget(null);
               toast.success('Deleted successfully');
             }
