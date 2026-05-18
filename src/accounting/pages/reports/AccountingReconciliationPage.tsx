@@ -1,34 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
 import Decimal from "decimal.js";
-import { CheckCircle2, AlertTriangle, Scale, Download } from "lucide-react";
+import { CheckCircle2, AlertTriangle, Scale, Download, ChevronDown } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
 import { formatCurrency } from "../../lib/format";
+import { downloadCsv, downloadXlsx, type SheetRow } from "../../lib/exportSheet";
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const TOL = 0.005;
-
-function downloadCsv(filename: string, rows: (string | number)[][]) {
-  const csv = rows
-    .map((r) => r.map((v) => {
-      const s = String(v ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-    }).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
 
 interface Totals {
   tbDr: Decimal;
@@ -160,40 +153,23 @@ export default function AccountingReconciliationPage() {
             <Label className="text-xs">As of</Label>
             <Input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} className="h-9 w-44" />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={() => {
-              const header = ["Check", "Left label", "Left value", "Right label", "Right value", "Difference", "Status"];
-              const checkRows = checks.map((c) => {
-                const diff = c.lhs.value.minus(c.rhs.value);
-                const ok = diff.abs().lt(TOL);
-                return [c.label, c.lhs.label, c.lhs.value.toFixed(2), c.rhs.label, c.rhs.value.toFixed(2), diff.toFixed(2), ok ? "Match" : "Mismatch"];
-              });
-              const totalRows: (string | number)[][] = [
-                [],
-                ["Totals", "Value"],
-                ["Assets", totals.assets.toFixed(2)],
-                ["Liabilities", totals.liabilities.toFixed(2)],
-                ["Equity", totals.equity.toFixed(2)],
-                ["Net Income", netIncome.toFixed(2)],
-                ["Revenue", totals.revenue.toFixed(2)],
-                ["Expenses", totals.expenses.toFixed(2)],
-                ["TB Debits", totals.tbDr.toFixed(2)],
-                ["TB Credits", totals.tbCr.toFixed(2)],
-              ];
-              downloadCsv(`report-reconciliation-${asOf}.csv`, [
-                [`Report reconciliation as of ${asOf}`],
-                [],
-                header,
-                ...checkRows,
-                ...totalRows,
-              ]);
-            }}
-          >
-            <Download className="size-4 mr-1.5" /> Export CSV
-          </Button>
+          <div className="ml-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="size-4 mr-1.5" /> Export <ChevronDown className="size-3.5 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => exportReconciliation("csv", asOf, checks, totals, netIncome)}>
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => exportReconciliation("xlsx", asOf, checks, totals, netIncome)}>
+                  Export as XLSX
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {loading ? (
