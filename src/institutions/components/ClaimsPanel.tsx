@@ -477,6 +477,24 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                         <Send className="size-4 mr-1" /> Submit Claim
                       </Button>
                     )}
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={c.status !== "draft" || recalcBusy === c.id}
+                            onClick={() => recalcCycle(c.id)}
+                          >
+                            <Calculator className="size-4 mr-1" />
+                            {recalcBusy === c.id ? "Recalculating…" : "Recalculate All"}
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {c.status !== "draft" && (
+                        <TooltipContent>Amounts are frozen once a cycle is submitted</TooltipContent>
+                      )}
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -513,7 +531,14 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                               </TableCell>
                               <TableCell className="text-sm">{s.intake_term ?? "—"}</TableCell>
                               <TableCell className="text-right text-sm">{fmt(s.tuition_paid_amount ?? s.tuition_amount)}</TableCell>
-                              <TableCell className="text-right text-sm font-medium">{fmt(s.commission_amount)}</TableCell>
+                              <TableCell className="text-right text-sm font-medium">
+                                <div>{fmt(s.commission_amount)}</div>
+                                <div className="text-[10px] text-muted-foreground font-normal">
+                                  {s.commission_calculated_date
+                                    ? `Calculated ${new Date(s.commission_calculated_date).toLocaleDateString()}`
+                                    : "Not yet calculated"}
+                                </div>
+                              </TableCell>
                               <TableCell>
                                 <div className="flex items-center gap-1">
                                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs border ${sb.cls}`}>{sb.label}</span>
@@ -533,6 +558,17 @@ export function ClaimsPanel({ institutionId }: { institutionId: string }) {
                               <TableCell className="text-right">
                                 <div className="flex justify-end gap-1">
                                   <Button size="sm" variant="ghost" onClick={() => setViewStudent(s)}><Eye className="size-3.5" /></Button>
+                                  {(s.commission_status === "eligible" || s.commission_status === "pending") && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      disabled={recalcBusy === s.id}
+                                      onClick={() => recalcStudent(s)}
+                                      title="Recalculate commission"
+                                    >
+                                      <Calculator className="size-3.5" />
+                                    </Button>
+                                  )}
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <span>
