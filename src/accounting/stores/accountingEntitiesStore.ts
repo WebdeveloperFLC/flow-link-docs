@@ -9,6 +9,8 @@ type SeedEntity = SettingsEntity & {
   incorporatedOn?: string;
   directors?: string[];
   note?: string;
+  legalName?: string;
+  taxYearEnd?: string;
 };
 
 const SEED: SettingsEntity[] = ([
@@ -82,12 +84,15 @@ const SEED: SettingsEntity[] = ([
     parentId: null,
     country: "CA",
     currency: "CAD",
-    fiscalYearStart: "04-01",
-    // TODO: Add real GST/HST and BN before going live
+    fiscalYearStart: "09-01",
     taxIds: [
-      { label: "GST/HST", value: "" },
-      { label: "BN", value: "" },
+      { label: "BN", value: "851089714" },
+      { label: "GST/HST RT", value: "851089714RT0001" },
+      { label: "Payroll RP", value: "851089714RP0001" },
+      { label: "Corporate Tax RC", value: "851089714RC0001" },
     ],
+    legalName: "FUTURE LINK CONSULTANTS INC.",
+    taxYearEnd: "August 31",
   },
   {
     id: "e-fwc-canada",
@@ -96,12 +101,15 @@ const SEED: SettingsEntity[] = ([
     parentId: null,
     country: "CA",
     currency: "CAD",
-    fiscalYearStart: "04-01",
-    // TODO: Add real GST/HST and BN before going live
+    fiscalYearStart: "01-01",
     taxIds: [
-      { label: "GST/HST", value: "" },
-      { label: "BN", value: "" },
+      { label: "BN", value: "819356389" },
+      { label: "GST/HST RT", value: "819356389RT0001" },
+      { label: "Payroll RP", value: "819356389RP0001" },
+      { label: "Corporate Tax RC", value: "819356389RC0001" },
     ],
+    legalName: "FUTUREWAY CONSULTANTS INC.",
+    taxYearEnd: "December 31",
   },
   {
     id: "e-ontario-inc",
@@ -110,9 +118,15 @@ const SEED: SettingsEntity[] = ([
     parentId: null,
     country: "CA",
     currency: "CAD",
-    fiscalYearStart: "04-01",
-    // TODO: Add real BN before going live
-    taxIds: [{ label: "BN", value: "" }],
+    fiscalYearStart: "01-01",
+    taxIds: [
+      { label: "BN", value: "778840876" },
+      { label: "GST/HST RT", value: "778840876RT0001" },
+      { label: "Payroll RP", value: "778840876RP0001" },
+      { label: "Corporate Tax RC", value: "778840876RC0001" },
+    ],
+    legalName: "2709223 ONTARIO INC.",
+    taxYearEnd: "December 31",
   },
   { id: "e-toronto", name: "Toronto — Ontario", type: "BRANCH", parentId: "e-flc-canada", country: "CA", currency: "CAD", fiscalYearStart: "04-01", taxIds: [] },
 

@@ -61,6 +61,10 @@ interface EntityInfo {
   cin?: string;
   tan?: string;
   bn?: string;
+  gstHst?: string;
+  payroll?: string;
+  corporateTax?: string;
+  taxYearEnd?: string;
   legalName?: string;
   directors?: string;
   note?: string;
@@ -107,26 +111,42 @@ export function getEntityAddress(entity: string, branch: string): EntityInfo {
     },
     // ── 3 CANADA COMPANIES ──
     "Future Link Consultants Inc": {
+      legalName: "FUTURE LINK CONSULTANTS INC.",
       address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      bn: "851089714",
+      gstHst: "851089714RT0001",
+      gst: "851089714RT0001",
+      payroll: "851089714RP0001",
+      corporateTax: "851089714RC0001",
+      taxYearEnd: "August 31",
       email: "overseasrelations@futurelinkconsultants.com",
       phone: "+1 416 902 4524",
-      gst: "",
-      bn: "",
       note: "Main Canada operating company",
     },
     "Future Way Consultants Inc": {
+      legalName: "FUTUREWAY CONSULTANTS INC.",
       address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      bn: "819356389",
+      gstHst: "819356389RT0001",
+      gst: "819356389RT0001",
+      payroll: "819356389RP0001",
+      corporateTax: "819356389RC0001",
+      taxYearEnd: "December 31",
       email: "overseasrelations@futurelinkconsultants.com",
       phone: "+1 416 902 4524",
-      gst: "",
-      bn: "",
       note: "Canada registered company",
     },
     "Ontario Inc 2709223": {
+      legalName: "2709223 ONTARIO INC.",
       address: "5 Vandorf Street, Toronto,\nOntario M1B 4Y3, Canada",
+      bn: "778840876",
+      gstHst: "778840876RT0001",
+      gst: "778840876RT0001",
+      payroll: "778840876RP0001",
+      corporateTax: "778840876RC0001",
+      taxYearEnd: "December 31",
       email: "overseasrelations@futurelinkconsultants.com",
       phone: "+1 416 902 4524",
-      bn: "",
       note: "Ontario numbered company",
     },
   };

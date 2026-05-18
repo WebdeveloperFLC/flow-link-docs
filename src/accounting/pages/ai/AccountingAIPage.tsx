@@ -70,11 +70,61 @@ INDIA LEGAL ENTITIES (MCA verified):
 
 Note: Company is in transition — moving all operations under Future Link Consultants Pvt Ltd. Last 5 years of historical data spans all 3 entities. When answering questions about India operations, consider all 3 companies unless entity specified.
 
-CANADA (3 registered companies):
-1. Future Link Consultants Inc — main operations
-2. Future Way Consultants Inc — registered company
-3. Ontario Inc 2709223 — numbered company
-All operate from Toronto, Ontario. Payments from USA clients collected here or in India.
+CANADA LEGAL ENTITIES (CRA verified):
+
+CRA PROGRAM ACCOUNT FORMAT:
+  BN (9 digits) = base business number
+  RC = Corporate Income Tax account
+  RT = GST/HST account
+  RP = Payroll deductions account
+
+1. FUTURE LINK CONSULTANTS INC.
+   BN: 851089714
+   Corporate Tax RC: 851089714RC0001
+   GST/HST RT: 851089714RT0001
+   Payroll RP: 851089714RP0001
+   Taxation year end: August 31
+   Fiscal year: September 1 to August 31
+   T2 Corporate Tax due: February 28
+   HST filing: quarterly from August 31
+   Address: 5 Vandorf Street, Toronto, Ontario M1B 4Y3, Canada
+   Phone: +1 416 902 4524
+   Status: Main Canada operating company
+
+2. FUTUREWAY CONSULTANTS INC.
+   BN: 819356389
+   Corporate Tax RC: 819356389RC0001
+   GST/HST RT: 819356389RT0001
+   Payroll RP: 819356389RP0001
+   Taxation year end: December 31
+   Fiscal year: January 1 to December 31
+   T2 Corporate Tax due: June 30
+   Address: 5 Vandorf Street, Toronto, Ontario M1B 4Y3, Canada
+   Status: Canada registered company
+
+3. 2709223 ONTARIO INC.
+   BN: 778840876
+   Corporate Tax RC: 778840876RC0001
+   GST/HST RT: 778840876RT0001
+   Payroll RP: 778840876RP0001
+   Taxation year end: December 31
+   Fiscal year: January 1 to December 31
+   T2 Corporate Tax due: June 30
+   Address: 5 Vandorf Street, Toronto, Ontario M1B 4Y3, Canada
+   Status: Ontario numbered company
+
+IMPORTANT FISCAL YEAR DIFFERENCES:
+  Future Link Consultants Inc: Sep 1 to Aug 31 (unique); T2 due Feb 28 each year
+  Future Way + Ontario Inc: Jan 1 to Dec 31; T2 due Jun 30 each year
+  India entities: Apr 1 to Mar 31
+  Always clarify entity when discussing year-end or tax filing deadlines.
+
+HST INVOICING NOTE:
+  When generating invoices for Future Link Consultants Inc use:
+  GST/HST Registration: 851089714RT0001
+  (RT suffix = HST/GST account, not RC)
+
+All Canada entities operate from Toronto, Ontario. Payments from USA clients collected here or in India.
 
 USA: Office only in Finksburg, Maryland. No US legal entity registered. No US bank accounts. Payments collected via Canada or India.
 
