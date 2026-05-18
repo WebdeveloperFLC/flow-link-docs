@@ -26,6 +26,12 @@ import { formatCurrency, formatCompact } from "../lib/format";
 import {
   AccountingEntityProvider, useAccountingEntity,
 } from "../stores/accountingEntityStore";
+import {
+  migrateAllToSupabase,
+  clearMigratedLocalStorage,
+  type MigrationResult,
+} from "../lib/migrateToSupabase";
+import { CloudUpload } from "lucide-react";
 
 const revenueByEntity: { entity: string; revenue: number }[] = [];
 
@@ -236,6 +242,22 @@ function OverviewInner() {
 function DevToolsSection() {
   const [open, setOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [migrationResults, setResults] = useState<MigrationResult[] | null>(null);
+
+  const handleMigrate = async () => {
+    setIsMigrating(true);
+    try {
+      const results = await migrateAllToSupabase();
+      setResults(results);
+      toast.success("Migration complete");
+    } catch (e: any) {
+      toast.error(`Migration failed: ${e?.message ?? e}`);
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
   const handleClearAll = () => {
     const keys = [
       "accounting:coa:v4",
@@ -272,7 +294,52 @@ function DevToolsSection() {
         Developer & Testing Tools
       </button>
       {open && (
-        <Card className="mt-3 border-destructive/30 border-dashed p-5">
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="border-primary/30 border-dashed p-5">
+          <div className="mb-3">
+            <div className="text-sm font-semibold text-primary flex items-center gap-2">
+              <CloudUpload className="h-4 w-4" />
+              Migrate localStorage data to cloud
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Moves any data entered during testing from this browser to Supabase so it
+              is shared with your whole team. Run this once after testing is complete.
+            </div>
+          </div>
+          <Button onClick={handleMigrate} disabled={isMigrating} className="max-w-xs">
+            <CloudUpload className="h-4 w-4 mr-2" />
+            {isMigrating ? "Migrating..." : "Migrate to Supabase"}
+          </Button>
+          {migrationResults && (
+            <div className="mt-4 space-y-2">
+              {migrationResults.map((r) => (
+                <div
+                  key={r.store}
+                  className="flex items-center gap-3 text-xs border border-border rounded-md px-3 py-2"
+                >
+                  <div className="font-medium flex-1">{r.store}</div>
+                  <div className="text-muted-foreground">
+                    {r.migrated} / {r.found} migrated
+                  </div>
+                  {r.errors.length > 0 && (
+                    <span className="text-destructive">{r.errors.length} errors</span>
+                  )}
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  clearMigratedLocalStorage();
+                  toast.success("Local cache cleared");
+                }}
+              >
+                Clear local cache after migration
+              </Button>
+            </div>
+          )}
+        </Card>
+        <Card className="border-destructive/30 border-dashed p-5">
           <div className="mb-3">
             <div className="text-sm font-semibold text-destructive flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
@@ -303,6 +370,7 @@ function DevToolsSection() {
             </Button>
           </div>
         </Card>
+        </div>
       )}
     </div>
   );
