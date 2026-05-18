@@ -10,49 +10,145 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
-import { addDecimals, formatAccounting, formatCurrency, formatPercent } from "../../lib/format";
-import { BS_DATA, ENTITY_DATA } from "../../data/mockReports";
+import { formatAccounting, formatCurrency, formatPercent } from "../../lib/format";
+import { useAccounts } from "../../stores/coaStore";
+import { useGroups } from "../../stores/coaMasterStore";
+import { useJournals } from "../../stores/journalsStore";
+import { useEntities } from "../../stores/accountingEntitiesStore";
 import { cn } from "@/lib/utils";
 
 const PIE_COLORS = ["hsl(var(--primary))", "#16a34a", "#a855f7", "#f59e0b", "#0891b2"];
+const ALL = "__all__";
+const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const NONCURRENT_ASSET_TYPES = new Set(["FIXED_ASSET"]);
+const NONCURRENT_LIAB_TYPES = new Set(["LOAN"]);
+
+type Row = { code: string; name: string; amount: number };
 
 export default function AccountingBSPage() {
   const [loading, setLoading] = useState(true);
-  const [asOf, setAsOf] = useState("2024-10-31");
-  const [entity, setEntity] = useState("all");
+  const [asOf, setAsOf] = useState(todayStr());
+  const [entity, setEntity] = useState(ALL);
+
+  const accounts = useAccounts();
+  const groups = useGroups();
+  const journals = useJournals();
+  const entities = useEntities();
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
+    const t = setTimeout(() => setLoading(false), 200);
     return () => clearTimeout(t);
   }, []);
 
-  const totals = useMemo(() => {
-    const sum = (rows: { amount: number }[]) => addDecimals(...rows.map((r) => r.amount)).toNumber();
-    const curAssets = sum(BS_DATA.assets.current);
-    const ncAssets = sum(BS_DATA.assets.nonCurrent);
-    const totalAssets = curAssets + ncAssets;
-    const curLiab = sum(BS_DATA.liabilities.current);
-    const ncLiab = sum(BS_DATA.liabilities.nonCurrent);
-    const totalLiab = curLiab + ncLiab;
-    const totalEquity = sum(BS_DATA.equity);
+  const computed = useMemo(() => {
+    const groupBy = new Map(groups.map((g) => [g.code, g]));
+
+    function closing(accId: string, nature: "DEBIT" | "CREDIT", opening: number): number {
+      let dr = 0, cr = 0;
+      for (const j of journals) {
+        if (j.status !== "POSTED") continue;
+        if (j.entryDate > asOf) continue;
+        for (const l of j.lines) {
+          if (l.accountId !== accId) continue;
+          dr += Number(l.debit) || 0;
+          cr += Number(l.credit) || 0;
+        }
+      }
+      return nature === "DEBIT" ? opening + dr - cr : opening + cr - dr;
+    }
+
+    const filtered = accounts.filter((a) =>
+      entity === ALL ? true : a.entityId === entity
+    );
+
+    const curAssets: Row[] = [];
+    const ncAssets: Row[] = [];
+    const curLiab: Row[] = [];
+    const ncLiab: Row[] = [];
+    const eqRows: Row[] = [];
+
+    for (const a of filtered) {
+      const g = groupBy.get(a.groupCode);
+      if (!g) continue;
+      const c = closing(a.id, g.nature, Number(a.openingBalance) || 0);
+      if (Math.abs(c) < 0.005) continue;
+      const row: Row = { code: a.code, name: a.name, amount: c };
+      if (g.code === "ASSET") {
+        (NONCURRENT_ASSET_TYPES.has(a.typeCode) ? ncAssets : curAssets).push(row);
+      } else if (g.code === "LIABILITY") {
+        (NONCURRENT_LIAB_TYPES.has(a.typeCode) ? ncLiab : curLiab).push(row);
+      } else if (g.code === "EQUITY") {
+        eqRows.push(row);
+      }
+    }
+
+    // Synthetic retained earnings = net P&L closing across all P&L accounts to asOf
+    let re = 0;
+    for (const a of filtered) {
+      const g = groupBy.get(a.groupCode);
+      if (!g) continue;
+      if (!["REVENUE", "COGS", "EXPENSE", "OTHER_INCOME", "OTHER_EXPENSE"].includes(g.code)) continue;
+      const c = closing(a.id, g.nature, Number(a.openingBalance) || 0);
+      if (g.nature === "CREDIT") re += c;
+      else re -= c;
+    }
+    if (Math.abs(re) > 0.005) {
+      eqRows.push({ code: "3900", name: "Retained earnings (current period)", amount: re });
+    }
+
+    const sortRows = (rs: Row[]) => rs.sort((a, b) => a.code.localeCompare(b.code));
+    sortRows(curAssets); sortRows(ncAssets); sortRows(curLiab); sortRows(ncLiab); sortRows(eqRows);
+
+    const sum = (rs: Row[]) => rs.reduce((s, r) => s + r.amount, 0);
+    const totalCurAssets = sum(curAssets);
+    const totalNcAssets = sum(ncAssets);
+    const totalAssets = totalCurAssets + totalNcAssets;
+    const totalCurLiab = sum(curLiab);
+    const totalNcLiab = sum(ncLiab);
+    const totalLiab = totalCurLiab + totalNcLiab;
+    const totalEquity = sum(eqRows);
     const totalLE = totalLiab + totalEquity;
     const diff = totalAssets - totalLE;
     const balanced = Math.abs(diff) < 1;
-    return { curAssets, ncAssets, totalAssets, curLiab, ncLiab, totalLiab, totalEquity, totalLE, diff, balanced };
-  }, []);
+
+    return {
+      curAssets, ncAssets, curLiab, ncLiab, eqRows,
+      totalCurAssets, totalNcAssets, totalAssets,
+      totalCurLiab, totalNcLiab, totalLiab,
+      totalEquity, totalLE, diff, balanced,
+    };
+  }, [accounts, groups, journals, entities, asOf, entity]);
+
+  const totals = {
+    curAssets: computed.totalCurAssets,
+    ncAssets: computed.totalNcAssets,
+    totalAssets: computed.totalAssets,
+    curLiab: computed.totalCurLiab,
+    ncLiab: computed.totalNcLiab,
+    totalLiab: computed.totalLiab,
+    totalEquity: computed.totalEquity,
+    totalLE: computed.totalLE,
+    diff: computed.diff,
+    balanced: computed.balanced,
+  };
 
   const pieData = useMemo(() => {
-    const cashBank = (BS_DATA.assets.current.find((a) => a.code === "1000")?.amount ?? 0) + (BS_DATA.assets.current.find((a) => a.code === "1100")?.amount ?? 0);
-    const ar = BS_DATA.assets.current.find((a) => a.code === "1200")?.amount ?? 0;
-    const fixed = totals.ncAssets;
-    const other = totals.totalAssets - cashBank - ar - fixed;
+    const cashBank = computed.curAssets
+      .filter((r) => /^1[01]/.test(r.code))
+      .reduce((s, r) => s + r.amount, 0);
+    const ar = computed.curAssets
+      .filter((r) => /^12/.test(r.code))
+      .reduce((s, r) => s + r.amount, 0);
+    const fixed = computed.totalNcAssets;
+    const other = computed.totalAssets - cashBank - ar - fixed;
     return [
       { name: "Cash & bank", value: cashBank },
       { name: "Receivables", value: ar },
       { name: "Fixed assets", value: fixed },
       { name: "Other", value: other },
     ];
-  }, [totals]);
+  }, [computed]);
 
   return (
     <AppLayout>
@@ -68,10 +164,10 @@ export default function AccountingBSPage() {
           <div>
             <Label className="text-xs text-muted-foreground">Entity</Label>
             <Select value={entity} onValueChange={setEntity}>
-              <SelectTrigger className="w-48 h-9 mt-1"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-56 h-9 mt-1"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All entities</SelectItem>
-                {ENTITY_DATA.map((e) => <SelectItem key={e.entity} value={e.entity}>{e.entity}</SelectItem>)}
+                <SelectItem value={ALL}>All entities</SelectItem>
+                {entities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -120,11 +216,13 @@ export default function AccountingBSPage() {
                   <table className="w-full text-sm">
                     <tbody>
                       <SubsectionHeader label="Current assets" />
-                      {BS_DATA.assets.current.map((a) => <BSRow key={a.code} {...a} />)}
+                      {computed.curAssets.length === 0 && <EmptyRow />}
+                      {computed.curAssets.map((a) => <BSRow key={a.code} {...a} />)}
                       <BSTotal label="Total current assets" amount={totals.curAssets} />
 
                       <SubsectionHeader label="Non-current assets" />
-                      {BS_DATA.assets.nonCurrent.map((a) => <BSRow key={a.code} {...a} />)}
+                      {computed.ncAssets.length === 0 && <EmptyRow />}
+                      {computed.ncAssets.map((a) => <BSRow key={a.code} {...a} />)}
                       <BSTotal label="Total non-current assets" amount={totals.ncAssets} />
 
                       <tr>
@@ -147,11 +245,13 @@ export default function AccountingBSPage() {
                   <table className="w-full text-sm">
                     <tbody>
                       <SubsectionHeader label="Current liabilities" />
-                      {BS_DATA.liabilities.current.map((a) => <BSRow key={a.code} {...a} />)}
+                      {computed.curLiab.length === 0 && <EmptyRow />}
+                      {computed.curLiab.map((a) => <BSRow key={a.code} {...a} />)}
                       <BSTotal label="Total current liabilities" amount={totals.curLiab} />
 
                       <SubsectionHeader label="Non-current liabilities" />
-                      {BS_DATA.liabilities.nonCurrent.map((a) => <BSRow key={a.code} {...a} />)}
+                      {computed.ncLiab.length === 0 && <EmptyRow />}
+                      {computed.ncLiab.map((a) => <BSRow key={a.code} {...a} />)}
                       <BSTotal label="Total non-current liabilities" amount={totals.ncLiab} />
 
                       <tr className="bg-muted/20">
@@ -161,7 +261,8 @@ export default function AccountingBSPage() {
                       </tr>
 
                       <SubsectionHeader label="Equity" />
-                      {BS_DATA.equity.map((a) => <BSRow key={a.code} {...a} />)}
+                      {computed.eqRows.length === 0 && <EmptyRow />}
+                      {computed.eqRows.map((a) => <BSRow key={a.code} {...a} />)}
                       <BSTotal label="Total equity" amount={totals.totalEquity} />
 
                       <tr><td colSpan={3} className="pt-3" /></tr>
@@ -243,6 +344,16 @@ function BSTotal({ label, amount }: { label: string; amount: number }) {
       <td className="py-2 px-4" />
       <td className="py-2 px-2">{label}</td>
       <td className="py-2 px-4 text-right tabular-nums">{formatAccounting(amount)}</td>
+    </tr>
+  );
+}
+
+function EmptyRow() {
+  return (
+    <tr>
+      <td className="py-1.5 px-4" />
+      <td className="py-1.5 px-2 text-xs text-muted-foreground italic">No balances</td>
+      <td className="py-1.5 px-4 text-right text-muted-foreground">—</td>
     </tr>
   );
 }
