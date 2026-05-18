@@ -25,7 +25,7 @@ import { ownerLabel } from "../../components/bank-accounts/BankAccountFormDialog
 import { useBankAccounts, deleteBankAccount, toggleStatus } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
-import { MOCK_OWNERS } from "../../data/mockOwners";
+import { useOwners } from "../../stores/ownersStore";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { BankAccount, maskAccountNumber } from "../../types/bankAccounts";
 
@@ -50,9 +50,10 @@ export default function AccountingBankAccountsPage() {
   const [editing, setEditing] = useState<BankAccount | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BankAccount | null>(null);
 
+  const ownersList = useOwners();
   const ledgerById = useMemo(() => new Map(ledgers.map((l) => [l.id, l])), [ledgers]);
   const entityById = useMemo(() => new Map(entities.map((e) => [e.id, e])), [entities]);
-  const ownerById = useMemo(() => new Map(MOCK_OWNERS.map((o) => [o.id, o])), []);
+  const ownerById = useMemo(() => new Map(ownersList.map((o) => [o.id, o])), [ownersList]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -235,7 +236,7 @@ export default function AccountingBankAccountsPage() {
               <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Owner" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All owners</SelectItem>
-                {MOCK_OWNERS.filter((o) => o.isActive).map((o) => (
+                {ownersList.filter((o) => o.isActive).map((o) => (
                   <SelectItem key={o.id} value={o.id}>{ownerLabel(o)}</SelectItem>
                 ))}
               </SelectContent>
