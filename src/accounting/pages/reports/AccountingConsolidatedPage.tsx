@@ -25,7 +25,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { addDecimals, formatAccounting, formatCompact, formatCurrency, formatPercent } from "../../lib/format";
 import { ELIMINATIONS, ENTITY_DATA, FX_RATES, MONTHLY_DATA } from "../../data/mockReports";
-import { downloadCsv, downloadXlsx, type SheetRow } from "../../lib/exportSheet";
+import { downloadCsv, downloadXlsx } from "../../lib/exportSheet";
+import { buildConsolidatedRows, buildConsolidatedXlsxSpec, toConsolidatedCsvRows } from "../../lib/consolidatedExport";
 import { cn } from "@/lib/utils";
 
 const ENTITY_COLORS = ["#2563eb", "#16a34a", "#a855f7", "#f59e0b", "#0891b2"];
@@ -88,82 +89,15 @@ export default function AccountingConsolidatedPage() {
 
   const allOn = Object.values(enabled).every(Boolean);
 
-  const buildExportRows = (): SheetRow[] => {
-    const entityHeader: SheetRow = ["Entity", "Currency", "FX rate", "Revenue (native)", "Expenses (native)", "Profit (native)", "Revenue (CAD)", "Expenses (CAD)", "Profit (CAD)"];
-    const entityRows: SheetRow[] = visibleEntities.map((e) => [
-      e.entity, e.currency, e.rate,
-      +e.revenue.toFixed(2), +e.expenses.toFixed(2), +e.profit.toFixed(2),
-      +e.revenueCAD.toFixed(2), +e.expensesCAD.toFixed(2), +e.profitCAD.toFixed(2),
-    ]);
-    const elimRows: SheetRow[] = ELIMINATIONS.map((e) => [e.label, +e.amount.toFixed(2)]);
-    const margin = totals.consolidatedRev ? (totals.consolidatedProfit / totals.consolidatedRev) : 0;
-    const today = new Date().toISOString().slice(0, 10);
-    return [
-      [`Consolidated report (CAD) — ${today}`],
-      [],
-      entityHeader,
-      ...entityRows,
-      [],
-      ["Eliminations (CAD)", "Amount"],
-      ...elimRows,
-      ["Total eliminations", +elimTotal.toFixed(2)],
-      [],
-      ["Consolidated totals (CAD)", "Value"],
-      ["Revenue", +totals.consolidatedRev.toFixed(2)],
-      ["Expenses", +totals.consolidatedExp.toFixed(2)],
-      ["Gross profit", +totals.consolidatedProfit.toFixed(2)],
-      ["Net profit", +totals.consolidatedProfit.toFixed(2)],
-      ["Margin %", margin],
-    ];
-  };
-
   const onExport = (fmt: "csv" | "xlsx") => {
     const today = new Date().toISOString().slice(0, 10);
-    const rows = buildExportRows();
+    const input = { entities: visibleEntities, eliminations: ELIMINATIONS, totals, today };
     const base = `consolidated-report-${today}`;
     if (fmt === "csv") {
-      // CSV has no number formats — expand the fraction to a percent number
-      const csvRows = rows.map((r) =>
-        r[0] === "Margin %" && typeof r[1] === "number"
-          ? ["Margin %", +(((r[1] as number) * 100).toFixed(2))]
-          : r,
-      );
-      downloadCsv(`${base}.csv`, csvRows);
+      downloadCsv(`${base}.csv`, toConsolidatedCsvRows(buildConsolidatedRows(input)));
       return;
     }
-    const NUM = '#,##0.00;[Red](#,##0.00);"-"';
-    const CUR_CAD = '"CA$"#,##0.00;[Red]("CA$"#,##0.00);"-"';
-    const RATE = '0.0000';
-    const PCT = '0.0%;[Red](0.0%);"-"';
-    const formats: (string | undefined)[][] = rows.map((r, i) => {
-      const out: (string | undefined)[] = [];
-      const first = r[0];
-      // Title (0), blank (1) — no formats
-      if (i < 2) return out;
-      // Entity header row (index 2)
-      if (i === 2) return out;
-      // Entity rows: 3 .. 3 + visibleEntities.length - 1
-      if (i < 3 + visibleEntities.length) {
-        out[2] = RATE;            // FX rate
-        out[3] = NUM; out[4] = NUM; out[5] = NUM;   // native
-        out[6] = CUR_CAD; out[7] = CUR_CAD; out[8] = CUR_CAD; // CAD
-        return out;
-      }
-      // Margin row — render as percent
-      if (first === "Margin %") {
-        out[1] = PCT;
-        return out;
-      }
-      // Other section header / value rows: format col B as CAD if numeric
-      out[1] = CUR_CAD;
-      return out;
-    });
-    downloadXlsx(`${base}.xlsx`, [{
-      name: "Consolidated",
-      rows,
-      formats,
-      colWidths: [28, 10, 10, 18, 18, 16, 18, 18, 16],
-    }]);
+    downloadXlsx(`${base}.xlsx`, [buildConsolidatedXlsxSpec(input)]);
   };
 
   return (
