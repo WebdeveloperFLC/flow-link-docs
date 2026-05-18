@@ -5013,6 +5013,125 @@ export type Database = {
           },
         ]
       }
+      financial_accounts: {
+        Row: {
+          account_number: string | null
+          account_type: string
+          branch: string | null
+          category: string
+          closed_date: string | null
+          country: string
+          created_at: string
+          currency: string
+          current_balance: number | null
+          dp_id: string | null
+          emi_amount: number | null
+          emi_day: number | null
+          folio_number: string | null
+          gl_account_id: string | null
+          id: string
+          ifsc_code: string | null
+          institution_name: string
+          interest_rate: number | null
+          linked_entity_id: string | null
+          maturity_date: string | null
+          next_premium_date: string | null
+          nickname: string
+          opened_date: string | null
+          owner_profile_id: string
+          policy_number: string | null
+          premium_amount: number | null
+          premium_frequency: string | null
+          remarks: string | null
+          status: string
+          sum_assured: number | null
+          swift_code: string | null
+          tags: string[]
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          account_type: string
+          branch?: string | null
+          category: string
+          closed_date?: string | null
+          country?: string
+          created_at?: string
+          currency?: string
+          current_balance?: number | null
+          dp_id?: string | null
+          emi_amount?: number | null
+          emi_day?: number | null
+          folio_number?: string | null
+          gl_account_id?: string | null
+          id?: string
+          ifsc_code?: string | null
+          institution_name: string
+          interest_rate?: number | null
+          linked_entity_id?: string | null
+          maturity_date?: string | null
+          next_premium_date?: string | null
+          nickname: string
+          opened_date?: string | null
+          owner_profile_id: string
+          policy_number?: string | null
+          premium_amount?: number | null
+          premium_frequency?: string | null
+          remarks?: string | null
+          status?: string
+          sum_assured?: number | null
+          swift_code?: string | null
+          tags?: string[]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          account_type?: string
+          branch?: string | null
+          category?: string
+          closed_date?: string | null
+          country?: string
+          created_at?: string
+          currency?: string
+          current_balance?: number | null
+          dp_id?: string | null
+          emi_amount?: number | null
+          emi_day?: number | null
+          folio_number?: string | null
+          gl_account_id?: string | null
+          id?: string
+          ifsc_code?: string | null
+          institution_name?: string
+          interest_rate?: number | null
+          linked_entity_id?: string | null
+          maturity_date?: string | null
+          next_premium_date?: string | null
+          nickname?: string
+          opened_date?: string | null
+          owner_profile_id?: string
+          policy_number?: string | null
+          premium_amount?: number | null
+          premium_frequency?: string | null
+          remarks?: string | null
+          status?: string
+          sum_assured?: number | null
+          swift_code?: string | null
+          tags?: string[]
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_accounts_owner_profile_id_fkey"
+            columns: ["owner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       firm_profile: {
         Row: {
           created_at: string
@@ -5562,6 +5681,105 @@ export type Database = {
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
+        }
+        Relationships: []
+      }
+      owner_profiles: {
+        Row: {
+          aadhar_last4: string | null
+          address: string | null
+          avatar_color: string | null
+          avatar_initials: string | null
+          brand_name: string | null
+          business_type: string | null
+          category: string
+          country: string
+          created_at: string
+          date_of_birth: string | null
+          email: string | null
+          first_name: string | null
+          gst_number: string | null
+          id: string
+          is_active: boolean
+          karta_name: string | null
+          last_name: string | null
+          legal_name: string | null
+          linked_entity_id: string | null
+          linked_individual_id: string | null
+          notes: string | null
+          pan_number: string | null
+          personal_type: string | null
+          phone: string | null
+          relationship: string | null
+          sin: string | null
+          tags: string[]
+          tax_id: string | null
+          tenant_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          aadhar_last4?: string | null
+          address?: string | null
+          avatar_color?: string | null
+          avatar_initials?: string | null
+          brand_name?: string | null
+          business_type?: string | null
+          category: string
+          country?: string
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string | null
+          gst_number?: string | null
+          id?: string
+          is_active?: boolean
+          karta_name?: string | null
+          last_name?: string | null
+          legal_name?: string | null
+          linked_entity_id?: string | null
+          linked_individual_id?: string | null
+          notes?: string | null
+          pan_number?: string | null
+          personal_type?: string | null
+          phone?: string | null
+          relationship?: string | null
+          sin?: string | null
+          tags?: string[]
+          tax_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          aadhar_last4?: string | null
+          address?: string | null
+          avatar_color?: string | null
+          avatar_initials?: string | null
+          brand_name?: string | null
+          business_type?: string | null
+          category?: string
+          country?: string
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string | null
+          first_name?: string | null
+          gst_number?: string | null
+          id?: string
+          is_active?: boolean
+          karta_name?: string | null
+          last_name?: string | null
+          legal_name?: string | null
+          linked_entity_id?: string | null
+          linked_individual_id?: string | null
+          notes?: string | null
+          pan_number?: string | null
+          personal_type?: string | null
+          phone?: string | null
+          relationship?: string | null
+          sin?: string | null
+          tags?: string[]
+          tax_id?: string | null
+          tenant_id?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
