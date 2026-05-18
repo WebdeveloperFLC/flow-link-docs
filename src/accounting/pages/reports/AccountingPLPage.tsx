@@ -42,7 +42,16 @@ import { useEntities } from "../../stores/accountingEntitiesStore";
 import { cn } from "@/lib/utils";
 
 type PLLine = { code: string; name: string; current: number; prior: number };
-type DrillTxn = { date: string; description: string; entity: string; amount: number };
+type DrillTxn = {
+  journalId: string;
+  entryNumber: string;
+  date: string;
+  description: string;
+  entity: string;
+  debit: number;
+  credit: number;
+  amount: number; // signed contribution (dr - cr); flipped for revenue accounts below
+};
 type DrillState = { code: string; name: string; current: number } | null;
 
 const ALL = "__all__";
@@ -202,22 +211,31 @@ export default function AccountingPLPage() {
     if (!drill) return [];
     const acc = accounts.find((a) => a.code === drill.code);
     if (!acc) return [];
+    const g = groups.find((x) => x.code === acc.groupCode);
+    const isCreditNature = g?.nature === "CREDIT";
     const out: DrillTxn[] = [];
     for (const j of journals) {
       if (j.status !== "POSTED") continue;
       if (j.entryDate < range.from || j.entryDate > range.to) continue;
       for (const l of j.lines) {
         if (l.accountId !== acc.id) continue;
+        const dr = Number(l.debit) || 0;
+        const cr = Number(l.credit) || 0;
         out.push({
+          journalId: j.id,
+          entryNumber: j.entryNumber || j.id.slice(0, 8),
           date: j.entryDate,
           description: l.description || j.narration,
           entity: j.entity,
-          amount: (Number(l.debit) || 0) - (Number(l.credit) || 0),
+          debit: dr,
+          credit: cr,
+          // Positive = contributes to the account's natural side (revenue ↑ = positive, expense ↑ = positive)
+          amount: isCreditNature ? cr - dr : dr - cr,
         });
       }
     }
-    return out.sort((a, b) => b.date.localeCompare(a.date));
-  }, [drill, accounts, journals, range]);
+    return out.sort((a, b) => a.date.localeCompare(b.date) || a.entryNumber.localeCompare(b.entryNumber));
+  }, [drill, accounts, groups, journals, range]);
 
   return (
     <AppLayout>
@@ -383,38 +401,87 @@ export default function AccountingPLPage() {
 
       {/* Drill-down sheet */}
       <Sheet open={!!drill} onOpenChange={(o) => !o && setDrill(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
           {drill && (
             <>
               <SheetHeader>
                 <SheetTitle>{drill.name} — drill-down</SheetTitle>
                 <SheetDescription>
-                  Account {drill.code} · Period total {formatCurrency(Math.abs(drill.current))}
+                  Account {drill.code} · {range.from} → {range.to} · {drillTxns.length} {drillTxns.length === 1 ? "entry" : "entries"} ·
+                  {" "}Period total {formatCurrency(Math.abs(drill.current))}
                 </SheetDescription>
               </SheetHeader>
-              <div className="mt-6 space-y-2">
-                {drillTxns.map((t, i) => (
-                  <div key={i} className="border border-border rounded-md p-3 hover:bg-muted/40 transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium text-foreground">{t.description}</div>
-                        <div className="text-[11px] text-muted-foreground mt-0.5">{t.date} · {t.entity}</div>
-                      </div>
-                      <div className={cn("text-sm font-semibold tabular-nums", t.amount >= 0 ? "text-green-600 dark:text-green-400" : "text-destructive")}>
-                        {formatAccounting(t.amount)}
-                      </div>
-                    </div>
+              <div className="mt-6">
+                {drillTxns.length === 0 ? (
+                  <div className="text-sm text-muted-foreground py-10 text-center border border-dashed border-border rounded-md">
+                    No contributing journal entries in this period.
                   </div>
-                ))}
-                {drillTxns.length === 0 && (
-                  <div className="text-sm text-muted-foreground py-6 text-center">No transactions to display.</div>
+                ) : (
+                  <div className="rounded-md border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50 text-[11px] uppercase tracking-wider text-muted-foreground">
+                          <th className="text-left px-3 py-2 w-24">Date</th>
+                          <th className="text-left px-3 py-2 w-28">Journal</th>
+                          <th className="text-left px-3 py-2">Description</th>
+                          <th className="text-right px-3 py-2 w-24">Debit</th>
+                          <th className="text-right px-3 py-2 w-24">Credit</th>
+                          <th className="text-right px-3 py-2 w-28">Running</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(() => {
+                          let running = 0;
+                          return drillTxns.map((t, i) => {
+                            running += t.amount;
+                            return (
+                              <tr key={i} className="border-t border-border/60 hover:bg-muted/30">
+                                <td className="px-3 py-2 tabular-nums text-xs">{t.date}</td>
+                                <td className="px-3 py-2">
+                                  <Link
+                                    to={`/accounting/journals/${t.journalId}`}
+                                    className="text-primary hover:underline font-mono text-xs"
+                                    onClick={() => setDrill(null)}
+                                  >
+                                    {t.entryNumber}
+                                  </Link>
+                                </td>
+                                <td className="px-3 py-2">
+                                  <div className="text-sm">{t.description || "—"}</div>
+                                  <div className="text-[11px] text-muted-foreground mt-0.5">{t.entity}</div>
+                                </td>
+                                <td className="px-3 py-2 text-right tabular-nums">{t.debit ? formatAccounting(t.debit) : "—"}</td>
+                                <td className="px-3 py-2 text-right tabular-nums">{t.credit ? formatAccounting(t.credit) : "—"}</td>
+                                <td className={cn("px-3 py-2 text-right tabular-nums font-medium",
+                                  running >= 0 ? "text-foreground" : "text-destructive")}>
+                                  {formatAccounting(running)}
+                                </td>
+                              </tr>
+                            );
+                          });
+                        })()}
+                        <tr className="border-t-2 border-foreground/40 bg-muted/40 font-semibold">
+                          <td className="px-3 py-2.5" colSpan={3}>Period total</td>
+                          <td className="px-3 py-2.5 text-right tabular-nums">
+                            {formatAccounting(drillTxns.reduce((s, t) => s + t.debit, 0))}
+                          </td>
+                          <td className="px-3 py-2.5 text-right tabular-nums">
+                            {formatAccounting(drillTxns.reduce((s, t) => s + t.credit, 0))}
+                          </td>
+                          <td className="px-3 py-2.5 text-right tabular-nums">
+                            {formatAccounting(drillTxns.reduce((s, t) => s + t.amount, 0))}
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 )}
                 <Link
-                  to="/accounting/journals"
-                  className="block text-sm text-primary hover:underline pt-3 mt-2 border-t border-border"
+                  to={`/accounting/reports/general-ledger/${accounts.find((a) => a.code === drill.code)?.id ?? ""}`}
+                  className="inline-block text-sm text-primary hover:underline mt-4"
                   onClick={() => setDrill(null)}
                 >
-                  View all journal entries →
+                  Open full General Ledger for this account →
                 </Link>
               </div>
             </>
