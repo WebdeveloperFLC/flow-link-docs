@@ -1,67 +1,59 @@
-## Root cause
+## Goal
 
-The seeded HDFC Bank COA row (type_code `BANK`) is being **stripped by the COA store** before it ever reaches the reports.
+Make the Balance Sheet (`/accounting/reports/bs`) and Profit & Loss (`/accounting/reports/pl`) pages compute from real POSTED journals + COA, same pattern as the (now-working) Trial Balance and General Ledger. After this, the May 2026 rent journal will populate both reports.
 
-```
-src/accounting/stores/coaStore.ts
-  scrubBankAccounts() filters out any account whose typeCode ∈ HIDDEN_TYPE_CODES
-src/accounting/stores/coaMasterStore.ts
-  export const HIDDEN_TYPE_CODES = new Set(["BANK"]);
-  // comment: "banks are owned by the Banks module now"
-```
+## Scope
 
-So:
-- Posted journal `JE-2026-0001` has two lines (Dr Rent 50k / Cr HDFC 50k) — both confirmed in DB.
-- Trial Balance loops over `coaStore` accounts → only sees Rent Expense (Dr 50k). HDFC Bank is invisible → Cr column = 0 → **"OUT OF BALANCE — Difference: ₹50,000"**.
-- General Ledger walks journal lines directly, so it correctly shows both — that's why GL looks right while TB doesn't.
-- P&L and Balance Sheet screenshots show all zeros, but that's a **separate, pre-existing issue** (those pages still read from the empty `mockReports.ts` constants, not from journals). Not in scope for this fix.
+- `src/accounting/pages/reports/AccountingBSPage.tsx` — replace `BS_DATA` reads with a `useMemo` that walks `useAccounts()` + `useJournals()`.
+- `src/accounting/pages/reports/AccountingPLPage.tsx` — replace `PL_DATA` / `MONTHLY_DATA` / `PL_DRILLDOWN` reads with the same pattern.
 
-## Fix (data-only, one row)
+No DB changes. No new files. No edits to other modules. `mockReports.ts` constants stay (still used by `ReportFilterBar` / consolidated / cashflow pages) but BS/PL stop reading from them.
 
-Update the single seeded HDFC Bank COA row so its type isn't in the bank-stripped set, keeping it as an asset:
+## How it will work (technical)
 
-```sql
-UPDATE accounting_coa
-SET    type_code     = 'CASH',
-       sub_type_code = NULL
-WHERE  id   = '7327e23a-a3bc-4291-8a82-64130a3a3927'
-  AND  code = '1110';
+Reuse the exact computation TB does (closing balance per account):
+
+```ts
+closing = opening + sum(debit if nature=DEBIT else credit)
+                  - sum(credit if nature=DEBIT else debit)
+// over all POSTED lines where entryDate <= asOf and entity matches filter
 ```
 
-Why `CASH`:
-- It's a seeded system type under group `ASSET` (`coaMasterStore.SEED_TYPES`).
-- Normal balance stays `DEBIT`, group stays `ASSET` — no other field needs to change.
-- Not in `HIDDEN_TYPE_CODES`, so `coaStore` will load it and the TB will include it.
+### Balance Sheet
+- For each account in `useAccounts()` with `group ∈ {ASSET, LIABILITY, EQUITY}`, compute signed closing as of `asOf`.
+- Bucket by `subTypeCode` (or fallback to `typeCode`) into:
+  - Assets → current vs non-current (use existing seed sub-types: `CASH`, `BANK`, `AR`, `INVENTORY`, `PREPAID` → current; `FIXED_ASSET`, `INTANGIBLE`, `LT_INVESTMENT` → non-current; unknown → current).
+  - Liabilities → current vs non-current (similar split on sub-type).
+  - Equity → single bucket.
+- Retained earnings line: derive as `Σ(revenue closing − expense closing − tax)` up to `asOf` so the sheet actually balances (TB has Rent ₹50k expense → RE = −₹50k → balances HDFC −₹50k).
+- Keep zero-balance accounts hidden; keep existing UI (rows, totals, pie chart). Pie buckets use closing balances from the computed list.
 
-No schema change, no RLS change, no code change, no new tables, no edits to Personal Wealth / Commissions / Institutions / Accounting code.
+### Profit & Loss
+- For each account with `group ∈ {REVENUE, COGS, EXPENSE, OTHER_INCOME, OTHER_EXPENSE}`, compute period activity:
+  - Current = sum within selected period.
+  - Prior = same window shifted back (month/quarter/YTD/last FY → mirror).
+- Bucket revenue, cost of revenue (COGS), operating expenses (EXPENSE), tax expense (account code `9000` if present, else 0).
+- Build `chartData` (last 6 months) by grouping POSTED line activity by `entryDate` month.
+- Drill-down: list POSTED journal lines hitting that account in the current period; link to `/accounting/journals` unchanged.
 
-## Expected outcome after the fix
+### Filters
+- BS: `asOf` date + entity filter already in the page — wire them into the memo.
+- P&L: entity + period (month/quarter/ytd/lastfy/custom) → compute `[from,to]` and `[priorFrom,priorTo]`. Entity dropdown populated from `useEntities()` instead of `ENTITY_DATA`.
 
-Trial Balance at `/accounting/reports/trial-balance` (with `Show zero balances` off, as in the screenshot):
+## Out of scope
 
-```
-ASSETS
-  1110  HDFC Bank             —          ₹50,000.00   (shown in CR column, in red parens — it's the contra side of a debit-normal account)
-Total Assets                   —          ₹50,000.00
-
-EXPENSES
-  6100  Rent Expense       ₹50,000.00         —
-Total Expenses              ₹50,000.00         —
-
-TOTAL                       ₹50,000.00    ₹50,000.00
-✓ Trial balance is balanced — Total: ₹50,000.00
-```
-
-`Total Assets` KPI card at top will read **−₹50,000** (signed, because the bank is in overdraft on the seeded fictitious journal). That's accounting-correct given there's only one journal and no opening cash — it's not an error.
-
-## Out of scope (not touched)
-
-- `AccountingBSPage.tsx` / `AccountingPLPage.tsx` still read from empty `mockReports.ts` — they will continue to show $0. Wiring those to the journals store is a separate, larger refactor; flagged here for visibility but not done in this plan.
-- The `BRIDGE_ENABLED` flag stays `false`.
-- The accounting module code, RLS policies, and other modules are not modified.
+- Cash Flow page, Consolidated page — still on mock data (flagged, not touched).
+- Multi-currency FX translation — use native amounts; entity filter handles isolation.
+- Schema, RLS, edge functions, other modules.
 
 ## Verification
 
-1. Re-run the COA query — confirm `1110 HDFC Bank` now has `type_code = 'CASH'`.
-2. Hard-refresh `/accounting/reports/trial-balance` (the local cache in `accounting:coa-accounts:v5` will be replaced by the Supabase hydration on next load).
-3. Confirm green "✓ Trial balance is balanced" banner.
+1. `/accounting/reports/bs` with asOf `2026-05-31`:
+   - Assets → HDFC Bank −₹50,000 (current).
+   - Equity → Retained earnings −₹50,000.
+   - Green "Balance sheet is balanced" banner.
+2. `/accounting/reports/pl` with YTD period:
+   - Operating expenses → Rent Expense ₹50,000.
+   - Net profit −₹50,000.
+   - Last-6-months chart shows a May 2026 expense bar.
+3. Trial Balance and General Ledger unchanged (still balanced).
