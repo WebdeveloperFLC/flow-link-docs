@@ -29,7 +29,7 @@ export default function AccountingEntitiesPage() {
         <AccountingBreadcrumbs items={[{ label: "Accounting", to: "/accounting" }, { label: "Settings" }, { label: "Entities" }]} />
         <AccountingPageHeader
           title="Entities"
-          subtitle="Companies, branches, sub-branches and brands across all countries"
+          subtitle="Companies, branches, sub-branches and brands across all countries. Add branches/divisions by setting a Parent on a new entity."
           actions={
             <>
               <DarkModeToggle />
