@@ -362,6 +362,7 @@ function OwnerForm({
     }
   );
   const [tagsText, setTagsText] = useState((editing?.tags ?? []).join(', '));
+  const ownersForLink = useOwners();
 
   function set<K extends keyof OwnerProfile>(k: K, v: OwnerProfile[K]) {
     setForm(prev => ({ ...prev, [k]: v }));
@@ -464,7 +465,7 @@ function OwnerForm({
               <Select value={form.linkedIndividualId ?? ''} onValueChange={v => set('linkedIndividualId', v)}>
                 <SelectTrigger><SelectValue placeholder="Select…" /></SelectTrigger>
                 <SelectContent>
-                  {MOCK_OWNERS.filter(o => o.personalType === 'INDIVIDUAL').map(o => (
+                  {ownersForLink.filter(o => o.personalType === 'INDIVIDUAL').map(o => (
                     <SelectItem key={o.id} value={o.id}>{ownerDisplayName(o)}</SelectItem>
                   ))}
                 </SelectContent>
