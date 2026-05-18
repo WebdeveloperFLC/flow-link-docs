@@ -434,7 +434,12 @@ function AccountCombobox({
   value, onChange, invalid,
 }: { value: string; onChange: (id: string) => void; invalid?: boolean }) {
   const [open, setOpen] = useState(false);
-  const selected = MOCK_ACCOUNTS.find(a => a.id === value);
+  const accounts = useAccounts();
+  const activeAccounts = useMemo(
+    () => accounts.filter(a => a.status !== "INACTIVE").slice().sort((a, b) => a.code.localeCompare(b.code)),
+    [accounts],
+  );
+  const selected = activeAccounts.find(a => a.id === value);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -455,7 +460,7 @@ function AccountCombobox({
           <CommandList>
             <CommandEmpty>No accounts found.</CommandEmpty>
             {ACCOUNT_TYPES.map(type => {
-              const items = MOCK_ACCOUNTS.filter(a => a.type === type);
+              const items = activeAccounts.filter(a => toAccountType(a.groupCode) === type);
               if (!items.length) return null;
               return (
                 <CommandGroup key={type} heading={type}>
