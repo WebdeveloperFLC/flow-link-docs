@@ -113,6 +113,6 @@ export function renderXlsxCell(spec: SheetSpec, row: number, col: number): { raw
   const ref = XLSX.utils.encode_cell({ r: row, c: col });
   const cell = (ws as Record<string, XLSX.CellObject>)[ref];
   if (!cell) return { raw: undefined, text: "" };
-  const text = cell.z ? XLSX.SSF.format(cell.z, cell.v as number) : String(cell.v);
+  const text = cell.z ? XLSX.SSF.format(String(cell.z), cell.v as number) : String(cell.v);
   return { raw: cell.v, z: cell.z, text };
 }
