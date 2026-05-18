@@ -140,6 +140,41 @@ export default function AccountingReconciliationPage() {
   const allMatched = checks.every((c) => c.lhs.value.minus(c.rhs.value).abs().lt(TOL));
   const noJournals = journals.filter((j) => j.status === "POSTED").length === 0;
 
+  const buildExportRows = (): SheetRow[] => {
+    const header: SheetRow = ["Check", "Left label", "Left value", "Right label", "Right value", "Difference", "Status"];
+    const checkRows: SheetRow[] = checks.map((c) => {
+      const diff = c.lhs.value.minus(c.rhs.value);
+      const ok = diff.abs().lt(TOL);
+      return [c.label, c.lhs.label, +c.lhs.value.toFixed(2), c.rhs.label, +c.rhs.value.toFixed(2), +diff.toFixed(2), ok ? "Match" : "Mismatch"];
+    });
+    const totalRows: SheetRow[] = [
+      [],
+      ["Totals", "Value"],
+      ["Assets", +totals.assets.toFixed(2)],
+      ["Liabilities", +totals.liabilities.toFixed(2)],
+      ["Equity", +totals.equity.toFixed(2)],
+      ["Net Income", +netIncome.toFixed(2)],
+      ["Revenue", +totals.revenue.toFixed(2)],
+      ["Expenses", +totals.expenses.toFixed(2)],
+      ["TB Debits", +totals.tbDr.toFixed(2)],
+      ["TB Credits", +totals.tbCr.toFixed(2)],
+    ];
+    return [
+      [`Report reconciliation as of ${asOf}`],
+      [],
+      header,
+      ...checkRows,
+      ...totalRows,
+    ];
+  };
+
+  const exportReconciliation = (fmt: "csv" | "xlsx") => {
+    const rows = buildExportRows();
+    const base = `report-reconciliation-${asOf}`;
+    if (fmt === "csv") downloadCsv(`${base}.csv`, rows);
+    else downloadXlsx(`${base}.xlsx`, [{ name: "Reconciliation", rows }]);
+  };
+
   return (
     <AppLayout>
       <div className="p-6 md:p-8 max-w-6xl mx-auto">
@@ -161,10 +196,10 @@ export default function AccountingReconciliationPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportReconciliation("csv", asOf, checks, totals, netIncome)}>
+                <DropdownMenuItem onClick={() => exportReconciliation("csv")}>
                   Export as CSV
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportReconciliation("xlsx", asOf, checks, totals, netIncome)}>
+                <DropdownMenuItem onClick={() => exportReconciliation("xlsx")}>
                   Export as XLSX
                 </DropdownMenuItem>
               </DropdownMenuContent>
