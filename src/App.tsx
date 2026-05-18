@@ -103,6 +103,9 @@ import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
+import AccountingSectionRoute from "./accounting/components/AccountingSectionRoute";
+import AccountingAccessAdminPage from "./accounting/pages/settings/AccountingAccessAdminPage";
+import AccountingNoAccessPage from "./accounting/pages/AccountingNoAccessPage";
 import AccountingPettyCashDashboardPage from "./accounting/pages/petty-cash/AccountingPettyCashDashboardPage";
 import AccountingPettyCashVoucherPage from "./accounting/pages/petty-cash/AccountingPettyCashVoucherPage";
 import AccountingPettyCashDetailPage from "./accounting/pages/petty-cash/AccountingPettyCashDetailPage";
@@ -184,6 +187,8 @@ const App = () => (
             <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
             <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/no-access" element={<AccountingProtectedRoute><AccountingNoAccessPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/access" element={<AccountingSectionRoute section="access_admin"><AccountingAccessAdminPage /></AccountingSectionRoute>} />
             <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals/:id" element={<AccountingProtectedRoute><AccountingJournalDetailPage /></AccountingProtectedRoute>} />
