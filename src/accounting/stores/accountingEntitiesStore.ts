@@ -4,7 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "accounting:entities:v3";
 
-const SEED: SettingsEntity[] = [
+type SeedEntity = SettingsEntity & {
+  registeredAddress?: string;
+  incorporatedOn?: string;
+  directors?: string[];
+  note?: string;
+};
+
+const SEED: SettingsEntity[] = ([
   // ── INDIA — 3 registered companies ──
   {
     id: "e-flc-india",
@@ -14,12 +21,15 @@ const SEED: SettingsEntity[] = [
     country: "IN",
     currency: "INR",
     fiscalYearStart: "04-01",
-    // TODO: Add real GSTIN/PAN/CIN before going live
     taxIds: [
-      { label: "GSTIN", value: "" },
-      { label: "PAN", value: "" },
-      { label: "CIN", value: "" },
+      { label: "CIN", value: "U74999GJ2021PTC123559" },
+      { label: "PAN", value: "AAECF6140K" },
+      { label: "TAN", value: "BRDF00780D" },
+      { label: "GSTIN", value: "24AAECF6140K1ZP" },
     ],
+    registeredAddress: "Shop 215-216, Atlantis, Vadivadi, Sarabhai Compound, Vadodara, Gujarat 390023, India",
+    incorporatedOn: "2021-06-24",
+    directors: ["Santosh Dwarkadas Ramrakhiani", "Krishaa Santosh Ramrakhiani"],
   },
   {
     id: "e-flvc-india",
@@ -29,12 +39,14 @@ const SEED: SettingsEntity[] = [
     country: "IN",
     currency: "INR",
     fiscalYearStart: "04-01",
-    // TODO: Add real GSTIN/PAN/CIN before going live
     taxIds: [
-      { label: "GSTIN", value: "" },
-      { label: "PAN", value: "" },
-      { label: "CIN", value: "" },
+      { label: "CIN", value: "U74900GJ2009PTC057220" },
+      { label: "PAN", value: "AABCF3724G" },
+      { label: "GSTIN", value: "24AABCF3724G1Z1" },
     ],
+    registeredAddress: "216 Atlantis, Opp Vadodara Central, Nr. Genda Circle, Vadodara, Gujarat 390023, India",
+    incorporatedOn: "2009-06-10",
+    directors: ["Santosh Dwarkadas Ramrakhiani", "Krishaa Santosh Ramrakhiani"],
   },
   {
     id: "e-flae-india",
@@ -44,12 +56,15 @@ const SEED: SettingsEntity[] = [
     country: "IN",
     currency: "INR",
     fiscalYearStart: "04-01",
-    // TODO: Add real GSTIN/PAN/CIN before going live
     taxIds: [
+      { label: "CIN", value: "U74991GJ2017PTC096530" },
+      { label: "PAN", value: "AADCF0528Q" },
       { label: "GSTIN", value: "" },
-      { label: "PAN", value: "" },
-      { label: "CIN", value: "" },
     ],
+    registeredAddress: "216 Atlantis Complex, Opp Vadodara Central, Nr. Genda Circle, Vadodara, Gujarat 390023, India",
+    incorporatedOn: "2017-03-27",
+    directors: ["Santosh Dwarkadas Ramrakhiani", "Krishaa Santosh Ramrakhiani"],
+    note: "Formerly Future Link Educational and Immigration Services Pvt Ltd. Name changed April 2017.",
   },
   // ── INDIA — Gujarat branches (parented to primary entity) ──
   { id: "e-vad-genda", name: "Vadodara — Genda Circle", type: "BRANCH", parentId: "e-flc-india", country: "IN", currency: "INR", fiscalYearStart: "04-01", taxIds: [] },
@@ -103,7 +118,7 @@ const SEED: SettingsEntity[] = [
 
   // ── USA — office only, no legal entity. Payments via Canada or India. ──
   { id: "e-usa-office", name: "Finksburg — Maryland (Office)", type: "BRANCH", parentId: "e-flc-canada", country: "US", currency: "USD", fiscalYearStart: "04-01", taxIds: [] },
-];
+] as SeedEntity[]) as SettingsEntity[];
 
 let entities: SettingsEntity[] = (() => {
   if (typeof window === "undefined") return SEED;
