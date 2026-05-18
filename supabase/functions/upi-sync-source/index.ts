@@ -156,16 +156,45 @@ async function logMsg(
   } catch (_) { /* ignore */ }
 }
 
-async function fetchMarkdown(url: string, maxChars: number): Promise<string | null> {
-  try {
-    const r = await fetch(`https://r.jina.ai/${url}`, {
-      headers: { Accept: "text/markdown", "X-Return-Format": "markdown" },
-    });
-    if (!r.ok) return null;
-    let md = await r.text();
-    if (md.length > maxChars) md = md.slice(0, maxChars);
-    return md;
-  } catch { return null; }
+async function fetchMarkdown(
+  url: string,
+  maxChars: number,
+): Promise<{ md: string | null; status: number; error?: string }> {
+  const jinaKey = Deno.env.get("JINA_API_KEY");
+  const headers: Record<string, string> = {
+    Accept: "text/markdown",
+    "X-Return-Format": "markdown",
+  };
+  if (jinaKey) headers["Authorization"] = `Bearer ${jinaKey}`;
+
+  let lastStatus = 0;
+  let lastError: string | undefined;
+  for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
+    try {
+      const r = await fetch(`https://r.jina.ai/${url}`, { headers });
+      lastStatus = r.status;
+      if (r.ok) {
+        let md = await r.text();
+        if (md.length > maxChars) md = md.slice(0, maxChars);
+        return { md, status: r.status };
+      }
+      // Retry on 429 / 5xx; bail on other 4xx
+      if (r.status !== 429 && r.status < 500) {
+        try { await r.text(); } catch (_) { /* ignore */ }
+        return { md: null, status: r.status, error: `HTTP ${r.status}` };
+      }
+      const retryAfter = parseInt(r.headers.get("retry-after") ?? "", 10);
+      try { await r.text(); } catch (_) { /* ignore */ }
+      const backoff = Number.isFinite(retryAfter) && retryAfter > 0
+        ? retryAfter * 1000
+        : Math.min(7000, 1000 * Math.pow(2, attempt));
+      await sleep(backoff);
+    } catch (e) {
+      lastError = e instanceof Error ? e.message : String(e);
+      await sleep(Math.min(7000, 1000 * Math.pow(2, attempt)));
+    }
+  }
+  return { md: null, status: lastStatus, error: lastError ?? `HTTP ${lastStatus}` };
 }
 
 Deno.serve(async (req) => {
