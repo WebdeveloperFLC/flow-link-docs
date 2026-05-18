@@ -64,6 +64,7 @@ function mapToDb(b: BankAccount): Record<string, unknown> {
     reconciliation_status: b.lastReconciliationStatus,
     last_reconciled_date: b.lastReconciledAt ? b.lastReconciledAt.slice(0, 10) : null,
     status: b.status,
+    authorised_signatory_ids: (b.authorisedSignatoryIds ?? []).filter(isUuid),
   };
 }
 
@@ -76,6 +77,7 @@ function mergeFromDb(local: BankAccount | undefined, row: any): BankAccount {
     ownerProfileId: "",
     coaAccountId: row.linked_coa_id ?? row.linked_coa_code ?? "",
     currency: row.currency ?? "",
+    authorisedSignatoryIds: Array.isArray(row.authorised_signatory_ids) ? row.authorised_signatory_ids : [],
     bankName: row.bank_name ?? "",
     nickname: row.nickname ?? "",
     holderName: row.account_holder ?? "",
@@ -111,6 +113,9 @@ function mergeFromDb(local: BankAccount | undefined, row: any): BankAccount {
     lastReconciliationStatus: row.reconciliation_status ?? base.lastReconciliationStatus,
     lastReconciledAt: row.last_reconciled_date ?? base.lastReconciledAt,
     status: row.status ?? base.status,
+    authorisedSignatoryIds: Array.isArray(row.authorised_signatory_ids)
+      ? row.authorised_signatory_ids
+      : base.authorisedSignatoryIds,
   };
 }
 
@@ -143,7 +148,6 @@ const RX_ACC_NUM = /^[A-Za-z0-9 \-]{4,34}$/;
 function validate(input: BankAccountInput): ValidationError | null {
   if (!input.country) return { field: "country", message: "Country is required" };
   if (!input.entityId) return { field: "entityId", message: "Entity is required" };
-  if (!input.ownerProfileId) return { field: "ownerProfileId", message: "Owner is required" };
   if (!input.coaAccountId) return { field: "coaAccountId", message: "Linked Chart of Accounts ledger is required" };
   if (!input.currency) return { field: "currency", message: "Currency is required" };
   if (!input.bankName.trim()) return { field: "bankName", message: "Bank name is required" };
