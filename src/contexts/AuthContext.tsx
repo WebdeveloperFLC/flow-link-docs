@@ -17,6 +17,7 @@ interface AuthCtx {
   isAdmin: boolean;
   isClient: boolean;
   isCommissionAdmin: boolean;
+  isAccountingAdmin: boolean;
   isAccountingMember: boolean;
 }
 
@@ -28,14 +29,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAccountingMember, setIsAccountingMember] = useState(false);
+  const [isAccountingAdmin, setIsAccountingAdmin] = useState(false);
 
   const loadRoles = async (uid: string) => {
     const [{ data: roleRows }, { data: acctRows }] = await Promise.all([
       supabase.from("user_roles").select("role").eq("user_id", uid),
-      supabase.from("accounting_users" as any).select("id,status").eq("auth_user_id", uid).eq("status", "ACTIVE").limit(1),
+      supabase.from("accounting_users" as any).select("id,status,role").eq("auth_user_id", uid).eq("status", "ACTIVE").limit(1),
     ]);
     setRoles((roleRows ?? []).map((r: any) => r.role as AppRole));
-    setIsAccountingMember(!!acctRows && acctRows.length > 0);
+    const acctRow: any = acctRows?.[0];
+    setIsAccountingMember(!!acctRow);
+    setIsAccountingAdmin(
+      !!acctRow && (acctRow.role === "SUPER_ADMIN" || acctRow.role === "FINANCE_ADMIN"),
+    );
   };
 
   useEffect(() => {
@@ -46,6 +52,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => loadRoles(s.user.id), 0);
       } else {
         setRoles([]);
+        setIsAccountingMember(false);
+        setIsAccountingAdmin(false);
       }
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
@@ -77,7 +85,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     canEdit: hasRole(["admin", "counselor", "documentation"]),
     canUpload: hasRole(["admin", "counselor", "documentation"]),
     canCreateClient: !!user,
-    isCommissionAdmin: roles.includes("commission_admin") || isAccountingMember,
+    // Mirrors DB is_commission_admin(): commission_admin role OR an
+    // accounting admin (SUPER_ADMIN / FINANCE_ADMIN). Plain ACCOUNTANT/
+    // AUDITOR/VIEWER accounting users are intentionally excluded — RLS
+    // would deny them anyway. Bootstrap mode (no accounting admins yet)
+    // is not mirrored client-side; first admin must self-grant.
+    isCommissionAdmin: roles.includes("commission_admin") || isAccountingAdmin,
+    isAccountingAdmin,
     isAccountingMember,
   };
 
@@ -101,6 +115,7 @@ export const useAuth = () => {
       isAdmin: false,
       isClient: false,
       isCommissionAdmin: false,
+      isAccountingAdmin: false,
       isAccountingMember: false,
     } as AuthCtx;
   }

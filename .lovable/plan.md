@@ -1,54 +1,78 @@
-## Goal
 
-Migrate `accountingEntitiesStore` then `accountingMastersStore` to Supabase using the same hybrid optimistic-cache + background sync pattern as `coaStore`. No page/component edits — public API signatures stay identical (`useEntities`, `getEntities`, `addEntity`, `updateEntity`, `deleteEntity`, `useMaster`, `getMaster`, `masterLabel`, `addMasterItem`, `removeMasterItem`).
+# Phase 2.1 — Commission Module Cleanup (revised, ready to execute)
 
-## Order
+Scope unchanged. `BRIDGE_ENABLED` stays false; `clientIntegrationBridge.ts` untouched; no new tables; `commissionEngine.ts` untouched; accounting untouched.
 
-1. `accountingEntitiesStore.ts` only — verify build, report, stop.
-2. After confirmation: `accountingMastersStore.ts` only — verify build, report, stop.
+## Task 1 — RLS SELECT policies
 
----
+New migration:
 
-## Step 1 — accountingEntitiesStore
+```sql
+CREATE POLICY commission_admin_select_upi_commission_students
+  ON public.upi_commission_students
+  FOR SELECT TO authenticated
+  USING (public.is_commission_admin(auth.uid()));
 
-Target table: `accounting_entities` (cols: `id uuid`, `name`, `type`, `parent_id`, `country`, `currency`, `fiscal_year_start`, `tax_ids jsonb`, `is_active`, `created_by`).
+CREATE POLICY commission_admin_select_upi_commission_invoices
+  ON public.upi_commission_invoices
+  FOR SELECT TO authenticated
+  USING (public.is_commission_admin(auth.uid()));
+```
 
-Changes inside `accountingEntitiesStore.ts` only:
-- Keep `SEED`, localStorage cache, `useSyncExternalStore` subscribe model unchanged.
-- Add `mapFromDb` / `mapToDb` (snake_case ↔ camelCase, `taxIds` ↔ `tax_ids` jsonb).
-- Add `hydrateFromSupabase()` fired once on module load: SELECT `accounting_entities`, merge by id with local cache (DB rows win), emit. On error: keep local cache, console.warn.
-- `addEntity`: generate uuid via `crypto.randomUUID()` (replacing `e${Date.now()...}`), optimistic insert into local array + emit, then background `supabase.from('accounting_entities').insert({...mapToDb, created_by: auth.uid}).select().single()`. On error: revert + sonner toast.
-- `updateEntity`: optimistic patch + emit, then background `update(mapToDb(patch)).eq('id', id)`. On error: revert + toast.
-- `deleteEntity`: keep current child re-parent logic locally + emit, then background `delete().eq('id', id)` for the deleted row AND `update({ parent_id: newParent }).eq('parent_id', id)` for re-parented children. On error: revert + toast.
-- String-id seed rows (e.g. `e-flc-india`) stay local-only — DB inserts skipped for any id not matching uuid regex (these are seed-only references already used by other stores as `entityId` keys, never written by users).
+## Task 2 — Real repos in `src/institutions/repositories/index.ts`
 
-Verify: build passes, `/accounting/settings/entities` still lists seeds, add/edit/delete still works locally, new rows appear in `accounting_entities` table.
+- `studentsRepo.list(institutionId, claimCycleId?)` → `upi_commission_students` filtered by `institution_id` and optional `claim_cycle_id`.
+- `paymentsRepo.list(institutionId?)` → derived from `upi_commission_invoices` where `payment_received_date IS NOT NULL`, projected to `{ id, invoice_id, amount, currency, paid_at, method, reference }`. No dedicated payments table exists in the schema.
 
----
+Both use the existing `fetchLiveScoped` error-swallowing pattern.
 
-## Step 2 — accountingMastersStore
+## Task 3 — Delete dead code from `claimEngine.ts`
 
-Target table: `accounting_masters` (cols: `id uuid`, `list_key`, `code`, `label`, `is_system`, `sort_order`, `metadata jsonb`, `UNIQUE(list_key, code)`).
+- Remove `import { MockStudent }`, `interface CycleEligibility`, `const BLOCKED`, and `classifyForCycle`.
+- Keep `detectRuleConflicts` + `RuleConflict` untouched (used by `CommissionsPanel.tsx`).
+- Prepend header comment recording the live-vocabulary mapping (eligible/paid/blocked/carried/pending) and noting that legacy mock-only statuses `pending_dues`, `missing_consent`, `withdrawn`, `deferred` are dropped.
+- Add (export) `CommissionStudent` type alias in `src/institutions/types/upi.ts` from `Database['public']['Tables']['upi_commission_students']['Row']` for Phase 2.2.
+- Run `rg -n classifyForCycle src` after the edit; report results.
 
-Shape difference: store holds `Record<MasterListKey, MasterItem[]>` keyed by list. DB stores flat rows with `list_key`. Mapping handled inside store.
+## Task 4 — `/commissions` route
 
-Changes inside `accountingMastersStore.ts` only (keep `createPersistedStore` for local cache):
-- Add `hydrateFromSupabase()` on module load: SELECT `accounting_masters`, group by `list_key`, merge with local SEED+cache (DB rows override by `(list_key, code)`), call `store.set(merged)`.
-- `addMasterItem`: keep existing slug + dedupe logic, optimistic `store.set`, then background `insert({ list_key: key, code, label, metadata, is_system: false })`. On error: revert + toast.
-- `removeMasterItem`: keep `system` guard, optimistic remove, then background `delete().eq('list_key', key).eq('code', code)`. On error: revert + toast.
-- Keep legacy `accounting:vendor-categories:v1` migration block as-is.
-- `useMaster` / `getMaster` / `masterLabel` signatures unchanged.
+**Decision 1 (redirect pattern):** match `InstitutionsProtectedRoute` — render an "Access restricted" `Card` inside `AppLayout` rather than redirect. `AccountingProtectedRoute`'s redirect+toast pattern is older and less informative for top-level modules.
 
-Seed items stay local; only user-added items (`is_system: false`) round-trip to DB. Hydration merges DB rows over seeds so deletions/edits of seed-overrides work later.
+**Decision 2 (flag derivation):** fix drift in `AuthContext`. Add `isAccountingAdmin` derived from `accounting_users.role IN ('SUPER_ADMIN','FINANCE_ADMIN') AND status='ACTIVE'`, then redefine `isCommissionAdmin = roles.includes('commission_admin') || isAccountingAdmin`. Use this single flag for both the route guard and sidebar entry. Bootstrap-mode (no SUPER/FINANCE admin exists) is not mirrored client-side — documented as a known minor gap (one-time setup friction).
 
-Verify: build passes, `/accounting/settings/masters` (or wherever DynamicSelect is used) still shows all seed lists, adding a new currency/tax code persists to `accounting_masters`.
+New files:
+- `src/institutions/components/CommissionsProtectedRoute.tsx` — mirrors `InstitutionsProtectedRoute`, gates on `isCommissionAdmin`.
+- `src/pages/CommissionsPage.tsx` — two cards:
+  - Claim cycles table (joins `upi_claim_cycles` to `upi_institutions` by `institution_id` for the display name; column `institution_name` does not exist).
+  - Invoices grouped by `upi_commission_invoices.status`.
 
----
+Edits:
+- `src/contexts/AuthContext.tsx` — refine flag derivation per Decision 2 above. `loadRoles` already queries `accounting_users` for status; extend its select to include `role` and set `isAccountingAdmin` state. Keep `isAccountingMember` unchanged (used elsewhere).
+- `src/App.tsx` — register `/commissions` route.
+- `src/components/layout/AppLayout.tsx` — add a small `commissionsNav` (single entry, `Receipt` icon already imported) rendered above the Institutions block, gated on `isCommissionAdmin`.
 
-## Out of scope this round
+## Files touched
 
-- No changes to `journalsStore`, pages, dialogs, or `accountingEntityStore.ts` (singleton wrapper).
-- No realtime, no bulk seed-to-DB migration script.
-- No CRM, no commissions.
+```text
+new   supabase/migrations/<ts>_commission_admin_select_policies.sql
+edit  src/institutions/repositories/index.ts
+edit  src/institutions/lib/claimEngine.ts
+edit  src/institutions/types/upi.ts
+edit  src/contexts/AuthContext.tsx
+new   src/institutions/components/CommissionsProtectedRoute.tsx
+new   src/pages/CommissionsPage.tsx
+edit  src/App.tsx
+edit  src/components/layout/AppLayout.tsx
+```
 
-After Step 1 I will report files changed and wait for your go-ahead before Step 2.
+## Final reply will include
+
+1. Files created/modified
+2. Migration filename
+3. `paymentsRepo` approach + rationale
+4. MockStudent statuses with no live equivalent (dropped + noted)
+5. Confirmation `BRIDGE_ENABLED` still false, `clientIntegrationBridge.ts` untouched
+6. `rg classifyForCycle src` results
+7. Which redirect pattern was matched (Institutions-style Access Restricted card) and why
+8. AuthContext flag drift summary + the fix applied
+9. Out-of-scope oddities noticed

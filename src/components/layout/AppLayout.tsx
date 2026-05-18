@@ -68,8 +68,12 @@ const institutionsNav: NavItem[] = [
   { to: "/institutions/suggestions", icon: Lightbulb, label: "AI Suggestions" },
 ];
 
+const commissionsNav: NavItem[] = [
+  { to: "/commissions", icon: Receipt, label: "Commissions", end: true },
+];
+
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { user, roles, signOut, isAdmin, hasRole } = useAuth();
+  const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin } = useAuth();
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
@@ -179,6 +183,16 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               </div>
             )}
             {institutionsNav.map(renderNavLink)}
+          </>}
+
+          {isCommissionAdmin && <>
+            <div className="border-t border-sidebar-border my-2" />
+            {!iconsOnly && (
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                Commissions
+              </div>
+            )}
+            {commissionsNav.map(renderNavLink)}
           </>}
         </nav>
 

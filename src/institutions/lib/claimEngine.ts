@@ -1,39 +1,11 @@
-import type { MockStudent } from "../mock/types";
-
-export interface CycleEligibility {
-  eligible: MockStudent[];
-  blocked: MockStudent[];
-  carried: MockStudent[];
-  carryToNext: MockStudent[];
-  duplicates: string[];
-  amount: number;
-}
-
-const BLOCKED: MockStudent["status"][] = ["pending_dues", "missing_consent", "withdrawn"];
-
-export function classifyForCycle(all: MockStudent[], cycleId: string): CycleEligibility {
-  const rows = all.filter((s) => s.claim_cycle_id === cycleId);
-  const eligible: MockStudent[] = [];
-  const blocked: MockStudent[] = [];
-  const carried: MockStudent[] = [];
-  const carryToNext: MockStudent[] = [];
-  const seen = new Map<string, string>();
-  const duplicates: string[] = [];
-
-  for (const s of rows) {
-    const key = `${s.full_name}|${s.intake_processed}`;
-    if (seen.has(key)) duplicates.push(s.id);
-    else seen.set(key, s.id);
-
-    if (s.status === "carried_forward") carried.push(s);
-    else if (s.status === "deferred") carryToNext.push(s);
-    else if (BLOCKED.includes(s.status)) blocked.push(s);
-    else if (s.status === "eligible") eligible.push(s);
-  }
-
-  const amount = eligible.reduce((sum, s) => sum + (s.tuition ?? 0), 0);
-  return { eligible, blocked, carried, carryToNext, duplicates, amount };
-}
+// Eligibility classification is currently driven directly by
+// upi_commission_students.commission_status in ClaimsPanel.tsx using
+// the live vocabulary: 'eligible', 'paid', 'blocked' (or block_reason
+// IS NOT NULL), 'carried_forward' (or is_carried_forward = true),
+// 'pending'. Legacy mock-only statuses (pending_dues, missing_consent,
+// withdrawn, deferred) have no live equivalent and were dropped in
+// Phase 2.1. A typed classifier will be reintroduced in Phase 2.2 once
+// write-back paths are designed.
 
 export interface RuleConflict {
   ruleAId: string;
