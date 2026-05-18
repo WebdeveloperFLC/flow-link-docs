@@ -19,9 +19,11 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "../../lib/format";
-import { MOCK_ACCOUNTS, AccountType, Currency, Journal } from "../../data/mockJournals";
+import { AccountType, Currency, Journal } from "../../data/mockJournals";
 import { useJournals, addJournal, updateJournal } from "../../stores/journalsStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useAccounts } from "../../stores/coaStore";
+import { toAccountType } from "../../lib/journalHelpers";
 import DynamicSelect from "../../components/shared/DynamicSelect";
 
 const SOURCES = ['MANUAL', 'OCR_UPLOAD', 'AP', 'AR'] as const;
@@ -50,6 +52,7 @@ export default function AccountingNewJournalPage() {
   const existing = id ? allJournals.find(j => j.id === id) : undefined;
   const [searchParams] = useSearchParams();
   const entities = useEntities();
+  const accounts = useAccounts();
 
   const [entity, setEntity] = useState(existing?.entity ?? '');
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? new Date().toISOString().slice(0, 10));
@@ -103,8 +106,8 @@ export default function AccountingNewJournalPage() {
     setSourceType('OCR_UPLOAD');
 
     const account =
-      MOCK_ACCOUNTS.find(a => a.code === glAccount) ||
-      (glAccount ? MOCK_ACCOUNTS.find(a => a.name.toLowerCase().includes(glAccount.toLowerCase())) : undefined);
+      accounts.find(a => a.code === glAccount) ||
+      (glAccount ? accounts.find(a => a.name.toLowerCase().includes(glAccount.toLowerCase())) : undefined);
 
     const prefilled: LineForm = {
       ...emptyLine(),
@@ -170,10 +173,11 @@ export default function AccountingNewJournalPage() {
 
   function persist(status: Journal['status']): string {
     const lineModels = lines.filter(l => l.accountId).flatMap(l => {
-      const a = MOCK_ACCOUNTS.find(x => x.id === l.accountId);
+      const a = accounts.find(x => x.id === l.accountId);
       if (!a) return [];
       return [{
-        id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name, accountType: a.type,
+        id: l.id, accountId: l.accountId, accountCode: a.code, accountName: a.name,
+        accountType: toAccountType(a.groupCode),
         debit: parseFloat(l.debit) || 0, credit: parseFloat(l.credit) || 0,
         description: l.description, taxCode: l.taxCode,
       }];
@@ -430,7 +434,12 @@ function AccountCombobox({
   value, onChange, invalid,
 }: { value: string; onChange: (id: string) => void; invalid?: boolean }) {
   const [open, setOpen] = useState(false);
-  const selected = MOCK_ACCOUNTS.find(a => a.id === value);
+  const accounts = useAccounts();
+  const activeAccounts = useMemo(
+    () => accounts.filter(a => a.status !== "INACTIVE").slice().sort((a, b) => a.code.localeCompare(b.code)),
+    [accounts],
+  );
+  const selected = activeAccounts.find(a => a.id === value);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -451,7 +460,7 @@ function AccountCombobox({
           <CommandList>
             <CommandEmpty>No accounts found.</CommandEmpty>
             {ACCOUNT_TYPES.map(type => {
-              const items = MOCK_ACCOUNTS.filter(a => a.type === type);
+              const items = activeAccounts.filter(a => toAccountType(a.groupCode) === type);
               if (!items.length) return null;
               return (
                 <CommandGroup key={type} heading={type}>

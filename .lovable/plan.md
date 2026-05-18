@@ -1,82 +1,27 @@
-# Fix: admin sees 0 bills and "No accounts found" in Create Journal
+# Fix blank Journal Entry form (empty account picker)
 
 ## Root cause
 
-It's not RLS or missing permissions. Confirmed via DB:
-- `accounting_ap_bills` has 2 rows (Shree Ram Enterprise, EONS Immigration).
-- Admin Santosh (`19a39fcc-…`) exists in `accounting_users` as `SUPER_ADMIN / ACTIVE`, so `is_accounting_user(auth.uid())` would return true.
-- Balveer (`417404c4-…`) is `ACCOUNTANT / ACTIVE`.
+`src/accounting/pages/journals/AccountingNewJournalPage.tsx` renders the line account picker via the local `AccountCombobox` component (lines 429–476). That combobox reads from `MOCK_ACCOUNTS` imported from `src/accounting/data/mockJournals.ts` — which is now an **empty array** (`export const MOCK_ACCOUNTS: Account[] = [];`). The real Chart of Accounts lives in `coaStore` (`useAccounts()` / `getAccounts()`), so the dropdown always shows "No accounts found" and every line stays blank. That's why both "+ New journal entry" and the AP "⋯ → Create journal entry" path open a form you can't fill in.
 
-Network trace from the admin's session shows the problem: the `GET /rest/v1/accounting_ap_bills` request goes out with **only the anon `apikey`** and no user `Authorization` Bearer header, while the `accounting_users` request a few seconds later carries the proper user JWT.
-
-Reason: every accounting store does this at module-import time:
-
-```ts
-if (typeof window !== "undefined") void hydrateFromSupabase();
-```
-
-Module import happens before `supabase-js` has finished restoring the session from `localStorage` and attaching the user's access token to outgoing requests. PostgREST therefore treats the request as anon, `auth.uid()` is `null`, `is_accounting_user(null)` is `false`, and RLS returns `[]`. The local store overwrites whatever was cached, so the UI shows zero.
-
-This affects 9 stores — all eager-hydrating at import:
-`apBillsStore`, `arInvoicesStore`, `journalsStore`, `coaStore`, `vendorsStore`, `clientsStore`, `accountingEntitiesStore`, `bankAccountsStore`, `accountingMastersStore`.
-
-That's why:
-- Admin "sees 0 of 0 bills" even though Balveer's 2 bills exist.
-- The Create-Journal account picker says "No accounts found" — the same race emptied `coaStore` (the 1 COA row in DB is gone from local state).
-- Whether it appears for a given user is a coin flip based on how fast the session is restored from `localStorage` on that machine.
+The journals list itself works because it reads from `journalsStore` (already gated on auth). Only the line-entry account selector is broken.
 
 ## Fix
 
-Gate every store's first hydrate on the auth session being ready, and re-hydrate when the user signs in.
+Rewrite `AccountCombobox` to use the live COA store instead of the empty mock array. No DB or store changes needed.
 
-### 1. New helper `src/accounting/stores/_hydrationGate.ts`
+In `src/accounting/pages/journals/AccountingNewJournalPage.tsx`:
 
-```ts
-import { supabase } from "@/integrations/supabase/client";
-
-export function runWhenAuthReady(fn: () => void | Promise<void>) {
-  if (typeof window === "undefined") return;
-
-  // First load: wait for session restore from localStorage, then run.
-  supabase.auth.getSession().then(({ data }) => {
-    if (data.session) void fn();
-  });
-
-  // Re-run on sign-in (covers logout→login without page reload).
-  supabase.auth.onAuthStateChange((event, session) => {
-    if ((event === "SIGNED_IN" || event === "TOKEN_REFRESHED") && session) {
-      void fn();
-    }
-  });
-}
-```
-
-### 2. Update the 9 stores
-
-In each file, replace the eager call:
-
-```ts
-if (typeof window !== "undefined") void hydrateFromSupabase();
-```
-
-with:
-
-```ts
-import { runWhenAuthReady } from "./_hydrationGate";
-runWhenAuthReady(hydrateFromSupabase);
-```
-
-For `coaStore` (which has a `hydrated` boolean guard), reset that guard before re-hydrate so the post-login re-run actually fetches, or change the guard to "in-flight" rather than "ever-ran".
-
-### Out of scope
-
-- No DB / RLS changes — current policies are correct.
-- No change to `useAccountingAccess` — admin already passes.
-- No change to mock-data fallback behavior.
+1. Drop the `MOCK_ACCOUNTS` reference from the `AccountCombobox` body. Keep the `AccountType` import (still used by `ACCOUNT_TYPES`).
+2. Inside `AccountCombobox`, call `useAccounts()` from `@/accounting/stores/coaStore` and map each `CoaAccount` to its `AccountType` via `toAccountType(a.groupCode)` from `@/accounting/lib/journalHelpers` for the group headings.
+3. Render the same Popover/Command UI, grouping by the five `ACCOUNT_TYPES`, sorted by `code`. Selected display: `${a.code} — ${a.name}`. Filter out `status === "INACTIVE"`.
+4. Verify no other call site in the file references `MOCK_ACCOUNTS` (only the combobox does today).
 
 ## Verification
 
-1. Hard-reload `/accounting/ap` as Santosh: the 2 bills appear; aging shows CA$5,884.25 in Current.
-2. Open `003/26-27` → "Create journal": the account search returns the 1 seeded COA row instead of "No accounts found".
-3. Log out → log back in as Balveer in the same tab: bills/COA still load (covers the `onAuthStateChange` path).
-4. Confirm network trace: `GET /rest/v1/accounting_ap_bills` now carries the user JWT in `Authorization`.
+- Hard-reload `/accounting/journals/new` as admin — the "Select account…" dropdowns list the seeded COA rows grouped by ASSET/LIABILITY/EQUITY/REVENUE/EXPENSE.
+- Open AP → Shree Ram Enterprise → ⋯ → Create journal entry — same picker is populated; entity/reference prefilled from query params still work.
+- Pick two accounts, enter balanced debit/credit, save — entry appears in `/accounting/journals` and persists after refresh.
+- Log in as Balveer (accountant) — same picker works (COA store hydrates via the auth gate already in place).
+
+No migrations, no RLS changes, no other files touched.
