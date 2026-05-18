@@ -19,9 +19,11 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "../../lib/format";
-import { MOCK_ACCOUNTS, AccountType, Currency, Journal } from "../../data/mockJournals";
+import { AccountType, Currency, Journal } from "../../data/mockJournals";
 import { useJournals, addJournal, updateJournal } from "../../stores/journalsStore";
 import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useAccounts } from "../../stores/coaStore";
+import { toAccountType } from "../../lib/journalHelpers";
 import DynamicSelect from "../../components/shared/DynamicSelect";
 
 const SOURCES = ['MANUAL', 'OCR_UPLOAD', 'AP', 'AR'] as const;
