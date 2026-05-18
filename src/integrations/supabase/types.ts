@@ -333,6 +333,121 @@ export type Database = {
           },
         ]
       }
+      accounting_card_reconciliation: {
+        Row: {
+          card_account_id: string | null
+          card_account_name: string | null
+          card_holder_name: string | null
+          card_type: string | null
+          closing_balance: number | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          entity: string | null
+          generated_journal_id: string | null
+          id: string
+          imported_at: string | null
+          lines: Json | null
+          notes: string | null
+          opening_balance: number | null
+          reconciliation_number: string
+          statement_from: string | null
+          statement_month: string
+          statement_to: string | null
+          status: string | null
+          total_business: number | null
+          total_client_funds: number | null
+          total_income: number | null
+          total_personal: number | null
+          total_transactions: number | null
+          total_uncategorised: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          card_account_id?: string | null
+          card_account_name?: string | null
+          card_holder_name?: string | null
+          card_type?: string | null
+          closing_balance?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          entity?: string | null
+          generated_journal_id?: string | null
+          id?: string
+          imported_at?: string | null
+          lines?: Json | null
+          notes?: string | null
+          opening_balance?: number | null
+          reconciliation_number: string
+          statement_from?: string | null
+          statement_month: string
+          statement_to?: string | null
+          status?: string | null
+          total_business?: number | null
+          total_client_funds?: number | null
+          total_income?: number | null
+          total_personal?: number | null
+          total_transactions?: number | null
+          total_uncategorised?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          card_account_id?: string | null
+          card_account_name?: string | null
+          card_holder_name?: string | null
+          card_type?: string | null
+          closing_balance?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          entity?: string | null
+          generated_journal_id?: string | null
+          id?: string
+          imported_at?: string | null
+          lines?: Json | null
+          notes?: string | null
+          opening_balance?: number | null
+          reconciliation_number?: string
+          statement_from?: string | null
+          statement_month?: string
+          statement_to?: string | null
+          status?: string | null
+          total_business?: number | null
+          total_client_funds?: number | null
+          total_income?: number | null
+          total_personal?: number | null
+          total_transactions?: number | null
+          total_uncategorised?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_card_reconciliation_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_card_reconciliation_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_card_reconciliation_generated_journal_id_fkey"
+            columns: ["generated_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_clients: {
         Row: {
           account_manager: string | null
@@ -597,6 +712,128 @@ export type Database = {
             columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "accounting_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_intercompany: {
+        Row: {
+          amount: number
+          attachments: Json | null
+          created_at: string | null
+          created_by: string | null
+          currency: string
+          description: string
+          from_credit_account: string | null
+          from_debit_account: string | null
+          from_entity: string
+          from_journal_id: string | null
+          fx_rate: number | null
+          id: string
+          net_amount: number
+          notes: string | null
+          posted_at: string | null
+          reference: string | null
+          status: string | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tax_type: string | null
+          to_credit_account: string | null
+          to_debit_account: string | null
+          to_entity: string
+          to_journal_id: string | null
+          transaction_type: string | null
+          txn_date: string
+          txn_number: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          currency: string
+          description: string
+          from_credit_account?: string | null
+          from_debit_account?: string | null
+          from_entity: string
+          from_journal_id?: string | null
+          fx_rate?: number | null
+          id?: string
+          net_amount: number
+          notes?: string | null
+          posted_at?: string | null
+          reference?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tax_type?: string | null
+          to_credit_account?: string | null
+          to_debit_account?: string | null
+          to_entity: string
+          to_journal_id?: string | null
+          transaction_type?: string | null
+          txn_date: string
+          txn_number: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string
+          description?: string
+          from_credit_account?: string | null
+          from_debit_account?: string | null
+          from_entity?: string
+          from_journal_id?: string | null
+          fx_rate?: number | null
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          posted_at?: string | null
+          reference?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          tax_rate?: number | null
+          tax_type?: string | null
+          to_credit_account?: string | null
+          to_debit_account?: string | null
+          to_entity?: string
+          to_journal_id?: string | null
+          transaction_type?: string | null
+          txn_date?: string
+          txn_number?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_intercompany_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_intercompany_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_intercompany_from_journal_id_fkey"
+            columns: ["from_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_intercompany_to_journal_id_fkey"
+            columns: ["to_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
             referencedColumns: ["id"]
           },
         ]
@@ -902,6 +1139,134 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "vw_counselor_productivity"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      accounting_reimbursements: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch: string | null
+          business_amount: number | null
+          claim_date: string
+          claim_number: string
+          claimed_by: string
+          company_bank_account: string | null
+          created_at: string | null
+          created_by: string | null
+          entity: string
+          expense_journal_id: string | null
+          id: string
+          lines: Json | null
+          notes: string | null
+          paid_at: string | null
+          paid_by_account: string | null
+          payment_journal_id: string | null
+          payment_mode: string | null
+          payment_reference: string | null
+          personal_amount: number | null
+          personal_card_account: string | null
+          reimbursable_amount: number | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          submitted_at: string | null
+          total_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch?: string | null
+          business_amount?: number | null
+          claim_date: string
+          claim_number: string
+          claimed_by: string
+          company_bank_account?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          entity: string
+          expense_journal_id?: string | null
+          id?: string
+          lines?: Json | null
+          notes?: string | null
+          paid_at?: string | null
+          paid_by_account?: string | null
+          payment_journal_id?: string | null
+          payment_mode?: string | null
+          payment_reference?: string | null
+          personal_amount?: number | null
+          personal_card_account?: string | null
+          reimbursable_amount?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch?: string | null
+          business_amount?: number | null
+          claim_date?: string
+          claim_number?: string
+          claimed_by?: string
+          company_bank_account?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          entity?: string
+          expense_journal_id?: string | null
+          id?: string
+          lines?: Json | null
+          notes?: string | null
+          paid_at?: string | null
+          paid_by_account?: string | null
+          payment_journal_id?: string | null
+          payment_mode?: string | null
+          payment_reference?: string | null
+          personal_amount?: number | null
+          personal_card_account?: string | null
+          reimbursable_amount?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          submitted_at?: string | null
+          total_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_reimbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_reimbursements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_reimbursements_expense_journal_id_fkey"
+            columns: ["expense_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_reimbursements_payment_journal_id_fkey"
+            columns: ["payment_journal_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_journals"
+            referencedColumns: ["id"]
           },
         ]
       }
