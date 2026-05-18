@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, Download, AlertTriangle } from "lucide-react";
+import { CheckCircle2, Download, AlertTriangle, CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { formatAccounting, formatCurrency, formatPercent } from "../../lib/format";
 import { useAccounts } from "../../stores/coaStore";
@@ -20,6 +22,14 @@ import { cn } from "@/lib/utils";
 const PIE_COLORS = ["hsl(var(--primary))", "#16a34a", "#a855f7", "#f59e0b", "#0891b2"];
 const ALL = "__all__";
 const todayStr = () => new Date().toISOString().slice(0, 10);
+
+const PRESETS: { label: string; compute: () => string }[] = [
+  { label: "Today", compute: () => todayStr() },
+  { label: "Yesterday", compute: () => { const d = new Date(); d.setDate(d.getDate() - 1); return d.toISOString().slice(0, 10); } },
+  { label: "End of last month", compute: () => { const d = new Date(); d.setDate(0); return d.toISOString().slice(0, 10); } },
+  { label: "End of last quarter", compute: () => { const d = new Date(); const m = Math.floor(d.getMonth() / 3) * 3; const eom = new Date(d.getFullYear(), m, 0); return eom.toISOString().slice(0, 10); } },
+  { label: "End of last year", compute: () => `${new Date().getFullYear() - 1}-12-31` },
+];
 
 const NONCURRENT_ASSET_TYPES = new Set(["FIXED_ASSET"]);
 const NONCURRENT_LIAB_TYPES = new Set(["LOAN"]);
@@ -157,9 +167,41 @@ export default function AccountingBSPage() {
 
         {/* Filter bar */}
         <div className="flex flex-wrap items-end gap-3 mb-4">
-          <div>
-            <Label htmlFor="asof" className="text-xs text-muted-foreground">As of date</Label>
-            <Input id="asof" type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} className="h-9 w-44 mt-1" />
+          <div className="flex flex-col gap-1">
+            <Label className="text-xs text-muted-foreground">As of date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn("h-9 w-56 justify-start text-left font-normal", !asOf && "text-muted-foreground")}
+                >
+                  <CalendarIcon className="mr-2 size-4 opacity-70" />
+                  {asOf ? format(parseISO(asOf), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 flex" align="start">
+                <div className="flex flex-col border-r p-2 gap-1 min-w-[160px]">
+                  {PRESETS.map((p) => (
+                    <Button
+                      key={p.label}
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start text-xs h-8"
+                      onClick={() => setAsOf(p.compute())}
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+                <Calendar
+                  mode="single"
+                  selected={asOf ? parseISO(asOf) : undefined}
+                  onSelect={(d) => d && setAsOf(format(d, "yyyy-MM-dd"))}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div>
             <Label className="text-xs text-muted-foreground">Entity</Label>
