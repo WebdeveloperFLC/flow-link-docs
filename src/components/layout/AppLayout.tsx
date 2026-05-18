@@ -81,6 +81,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
+  const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const sidebarMode = theme.sidebarMode;
@@ -175,7 +176,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                   Accounting
                 </div>
               )}
-              {accountingNav.map(renderNavLink)}
+              {accountingNav
+                .filter((i) => {
+                  if (i.acctAdminOnly && !isAcctAdmin) return false;
+                  if (!i.section) return true;
+                  return canAcct(i.section, "view");
+                })
+                .map(renderNavLink)}
             </>
           )}
 
