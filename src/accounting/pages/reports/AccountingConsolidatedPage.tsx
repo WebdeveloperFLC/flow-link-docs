@@ -25,7 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { addDecimals, formatAccounting, formatCompact, formatCurrency, formatPercent } from "../../lib/format";
 import { ELIMINATIONS, ENTITY_DATA, FX_RATES, MONTHLY_DATA } from "../../data/mockReports";
-import { downloadCsv, downloadXlsx, type SheetRow } from "../../lib/exportSheet";
+import { downloadCsv, downloadXlsx } from "../../lib/exportSheet";
 import { buildConsolidatedRows, buildConsolidatedXlsxSpec, toConsolidatedCsvRows } from "../../lib/consolidatedExport";
 import { cn } from "@/lib/utils";
 
