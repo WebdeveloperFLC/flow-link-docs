@@ -56,42 +56,54 @@ interface EntityInfo {
   email: string;
   phone: string;
   gst?: string;
+  gstin?: string;
   pan?: string;
   cin?: string;
+  tan?: string;
   bn?: string;
+  legalName?: string;
+  directors?: string;
   note?: string;
 }
 
 export function getEntityAddress(entity: string, branch: string): EntityInfo {
   // TODO: Add real GSTIN/PAN/CIN/BN/GST-HST values before going live.
   const addresses: Record<string, EntityInfo> = {
-    // ── 3 INDIA COMPANIES ──
-    "Future Link Consultants Pvt Ltd": {
-      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
+    // ── 3 INDIA COMPANIES (MCA-verified) ──
+    "Future Link Consultants Private Limited": {
+      legalName: "Future Link Consultants Private Limited",
+      address: "Shop 215-216, Atlantis, Vadivadi,\nSarabhai Compound, Vadodara,\nGujarat 390023, India",
+      gstin: "24AAECF6140K1ZP",
+      gst: "24AAECF6140K1ZP",
+      pan: "AAECF6140K",
+      cin: "U74999GJ2021PTC123559",
+      tan: "BRDF00780D",
+      directors: "Santosh D Ramrakhiani & Krishaa S Ramrakhiani",
       email: "accounts@futurelinkconsultants.com",
       phone: "+91 265 XXX XXXX",
-      gst: "",
-      pan: "",
-      cin: "",
-      note: "All services — transitioning all entities here",
     },
-    "Future Link Visa Consultants Pvt Ltd": {
-      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
+    "Future Link Visa Consultants Private Limited": {
+      legalName: "Future Link Visa Consultants Private Limited",
+      address: "216 Atlantis, Opp Vadodara Central,\nNr. Genda Circle, Vadodara,\nGujarat 390023, India",
+      gstin: "24AABCF3724G1Z1",
+      gst: "24AABCF3724G1Z1",
+      pan: "AABCF3724G",
+      cin: "U74900GJ2009PTC057220",
+      directors: "Santosh D Ramrakhiani & Krishaa S Ramrakhiani",
       email: "accounts@futurelinkconsultants.com",
       phone: "+91 265 XXX XXXX",
-      gst: "",
-      pan: "",
-      cin: "",
-      note: "Legacy entity — visa and immigration services",
     },
-    "Future Link Academic Excellence Pvt Ltd": {
-      address: "Genda Circle, Vadodara,\nGujarat 390023, India",
+    "Future Link Academic Excellence Private Limited": {
+      legalName: "Future Link Academic Excellence Private Limited",
+      address: "216 Atlantis Complex,\nOpp Vadodara Central,\nNr. Genda Circle, Vadodara,\nGujarat 390023, India",
+      gstin: "",
+      gst: "",
+      pan: "AADCF0528Q",
+      cin: "U74991GJ2017PTC096530",
+      directors: "Santosh D Ramrakhiani & Krishaa S Ramrakhiani",
       email: "accounts@futurelinkconsultants.com",
       phone: "+91 265 XXX XXXX",
-      gst: "",
-      pan: "",
-      cin: "",
-      note: "Legacy entity — coaching services",
+      note: "Formerly: Future Link Educational and Immigration Services Pvt Ltd (name changed April 2017)",
     },
     // ── 3 CANADA COMPANIES ──
     "Future Link Consultants Inc": {
@@ -118,6 +130,12 @@ export function getEntityAddress(entity: string, branch: string): EntityInfo {
       note: "Ontario numbered company",
     },
   };
+
+  // Aliases — legacy "Pvt Ltd" names still in use across the system resolve
+  // to the same MCA-verified records as their "Private Limited" canonical key.
+  addresses["Future Link Consultants Pvt Ltd"] = addresses["Future Link Consultants Private Limited"];
+  addresses["Future Link Visa Consultants Pvt Ltd"] = addresses["Future Link Visa Consultants Private Limited"];
+  addresses["Future Link Academic Excellence Pvt Ltd"] = addresses["Future Link Academic Excellence Private Limited"];
 
   // Branch-level overrides (used when entity is not an exact match or for branch addresses on receipts).
   const branchAddresses: Record<string, EntityInfo> = {
