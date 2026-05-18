@@ -827,6 +827,84 @@ export type Database = {
           },
         ]
       }
+      accounting_petty_cash: {
+        Row: {
+          amount: number
+          approved_by: string | null
+          branch: string
+          category: string | null
+          created_at: string
+          created_by: string | null
+          currency: string | null
+          description: string
+          entity: string | null
+          id: string
+          paid_to: string | null
+          payment_mode: string | null
+          receipt_url: string | null
+          status: string | null
+          txn_date: string
+          txn_type: string
+          updated_at: string
+          voucher_number: string | null
+        }
+        Insert: {
+          amount: number
+          approved_by?: string | null
+          branch: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          description: string
+          entity?: string | null
+          id?: string
+          paid_to?: string | null
+          payment_mode?: string | null
+          receipt_url?: string | null
+          status?: string | null
+          txn_date: string
+          txn_type: string
+          updated_at?: string
+          voucher_number?: string | null
+        }
+        Update: {
+          amount?: number
+          approved_by?: string | null
+          branch?: string
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string | null
+          description?: string
+          entity?: string | null
+          id?: string
+          paid_to?: string | null
+          payment_mode?: string | null
+          receipt_url?: string | null
+          status?: string | null
+          txn_date?: string
+          txn_type?: string
+          updated_at?: string
+          voucher_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_petty_cash_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_petty_cash_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       accounting_user_module_permissions: {
         Row: {
           accounting_user_id: string
