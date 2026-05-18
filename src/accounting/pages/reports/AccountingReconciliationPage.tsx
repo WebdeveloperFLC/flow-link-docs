@@ -171,8 +171,33 @@ export default function AccountingReconciliationPage() {
   const exportReconciliation = (fmt: "csv" | "xlsx") => {
     const rows = buildExportRows();
     const base = `report-reconciliation-${asOf}`;
-    if (fmt === "csv") downloadCsv(`${base}.csv`, rows);
-    else downloadXlsx(`${base}.xlsx`, [{ name: "Reconciliation", rows }]);
+    if (fmt === "csv") {
+      downloadCsv(`${base}.csv`, rows);
+      return;
+    }
+    const CUR = '"$"#,##0.00;[Red]("$"#,##0.00);"-"';
+    // formats matrix mirrors row shape; numbers live in:
+    //  - check rows (start at index 3): cols 2, 4, 5
+    //  - totals rows (after blank + "Totals" header): col 1
+    const formats: (string | undefined)[][] = rows.map((r, i) => {
+      const out: (string | undefined)[] = [];
+      // Title (0), blank (1), header (2) — no numeric formatting
+      if (i < 3) return out;
+      // Check rows: 3 .. 3 + checks.length - 1
+      if (i < 3 + checks.length) {
+        out[2] = CUR; out[4] = CUR; out[5] = CUR;
+        return out;
+      }
+      // After checks: blank row, then "Totals" header, then value rows
+      out[1] = CUR;
+      return out;
+    });
+    downloadXlsx(`${base}.xlsx`, [{
+      name: "Reconciliation",
+      rows,
+      formats,
+      colWidths: [54, 32, 16, 32, 16, 16, 12],
+    }]);
   };
 
   return (
