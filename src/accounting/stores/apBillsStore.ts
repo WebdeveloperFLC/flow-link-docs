@@ -110,7 +110,8 @@ async function hydrateFromSupabase() {
     console.warn("[apBillsStore] hydrate failed", e);
   }
 }
-if (typeof window !== "undefined") void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 export function useApBills(): VendorBill[] {
