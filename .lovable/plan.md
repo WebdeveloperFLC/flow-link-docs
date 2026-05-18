@@ -1,65 +1,54 @@
-# Owner Profiles: 2 UI fixes
+# Bank account labeling + Owner/Branch clarification
 
-Scope: `src/accounting/pages/owners/` only. No changes to commission, CRM, institution modules. No changes to existing RLS.
+Scope is limited to the bank-account UIs. No changes to commission, CRM, institution modules. No changes to existing RLS on other tables.
 
-## Fix 1 — Remove duplicate "Add account" button
+## Fix 1 — Personal bank section labeling (Owner profile page)
 
-Audit on `AccountingOwnerDetailPage.tsx` shows the only "+ Add account" controls live inside each `SectionBlock` header (Bank / Investments / Insurance / Liabilities). I'll re-inspect the rendered page (header card + KPI strip + tabs area) for any extra Add control — likely either:
-- a top-right action button in the sticky header card, or
-- a quick-action surfaced from `AccountingOwnersPage` row menu
+File: `src/accounting/components/owners/sections/` (the `SectionBlock` for bank accounts inside `AccountingOwnerDetailPage.tsx`).
 
-…and remove the page-level one, keeping only the section-level buttons. If no extra button exists in code, I'll capture the live preview to confirm exactly which element the user is seeing before removing.
+- Section title: `Bank accounts` → **`Personal bank accounts`**
+- Section helper line (new, one-liner under title): **"Tracked privately for net-worth. Not posted to company books."**
+- Section button: `+ Add account` → **`+ Add personal account`**
 
-## Fix 2 — Directors & Shareholders section (BUSINESS profiles only)
+This visually separates the personal wealth tracker from `/accounting/bank-accounts` (company books).
 
-### Database (new migration, additive only)
+## Fix 2 — Company bank account form (`BankAccountFormDialog.tsx`)
 
-New table:
-```
-owner_profile_directors (
-  id uuid PK default gen_random_uuid(),
-  company_profile_id uuid NOT NULL references owner_profiles(id) on delete cascade,
-  individual_profile_id uuid NOT NULL references owner_profiles(id) on delete cascade,
-  role text NOT NULL default 'Director',  -- Director | Shareholder | Partner
-  ownership_percent numeric(6,3),
-  created_at timestamptz NOT NULL default now(),
-  unique (company_profile_id, individual_profile_id, role)
-)
-```
-Index on `company_profile_id`. RLS enabled with the same pattern existing `owner_profiles` uses (admin / accounting users) — no changes to RLS on `owner_profiles` itself.
+Clarify the confusing fields on the New bank account dialog at `/accounting/bank-accounts`.
 
-### Store
+### 2a. Rename "Branch / sub-branch (optional)"
+- Label → **"Sub-entity / division (optional)"**
+- Helper text under field: **"Internal org branch (e.g. regional office). Leave blank if the company has no sub-entities."**
+- (The actual bank branch is captured below in "Bank branch name / code / address" — that stays as is.)
 
-New `src/accounting/stores/ownerDirectorsStore.ts`:
-- `useDirectorsForCompany(companyId)` hook (useSyncExternalStore, hydrate via `runWhenAuthReady`)
-- `addDirector({ companyId, individualId, role, ownershipPercent })`
-- `updateDirector(id, patch)`
-- `removeDirector(id)`
+### 2b. Remove the "Owner" dropdown from the company bank form
+Rationale: on the company books, the **Entity/company** field already identifies the owner. The current Owner dropdown pulls from `owner_profiles` (personal wealth module) and is conceptually wrong for operational company accounts.
 
-### UI
+- Remove the `Owner` Select and the `ownerProfileId` requirement from validation.
+- Keep `owner_profile_id` column in DB nullable (already nullable). No migration needed; just stop writing it from this form.
 
-In `AccountingOwnerDetailPage.tsx`, when `owner.category === 'BUSINESS'`, add a new tab **Directors** (or a section above Accounts inside the Accounts tab — will pick the cleaner option after looking at current tab layout):
+### 2c. Add "Authorised signatories" (multi-select, optional)
+- New field below "Account holder name": **"Authorised signatories (optional)"** — multi-select Combobox sourced from `owner_profiles` where `category = 'PERSONAL'` (the individuals already used as directors).
+- Helper: **"Individuals with signing authority on this account (e.g. directors with joint signing)."**
+- Storage: new column `authorised_signatory_ids uuid[]` on `accounting_bank_accounts` (default `'{}'`). Migration adds the column only; RLS unchanged.
 
-- Header: "Directors & shareholders" + `+ Add director` button
-- Each director rendered as a card:
-  - Avatar + name (linked to `/accounting/owners/{individualId}`)
-  - Role badge (Director / Shareholder / Partner)
-  - Ownership % (if set)
-  - Inline edit / remove actions
-- Empty state: "No directors linked. Add one to track ownership."
+### 2d. Add field-level helper text
+- **Account holder name** helper: **"Legal name as printed on the bank's records (usually the company's legal name)."**
+- **Entity/company** helper: **"The company that owns this account on the books."**
 
-New `AddDirectorDialog.tsx`:
-- Searchable `Command`/`Combobox` over personal owner profiles (`useOwners().filter(o => o.category === 'PERSONAL')`)
-- Role select (Director / Shareholder / Partner)
-- Ownership % input (optional, 0–100)
-- Save → `addDirector(...)` → toast → close
+## Files to touch
 
-### Files touched
-- new: `supabase/migrations/<ts>_owner_profile_directors.sql`
-- new: `src/accounting/stores/ownerDirectorsStore.ts`
-- new: `src/accounting/components/owners/AddDirectorDialog.tsx`
-- new: `src/accounting/components/owners/DirectorsSection.tsx`
-- edit: `src/accounting/pages/owners/AccountingOwnerDetailPage.tsx` (remove duplicate Add account + mount DirectorsSection for BUSINESS)
-- auto: `src/integrations/supabase/types.ts` (regenerated)
+- `supabase/migrations/<new>.sql` — add `authorised_signatory_ids uuid[] default '{}'` to `accounting_bank_accounts`.
+- `src/accounting/components/bank-accounts/BankAccountFormDialog.tsx` — remove Owner field, rename Branch label, add Authorised signatories multi-select, add helper texts.
+- `src/accounting/types/bankAccounts.ts` (or equivalent) — add `authorisedSignatoryIds?: string[]`.
+- `src/accounting/stores/bankAccountsStore.ts` — map new column in/out.
+- `src/accounting/components/owners/...` (SectionBlock usage for bank in `AccountingOwnerDetailPage.tsx`) — rename title/button, add helper line.
+- `src/integrations/supabase/types.ts` — auto-regenerated.
 
-Approve to proceed; migration will be submitted first for your approval, then code.
+## Out of scope
+- No backfill of `authorised_signatory_ids`.
+- No changes to bank account list page columns (can do in a follow-up if you want a "Signatories" column).
+- No removal of existing `owner_profile_id` column (kept nullable for backward compat).
+
+## Open question (one)
+Confirm: **OK to remove the "Owner" dropdown from the company bank form entirely?** If you'd rather keep it as an optional "Primary contact" field instead of removing it, say so and I'll keep it but make it optional and relabel it.
