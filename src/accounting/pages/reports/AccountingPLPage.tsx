@@ -34,50 +34,190 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
-import { addDecimals, formatAccounting, formatCompact, formatCurrency, formatPercent, variancePct } from "../../lib/format";
-import { ENTITY_DATA, MONTHLY_DATA, PL_DATA, PL_DRILLDOWN, type PLLine } from "../../data/mockReports";
+import { formatAccounting, formatCompact, formatCurrency, formatPercent, variancePct } from "../../lib/format";
+import { useAccounts } from "../../stores/coaStore";
+import { useGroups } from "../../stores/coaMasterStore";
+import { useJournals } from "../../stores/journalsStore";
+import { useEntities } from "../../stores/accountingEntitiesStore";
 import { cn } from "@/lib/utils";
 
+type PLLine = { code: string; name: string; current: number; prior: number };
+type DrillTxn = { date: string; description: string; entity: string; amount: number };
 type DrillState = { code: string; name: string; current: number } | null;
+
+const ALL = "__all__";
+
+function periodRange(period: string): { from: string; to: string; priorFrom: string; priorTo: string } {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = today.getMonth();
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  const shift = (d: Date, days: number) => { const x = new Date(d); x.setDate(x.getDate() + days); return x; };
+  let from: Date, to: Date;
+  if (period === "month") { from = new Date(y, m, 1); to = new Date(y, m + 1, 0); }
+  else if (period === "quarter") { const q = Math.floor(m / 3); from = new Date(y, q * 3, 1); to = new Date(y, q * 3 + 3, 0); }
+  else if (period === "lastfy") { from = new Date(y - 1, 0, 1); to = new Date(y - 1, 11, 31); }
+  else { from = new Date(y, 0, 1); to = today; } // ytd / default
+  const span = Math.round((to.getTime() - from.getTime()) / 86400000) + 1;
+  const priorTo = shift(from, -1);
+  const priorFrom = shift(priorTo, -(span - 1));
+  return { from: iso(from), to: iso(to), priorFrom: iso(priorFrom), priorTo: iso(priorTo) };
+}
 
 export default function AccountingPLPage() {
   const [loading, setLoading] = useState(true);
-  const [entity, setEntity] = useState("all");
+  const [entity, setEntity] = useState(ALL);
   const [period, setPeriod] = useState("ytd");
   const [compare, setCompare] = useState(true);
   const [drill, setDrill] = useState<DrillState>(null);
 
+  const accounts = useAccounts();
+  const groups = useGroups();
+  const journals = useJournals();
+  const entities = useEntities();
+
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 400);
+    const t = setTimeout(() => setLoading(false), 200);
     return () => clearTimeout(t);
   }, []);
 
-  const totals = useMemo(() => {
-    const sum = (rows: PLLine[], k: "current" | "prior") =>
-      addDecimals(...rows.map((r) => r[k])).toNumber();
+  const range = useMemo(() => periodRange(period), [period]);
 
-    const revC = sum(PL_DATA.revenue, "current");
-    const revP = sum(PL_DATA.revenue, "prior");
-    const corC = sum(PL_DATA.costOfRevenue, "current");
-    const corP = sum(PL_DATA.costOfRevenue, "prior");
-    const opC = sum(PL_DATA.operatingExpenses, "current");
-    const opP = sum(PL_DATA.operatingExpenses, "prior");
+  const data = useMemo(() => {
+    const groupBy = new Map(groups.map((g) => [g.code, g]));
+    const filteredAccounts = accounts.filter((a) =>
+      entity === ALL ? true : a.entityId === entity
+    );
+
+    // activity per account in [from,to] — sign positive on the natural side
+    function activity(accId: string, nature: "DEBIT" | "CREDIT", from: string, to: string): number {
+      let dr = 0, cr = 0;
+      for (const j of journals) {
+        if (j.status !== "POSTED") continue;
+        if (j.entryDate < from || j.entryDate > to) continue;
+        for (const l of j.lines) {
+          if (l.accountId !== accId) continue;
+          dr += Number(l.debit) || 0;
+          cr += Number(l.credit) || 0;
+        }
+      }
+      return nature === "CREDIT" ? cr - dr : dr - cr;
+    }
+
+    const bucket = {
+      revenue: [] as PLLine[],
+      costOfRevenue: [] as PLLine[],
+      operatingExpenses: [] as PLLine[],
+      taxCurrent: 0,
+      taxPrior: 0,
+    };
+
+    for (const a of filteredAccounts) {
+      const g = groupBy.get(a.groupCode);
+      if (!g) continue;
+      const isTax = a.code === "9000" || a.typeCode === "TAXES";
+      let targetKey: "revenue" | "costOfRevenue" | "operatingExpenses" | null = null;
+      if (g.code === "REVENUE" || g.code === "OTHER_INCOME") targetKey = "revenue";
+      else if (g.code === "COGS") targetKey = "costOfRevenue";
+      else if ((g.code === "EXPENSE" || g.code === "OTHER_EXPENSE") && !isTax) targetKey = "operatingExpenses";
+
+      const cur = activity(a.id, g.nature, range.from, range.to);
+      const pri = activity(a.id, g.nature, range.priorFrom, range.priorTo);
+
+      if (isTax) {
+        bucket.taxCurrent += cur;
+        bucket.taxPrior += pri;
+        continue;
+      }
+      if (!targetKey) continue;
+      if (Math.abs(cur) < 0.005 && Math.abs(pri) < 0.005) continue;
+      bucket[targetKey].push({ code: a.code, name: a.name, current: cur, prior: pri });
+    }
+
+    const sortL = (xs: PLLine[]) => xs.sort((a, b) => a.code.localeCompare(b.code));
+    sortL(bucket.revenue); sortL(bucket.costOfRevenue); sortL(bucket.operatingExpenses);
+
+    return bucket;
+  }, [accounts, groups, journals, entity, range]);
+
+  const totals = useMemo(() => {
+    const sum = (rows: PLLine[], k: "current" | "prior") => rows.reduce((s, r) => s + r[k], 0);
+    const revC = sum(data.revenue, "current");
+    const revP = sum(data.revenue, "prior");
+    const corC = sum(data.costOfRevenue, "current");
+    const corP = sum(data.costOfRevenue, "prior");
+    const opC = sum(data.operatingExpenses, "current");
+    const opP = sum(data.operatingExpenses, "prior");
     const grossC = revC - corC;
     const grossP = revP - corP;
     const ebitdaC = grossC - opC;
     const ebitdaP = grossP - opP;
-    const netC = ebitdaC - PL_DATA.taxExpense;
-    const netP = ebitdaP - PL_DATA.priorTaxExpense;
-    const totalExp = corC + opC + PL_DATA.taxExpense;
+    const netC = ebitdaC - data.taxCurrent;
+    const netP = ebitdaP - data.taxPrior;
+    const totalExp = corC + opC + data.taxCurrent;
     return { revC, revP, corC, corP, opC, opP, grossC, grossP, ebitdaC, ebitdaP, netC, netP, totalExp };
-  }, []);
+  }, [data]);
 
-  const chartData = MONTHLY_DATA.slice(-6).map((m) => ({
-    month: m.month,
-    revenue: m.revenue,
-    expenses: m.expenses,
-    profit: m.gross,
-  }));
+  const chartData = useMemo(() => {
+    // last 6 calendar months ending in current month
+    const today = new Date();
+    const months: { month: string; from: string; to: string }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const e = new Date(today.getFullYear(), today.getMonth() - i + 1, 0);
+      months.push({
+        month: d.toLocaleString("en", { month: "short" }),
+        from: d.toISOString().slice(0, 10),
+        to: e.toISOString().slice(0, 10),
+      });
+    }
+    const groupBy = new Map(groups.map((g) => [g.code, g]));
+    const filteredAccounts = accounts.filter((a) =>
+      entity === ALL ? true : a.entityId === entity
+    );
+    return months.map((m) => {
+      let rev = 0, exp = 0;
+      for (const a of filteredAccounts) {
+        const g = groupBy.get(a.groupCode);
+        if (!g) continue;
+        let dr = 0, cr = 0;
+        for (const j of journals) {
+          if (j.status !== "POSTED") continue;
+          if (j.entryDate < m.from || j.entryDate > m.to) continue;
+          for (const l of j.lines) {
+            if (l.accountId !== a.id) continue;
+            dr += Number(l.debit) || 0;
+            cr += Number(l.credit) || 0;
+          }
+        }
+        const act = g.nature === "CREDIT" ? cr - dr : dr - cr;
+        if (g.code === "REVENUE" || g.code === "OTHER_INCOME") rev += act;
+        else if (g.code === "COGS" || g.code === "EXPENSE" || g.code === "OTHER_EXPENSE") exp += act;
+      }
+      return { month: m.month, revenue: rev, expenses: exp, profit: rev - exp };
+    });
+  }, [accounts, groups, journals, entity]);
+
+  const drillTxns = useMemo<DrillTxn[]>(() => {
+    if (!drill) return [];
+    const acc = accounts.find((a) => a.code === drill.code);
+    if (!acc) return [];
+    const out: DrillTxn[] = [];
+    for (const j of journals) {
+      if (j.status !== "POSTED") continue;
+      if (j.entryDate < range.from || j.entryDate > range.to) continue;
+      for (const l of j.lines) {
+        if (l.accountId !== acc.id) continue;
+        out.push({
+          date: j.entryDate,
+          description: l.description || j.narration,
+          entity: j.entity,
+          amount: (Number(l.debit) || 0) - (Number(l.credit) || 0),
+        });
+      }
+    }
+    return out.sort((a, b) => b.date.localeCompare(a.date));
+  }, [drill, accounts, journals, range]);
 
   return (
     <AppLayout>
@@ -90,11 +230,11 @@ export default function AccountingPLPage() {
         {/* Filter bar */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <Select value={entity} onValueChange={setEntity}>
-            <SelectTrigger className="w-48 h-9"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-56 h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All entities</SelectItem>
-              {ENTITY_DATA.map((e) => (
-                <SelectItem key={e.entity} value={e.entity}>{e.entity}</SelectItem>
+              <SelectItem value={ALL}>All entities</SelectItem>
+              {entities.map((e) => (
+                <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -162,13 +302,13 @@ export default function AccountingPLPage() {
                   </thead>
                   <tbody>
                     <SectionHeader label="Revenue" colSpan={compare ? 5 : 3} />
-                    {PL_DATA.revenue.map((r) => (
+                    {data.revenue.map((r) => (
                       <PLRow key={r.code} row={r} compare={compare} onClick={() => setDrill({ code: r.code, name: r.name, current: r.current })} />
                     ))}
                     <TotalRow label="Total revenue" current={totals.revC} prior={totals.revP} compare={compare} />
 
                     <SectionHeader label="Cost of revenue" colSpan={compare ? 5 : 3} />
-                    {PL_DATA.costOfRevenue.map((r) => (
+                    {data.costOfRevenue.map((r) => (
                       <PLRow key={r.code} row={r} compare={compare} expense onClick={() => setDrill({ code: r.code, name: r.name, current: -r.current })} />
                     ))}
                     <TotalRow label="Total cost of revenue" current={-totals.corC} prior={-totals.corP} compare={compare} />
@@ -183,7 +323,7 @@ export default function AccountingPLPage() {
                     />
 
                     <SectionHeader label="Operating expenses" colSpan={compare ? 5 : 3} />
-                    {PL_DATA.operatingExpenses.map((r) => (
+                    {data.operatingExpenses.map((r) => (
                       <PLRow key={r.code} row={r} compare={compare} expense onClick={() => setDrill({ code: r.code, name: r.name, current: -r.current })} />
                     ))}
                     <TotalRow label="Total operating expenses" current={-totals.opC} prior={-totals.opP} compare={compare} />
@@ -193,8 +333,8 @@ export default function AccountingPLPage() {
                     <tr className="border-t">
                       <td className="py-2 px-4 font-mono text-[11px] text-muted-foreground">9000</td>
                       <td className="py-2 px-2 text-muted-foreground">Tax expense</td>
-                      <td className="py-2 px-4 text-right tabular-nums text-destructive">{formatAccounting(-PL_DATA.taxExpense)}</td>
-                      {compare && <td className="py-2 px-4 text-right tabular-nums text-muted-foreground">{formatAccounting(-PL_DATA.priorTaxExpense)}</td>}
+                      <td className="py-2 px-4 text-right tabular-nums text-destructive">{formatAccounting(-data.taxCurrent)}</td>
+                      {compare && <td className="py-2 px-4 text-right tabular-nums text-muted-foreground">{formatAccounting(-data.taxPrior)}</td>}
                       {compare && <td className="py-2 px-4 text-right text-xs text-muted-foreground">—</td>}
                     </tr>
 
@@ -253,7 +393,7 @@ export default function AccountingPLPage() {
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-6 space-y-2">
-                {(PL_DRILLDOWN[drill.code] ?? []).map((t, i) => (
+                {drillTxns.map((t, i) => (
                   <div key={i} className="border border-border rounded-md p-3 hover:bg-muted/40 transition">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -266,7 +406,7 @@ export default function AccountingPLPage() {
                     </div>
                   </div>
                 ))}
-                {(PL_DRILLDOWN[drill.code] ?? []).length === 0 && (
+                {drillTxns.length === 0 && (
                   <div className="text-sm text-muted-foreground py-6 text-center">No transactions to display.</div>
                 )}
                 <Link
