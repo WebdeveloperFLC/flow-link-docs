@@ -103,6 +103,9 @@ import AccountingAIPage from "./accounting/pages/ai/AccountingAIPage";
 import AccountingUsersPage from "./accounting/pages/settings/AccountingUsersPage";
 import AccountingEntitiesPage from "./accounting/pages/settings/AccountingEntitiesPage";
 import { AccountingProtectedRoute } from "./accounting/components/AccountingProtectedRoute";
+import AccountingSectionRoute from "./accounting/components/AccountingSectionRoute";
+import AccountingAccessAdminPage from "./accounting/pages/settings/AccountingAccessAdminPage";
+import AccountingNoAccessPage from "./accounting/pages/AccountingNoAccessPage";
 import AccountingPettyCashDashboardPage from "./accounting/pages/petty-cash/AccountingPettyCashDashboardPage";
 import AccountingPettyCashVoucherPage from "./accounting/pages/petty-cash/AccountingPettyCashVoucherPage";
 import AccountingPettyCashDetailPage from "./accounting/pages/petty-cash/AccountingPettyCashDetailPage";
@@ -184,63 +187,65 @@ const App = () => (
             <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
             <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/journals/:id" element={<AccountingProtectedRoute><AccountingJournalDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/journals/:id/edit" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/coa" element={<AccountingProtectedRoute><AccountingCOAPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/owners" element={<AccountingProtectedRoute><AccountingOwnersPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/owners/wealth-summary" element={<AccountingProtectedRoute><AccountingWealthPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/owners/:id" element={<AccountingProtectedRoute><AccountingOwnerDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ap" element={<AccountingProtectedRoute><AccountingAPPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ap/new" element={<AccountingProtectedRoute><AccountingNewBillPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ap/:id" element={<AccountingProtectedRoute><AccountingBillDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ar" element={<AccountingProtectedRoute><AccountingARPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ar/new" element={<AccountingProtectedRoute><AccountingNewInvoicePage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ar/:id" element={<AccountingProtectedRoute><AccountingInvoiceDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/vendors" element={<AccountingProtectedRoute><AccountingVendorsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/vendors/:id" element={<AccountingProtectedRoute><AccountingVendorDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/clients" element={<AccountingProtectedRoute><AccountingClientsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/clients/:id" element={<AccountingProtectedRoute><AccountingClientDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/bank-accounts" element={<AccountingProtectedRoute><AccountingBankAccountsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/bank-accounts/:id" element={<AccountingProtectedRoute><AccountingBankAccountDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/documents" element={<AccountingProtectedRoute><AccountingDocumentsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/documents/upload" element={<AccountingProtectedRoute><AccountingUploadPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/documents/ocr" element={<AccountingProtectedRoute><AccountingOCRPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/approvals" element={<AccountingProtectedRoute><AccountingApprovalsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/approvals/:id" element={<AccountingProtectedRoute><AccountingApprovalDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports" element={<AccountingProtectedRoute><AccountingReportsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/pl" element={<AccountingProtectedRoute><AccountingPLPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/bs" element={<AccountingProtectedRoute><AccountingBSPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/cashflow" element={<AccountingProtectedRoute><AccountingCashFlowPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/consolidated" element={<AccountingProtectedRoute><AccountingConsolidatedPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/trial-balance" element={<AccountingProtectedRoute><AccountingTrialBalancePage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/reconciliation" element={<AccountingProtectedRoute><AccountingReportReconciliationPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/general-ledger" element={<AccountingProtectedRoute><AccountingGeneralLedgerPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reports/general-ledger/:accountId" element={<AccountingProtectedRoute><AccountingGeneralLedgerPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/tax" element={<AccountingProtectedRoute><AccountingTaxDashboardPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/tax/calendar" element={<AccountingProtectedRoute><AccountingTaxCalendarPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/tax/notices" element={<AccountingProtectedRoute><AccountingNoticesPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/fraud" element={<AccountingProtectedRoute><AccountingFraudPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/fraud/flagged" element={<AccountingProtectedRoute><AccountingFlaggedPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reconciliation" element={<AccountingProtectedRoute><AccountingReconciliationPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/wealth" element={<AccountingProtectedRoute><AccountingWealthPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/ai-assistant" element={<AccountingProtectedRoute><AccountingAIPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/settings/users" element={<AccountingProtectedRoute><AccountingUsersPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/settings/entities" element={<AccountingProtectedRoute><AccountingEntitiesPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/petty-cash" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashDashboardPage /></PettyCashProvider></AccountingProtectedRoute>} />
-            <Route path="/accounting/petty-cash/new" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashVoucherPage /></PettyCashProvider></AccountingProtectedRoute>} />
-            <Route path="/accounting/petty-cash/audit" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashAuditPage /></PettyCashProvider></AccountingProtectedRoute>} />
-            <Route path="/accounting/petty-cash/replenishment" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashReplenishmentPage /></PettyCashProvider></AccountingProtectedRoute>} />
-            <Route path="/accounting/petty-cash/:id" element={<AccountingProtectedRoute><PettyCashProvider><AccountingPettyCashDetailPage /></PettyCashProvider></AccountingProtectedRoute>} />
-            <Route path="/accounting/intercompany" element={<AccountingProtectedRoute><AccountingIntercompanyPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/intercompany/new" element={<AccountingProtectedRoute><AccountingIntercompanyNewPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/intercompany/:id" element={<AccountingProtectedRoute><AccountingIntercompanyDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reimbursements" element={<AccountingProtectedRoute><AccountingReimbursementsPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reimbursements/new" element={<AccountingProtectedRoute><AccountingReimbursementNewPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/reimbursements/:id" element={<AccountingProtectedRoute><AccountingReimbursementDetailPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/card-reconciliation" element={<AccountingProtectedRoute><AccountingCardReconciliationPage /></AccountingProtectedRoute>} />
-            <Route path="/accounting/card-reconciliation/new" element={<AccountingProtectedRoute><AccountingCardReconciliationNewPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/no-access" element={<AccountingProtectedRoute><AccountingNoAccessPage /></AccountingProtectedRoute>} />
+            <Route path="/accounting/access" element={<AccountingSectionRoute section="access_admin"><AccountingAccessAdminPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/journals" element={<AccountingSectionRoute section="journals"><AccountingJournalsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/journals/new" element={<AccountingSectionRoute section="journals" level="edit"><AccountingNewJournalPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/journals/:id" element={<AccountingSectionRoute section="journals"><AccountingJournalDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/journals/:id/edit" element={<AccountingSectionRoute section="journals" level="edit"><AccountingNewJournalPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/coa" element={<AccountingSectionRoute section="coa"><AccountingCOAPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/owners" element={<AccountingSectionRoute section="owners"><AccountingOwnersPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/owners/wealth-summary" element={<AccountingSectionRoute section="owners"><AccountingWealthPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/owners/:id" element={<AccountingSectionRoute section="owners"><AccountingOwnerDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ap" element={<AccountingSectionRoute section="ap"><AccountingAPPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ap/new" element={<AccountingSectionRoute section="ap" level="edit"><AccountingNewBillPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ap/:id" element={<AccountingSectionRoute section="ap"><AccountingBillDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ar" element={<AccountingSectionRoute section="ar"><AccountingARPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ar/new" element={<AccountingSectionRoute section="ar" level="edit"><AccountingNewInvoicePage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ar/:id" element={<AccountingSectionRoute section="ar"><AccountingInvoiceDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/vendors" element={<AccountingSectionRoute section="vendors"><AccountingVendorsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/vendors/:id" element={<AccountingSectionRoute section="vendors"><AccountingVendorDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/clients" element={<AccountingSectionRoute section="clients_link"><AccountingClientsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/clients/:id" element={<AccountingSectionRoute section="clients_link"><AccountingClientDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/bank-accounts" element={<AccountingSectionRoute section="bank"><AccountingBankAccountsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/bank-accounts/:id" element={<AccountingSectionRoute section="bank"><AccountingBankAccountDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/documents" element={<AccountingSectionRoute section="documents"><AccountingDocumentsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/documents/upload" element={<AccountingSectionRoute section="documents" level="edit"><AccountingUploadPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/documents/ocr" element={<AccountingSectionRoute section="documents"><AccountingOCRPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/approvals" element={<AccountingSectionRoute section="approvals"><AccountingApprovalsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/approvals/:id" element={<AccountingSectionRoute section="approvals"><AccountingApprovalDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports" element={<AccountingSectionRoute section="reports_financials"><AccountingReportsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/pl" element={<AccountingSectionRoute section="reports_financials"><AccountingPLPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/bs" element={<AccountingSectionRoute section="reports_financials"><AccountingBSPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/cashflow" element={<AccountingSectionRoute section="reports_financials"><AccountingCashFlowPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/consolidated" element={<AccountingSectionRoute section="reports_consolidated"><AccountingConsolidatedPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/trial-balance" element={<AccountingSectionRoute section="reports_financials"><AccountingTrialBalancePage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/reconciliation" element={<AccountingSectionRoute section="reports_reconciliation"><AccountingReportReconciliationPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/general-ledger" element={<AccountingSectionRoute section="reports_financials"><AccountingGeneralLedgerPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reports/general-ledger/:accountId" element={<AccountingSectionRoute section="reports_financials"><AccountingGeneralLedgerPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/tax" element={<AccountingSectionRoute section="tax"><AccountingTaxDashboardPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/tax/calendar" element={<AccountingSectionRoute section="tax"><AccountingTaxCalendarPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/tax/notices" element={<AccountingSectionRoute section="tax"><AccountingNoticesPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/fraud" element={<AccountingSectionRoute section="fraud"><AccountingFraudPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/fraud/flagged" element={<AccountingSectionRoute section="fraud"><AccountingFlaggedPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reconciliation" element={<AccountingSectionRoute section="reports_reconciliation"><AccountingReconciliationPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/wealth" element={<AccountingSectionRoute section="owners"><AccountingWealthPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ai-assistant" element={<AccountingSectionRoute section="ai"><AccountingAIPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/settings/users" element={<AccountingSectionRoute section="users"><AccountingUsersPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/settings/entities" element={<AccountingSectionRoute section="entities"><AccountingEntitiesPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/petty-cash" element={<AccountingSectionRoute section="petty_cash"><PettyCashProvider><AccountingPettyCashDashboardPage /></PettyCashProvider></AccountingSectionRoute>} />
+            <Route path="/accounting/petty-cash/new" element={<AccountingSectionRoute section="petty_cash" level="edit"><PettyCashProvider><AccountingPettyCashVoucherPage /></PettyCashProvider></AccountingSectionRoute>} />
+            <Route path="/accounting/petty-cash/audit" element={<AccountingSectionRoute section="petty_cash"><PettyCashProvider><AccountingPettyCashAuditPage /></PettyCashProvider></AccountingSectionRoute>} />
+            <Route path="/accounting/petty-cash/replenishment" element={<AccountingSectionRoute section="petty_cash" level="edit"><PettyCashProvider><AccountingPettyCashReplenishmentPage /></PettyCashProvider></AccountingSectionRoute>} />
+            <Route path="/accounting/petty-cash/:id" element={<AccountingSectionRoute section="petty_cash"><PettyCashProvider><AccountingPettyCashDetailPage /></PettyCashProvider></AccountingSectionRoute>} />
+            <Route path="/accounting/intercompany" element={<AccountingSectionRoute section="intercompany"><AccountingIntercompanyPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/intercompany/new" element={<AccountingSectionRoute section="intercompany" level="edit"><AccountingIntercompanyNewPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/intercompany/:id" element={<AccountingSectionRoute section="intercompany"><AccountingIntercompanyDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reimbursements" element={<AccountingSectionRoute section="reimbursements"><AccountingReimbursementsPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reimbursements/new" element={<AccountingSectionRoute section="reimbursements" level="edit"><AccountingReimbursementNewPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/reimbursements/:id" element={<AccountingSectionRoute section="reimbursements"><AccountingReimbursementDetailPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/card-reconciliation" element={<AccountingSectionRoute section="card_recon"><AccountingCardReconciliationPage /></AccountingSectionRoute>} />
+            <Route path="/accounting/card-reconciliation/new" element={<AccountingSectionRoute section="card_recon" level="edit"><AccountingCardReconciliationNewPage /></AccountingSectionRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/team-access" element={<ProtectedRoute><TeamAccess /></ProtectedRoute>} />
             <Route path="/masters" element={<ProtectedRoute><Masters /></ProtectedRoute>} />

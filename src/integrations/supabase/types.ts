@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_access_audit: {
+        Row: {
+          action: string
+          actor_auth_user_id: string | null
+          after: Json | null
+          before: Json | null
+          created_at: string
+          id: string
+          module: string
+          target_accounting_user_id: string
+        }
+        Insert: {
+          action: string
+          actor_auth_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          module: string
+          target_accounting_user_id: string
+        }
+        Update: {
+          action?: string
+          actor_auth_user_id?: string | null
+          after?: Json | null
+          before?: Json | null
+          created_at?: string
+          id?: string
+          module?: string
+          target_accounting_user_id?: string
+        }
+        Relationships: []
+      }
       accounting_ap_bills: {
         Row: {
           bill_date: string

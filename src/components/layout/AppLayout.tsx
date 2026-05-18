@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale, ArrowLeftRight, ReceiptText, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale, ArrowLeftRight, ReceiptText, CreditCard, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -8,11 +8,12 @@ import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
+import { useCan } from "@/accounting/hooks/usePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[] };
+type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[]; section?: string; acctAdminOnly?: boolean };
 
 const nav: NavItem[] = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
@@ -35,31 +36,34 @@ const nav: NavItem[] = [
 ];
 
 const accountingNav: NavItem[] = [
-  { to: "/accounting", icon: LayoutDashboard, label: "Overview", end: true },
-  { to: "/accounting/journals", icon: BookOpen, label: "Journal entries" },
-  { to: "/accounting/coa", icon: Layers, label: "Chart of accounts" },
-  { to: "/accounting/bank-accounts", icon: Landmark, label: "Bank accounts" },
-  { to: "/accounting/petty-cash", icon: Wallet, label: "Petty cash" },
-  { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company" },
-  { to: "/accounting/reimbursements", icon: ReceiptText, label: "Reimbursements" },
-  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Statement reconciliation" },
-  { to: "/accounting/owners", icon: Users, label: "Owner profiles" },
-  { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills" },
-  { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices" },
-  { to: "/accounting/vendors", icon: Truck, label: "Vendors" },
-  { to: "/accounting/clients", icon: Briefcase, label: "Clients" },
-  { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR" },
-  { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals" },
-  { to: "/accounting/reports", icon: BarChart2, label: "Reports" },
-  { to: "/accounting/reports/trial-balance", icon: Scale, label: "Trial balance" },
-  { to: "/accounting/reports/general-ledger", icon: BookOpen, label: "General ledger" },
-  { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance" },
-  { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit" },
-  { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation" },
-  { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary" },
-  { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant" },
-  { to: "/accounting/settings/entities", icon: Building2, label: "Entities" },
-  { to: "/accounting/settings/users", icon: UserCog, label: "Users & roles" },
+  { to: "/accounting", icon: LayoutDashboard, label: "Overview", end: true, section: "dashboard" },
+  { to: "/accounting/journals", icon: BookOpen, label: "Journal entries", section: "journals" },
+  { to: "/accounting/coa", icon: Layers, label: "Chart of accounts", section: "coa" },
+  { to: "/accounting/bank-accounts", icon: Landmark, label: "Bank accounts", section: "bank" },
+  { to: "/accounting/petty-cash", icon: Wallet, label: "Petty cash", section: "petty_cash" },
+  { to: "/accounting/intercompany", icon: ArrowLeftRight, label: "Inter-company", section: "intercompany" },
+  { to: "/accounting/reimbursements", icon: ReceiptText, label: "Reimbursements", section: "reimbursements" },
+  { to: "/accounting/card-reconciliation", icon: CreditCard, label: "Statement reconciliation", section: "card_recon" },
+  { to: "/accounting/owners", icon: Users, label: "Owner profiles", section: "owners" },
+  { to: "/accounting/ap", icon: ArrowDownCircle, label: "AP — Bills", section: "ap" },
+  { to: "/accounting/ar", icon: ArrowUpCircle, label: "AR — Invoices", section: "ar" },
+  { to: "/accounting/vendors", icon: Truck, label: "Vendors", section: "vendors" },
+  { to: "/accounting/clients", icon: Briefcase, label: "Clients", section: "clients_link" },
+  { to: "/accounting/documents", icon: ScanLine, label: "Documents & OCR", section: "documents" },
+  { to: "/accounting/approvals", icon: CheckSquare, label: "Approvals", section: "approvals" },
+  { to: "/accounting/reports", icon: BarChart2, label: "Reports", section: "reports_financials" },
+  { to: "/accounting/reports/trial-balance", icon: Scale, label: "Trial balance", section: "reports_financials" },
+  { to: "/accounting/reports/general-ledger", icon: BookOpen, label: "General ledger", section: "reports_financials" },
+  { to: "/accounting/reports/consolidated", icon: BarChart2, label: "Consolidated", section: "reports_consolidated" },
+  { to: "/accounting/reports/reconciliation", icon: GitMerge, label: "Reports — Reconciliation", section: "reports_reconciliation" },
+  { to: "/accounting/tax", icon: Receipt, label: "Tax & compliance", section: "tax" },
+  { to: "/accounting/fraud", icon: ShieldAlert, label: "Fraud & audit", section: "fraud" },
+  { to: "/accounting/reconciliation", icon: GitMerge, label: "Reconciliation", section: "reports_reconciliation" },
+  { to: "/accounting/wealth", icon: PieChart, label: "Wealth summary", section: "owners" },
+  { to: "/accounting/ai-assistant", icon: Sparkles, label: "AI assistant", section: "ai" },
+  { to: "/accounting/settings/entities", icon: Building2, label: "Entities", section: "entities" },
+  { to: "/accounting/settings/users", icon: UserCog, label: "Users", section: "users" },
+  { to: "/accounting/access", icon: ShieldCheck, label: "Access management", section: "access_admin", acctAdminOnly: true },
 ];
 
 const institutionsNav: NavItem[] = [
@@ -77,6 +81,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const primaryRole = roles[0] ?? "viewer";
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
+  const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const sidebarMode = theme.sidebarMode;
@@ -171,7 +176,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                   Accounting
                 </div>
               )}
-              {accountingNav.map(renderNavLink)}
+              {accountingNav
+                .filter((i) => {
+                  if (i.acctAdminOnly && !isAcctAdmin) return false;
+                  if (!i.section) return true;
+                  return canAcct(i.section, "view");
+                })
+                .map(renderNavLink)}
             </>
           )}
 
