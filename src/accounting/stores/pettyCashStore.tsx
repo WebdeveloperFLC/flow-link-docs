@@ -67,6 +67,29 @@ interface Ctx {
 
 const PettyCashContext = createContext<Ctx | null>(null);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (v: string) => UUID_RE.test(v);
+
+function voucherToDb(v: PettyCashVoucher, branchCode: string): any {
+  const lastApproved = [...v.approvalTrail].reverse().find(s => s.status === "approved");
+  return {
+    id: isUuid(v.id) ? v.id : undefined,
+    branch: branchCode,
+    voucher_number: v.voucherNumber,
+    txn_date: v.date,
+    txn_type: "EXPENSE",
+    category: v.category,
+    description: v.notes || v.paidTo,
+    amount: v.amount,
+    paid_to: v.paidTo,
+    approved_by: lastApproved?.by ?? null,
+    payment_mode: v.paymentType,
+    receipt_url: v.receiptFileName ?? null,
+    status: v.status,
+    currency: "INR",
+  };
+}
+
 export function PettyCashProvider({ children }: { children: ReactNode }) {
   const [branches, setBranches] = useState<PettyBranch[]>(PETTY_BRANCHES);
   const [vouchers, setVouchers] = useState<PettyCashVoucher[]>(PETTY_VOUCHERS);
@@ -96,6 +119,78 @@ export function PettyCashProvider({ children }: { children: ReactNode }) {
     });
     return list;
   });
+
+  const branchesRef = useRef(branches);
+  branchesRef.current = branches;
+  const findBranchCode = useCallback((branchId: string) => branchesRef.current.find(b => b.id === branchId)?.code ?? branchId, []);
+
+  // Hydrate from Supabase on mount (merge: DB rows override matching local ids).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase.from("accounting_petty_cash" as any).select("*").order("created_at", { ascending: false });
+      if (cancelled || error || !data) return;
+      setVouchers(prev => {
+        const map = new Map(prev.map(v => [v.id, v]));
+        (data as any[]).forEach((row) => {
+          const branch = branchesRef.current.find(b => b.code === row.branch);
+          const existing = map.get(row.id);
+          const merged: PettyCashVoucher = {
+            id: row.id,
+            voucherNumber: row.voucher_number ?? existing?.voucherNumber ?? "",
+            branchId: branch?.id ?? existing?.branchId ?? row.branch,
+            category: row.category ?? existing?.category ?? "other",
+            amount: Number(row.amount),
+            paidTo: row.paid_to ?? existing?.paidTo ?? "",
+            paymentType: (row.payment_mode as PaymentType) ?? existing?.paymentType ?? "petty_cash",
+            date: row.txn_date,
+            notes: row.description ?? existing?.notes,
+            receiptFileName: row.receipt_url ?? existing?.receiptFileName,
+            missingReceipt: existing?.missingReceipt ?? !row.receipt_url,
+            status: (row.status as PettyCashStatus) ?? "PENDING",
+            requiredLevel: existing?.requiredLevel ?? approvalLevelFor(Number(row.amount)),
+            approvalTrail: existing?.approvalTrail ?? [],
+            createdAt: row.created_at ?? new Date().toISOString(),
+            createdBy: existing?.createdBy ?? row.approved_by ?? "",
+            employeeName: existing?.employeeName,
+            reimbursementMethod: existing?.reimbursementMethod,
+            emergency: existing?.emergency,
+            recurring: existing?.recurring,
+            linkedClient: existing?.linkedClient,
+            linkedCounselor: existing?.linkedCounselor,
+            flags: existing?.flags,
+          };
+          map.set(row.id, merged);
+        });
+        return Array.from(map.values()).sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+      });
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const syncInsert = useCallback(async (v: PettyCashVoucher) => {
+    const payload = voucherToDb(v, findBranchCode(v.branchId));
+    const { data, error } = await supabase.from("accounting_petty_cash" as any).insert(payload as any).select().single();
+    if (error) { console.error("petty_cash insert failed", error); return; }
+    if (data && (data as any).id && (data as any).id !== v.id) {
+      const newId = (data as any).id as string;
+      setVouchers(prev => prev.map(x => x.id === v.id ? { ...x, id: newId } : x));
+    }
+  }, [findBranchCode]);
+
+  const syncUpdate = useCallback(async (v: PettyCashVoucher) => {
+    if (!isUuid(v.id)) return;
+    const payload = voucherToDb(v, findBranchCode(v.branchId));
+    delete payload.id;
+    const { error } = await supabase.from("accounting_petty_cash" as any).update(payload as any).eq("id", v.id);
+    if (error) console.error("petty_cash update failed", error);
+  }, [findBranchCode]);
+
+  const syncDelete = useCallback(async (id: string) => {
+    if (!isUuid(id)) return;
+    const { error } = await supabase.from("accounting_petty_cash" as any).delete().eq("id", id);
+    if (error) console.error("petty_cash delete failed", error);
+  }, []);
 
   const addVoucher = useCallback((input: NewVoucherInput) => {
     const branch = branches.find(b => b.id === input.branchId);
