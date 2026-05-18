@@ -4,17 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { runWhenAuthReady } from "./_hydrationGate";
 import type {
   OwnerProfile, FinancialAccount, OwnerCategory, PersonalOwnerType,
-  BusinessOwnerType, AccountType, AccountCategory,
+  AccountType, AccountCategory,
 } from "../types/owners";
 import { categoryOf } from "../data/mockOwners";
-
-function newUuid(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
-  return `${Date.now().toString(16)}-xxxx-4xxx-yxxx-xxxxxxxxxxxx`.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
-  });
-}
 
 // ─── State ──────────────────────────────────────────────────────────
 let owners: OwnerProfile[] = [];
@@ -52,7 +44,6 @@ function ownerFromDb(r: any): OwnerProfile {
     avatarInitials: r.avatar_initials ?? undefined,
     avatarColor: r.avatar_color ?? undefined,
     isActive: r.is_active ?? true,
-    karta_name: r.karta_name,
     kartaName: r.karta_name ?? undefined,
     linkedIndividualId: r.linked_individual_id ?? undefined,
     createdAt: r.created_at,
@@ -314,6 +305,3 @@ export async function deleteFinancialAccount(id: string): Promise<void> {
     toast.error(`Failed to delete account: ${e?.message ?? "unknown error"}`);
   }
 }
-
-// Suppress unused-import noise.
-void newUuid; void ({} as BusinessOwnerType);
