@@ -292,9 +292,20 @@ Deno.serve(async (req) => {
       }
 
       await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader`);
-      const rootMd = await fetchMarkdown(source.url, MAX_CHARS);
-      if (!rootMd) throw new Error(`Jina fetch failed for ${source.url}`);
+      if (!Deno.env.get("JINA_API_KEY")) {
+        await logMsg(supabase, job_id!, "warn", "JINA_API_KEY not set — using anonymous Jina Reader (rate-limited). Add the secret for full coverage on large catalogs.");
+      }
+      const rootRes = await fetchMarkdown(source.url, MAX_CHARS);
+      if (!rootRes.md) throw new Error(`Jina fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
+      const rootMd = rootRes.md;
       await logMsg(supabase, job_id!, "info", `Fetched root page (${rootMd.length} chars)`);
+
+      let failedFetches = 0;
+      const failureSamples: string[] = [];
+      const recordFailure = (url: string, err: string) => {
+        failedFetches++;
+        if (failureSamples.length < 5) failureSamples.push(`${err} :: ${url}`);
+      };
 
       let pagesScanned = 1;
       let courses: unknown[] = [];
@@ -325,12 +336,13 @@ Deno.serve(async (req) => {
         for (let i = 0; i < categoryUrls.length; i += CONCURRENCY) {
           const batch = categoryUrls.slice(i, i + CONCURRENCY);
           const results = await Promise.all(batch.map(async (cUrl) => {
-            const md = await fetchMarkdown(cUrl, MAX_CHARS);
-            if (!md) return [];
+            const res = await fetchMarkdown(cUrl, MAX_CHARS);
+            if (!res.md) { recordFailure(cUrl, res.error ?? `HTTP ${res.status}`); return []; }
             pagesScanned++;
-            return discoverLinks(cUrl, md).catch(() => []);
+            return discoverLinks(cUrl, res.md).catch(() => []);
           }));
           for (const arr of results) programLinks.push(...arr);
+          await sleep(BATCH_PAUSE_MS);
         }
         // dedupe
         const seen = new Set<string>();
@@ -349,13 +361,22 @@ Deno.serve(async (req) => {
         for (let i = 0; i < toFetch.length; i += CONCURRENCY) {
           const batch = toFetch.slice(i, i + CONCURRENCY);
           const results = await Promise.all(batch.map(async (l) => {
-            const md = await fetchMarkdown(l.program_url, DETAIL_MAX_CHARS);
-            if (!md) return [];
+            const res = await fetchMarkdown(l.program_url, DETAIL_MAX_CHARS);
+            if (!res.md) {
+              recordFailure(l.program_url, res.error ?? `HTTP ${res.status}`);
+              // Emit a low-confidence stub so the program still appears
+              return [{
+                course_title: l.course_title,
+                program_url: l.program_url,
+                source_url: l.program_url,
+                confidence_score: 30,
+              } as Record<string, unknown>];
+            }
             pagesScanned++;
             try {
               const parsed = await callAI(
                 SYSTEM_PROMPT_DETAIL,
-                `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${md}`,
+                `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${res.md}`,
                 COURSE_TOOL,
               );
               const items: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
@@ -369,9 +390,13 @@ Deno.serve(async (req) => {
             } catch (_) { return []; }
           }));
           for (const arr of results) detailed.push(...arr);
+          await sleep(BATCH_PAUSE_MS);
         }
         courses = detailed;
-        await logMsg(supabase, job_id!, "info", `Detail crawl yielded ${detailed.length} programs from ${pagesScanned} pages`);
+        await logMsg(supabase, job_id!, "info", `Detail crawl yielded ${detailed.length} programs from ${pagesScanned} pages (${failedFetches} fetch failures)`);
+        if (failedFetches > 0) {
+          await logMsg(supabase, job_id!, "warn", `${failedFetches} page fetches failed`, { samples: failureSamples });
+        }
       } else {
         // Fallback: single-page extraction
         await logMsg(supabase, job_id!, "info", "Falling back to single-page extraction");
