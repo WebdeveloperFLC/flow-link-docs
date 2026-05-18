@@ -1,66 +1,35 @@
-# Fix: Access Management — guard + vertical layout
+## Root cause
 
-## 1. Why Balveer can see the page today
+`src/accounting/stores/accountingEntitiesStore.ts` is the only source the bank account dropdown uses (`useEntities()` → `topEntities` filter in `BankAccountFormDialog.tsx`). It contains a hardcoded `SEED` array of ~16 entities with string ids like `e-flc-india`, `e-flc-canada`, `e-fwc-canada`, etc.
 
-Two reasons combine:
+On hydration from Supabase, `hydrateFromSupabase()` merges by **id only**:
 
-- **Stale deployed bundle on the custom domain.** The route guard (`AccountingSectionRoute section="access_admin"`) and the in-page `if (!isAdmin) <Navigate />` already exist in code, but the live site at `dms.futurelinkconsultants.com` still serves the previous bundle. Until republished, Balveer's browser runs the old version without the guard.
-- **Guard runs only on the client.** Even with the new bundle, the protection is purely React-side. Anyone who bypasses it (cached JS, direct DOM, devtools) can still attempt the API call. We should also harden it so the page is a no-op for non-admins.
-
-## 2. What we will change
-
-### A. Tighten the page guard (defense in depth)
-
-In `src/accounting/pages/settings/AccountingAccessAdminPage.tsx`:
-
-- Keep `<Navigate>` on `!isAdmin` (already there).
-- **Also short-circuit `loadAll`**: bail out immediately if `!isAdmin`, so the data fetch never fires for Balveer even if a render slips through.
-- Re-check `isAdmin` inside `toggle/saveRow/resetRow/revokeAll` so any stale handler is a no-op.
-- Replace any `Loading…` flash before the role resolves with the same loader so the page never paints the matrix to a non-admin.
-
-No backend RLS changes (per scope rule "Do NOT modify existing RLS").
-
-### B. Re-shape the UI to a vertical layout
-
-Replace the wide horizontal users × sections matrix with a **vertical per-user layout** that fits a normal screen:
-
-```text
-┌───────────────────────────────────────────────────────────┐
-│ Balveer Singh — ACCOUNTANT      [Reset] [Revoke] [Save]   │
-│ accounts@futurelinkconsultants.ca                         │
-├───────────────────────────────────────────────────────────┤
-│ Section                            View   Edit            │
-│ Dashboard                           [x]    [ ]            │
-│ Chart of Accounts                   [x]    [x]            │
-│ Journals  (auto: COA)               [x]    [x]            │
-│ AP — Bills  (auto: Vendors, COA)    [x]    [ ]            │
-│ …                                                          │
-└───────────────────────────────────────────────────────────┘
+```ts
+const dbIds = new Set(dbMapped.map((e) => e.id));
+const localKeep = entities.filter((e) => !dbIds.has(e.id));
+entities = [...localKeep, ...dbMapped];
 ```
 
-Specifics:
+Since DB rows use UUIDs and seed rows use `e-*` strings, no id ever matches. Every entity that exists in both the seed and the DB (Future Link Consultants Inc, Future Way Consultants Inc, Ontario Inc 2709223, the 3 India Pvt Ltds, etc.) appears **twice** in the dropdown — exactly what the screenshots show.
 
-- One **collapsible Card per user**, stacked vertically. Admins render as a single locked card showing "Full access (locked)" — no checkboxes.
-- Inside each card, a **two-column table**: `Section | View · Edit`. Sections grouped by area (Core, Transactions, Banking & Cash, Reporting, Admin) with subtle group headers, so the long list scans well.
-- Dependency hint shown inline as muted text under the section name (e.g. "Auto-grants View on: COA").
-- Action bar (`Reset`, `Revoke all`, `History`, `Save`) sits in the card header, sticky on scroll within the card.
-- Search filter stays at the top and filters which user cards are shown.
-- Removes the horizontal scroll entirely; everything fits in the 1312px viewport.
+The localStorage cache (`accounting:entities:v3`) also persists the merged duplicated list, so a refresh keeps showing duplicates.
 
-### C. Small UX cleanups
+## Fix (single file: `src/accounting/stores/accountingEntitiesStore.ts`)
 
-- Show role chip and last-login under the user name in each card header.
-- "Save" button disabled until dirty; toast on success/failure (unchanged behaviour).
-- Audit drawer (`History` button) unchanged — keep current Sheet.
+1. When `hydrateFromSupabase()` succeeds and returns ≥1 row, **replace** `entities` with the DB rows entirely. The DB is the source of truth — seed is only a fallback for empty DB / offline first-load.
+2. Bump `STORAGE_KEY` from `accounting:entities:v3` → `accounting:entities:v4` to invalidate the existing cached duplicated list in every user's browser.
+3. No other files touched. No changes to `BankAccountFormDialog.tsx`, no changes to other modules, no DB changes, no RLS changes.
 
-## 3. Out of scope
+## Verification
 
-- No changes to RLS, `BRIDGE_ENABLED`, CRM, commissions, or institutions.
-- No change to the permission model, dependency resolver, or DB schema.
-- After merge, the user needs to **Publish** so the live custom domain picks up the new guard + layout.
+- Reload `/accounting/bank-accounts` → open New bank account → Entity/company dropdown shows exactly the 8 DB entities, no duplicates.
+- Other places using `useEntities()` (entity tree on Settings → Entities, branches dropdown, etc.) continue to work because branches in the seed (`e-vad-*`, `e-toronto`, `e-usa-office`) only existed in the seed, not the DB — they will disappear from the UI after the fix. If the user wants those branches preserved, they should be inserted into `accounting_entities` in the DB (out of scope for this fix unless requested).
 
-## 4. Files touched
+## Open question before executing
 
-- `src/accounting/pages/settings/AccountingAccessAdminPage.tsx` — guard hardening + full re-render as vertical per-user cards.
+The seed currently contains **branches** (Vadodara — Genda Circle, Toronto — Ontario, Finksburg — Maryland, etc.) that do NOT exist in the DB. After this fix those branches will no longer appear anywhere. Two options:
 
-No other files change.
+- **A. Drop them** (cleanest — DB becomes single source of truth, dropdown shows only 8). 
+- **B. Migrate them into the DB first** as a one-time insert so they remain available under their parent companies, then apply the fix.
+
+Please confirm A or B before I execute.

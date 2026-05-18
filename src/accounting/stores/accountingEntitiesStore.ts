@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import { SettingsEntity } from "../types/settings";
 import { supabase } from "@/integrations/supabase/client";
 
-const STORAGE_KEY = "accounting:entities:v3";
+const STORAGE_KEY = "accounting:entities:v4";
 
 type SeedEntity = SettingsEntity & {
   registeredAddress?: string;
@@ -211,10 +211,10 @@ async function hydrateFromSupabase() {
     }
     if (!data || data.length === 0) return;
     const dbMapped = (data as unknown as EntityRow[]).map(mapFromDb);
-    const dbIds = new Set(dbMapped.map((e) => e.id));
-    // Keep local seed/legacy (non-uuid) rows; DB rows win for any matching id.
-    const localKeep = entities.filter((e) => !dbIds.has(e.id));
-    entities = [...localKeep, ...dbMapped];
+    // DB is the source of truth. Replace local seed entirely to avoid
+    // duplicate names appearing (seed rows use string ids, DB uses UUIDs,
+    // so id-based merge never dedupes by name).
+    entities = dbMapped;
     emit();
   } catch (e) {
     console.warn("[entitiesStore] Supabase hydration error:", e);
