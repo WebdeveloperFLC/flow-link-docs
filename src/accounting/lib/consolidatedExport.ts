@@ -107,7 +107,7 @@ export function renderXlsxCell(spec: SheetSpec, row: number, col: number): { raw
       const cell = (ws as Record<string, XLSX.CellObject>)[ref];
       if (!cell || cell.t !== "n") continue;
       const fmt = spec.formats?.[r]?.[c];
-      if (fmt) cell.z = fmt;
+      if (fmt) (cell as { z?: string }).z = fmt;
     }
   }
   const ref = XLSX.utils.encode_cell({ r: row, c: col });
