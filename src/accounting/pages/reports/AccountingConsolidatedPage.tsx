@@ -113,7 +113,7 @@ export default function AccountingConsolidatedPage() {
       ["Expenses", +totals.consolidatedExp.toFixed(2)],
       ["Gross profit", +totals.consolidatedProfit.toFixed(2)],
       ["Net profit", +totals.consolidatedProfit.toFixed(2)],
-      ["Margin %", +(margin * 100).toFixed(2)],
+      ["Margin", margin],
     ];
   };
 
@@ -121,8 +121,50 @@ export default function AccountingConsolidatedPage() {
     const today = new Date().toISOString().slice(0, 10);
     const rows = buildExportRows();
     const base = `consolidated-report-${today}`;
-    if (fmt === "csv") downloadCsv(`${base}.csv`, rows);
-    else downloadXlsx(`${base}.xlsx`, [{ name: "Consolidated", rows }]);
+    if (fmt === "csv") {
+      // For CSV present margin as % for readability
+      const csvRows = rows.map((r) => {
+        if (r[0] === "Margin" && typeof r[1] === "number") {
+          return ["Margin %", +((r[1] as number) * 100).toFixed(2)];
+        }
+        return r;
+      });
+      downloadCsv(`${base}.csv`, csvRows);
+      return;
+    }
+    const NUM = '#,##0.00;[Red](#,##0.00);"-"';
+    const CUR_CAD = '"CA$"#,##0.00;[Red]("CA$"#,##0.00);"-"';
+    const RATE = '0.0000';
+    const PCT = '0.0%;[Red](0.0%);"-"';
+    const formats: (string | undefined)[][] = rows.map((r, i) => {
+      const out: (string | undefined)[] = [];
+      const first = r[0];
+      // Title (0), blank (1) — no formats
+      if (i < 2) return out;
+      // Entity header row (index 2)
+      if (i === 2) return out;
+      // Entity rows: 3 .. 3 + visibleEntities.length - 1
+      if (i < 3 + visibleEntities.length) {
+        out[2] = RATE;            // FX rate
+        out[3] = NUM; out[4] = NUM; out[5] = NUM;   // native
+        out[6] = CUR_CAD; out[7] = CUR_CAD; out[8] = CUR_CAD; // CAD
+        return out;
+      }
+      // Margin row
+      if (first === "Margin") {
+        out[1] = PCT;
+        return out;
+      }
+      // Other section header / value rows: format col B as CAD if numeric
+      out[1] = CUR_CAD;
+      return out;
+    });
+    downloadXlsx(`${base}.xlsx`, [{
+      name: "Consolidated",
+      rows,
+      formats,
+      colWidths: [28, 10, 10, 18, 18, 16, 18, 18, 16],
+    }]);
   };
 
   return (
