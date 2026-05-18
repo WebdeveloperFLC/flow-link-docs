@@ -121,6 +121,8 @@ import InstitutionDetailPage from "./institutions/pages/InstitutionDetailPage";
 import CourseReviewPage from "./institutions/pages/CourseReviewPage";
 import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
+import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
+import CommissionsPage from "./pages/CommissionsPage";
 
 const queryClient = new QueryClient();
 
@@ -179,6 +181,7 @@ const App = () => (
             <Route path="/institutions/review" element={<InstitutionsProtectedRoute><CourseReviewPage /></InstitutionsProtectedRoute>} />
             <Route path="/institutions/suggestions" element={<InstitutionsProtectedRoute><AiSuggestionsPage /></InstitutionsProtectedRoute>} />
             <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
+            <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals" element={<AccountingProtectedRoute><AccountingJournalsPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/journals/new" element={<AccountingProtectedRoute><AccountingNewJournalPage /></AccountingProtectedRoute>} />

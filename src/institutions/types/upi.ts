@@ -6,6 +6,16 @@ export type SuggestionType =
   | "promotion" | "scholarship" | "intake_update" | "tuition_update"
   | "eligibility_rule" | "language_requirement" | "general";
 
+import type { Database } from "@/integrations/supabase/types";
+
+/**
+ * Live Supabase row shape for commission students. Created in Phase 2.1
+ * for upcoming Phase 2.2 consumers (typed classifier, write-back paths).
+ * Not yet consumed by claimEngine.ts.
+ */
+export type CommissionStudent =
+  Database["public"]["Tables"]["upi_commission_students"]["Row"];
+
 export interface UpiInstitution {
   id: string;
   name: string;
