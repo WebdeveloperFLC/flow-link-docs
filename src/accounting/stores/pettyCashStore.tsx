@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   PETTY_BRANCHES, PETTY_VOUCHERS, PETTY_REPLENISHMENTS, PETTY_VERIFICATIONS,
   approvalLevelFor, isToday, isThisMonth,
