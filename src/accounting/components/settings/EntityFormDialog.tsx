@@ -67,7 +67,7 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>{initial ? "Edit entity" : "Add entity"}</DialogTitle>
-          <DialogDescription>Companies, branches, sub-branches, and brands. Add as many tax IDs as needed.</DialogDescription>
+          <DialogDescription>To create a branch or division of an existing company, set Type to BRANCH or SUB_BRANCH and pick its Parent company below.</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2 max-h-[60vh] overflow-y-auto">
           <div className="grid gap-2">
