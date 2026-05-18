@@ -5717,6 +5717,48 @@ export type Database = {
         }
         Relationships: []
       }
+      owner_profile_directors: {
+        Row: {
+          company_profile_id: string
+          created_at: string
+          id: string
+          individual_profile_id: string
+          ownership_percent: number | null
+          role: string
+        }
+        Insert: {
+          company_profile_id: string
+          created_at?: string
+          id?: string
+          individual_profile_id: string
+          ownership_percent?: number | null
+          role?: string
+        }
+        Update: {
+          company_profile_id?: string
+          created_at?: string
+          id?: string
+          individual_profile_id?: string
+          ownership_percent?: number | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "owner_profile_directors_company_profile_id_fkey"
+            columns: ["company_profile_id"]
+            isOneToOne: false
+            referencedRelation: "owner_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "owner_profile_directors_individual_profile_id_fkey"
+            columns: ["individual_profile_id"]
+            isOneToOne: false
+            referencedRelation: "owner_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       owner_profiles: {
         Row: {
           aadhar_last4: string | null
