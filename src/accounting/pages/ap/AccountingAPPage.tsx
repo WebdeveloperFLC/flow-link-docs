@@ -55,9 +55,9 @@ export default function AccountingAPPage() {
   const [voidDialog, setVoidDialog] = useState<VendorBill | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<VendorBill | null>(null);
 
-  const entities = useMemo(() => Array.from(new Set(bills.map((b) => b.entity))), [bills]);
-  const branches = useMemo(() => Array.from(new Set(bills.map((b) => b.branch))), [bills]);
-  const currencies = useMemo(() => Array.from(new Set(bills.map((b) => b.currency))), [bills]);
+  const entities = useMemo(() => Array.from(new Set(bills.map((b) => b.entity).filter(Boolean))), [bills]);
+  const branches = useMemo(() => Array.from(new Set(bills.map((b) => b.branch).filter(Boolean))), [bills]);
+  const currencies = useMemo(() => Array.from(new Set(bills.map((b) => b.currency).filter(Boolean))), [bills]);
 
   const filtered = useMemo(() => {
     return bills.filter((b) => {
