@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Info } from "lucide-react";
+import { Info, Download } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -14,6 +14,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import { addDecimals, formatAccounting, formatCompact, formatCurrency, formatPercent } from "../../lib/format";
@@ -21,6 +22,20 @@ import { ELIMINATIONS, ENTITY_DATA, FX_RATES, MONTHLY_DATA } from "../../data/mo
 import { cn } from "@/lib/utils";
 
 const ENTITY_COLORS = ["#2563eb", "#16a34a", "#a855f7", "#f59e0b", "#0891b2"];
+
+function downloadCsv(filename: string, rows: (string | number)[][]) {
+  const csv = rows
+    .map((r) => r.map((v) => {
+      const s = String(v ?? "");
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    }).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function AccountingConsolidatedPage() {
   const [loading, setLoading] = useState(true);
@@ -80,10 +95,47 @@ export default function AccountingConsolidatedPage() {
 
   const allOn = Object.values(enabled).every(Boolean);
 
+  const onExport = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    const entityHeader = ["Entity", "Currency", "FX rate", "Revenue (native)", "Expenses (native)", "Profit (native)", "Revenue (CAD)", "Expenses (CAD)", "Profit (CAD)"];
+    const entityRows = visibleEntities.map((e) => [
+      e.entity, e.currency, e.rate,
+      e.revenue.toFixed(2), e.expenses.toFixed(2), e.profit.toFixed(2),
+      e.revenueCAD.toFixed(2), e.expensesCAD.toFixed(2), e.profitCAD.toFixed(2),
+    ]);
+    const elimRows: (string | number)[][] = ELIMINATIONS.map((e) => [e.label, e.amount.toFixed(2)]);
+    const margin = totals.consolidatedRev ? (totals.consolidatedProfit / totals.consolidatedRev) : 0;
+    downloadCsv(`consolidated-report-${today}.csv`, [
+      [`Consolidated report (CAD) — ${today}`],
+      [],
+      entityHeader,
+      ...entityRows,
+      [],
+      ["Eliminations (CAD)", "Amount"],
+      ...elimRows,
+      ["Total eliminations", elimTotal.toFixed(2)],
+      [],
+      ["Consolidated totals (CAD)", "Value"],
+      ["Revenue", totals.consolidatedRev.toFixed(2)],
+      ["Expenses", totals.consolidatedExp.toFixed(2)],
+      ["Gross profit", totals.consolidatedProfit.toFixed(2)],
+      ["Net profit", totals.consolidatedProfit.toFixed(2)],
+      ["Margin %", (margin * 100).toFixed(2)],
+    ]);
+  };
+
   return (
     <AppLayout>
       <div className="p-6 md:p-8 max-w-7xl mx-auto">
-        <AccountingPageHeader title="Consolidated report" subtitle="All entities · Future Link Consultants" />
+        <AccountingPageHeader
+          title="Consolidated report"
+          subtitle="All entities · Future Link Consultants"
+          actions={
+            <Button variant="outline" size="sm" onClick={onExport}>
+              <Download className="size-4 mr-1.5" /> Export CSV
+            </Button>
+          }
+        />
 
         {/* Entity selector */}
         <Card className="p-4 mb-4">
