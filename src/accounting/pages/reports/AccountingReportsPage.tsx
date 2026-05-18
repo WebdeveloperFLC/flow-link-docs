@@ -8,6 +8,7 @@ import {
   Globe,
   TrendingUp,
   ArrowRight,
+  Scale,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -74,6 +75,15 @@ const REPORTS = [
     description: "Outstanding bills by age bucket and vendor.",
     metric: "Outstanding: CA$ 284K",
     badge: { label: "3 overdue", tone: "bg-amber-500/10 text-amber-700 dark:text-amber-400" },
+  },
+  {
+    to: "/accounting/reports/reconciliation",
+    icon: Scale,
+    iconWrap: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+    title: "Report reconciliation",
+    description: "Cross-check Balance Sheet, Profit & Loss, and Trial Balance totals; flag mismatches.",
+    metric: "Live identity checks",
+    badge: { label: "Audit", tone: "bg-indigo-500/10 text-indigo-700 dark:text-indigo-400" },
   },
 ];
 
