@@ -42,8 +42,8 @@ export default function AccountingBSPage() {
   }, []);
 
   const pieData = useMemo(() => {
-    const cashBank = BS_DATA.assets.current.find((a) => a.code === "1000")!.amount + BS_DATA.assets.current.find((a) => a.code === "1100")!.amount;
-    const ar = BS_DATA.assets.current.find((a) => a.code === "1200")!.amount;
+    const cashBank = (BS_DATA.assets.current.find((a) => a.code === "1000")?.amount ?? 0) + (BS_DATA.assets.current.find((a) => a.code === "1100")?.amount ?? 0);
+    const ar = BS_DATA.assets.current.find((a) => a.code === "1200")?.amount ?? 0;
     const fixed = totals.ncAssets;
     const other = totals.totalAssets - cashBank - ar - fixed;
     return [
