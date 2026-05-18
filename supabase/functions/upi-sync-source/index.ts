@@ -8,9 +8,13 @@ const corsHeaders = {
 
 const MAX_CHARS = 80_000;
 const DETAIL_MAX_CHARS = 40_000;
-const MAX_DETAIL_FETCHES = 120;
+const MAX_DETAIL_FETCHES = 200;
 const MAX_CATEGORY_FETCHES = 20;
-const CONCURRENCY = 5;
+const CONCURRENCY = 3;
+const FETCH_RETRIES = 3;
+const BATCH_PAUSE_MS = 150;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const LISTY_URL_HINTS = ["/programs", "/program/", "/courses", "/course/", "/study", "/academics", "/list", "/faculties", "/schools", "/area-of-study"];
 const SKIP_URL_HINTS = ["/news", "/blog", "/events", "/about", "/contact", "/login", "/apply-now", "/staff", "/faculty-staff", "/library", "/alumni", "/giving", "/parents", "/media", "/privacy", "/terms"];
