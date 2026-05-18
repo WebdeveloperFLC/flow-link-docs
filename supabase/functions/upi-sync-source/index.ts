@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 const MAX_CHARS = 80_000;
-const DETAIL_MAX_CHARS = 40_000;
 const MAX_DETAIL_FETCHES = 200;
 const MAX_CATEGORY_FETCHES = 20;
 const CONCURRENCY = 3;
@@ -23,7 +22,7 @@ const LINK_TOOL = {
   type: "function",
   function: {
     name: "extract_program_links",
-    description: "From a program-list or category page, return distinct academic program names and their detail page URLs. Ignore navigation, news, blog, staff, or generic info pages. Prefer URLs that look like a single program detail page (e.g. /programs/fulltime/AIG.html).",
+    description: "From a program-list or category page, return distinct academic program names and their detail page URLs. Ignore navigation, news, blog, staff, or generic info pages.",
     parameters: {
       type: "object",
       properties: {
@@ -50,8 +49,7 @@ const COURSE_TOOL = {
   type: "function",
   function: {
     name: "extract_courses",
-    description:
-      "Extract every distinct course/program found on the page. Be thorough but only include real academic programs. Leave fields null if not present — never invent.",
+    description: "Extract every distinct course/program found on the page. Be thorough but only include real academic programs. Leave fields null if not present — never invent.",
     parameters: {
       type: "object",
       properties: {
@@ -61,48 +59,23 @@ const COURSE_TOOL = {
             type: "object",
             properties: {
               course_title: { type: "string" },
-              program_code: { type: "string", description: "Short institution code, e.g. AIG, BSD-3Y" },
-              program_level: {
-                type: "string",
-                description:
-                  "One of: certificate, diploma, advanced_diploma, bachelor, postgraduate_diploma, master, phd, foundation, pathway, short_course, other",
-              },
-              field_of_study: {
-                type: "string",
-                description: "Closest match: Business & Management, IT & Computer Science, Engineering, Health & Medicine, Hospitality & Tourism, Arts & Humanities",
-              },
+              program_level: { type: "string" },
+              field_of_study: { type: "string" },
               specialization: { type: "string" },
               duration_value: { type: "number" },
-              duration_unit: { type: "string", description: "years | months | weeks" },
+              duration_unit: { type: "string" },
               tuition_fee: { type: "number" },
-              tuition_fee_per: { type: "string", description: "year | semester | total" },
-              currency: { type: "string", description: "ISO 4217 code" },
-              application_fee: { type: "number" },
-              processing_time_weeks: { type: "number", description: "Typical admissions processing time in weeks" },
-              intake_months: { type: "array", items: { type: "string" }, description: "e.g. ['Jan','May','Sep']" },
-              intake_year: { type: "number" },
+              currency: { type: "string" },
+              intake_months: { type: "array", items: { type: "string" } },
               ielts_overall: { type: "number" },
               pte_overall: { type: "number" },
               toefl_overall: { type: "number" },
-              duolingo_overall: { type: "number" },
               gpa_requirement: { type: "string" },
-              has_scholarship: { type: "boolean" },
-              scholarship_detail: { type: "string" },
+              is_pgwp_eligible: { type: "boolean" },
               is_coop: { type: "boolean" },
-              coop_duration_months: { type: "number" },
-              is_pr_pathway: { type: "boolean" },
-              is_pgwp_eligible: { type: "boolean", description: "True if program is PGWP-eligible (Post-Graduation Work Permit, Canada)" },
-              stem_eligible: { type: "boolean" },
-              is_online: { type: "boolean" },
-              is_part_time: { type: "boolean" },
-              seats_available: { type: "number" },
-              program_url: { type: "string" },
-              apply_url: { type: "string" },
               campus_name: { type: "string" },
-              course_description: { type: "string", description: "Concise 1-2 sentence description" },
-              career_outcomes: { type: "string" },
-              pr_visa_notes: { type: "string" },
-              confidence_score: { type: "number", description: "0-100 confidence" },
+              course_description: { type: "string" },
+              confidence_score: { type: "number" },
             },
             required: ["course_title"],
             additionalProperties: true,
@@ -119,7 +92,6 @@ function normalizeUrl(raw: string, base: string): string | null {
   try {
     const u = new URL(raw, base);
     u.hash = "";
-    // strip tracking params
     ["utm_source","utm_medium","utm_campaign","utm_term","utm_content"].forEach(k => u.searchParams.delete(k));
     return u.toString().replace(/\/$/, "");
   } catch { return null; }
@@ -166,7 +138,6 @@ async function fetchMarkdown(
     "X-Return-Format": "markdown",
   };
   if (jinaKey) headers["Authorization"] = `Bearer ${jinaKey}`;
-
   let lastStatus = 0;
   let lastError: string | undefined;
   for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
@@ -178,7 +149,6 @@ async function fetchMarkdown(
         if (md.length > maxChars) md = md.slice(0, maxChars);
         return { md, status: r.status };
       }
-      // Retry on 429 / 5xx; bail on other 4xx
       if (r.status !== 429 && r.status < 500) {
         try { await r.text(); } catch (_) { /* ignore */ }
         return { md: null, status: r.status, error: `HTTP ${r.status}` };
@@ -195,6 +165,25 @@ async function fetchMarkdown(
     }
   }
   return { md: null, status: lastStatus, error: lastError ?? `HTTP ${lastStatus}` };
+}
+
+function triggerBatch(job_id: string) {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/upi-sync-process-batch`;
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  // fire-and-forget
+  const p = fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify({ job_id }),
+  }).catch(() => { /* ignore */ });
+  // @ts-ignore
+  if (typeof EdgeRuntime !== "undefined" && (EdgeRuntime as any).waitUntil) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(p);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -241,10 +230,8 @@ Deno.serve(async (req) => {
       .update({ crawl_status: "running" }).eq("id", source.id);
 
     const work = (async () => {
-      const SYSTEM_PROMPT_DETAIL =
-        "You extract academic program data from a SINGLE program's detail page. Emit exactly one course row unless the page clearly lists multiple campuses/delivery modes for the same program (then one row per campus). Never invent fees, IELTS, durations, or dates — if absent, omit. Be precise.";
       const SYSTEM_PROMPT_LIST =
-        "You extract academic course/program data from university web pages. Return strict structured output. Never invent numeric fields. For field_of_study, snap to one of: Business & Management, IT & Computer Science, Engineering, Health & Medicine, Hospitality & Tourism, Arts & Humanities.";
+        "You extract academic course/program data from university web pages. Return strict structured output. Never invent numeric fields.";
 
       async function callAI(systemPrompt: string, userContent: string, tool: typeof COURSE_TOOL | typeof LINK_TOOL): Promise<any> {
         const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -293,24 +280,14 @@ Deno.serve(async (req) => {
 
       await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader`);
       if (!Deno.env.get("JINA_API_KEY")) {
-        await logMsg(supabase, job_id!, "warn", "JINA_API_KEY not set — using anonymous Jina Reader (rate-limited). Add the secret for full coverage on large catalogs.");
+        await logMsg(supabase, job_id!, "warn", "JINA_API_KEY not set — using anonymous Jina Reader (rate-limited).");
       }
       const rootRes = await fetchMarkdown(source.url, MAX_CHARS);
       if (!rootRes.md) throw new Error(`Jina fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
       const rootMd = rootRes.md;
       await logMsg(supabase, job_id!, "info", `Fetched root page (${rootMd.length} chars)`);
 
-      let failedFetches = 0;
-      const failureSamples: string[] = [];
-      const recordFailure = (url: string, err: string) => {
-        failedFetches++;
-        if (failureSamples.length < 5) failureSamples.push(`${err} :: ${url}`);
-      };
-
       let pagesScanned = 1;
-      let courses: unknown[] = [];
-
-      // Step 1: discover links
       const rootIsListy = looksListy(source.url) || ["website","program_list","sitemap","list_page"].includes(source.source_type ?? "");
       let programLinks: { course_title: string; program_url: string }[] = [];
 
@@ -320,10 +297,8 @@ Deno.serve(async (req) => {
         await logMsg(supabase, job_id!, "info", `Discovered ${programLinks.length} direct program links from root`);
       }
 
-      // Step 2: if too few direct links, two-level expansion via category pages
       if (rootIsListy && programLinks.length < 3) {
         await logMsg(supabase, job_id!, "info", "Few direct programs — expanding via category pages");
-        // Heuristic: use link extractor to gather any listy URLs from root
         const candidateCats = await discoverLinks(source.url, rootMd);
         const origin = new URL(source.url).host;
         const categoryUrls = Array.from(new Set(
@@ -337,14 +312,13 @@ Deno.serve(async (req) => {
           const batch = categoryUrls.slice(i, i + CONCURRENCY);
           const results = await Promise.all(batch.map(async (cUrl) => {
             const res = await fetchMarkdown(cUrl, MAX_CHARS);
-            if (!res.md) { recordFailure(cUrl, res.error ?? `HTTP ${res.status}`); return []; }
+            if (!res.md) return [];
             pagesScanned++;
             return discoverLinks(cUrl, res.md).catch(() => []);
           }));
           for (const arr of results) programLinks.push(...arr);
           await sleep(BATCH_PAUSE_MS);
         }
-        // dedupe
         const seen = new Set<string>();
         programLinks = programLinks.filter(l => {
           if (seen.has(l.program_url)) return false;
@@ -353,113 +327,66 @@ Deno.serve(async (req) => {
         await logMsg(supabase, job_id!, "info", `After category expansion: ${programLinks.length} program links`);
       }
 
-      // Step 3: detail crawl
+      // Queue or fallback
       if (programLinks.length >= 3) {
-        const toFetch = programLinks.slice(0, MAX_DETAIL_FETCHES);
-        await logMsg(supabase, job_id!, "info", `Detail-crawling ${toFetch.length} of ${programLinks.length} program pages`);
-        const detailed: unknown[] = [];
-        for (let i = 0; i < toFetch.length; i += CONCURRENCY) {
-          const batch = toFetch.slice(i, i + CONCURRENCY);
-          const results = await Promise.all(batch.map(async (l) => {
-            const res = await fetchMarkdown(l.program_url, DETAIL_MAX_CHARS);
-            if (!res.md) {
-              recordFailure(l.program_url, res.error ?? `HTTP ${res.status}`);
-              // Emit a low-confidence stub so the program still appears
-              return [{
-                course_title: l.course_title,
-                program_url: l.program_url,
-                source_url: l.program_url,
-                confidence_score: 30,
-              } as Record<string, unknown>];
-            }
-            pagesScanned++;
-            try {
-              const parsed = await callAI(
-                SYSTEM_PROMPT_DETAIL,
-                `Program: ${l.course_title}\nDetail URL: ${l.program_url}\n\n--- PAGE MARKDOWN ---\n${res.md}`,
-                COURSE_TOOL,
-              );
-              const items: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
-              return items.map((it) => {
-                const o = it as Record<string, unknown>;
-                if (!o.program_url) o.program_url = l.program_url;
-                o.source_url = l.program_url;
-                if (!o.course_title) o.course_title = l.course_title;
-                return o;
-              });
-            } catch (_) { return []; }
-          }));
-          for (const arr of results) detailed.push(...arr);
-          await sleep(BATCH_PAUSE_MS);
+        const toQueue = programLinks.slice(0, MAX_DETAIL_FETCHES).map(l => ({
+          job_id: job_id!,
+          source_id: source.id,
+          institution_id: source.institution_id,
+          program_url: l.program_url,
+          course_title: l.course_title,
+          status: "pending",
+        }));
+        // chunk inserts (avoid huge single insert)
+        const CHUNK = 100;
+        for (let i = 0; i < toQueue.length; i += CHUNK) {
+          const slice = toQueue.slice(i, i + CHUNK);
+          const { error } = await supabase.from("upi_sync_queue")
+            .upsert(slice, { onConflict: "job_id,program_url", ignoreDuplicates: true });
+          if (error) await logMsg(supabase, job_id!, "error", `Queue insert failed: ${error.message}`);
         }
-        courses = detailed;
-        await logMsg(supabase, job_id!, "info", `Detail crawl yielded ${detailed.length} programs from ${pagesScanned} pages (${failedFetches} fetch failures)`);
-        if (failedFetches > 0) {
-          await logMsg(supabase, job_id!, "warn", `${failedFetches} page fetches failed`, { samples: failureSamples });
-        }
-      } else {
-        // Fallback: single-page extraction
-        await logMsg(supabase, job_id!, "info", "Falling back to single-page extraction");
-        try {
-          const parsed = await callAI(
-            SYSTEM_PROMPT_LIST,
-            `Source URL: ${source.url}\nSource type: ${source.source_type}\n\n--- PAGE MARKDOWN ---\n${rootMd}`,
-            COURSE_TOOL,
-          );
-          courses = Array.isArray(parsed?.courses) ? parsed.courses : [];
-        } catch (e) {
-          await logMsg(supabase, job_id!, "error", String(e));
-          throw e;
-        }
+        await supabase.from("upi_sync_jobs").update({
+          pages_discovered: programLinks.length,
+          pages_scanned: pagesScanned,
+        }).eq("id", job_id!);
+        await logMsg(supabase, job_id!, "info", `Queued ${toQueue.length} program detail pages — starting batch worker`);
+        triggerBatch(job_id!);
+        return;
       }
 
-      // Score & enrich
-      const numericKeys = ["tuition_fee","ielts_overall","pte_overall","toefl_overall","duration_value","application_fee","processing_time_weeks"];
-      courses = courses.map((c) => {
-        const o = c as Record<string, unknown>;
-        if (!o.source_url) o.source_url = source.url;
-        const filled = numericKeys.filter(k => o[k] != null).length
-          + (Array.isArray(o.intake_months) && (o.intake_months as unknown[]).length > 0 ? 1 : 0);
-        if (o.confidence_score == null || typeof o.confidence_score !== "number" || o.confidence_score === 0) {
-          o.confidence_score = filled === 0 ? 40 : Math.min(95, 50 + filled * 8);
-        }
-        return o;
-      });
-
-      await logMsg(supabase, job_id!, "info", `Extracted ${courses.length} candidate course(s)`);
-
-      // Upsert
+      // Fallback: tiny single-page extraction (kept inline)
+      await logMsg(supabase, job_id!, "info", "Falling back to single-page extraction");
+      const parsed = await callAI(
+        SYSTEM_PROMPT_LIST,
+        `Source URL: ${source.url}\nSource type: ${source.source_type}\n\n--- PAGE MARKDOWN ---\n${rootMd}`,
+        COURSE_TOOL,
+      );
+      const courses: unknown[] = Array.isArray(parsed?.courses) ? parsed.courses : [];
       let upserted = 0, rejected = 0;
       if (courses.length > 0) {
-        const { data: upRes, error: upErr } = await supabase.functions.invoke("upi-upsert-courses", {
-          body: { courses, job_id, institution_id: source.institution_id, source_id: source.id },
+        const enriched = courses.map((c) => {
+          const o = c as Record<string, unknown>;
+          if (!o.source_url) o.source_url = source.url;
+          if (o.confidence_score == null) o.confidence_score = 50;
+          return o;
         });
-        if (upErr) await logMsg(supabase, job_id!, "error", `Upsert failed: ${upErr.message}`, { error: upErr });
-        else if ((upRes as any)?.error) await logMsg(supabase, job_id!, "error", `Upsert returned error`, { body: upRes });
-        else {
-          upserted = (upRes as any)?.upserted ?? 0;
-          rejected = (upRes as any)?.rejected ?? 0;
-          await logMsg(supabase, job_id!, "info", `Upserted ${upserted}, rejected ${rejected}`);
-        }
+        const { data: upRes } = await supabase.functions.invoke("upi-upsert-courses", {
+          body: { courses: enriched, job_id, institution_id: source.institution_id, source_id: source.id },
+        });
+        upserted = (upRes as any)?.upserted ?? 0;
+        rejected = (upRes as any)?.rejected ?? 0;
       }
-
-      const confidences = courses
-        .map(c => (c as Record<string, unknown>).confidence_score)
-        .filter((v): v is number => typeof v === "number");
-      const avgConfidence = confidences.length
-        ? Math.round(confidences.reduce((a, b) => a + b, 0) / confidences.length) : 0;
-
       await supabase.from("upi_sync_jobs").update({
-        status: rejected > 0 && upserted === 0 ? "failed" : (rejected > 0 ? "completed_with_errors" : "completed"),
+        status: "completed",
         pages_scanned: pagesScanned, pages_discovered: pagesScanned,
         completed_at: new Date().toISOString(),
       }).eq("id", job_id!);
-
       await supabase.from("upi_institution_sources").update({
         crawl_status: "completed", last_synced_at: new Date().toISOString(),
         pages_scanned: pagesScanned, pages_found: pagesScanned,
-        extracted_records_count: upserted, confidence_score: avgConfidence,
+        extracted_records_count: upserted,
       }).eq("id", source.id);
+      await logMsg(supabase, job_id!, "info", `Fallback upserted ${upserted}, rejected ${rejected}`);
     })();
 
     // @ts-ignore
@@ -482,7 +409,7 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ ok: true, job_id, status: "running", message: "Sync started in background. Poll job status for progress." }),
+      JSON.stringify({ ok: true, job_id, status: "running" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 202 },
     );
   } catch (e) {
