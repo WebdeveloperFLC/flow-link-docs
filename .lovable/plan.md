@@ -1,54 +1,43 @@
-# Bank account labeling + Owner/Branch clarification
+## Answers to your questions
 
-Scope is limited to the bank-account UIs. No changes to commission, CRM, institution modules. No changes to existing RLS on other tables.
+### 1. What is "Account holder name" for?
+It's the **legal name printed on the bank's records** — i.e. exactly what the bank has registered for that account. In 90% of cases this is just the company's legal name (e.g. *Future Link Consultants Pvt Ltd*), so it looks like a duplicate of "Entity / company". But it diverges in real cases:
 
-## Fix 1 — Personal bank section labeling (Owner profile page)
+- Joint / in-trust accounts: *"Future Link Consultants Pvt Ltd A/c Payroll Trust"*
+- DBA / trade name on the account: *"FLC Education (a unit of Future Link Consultants Pvt Ltd)"*
+- Escrow / nominee accounts: *"FLC Pvt Ltd — Client Escrow"*
+- Branch-titled accounts where the bank prints the branch name
 
-File: `src/accounting/components/owners/sections/` (the `SectionBlock` for bank accounts inside `AccountingOwnerDetailPage.tsx`).
+So: **Entity = who owns it on your books**, **Account holder name = what the bank prints on the statement**. Keeping them separate avoids reconciliation mismatches when bank statements are imported.
 
-- Section title: `Bank accounts` → **`Personal bank accounts`**
-- Section helper line (new, one-liner under title): **"Tracked privately for net-worth. Not posted to company books."**
-- Section button: `+ Add account` → **`+ Add personal account`**
+### 2. How does "Sub-entity / division" work and where do you create one?
+The dropdown lists **child entities of the selected company** — pulled from the same Entities screen you already use (`/accounting/settings/entities`).
 
-This visually separates the personal wealth tracker from `/accounting/bank-accounts` (company books).
+You already have the field to create them — you just didn't see it in the screenshot you sent. In the **Add entity** dialog there is a **Parent** dropdown (currently set to *"— None (top-level) —"* in your screenshot). To create a sub-entity:
 
-## Fix 2 — Company bank account form (`BankAccountFormDialog.tsx`)
+1. Go to *Accounting → Settings → Entities → Add entity*
+2. Set **Type** = `BRANCH` or `SUB_BRANCH`
+3. Set **Parent** = the company it belongs to (e.g. *Future Link Consultants Pvt Ltd*)
+4. Save
 
-Clarify the confusing fields on the New bank account dialog at `/accounting/bank-accounts`.
+That new branch will then appear in the "Sub-entity / division" dropdown on the bank account form whenever you pick its parent company.
 
-### 2a. Rename "Branch / sub-branch (optional)"
-- Label → **"Sub-entity / division (optional)"**
-- Helper text under field: **"Internal org branch (e.g. regional office). Leave blank if the company has no sub-entities."**
-- (The actual bank branch is captured below in "Bank branch name / code / address" — that stays as is.)
+It's blank right now simply because none of your 8 companies have any child entities created yet.
 
-### 2b. Remove the "Owner" dropdown from the company bank form
-Rationale: on the company books, the **Entity/company** field already identifies the owner. The current Owner dropdown pulls from `owner_profiles` (personal wealth module) and is conceptually wrong for operational company accounts.
+---
 
-- Remove the `Owner` Select and the `ownerProfileId` requirement from validation.
-- Keep `owner_profile_id` column in DB nullable (already nullable). No migration needed; just stop writing it from this form.
+## Proposed UI fixes (small, labelling/helper only)
 
-### 2c. Add "Authorised signatories" (multi-select, optional)
-- New field below "Account holder name": **"Authorised signatories (optional)"** — multi-select Combobox sourced from `owner_profiles` where `category = 'PERSONAL'` (the individuals already used as directors).
-- Helper: **"Individuals with signing authority on this account (e.g. directors with joint signing)."**
-- Storage: new column `authorised_signatory_ids uuid[]` on `accounting_bank_accounts` (default `'{}'`). Migration adds the column only; RLS unchanged.
+**A. Bank account form — `BankAccountFormDialog.tsx`**
+- When the chosen company has **zero sub-entities**, replace the disabled "No branches" placeholder with a helpful inline hint:
+  *"No sub-entities for this company. Add one in Settings → Entities (Parent = this company)."*
+  Include a link/button that opens `/accounting/settings/entities` in a new tab.
+- Tighten the helper under "Account holder name" to: *"Legal name as printed on the bank's records. Usually the company's legal name, but can differ for joint, escrow, DBA, or trust accounts."*
 
-### 2d. Add field-level helper text
-- **Account holder name** helper: **"Legal name as printed on the bank's records (usually the company's legal name)."**
-- **Entity/company** helper: **"The company that owns this account on the books."**
+**B. Entities page — `AccountingEntitiesPage.tsx` / `EntityFormDialog.tsx`**
+- Update the dialog description from generic *"Companies, branches, sub-branches, and brands…"* to a clearer one-liner: *"To create a branch or division of an existing company, set Type = BRANCH/SUB_BRANCH and pick its Parent company below."*
+- On the Entities list page subtitle, add a small note: *"Add branches/divisions by setting a Parent on a new entity."*
 
-## Files to touch
+**Out of scope:** no schema changes, no changes to the bank store, no removal/rename of existing fields, no changes to other modules.
 
-- `supabase/migrations/<new>.sql` — add `authorised_signatory_ids uuid[] default '{}'` to `accounting_bank_accounts`.
-- `src/accounting/components/bank-accounts/BankAccountFormDialog.tsx` — remove Owner field, rename Branch label, add Authorised signatories multi-select, add helper texts.
-- `src/accounting/types/bankAccounts.ts` (or equivalent) — add `authorisedSignatoryIds?: string[]`.
-- `src/accounting/stores/bankAccountsStore.ts` — map new column in/out.
-- `src/accounting/components/owners/...` (SectionBlock usage for bank in `AccountingOwnerDetailPage.tsx`) — rename title/button, add helper line.
-- `src/integrations/supabase/types.ts` — auto-regenerated.
-
-## Out of scope
-- No backfill of `authorised_signatory_ids`.
-- No changes to bank account list page columns (can do in a follow-up if you want a "Signatories" column).
-- No removal of existing `owner_profile_id` column (kept nullable for backward compat).
-
-## Open question (one)
-Confirm: **OK to remove the "Owner" dropdown from the company bank form entirely?** If you'd rather keep it as an optional "Primary contact" field instead of removing it, say so and I'll keep it but make it optional and relabel it.
+Want me to apply these labelling tweaks?
