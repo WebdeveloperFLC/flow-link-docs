@@ -229,7 +229,8 @@ async function hydrateFromSupabase() {
     console.warn("[mastersStore] Supabase hydration error:", e);
   }
 }
-void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 function slug(label: string) {
   return label.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "");

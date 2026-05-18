@@ -88,7 +88,8 @@ async function hydrateFromSupabase() {
     console.warn("[vendorsStore] hydrate failed", e);
   }
 }
-if (typeof window !== "undefined") void hydrateFromSupabase();
+import { runWhenAuthReady } from "./_hydrationGate";
+runWhenAuthReady(hydrateFromSupabase);
 
 // ─── Public API ─────────────────────────────────────────────────────────────
 export function useVendors(): Vendor[] {
