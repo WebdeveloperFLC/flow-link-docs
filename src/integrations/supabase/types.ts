@@ -8784,6 +8784,56 @@ export type Database = {
           },
         ]
       }
+      upi_sync_queue: {
+        Row: {
+          attempts: number
+          course_title: string | null
+          created_at: string
+          id: string
+          institution_id: string | null
+          job_id: string
+          last_error: string | null
+          program_url: string
+          source_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          course_title?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          job_id: string
+          last_error?: string | null
+          program_url: string
+          source_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          course_title?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          job_id?: string
+          last_error?: string | null
+          program_url?: string
+          source_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upi_sync_queue_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "upi_sync_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upi_tags: {
         Row: {
           color: string | null
