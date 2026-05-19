@@ -61,9 +61,10 @@ export default function AccountingReimbursementNewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefillAmount]);
 
-  const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
-  const bankAccts = accounts.filter((a) => a.groupCode === "ASSET" && a.status === "ACTIVE");
-  const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
+  const postable = accounts.filter((a) => a.status === "ACTIVE" && a.isPostable !== false);
+  const liabAccts = postable.filter((a) => a.groupCode === "LIABILITY");
+  const bankAccts = postable.filter((a) => a.groupCode === "ASSET");
+  const expAccts = postable.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode));
 
   const totals = useMemo(() => {
     const biz = lines.filter((l) => !l.isPersonal).reduce((s, l) => s + Number(l.amount || 0), 0);
