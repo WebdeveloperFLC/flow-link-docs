@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useMasterLabels } from "@/lib/masters";
 import { logActivity } from "@/lib/activity";
@@ -12,6 +12,7 @@ import { z } from "zod";
 import { COUNTRY_OPTIONS, dialCodeFor } from "@/lib/countryCodes";
 
 interface Template { id: string; name: string; country: string; category: string; }
+interface VisaService { service_code: string; service_name: string; country_tag: string | null; display_order: number | null; }
 
 const schema = z.object({
   first_name: z.string().trim().min(1, "First name is required").max(60),
@@ -37,15 +38,30 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   const [phoneCountry, setPhoneCountry] = useState<string>("India");
   const phoneCode = dialCodeFor(phoneCountry) || "91";
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [visaServices, setVisaServices] = useState<VisaService[]>([]);
   const COUNTRIES = useMasterLabels("countries");
-  const APPLICATION_TYPES = useMasterLabels("application_types");
 
   useEffect(() => {
     if (!open) return;
     supabase.from("workflow_templates").select("id,name,country,category").then(({ data }) => setTemplates(data ?? []));
+    supabase
+      .from("service_catalogue")
+      .select("service_code, service_name, country_tag, display_order")
+      .eq("master_key", "visa_immigration")
+      .eq("is_active", true)
+      .order("country_tag", { ascending: true })
+      .order("display_order", { ascending: true })
+      .then(({ data }) => setVisaServices((data ?? []) as VisaService[]));
   }, [open]);
 
   const matchingTemplates = templates.filter((t) => (!country || t.country === country));
+
+  const groupedVisaServices = visaServices.reduce<Record<string, VisaService[]>>((acc, s) => {
+    const key = s.country_tag || "Other";
+    (acc[key] ||= []).push(s);
+    return acc;
+  }, {});
+  const groupOrder = Object.keys(groupedVisaServices).sort();
 
   // Auto-sync phone country when the client country changes (still editable).
   useEffect(() => {
@@ -168,7 +184,16 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
               <Label>Application type *</Label>
               <Select value={appType} onValueChange={setAppType}>
                 <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
-                <SelectContent>{APPLICATION_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {groupOrder.map((group) => (
+                    <SelectGroup key={group}>
+                      <SelectLabel>{group.toUpperCase()}</SelectLabel>
+                      {groupedVisaServices[group].map((s) => (
+                        <SelectItem key={s.service_code} value={s.service_code}>{s.service_name}</SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
