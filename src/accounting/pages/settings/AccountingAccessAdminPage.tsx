@@ -27,6 +27,7 @@ import { AccountingUser, AccountingRole } from "../../types/accountingUsers";
 import { refreshAccountingPermissions, useCan } from "../../hooks/usePermission";
 import { Navigate } from "react-router-dom";
 import RoleBadge from "../../components/settings/RoleBadge";
+import DataAccessPanel from "../../components/settings/DataAccessPanel";
 
 type UserPermsRow = AccountingUser & { perms: AcctPermissionMap; dirty: boolean; saving?: boolean };
 
@@ -307,6 +308,12 @@ function UserCard({ row, expanded, onToggleExpand, onToggle, onReset, onRevoke, 
                     </div>
                   );
                 })}
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1">Data Access</div>
+                  <div className="rounded-md border bg-background p-3">
+                    <DataAccessPanel accountingUserId={row.id} isAdminRole={false} />
+                  </div>
+                </div>
               </div>
             )}
           </div>
