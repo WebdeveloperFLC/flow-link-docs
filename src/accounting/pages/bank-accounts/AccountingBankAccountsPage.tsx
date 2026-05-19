@@ -94,7 +94,7 @@ export default function AccountingBankAccountsPage() {
 
   const cols: ColDef<BankAccount>[] = [
     {
-      headerName: "Operating name", minWidth: 180, flex: 1,
+      headerName: "Nickname", minWidth: 180, flex: 1,
       cellRenderer: (p: ICellRendererParams<BankAccount>) =>
         p.data ? (
           <Link to={`/accounting/bank-accounts/${p.data.id}`} className="font-medium hover:text-primary">

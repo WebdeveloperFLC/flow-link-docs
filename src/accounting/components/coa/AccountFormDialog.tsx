@@ -248,14 +248,13 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
 
               <div className="grid gap-2">
                 <Label>Parent account</Label>
-                <Select value={parentId} onValueChange={setParentId} disabled={!groupCode}>
+                <Select value={NONE} onValueChange={() => {}} disabled>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None (top-level) —</SelectItem>
-                    {eligibleParents.map((a) =>
-                      <SelectItem key={a.id} value={a.id}>{a.code} · {a.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                <span className="text-[11px] text-muted-foreground">Parent account hierarchy is configured by your CA during initial setup.</span>
               </div>
               <div className="grid gap-2">
                 <Label>Currency</Label>
