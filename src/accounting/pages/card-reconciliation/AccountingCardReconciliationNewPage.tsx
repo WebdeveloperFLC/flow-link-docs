@@ -479,9 +479,10 @@ export default function AccountingCardReconciliationNewPage() {
   const aiRing = (f: AiMetaField) =>
     isAi(f) ? "ring-2 ring-amber-300 focus-visible:ring-amber-400 border-amber-300" : "";
 
-  const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
+  const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE" && a.isPostable !== false);
   const bankAndCardAccounts = useMemo(() => accounts.filter((account) => {
     if (account.status !== "ACTIVE") return false;
+    if (account.isPostable === false) return false;
     const group = (account.groupCode || (account as any).group || "").toUpperCase();
     const type  = (account.typeCode  || (account as any).type  || "").toUpperCase();
     const name  = (account.name || "").toUpperCase();
@@ -509,10 +510,11 @@ export default function AccountingCardReconciliationNewPage() {
 
     return (isBank || isCreditCard) && !isIntercompany;
   }), [accounts]);
-  const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
-  const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE");
+  const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE" && a.isPostable !== false);
+  const incomeAccts = accounts.filter((a) => ["REVENUE", "OTHER_INCOME"].includes(a.groupCode) && a.status === "ACTIVE" && a.isPostable !== false);
   const clientFundsAccts = useMemo(() => accounts.filter((account) => {
     if (account.status !== "ACTIVE") return false;
+    if (account.isPostable === false) return false;
     const tags: string[] = (account as any).automationTags || [];
     return tags.includes("client_funds") || tags.includes("pass_through");
   }), [accounts]);
