@@ -1,88 +1,102 @@
-## What's actually happening
 
-Looking at `upi_sync_jobs` + `upi_sync_logs`:
+# Stage 1 + 2 — Masters extension and Lead form
 
-- Latest job logged `Discovered 154 direct program links` and `Detail-crawling 154 of 154 program pages` — then **nothing for 10+ minutes**.
-- 3 jobs are stuck in `status = running` (one started 22:51, one 22:53, one 23:00).
-- All prior completed jobs only ever scanned 21 pages — because the function dies after that and the job is never marked completed.
-- UI shows "21/21 pages, running, 68% confidence" — that's stale data from the last *completed* job; the current one never updates `pages_scanned` until it finishes (which it never does).
+## ⚠ Blocker to resolve before I run the migration
 
-### Root cause
+Your two answers conflict. Answer 1 said *"create all three + define service_catalogue schema"*. Answer 2 said *"service_catalogue already exists in the database fully seeded — do NOT recreate or reseed it"*.
 
-`upi-sync-source` does **all 154 detail fetches inline** inside one `EdgeRuntime.waitUntil(...)` call:
-- 154 Jina fetches + 154 Gemini AI calls, in batches of 3.
-- Even at ~3s per batch that's 150s+ of wall time, and each AI call also uses CPU time.
-- Supabase Edge Functions kill background work after the wall/CPU budget — silently — so the job never reaches the "Upserted X" step and `status` is never updated.
+I just verified: **`service_catalogue`, `branches`, and `departments` do not exist** in this database. The only service-ish/lead-ish tables present are `assessment_leads`, `lead_handoffs`, `lead_remarks`, `vw_lead_funnel`. So I have to create `service_catalogue` and define its schema and seed it for the lead form's service tabs to work.
 
-`JINA_API_KEY` and retries don't help because the killer is the function lifetime, not the per-request failures.
+Two ways forward — pick one before I implement:
+- **A.** I create `service_catalogue` with the columns implied by your pre-task spec (see below) and seed it with a minimal scaffold of master_keys + a handful of placeholder services per group, so the lead form can render. You then paste / import the real catalogue rows.
+- **B.** You paste the actual `service_catalogue` rows (or a CSV) and I seed from that in the same migration.
 
-## Fix — Queue + batch worker
+Everything else below is unblocked.
 
-Split discovery from extraction so each invocation does a small, bounded amount of work.
+## Scope of this plan
 
-### 1. New table: `upi_sync_queue`
+- Stage 1: DB migration + Masters page extension.
+- Stage 2: `/leads`, `/leads/cold`, `/leads/new`, lead detail (read-only), sidebar wiring.
+- **Out of scope** (Stage 3, later): full client registration form, live invoice preview, portal access creation, "Convert to Client" behaviour beyond setting `leads.status='converted'` + storing `converted_to_client_id` placeholder.
 
-```
-id              uuid pk
-job_id          uuid (fk upi_sync_jobs)
-source_id       uuid
-institution_id  uuid
-program_url     text
-course_title    text
-status          text  -- 'pending' | 'processing' | 'done' | 'failed'
-attempts        int   default 0
-last_error      text
-created_at      timestamptz
-updated_at      timestamptz
-unique (job_id, program_url)
-index (job_id, status)
-```
+## Database migration
 
-RLS: service-role only (matches other `upi_*` tables).
+Single timestamped migration file under `supabase/migrations/`.
 
-### 2. Rewrite `upi-sync-source` (discovery only)
+**Creates:**
+- `branches` — your schema, seed all 10 rows.
+- `departments` — your schema, seed all 8 rows.
+- `service_catalogue` — columns: `id, master_key, service_name, sub_category, country_tag, pricing_type, fee_inr, fee_cad, fee_gbp, max_fee_inr, notes, is_active, display_order, created_at, updated_at`. Constraint `master_key IN ('coaching_services','visa_immigration','admission_services','allied_services','settlement_services','travel_financial')`. Seed per choice A above (or your CSV per B).
+- `leads` — your full schema verbatim.
+- `lead_number_sequences` — your schema.
+- `generate_lead_number(p_type text)` — your function verbatim, `SECURITY DEFINER`, `search_path=public`.
+- Trigger `before insert on leads` to call `generate_lead_number('L'|'C'|'B')` based on `lead_type` / `is_cold_pool` if `lead_number` is null. Plus `touch_updated_at` triggers on all four new tables.
 
-- Fetch root + (if needed) category pages — unchanged.
-- Discover program links (still capped at `MAX_DETAIL_FETCHES`).
-- **Insert all links into `upi_sync_queue` with status `pending`** instead of fetching them inline.
-- Update `upi_sync_jobs.pages_discovered = links.length`, leave `status = running`.
-- Invoke `upi-sync-process-batch` once (fire-and-forget) and return 202.
-- Fallback single-page extraction path (when <3 links) stays inline — it's small.
+**Master items inserts (data-only, no schema change):**
+Two new rows in `master_lists` (`lead_sources`, `work_modes`) plus 16 + 4 rows in `master_items` with sort_order. No edits to existing master rows.
 
-### 3. New function: `upi-sync-process-batch`
+**RLS:**
+- `branches`, `departments`, `service_catalogue`: SELECT authenticated; INSERT/UPDATE/DELETE admin only.
+- `leads`: exactly the policies you specified (using existing `has_role` and `is_accounting_admin` helpers).
+- `lead_number_sequences`: no client-side access; only the SECURITY DEFINER function touches it.
 
-Takes `{ job_id }`. On each invocation:
+## Masters page extension (`src/pages/Masters.tsx`)
 
-1. Claim up to `BATCH_SIZE = 8` pending rows for this job (update status → `processing`).
-2. For each: Jina fetch + Gemini extract (same logic as today's detail-crawl loop), with the existing retry/stub behaviour.
-3. Call `upi-upsert-courses` with the batch's extracted courses.
-4. Mark rows `done` (or `failed` with `last_error`); increment `upi_sync_jobs.pages_scanned` and `records_upserted`.
-5. Check remaining pending rows for this job:
-   - **>0** → invoke itself again (fire-and-forget via `EdgeRuntime.waitUntil(fetch(...))`) and return.
-   - **0** → finalize: set `upi_sync_jobs.status = completed` (or `completed_with_errors`), set `completed_at`, update `upi_institution_sources.crawl_status = completed`, `last_synced_at`, `extracted_records_count`, `confidence_score`.
+Existing 6 sections untouched. Sidebar grouped into three headers:
+- **Application & Workflow** — the 6 existing lists, unchanged.
+- **Operational** — Branches, Departments, Lead Sources, Work Modes.
+- **Services (read + edit, no add/delete)** — Coaching, Visa & Immigration, Admission, Allied, Settlement, Travel & Financial.
 
-Each invocation now does ≤8 Jina + 8 AI calls (~15–25s wall) — well inside the budget. 154 programs → ~20 chained invocations, fully observable via `upi_sync_logs` and the queue table.
+Lead Sources and Work Modes use the existing `MasterItem` editor untouched. Branches and Departments share one new generic component `MasterTableSection` (same look as existing rows: order arrows, label, active switch, edit/delete) wired to their own tables. Service sections reuse the same component in read+edit mode: hides the "+ New" button and delete action, only allows editing `service_name`, `fee_inr/cad/gbp`, `notes`, `is_active`, plus the per-list extra columns from your spec. Visa group has a country sub-grouping header.
 
-`BATCH_SIZE`, `CONCURRENCY=3`, `BATCH_PAUSE_MS`, and `FETCH_RETRIES` stay configurable at the top of the file.
+## Lead UI (Stage 2)
 
-### 4. Cleanup migration
+New files:
+- `src/pages/leads/LeadsList.tsx` (`/leads`, `/leads?temp=hot,warm`)
+- `src/pages/leads/ColdPool.tsx` (`/leads/cold`, with [Import CSV] button)
+- `src/pages/leads/LeadNew.tsx` (`/leads/new`, also mountable as slide-over)
+- `src/pages/leads/LeadDetail.tsx` (`/leads/:id`, read-only + [Edit] + [Convert to Client])
+- `src/components/leads/LeadFormWarmHot.tsx` (sections 1–6)
+- `src/components/leads/LeadFormCold.tsx` (minimal)
+- `src/components/leads/LeadModeSwitch.tsx`
+- `src/components/leads/ServiceTabs.tsx` (5 tabs reading from `service_catalogue`)
+- `src/components/leads/VisaLockToggle.tsx` (handles clear+scroll+focus+note template)
+- `src/components/leads/InterestedCountriesPicker.tsx`
+- `src/components/leads/BulkImportColdDialog.tsx` (CSV mapping → batched insert)
+- `src/lib/leads.ts` (queries, auto-save mutation, country code lookup helper)
+- `src/components/leads/LeadSlideOver.tsx` (used from `/leads` and `/clients` "+ New Lead" buttons — adds button to existing pages without changing other behaviour)
 
-- Mark the 3 currently stuck jobs (`7071a1c4…`, `2659902c…`, `d88e4c7a…`) as `failed` with `error_summary = 'Killed by runtime — superseded by queued sync'`.
-- Reset both Georgian `upi_institution_sources` rows to `crawl_status = idle` so the user can re-trigger.
+Auto-save: each field `onBlur` calls an upsert on `leads` (insert on first blur → returns `lead_number`, then updates). Toast on first save shows the generated number. Field-level dirty tracking to avoid no-op writes.
 
-### 5. Frontend
+Visa lock behaviour: checkbox clears `visa_services`, sets `visa_locked=true`, scrolls to notes (`scrollIntoView({behavior:'smooth'})`), focuses textarea, prepends the template if textarea is empty, sets 🔒 on the Visa tab trigger.
 
-No UI changes needed — the existing Sources panel already polls `upi_sync_jobs` / source status. `pages_scanned` will now update incrementally as batches complete (better UX than the current "stuck at 21" feel).
+Cold mode validation: `react-hook-form` + `zod` with two schemas — warm/hot (strict) and cold (relaxed: requires first_name, last_name, and one of email/phone). Mode switch resets validation.
 
-### Out of scope
+CSV import: `papaparse` (already common in Vite/React projects — confirm or add as dep), column mapper UI, server-side dedupe on email/phone before insert, summary modal.
 
-- No changes to `upi-upsert-courses`, `upi-publish-courses`, or `upi-extract-programs-from-doc`.
-- No schema changes to `upi_courses_staging`, `cf_courses`, `upi_institutions`.
-- No auth/UI changes.
+## Sidebar wiring
 
-## After deploy
+Edit `src/components/layout/AppLayout.tsx` (or the existing sidebar config) to insert a **Leads** section above Clients with the 4 routes listed. Add "+ New Lead" button to the `Clients.tsx` and `LeadsList.tsx` page headers that opens `LeadSlideOver`.
 
-- User clicks **Sync now** on Georgian.
-- Within ~5s: queue populated with ~150 rows, job stays `running`.
-- Over the next 1–3 minutes: `pages_scanned` ticks up in batches of 8; programs appear in the staging list as they're extracted.
-- Job ends in `completed` with ~130–150 records upserted (low-confidence stubs for any Jina failures, same as today).
+## Verification checklist (will report after build)
+
+1. Migration filename.
+2. Files created/modified.
+3. Insert one warm + one cold lead from the form → confirm `FL-L-2026-0001` and `FL-C-2026-0001`.
+4. Toggle visa-lock in dev preview → confirm tab greys, scroll happens, notes get template + focus.
+5. Submit cold form with only `first_name + last_name + email` → confirm 201.
+6. Open `/masters` and confirm all 6 original lists render with the same item counts as before the migration; confirm Branches=10, Departments=8, Lead Sources=16, Work Modes=4, and 6 service sections render rows from `service_catalogue`.
+7. `select count(*) from clients` before vs after migration is unchanged. No edits to `/clients` page or `clients` table.
+8. Anything noticed outside scope.
+
+## Out of scope (flagged for your Stage 3 prompt)
+
+- Full client registration form (`/clients/new` rewrite) and Convert-to-Client field pre-fill behaviour beyond stub.
+- Live invoice preview + hidden offers reveal.
+- Portal access creation flow.
+- Department-filtered counselor dropdown will use any user with `counselor` role for now; per-department user mapping isn't in your schema yet — flagging for Stage 3.
+- "Auto-fill phone country code from country of residence" needs a country→dial-code map; will use the existing `src/lib/countryCodes.ts`.
+
+---
+
+**Reply with `A` or `B` for the service_catalogue question**, then I'll implement.
