@@ -56,8 +56,7 @@ const LeadNew = () => {
 
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
-  const lead_sources = useMasterLabels("lead_sources");
-  const work_modes = useMasterLabels("work_modes");
+  const lead_sources = useMasterLabels("lead_sources" as never);
   const countries = useMasterLabels("countries");
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
