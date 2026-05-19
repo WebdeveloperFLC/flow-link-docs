@@ -18,6 +18,7 @@ import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
+import { useEntities } from "../../stores/accountingEntitiesStore";
 import { formatCurrency } from "../../lib/format";
 
 const ALL = "__all__";
