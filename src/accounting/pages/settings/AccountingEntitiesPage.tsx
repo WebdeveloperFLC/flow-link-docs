@@ -10,7 +10,7 @@ import DarkModeToggle from "../../components/shared/DarkModeToggle";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import EntityTree from "../../components/settings/EntityTree";
 import EntityFormDialog from "../../components/settings/EntityFormDialog";
-import { addEntity, deleteEntity, updateEntity, useEntities } from "../../stores/accountingEntitiesStore";
+import { addEntity, deleteEntity, updateEntity, useAllEntities as useEntities } from "../../stores/accountingEntitiesStore";
 import { SettingsEntity } from "../../types/settings";
 import { toast } from "sonner";
 

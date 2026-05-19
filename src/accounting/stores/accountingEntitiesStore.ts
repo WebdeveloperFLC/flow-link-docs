@@ -225,9 +225,23 @@ import { runWhenAuthReady } from "./_hydrationGate";
 runWhenAuthReady(hydrateFromSupabase);
 
 export function useEntities(): SettingsEntity[] {
+  const all = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  // Entity dropdowns across the app should only show legal ledger owners
+  // (COMPANY rows). BRANCH/SUB_BRANCH rows live in the same table but are
+  // not selectable as an "Entity". Admin screens that manage the full list
+  // (incl. branches) should use `useAllEntities`.
+  return all.filter((e) => e.type === "COMPANY");
+}
+export function getEntities(): SettingsEntity[] {
+  return entities.filter((e) => e.type === "COMPANY");
+}
+
+// Unfiltered access — for the entities admin page and parent-entity pickers
+// that legitimately need to see BRANCH / SUB_BRANCH rows too.
+export function useAllEntities(): SettingsEntity[] {
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
-export function getEntities(): SettingsEntity[] { return entities; }
+export function getAllEntities(): SettingsEntity[] { return entities; }
 
 export function addEntity(e: Omit<SettingsEntity, "id">): SettingsEntity {
   const id = typeof crypto !== "undefined" && "randomUUID" in crypto

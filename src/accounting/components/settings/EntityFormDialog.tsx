@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X, Plus } from "lucide-react";
 import { SettingsEntity, EntityType } from "../../types/settings";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useAllEntities } from "../../stores/accountingEntitiesStore";
 
 interface Props {
   open: boolean;
@@ -19,7 +19,7 @@ interface Props {
 const TYPES: EntityType[] = ["COMPANY", "BRANCH", "SUB_BRANCH", "BRAND", "PERSONAL"];
 
 export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit }: Props) {
-  const all = useEntities();
+  const all = useAllEntities();
   const [name, setName] = useState("");
   const [type, setType] = useState<EntityType>("COMPANY");
   const [parentId, setParentId] = useState<string>("__none__");
