@@ -192,7 +192,24 @@ export default function AccountingCOAPage() {
     headerName: "Account",
     minWidth: 320,
     flex: 2,
-    cellRendererParams: { suppressCount: true },
+    cellRendererParams: {
+      suppressCount: true,
+      innerRenderer: (p: ICellRendererParams<CoaAccount>) => {
+        const a = p.data;
+        if (!a) return p.value;
+        const isHeader = a.isPostable === false;
+        return (
+          <span className={isHeader ? "font-semibold" : ""}>
+            {a.code} {a.name}
+            {isHeader && (
+              <span className="ml-2 inline-block text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border">
+                Header
+              </span>
+            )}
+          </span>
+        );
+      },
+    },
   };
 
   const onGridReady = (e: GridReadyEvent<CoaAccount>) => { apiRef.current = e.api; e.api.expandAll(); };
