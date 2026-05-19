@@ -609,6 +609,7 @@ export type Database = {
           group_code: string
           id: string
           is_active: boolean | null
+          is_postable: boolean
           manual_entries_allowed: boolean | null
           name: string
           normal_balance: string | null
@@ -638,6 +639,7 @@ export type Database = {
           group_code: string
           id?: string
           is_active?: boolean | null
+          is_postable?: boolean
           manual_entries_allowed?: boolean | null
           name: string
           normal_balance?: string | null
@@ -667,6 +669,7 @@ export type Database = {
           group_code?: string
           id?: string
           is_active?: boolean | null
+          is_postable?: boolean
           manual_entries_allowed?: boolean | null
           name?: string
           normal_balance?: string | null
