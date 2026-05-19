@@ -49,7 +49,7 @@ export default function DataAccessPanel({
       .from("accounting_user_entity_scope" as any)
       .select("*")
       .eq("accounting_user_id", accountingUserId);
-    const rows = (data ?? []) as ScopeRow[];
+    const rows = (data ?? []) as unknown as ScopeRow[];
     const cMap: CountryMap = {};
     const eMap: EntityMap = {};
     for (const r of rows) {
