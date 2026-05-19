@@ -316,7 +316,7 @@ const LeadNew = () => {
                     <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                {f.last_education === "other" && (
+                {String(f.last_education ?? "").toLowerCase() === "other" && (
                   <div className="space-y-1.5">
                     <Label>Specify</Label>
                     <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={autosave} />
