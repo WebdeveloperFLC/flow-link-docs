@@ -9,7 +9,7 @@ import { Pencil, UserCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fetchLead, markLeadConverted, type Lead } from "@/lib/leads";
-import { LeadStatusBadge, LeadTemperatureBadge } from "@/components/leads/LeadBadges";
+// badges shown inline via PageHeader description string
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="space-y-0.5">
