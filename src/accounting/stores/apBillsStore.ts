@@ -3,6 +3,11 @@ import { toast } from "sonner";
 import { MOCK_BILLS } from "../data/mockAP";
 import type { VendorBill, BillStatus, ExpenseCategory } from "../data/mockAP";
 import { supabase } from "@/integrations/supabase/client";
+import { addJournal } from "./journalsStore";
+import { getAccounts } from "./coaStore";
+import { getBankAccounts } from "./bankAccountsStore";
+import { toAccountType, nextJournalNumber } from "../lib/journalHelpers";
+import type { JournalLine } from "../data/mockJournals";
 
 const STORAGE_KEY = "accounting:ap-bills:v3";
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -84,6 +89,7 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     status: (row.status ?? local?.status ?? "DRAFT") as BillStatus,
     linkedDocumentId: local?.linkedDocumentId,
     linkedJournalId: row.journal_id ?? local?.linkedJournalId,
+    linkedPaymentJournalId: local?.linkedPaymentJournalId,
     linkedBankAccountId: local?.linkedBankAccountId,
     linkedCOACode: local?.linkedCOACode ?? "2000",
     paymentDate: local?.paymentDate,
