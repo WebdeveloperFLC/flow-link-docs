@@ -49,7 +49,7 @@ type CoaRow = {
   parent_id: string | null; entity_id: string | null;
   currency: string | null; normal_balance: string | null; tax_code: string | null;
   opening_balance: string | number | null; current_balance: string | number | null;
-  is_active: boolean | null; description: string | null;
+  is_active: boolean | null; is_postable: boolean | null; description: string | null;
   created_at: string;
 };
 
@@ -69,6 +69,7 @@ function mapFromDb(r: CoaRow): CoaAccount {
     openingBalance: Number(r.opening_balance ?? 0),
     currentBalance: Number(r.current_balance ?? 0),
     status: r.is_active === false ? "INACTIVE" : "ACTIVE",
+    isPostable: r.is_postable !== false,
     description: r.description ?? undefined,
     txnCount: 0,
     createdAt: r.created_at,
@@ -90,6 +91,7 @@ function mapToDb(a: CoaAccount | CoaAccountInput) {
     opening_balance: a.openingBalance,
     current_balance: "currentBalance" in a ? a.currentBalance : a.openingBalance,
     is_active: ("status" in a ? a.status : "ACTIVE") === "ACTIVE",
+    is_postable: a.isPostable !== false,
     description: a.description ?? null,
   } as const;
 }
