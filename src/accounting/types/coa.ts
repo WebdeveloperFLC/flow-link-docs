@@ -37,6 +37,7 @@ export interface CoaAccount {
   openingBalance: number;
   currentBalance: number;
   status: CoaAccountStatus;
+  isPostable: boolean;
   description?: string;
   txnCount: number;
   createdAt: string;
@@ -55,5 +56,6 @@ export interface CoaAccountInput {
   normalBalance?: AccountNature;
   openingBalance: number;
   status: CoaAccountStatus;
+  isPostable: boolean;
   description?: string;
 }

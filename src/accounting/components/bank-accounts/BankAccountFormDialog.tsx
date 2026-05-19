@@ -123,6 +123,13 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   // Reset branch when entity changes
   useEffect(() => { setBranchId(NONE); }, [entityId]);
 
+  // Sync currency to the selected entity's base currency (unless editing)
+  useEffect(() => {
+    if (!entityId) return;
+    const ent = entities.find((e) => e.id === entityId);
+    if (ent?.currency && !initial) setCurrency(ent.currency);
+  }, [entityId, entities, initial]);
+
   // Reset linked COA ledger when entity changes (filtered by entity)
   useEffect(() => {
     if (!entityId) return;
@@ -206,7 +213,12 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                 </Select>
               </Field>
               <Field label="Linked COA ledger">
-                <LinkedCoaAccountSelect value={coaAccountId} onChange={setCoaAccountId} entityId={entityId || undefined} />
+                <LinkedCoaAccountSelect
+                  value={coaAccountId}
+                  onChange={setCoaAccountId}
+                  entityId={entityId || undefined}
+                  currency={currency || undefined}
+                />
               </Field>
               <Field label="Currency">
                 <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />

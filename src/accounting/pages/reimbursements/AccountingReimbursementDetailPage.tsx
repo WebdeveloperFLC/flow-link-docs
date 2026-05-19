@@ -52,7 +52,7 @@ export default function AccountingReimbursementDetailPage() {
     );
   }
 
-  const bankAccts = accounts.filter((a) => a.groupCode === "ASSET" && a.status === "ACTIVE");
+  const bankAccts = accounts.filter((a) => a.groupCode === "ASSET" && a.status === "ACTIVE" && a.isPostable !== false);
   const acctName = (id?: string) => accounts.find((a) => a.id === id);
   const entityName = entities.find((e) => e.id === claim.entity)?.name ?? claim.entity;
   const catLabel = (c: string) => EXPENSE_CATEGORIES.find((x) => x.code === c)?.label ?? c;

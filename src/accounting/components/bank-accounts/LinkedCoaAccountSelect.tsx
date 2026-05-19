@@ -23,6 +23,8 @@ export default function LinkedCoaAccountSelect({ value, onChange, currency, enti
     );
     return accounts
       .filter((a) => a.status === "ACTIVE" && bankishTypes.has(a.typeCode))
+      .filter((a) => a.isPostable !== false)
+      .filter((a) => a.groupCode === "ASSET")
       .filter((a) => !currency || a.currency === currency)
       .filter((a) => !entityId || a.entityId === entityId || a.entityId === null)
       .sort((a, b) => a.code.localeCompare(b.code));

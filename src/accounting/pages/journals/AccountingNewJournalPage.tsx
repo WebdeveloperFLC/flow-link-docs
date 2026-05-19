@@ -436,7 +436,7 @@ function AccountCombobox({
   const [open, setOpen] = useState(false);
   const accounts = useAccounts();
   const activeAccounts = useMemo(
-    () => accounts.filter(a => a.status !== "INACTIVE").slice().sort((a, b) => a.code.localeCompare(b.code)),
+    () => accounts.filter(a => a.status !== "INACTIVE" && a.isPostable !== false).slice().sort((a, b) => a.code.localeCompare(b.code)),
     [accounts],
   );
   const selected = activeAccounts.find(a => a.id === value);

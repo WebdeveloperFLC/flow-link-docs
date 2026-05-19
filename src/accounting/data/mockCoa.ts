@@ -13,6 +13,7 @@ function a(
     currency, entityId,
     openingBalance: 0, currentBalance: balance,
     status: "ACTIVE",
+    isPostable: true,
     txnCount,
     createdAt: now,
     ...extras,

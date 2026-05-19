@@ -64,10 +64,11 @@ export default function AccountingIntercompanyNewPage() {
   const [notes, setNotes] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const assetAccts = accounts.filter((a) => a.groupCode === "ASSET" && a.status === "ACTIVE");
-  const revAccts = accounts.filter((a) => a.groupCode === "REVENUE" && a.status === "ACTIVE");
-  const expAccts = accounts.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode) && a.status === "ACTIVE");
-  const liabAccts = accounts.filter((a) => a.groupCode === "LIABILITY" && a.status === "ACTIVE");
+  const postable = accounts.filter((a) => a.status === "ACTIVE" && a.isPostable !== false);
+  const assetAccts = postable.filter((a) => a.groupCode === "ASSET");
+  const revAccts = postable.filter((a) => a.groupCode === "REVENUE");
+  const expAccts = postable.filter((a) => ["EXPENSE", "COGS", "OTHER_EXPENSE"].includes(a.groupCode));
+  const liabAccts = postable.filter((a) => a.groupCode === "LIABILITY");
 
   const calc = useMemo(() => {
     const amt = new Decimal(amount || 0);
