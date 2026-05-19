@@ -46,6 +46,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const [normalBalance, setNormalBalance] = useState<"DEBIT" | "CREDIT">("DEBIT");
   const [openingBalance, setOpeningBalance] = useState<string>("0");
   const [status, setStatus] = useState<CoaAccountStatus>("ACTIVE");
+  const [isPostable, setIsPostable] = useState<boolean>(true);
   const [description, setDescription] = useState("");
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
@@ -67,6 +68,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setNormalBalance(initial.normalBalance ?? (groups.find((g) => g.code === initial.groupCode)?.nature ?? "DEBIT"));
       setOpeningBalance(String(initial.openingBalance));
       setStatus(initial.status);
+      setIsPostable(initial.isPostable !== false);
       setDescription(initial.description ?? "");
     } else {
       const parent = forcedParentId ? accounts.find((a) => a.id === forcedParentId) : null;
@@ -82,6 +84,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setNormalBalance(groups.find((g) => g.code === (parent?.groupCode ?? groups[0]?.code))?.nature ?? "DEBIT");
       setOpeningBalance("0");
       setStatus("ACTIVE");
+      setIsPostable(true);
       setDescription("");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,17 +107,22 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
 
   const eligibleParents = useMemo(() => {
     const excluded = initial ? new Set([initial.id, ...getDescendantIds(initial.id)]) : new Set<string>();
-    return accounts.filter((a) => {
+    const matches = accounts.filter((a) => {
       if (a.groupCode !== groupCode) return false;
       if (excluded.has(a.id)) return false;
+      if (currency && a.currency !== currency) return false;
       if (entityId === NONE) {
-        // "All entities" scope: only show shared/global parents
         return a.entityId === null;
       }
-      // Specific entity: same entity OR shared/global parents
       return a.entityId === entityId || a.entityId === null;
     });
-  }, [accounts, groupCode, initial, entityId]);
+    return matches.slice().sort((a, b) => {
+      const ap = a.isPostable === false ? 0 : 1;
+      const bp = b.isPostable === false ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return a.code.localeCompare(b.code);
+    });
+  }, [accounts, groupCode, initial, entityId, currency]);
 
   // Reset parent if it no longer matches the current entity filter
   useEffect(() => {
@@ -168,6 +176,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       normalBalance,
       openingBalance: Number(openingBalance) || 0,
       status,
+      isPostable,
       description: description.trim() || undefined,
     };
     const result = initial ? updateAccount(initial.id, input) : addAccount(input);
