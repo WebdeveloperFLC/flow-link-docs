@@ -1306,6 +1306,54 @@ export type Database = {
           },
         ]
       }
+      accounting_user_entity_scope: {
+        Row: {
+          accounting_user_id: string
+          can_edit: boolean
+          can_view: boolean
+          country_code: string | null
+          created_at: string
+          entity_id: string | null
+          id: string
+          scope_type: string
+        }
+        Insert: {
+          accounting_user_id: string
+          can_edit?: boolean
+          can_view?: boolean
+          country_code?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          scope_type: string
+        }
+        Update: {
+          accounting_user_id?: string
+          can_edit?: boolean
+          can_view?: boolean
+          country_code?: string | null
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          scope_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_user_entity_scope_accounting_user_id_fkey"
+            columns: ["accounting_user_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_user_entity_scope_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       accounting_user_module_permissions: {
         Row: {
           accounting_user_id: string
