@@ -137,7 +137,7 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>First Name *</Label>
                 <Input
@@ -189,7 +189,7 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
             {m.application_mode === "together" && (
               <div className="space-y-2 pt-2 border-t">
                 <Label className="text-xs uppercase tracking-wide">Visa services for this person</Label>
-                <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border rounded-md p-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-48 overflow-y-auto border rounded-md p-2">
                   {visaCatalogue.map((s) => {
                     const code = s.service_code || s.id;
                     const checked = (m.visa_services ?? []).includes(code);

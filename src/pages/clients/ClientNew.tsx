@@ -248,7 +248,7 @@ const ClientNew = () => {
           {/* SECTION 1 — Personal */}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">1. Personal Details</h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>First Name *</Label>
                 <Input value={f.first_name ?? ""} onChange={(e) => setField("first_name", e.target.value)} onBlur={autosave} />
@@ -333,7 +333,7 @@ const ClientNew = () => {
           {/* SECTION 2 — Education */}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">2. Education &amp; Test Scores</h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Last Education</Label>
                 <Select value={f.last_education ?? ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
@@ -367,7 +367,7 @@ const ClientNew = () => {
                 ))}
               </div>
               {englishTest && englishTest !== "None" && (
-                <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
                   <div className="space-y-1.5">
                     <Label>Overall Score</Label>
                     <Input value={f.english_overall ?? ""} onChange={(e) => setField("english_overall", e.target.value)} onBlur={autosave} />
@@ -398,7 +398,7 @@ const ClientNew = () => {
                 })}
               </div>
               {otherTests.map((ot, idx) => (
-                <div key={ot.type} className="grid grid-cols-3 gap-2 items-end pt-1">
+                <div key={ot.type} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end pt-1">
                   <div className="text-sm font-medium">{ot.type}</div>
                   <Input placeholder="Score" value={ot.score ?? ""} onChange={(e) => {
                     const next = [...otherTests]; next[idx] = { ...ot, score: e.target.value }; setOtherTests(next);
@@ -429,7 +429,7 @@ const ClientNew = () => {
                   const s = catalogue.find((c) => c.service_code === code);
                   const fee = serviceFees[code];
                   return (
-                    <div key={code} className="grid grid-cols-[1fr_120px_auto] gap-2 items-center">
+                    <div key={code} className="grid grid-cols-1 sm:grid-cols-[1fr_120px_auto] gap-3 items-center">
                       <div className="text-sm truncate">{s?.service_name ?? code}</div>
                       <Input type="number" placeholder="Amount ₹" disabled={fee?.complimentary} value={fee?.amount ?? ""} onChange={(e) => updateServiceFee(code, { amount: Number(e.target.value || 0) })} onBlur={autosave} />
                       <label className="text-xs flex items-center gap-1.5">
@@ -446,7 +446,7 @@ const ClientNew = () => {
           {/* SECTION 6 — Branch & Assignment */}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">6. Branch &amp; Assignment</h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Branch *</Label>
                 <Select value={f.branch ?? ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
@@ -516,7 +516,7 @@ const ClientNew = () => {
               <span className="text-sm">Create client login</span>
             </label>
             {portalEnabled && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Client email</Label>
                   <div className="flex items-center gap-1">
@@ -543,7 +543,7 @@ const ClientNew = () => {
           {/* SECTION 9 — Accounting */}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">9. Accounting Details</h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Tax ID / PAN</Label>
                 <Input value={f.tax_id ?? ""} onChange={(e) => setField("tax_id", e.target.value)} onBlur={autosave} />
@@ -561,7 +561,7 @@ const ClientNew = () => {
           {/* SECTION 10 — Workflow */}
           <Card className="p-6 space-y-4">
             <h3 className="font-semibold">10. Workflow</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Workflow Template</Label>
                 <Select value={f.workflow_template_id ?? ""} onValueChange={(v) => { setField("workflow_template_id", v); setTimeout(autosave, 0); }}>
