@@ -9,7 +9,7 @@ import { Pencil, UserCheck, Lock, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { fetchLead, markLeadConverted, fetchServiceCodeMap, type Lead } from "@/lib/leads";
+import { fetchLead, fetchServiceCodeMap, type Lead } from "@/lib/leads";
 // badges shown inline via PageHeader description string
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
