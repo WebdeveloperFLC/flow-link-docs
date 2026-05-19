@@ -257,13 +257,20 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
 
               <div className="grid gap-2">
                 <Label>Parent account</Label>
-                <Select value={NONE} onValueChange={() => {}} disabled>
+                <Select value={parentId} onValueChange={setParentId}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None (top-level) —</SelectItem>
+                    {eligibleParents.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.code} · {p.name}{p.isPostable === false ? "  (Header)" : ""}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <span className="text-[11px] text-muted-foreground">Parent account hierarchy is configured by your CA during initial setup.</span>
+                <span className="text-[11px] text-muted-foreground">
+                  Filtered to {entityId === NONE ? "all-entity" : "this entity's"} {currency} accounts. Headers listed first.
+                </span>
               </div>
               <div className="grid gap-2">
                 <Label>Currency</Label>
