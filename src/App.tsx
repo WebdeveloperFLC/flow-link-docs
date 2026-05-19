@@ -14,6 +14,10 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
+import LeadsList from "./pages/leads/LeadsList";
+import ColdPool from "./pages/leads/ColdPool";
+import LeadNew from "./pages/leads/LeadNew";
+import LeadDetail from "./pages/leads/LeadDetail";
 import Templates from "./pages/Templates";
 import LetterTemplates from "./pages/LetterTemplates";
 import Activity from "./pages/Activity";
@@ -170,6 +174,10 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
+            <Route path="/leads" element={<ProtectedRoute><LeadsList /></ProtectedRoute>} />
+            <Route path="/leads/cold" element={<ProtectedRoute><ColdPool /></ProtectedRoute>} />
+            <Route path="/leads/new" element={<ProtectedRoute><LeadNew /></ProtectedRoute>} />
+            <Route path="/leads/:id" element={<ProtectedRoute><LeadDetail /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/telecaller" element={<ProtectedRoute><Telecaller /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />

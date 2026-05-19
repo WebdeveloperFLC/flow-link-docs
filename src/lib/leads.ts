@@ -89,6 +89,31 @@ export async function fetchLead(id: string): Promise<Lead | null> {
   return data as unknown as Lead | null;
 }
 
+/** Auto-save: insert (when id is null) or patch one or more fields. */
+export async function upsertLeadAutosave(
+  id: string | null,
+  patch: LeadDraft,
+): Promise<Lead> {
+  if (id) return updateLead(id, patch);
+  return createLead(patch);
+}
+
+/** Stub used by Stage 2 detail page; real client creation is Stage 3. */
+export async function markLeadConverted(id: string): Promise<Lead> {
+  return updateLead(id, { status: "converted" as never });
+}
+
+export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
+  const { data, error } = await supabase
+    .from("service_catalogue")
+    .select("*")
+    .eq("is_active", true)
+    .order("master_key", { ascending: true })
+    .order("display_order", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as unknown as ServiceCatalogueItem[];
+}
+
 export interface ServiceCatalogueItem {
   id: string;
   master_key: string;
