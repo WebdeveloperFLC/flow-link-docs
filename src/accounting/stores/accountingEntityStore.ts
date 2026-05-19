@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, createElement } from "react";
 import { useEntities } from "./accountingEntitiesStore";
 import { SettingsEntity } from "../types/settings";
+import { useEntityScope } from "../hooks/useEntityScope";
 
 export interface AccountingEntity {
   id: string;
@@ -36,7 +37,9 @@ const STORAGE_KEY = "accounting:activeEntityId";
 
 export function AccountingEntityProvider({ children }: { children: ReactNode }) {
   const settingsEntities = useEntities();
-  const available = (settingsEntities.length > 0 ? settingsEntities.map(toAccountingEntity) : FALLBACK);
+  const scope = useEntityScope();
+  const visibleSettings = scope.isUnrestricted ? settingsEntities : scope.filterEntities(settingsEntities);
+  const available = (visibleSettings.length > 0 ? visibleSettings.map(toAccountingEntity) : FALLBACK);
   const [activeId, setActiveId] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem(STORAGE_KEY);
