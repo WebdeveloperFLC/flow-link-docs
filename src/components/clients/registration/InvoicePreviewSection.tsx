@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Lock, Tag } from "lucide-react";
 import { fetchActiveOffers, fetchAccountingEntities, type ServiceOffer, type BillingEntity, type InvoiceLineDraft } from "@/lib/clientRegistration";
-import type { ServiceCatalogueItem, ServiceCatalogueItem as SCI } from "@/lib/leads";
+import type { ServiceCatalogueItem } from "@/lib/leads";
 import type { FamilyMember } from "@/lib/clientRegistration";
 import { cn } from "@/lib/utils";
 

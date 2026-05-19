@@ -50,7 +50,7 @@ const ClientNew = () => {
   const leadIdParam = sp.get("lead_id");
   const editId = sp.get("id");
   const { hasRole, isAdmin } = useAuth();
-  const isCounselor = isAdmin || hasRole(["counselor", "admin"] as never);
+  const isCounselor = isAdmin || hasRole(["counselor", "admin"]);
 
   const [clientId, setClientId] = useState<string | null>(editId);
   const [regNumber, setRegNumber] = useState<string | null>(null);
