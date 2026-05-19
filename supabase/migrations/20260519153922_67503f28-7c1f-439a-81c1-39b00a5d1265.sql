@@ -1,0 +1,1 @@
+DELETE FROM public.accounting_coa WHERE code = '9999';
