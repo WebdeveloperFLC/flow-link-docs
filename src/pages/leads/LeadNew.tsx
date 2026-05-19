@@ -29,7 +29,8 @@ import {
   type Department,
 } from "@/lib/leads";
 import { useMasterLabels } from "@/lib/masters";
-import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES, LAST_EDUCATIONS } from "@/lib/leadSchemas";
+import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
+import { useMasterItems } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
@@ -312,7 +313,7 @@ const LeadNew = () => {
                   <Label>Last Education</Label>
                   <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
                     <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>{LAST_EDUCATIONS.map((e) => <SelectItem key={e} value={e}>{e.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
+                    <SelectContent>{qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
                 {f.last_education === "other" && (
