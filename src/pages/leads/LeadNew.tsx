@@ -30,7 +30,7 @@ import {
 } from "@/lib/leads";
 import { useMasterLabels } from "@/lib/masters";
 import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
-import { useMasterItems } from "@/lib/masters";
+import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
