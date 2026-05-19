@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Clients from "./pages/Clients";
 import ClientDetail from "./pages/ClientDetail";
+import ClientNew from "./pages/clients/ClientNew";
 import LeadsList from "./pages/leads/LeadsList";
 import ColdPool from "./pages/leads/ColdPool";
 import LeadNew from "./pages/leads/LeadNew";
@@ -173,6 +174,7 @@ const App = () => (
             <Route path="/portal/assessment" element={<PortalProtectedRoute><PortalAssessment /></PortalProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+            <Route path="/clients/new" element={<ProtectedRoute><ClientNew /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientDetail /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><LeadsList /></ProtectedRoute>} />
             <Route path="/leads/cold" element={<ProtectedRoute><ColdPool /></ProtectedRoute>} />
