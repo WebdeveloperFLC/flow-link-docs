@@ -44,7 +44,14 @@ export default function AccountingBillDetailPage() {
               {bill.status === "PENDING_REVIEW" && <Button variant="outline" onClick={() => { updateApBill(bill.id, { status: "APPROVED" }); toast.success("Approved"); }}>Approve</Button>}
               {(bill.status === "APPROVED" || bill.status === "OVERDUE") && <Button onClick={() => { updateApBill(bill.id, { status: "PAID", paymentDate: new Date().toISOString().slice(0, 10) }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
               {bill.status === "DRAFT" && <><Button variant="outline" onClick={() => toast.info("Edit coming soon")}>Edit</Button><Button variant="destructive" onClick={() => { updateApBill(bill.id, { status: "VOID" }); toast.success("Voided"); }}>Void</Button></>}
-              <Button variant="ghost" onClick={() => navigate("/accounting/journals")}>Create journal</Button>
+              {bill.linkedJournalId
+                ? <Button variant="ghost" onClick={() => navigate(`/accounting/journals/${bill.linkedJournalId}`)}>View accrual journal</Button>
+                : <Button variant="ghost" onClick={() => navigate(`/accounting/journals/new?fromBill=${bill.id}&leg=accrual`)}>Create journal entry</Button>}
+              {bill.status === "PAID" && (
+                bill.linkedPaymentJournalId
+                  ? <Button variant="ghost" onClick={() => navigate(`/accounting/journals/${bill.linkedPaymentJournalId}`)}>View payment journal</Button>
+                  : <Button variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10" onClick={() => navigate(`/accounting/journals/new?fromBill=${bill.id}&leg=payment`)}>Create payment journal</Button>
+              )}
               <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/10" onClick={() => setShowDelete(true)}><Trash2 className="h-4 w-4 mr-2" /> Delete</Button>
             </>} />
         </div>
@@ -71,9 +78,13 @@ export default function AccountingBillDetailPage() {
         <Card><CardHeader><CardTitle className="text-sm">Accounting links</CardTitle></CardHeader><CardContent className="flex flex-wrap gap-2 text-xs">
           <Link to="/accounting/coa" className="px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">COA: {bill.linkedCOACode}</Link>
           {bank && <Link to={`/accounting/bank-accounts/${bank.id}`} className="px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400">{bank.nickname} · ••••{bank.accountNumber.slice(-4)}</Link>}
-          {bill.linkedJournalId && <Link to="/accounting/journals" className="px-2 py-1 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400">Journal {bill.linkedJournalId}</Link>}
+          {bill.linkedJournalId && <Link to={`/accounting/journals/${bill.linkedJournalId}`} className="px-2 py-1 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400">Accrual journal</Link>}
+          {bill.linkedPaymentJournalId && <Link to={`/accounting/journals/${bill.linkedPaymentJournalId}`} className="px-2 py-1 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400">Payment journal</Link>}
+          {bill.status === "PAID" && !bill.linkedPaymentJournalId && (
+            <span className="px-2 py-1 rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">Payment journal pending</span>
+          )}
           {bill.linkedDocumentId && <Link to="/accounting/documents" className="px-2 py-1 rounded bg-muted">{bill.linkedDocumentId}</Link>}
-          {!bank && !bill.linkedJournalId && !bill.linkedDocumentId && <span className="text-muted-foreground">No accounting links beyond COA</span>}
+          {!bank && !bill.linkedJournalId && !bill.linkedPaymentJournalId && !bill.linkedDocumentId && <span className="text-muted-foreground">No accounting links beyond COA</span>}
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Tags & notes</CardTitle></CardHeader><CardContent>
