@@ -26,6 +26,8 @@ import { useAllEntities } from "../../stores/accountingEntitiesStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useMaster } from "../../stores/accountingMastersStore";
 import { toAccountType } from "../../lib/journalHelpers";
+import { getApBill } from "../../stores/apBillsStore";
+import { getBankAccounts } from "../../stores/bankAccountsStore";
 import DynamicSelect from "../../components/shared/DynamicSelect";
 
 const SOURCES = ['MANUAL', 'OCR_UPLOAD', 'AP', 'AR'] as const;
@@ -158,6 +160,48 @@ export default function AccountingNewJournalPage() {
       description: vendor,
     };
     setLines([prefilled, emptyLine(), emptyLine()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Prefill from AP bill (?fromBill=<id>&leg=accrual|payment) ───────────────
+  useEffect(() => {
+    if (existing) return;
+    const billId = searchParams.get('fromBill');
+    if (!billId) return;
+    const bill = getApBill(billId);
+    if (!bill) return;
+    const leg = (searchParams.get('leg') ?? 'accrual') as 'accrual' | 'payment';
+
+    setEntity(bill.entity);
+    if (['CAD', 'USD', 'INR'].includes(bill.currency)) setCurrency(bill.currency as Currency);
+    setSourceType('AP');
+    setEntryDate((leg === 'payment' ? bill.paymentDate : bill.billDate) || bill.billDate);
+    setReference(leg === 'payment' ? `PAY-${bill.billNumber}` : bill.billNumber);
+    setNarration(leg === 'payment'
+      ? `Payment for ${bill.billNumber}`
+      : `AP bill ${bill.billNumber} — ${bill.vendor}`);
+
+    const ap = accounts.find(a => a.code === '2000' && a.isPostable !== false);
+    const expense = accounts.find(a => a.code === bill.linkedCOACode && a.isPostable !== false && a.id !== ap?.id)
+      ?? accounts.find(a => a.groupCode === 'EXPENSE' && a.isPostable !== false);
+    const banks = getBankAccounts();
+    const linkedBank = bill.linkedBankAccountId ? banks.find(b => b.id === bill.linkedBankAccountId) : undefined;
+    const fallbackBank = banks.find(b => b.currency === bill.currency && b.coaAccountId);
+    const bankCoaId = linkedBank?.coaAccountId || fallbackBank?.coaAccountId;
+    const bank = bankCoaId ? accounts.find(a => a.id === bankCoaId || a.code === bankCoaId) : undefined;
+
+    const amt = String(bill.totalAmount ?? '');
+    if (leg === 'accrual') {
+      setLines([
+        { ...emptyLine(), accountId: expense?.id ?? '', debit: amt, description: bill.description || bill.vendor },
+        { ...emptyLine(), accountId: ap?.id ?? '', credit: amt, description: `Payable to ${bill.vendor}` },
+      ]);
+    } else {
+      setLines([
+        { ...emptyLine(), accountId: ap?.id ?? '', debit: amt, description: `Settle ${bill.vendor}` },
+        { ...emptyLine(), accountId: bank?.id ?? '', credit: amt, description: bill.paymentReference || bill.billNumber },
+      ]);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

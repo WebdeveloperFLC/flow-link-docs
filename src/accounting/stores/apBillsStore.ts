@@ -3,6 +3,11 @@ import { toast } from "sonner";
 import { MOCK_BILLS } from "../data/mockAP";
 import type { VendorBill, BillStatus, ExpenseCategory } from "../data/mockAP";
 import { supabase } from "@/integrations/supabase/client";
+import { addJournal } from "./journalsStore";
+import { getAccounts } from "./coaStore";
+import { getBankAccounts } from "./bankAccountsStore";
+import { toAccountType, nextJournalNumber } from "../lib/journalHelpers";
+import type { JournalLine } from "../data/mockJournals";
 
 const STORAGE_KEY = "accounting:ap-bills:v3";
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -84,6 +89,7 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     status: (row.status ?? local?.status ?? "DRAFT") as BillStatus,
     linkedDocumentId: local?.linkedDocumentId,
     linkedJournalId: row.journal_id ?? local?.linkedJournalId,
+    linkedPaymentJournalId: local?.linkedPaymentJournalId,
     linkedBankAccountId: local?.linkedBankAccountId,
     linkedCOACode: local?.linkedCOACode ?? "2000",
     paymentDate: local?.paymentDate,
@@ -151,6 +157,15 @@ export function updateApBill(id: string, patch: Partial<VendorBill>) {
   const next = { ...prev, ...patch };
   bills = bills.map((b) => (b.id === id ? next : b));
   emit();
+
+  // Auto-post linked journals on key status transitions.
+  if (prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId) {
+    autoPostAccrual(next);
+  }
+  if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId) {
+    autoPostPayment(next);
+  }
+
   if (!isUuid(id)) return;
   void (async () => {
     try {
@@ -184,4 +199,153 @@ export function deleteApBill(id: string) {
       toast.error(`Failed to delete bill: ${e?.message ?? "unknown error"}`);
     }
   })();
+}
+
+// ─── Auto-posted journals ───────────────────────────────────────────────────
+function patchLocal(id: string, patch: Partial<VendorBill>) {
+  const prev = bills.find((b) => b.id === id);
+  if (!prev) return;
+  const next = { ...prev, ...patch };
+  bills = bills.map((b) => (b.id === id ? next : b));
+  emit();
+  if (!isUuid(id)) return;
+  void supabase
+    .from("accounting_ap_bills")
+    .update(mapToDb(next) as any)
+    .eq("id", id)
+    .then(({ error }) => {
+      if (error) console.warn("[apBillsStore] patchLocal sync failed", error);
+    });
+}
+
+function makeLine(opts: {
+  accountId: string; accountCode: string; accountName: string;
+  groupCode: string; debit: number; credit: number; description: string;
+}): JournalLine {
+  return {
+    id: newUuid(),
+    accountId: opts.accountId,
+    accountCode: opts.accountCode,
+    accountName: opts.accountName,
+    accountType: toAccountType(opts.groupCode),
+    debit: opts.debit, credit: opts.credit,
+    description: opts.description, taxCode: "",
+  };
+}
+
+function findApAccount() {
+  const coa = getAccounts();
+  return coa.find((a) => a.code === "2000" && a.isPostable !== false && a.status !== "INACTIVE");
+}
+
+function findExpenseAccount(bill: VendorBill) {
+  const coa = getAccounts();
+  const ap = findApAccount();
+  // Prefer the bill's linkedCOACode if it differs from AP and is postable.
+  const linked = coa.find((a) => a.code === bill.linkedCOACode && a.isPostable !== false && a.status !== "INACTIVE");
+  if (linked && (!ap || linked.id !== ap.id)) return linked;
+  // Fallback: first postable EXPENSE-group account (entity-scoped if possible).
+  const expenses = coa.filter(
+    (a) => a.groupCode === "EXPENSE" && a.isPostable !== false && a.status !== "INACTIVE",
+  );
+  return expenses[0];
+}
+
+function findBankCoaAccount(bill: VendorBill) {
+  const coa = getAccounts();
+  const banks = getBankAccounts();
+  let coaId: string | undefined;
+  if (bill.linkedBankAccountId) {
+    const b = banks.find((x) => x.id === bill.linkedBankAccountId);
+    if (b?.coaAccountId) coaId = b.coaAccountId;
+  }
+  if (!coaId) {
+    // Fallback: first bank in matching currency with a linked COA.
+    const fallback = banks.find((b) => b.currency === bill.currency && b.coaAccountId);
+    if (fallback?.coaAccountId) coaId = fallback.coaAccountId;
+  }
+  if (!coaId) return undefined;
+  return coa.find((a) => a.id === coaId || a.code === coaId);
+}
+
+function autoPostAccrual(bill: VendorBill) {
+  const ap = findApAccount();
+  const expense = findExpenseAccount(bill);
+  if (!ap || !expense || ap.id === expense.id) {
+    toast.error("Could not auto-post accrual journal — open it manually");
+    return;
+  }
+  try {
+    const entryNumber = nextJournalNumber();
+    const j = addJournal({
+      entryNumber,
+      entryDate: bill.billDate,
+      entity: bill.entity,
+      narration: `AP bill ${bill.billNumber} — ${bill.vendor}`,
+      sourceType: "AP",
+      reference: bill.billNumber,
+      currency: bill.currency as any,
+      status: "POSTED",
+      createdBy: "Auto-post",
+      postedAt: new Date().toISOString(),
+      lines: [
+        makeLine({
+          accountId: expense.id, accountCode: expense.code, accountName: expense.name,
+          groupCode: expense.groupCode, debit: bill.totalAmount, credit: 0,
+          description: bill.description || bill.vendor,
+        }),
+        makeLine({
+          accountId: ap.id, accountCode: ap.code, accountName: ap.name,
+          groupCode: ap.groupCode, debit: 0, credit: bill.totalAmount,
+          description: `Payable to ${bill.vendor}`,
+        }),
+      ],
+    });
+    patchLocal(bill.id, { linkedJournalId: j.id });
+    toast.success(`Accrual journal posted (${entryNumber})`);
+  } catch (e: any) {
+    console.warn("[apBillsStore] autoPostAccrual failed", e);
+    toast.error("Could not auto-post accrual journal — open it manually");
+  }
+}
+
+function autoPostPayment(bill: VendorBill) {
+  const ap = findApAccount();
+  const bank = findBankCoaAccount(bill);
+  if (!ap || !bank) {
+    toast.error("Could not auto-post payment journal — payment journal pending");
+    return;
+  }
+  try {
+    const entryNumber = nextJournalNumber();
+    const j = addJournal({
+      entryNumber,
+      entryDate: bill.paymentDate || new Date().toISOString().slice(0, 10),
+      entity: bill.entity,
+      narration: `Payment for ${bill.billNumber}`,
+      sourceType: "AP",
+      reference: `PAY-${bill.billNumber}`,
+      currency: bill.currency as any,
+      status: "POSTED",
+      createdBy: "Auto-post",
+      postedAt: new Date().toISOString(),
+      lines: [
+        makeLine({
+          accountId: ap.id, accountCode: ap.code, accountName: ap.name,
+          groupCode: ap.groupCode, debit: bill.totalAmount, credit: 0,
+          description: `Settle ${bill.vendor}`,
+        }),
+        makeLine({
+          accountId: bank.id, accountCode: bank.code, accountName: bank.name,
+          groupCode: bank.groupCode, debit: 0, credit: bill.totalAmount,
+          description: bill.paymentReference || bill.billNumber,
+        }),
+      ],
+    });
+    patchLocal(bill.id, { linkedPaymentJournalId: j.id });
+    toast.success(`Payment journal posted (${entryNumber})`);
+  } catch (e: any) {
+    console.warn("[apBillsStore] autoPostPayment failed", e);
+    toast.error("Could not auto-post payment journal — payment journal pending");
+  }
 }

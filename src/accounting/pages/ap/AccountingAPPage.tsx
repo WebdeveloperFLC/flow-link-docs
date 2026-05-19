@@ -239,7 +239,13 @@ export default function AccountingAPPage() {
                           {(b.status === "APPROVED" || b.status === "OVERDUE") && (
                             <DropdownMenuItem onClick={() => setPayDialog(b)}>Mark as paid</DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => { navigate("/accounting/journals"); toast.info("Fill in journal details manually"); }}>Create journal entry</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(
+                            b.linkedJournalId
+                              ? `/accounting/journals/${b.linkedJournalId}`
+                              : `/accounting/journals/new?fromBill=${b.id}&leg=accrual`
+                          )}>
+                            {b.linkedJournalId ? "View journal entry" : "Create journal entry"}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => toast.info("Coming soon")}>Attach document</DropdownMenuItem>
                           {(b.status === "DRAFT" || b.status === "PENDING_REVIEW") && (
                             <>

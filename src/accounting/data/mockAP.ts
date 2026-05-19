@@ -28,6 +28,7 @@ export interface VendorBill {
   status: BillStatus;
   linkedDocumentId?: string;
   linkedJournalId?: string;
+  linkedPaymentJournalId?: string;
   linkedBankAccountId?: string;
   linkedCOACode: string;
   paymentDate?: string;

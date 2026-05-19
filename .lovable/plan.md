@@ -1,53 +1,69 @@
-## Problem
 
-On `/accounting/journals/new`, after selecting an Entity (e.g. "Future Link Consultants Inc" — Canada), the line-level dropdowns are not filtered:
+## Goal
 
-- **Account** combobox shows every COA row across all entities (Canadian + Indian + shared), so a CAD entity can still pick `CA-1100 TD Bank — CAD` *and* `1210 GST Input Tax Credit` (India).
-- **Branch** dropdown is hard-coded to 4 generic labels (`Canada HQ`, `USA Corp`, `India Mumbai`, `India Delhi`) — none of which are real branches in our entities table.
-- **Tax code** dropdown shows the global tax_codes master (HST 13%, GST 5%, GST 18% IN, IGST 18% IN, VAT 5% AE, …) regardless of entity country.
+Eliminate manual journal entry for standard AP bills. Journals post automatically when a bill is approved and when it is marked paid. Manual journal entry remains for adjustments.
 
-Result: a user posting a journal for a Canadian entity can pick Indian tax codes and Indian branches. Wrong.
+## Behavior
 
-## Fix — scope all three pickers to the selected Entity
+1. **On approval** (`PENDING_REVIEW`/`DRAFT` → `APPROVED`):
+   - Create POSTED journal, `sourceType: "AP"`, `reference: bill.billNumber`, narration `"AP bill <billNumber> — <vendor>"`.
+   - Line 1 Dr: account resolved from `bill.linkedCOACode` (expense/asset), amount = `bill.totalAmount`.
+   - Line 2 Cr: Accounts Payable (COA code `2000`), amount = `bill.totalAmount`.
+   - Save journal id to `bill.linkedJournalId`.
 
-File: `src/accounting/pages/journals/AccountingNewJournalPage.tsx`
+2. **On payment** (`APPROVED`/`OVERDUE` → `PAID`):
+   - Create POSTED journal, sourceType `AP`, reference `"PAY-<billNumber>"`, narration `"Payment for <billNumber>"`.
+   - Line 1 Dr: AP `2000`, amount = `totalAmount`.
+   - Line 2 Cr: bank/cash, resolved from `bill.linkedBankAccountId.linkedCoaAccountId` (fallback: first bank in entity currency, or cash account for CASH/PETTY_CASH).
+   - Save journal id to new `bill.linkedPaymentJournalId` field.
 
-1. **Resolve the selected entity object** (we currently store only the entity name). Use `useAllEntities()` to look up id / country, and `useEntities()` for the Entity dropdown itself (companies only — unchanged).
+3. **Idempotency**: skip if the relevant journal id is already present.
 
-2. **Account picker** — pass `entityId` (and currency) into `AccountCombobox`. Filter:
-   - `a.entityId === selectedEntity.id` **or** `a.entityId == null` (shared/global accounts)
-   - keep existing `status !== INACTIVE` and `isPostable !== false` filters
-   - keep current group/type grouping
-   - When no entity is selected, disable the combobox with placeholder "Select entity first".
+4. **Feedback (new)**:
+   - **Success**: after each auto-post resolves, show `toast.success("Journal <JE-2026-####> posted")` (uses the DB-generated number returned via the journals store patch — fallback to local id while pending). The bill-detail page re-reads from the store so the new "View journal entry" button appears immediately (already happens via `useApBills` subscription).
+   - **Accrual failure** (missing AP/expense account, network error): leave the bill at `APPROVED` and show `toast.error("Could not auto-post accrual journal — open it manually")`. The detail page shows the existing "Create journal entry" empty-state button so the user can retry.
+   - **Payment failure**: leave the bill at `PAID` (do NOT roll back status), and:
+     - Show `toast.error("Could not auto-post payment journal — payment journal pending")`.
+     - Render a yellow "Payment journal pending" pill in the Accounting links card with a "Create payment journal" button that opens the journal form prefilled for the payment leg (`?fromBill=<id>&leg=payment`).
 
-3. **Branch picker** — replace the hard-coded `BRANCHES` constant with branches derived from `useAllEntities()`:
-   - rows where `parentId === selectedEntity.id` **and** `type === "BRANCH" || "SUB_BRANCH"`
-   - sorted by name; value = branch id; label = branch name
-   - If the entity has no branches, show only `—` (none).
+## UI changes
 
-4. **Tax code picker** — scope `tax_codes` master by entity country. Add a small per-country allow-list inside the page (no master-store changes):
-   ```
-   CA → NONE, HST_13, GST_5, ZERO_RATED, EXEMPT
-   IN → NONE, GST_5, GST_18, IGST_18, ZERO_RATED, EXEMPT, plus CGST_9/SGST_9/IGST_18 if present
-   AE → NONE, VAT_5, ZERO_RATED, EXEMPT
-   US → NONE, ZERO_RATED, EXEMPT
-   default → full list
-   ```
-   Build the filtered list from `useMaster("tax_codes")` and render with a plain `Select` (drop the `DynamicSelect` for this cell so we can filter options without touching the master store).
+**`AccountingBillDetailPage.tsx`**
+- Header action area:
+  - If `bill.linkedJournalId` → `View accrual journal` button → `/accounting/journals/<id>`.
+  - Else → `Create journal entry` → `/accounting/journals/new?fromBill=<billId>&leg=accrual`.
+  - If `bill.status === "PAID"` and `bill.linkedPaymentJournalId` → `View payment journal`.
+  - If `bill.status === "PAID"` and no payment journal → `Create payment journal` (amber) → `/accounting/journals/new?fromBill=<billId>&leg=payment`.
+- Accounting-links card: keep existing chips. Add an amber `Payment journal pending` chip when paid-but-missing-payment-journal.
 
-5. **Reset line values on entity change** — when the entity changes, clear `accountId`, `branch`, `taxCode` on every line (and reset `currency` to the entity's base currency, matching what the Bank Account form already does). Prevents stale Indian selections sticking around after switching to a Canadian entity.
+**`AccountingAPPage.tsx`**
+- Row "Create journal entry" → route to detail when journal exists, else to prefilled new-journal form.
+
+**`AccountingNewJournalPage.tsx`**
+- Handle `?fromBill=<id>&leg=accrual|payment` (parallel to OCR prefill): look up bill, set entity, currency, reference, narration, sourceType `AP`, prefill two lines per leg.
+
+## Code changes
+
+- `src/accounting/data/mockAP.ts` — add optional `linkedPaymentJournalId?: string`.
+- `src/accounting/stores/apBillsStore.ts`
+  - Add internal helpers `autoPostAccrual(bill)` and `autoPostPayment(bill)` using `addJournal` from `journalsStore` and `getAccounts()` from `coaStore`.
+  - In `updateApBill`, after the local optimistic patch, detect status transitions:
+    - `prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId` → run accrual; on success, patch local + DB via direct internal mutation (bypassing recursion); show success toast; on failure show error toast.
+    - `prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId` → run payment; same pattern, but on failure leave status as PAID.
+- `src/accounting/pages/ap/AccountingBillDetailPage.tsx` — buttons, pending pill.
+- `src/accounting/pages/ap/AccountingAPPage.tsx` — dropdown row action.
+- `src/accounting/pages/journals/AccountingNewJournalPage.tsx` — `fromBill` + `leg` prefill.
 
 ## Out of scope
 
-- Master store schema (no `country` column added to `tax_codes`).
-- Other pages (AR invoice, AP bill, intercompany) — same pattern can be applied later if you want; this plan covers only the journals page the screenshot is from.
-- DB / RLS / migration changes — none needed.
+- No DB schema changes; `linkedPaymentJournalId` is local-only and survives via `mergeFromDb` (local-preserved). Accrual id already persists via `accounting_ap_bills.journal_id`.
+- No RLS, journals DB trigger, or AR changes.
+- No retro-backfill for existing bills.
+- No separate input-tax debit line.
 
 ## Verification
 
-1. Open `/accounting/journals/new`, select **Future Link Consultants Inc** (CA).
-   - Account combobox: only CA-prefixed + shared accounts; no India `1210 GST Input Tax Credit`.
-   - Branch: only `Toronto — Ontario` (+ Finksburg if you keep US branch under CA parent).
-   - Tax code: only `No tax / HST 13% / GST 5% / Zero-rated / Exempt`.
-2. Switch entity to **Future Link Consultants Pvt Ltd** (IN). Line values clear; pickers now show India branches + India tax codes.
-3. With no entity selected, account combobox is disabled.
+1. New bill → submit → approve. Toast `Journal JE-2026-#### posted`. Detail page shows "View accrual journal". DB has POSTED journal Dr expense / Cr AP.
+2. Mark paid → toast for payment journal. Detail page shows "View payment journal". DB has second journal Dr AP / Cr bank.
+3. Force payment failure (e.g. bill with no `linkedBankAccountId` and no default bank): bill stays PAID, amber `Payment journal pending` chip + `Create payment journal` button appears, clicking opens prefilled form.
+4. Manual `/accounting/journals/new` flow still works unchanged.
