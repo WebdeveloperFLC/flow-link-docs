@@ -17,7 +17,7 @@ import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { formatCurrency } from "../../lib/format";
 
 const ALL = "__all__";
@@ -113,7 +113,7 @@ export default function AccountingTrialBalancePage() {
   const accounts = useAccounts();
   const groups = useGroups();
   const journals = useJournals();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t); }, []);

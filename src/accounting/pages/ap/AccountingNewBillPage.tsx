@@ -16,7 +16,7 @@ import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { useVendors } from "../../stores/vendorsStore";
 import { addApBill } from "../../stores/apBillsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
 const DEPARTMENTS = ["Operations", "Marketing", "Academics", "Visa & Immigration", "Finance & Accounts", "HR & Admin", "Technology", "Management"];
@@ -30,7 +30,7 @@ const fullSchema = z.object({
 export default function AccountingNewBillPage() {
   const navigate = useNavigate();
   const vendors = useVendors();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
 
   const [vendor, setVendor] = useState(""); const [vendorEmail, setVendorEmail] = useState(""); const [vendorPhone, setVendorPhone] = useState("");

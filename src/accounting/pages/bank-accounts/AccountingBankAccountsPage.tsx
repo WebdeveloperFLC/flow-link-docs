@@ -24,7 +24,7 @@ import BankAccountFormDialog from "../../components/bank-accounts/BankAccountFor
 import { ownerLabel } from "../../components/bank-accounts/BankAccountFormDialog";
 import { useBankAccounts, deleteBankAccount, toggleStatus } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useOwners } from "../../stores/ownersStore";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { BankAccount, maskAccountNumber } from "../../types/bankAccounts";
@@ -34,7 +34,7 @@ const ALL = "__all__";
 export default function AccountingBankAccountsPage() {
   const accounts = useBankAccounts();
   const ledgers = useAccounts();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);

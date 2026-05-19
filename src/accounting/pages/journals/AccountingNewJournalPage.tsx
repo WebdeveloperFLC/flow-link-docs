@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "../../lib/format";
 import { AccountType, Currency, Journal } from "../../data/mockJournals";
 import { useJournals, addJournal, updateJournal } from "../../stores/journalsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "../../stores/coaStore";
 import { toAccountType } from "../../lib/journalHelpers";
 import DynamicSelect from "../../components/shared/DynamicSelect";
@@ -51,7 +51,7 @@ export default function AccountingNewJournalPage() {
   const allJournals = useJournals();
   const existing = id ? allJournals.find(j => j.id === id) : undefined;
   const [searchParams] = useSearchParams();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const accounts = useAccounts();
 
   const [entity, setEntity] = useState(existing?.entity ?? '');

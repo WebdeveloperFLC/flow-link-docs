@@ -20,7 +20,7 @@ import AccountingStatusBadge from "@/accounting/components/shared/AccountingStat
 import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
 import { useReimbursements, updateReimbursement, deleteReimbursement } from "@/accounting/stores/reimbursementsStore";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "@/accounting/stores/coaStore";
 import { addJournal } from "@/accounting/stores/journalsStore";
 import { buildLine, nextJournalNumber } from "@/accounting/lib/journalHelpers";
@@ -32,7 +32,7 @@ export default function AccountingReimbursementDetailPage() {
   const navigate = useNavigate();
   const claims = useReimbursements();
   const accounts = useAccounts();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const claim = claims.find((c) => c.id === id);
 
   const [rejectOpen, setRejectOpen] = useState(false);

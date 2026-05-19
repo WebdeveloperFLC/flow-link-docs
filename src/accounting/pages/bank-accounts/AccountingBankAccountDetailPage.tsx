@@ -17,7 +17,7 @@ import ReconciliationStatusPill from "../../components/bank-accounts/Reconciliat
 import BankAccountFormDialog, { ownerLabel } from "../../components/bank-accounts/BankAccountFormDialog";
 import { useBankAccounts, deleteBankAccount, toggleStatus, setDefault, updateBankAccount } from "../../stores/bankAccountsStore";
 import { useAccounts } from "../../stores/coaStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useOwners } from "../../stores/ownersStore";
 import { MOCK_JOURNALS } from "../../data/mockJournals";
 import { formatCurrency } from "../../lib/format";
@@ -28,7 +28,7 @@ export default function AccountingBankAccountDetailPage() {
   const navigate = useNavigate();
   const accounts = useBankAccounts();
   const ledgers = useAccounts();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   const ownersList = useOwners();
   const account = accounts.find((a) => a.id === id);

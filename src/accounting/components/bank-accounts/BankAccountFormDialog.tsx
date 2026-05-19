@@ -13,7 +13,7 @@ import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BankAccount, BankAccountInput } from "../../types/bankAccounts";
 import { addBankAccount, updateBankAccount } from "../../stores/bankAccountsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "../../stores/coaStore";
 import { useOwners } from "../../stores/ownersStore";
 import type { OwnerProfile } from "../../types/owners";
@@ -29,7 +29,7 @@ interface Props {
 }
 
 export default function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const ledgers = useAccounts();
 
   const [country, setCountry] = useState("CA");

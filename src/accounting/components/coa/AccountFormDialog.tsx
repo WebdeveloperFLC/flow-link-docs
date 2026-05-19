@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSe
 import { CoaAccount, CoaAccountInput, CoaAccountStatus } from "../../types/coa";
 import { useGroups, useTypes, useSubTypes, HIDDEN_TYPE_CODES } from "../../stores/coaMasterStore";
 import { addAccount, getAccounts, getDescendantIds, updateAccount } from "../../stores/coaStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
 import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
@@ -31,7 +31,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const groups = useGroups();
   const types = useTypes();
   const subTypes = useSubTypes();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const accounts = getAccounts();
 
   const [code, setCode] = useState("");

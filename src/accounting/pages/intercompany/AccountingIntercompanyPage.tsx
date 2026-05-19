@@ -17,14 +17,14 @@ import AccountingStatusBadge from "@/accounting/components/shared/AccountingStat
 import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
 import { useIntercompany, deleteIntercompany } from "@/accounting/stores/intercompanyStore";
 import { updateJournal, getJournal } from "@/accounting/stores/journalsStore";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "@/accounting/stores/accountingMastersStore";
 import { formatCurrency } from "@/accounting/lib/format";
 
 export default function AccountingIntercompanyPage() {
   const navigate = useNavigate();
   const txns = useIntercompany();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const [from, setFrom] = useState("all");
   const [to, setTo] = useState("all");
   const [status, setStatus] = useState("all");

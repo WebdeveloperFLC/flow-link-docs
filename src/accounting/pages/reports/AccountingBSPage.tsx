@@ -16,7 +16,7 @@ import { formatAccounting, formatCurrency, formatPercent } from "../../lib/forma
 import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { cn } from "@/lib/utils";
 
 const PIE_COLORS = ["hsl(var(--primary))", "#16a34a", "#a855f7", "#f59e0b", "#0891b2"];
@@ -44,7 +44,7 @@ export default function AccountingBSPage() {
   const accounts = useAccounts();
   const groups = useGroups();
   const journals = useJournals();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 200);
