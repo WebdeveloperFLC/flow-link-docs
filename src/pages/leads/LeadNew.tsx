@@ -222,7 +222,7 @@ const LeadNew = () => {
           </div>
         }
       />
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="p-3 sm:p-6 max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4">
           <LeadModeToggle value={mode} onChange={setMode} disabled={!!leadId} />
           {leadId && <span className="text-xs text-muted-foreground">Mode locked after first save</span>}
