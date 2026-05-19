@@ -7,7 +7,7 @@ import { Pencil, Plus, Trash2, ExternalLink } from "lucide-react";
 import { CoaAccount } from "../../types/coa";
 import { canDeleteAccount } from "../../stores/coaStore";
 import { useGroups, useTypes } from "../../stores/coaMasterStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { MOCK_JOURNALS } from "../../data/mockJournals";
 import { formatCurrency } from "../../lib/format";
 import AccountStatusBadge from "./AccountStatusBadge";
@@ -23,7 +23,7 @@ interface Props {
 export default function AccountDetailDrawer({ account, onOpenChange, onEdit, onAddChild, onDelete }: Props) {
   const groups = useGroups();
   const types = useTypes();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   const lines = useMemo(() => {
     if (!account) return [];

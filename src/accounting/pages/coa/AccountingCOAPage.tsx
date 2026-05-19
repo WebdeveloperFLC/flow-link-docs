@@ -22,7 +22,7 @@ import AccountFormDialog from "../../components/coa/AccountFormDialog";
 import AccountDetailDrawer from "../../components/coa/AccountDetailDrawer";
 import { useAccounts, deleteAccount, toggleAccountStatus, canDeleteAccount } from "../../stores/coaStore";
 import { useGroups, useTypes } from "../../stores/coaMasterStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { CoaAccount } from "../../types/coa";
 import { formatCurrency } from "../../lib/format";
@@ -34,7 +34,7 @@ export default function AccountingCOAPage() {
   const navigate = useNavigate();
   const groups = useGroups();
   const types = useTypes();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), 200); return () => clearTimeout(t); }, []);

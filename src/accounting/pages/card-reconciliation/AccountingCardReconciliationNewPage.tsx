@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "@/accounting/stores/coaStore";
 import { addJournal } from "@/accounting/stores/journalsStore";
 import { addCardReconciliation, nextReconciliationNumber } from "@/accounting/stores/cardReconciliationStore";
@@ -385,7 +385,7 @@ function ProgressLine({ label, active, done }: { label: string; active?: boolean
 
 export default function AccountingCardReconciliationNewPage() {
   const navigate = useNavigate();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const accounts = useAccounts();
 
   const [step, setStep] = useState(0);

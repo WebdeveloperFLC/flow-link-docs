@@ -16,14 +16,14 @@ import AccountingKPICard from "@/accounting/components/shared/AccountingKPICard"
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
 import DeleteRecordDialog from "@/accounting/components/shared/DeleteRecordDialog";
 import { useReimbursements, deleteReimbursement } from "@/accounting/stores/reimbursementsStore";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { formatCurrency } from "@/accounting/lib/format";
 import { asCurrency } from "@/accounting/lib/journalHelpers";
 
 export default function AccountingReimbursementsPage() {
   const navigate = useNavigate();
   const claims = useReimbursements();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const [status, setStatus] = useState("all");
   const [entity, setEntity] = useState("all");
   const [search, setSearch] = useState("");

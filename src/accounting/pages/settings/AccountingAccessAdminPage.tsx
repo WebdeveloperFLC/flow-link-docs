@@ -27,6 +27,7 @@ import { AccountingUser, AccountingRole } from "../../types/accountingUsers";
 import { refreshAccountingPermissions, useCan } from "../../hooks/usePermission";
 import { Navigate } from "react-router-dom";
 import RoleBadge from "../../components/settings/RoleBadge";
+import DataAccessPanel from "../../components/settings/DataAccessPanel";
 
 type UserPermsRow = AccountingUser & { perms: AcctPermissionMap; dirty: boolean; saving?: boolean };
 
@@ -259,8 +260,16 @@ function UserCard({ row, expanded, onToggleExpand, onToggle, onReset, onRevoke, 
         <CollapsibleContent>
           <div className="border-t bg-muted/20 px-4 py-3">
             {admin ? (
-              <div className="text-[12px] text-muted-foreground py-2">
-                Admin roles automatically have full View, Edit, and Delete on every section.
+              <div className="space-y-3">
+                <div className="text-[12px] text-muted-foreground py-2">
+                  Admin roles automatically have full View, Edit, and Delete on every section.
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1">Data Access</div>
+                  <div className="rounded-md border bg-background p-3">
+                    <DataAccessPanel accountingUserId={row.id} isAdminRole={true} />
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -307,6 +316,12 @@ function UserCard({ row, expanded, onToggleExpand, onToggle, onReset, onRevoke, 
                     </div>
                   );
                 })}
+                <div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 px-1">Data Access</div>
+                  <div className="rounded-md border bg-background p-3">
+                    <DataAccessPanel accountingUserId={row.id} isAdminRole={false} />
+                  </div>
+                </div>
               </div>
             )}
           </div>

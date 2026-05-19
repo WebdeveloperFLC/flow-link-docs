@@ -16,7 +16,7 @@ import { COUNSELORS, type CustomerInvoice } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { useClients } from "../../stores/clientsStore";
 import { addArInvoice } from "../../stores/arInvoicesStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
 const TAG_SUGGESTIONS = ["urgent", "vip", "scholarship", "installment", "referral"];
@@ -30,7 +30,7 @@ const fullSchema = z.object({
 export default function AccountingNewInvoicePage() {
   const navigate = useNavigate();
   const clients = useClients();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
 
   const [client, setClient] = useState(""); const [clientEmail, setClientEmail] = useState(""); const [clientPhone, setClientPhone] = useState("");

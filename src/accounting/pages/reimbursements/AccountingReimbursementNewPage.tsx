@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "@/accounting/stores/coaStore";
 import { addReimbursement, nextClaimNumber } from "@/accounting/stores/reimbursementsStore";
 import { EXPENSE_CATEGORIES, type ReimbursementLine } from "@/accounting/types/reimbursements";
@@ -39,7 +39,7 @@ function emptyLine(): ReimbursementLine {
 export default function AccountingReimbursementNewPage() {
   const navigate = useNavigate();
   const [sp] = useSearchParams();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const accounts = useAccounts();
 
   const [claimDate, setClaimDate] = useState(new Date().toISOString().slice(0, 10));

@@ -12,7 +12,7 @@ import {
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "@/accounting/components/shared/AccountingStatusBadge";
 import { useIntercompany, updateIntercompany, deleteIntercompany } from "@/accounting/stores/intercompanyStore";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useJournals, updateJournal } from "@/accounting/stores/journalsStore";
 import { formatCurrency } from "@/accounting/lib/format";
 import { asCurrency } from "@/accounting/lib/journalHelpers";
@@ -22,7 +22,7 @@ export default function AccountingIntercompanyDetailPage() {
   const navigate = useNavigate();
   const txns = useIntercompany();
   const journals = useJournals();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const [voidOpen, setVoidOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 

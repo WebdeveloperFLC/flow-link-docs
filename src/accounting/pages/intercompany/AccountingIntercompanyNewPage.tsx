@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
-import { useEntities } from "@/accounting/stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useAccounts } from "@/accounting/stores/coaStore";
 import { addJournal } from "@/accounting/stores/journalsStore";
 import { addIntercompany, nextIntercompanyNumber } from "@/accounting/stores/intercompanyStore";
@@ -43,7 +43,7 @@ function AccountCombo({
 
 export default function AccountingIntercompanyNewPage() {
   const navigate = useNavigate();
-  const entities = useEntities();
+  const entities = useScopedEntities();
   const accounts = useAccounts();
 
   const [txnDate, setTxnDate] = useState(new Date().toISOString().slice(0, 10));

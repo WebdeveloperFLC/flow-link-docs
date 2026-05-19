@@ -38,7 +38,7 @@ import { formatAccounting, formatCompact, formatCurrency, formatPercent, varianc
 import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
-import { useEntities } from "../../stores/accountingEntitiesStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
 import { cn } from "@/lib/utils";
 
 type PLLine = { code: string; name: string; current: number; prior: number };
@@ -83,7 +83,7 @@ export default function AccountingPLPage() {
   const accounts = useAccounts();
   const groups = useGroups();
   const journals = useJournals();
-  const entities = useEntities();
+  const entities = useScopedEntities();
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 200);
