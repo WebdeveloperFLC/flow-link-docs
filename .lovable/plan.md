@@ -1,16 +1,22 @@
-## Fix: clickable rows on /accounting/bank-accounts
+## Fix: Parent account dropdown ignores Entity
 
-The detail page (`AccountingBankAccountDetailPage`) and route `/accounting/bank-accounts/:id` already exist — only the nickname cell is a link today, so clicking elsewhere on the row does nothing.
+In the New/Edit account dialog (`/accounting/coa`), the Parent account list currently shows every account in the same Account group regardless of Entity. Result: when creating an account for one entity, parents from other entities (e.g. intercompany "Due from …" accounts) show up.
 
-### Change (single file)
-`src/accounting/pages/bank-accounts/AccountingBankAccountsPage.tsx`
+### Change
 
-- Add `useNavigate()` from react-router-dom.
-- Pass `onRowClicked={(e) => { if (e.event?.target.closest('a,button,[role="menuitem"]')) return; navigate(\`/accounting/bank-accounts/${e.data.id}\`); }}` to `<AccountingAGGrid>`.
-- Add `rowClass="cursor-pointer"` so rows visually indicate they're clickable.
+**File:** `src/accounting/components/coa/AccountFormDialog.tsx`
 
-That's it — no changes to grid wrapper, detail page, store, or any other module. The existing detail page already shows all fields (nickname, bank, full account number, holder, entity, currency, linked COA ledger, IFSC, SWIFT, routing, branch code, transit, sub-entity, signatories, status, defaults) and has Edit / Deactivate actions.
+In the `eligibleParents` `useMemo`:
+- Keep the existing filter (same `groupCode`, exclude self + descendants).
+- Also filter by the selected `entityId`:
+  - If `entityId === NONE` (All entities): only show parents whose `entityId` is `null` (other "All entities" parents).
+  - Otherwise: show parents where `a.entityId === entityId` OR `a.entityId === null` (shared/global parents are always valid).
+- Add `entityId` to the dependency array.
 
-### Verify
-- Click any row on `/accounting/bank-accounts` → navigates to detail page.
-- Clicking the row's action menu (`⋯`) or nickname link still works without double-navigating.
+Also: when the user changes the Entity, if the currently selected `parentId` no longer matches the new entity filter, reset `parentId` to `NONE` so a stale parent isn't silently submitted.
+
+### Out of scope
+
+- No changes to Account group / type / sub-type filtering.
+- No changes to validation, submit logic, or any other module.
+- No DB or RLS changes.

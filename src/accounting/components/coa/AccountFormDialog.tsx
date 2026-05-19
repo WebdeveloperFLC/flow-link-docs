@@ -104,8 +104,25 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
 
   const eligibleParents = useMemo(() => {
     const excluded = initial ? new Set([initial.id, ...getDescendantIds(initial.id)]) : new Set<string>();
-    return accounts.filter((a) => a.groupCode === groupCode && !excluded.has(a.id));
-  }, [accounts, groupCode, initial]);
+    return accounts.filter((a) => {
+      if (a.groupCode !== groupCode) return false;
+      if (excluded.has(a.id)) return false;
+      if (entityId === NONE) {
+        // "All entities" scope: only show shared/global parents
+        return a.entityId === null;
+      }
+      // Specific entity: same entity OR shared/global parents
+      return a.entityId === entityId || a.entityId === null;
+    });
+  }, [accounts, groupCode, initial, entityId]);
+
+  // Reset parent if it no longer matches the current entity filter
+  useEffect(() => {
+    if (parentId === NONE) return;
+    if (!eligibleParents.some((a) => a.id === parentId)) {
+      setParentId(NONE);
+    }
+  }, [eligibleParents, parentId]);
 
   const codeError = useMemo(() => {
     if (!code.trim()) return null;
