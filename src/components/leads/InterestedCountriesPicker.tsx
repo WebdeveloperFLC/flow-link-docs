@@ -10,7 +10,7 @@ export const InterestedCountriesPicker = ({
   value: string[];
   onChange: (v: string[]) => void;
 }) => {
-  const countries = useMasterLabels("countries");
+  const countries = useMasterLabels("countries" as never);
   const toggle = (c: string) => {
     if (value.includes(c)) onChange(value.filter((x) => x !== c));
     else onChange([...value, c]);
