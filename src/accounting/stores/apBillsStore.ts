@@ -157,6 +157,15 @@ export function updateApBill(id: string, patch: Partial<VendorBill>) {
   const next = { ...prev, ...patch };
   bills = bills.map((b) => (b.id === id ? next : b));
   emit();
+
+  // Auto-post linked journals on key status transitions.
+  if (prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId) {
+    autoPostAccrual(next);
+  }
+  if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId) {
+    autoPostPayment(next);
+  }
+
   if (!isUuid(id)) return;
   void (async () => {
     try {
