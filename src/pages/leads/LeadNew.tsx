@@ -222,16 +222,16 @@ const LeadNew = () => {
           </div>
         }
       />
-      <div className="p-8 max-w-5xl mx-auto space-y-6">
+      <div className="p-3 sm:p-6 max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between gap-4">
           <LeadModeToggle value={mode} onChange={setMode} disabled={!!leadId} />
           {leadId && <span className="text-xs text-muted-foreground">Mode locked after first save</span>}
         </div>
 
         {/* SECTION 1 — Personal */}
-        <Card className="p-6 space-y-4">
+        <Card className="p-4 sm:p-6 space-y-4">
           <h3 className="font-semibold">1. Personal Information</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <Label>First Name *</Label>
               <Input value={(f.first_name as string) || ""} onChange={(e) => setField("first_name", e.target.value)} onBlur={autosave} />
@@ -287,9 +287,9 @@ const LeadNew = () => {
         {!isCold && (
           <>
             {/* SECTION 2 — Geography */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">2. Geography</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Country of Citizenship *</Label>
                   <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }} />
@@ -306,9 +306,9 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 3 — Background */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">3. Background</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label>Last Education</Label>
                   <Select value={(f.last_education as string) || ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
@@ -330,7 +330,7 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 4 — Services */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">4. Services Required *</h3>
               <ServiceTabs
                 value={services}
@@ -357,9 +357,9 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 5 — Assignment */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">5. Assignment</h3>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label>Branch</Label>
                   <Select value={(f.branch as string) || ""} onValueChange={(v) => { setField("branch", v); setTimeout(autosave, 0); }}>
@@ -397,9 +397,9 @@ const LeadNew = () => {
         )}
 
         {isCold && (
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">Cold Pool Details</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Campaign / List Name</Label>
                 <Input value={(f.cold_pool_campaign as string) || ""} onChange={(e) => setField("cold_pool_campaign", e.target.value)} onBlur={autosave} />
