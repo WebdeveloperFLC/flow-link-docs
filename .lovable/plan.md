@@ -1,31 +1,16 @@
-## Fix: Lead save fails when Last Education or Start Timeline is filled
+## Fix: clickable rows on /accounting/bank-accounts
 
-### Root cause
-Two leftover CHECK constraints on `public.leads` reject the values the new form produces:
+The detail page (`AccountingBankAccountDetailPage`) and route `/accounting/bank-accounts/:id` already exist — only the nickname cell is a link today, so clicking elsewhere on the row does nothing.
 
-- `leads_last_education_check` — allows only `10th, 12th, under_graduate, graduate, other`. The dynamic dropdown (FIX 1 from earlier) reads from `master_items.qualification_levels`, which also includes `diploma, post_graduate, mba, phd`. Picking any of those fails the insert/update.
-- `leads_start_timeline_check` — allows only `immediately, within_week, within_month, not_sure`. The form field is a free-text input ("e.g. Sep 2026"), so any user input fails.
+### Change (single file)
+`src/accounting/pages/bank-accounts/AccountingBankAccountsPage.tsx`
 
-This matches the symptom: save works with a few fields, then fails as more fields are filled — independent of sequence.
+- Add `useNavigate()` from react-router-dom.
+- Pass `onRowClicked={(e) => { if (e.event?.target.closest('a,button,[role="menuitem"]')) return; navigate(\`/accounting/bank-accounts/${e.data.id}\`); }}` to `<AccountingAGGrid>`.
+- Add `rowClass="cursor-pointer"` so rows visually indicate they're clickable.
 
-### Change
-Single migration on `public.leads` only. No app code changes, no other modules touched.
+That's it — no changes to grid wrapper, detail page, store, or any other module. The existing detail page already shows all fields (nickname, bank, full account number, holder, entity, currency, linked COA ledger, IFSC, SWIFT, routing, branch code, transit, sub-entity, signatories, status, defaults) and has Edit / Deactivate actions.
 
-```sql
-ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_last_education_check;
-ALTER TABLE public.leads DROP CONSTRAINT IF EXISTS leads_start_timeline_check;
-```
-
-Rationale:
-- `last_education` values are now governed by `master_items` (admin-managed via /masters). A hardcoded CHECK duplicates and conflicts with that source of truth.
-- `start_timeline` is a free-text field by design; an enum CHECK is wrong for it.
-
-Other check constraints (`gender`, `marital_status`, `lead_temperature`, `lead_type`, `status`, `priority`) are left intact — they match the form's fixed options.
-
-### Verification
-1. Open `/leads/new`, fill all fields including Last Education = "Diploma" and Start Timeline = "Sep 2026", click Save & View — should succeed.
-2. Re-test with each qualification option (10th, 12th, Diploma, Under Graduate, Post Graduate, MBA, PhD, Other).
-3. Confirm existing leads still load and edit cleanly.
-
-### Out of scope
-No changes to accounting, commission, institution, personal wealth, or client modules. No UI/logic changes in `LeadNew.tsx`.
+### Verify
+- Click any row on `/accounting/bank-accounts` → navigates to detail page.
+- Clicking the row's action menu (`⋯`) or nickname link still works without double-navigating.

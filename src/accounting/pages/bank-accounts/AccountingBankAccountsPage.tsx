@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Landmark, Plus, Search, MoreHorizontal, Pencil, Trash2, Power, ExternalLink, Eye } from "lucide-react";
 import type { ColDef, ICellRendererParams } from "ag-grid-community";
@@ -35,6 +35,7 @@ export default function AccountingBankAccountsPage() {
   const accounts = useBankAccounts();
   const ledgers = useAccounts();
   const entities = useEntities();
+  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   useEffect(() => { const t = setTimeout(() => setLoading(false), 200); return () => clearTimeout(t); }, []);
@@ -273,6 +274,12 @@ export default function AccountingBankAccountsPage() {
               columnDefs={cols}
               getRowId={(p) => p.data.id}
               height={560}
+              rowClass="cursor-pointer"
+              onRowClicked={(e) => {
+                const target = e.event?.target as HTMLElement | undefined;
+                if (target && target.closest('a,button,[role="menu"],[role="menuitem"]')) return;
+                if (e.data) navigate(`/accounting/bank-accounts/${e.data.id}`);
+              }}
             />
           )}
         </Card>
