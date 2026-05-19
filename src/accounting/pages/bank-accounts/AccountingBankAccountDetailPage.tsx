@@ -133,6 +133,8 @@ export default function AccountingBankAccountDetailPage() {
               <Card className="p-5 space-y-3">
                 <div className="text-[12px] uppercase tracking-wider text-muted-foreground font-semibold">Bank details</div>
                 <Row label="Bank" value={account.bankName} />
+                <Row label="Operating name" value={account.nickname} />
+                <Row label="Account name" value={account.accountName ?? account.nickname} />
                 <Row label="Holder" value={account.holderName} />
                 <Row label="Account #" value={<span className="font-mono">{account.accountNumber}</span>} />
                 <Row label="IBAN" value={account.iban ?? "—"} />
