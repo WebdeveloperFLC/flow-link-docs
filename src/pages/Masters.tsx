@@ -9,14 +9,26 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Package } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { refreshMaster, type MasterListKey, type MasterItem } from "@/lib/masters";
 import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
+import { BranchesSection } from "@/components/masters/BranchesSection";
+import { DepartmentsSection } from "@/components/masters/DepartmentsSection";
+import { ServiceCatalogueSection } from "@/components/masters/ServiceCatalogueSection";
 
 interface MasterList { key: string; label: string; description: string | null; }
+
+const SPECIAL_SECTIONS = [
+  { key: "__branches", label: "Branches", icon: Building2 },
+  { key: "__departments", label: "Departments", icon: Users2 },
+  { key: "__service_catalogue", label: "Service Catalogue", icon: Package },
+] as const;
+
+type SpecialKey = typeof SPECIAL_SECTIONS[number]["key"];
+const isSpecial = (k: string): k is SpecialKey => k.startsWith("__");
 
 const slugify = (s: string) =>
   s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60);
@@ -107,7 +119,7 @@ const Masters = () => {
         title="Masters"
         description="Centrally manage all dropdown values used across the app — countries, visa categories, document types, and more."
         actions={
-          activeList && (
+          activeList && !isSpecial(activeKey) && (
             <Button onClick={() => { setEditing(null); setOpen(true); }} className="gradient-brand text-primary-foreground">
               <Plus className="size-4 mr-1.5" /> New {singularize(activeList.label).toLowerCase()}
             </Button>
@@ -132,15 +144,39 @@ const Masters = () => {
               </button>
             ))}
           </div>
+          <div className="px-3 pt-4 pb-2 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Org & Catalogue</div>
+          <div className="space-y-0.5">
+            {SPECIAL_SECTIONS.map((s) => {
+              const Icon = s.icon;
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => setActiveKey(s.key)}
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
+                    activeKey === s.key ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
+                  )}
+                >
+                  <Icon className="size-3.5 text-muted-foreground" />
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
         </Card>
 
         <div className="col-span-9 space-y-4">
-          {activeList && (
+          {activeKey === "__branches" && <BranchesSection />}
+          {activeKey === "__departments" && <DepartmentsSection />}
+          {activeKey === "__service_catalogue" && <ServiceCatalogueSection />}
+
+          {!isSpecial(activeKey) && activeList && (
             <div>
               <h2 className="text-lg font-semibold">{activeList.label}</h2>
               {activeList.description && <p className="text-sm text-muted-foreground">{activeList.description}</p>}
             </div>
           )}
+          {!isSpecial(activeKey) && (
           <Card className="overflow-hidden shadow-elev-sm">
             <div className="grid grid-cols-12 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
               <div className="col-span-1">Order</div>
@@ -169,6 +205,7 @@ const Masters = () => {
               ))}
             </div>
           </Card>
+          )}
         </div>
       </div>
 
