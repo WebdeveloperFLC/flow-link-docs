@@ -102,7 +102,7 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
   };
 
   return (
-    <Card className="p-6 space-y-4">
+    <Card className="p-4 sm:p-6 space-y-4">
       <div>
         <h3 className="font-semibold">Family Members</h3>
         <p className="text-xs text-muted-foreground">

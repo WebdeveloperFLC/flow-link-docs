@@ -233,7 +233,7 @@ const ClientNew = () => {
           </div>
         }
       />
-      <div className="p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
         {/* LEFT COLUMN */}
         <div className="space-y-6">
           {sourceLead && (
@@ -246,7 +246,7 @@ const ClientNew = () => {
           )}
 
           {/* SECTION 1 — Personal */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">1. Personal Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
@@ -331,7 +331,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 2 — Education */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">2. Education &amp; Test Scores</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
@@ -419,7 +419,7 @@ const ClientNew = () => {
           />
 
           {/* SECTION 4 — Services */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">4. Services Confirmed</h3>
             <ServiceTabs value={services} onChange={(v) => { setServices(v); setTimeout(autosave, 0); }} visaLocked={false} />
             {(services.allied_services.length > 0 || services.travel_services.length > 0) && (
@@ -444,7 +444,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 6 — Branch & Assignment */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">6. Branch &amp; Assignment</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
@@ -473,7 +473,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 7 — Notes */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">7. Notes</h3>
             {leadNotesRef.current && (
               <div>
@@ -509,7 +509,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 8 — Client Portal */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">8. Client Portal Access</h3>
             <label className="flex items-center gap-2">
               <Checkbox checked={portalEnabled} onCheckedChange={(c) => setPortalEnabled(!!c)} />
@@ -541,7 +541,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 9 — Accounting */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">9. Accounting Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="space-y-1.5">
@@ -559,7 +559,7 @@ const ClientNew = () => {
           </Card>
 
           {/* SECTION 10 — Workflow */}
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">10. Workflow</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">

@@ -229,7 +229,7 @@ const LeadNew = () => {
         </div>
 
         {/* SECTION 1 — Personal */}
-        <Card className="p-6 space-y-4">
+        <Card className="p-4 sm:p-6 space-y-4">
           <h3 className="font-semibold">1. Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="space-y-1.5">
@@ -287,7 +287,7 @@ const LeadNew = () => {
         {!isCold && (
           <>
             {/* SECTION 2 — Geography */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">2. Geography</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -306,7 +306,7 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 3 — Background */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">3. Background</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
@@ -330,7 +330,7 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 4 — Services */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">4. Services Required *</h3>
               <ServiceTabs
                 value={services}
@@ -357,7 +357,7 @@ const LeadNew = () => {
             </Card>
 
             {/* SECTION 5 — Assignment */}
-            <Card className="p-6 space-y-4">
+            <Card className="p-4 sm:p-6 space-y-4">
               <h3 className="font-semibold">5. Assignment</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
@@ -397,7 +397,7 @@ const LeadNew = () => {
         )}
 
         {isCold && (
-          <Card className="p-6 space-y-4">
+          <Card className="p-4 sm:p-6 space-y-4">
             <h3 className="font-semibold">Cold Pool Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
