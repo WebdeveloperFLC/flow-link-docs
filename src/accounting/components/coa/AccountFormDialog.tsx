@@ -314,6 +314,16 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
                   <span className="text-sm">{status === "ACTIVE" ? "Active" : "Inactive"}</span>
                 </div>
               </div>
+              <div className="grid gap-2 col-span-2">
+                <Label>Postable account</Label>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-input">
+                  <Switch checked={isPostable} onCheckedChange={setIsPostable} />
+                  <span className="text-sm">{isPostable ? "Postable" : "Header / group only"}</span>
+                </div>
+                <span className="text-[11px] text-muted-foreground">
+                  Turn off for header/group accounts that should not receive journal entries directly.
+                </span>
+              </div>
             </div>
 
             <div className="grid gap-2">
