@@ -1737,6 +1737,92 @@ export type Database = {
         }
         Relationships: []
       }
+      ar_invoice_line_items: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          family_member_id: string | null
+          gst_amount: number
+          gst_rate: number
+          id: string
+          invoice_id: string
+          is_complimentary: boolean
+          line_total: number
+          offer_id: string | null
+          person_name: string | null
+          person_type: string
+          quantity: number
+          service_code: string | null
+          service_name: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount_amount?: number
+          family_member_id?: string | null
+          gst_amount: number
+          gst_rate?: number
+          id?: string
+          invoice_id: string
+          is_complimentary?: boolean
+          line_total: number
+          offer_id?: string | null
+          person_name?: string | null
+          person_type: string
+          quantity?: number
+          service_code?: string | null
+          service_name: string
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          family_member_id?: string | null
+          gst_amount?: number
+          gst_rate?: number
+          id?: string
+          invoice_id?: string
+          is_complimentary?: boolean
+          line_total?: number
+          offer_id?: string | null
+          person_name?: string | null
+          person_type?: string
+          quantity?: number
+          service_code?: string | null
+          service_name?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ar_invoice_line_items_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "client_family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ar_invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_ar_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ar_invoice_line_items_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "service_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ar_invoice_line_items_service_code_fkey"
+            columns: ["service_code"]
+            isOneToOne: false
+            referencedRelation: "service_catalogue"
+            referencedColumns: ["service_code"]
+          },
+        ]
+      }
       assessment_email_verifications: {
         Row: {
           consumed_at: string | null
@@ -3449,6 +3535,95 @@ export type Database = {
           },
         ]
       }
+      client_family_members: {
+        Row: {
+          application_mode: string
+          created_at: string
+          created_by: string | null
+          date_of_birth: string | null
+          first_name: string
+          id: string
+          last_name: string
+          notes: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          primary_client_id: string | null
+          primary_lead_id: string | null
+          relationship: string
+          separate_applied_at: string | null
+          separate_lead_id: string | null
+          updated_at: string
+          visa_services: string[]
+        }
+        Insert: {
+          application_mode?: string
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          notes?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          primary_client_id?: string | null
+          primary_lead_id?: string | null
+          relationship: string
+          separate_applied_at?: string | null
+          separate_lead_id?: string | null
+          updated_at?: string
+          visa_services?: string[]
+        }
+        Update: {
+          application_mode?: string
+          created_at?: string
+          created_by?: string | null
+          date_of_birth?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          notes?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          primary_client_id?: string | null
+          primary_lead_id?: string | null
+          relationship?: string
+          separate_applied_at?: string | null
+          separate_lead_id?: string | null
+          updated_at?: string
+          visa_services?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_family_members_primary_client_id_fkey"
+            columns: ["primary_client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_family_members_primary_client_id_fkey"
+            columns: ["primary_client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_family_members_primary_lead_id_fkey"
+            columns: ["primary_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_family_members_separate_lead_id_fkey"
+            columns: ["separate_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_files: {
         Row: {
           client_id: string
@@ -4107,25 +4282,53 @@ export type Database = {
       }
       clients: {
         Row: {
+          admission_services: string[]
+          allied_services: string[]
           alternate_phone: string | null
           application_id: string
           application_type: string
+          assigned_counselor_id: string | null
+          billing_entity: string | null
+          branch: string | null
           budget: number | null
+          client_type: string | null
+          coaching_services: string[]
           consent_form_date: string | null
           consent_form_submitted: boolean | null
+          converted_at: string | null
+          counselor_notes: string | null
+          counselor_notes_locked: boolean
+          counselor_notes_locked_at: string | null
+          counselor_notes_unlock_reason: string | null
           country: string
           country_code: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
           created_at: string
           created_by: string | null
+          date_of_birth: string | null
+          department: string | null
           email: string | null
+          email_alternate: string | null
+          english_overall: string | null
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
           enrollment_probability: number | null
           extra_items: Json
+          first_name: string | null
           full_name: string
+          gender: string | null
           id: string
+          institution_name: string | null
           institution_student_id: string | null
           intake: string | null
+          interested_countries: string[]
           interested_country: string | null
           interested_course: string | null
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string | null
           lead_score: number
           lead_score_reasons: Json
           lead_source: string | null
@@ -4133,48 +4336,95 @@ export type Database = {
           lead_temperature: string | null
           linked_institution_id: string | null
           linked_student_record_id: string | null
+          marital_status: string | null
+          middle_name: string | null
+          national_id_last4: string | null
           next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
           odoo_partner_id: number | null
           odoo_synced_at: string | null
+          other_tests: Json
           owner_id: string | null
+          pan_number: string | null
           parent_contact: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          payment_terms: string | null
+          percentage_cgpa: string | null
           phone: string | null
+          phone_alternate: string | null
+          phone_country_code: string | null
           preferred_contact_time: string | null
           preferred_language: string | null
           priority: string | null
+          registration_number: string | null
+          service_fees: Json
+          source_lead_id: string | null
           status: string
           study_permit_approved_date: string | null
           study_permit_expiry: string | null
           study_permit_number: string | null
           suppressed_template_items: string[]
           tags: string[]
+          tax_id: string | null
           template_id: string | null
           timezone: string | null
+          travel_financial_services: string[]
           updated_at: string
+          visa_services: string[]
           whatsapp: string | null
+          workflow_template_id: string | null
+          year_of_passing: number | null
         }
         Insert: {
+          admission_services?: string[]
+          allied_services?: string[]
           alternate_phone?: string | null
           application_id?: string
           application_type: string
+          assigned_counselor_id?: string | null
+          billing_entity?: string | null
+          branch?: string | null
           budget?: number | null
+          client_type?: string | null
+          coaching_services?: string[]
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
+          converted_at?: string | null
+          counselor_notes?: string | null
+          counselor_notes_locked?: boolean
+          counselor_notes_locked_at?: string | null
+          counselor_notes_unlock_reason?: string | null
           country: string
           country_code?: string | null
+          country_of_citizenship?: string | null
+          country_of_residence?: string | null
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
+          department?: string | null
           email?: string | null
+          email_alternate?: string | null
+          english_overall?: string | null
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
           enrollment_probability?: number | null
           extra_items?: Json
+          first_name?: string | null
           full_name: string
+          gender?: string | null
           id?: string
+          institution_name?: string | null
           institution_student_id?: string | null
           intake?: string | null
+          interested_countries?: string[]
           interested_country?: string | null
           interested_course?: string | null
+          last_education?: string | null
+          last_education_other?: string | null
+          last_name?: string | null
           lead_score?: number
           lead_score_reasons?: Json
           lead_source?: string | null
@@ -4182,48 +4432,95 @@ export type Database = {
           lead_temperature?: string | null
           linked_institution_id?: string | null
           linked_student_record_id?: string | null
+          marital_status?: string | null
+          middle_name?: string | null
+          national_id_last4?: string | null
           next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
+          other_tests?: Json
           owner_id?: string | null
+          pan_number?: string | null
           parent_contact?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          payment_terms?: string | null
+          percentage_cgpa?: string | null
           phone?: string | null
+          phone_alternate?: string | null
+          phone_country_code?: string | null
           preferred_contact_time?: string | null
           preferred_language?: string | null
           priority?: string | null
+          registration_number?: string | null
+          service_fees?: Json
+          source_lead_id?: string | null
           status?: string
           study_permit_approved_date?: string | null
           study_permit_expiry?: string | null
           study_permit_number?: string | null
           suppressed_template_items?: string[]
           tags?: string[]
+          tax_id?: string | null
           template_id?: string | null
           timezone?: string | null
+          travel_financial_services?: string[]
           updated_at?: string
+          visa_services?: string[]
           whatsapp?: string | null
+          workflow_template_id?: string | null
+          year_of_passing?: number | null
         }
         Update: {
+          admission_services?: string[]
+          allied_services?: string[]
           alternate_phone?: string | null
           application_id?: string
           application_type?: string
+          assigned_counselor_id?: string | null
+          billing_entity?: string | null
+          branch?: string | null
           budget?: number | null
+          client_type?: string | null
+          coaching_services?: string[]
           consent_form_date?: string | null
           consent_form_submitted?: boolean | null
+          converted_at?: string | null
+          counselor_notes?: string | null
+          counselor_notes_locked?: boolean
+          counselor_notes_locked_at?: string | null
+          counselor_notes_unlock_reason?: string | null
           country?: string
           country_code?: string | null
+          country_of_citizenship?: string | null
+          country_of_residence?: string | null
           created_at?: string
           created_by?: string | null
+          date_of_birth?: string | null
+          department?: string | null
           email?: string | null
+          email_alternate?: string | null
+          english_overall?: string | null
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
           enrollment_probability?: number | null
           extra_items?: Json
+          first_name?: string | null
           full_name?: string
+          gender?: string | null
           id?: string
+          institution_name?: string | null
           institution_student_id?: string | null
           intake?: string | null
+          interested_countries?: string[]
           interested_country?: string | null
           interested_course?: string | null
+          last_education?: string | null
+          last_education_other?: string | null
+          last_name?: string | null
           lead_score?: number
           lead_score_reasons?: Json
           lead_source?: string | null
@@ -4231,27 +4528,46 @@ export type Database = {
           lead_temperature?: string | null
           linked_institution_id?: string | null
           linked_student_record_id?: string | null
+          marital_status?: string | null
+          middle_name?: string | null
+          national_id_last4?: string | null
           next_followup_at?: string | null
           notes?: string | null
           odoo_lead_id?: number | null
           odoo_partner_id?: number | null
           odoo_synced_at?: string | null
+          other_tests?: Json
           owner_id?: string | null
+          pan_number?: string | null
           parent_contact?: string | null
+          passport_expiry?: string | null
+          passport_number?: string | null
+          payment_terms?: string | null
+          percentage_cgpa?: string | null
           phone?: string | null
+          phone_alternate?: string | null
+          phone_country_code?: string | null
           preferred_contact_time?: string | null
           preferred_language?: string | null
           priority?: string | null
+          registration_number?: string | null
+          service_fees?: Json
+          source_lead_id?: string | null
           status?: string
           study_permit_approved_date?: string | null
           study_permit_expiry?: string | null
           study_permit_number?: string | null
           suppressed_template_items?: string[]
           tags?: string[]
+          tax_id?: string | null
           template_id?: string | null
           timezone?: string | null
+          travel_financial_services?: string[]
           updated_at?: string
+          visa_services?: string[]
           whatsapp?: string | null
+          workflow_template_id?: string | null
+          year_of_passing?: number | null
         }
         Relationships: [
           {
@@ -4266,6 +4582,13 @@ export type Database = {
             columns: ["linked_student_record_id"]
             isOneToOne: false
             referencedRelation: "upi_commission_students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_source_lead_id_fkey"
+            columns: ["source_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
           {
@@ -9865,25 +10188,53 @@ export type Database = {
           _template_id?: string
         }
         Returns: {
+          admission_services: string[]
+          allied_services: string[]
           alternate_phone: string | null
           application_id: string
           application_type: string
+          assigned_counselor_id: string | null
+          billing_entity: string | null
+          branch: string | null
           budget: number | null
+          client_type: string | null
+          coaching_services: string[]
           consent_form_date: string | null
           consent_form_submitted: boolean | null
+          converted_at: string | null
+          counselor_notes: string | null
+          counselor_notes_locked: boolean
+          counselor_notes_locked_at: string | null
+          counselor_notes_unlock_reason: string | null
           country: string
           country_code: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
           created_at: string
           created_by: string | null
+          date_of_birth: string | null
+          department: string | null
           email: string | null
+          email_alternate: string | null
+          english_overall: string | null
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
           enrollment_probability: number | null
           extra_items: Json
+          first_name: string | null
           full_name: string
+          gender: string | null
           id: string
+          institution_name: string | null
           institution_student_id: string | null
           intake: string | null
+          interested_countries: string[]
           interested_country: string | null
           interested_course: string | null
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string | null
           lead_score: number
           lead_score_reasons: Json
           lead_source: string | null
@@ -9891,31 +10242,104 @@ export type Database = {
           lead_temperature: string | null
           linked_institution_id: string | null
           linked_student_record_id: string | null
+          marital_status: string | null
+          middle_name: string | null
+          national_id_last4: string | null
           next_followup_at: string | null
           notes: string | null
           odoo_lead_id: number | null
           odoo_partner_id: number | null
           odoo_synced_at: string | null
+          other_tests: Json
           owner_id: string | null
+          pan_number: string | null
           parent_contact: string | null
+          passport_expiry: string | null
+          passport_number: string | null
+          payment_terms: string | null
+          percentage_cgpa: string | null
           phone: string | null
+          phone_alternate: string | null
+          phone_country_code: string | null
           preferred_contact_time: string | null
           preferred_language: string | null
           priority: string | null
+          registration_number: string | null
+          service_fees: Json
+          source_lead_id: string | null
           status: string
           study_permit_approved_date: string | null
           study_permit_expiry: string | null
           study_permit_number: string | null
           suppressed_template_items: string[]
           tags: string[]
+          tax_id: string | null
           template_id: string | null
           timezone: string | null
+          travel_financial_services: string[]
           updated_at: string
+          visa_services: string[]
           whatsapp: string | null
+          workflow_template_id: string | null
+          year_of_passing: number | null
         }
         SetofOptions: {
           from: "*"
           to: "clients"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_lead_from_family_member: {
+        Args: { _family_member_id: string }
+        Returns: {
+          admission_services: string[] | null
+          allied_services: string[] | null
+          assigned_counselor_id: string | null
+          b2b_partner_id: string | null
+          branch: string | null
+          coaching_services: string[] | null
+          cold_pool_campaign: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          email: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          interested_countries: string[] | null
+          is_cold_pool: boolean | null
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string
+          lead_number: string
+          lead_source: string | null
+          lead_temperature: string
+          lead_type: string
+          marital_status: string | null
+          middle_name: string | null
+          notes: string | null
+          notes_locked: boolean | null
+          notes_locked_at: string | null
+          notes_locked_by: string | null
+          phone: string | null
+          phone_country_code: string | null
+          priority: string | null
+          source: string | null
+          start_timeline: string | null
+          status: string
+          updated_at: string | null
+          visa_lock_reason: string | null
+          visa_locked: boolean | null
+          visa_services: string[] | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "leads"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -9932,6 +10356,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_client_registration_number: { Args: never; Returns: string }
       generate_lead_number: { Args: { p_type: string }; Returns: string }
       has_role: {
         Args: {
