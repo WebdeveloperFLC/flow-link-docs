@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pencil, UserCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { fetchLead, markLeadConverted, type Lead } from "@/lib/leads";
+import { fetchLead, markLeadConverted, fetchServiceCodeMap, type Lead } from "@/lib/leads";
 // badges shown inline via PageHeader description string
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -27,15 +27,29 @@ const ChipList = ({ items }: { items: string[] | null | undefined }) => {
   );
 };
 
+const ServiceChipList = ({ items, map }: { items: string[] | null | undefined; map: Map<string, string> }) => {
+  if (!items?.length) return <span className="text-muted-foreground text-sm">—</span>;
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map((code) => (
+        <Badge key={code} variant="secondary" title={code}>{map.get(code) ?? code}</Badge>
+      ))}
+    </div>
+  );
+};
+
 const LeadDetail = () => {
   const { id } = useParams();
   const nav = useNavigate();
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
+  const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (!id) return;
-    fetchLead(id).then(setLead).finally(() => setLoading(false));
+    Promise.all([fetchLead(id), fetchServiceCodeMap()])
+      .then(([l, m]) => { setLead(l); setServiceMap(m); })
+      .finally(() => setLoading(false));
   }, [id]);
 
   const onConvert = async () => {
@@ -100,10 +114,10 @@ const LeadDetail = () => {
               <h3 className="font-semibold flex items-center gap-2">
                 Services {lead.visa_locked && <Badge variant="outline" className="gap-1"><Lock className="h-3 w-3" /> Visa locked</Badge>}
               </h3>
-              <Row label="Coaching" value={<ChipList items={lead.coaching_services} />} />
-              <Row label="Visa & Immigration" value={<ChipList items={lead.visa_services} />} />
-              <Row label="Admission" value={<ChipList items={lead.admission_services} />} />
-              <Row label="Allied" value={<ChipList items={lead.allied_services} />} />
+              <Row label="Coaching" value={<ServiceChipList items={lead.coaching_services} map={serviceMap} />} />
+              <Row label="Visa & Immigration" value={<ServiceChipList items={lead.visa_services} map={serviceMap} />} />
+              <Row label="Admission" value={<ServiceChipList items={lead.admission_services} map={serviceMap} />} />
+              <Row label="Allied" value={<ServiceChipList items={lead.allied_services} map={serviceMap} />} />
               {lead.visa_locked && <Row label="Visa lock reason" value={lead.visa_lock_reason} />}
             </Card>
 

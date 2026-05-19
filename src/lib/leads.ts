@@ -200,3 +200,16 @@ export function suggestDepartmentFromServices(
   }
   return null;
 }
+
+let _serviceMapCache: Map<string, string> | null = null;
+export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
+  if (_serviceMapCache) return _serviceMapCache;
+  const { data, error } = await supabase
+    .from("service_catalogue")
+    .select("service_code, service_name");
+  if (error) throw error;
+  const m = new Map<string, string>();
+  (data ?? []).forEach((r: { service_code: string; service_name: string }) => m.set(r.service_code, r.service_name));
+  _serviceMapCache = m;
+  return m;
+}

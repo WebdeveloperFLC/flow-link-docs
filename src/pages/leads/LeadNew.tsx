@@ -15,6 +15,8 @@ import { Lock } from "lucide-react";
 import { LeadModeToggle, type LeadMode } from "@/components/leads/LeadModeToggle";
 import { InterestedCountriesPicker } from "@/components/leads/InterestedCountriesPicker";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
+import { CountrySelect } from "@/components/leads/CountrySelect";
+import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
 import {
   upsertLeadAutosave,
   fetchLead,
@@ -57,7 +59,6 @@ const LeadNew = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const lead_sources = useMasterLabels("lead_sources" as never);
-  const countries = useMasterLabels("countries");
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -273,7 +274,7 @@ const LeadNew = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Phone Code</Label>
-              <Input value={(f.phone_country_code as string) || ""} onChange={(e) => setField("phone_country_code", e.target.value)} onBlur={autosave} placeholder="+91" />
+              <PhoneCodeSelect value={(f.phone_country_code as string) || ""} onChange={(v) => { setField("phone_country_code", v); setTimeout(autosave, 0); }} />
             </div>
             <div className="space-y-1.5">
               <Label>Phone {isCold ? "" : "*"}</Label>
@@ -290,17 +291,11 @@ const LeadNew = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label>Country of Citizenship *</Label>
-                  <Select value={(f.country_of_citizenship as string) || ""} onValueChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>{countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <CountrySelect value={(f.country_of_citizenship as string) || ""} onChange={(v) => { setField("country_of_citizenship", v); setTimeout(autosave, 0); }} />
                 </div>
                 <div className="space-y-1.5">
                   <Label>Country of Residence *</Label>
-                  <Select value={(f.country_of_residence as string) || ""} onValueChange={(v) => { setField("country_of_residence", v); setTimeout(autosave, 0); }}>
-                    <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>{countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                  </Select>
+                  <CountrySelect value={(f.country_of_residence as string) || ""} onChange={(v) => { setField("country_of_residence", v); setTimeout(autosave, 0); }} />
                 </div>
               </div>
               <div className="space-y-1.5">
