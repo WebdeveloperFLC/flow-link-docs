@@ -95,7 +95,7 @@ function mapToDb(a: CoaAccount | CoaAccountInput) {
 }
 
 let rlsBlockedLogged = false;
-async function hydrateFromSupabase() {
+export async function hydrateFromSupabase() {
   if (typeof window === "undefined") return;
   try {
     const { data, error } = await supabase
