@@ -206,7 +206,12 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                 </Select>
               </Field>
               <Field label="Linked COA ledger">
-                <LinkedCoaAccountSelect value={coaAccountId} onChange={setCoaAccountId} entityId={entityId || undefined} />
+                <LinkedCoaAccountSelect
+                  value={coaAccountId}
+                  onChange={setCoaAccountId}
+                  entityId={entityId || undefined}
+                  currency={currency || undefined}
+                />
               </Field>
               <Field label="Currency">
                 <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />
