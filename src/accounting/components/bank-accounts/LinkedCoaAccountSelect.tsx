@@ -7,10 +7,11 @@ interface Props {
   value: string;
   onChange: (id: string) => void;
   currency?: string;
+  entityId?: string;
   disabled?: boolean;
 }
 
-export default function LinkedCoaAccountSelect({ value, onChange, currency, disabled }: Props) {
+export default function LinkedCoaAccountSelect({ value, onChange, currency, entityId, disabled }: Props) {
   const accounts = useAccounts();
   const types = useTypes();
 
@@ -23,8 +24,9 @@ export default function LinkedCoaAccountSelect({ value, onChange, currency, disa
     return accounts
       .filter((a) => a.status === "ACTIVE" && bankishTypes.has(a.typeCode))
       .filter((a) => !currency || a.currency === currency)
+      .filter((a) => !entityId || a.entityId === entityId || a.entityId === null)
       .sort((a, b) => a.code.localeCompare(b.code));
-  }, [accounts, types, currency]);
+  }, [accounts, types, currency, entityId]);
 
   return (
     <Select value={value} onValueChange={onChange} disabled={disabled}>
