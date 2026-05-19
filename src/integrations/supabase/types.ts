@@ -2195,6 +2195,42 @@ export type Database = {
           },
         ]
       }
+      branches: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_virtual: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_virtual?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_virtual?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       call_campaigns: {
         Row: {
           active_from: string | null
@@ -4492,6 +4528,36 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          handles_services: string[] | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          handles_services?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          handles_services?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       distribution_rule_members: {
         Row: {
           created_at: string
@@ -5306,6 +5372,24 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_number_sequences: {
+        Row: {
+          last_number: number | null
+          lead_type: string
+          year: number
+        }
+        Insert: {
+          last_number?: number | null
+          lead_type: string
+          year: number
+        }
+        Update: {
+          last_number?: number | null
+          lead_type?: string
+          year?: number
+        }
+        Relationships: []
+      }
       lead_remarks: {
         Row: {
           author_id: string
@@ -5373,6 +5457,144 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      leads: {
+        Row: {
+          admission_services: string[] | null
+          allied_services: string[] | null
+          assigned_counselor_id: string | null
+          b2b_partner_id: string | null
+          branch: string | null
+          coaching_services: string[] | null
+          cold_pool_campaign: string | null
+          converted_at: string | null
+          converted_to_client_id: string | null
+          country_of_citizenship: string | null
+          country_of_residence: string | null
+          created_at: string | null
+          created_by: string | null
+          department: string | null
+          email: string | null
+          first_name: string
+          gender: string | null
+          id: string
+          interested_countries: string[] | null
+          is_cold_pool: boolean | null
+          last_education: string | null
+          last_education_other: string | null
+          last_name: string
+          lead_number: string
+          lead_source: string | null
+          lead_temperature: string
+          lead_type: string
+          marital_status: string | null
+          middle_name: string | null
+          notes: string | null
+          notes_locked: boolean | null
+          notes_locked_at: string | null
+          notes_locked_by: string | null
+          phone: string | null
+          phone_country_code: string | null
+          priority: string | null
+          source: string | null
+          start_timeline: string | null
+          status: string
+          updated_at: string | null
+          visa_lock_reason: string | null
+          visa_locked: boolean | null
+          visa_services: string[] | null
+        }
+        Insert: {
+          admission_services?: string[] | null
+          allied_services?: string[] | null
+          assigned_counselor_id?: string | null
+          b2b_partner_id?: string | null
+          branch?: string | null
+          coaching_services?: string[] | null
+          cold_pool_campaign?: string | null
+          converted_at?: string | null
+          converted_to_client_id?: string | null
+          country_of_citizenship?: string | null
+          country_of_residence?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          first_name: string
+          gender?: string | null
+          id?: string
+          interested_countries?: string[] | null
+          is_cold_pool?: boolean | null
+          last_education?: string | null
+          last_education_other?: string | null
+          last_name: string
+          lead_number: string
+          lead_source?: string | null
+          lead_temperature?: string
+          lead_type: string
+          marital_status?: string | null
+          middle_name?: string | null
+          notes?: string | null
+          notes_locked?: boolean | null
+          notes_locked_at?: string | null
+          notes_locked_by?: string | null
+          phone?: string | null
+          phone_country_code?: string | null
+          priority?: string | null
+          source?: string | null
+          start_timeline?: string | null
+          status?: string
+          updated_at?: string | null
+          visa_lock_reason?: string | null
+          visa_locked?: boolean | null
+          visa_services?: string[] | null
+        }
+        Update: {
+          admission_services?: string[] | null
+          allied_services?: string[] | null
+          assigned_counselor_id?: string | null
+          b2b_partner_id?: string | null
+          branch?: string | null
+          coaching_services?: string[] | null
+          cold_pool_campaign?: string | null
+          converted_at?: string | null
+          converted_to_client_id?: string | null
+          country_of_citizenship?: string | null
+          country_of_residence?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          first_name?: string
+          gender?: string | null
+          id?: string
+          interested_countries?: string[] | null
+          is_cold_pool?: boolean | null
+          last_education?: string | null
+          last_education_other?: string | null
+          last_name?: string
+          lead_number?: string
+          lead_source?: string | null
+          lead_temperature?: string
+          lead_type?: string
+          marital_status?: string | null
+          middle_name?: string | null
+          notes?: string | null
+          notes_locked?: boolean | null
+          notes_locked_at?: string | null
+          notes_locked_by?: string | null
+          phone?: string | null
+          phone_country_code?: string | null
+          priority?: string | null
+          source?: string | null
+          start_timeline?: string | null
+          status?: string
+          updated_at?: string | null
+          visa_lock_reason?: string | null
+          visa_locked?: boolean | null
+          visa_services?: string[] | null
+        }
+        Relationships: []
       }
       letter_templates: {
         Row: {
@@ -6359,6 +6581,150 @@ export type Database = {
           id?: string
           label?: string
           sort_order?: number
+        }
+        Relationships: []
+      }
+      service_catalogue: {
+        Row: {
+          bundle_note: string | null
+          country_tag: string | null
+          created_at: string | null
+          display_order: number | null
+          fee_aud: number | null
+          fee_cad: number | null
+          fee_gbp: number | null
+          fee_inr: number | null
+          gst_applicable: boolean | null
+          gst_rate: number | null
+          id: string
+          is_active: boolean | null
+          is_bundled: boolean | null
+          master_key: string
+          max_fee_inr: number | null
+          min_fee_inr: number | null
+          notes: string | null
+          pricing_type: string
+          service_code: string | null
+          service_name: string
+          sub_category: string | null
+          suggested_fee_inr: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bundle_note?: string | null
+          country_tag?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          fee_aud?: number | null
+          fee_cad?: number | null
+          fee_gbp?: number | null
+          fee_inr?: number | null
+          gst_applicable?: boolean | null
+          gst_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_bundled?: boolean | null
+          master_key: string
+          max_fee_inr?: number | null
+          min_fee_inr?: number | null
+          notes?: string | null
+          pricing_type?: string
+          service_code?: string | null
+          service_name: string
+          sub_category?: string | null
+          suggested_fee_inr?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bundle_note?: string | null
+          country_tag?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          fee_aud?: number | null
+          fee_cad?: number | null
+          fee_gbp?: number | null
+          fee_inr?: number | null
+          gst_applicable?: boolean | null
+          gst_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_bundled?: boolean | null
+          master_key?: string
+          max_fee_inr?: number | null
+          min_fee_inr?: number | null
+          notes?: string | null
+          pricing_type?: string
+          service_code?: string | null
+          service_name?: string
+          sub_category?: string | null
+          suggested_fee_inr?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      service_offers: {
+        Row: {
+          applicable_branches: string[] | null
+          applicable_services: string[] | null
+          approved_by: string | null
+          created_at: string | null
+          created_by: string | null
+          discount_amount_inr: number | null
+          discount_percent: number | null
+          id: string
+          is_active: boolean | null
+          is_hidden: boolean | null
+          max_uses: number | null
+          min_services_for_combo: number | null
+          notes: string | null
+          offer_code: string | null
+          offer_name: string
+          offer_type: string
+          uses_count: number | null
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          applicable_branches?: string[] | null
+          applicable_services?: string[] | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount_inr?: number | null
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          max_uses?: number | null
+          min_services_for_combo?: number | null
+          notes?: string | null
+          offer_code?: string | null
+          offer_name: string
+          offer_type: string
+          uses_count?: number | null
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          applicable_branches?: string[] | null
+          applicable_services?: string[] | null
+          approved_by?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          discount_amount_inr?: number | null
+          discount_percent?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          max_uses?: number | null
+          min_services_for_combo?: number | null
+          notes?: string | null
+          offer_code?: string | null
+          offer_name?: string
+          offer_type?: string
+          uses_count?: number | null
+          valid_from?: string
+          valid_until?: string | null
         }
         Relationships: []
       }
@@ -9566,6 +9932,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_lead_number: { Args: { p_type: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
