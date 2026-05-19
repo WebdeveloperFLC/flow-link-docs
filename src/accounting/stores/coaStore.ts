@@ -95,7 +95,7 @@ function mapToDb(a: CoaAccount | CoaAccountInput) {
 }
 
 let rlsBlockedLogged = false;
-async function hydrateFromSupabase() {
+export async function hydrateFromSupabase() {
   if (typeof window === "undefined") return;
   try {
     const { data, error } = await supabase
@@ -222,6 +222,7 @@ export function addAccount(input: CoaAccountInput): { ok: true; account: CoaAcco
       const real = mapFromDb(data as CoaRow);
       accounts = accounts.map((a) => (a.id === created.id ? real : a));
       emit();
+      void hydrateFromSupabase();
     }
   })();
   return { ok: true, account: created };
@@ -250,7 +251,9 @@ export function updateAccount(id: string, input: CoaAccountInput): { ok: true } 
         accounts = accounts.map((a) => (a.id === id ? prev : a));
         emit();
       }
+      return;
     }
+    void hydrateFromSupabase();
   })();
   return { ok: true };
 }
@@ -274,7 +277,9 @@ export function toggleAccountStatus(id: string) {
         accounts = accounts.map((a) => (a.id === id ? prev : a));
         emit();
       }
+      return;
     }
+    void hydrateFromSupabase();
   })();
 }
 
