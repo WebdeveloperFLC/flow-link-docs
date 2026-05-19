@@ -57,14 +57,7 @@ const LeadDetail = () => {
     <AppLayout>
       <PageHeader
         title={[lead.first_name, lead.middle_name, lead.last_name].filter(Boolean).join(" ")}
-        description={
-          <span className="flex items-center gap-3">
-            <span className="font-mono text-xs">{lead.lead_number}</span>
-            <LeadTemperatureBadge value={lead.lead_temperature} />
-            <LeadStatusBadge value={lead.status} />
-            <span className="text-xs text-muted-foreground">Created {format(new Date(lead.created_at), "dd MMM yyyy")}</span>
-          </span> as never
-        }
+        description={`${lead.lead_number} · ${lead.lead_temperature} · ${lead.status} · created ${format(new Date(lead.created_at), "dd MMM yyyy")}`}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => nav(`/leads/new?id=${lead.id}`)}>
