@@ -6,21 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Plus, Search, Upload } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LeadsTable } from "@/components/leads/LeadsTable";
 import { fetchLeads, type Lead } from "@/lib/leads";
+import { ImportColdLeadsDialog } from "@/components/leads/ImportColdLeadsDialog";
 
 const ColdPool = () => {
   const nav = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [importOpen, setImportOpen] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     setLoading(true);
     fetchLeads({ coldPool: true, search: search || undefined })
       .then(setLeads).finally(() => setLoading(false));
-  }, [search]);
+  }, [search, refreshTick]);
 
   return (
     <AppLayout>
@@ -29,18 +31,9 @@ const ColdPool = () => {
         description="Bulk-imported / low-engagement leads awaiting first contact"
         actions={
           <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button variant="outline" disabled>
-                      <Upload className="h-4 w-4 mr-1" /> Import CSV
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Bulk CSV import ships in Stage 3</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="h-4 w-4 mr-1" /> Import CSV
+            </Button>
             <Button onClick={() => nav("/leads/new?mode=cold")}>
               <Plus className="h-4 w-4 mr-1" /> New Cold Lead
             </Button>
@@ -56,6 +49,7 @@ const ColdPool = () => {
           {loading ? <div className="p-12 text-center text-muted-foreground text-sm">Loading…</div> : <LeadsTable leads={leads} showCampaign />}
         </Card>
       </div>
+      <ImportColdLeadsDialog open={importOpen} onOpenChange={setImportOpen} onImported={() => setRefreshTick((n) => n + 1)} />
     </AppLayout>
   );
 };
