@@ -28,7 +28,6 @@ import {
   type Branch,
   type Department,
 } from "@/lib/leads";
-import { useMasterLabels } from "@/lib/masters";
 import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
@@ -60,6 +59,7 @@ const LeadNew = () => {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const lead_sources = useMasterLabels("lead_sources" as never);
+  const qualificationLevels = useMasterItems("qualification_levels");
   const notesRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
