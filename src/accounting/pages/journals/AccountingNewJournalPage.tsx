@@ -22,13 +22,22 @@ import { formatCurrency } from "../../lib/format";
 import { AccountType, Currency, Journal } from "../../data/mockJournals";
 import { useJournals, addJournal, updateJournal } from "../../stores/journalsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
+import { useAllEntities } from "../../stores/accountingEntitiesStore";
 import { useAccounts } from "../../stores/coaStore";
+import { useMaster } from "../../stores/accountingMastersStore";
 import { toAccountType } from "../../lib/journalHelpers";
 import DynamicSelect from "../../components/shared/DynamicSelect";
 
 const SOURCES = ['MANUAL', 'OCR_UPLOAD', 'AP', 'AR'] as const;
-const BRANCHES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
 const ACCOUNT_TYPES: AccountType[] = ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'];
+
+// Per-country allow-list for tax codes (matches master codes in accountingMastersStore).
+const TAX_CODES_BY_COUNTRY: Record<string, string[]> = {
+  CA: ["NONE", "HST_13", "GST_5", "ZERO_RATED", "EXEMPT"],
+  IN: ["NONE", "GST_5", "GST_18", "IGST_18", "CGST_9", "SGST_9", "ZERO_RATED", "EXEMPT"],
+  AE: ["NONE", "VAT_5", "ZERO_RATED", "EXEMPT"],
+  US: ["NONE", "ZERO_RATED", "EXEMPT"],
+};
 
 interface LineForm {
   id: string;
@@ -52,9 +61,31 @@ export default function AccountingNewJournalPage() {
   const existing = id ? allJournals.find(j => j.id === id) : undefined;
   const [searchParams] = useSearchParams();
   const entities = useScopedEntities();
+  const allEntities = useAllEntities();
   const accounts = useAccounts();
+  const taxCodesMaster = useMaster("tax_codes");
 
   const [entity, setEntity] = useState(existing?.entity ?? '');
+  const selectedEntity = useMemo(
+    () => allEntities.find(e => e.name === entity && e.type === "COMPANY"),
+    [allEntities, entity],
+  );
+  const entityBranches = useMemo(
+    () => selectedEntity
+      ? allEntities
+          .filter(e => e.parentId === selectedEntity.id && (e.type === "BRANCH" || e.type === "SUB_BRANCH"))
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name))
+      : [],
+    [allEntities, selectedEntity],
+  );
+  const scopedTaxCodes = useMemo(() => {
+    const country = selectedEntity?.country;
+    const allow = country ? TAX_CODES_BY_COUNTRY[country] : null;
+    if (!allow) return taxCodesMaster;
+    const allowSet = new Set(allow);
+    return taxCodesMaster.filter(t => allowSet.has(t.code));
+  }, [taxCodesMaster, selectedEntity]);
   const [entryDate, setEntryDate] = useState(existing?.entryDate ?? new Date().toISOString().slice(0, 10));
   const [currency, setCurrency] = useState<Currency>(existing?.currency ?? 'CAD');
   const [fxRate, setFxRate] = useState('1.0000');
@@ -70,6 +101,16 @@ export default function AccountingNewJournalPage() {
         }))
       : [emptyLine(), emptyLine(), emptyLine()]
   );
+
+  // Reset line-level scoped fields when the entity changes (and sync currency
+  // to entity base currency). Skip on initial mount / when editing existing.
+  const entityInitRef = useRef(true);
+  useEffect(() => {
+    if (entityInitRef.current) { entityInitRef.current = false; return; }
+    setLines(prev => prev.map(l => ({ ...l, accountId: '', branch: '', taxCode: '' })));
+    if (selectedEntity?.currency) setCurrency(selectedEntity.currency as Currency);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity]);
   const [files, setFiles] = useState<File[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [dragOver, setDragOver] = useState(false);
@@ -305,19 +346,28 @@ export default function AccountingNewJournalPage() {
                           value={l.accountId}
                           invalid={submitted && !l.accountId}
                           onChange={(v) => updateLine(idx, { accountId: v })}
+                          entityId={selectedEntity?.id}
                         />
                       </td>
                       <td className="px-2 py-2">
                         <Select value={l.branch || 'none'} onValueChange={(v) => updateLine(idx, { branch: v === 'none' ? '' : v })}>
-                          <SelectTrigger className="w-28 h-9"><SelectValue placeholder="—" /></SelectTrigger>
+                          <SelectTrigger className="w-28 h-9" disabled={!selectedEntity}><SelectValue placeholder="—" /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="none">—</SelectItem>
-                            {BRANCHES.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                            {entityBranches.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
                           </SelectContent>
                         </Select>
                       </td>
                       <td className="px-2 py-2">
-                        <div className="w-32"><DynamicSelect listKey="tax_codes" value={l.taxCode} onValueChange={(v) => updateLine(idx, { taxCode: v })} placeholder="—" /></div>
+                        <div className="w-32">
+                          <Select value={l.taxCode || 'none'} onValueChange={(v) => updateLine(idx, { taxCode: v === 'none' ? '' : v })}>
+                            <SelectTrigger className="h-9" disabled={!selectedEntity}><SelectValue placeholder="—" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">—</SelectItem>
+                              {scopedTaxCodes.map(t => <SelectItem key={t.code} value={t.code}>{t.label}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </td>
                       <td className="px-2 py-2">
                         <Input
@@ -431,13 +481,17 @@ export default function AccountingNewJournalPage() {
 }
 
 function AccountCombobox({
-  value, onChange, invalid,
-}: { value: string; onChange: (id: string) => void; invalid?: boolean }) {
+  value, onChange, invalid, entityId,
+}: { value: string; onChange: (id: string) => void; invalid?: boolean; entityId?: string }) {
   const [open, setOpen] = useState(false);
   const accounts = useAccounts();
   const activeAccounts = useMemo(
-    () => accounts.filter(a => a.status !== "INACTIVE" && a.isPostable !== false).slice().sort((a, b) => a.code.localeCompare(b.code)),
-    [accounts],
+    () => accounts
+      .filter(a => a.status !== "INACTIVE" && a.isPostable !== false)
+      .filter(a => !entityId || a.entityId === entityId || a.entityId == null)
+      .slice()
+      .sort((a, b) => a.code.localeCompare(b.code)),
+    [accounts, entityId],
   );
   const selected = activeAccounts.find(a => a.id === value);
   return (
@@ -446,10 +500,13 @@ function AccountCombobox({
         <Button
           variant="outline"
           role="combobox"
+          disabled={!entityId}
           className={cn("min-w-[280px] justify-between h-9 font-normal", invalid && 'border-destructive')}
         >
           <span className="truncate">
-            {selected ? `${selected.code} — ${selected.name}` : <span className="text-muted-foreground">Select account…</span>}
+            {selected
+              ? `${selected.code} — ${selected.name}`
+              : <span className="text-muted-foreground">{entityId ? 'Select account…' : 'Select entity first'}</span>}
           </span>
           <ChevronsUpDown className="w-4 h-4 opacity-50 flex-shrink-0" />
         </Button>

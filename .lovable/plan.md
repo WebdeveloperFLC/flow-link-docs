@@ -1,129 +1,53 @@
-## Country & Entity Access Scoping — Accounting Module
+## Problem
 
-Extends the existing `accounting_section_permissions` system with two new layers (country + entity) without touching CRM, commissions, institutions, personal wealth, or any data-table RLS.
+On `/accounting/journals/new`, after selecting an Entity (e.g. "Future Link Consultants Inc" — Canada), the line-level dropdowns are not filtered:
 
----
+- **Account** combobox shows every COA row across all entities (Canadian + Indian + shared), so a CAD entity can still pick `CA-1100 TD Bank — CAD` *and* `1210 GST Input Tax Credit` (India).
+- **Branch** dropdown is hard-coded to 4 generic labels (`Canada HQ`, `USA Corp`, `India Mumbai`, `India Delhi`) — none of which are real branches in our entities table.
+- **Tax code** dropdown shows the global tax_codes master (HST 13%, GST 5%, GST 18% IN, IGST 18% IN, VAT 5% AE, …) regardless of entity country.
 
-### 1. Database
+Result: a user posting a journal for a Canadian entity can pick Indian tax codes and Indian branches. Wrong.
 
-**Migration:** `add_accounting_user_entity_scope`
+## Fix — scope all three pickers to the selected Entity
 
-New table `public.accounting_user_entity_scope`:
+File: `src/accounting/pages/journals/AccountingNewJournalPage.tsx`
 
-```
-id                   uuid PK default gen_random_uuid()
-accounting_user_id   uuid NOT NULL REFERENCES accounting_users(id) ON DELETE CASCADE
-scope_type           text NOT NULL CHECK (scope_type IN ('country','entity'))
-country_code         text          -- 'IN' | 'CA' when scope_type='country'
-entity_id            uuid REFERENCES accounting_entities(id) ON DELETE CASCADE
-can_view             bool DEFAULT true
-can_edit             bool DEFAULT false
-created_at           timestamptz DEFAULT now()
-UNIQUE (accounting_user_id, scope_type, country_code, entity_id)
-```
+1. **Resolve the selected entity object** (we currently store only the entity name). Use `useAllEntities()` to look up id / country, and `useEntities()` for the Entity dropdown itself (companies only — unchanged).
 
-Additional CHECK: `(scope_type='country' AND country_code IS NOT NULL AND entity_id IS NULL) OR (scope_type='entity' AND entity_id IS NOT NULL AND country_code IS NULL)`.
+2. **Account picker** — pass `entityId` (and currency) into `AccountCombobox`. Filter:
+   - `a.entityId === selectedEntity.id` **or** `a.entityId == null` (shared/global accounts)
+   - keep existing `status !== INACTIVE` and `isPostable !== false` filters
+   - keep current group/type grouping
+   - When no entity is selected, disable the combobox with placeholder "Select entity first".
 
-Index on `accounting_user_id`.
+3. **Branch picker** — replace the hard-coded `BRANCHES` constant with branches derived from `useAllEntities()`:
+   - rows where `parentId === selectedEntity.id` **and** `type === "BRANCH" || "SUB_BRANCH"`
+   - sorted by name; value = branch id; label = branch name
+   - If the entity has no branches, show only `—` (none).
 
-**RLS** (enabled):
-- SELECT — `public.is_accounting_user(auth.uid())`
-- INSERT/UPDATE/DELETE — `public.is_accounting_admin(auth.uid())`
+4. **Tax code picker** — scope `tax_codes` master by entity country. Add a small per-country allow-list inside the page (no master-store changes):
+   ```
+   CA → NONE, HST_13, GST_5, ZERO_RATED, EXEMPT
+   IN → NONE, GST_5, GST_18, IGST_18, ZERO_RATED, EXEMPT, plus CGST_9/SGST_9/IGST_18 if present
+   AE → NONE, VAT_5, ZERO_RATED, EXEMPT
+   US → NONE, ZERO_RATED, EXEMPT
+   default → full list
+   ```
+   Build the filtered list from `useMaster("tax_codes")` and render with a plain `Select` (drop the `DynamicSelect` for this cell so we can filter options without touching the master store).
 
-**Seed (insert tool, after migration approved):**
-- Insert one row for Balveer (`accounts@futurelinkconsultants.ca`): `scope_type='country', country_code='IN', can_view=true, can_edit=true`.
-- Santosh (`SUPER_ADMIN`) gets no rows → unrestricted.
+5. **Reset line values on entity change** — when the entity changes, clear `accountId`, `branch`, `taxCode` on every line (and reset `currency` to the entity's base currency, matching what the Bank Account form already does). Prevents stale Indian selections sticking around after switching to a Canadian entity.
 
-No changes to existing tables, no changes to data-table RLS. Enforcement in Phase 1 is frontend-only as requested.
+## Out of scope
 
----
+- Master store schema (no `country` column added to `tax_codes`).
+- Other pages (AR invoice, AP bill, intercompany) — same pattern can be applied later if you want; this plan covers only the journals page the screenshot is from.
+- DB / RLS / migration changes — none needed.
 
-### 2. Resolution Rules (implemented in hook)
+## Verification
 
-For a given user, after loading their scope rows:
-
-1. **No rows** → full view + edit on every entity.
-2. **Country rows only** → entities are allowed iff their `country` ∈ user's allowed country codes. `can_edit` inherited per country.
-3. **Entity rows override country rows** for that specific entity (whether to expand or restrict).
-4. View=false on an entity hides it entirely; Edit=false makes it read-only.
-5. Admin roles (`SUPER_ADMIN`, `FINANCE_ADMIN`) bypass — always full access regardless of rows.
-
----
-
-### 3. Admin UI — `/accounting/access`
-
-Inside each user's expanded card (file: `src/accounting/pages/settings/AccountingAccessAdminPage.tsx`), add a new **Data Access** panel below the existing section-permissions grid.
-
-Layout:
-- Radio: ● Full access (default when no rows) / ○ Restricted.
-- When Restricted: entities grouped by country (`IN 🇮🇳`, `CA 🇨🇦`) from `accountingEntitiesStore`.
-- Per country header row: `[View] [Edit]` country-level toggles + label "Country level (all <country>)".
-- Indented per-entity rows beneath each country: `[View] [Edit]` for each.
-- Toggling country View/Edit ON cascades to all child entities (sets entity rows to match) — user can then uncheck individual entities to carve out exceptions.
-- `Edit` checkbox disabled when `View` is unchecked.
-- Buttons: **Save changes** (upserts/deletes rows for this user) and **Reset to full access** (deletes all rows for this user).
-- For `SUPER_ADMIN` / `FINANCE_ADMIN` users: panel is locked, shows shield icon + "Full data access (locked)" — matches existing section-permissions admin-lock styling.
-
-Save strategy: replace-all per user — delete existing rows for the user, then insert the new set in one transaction-like sequence (delete + bulk insert).
-
----
-
-### 4. Frontend Enforcement
-
-**New file:** `src/accounting/hooks/useEntityScope.ts`
-
-```
-useEntityScope() returns {
-  loading,
-  isUnrestricted,           // true for admins or no rows
-  allowedEntityIds,         // string[] | null  (null = all)
-  canViewEntity(entityId),  // boolean
-  canEditEntity(entityId),  // boolean
-  canViewCountry(country),  // boolean
-}
-```
-
-Loads `accounting_user_entity_scope` rows for current `auth.uid()` mapped through `accounting_users.auth_user_id`, joins with `accountingEntitiesStore` to resolve country→entity sets, applies Rules 1–5, memoizes.
-
-**Applied to (entity-selection + list filtering only — no data-table RLS changes):**
-
-| Page | Treatment |
-|---|---|
-| `/accounting/journals` | Entity dropdown filtered; journal list filtered; create/edit buttons hidden when `!canEdit`. |
-| `/accounting/coa` | Entity filter dropdown filtered; account list filtered; New/Edit/Toggle disabled when `!canEdit`. |
-| `/accounting/reports/trial-balance` | Entity dropdown filtered. |
-| `/accounting/reports/general-ledger` | Entity dropdown filtered. |
-| `/accounting/reports/pl` | Entity dropdown filtered. |
-| `/accounting/reports/bs` | Entity dropdown filtered. |
-| `/accounting/reports/reconciliation` | Entity scope filtered. |
-| `/accounting/reports/consolidated` | Entity checkbox list filtered. |
-| `/accounting/ap` | Entity filter + bill list filtered; add/edit hidden when `!canEdit`. |
-| `/accounting/ar` | Entity filter + invoice list filtered; add/edit hidden when `!canEdit`. |
-| `/accounting/bank-accounts` | Entity filter + account list filtered; add/edit hidden when `!canEdit`. |
-
-When an entity row is shown but `canEditEntity=false`, a small "Read-only" badge replaces edit affordances.
-
----
-
-### 5. Out of Scope (untouched)
-
-- Commission module, CRM/Clients/Leads, Institutions/Programs, Personal Wealth.
-- `BRIDGE_ENABLED` flags.
-- Existing RLS on accounting data tables (`accounting_journals`, `accounting_coa`, `accounting_bills`, etc.) — Phase 1 is frontend-only enforcement, as specified.
-- Existing section-permissions system (`accounting_section_permissions`).
-
----
-
-### 6. Verification Checklist
-
-1. Migration applied; table + RLS visible.
-2. `/accounting/access` shows Data Access panel for both users; Santosh locked.
-3. Balveer seeded with `country=IN, view+edit`.
-4. Sign in as Balveer → COA entity dropdown shows only India entities; Canadian entities hidden across all listed pages.
-5. Sign in as Santosh → all 14 entities visible.
-6. Existing section permission toggles unchanged in behaviour.
-
-### 7. Noticed Outside Scope (flagging only — no action)
-
-- Phase 1 enforces scope on the client only. A user who calls Supabase directly could still read other entities' rows. A Phase 2 follow-up to enforce this in RLS (via a security-definer `entity_allowed(uid, entity_id)` function applied to `accounting_*` tables) is the right next step but is explicitly excluded here.
-- `accounting_entities.country` is the source of truth for grouping — confirmed populated for all 14 rows (11 IN, 3 CA).
+1. Open `/accounting/journals/new`, select **Future Link Consultants Inc** (CA).
+   - Account combobox: only CA-prefixed + shared accounts; no India `1210 GST Input Tax Credit`.
+   - Branch: only `Toronto — Ontario` (+ Finksburg if you keep US branch under CA parent).
+   - Tax code: only `No tax / HST 13% / GST 5% / Zero-rated / Exempt`.
+2. Switch entity to **Future Link Consultants Pvt Ltd** (IN). Line values clear; pickers now show India branches + India tax codes.
+3. With no entity selected, account combobox is disabled.
