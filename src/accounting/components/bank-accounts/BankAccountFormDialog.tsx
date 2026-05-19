@@ -40,6 +40,8 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
 
   const [bankName, setBankName] = useState("");
   const [nickname, setNickname] = useState("");
+  const [accountName, setAccountName] = useState("");
+  const [accountNameOverridden, setAccountNameOverridden] = useState(false);
   const [holderName, setHolderName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [iban, setIban] = useState("");
@@ -81,6 +83,8 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setCurrency(initial.currency);
       setBankName(initial.bankName);
       setNickname(initial.nickname);
+      setAccountName(initial.accountName ?? initial.nickname);
+      setAccountNameOverridden(!!initial.accountName && initial.accountName !== initial.nickname);
       setHolderName(initial.holderName);
       setAccountNumber(initial.accountNumber);
       setIban(initial.iban ?? "");
@@ -104,6 +108,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setCountry("CA"); setEntityId(""); setBranchId(NONE);
       setCoaAccountId(""); setCurrency("CAD");
       setBankName(""); setNickname(""); setHolderName(""); setAccountNumber("");
+      setAccountName(""); setAccountNameOverridden(false);
       setIban(""); setSwift(""); setIfsc(""); setRoutingNumber(""); setTransitNumber("");
       setBranchCode(""); setBranchName(""); setBranchAddress("");
       setRmName(""); setRmEmail(""); setRmPhone("");
@@ -123,6 +128,18 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   // Reset branch when entity changes
   useEffect(() => { setBranchId(NONE); }, [entityId]);
 
+  // Reset linked COA ledger when entity changes (filtered by entity)
+  useEffect(() => {
+    if (!entityId) return;
+    setCoaAccountId((prev) => {
+      if (!prev) return prev;
+      const ledger = ledgers.find((a) => a.id === prev);
+      if (!ledger) return "";
+      if (ledger.entityId && ledger.entityId !== entityId) return "";
+      return prev;
+    });
+  }, [entityId, ledgers]);
+
   const submit = () => {
     const input: BankAccountInput = {
       country, entityId, branchId: branchId === NONE ? null : branchId,
@@ -130,6 +147,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       coaAccountId, currency,
       authorisedSignatoryIds: signatoryIds,
       bankName: bankName.trim(), nickname: nickname.trim(),
+      accountName: (accountName.trim() || nickname.trim()) || undefined,
       holderName: holderName.trim(), accountNumber: accountNumber.trim(),
       iban: iban.trim() || undefined,
       swift: swift.trim() || undefined,
@@ -194,7 +212,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                 </Select>
               </Field>
               <Field label="Linked COA ledger">
-                <LinkedCoaAccountSelect value={coaAccountId} onChange={setCoaAccountId} />
+                <LinkedCoaAccountSelect value={coaAccountId} onChange={setCoaAccountId} entityId={entityId || undefined} />
               </Field>
               <Field label="Currency">
                 <DynamicSelect listKey="currencies" value={currency} onValueChange={setCurrency} addLabel="currency" />
@@ -206,7 +224,27 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           <Section title="Bank details">
             <div className="grid grid-cols-2 gap-3">
               <Field label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HDFC Bank" /></Field>
-              <Field label="Account nickname"><Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="HDFC Operating" /></Field>
+              <Field label="Operating name">
+                <Input
+                  value={nickname}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setNickname(v);
+                    if (!accountNameOverridden) setAccountName(v);
+                  }}
+                  placeholder="HDFC Operating"
+                />
+              </Field>
+              <Field
+                label="Account name"
+                hint="Used as the display name in reports and journal entries"
+              >
+                <Input
+                  value={accountName}
+                  onChange={(e) => { setAccountName(e.target.value); setAccountNameOverridden(true); }}
+                  placeholder="Mirrors Operating name unless overridden"
+                />
+              </Field>
               <Field
                 label="Account holder name"
                 hint="Legal name as printed on the bank's records. Usually the company's legal name, but can differ for joint, escrow, DBA, or trust accounts."

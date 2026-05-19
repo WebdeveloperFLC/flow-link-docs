@@ -94,7 +94,7 @@ export default function AccountingBankAccountsPage() {
 
   const cols: ColDef<BankAccount>[] = [
     {
-      headerName: "Nickname", minWidth: 180, flex: 1,
+      headerName: "Operating name", minWidth: 180, flex: 1,
       cellRenderer: (p: ICellRendererParams<BankAccount>) =>
         p.data ? (
           <Link to={`/accounting/bank-accounts/${p.data.id}`} className="font-medium hover:text-primary">
@@ -215,7 +215,7 @@ export default function AccountingBankAccountsPage() {
                 data-search
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search bank, nickname, holder, account…"
+                placeholder="Search bank, operating name, holder, account…"
                 className="pl-8 h-9"
               />
             </div>

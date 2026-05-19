@@ -15,6 +15,7 @@ export interface BankAccount {
   // Bank details
   bankName: string;
   nickname: string;
+  accountName?: string;
   holderName: string;
   accountNumber: string;
   iban?: string;
