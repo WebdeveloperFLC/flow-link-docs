@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Pencil, UserCheck, Lock } from "lucide-react";
+import { Pencil, UserCheck, Lock, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fetchLead, markLeadConverted, fetchServiceCodeMap, type Lead } from "@/lib/leads";
 // badges shown inline via PageHeader description string
@@ -44,6 +45,7 @@ const LeadDetail = () => {
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
+  const [convertedClient, setConvertedClient] = useState<{ id: string; client_number: string | null } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -52,17 +54,14 @@ const LeadDetail = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const onConvert = async () => {
-    if (!lead) return;
-    if (!confirm("Mark this lead as converted? (Client registration form ships in Stage 3.)")) return;
-    try {
-      const updated = await markLeadConverted(lead.id);
-      setLead(updated);
-      toast.success("Lead marked converted. Client registration form coming in Stage 3.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed");
-    }
-  };
+  useEffect(() => {
+    if (!lead || lead.status !== "converted") return;
+    (supabase.from("clients") as any)
+      .select("id, client_number")
+      .eq("source_lead_id", lead.id)
+      .maybeSingle()
+      .then(({ data }: any) => { if (data) setConvertedClient(data); });
+  }, [lead]);
 
   if (loading) return <AppLayout><div className="p-12 text-center text-muted-foreground">Loading…</div></AppLayout>;
   if (!lead) return <AppLayout><div className="p-12 text-center text-muted-foreground">Lead not found</div></AppLayout>;
@@ -77,10 +76,19 @@ const LeadDetail = () => {
             <Button variant="outline" onClick={() => nav(`/leads/new?id=${lead.id}`)}>
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>
-            {lead.status !== "converted" && (
-              <Button onClick={onConvert}>
+            {lead.status !== "converted" ? (
+              <Button onClick={() => nav(`/clients/new?lead_id=${lead.id}`)}>
                 <UserCheck className="h-4 w-4 mr-1" /> Convert to Client
               </Button>
+            ) : convertedClient ? (
+              <Button variant="outline" asChild>
+                <Link to={`/clients/${convertedClient.id}`}>
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Converted{convertedClient.client_number ? ` · ${convertedClient.client_number}` : ""}
+                </Link>
+              </Button>
+            ) : (
+              <Badge variant="secondary">Converted</Badge>
             )}
           </div>
         }
