@@ -49,6 +49,8 @@ export default function InstitutionDetailPage() {
   const [newSourceType, setNewSourceType] = useState("website_url");
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
+  const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
+  const [sourceErrors, setSourceErrors] = useState<Record<string, string | null>>({});
   const urlInputRef = useRef<HTMLInputElement>(null);
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
@@ -97,7 +99,7 @@ export default function InstitutionDetailPage() {
   ];
 
   const load = async () => {
-    const [i, s, d, a, c, p, mc, sg] = await Promise.all([
+    const [i, s, d, a, c, p, mc, sg, j] = await Promise.all([
       supabase.from("upi_institutions").select("*").eq("id", id).single(),
       supabase.from("upi_institution_sources").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_uploaded_documents").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
@@ -106,10 +108,16 @@ export default function InstitutionDetailPage() {
       supabase.from("upi_promotions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_marketing_campaigns").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_ai_suggestions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
+      supabase.from("upi_sync_jobs").select("source_id,status,error_summary").eq("institution_id", id).order("started_at", { ascending: false }).limit(100),
     ]);
     setInst(i.data as UpiInstitution); setSources((s.data ?? []) as UpiSource[]); setDocs(d.data ?? []);
     setAgreements(a.data ?? []); setCommissions(c.data ?? []); setPromos(p.data ?? []);
     setCampaigns(mc.data ?? []); setSuggestions((sg.data ?? []) as UpiSuggestion[]);
+    const latestErrors: Record<string, string | null> = {};
+    (j.data ?? []).forEach((row: any) => {
+      if (row.source_id && latestErrors[row.source_id] === undefined) latestErrors[row.source_id] = row.error_summary ?? null;
+    });
+    setSourceErrors(latestErrors);
   };
   useEffect(() => { load(); }, [id]);
 
