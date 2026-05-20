@@ -19,7 +19,7 @@ import { addArInvoice } from "../../stores/arInvoicesStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
-import { revenueTypesFor } from "../../lib/coaCategoryMap";
+import { matchesRevenueCategory } from "../../lib/coaCategoryMap";
 
 const TAG_SUGGESTIONS = ["urgent", "vip", "scholarship", "installment", "referral"];
 
@@ -62,10 +62,8 @@ export default function AccountingNewInvoicePage() {
     (a.entityId === entityId || a.entityId === null) &&
     a.currency === currency;
 
-  const mappedRevenueTypes = revenueTypesFor(serviceType);
-
   const eligibleRevenueAccounts = accounts.filter(
-    (a) => coaScope(a) && a.groupCode === "REVENUE" && mappedRevenueTypes.includes(a.typeCode),
+    (a) => coaScope(a) && a.groupCode === "REVENUE" && matchesRevenueCategory(a, serviceType),
   );
   const eligibleArAccounts = accounts.filter(
     (a) => coaScope(a) && a.groupCode === "ASSET" && a.typeCode === "AR",

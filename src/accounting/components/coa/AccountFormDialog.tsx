@@ -12,6 +12,9 @@ import { CoaAccount, CoaAccountInput, CoaAccountStatus } from "../../types/coa";
 import { useGroups, useTypes, useSubTypes, HIDDEN_TYPE_CODES } from "../../stores/coaMasterStore";
 import { addAccount, getAccounts, getDescendantIds, updateAccount } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
+import { getExpenseCategories, getRevenueCategories, setAccountCategories } from "../../stores/coaCategoriesStore";
+import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "../../data/mockAP";
+import { useMaster } from "../../stores/accountingMastersStore";
 import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
 import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
@@ -48,6 +51,10 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const [status, setStatus] = useState<CoaAccountStatus>("ACTIVE");
   const [isPostable, setIsPostable] = useState<boolean>(true);
   const [description, setDescription] = useState("");
+  const [expenseCategories, setExpenseCategoriesState] = useState<ExpenseCategory[]>([]);
+  const [revenueCategories, setRevenueCategoriesState] = useState<string[]>([]);
+
+  const revenueOptions = useMaster("client_categories");
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -70,6 +77,8 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setStatus(initial.status);
       setIsPostable(initial.isPostable !== false);
       setDescription(initial.description ?? "");
+      setExpenseCategoriesState(getExpenseCategories(initial.code) as ExpenseCategory[]);
+      setRevenueCategoriesState(getRevenueCategories(initial.code));
     } else {
       const parent = forcedParentId ? accounts.find((a) => a.id === forcedParentId) : null;
       setCode("");
@@ -86,6 +95,8 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setStatus("ACTIVE");
       setIsPostable(true);
       setDescription("");
+      setExpenseCategoriesState([]);
+      setRevenueCategoriesState([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initial, forcedParentId]);
@@ -181,8 +192,26 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
     };
     const result = initial ? updateAccount(initial.id, input) : addAccount(input);
     if (result.ok === false) { toast.error(result.error.message); return; }
+    // Persist category links keyed by the (possibly new) account code.
+    setAccountCategories(input.code, {
+      expense: input.groupCode === "EXPENSE" || input.groupCode === "ASSET" ? expenseCategories : [],
+      revenue: input.groupCode === "REVENUE" ? revenueCategories : [],
+    });
     toast.success(initial ? `${input.name} updated` : `${input.name} added`);
     onOpenChange(false);
+  };
+
+  const showExpenseCats = groupCode === "EXPENSE" || groupCode === "ASSET";
+  const showRevenueCats = groupCode === "REVENUE";
+  const toggleExpenseCat = (c: ExpenseCategory) =>
+    setExpenseCategoriesState((prev) =>
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
+    );
+  const toggleRevenueCat = (label: string) => {
+    const v = label.trim().toLowerCase();
+    setRevenueCategoriesState((prev) =>
+      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+    );
   };
 
   return (
@@ -330,6 +359,53 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <Label>Description</Label>
               <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Optional notes about how this account is used." />
             </div>
+
+            {(showExpenseCats || showRevenueCats) && (
+              <div className="grid gap-2 rounded-md border border-input p-3">
+                <Label className="text-sm">Categories</Label>
+                <p className="text-[11px] text-muted-foreground -mt-1">
+                  Controls which {showRevenueCats ? "AR service types" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
+                </p>
+                {showExpenseCats && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {(Object.entries(EXPENSE_CATEGORY_LABELS) as [ExpenseCategory, string][]).map(([code, label]) => {
+                      const on = expenseCategories.includes(code);
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          onClick={() => toggleExpenseCat(code)}
+                          className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent"}`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {showRevenueCats && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {revenueOptions.length === 0 && (
+                      <span className="text-[11px] text-muted-foreground">No service types defined in Masters → client_categories.</span>
+                    )}
+                    {revenueOptions.map((o) => {
+                      const v = o.label.trim().toLowerCase();
+                      const on = revenueCategories.includes(v);
+                      return (
+                        <button
+                          key={o.code ?? o.label}
+                          type="button"
+                          onClick={() => toggleRevenueCat(o.label)}
+                          className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent"}`}
+                        >
+                          {o.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter>
