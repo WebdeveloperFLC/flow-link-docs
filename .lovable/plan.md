@@ -1,36 +1,58 @@
 ## Problem
 
-On `/accounting/ap/new`, the **Linked bank account** dropdown ignores the selected Entity. It also reads from the static `SEED_BANK_ACCOUNTS` seed instead of the live bank accounts store, and only filters by currency. So switching Entity does nothing, and newly added bank accounts never appear.
+On `/accounting/ap/new` (and `/accounting/ar/new`), the **Linked COA account** is a hard-coded free-text input ("2000 — Accounts payable" / "1200 — Accounts receivable"). It ignores entity + currency, never reads the live COA store, and conflates the expense/revenue ledger with the AP/AR control account. So a Rent bill cannot be coded to `5200 Rent expense`, and every bill posts against `2000` regardless of the entity's actual chart.
 
-(Same dropdown in the screenshot — when entity = "India Foreign Currency" company, it should only show that company's bank accounts; today it lists every seed account that happens to match the currency.)
+## Fix (frontend + thin store wiring)
 
-## Fix
+### 1. AP New bill — replace single COA input with two Selects
 
-In `src/accounting/pages/ap/AccountingNewBillPage.tsx`:
+`src/accounting/pages/ap/AccountingNewBillPage.tsx`:
 
-1. Replace `SEED_BANK_ACCOUNTS` import with the live store:
-   ```ts
-   import { useBankAccounts } from "../../stores/bankAccountsStore";
-   ```
-   and `const bankAccounts = useBankAccounts();`
+- **Expense / asset account (Dr)** — user-selectable, REQUIRED.
+  Source `useAccounts()` filtered to:
+  ```ts
+  a.status === "ACTIVE"
+  && a.isPostable
+  && (a.entityId === entityId || a.entityId === null)
+  && a.currency === currency
+  && (a.groupCode === "EXPENSE" || a.groupCode === "ASSET")
+  ```
+- **AP control account (Cr)** — auto-prefilled & read-only-ish (still a Select so it can be changed for exceptional cases). Default = first `groupCode === "LIABILITY" && typeCode === "AP"` for the entity+currency.
+- Empty / not-ready states inside the Select (same pattern already used for bank dropdown).
+- Clear the chosen expense account when entity/currency changes and it's no longer eligible.
+- `buildPayload` writes `linkedExpenseCOACode` (Dr) and `linkedCOACode` (Cr = AP).
 
-2. Compute the filtered list reactively from `entityId` + `currency`:
-   ```ts
-   const eligibleBanks = bankAccounts.filter(
-     (b) => b.status === "ACTIVE"
-         && b.entityId === entityId
-         && b.currency === currency
-   );
-   ```
+### 2. AR New invoice — mirror fix
 
-3. Render `eligibleBanks` in the `<Select>` instead of the seed filter.
+`src/accounting/pages/ar/AccountingNewInvoicePage.tsx`:
 
-4. When `entityId` or `currency` changes and the current `bankId` is no longer in `eligibleBanks`, clear it (`useEffect` resetting `bankId`).
+- **Revenue account (Cr)** — user-selectable, REQUIRED, filtered to `groupCode === "REVENUE"` + entity + currency.
+- **AR control account (Dr)** — auto-prefilled, default = first `groupCode === "ASSET" && typeCode === "AR"` for the entity+currency.
+- `buildPayload` writes `linkedRevenueCOACode` (Cr) and `linkedCOACode` (Dr = AR).
 
-5. Empty state inside the dropdown when `entityId` is set but `eligibleBanks` is empty: a disabled `<SelectItem>` reading "No bank accounts for this entity / currency — add one in Bank accounts." Before any entity is picked, show "Select an entity first."
+### 3. Type fields
+
+- `src/accounting/data/mockAP.ts` — add `linkedExpenseCOACode?: string` to `VendorBill`.
+- `src/accounting/data/mockAR.ts` — add `linkedRevenueCOACode?: string` to `CustomerInvoice`.
+
+### 4. Auto-post uses the chosen accounts
+
+`src/accounting/stores/apBillsStore.ts`:
+- `findExpenseAccount(bill)` → first try `bill.linkedExpenseCOACode`, then current heuristic.
+- AP side: first try `bill.linkedCOACode`, then `findApAccount()`.
+
+### 5. Journal prefill
+
+`src/accounting/pages/journals/AccountingNewJournalPage.tsx` — accrual leg uses `bill.linkedExpenseCOACode` for the Dr line and `bill.linkedCOACode` for the Cr (AP) line; fall back to existing heuristics if unset.
+
+## Worked examples (must match)
+
+- AP Rent bill (Canada entity, CAD): Dr `CA-5200 Rent expense` / Cr `2000 Accounts payable`.
+- AR Commission invoice (Canada entity, CAD): Dr `1200 Accounts receivable` / Cr `4301 Canada institution commission`.
 
 ## Out of scope
 
-- No DB/schema changes.
-- Detail page, journals page, and bank store untouched.
-- Currency matching is preserved (a CAD bill should not post to an INR bank). If you want to drop the currency filter too, say so and I'll remove it.
+- No DB / schema migrations.
+- No changes to `coaStore`, `bankAccountsStore`, or journal posting trigger logic (we only change *which* account is chosen).
+- AR bank dropdown stays as-is for now (still uses `SEED_BANK_ACCOUNTS`); fix tracked separately.
+- Currency filter preserved on every dropdown (no cross-currency mixing).
