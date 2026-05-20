@@ -393,10 +393,22 @@ Deno.serve(async (req) => {
           .select("id, metadata")
           .eq("id", source.document_id)
           .single();
-        const docKind = (docRow?.metadata as any)?.doc_kind
-          ?? (source.source_type === "excel_sheet" || source.source_type === "csv_feed"
-                ? "program_sheet"
-                : "brochure");
+        // Priority: explicit source_type (Sources tab choice) > document's stored
+        // doc_kind > legacy mime/type guess. This ensures Sources can override
+        // the file's original kind (e.g. a brochure used for promotion sweeps).
+        const SOURCE_TYPE_TO_KIND: Record<string, string> = {
+          program_sheet: "program_sheet",
+          excel_sheet: "program_sheet",
+          csv_feed: "program_sheet",
+          brochure: "brochure",
+          pdf_brochure: "brochure",
+          agreement: "agreement",
+          commission_sheet: "commission_sheet",
+          promotion_campaign: "promotion_campaign",
+        };
+        const docKind = SOURCE_TYPE_TO_KIND[source.source_type ?? ""]
+          ?? (docRow?.metadata as any)?.doc_kind
+          ?? "brochure";
         const { data: orchRes, error: orchErr } = await supabase.functions.invoke("upi-document-orchestrator", {
           body: { document_id: source.document_id, institution_id: source.institution_id, doc_kind: docKind },
         });
