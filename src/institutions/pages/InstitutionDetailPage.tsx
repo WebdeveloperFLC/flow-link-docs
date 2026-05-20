@@ -160,19 +160,48 @@ export default function InstitutionDetailPage() {
     toast.success("Source added — click Sync now to fetch courses");
   };
 
-  const syncNow = async (source: UpiSource) => {
-    toast.info("Starting sync…");
+  const pollSyncJob = async (jobId: string) => {
+    for (let attempt = 0; attempt < 90; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { data } = await supabase
+        .from("upi_sync_jobs")
+        .select("status,error_summary,records_upserted,pages_scanned,pages_discovered")
+        .eq("id", jobId)
+        .maybeSingle();
+      if (!data || ["running", "queued"].includes(data.status as string)) continue;
+      return data as any;
+    }
+    return null;
+  };
+
+  const syncNow = async (source: UpiSource, quiet = false) => {
+    if (!quiet) toast.info("Sync started — watching job status…");
+    setSyncingSourceIds((prev) => new Set(prev).add(source.id));
     await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
     const { data, error } = await supabase.functions.invoke("upi-sync-source", {
       body: { source_id: source.id },
     });
     if (error) {
+      setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
       toast.error(error.message);
-    } else {
-      const res = data as { extracted?: number; upserted?: number; rejected?: number };
-      toast.success(`Sync complete — ${res?.upserted ?? 0} course(s) staged for review`);
+      await load();
+      return 0;
     }
-    load();
+    const jobId = (data as any)?.job_id;
+    const job = jobId ? await pollSyncJob(jobId) : null;
+    setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
+    await load();
+    if (!job) {
+      if (!quiet) toast.info("Sync is still running — refresh in a moment to see results");
+      return 0;
+    }
+    if (job.status === "failed") {
+      toast.error(job.error_summary ?? "Sync failed");
+      return 0;
+    }
+    const upserted = job.records_upserted ?? 0;
+    if (!quiet) toast.success(`Sync ${job.status} — ${upserted} course(s) staged for review`);
+    return upserted;
   };
 
   const syncAll = async () => {
@@ -181,9 +210,7 @@ export default function InstitutionDetailPage() {
     let total = 0;
     for (const s of sources) {
       try {
-        const { data, error } = await supabase.functions.invoke("upi-sync-source", { body: { source_id: s.id } });
-        if (error) toast.error(`${s.url}: ${error.message}`);
-        else total += (data as any)?.upserted ?? 0;
+        total += await syncNow(s, true);
       } catch (e: any) {
         toast.error(`${s.url}: ${e?.message ?? "failed"}`);
       }
