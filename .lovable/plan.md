@@ -1,38 +1,56 @@
-## Goal
-Add Firecrawl as a third-tier fallback in the sync pipeline so Cloudflare-protected pages (like Brock's graduate programs) succeed even when Jina credits are exhausted and direct fetch returns 403.
+## Problem
 
-## Fetch order (after change)
-1. **Jina Reader** (current primary) — fast, cheap, LLM-ready markdown
-2. **Direct fetch** with browser-like User-Agent (current secondary) — handles simple sites
-3. **Firecrawl** (new tertiary) — handles Cloudflare/JS-challenge sites
+The uploaded brochure shows a broken-image icon in the AI Review preview. The file was uploaded fine and the AI pipeline ran (status `extracted`, 95% confidence) — the issue is only the inline PDF preview.
 
-If all three fail, mark source as `failed` with a clear actionable message.
+Looking at the DB row, the stored file name and storage key both contain literal `%20` characters:
 
-## Setup steps
-1. Connect Firecrawl via Connectors (one-click managed connection — comes with free credits, no API key entry required).
-2. Confirm `FIRECRAWL_API_KEY` is available in edge functions.
+```
+file_name: ULeth%20InternationalViewbook%202026%20Screen.pdf
+file_path: 4d564a37-.../1779309163025-ULeth%20InternationalViewbook%202026%20Screen.pdf
+```
 
-## Code changes
-- **`supabase/functions/upi-sync-source/index.ts`**
-  - Add `fetchViaFirecrawl(url, maxChars)` helper that calls `POST https://api.firecrawl.dev/v2/scrape` with `formats: ['markdown']` and `onlyMainContent: true`.
-  - In the fetch chain, after Jina fails AND direct fetch returns 403 / Cloudflare HTML, call Firecrawl.
-  - On success, return `{ md, via: 'firecrawl' }`.
-  - On Firecrawl 402 (out of credits), surface: "Firecrawl credits exhausted — top up at firecrawl.dev or reconnect a paid plan."
-  - Only attempt Firecrawl if `FIRECRAWL_API_KEY` is set; otherwise keep current behavior.
+The user's source file already had `%20` in its name (likely saved from a URL). When `supabase.storage.createSignedUrl(path)` runs, it percent-encodes that path, turning each `%` into `%25` → the resulting URL points to `…%2520…` which does not match the stored object key, so storage returns 400 and the iframe renders the broken icon. New uploads with spaces or other special characters will hit the same class of bug.
 
-- **`supabase/functions/upi-sync-process-batch/index.ts`**
-  - Same three-tier fetch chain for per-program page scraping.
+## Fix
 
-- **No frontend changes required.** The existing `sourceErrors` UI already displays the `error_summary`, which will now reflect the deeper fallback chain.
+### 1. Sanitize file names on upload (`src/institutions/pages/InstitutionDetailPage.tsx`)
+
+In `uploadDoc`, build the storage path from a sanitized version of `file.name`:
+
+- Lowercase the extension, keep alnum, dash, dot, underscore.
+- Replace any other character (spaces, `%`, parentheses, accents, etc.) with `-`.
+- Collapse repeated `-`.
+- Keep the original `file.name` as `file_name` in the DB row so the UI still shows the user's name; only the `file_path` (storage key) is sanitized.
+
+```text
+path = `${id}/${Date.now()}-${safeName(file.name)}`
+```
+
+Apply the same `safeName` helper in any other upload entry points if present (sources / agreements re-upload). Scope here: just the institutions upload path the user hit.
+
+### 2. Repair the existing broken row (one-off, in the same change)
+
+Add a tiny "Fix preview" action only when the current `file_path` contains `%`:
+- Copy the storage object from the broken key to a sanitized key (`storage.copy(old, new)`), then `remove([old])`, then update `file_path` on the row.
+- This avoids re-uploading the 50 MB viewbook.
+
+Alternatively, do this as a one-shot script via the orchestrator UI — but inline repair button is faster for the user.
+
+### 3. Preview fallback (`src/institutions/components/AiReviewPanel.tsx`)
+
+Even after the path fix, browsers sometimes refuse to inline-render very large PDFs. Add a small fallback under the iframe:
+
+- If iframe `onError` fires, or after a 4s timeout with no load event, show a "Open PDF in new tab" link using the same signed URL plus a "Download" button.
+- No behavior change when the iframe loads normally.
 
 ## Out of scope
-- No DB migration.
-- No changes to roles/permissions/auth.
-- No changes to Canadore/Algolia path (still works as-is).
-- No removal of Jina or direct fetch — Firecrawl is only used when both fail.
+
+- The brochure extraction quality (`upi-detect-promotions` reads a binary PDF as text and lets the AI hallucinate "promotions") is a separate, deeper issue. Not touching it in this change — if you want, I can follow up with a proper PDF→text step for brochures.
+- No DB migration, no edge function changes, no auth/roles changes.
 
 ## Verification
-1. Deploy both edge functions.
-2. Trigger `Sync now` on Brock graduate URL — expect Firecrawl path to succeed and programs to be discovered.
-3. Trigger `Sync now` on Canadore URL — expect existing Algolia path still works (no regression).
-4. Check `upi_sync_jobs` logs for `via: 'firecrawl'` marker on Brock.
+
+- Upload the same `ULeth …%20… .pdf` again → new row's `file_path` has no `%` and preview renders inline.
+- Click "Fix preview" on the existing row → storage object is renamed, iframe loads.
+- Upload a PDF with spaces, parentheses, accents → preview renders.
+- Existing already-working previews keep working (no regression on normal filenames).
