@@ -16,6 +16,7 @@ import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
 import { useBankAccounts } from "../../stores/bankAccountsStore";
 import { useVendors } from "../../stores/vendorsStore";
 import { addApBill } from "../../stores/apBillsStore";
+import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
@@ -33,6 +34,7 @@ export default function AccountingNewBillPage() {
   const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
   const bankAccounts = useBankAccounts();
+  const accounts = useAccounts();
 
   const [vendor, setVendor] = useState(""); const [vendorEmail, setVendorEmail] = useState(""); const [vendorPhone, setVendorPhone] = useState("");
   const [category, setCategory] = useState(""); const [department, setDepartment] = useState("");
@@ -41,7 +43,8 @@ export default function AccountingNewBillPage() {
   const [billNumber, setBillNumber] = useState(""); const [billDate, setBillDate] = useState(new Date().toISOString().slice(0, 10)); const [dueDate, setDueDate] = useState("");
   const [subtotal, setSubtotal] = useState<number>(0); const [taxCode, setTaxCode] = useState(""); const [taxAmount, setTaxAmount] = useState<number>(0);
   const [description, setDescription] = useState(""); const [notes, setNotes] = useState("");
-  const [coa, setCoa] = useState("2000 — Accounts payable"); const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
+  const [expenseCoaId, setExpenseCoaId] = useState(""); const [apCoaId, setApCoaId] = useState("");
+  const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
   const [tags, setTags] = useState<string[]>([]); const [tagInput, setTagInput] = useState("");
   const [filename, setFilename] = useState("");
 
@@ -55,9 +58,35 @@ export default function AccountingNewBillPage() {
     (b) => b.status === "ACTIVE" && b.entityId === entityId && b.currency === currency,
   );
 
+  const coaScope = (a: typeof accounts[number]) =>
+    a.status === "ACTIVE" && a.isPostable &&
+    (a.entityId === entityId || a.entityId === null) &&
+    a.currency === currency;
+
+  const eligibleExpenseAccounts = accounts.filter(
+    (a) => coaScope(a) && (a.groupCode === "EXPENSE" || a.groupCode === "ASSET"),
+  );
+  const eligibleApAccounts = accounts.filter(
+    (a) => coaScope(a) && a.groupCode === "LIABILITY" && a.typeCode === "AP",
+  );
+
   useEffect(() => {
     if (bankId && !eligibleBanks.some((b) => b.id === bankId)) setBankId("");
   }, [entityId, currency, bankId, eligibleBanks]);
+
+  // Clear expense COA if it's no longer eligible after entity/currency change.
+  useEffect(() => {
+    if (expenseCoaId && !eligibleExpenseAccounts.some((a) => a.id === expenseCoaId)) {
+      setExpenseCoaId("");
+    }
+  }, [entityId, currency, expenseCoaId, eligibleExpenseAccounts]);
+
+  // Auto-pick AP control account when entity/currency changes.
+  useEffect(() => {
+    if (!entityId) { setApCoaId(""); return; }
+    if (apCoaId && eligibleApAccounts.some((a) => a.id === apCoaId)) return;
+    setApCoaId(eligibleApAccounts[0]?.id ?? "");
+  }, [entityId, currency, apCoaId, eligibleApAccounts]);
 
   function applyTax(code: string) {
     setTaxCode(code);
@@ -70,6 +99,8 @@ export default function AccountingNewBillPage() {
     const cc = (["CA","US","IN","AE"] as const).includes(country as never) ? (country as VendorBill["branchCountry"]) : "OTHER";
     const cur = (["CAD","USD","INR","AED","GBP","AUD","EUR"] as const).includes(currency as never) ? (currency as VendorBill["currency"]) : "CAD";
     const pm = (["BANK_TRANSFER","CHEQUE","CASH","CREDIT_CARD","UPI","WIRE","OTHER"] as const).includes(payMethod as never) ? (payMethod as VendorBill["paymentMethod"]) : undefined;
+    const expenseAcc = accounts.find((a) => a.id === expenseCoaId);
+    const apAcc = accounts.find((a) => a.id === apCoaId);
     return {
       billNumber, vendor, vendorEmail: vendorEmail || undefined, vendorPhone: vendorPhone || undefined,
       vendorCategory: "OTHER" as VendorBill["vendorCategory"],
@@ -78,7 +109,10 @@ export default function AccountingNewBillPage() {
       billDate, dueDate, currency: cur, subtotal,
       taxCode: masterLabel("tax_codes", taxCode) || taxCode || "NONE",
       taxAmount, totalAmount: total,
-      status, linkedCOACode: "2000", linkedBankAccountId: bankId || undefined,
+      status,
+      linkedCOACode: apAcc?.code ?? "2000",
+      linkedExpenseCOACode: expenseAcc?.code,
+      linkedBankAccountId: bankId || undefined,
       paymentMethod: pm, notes: notes || undefined,
       createdBy: "Current user", tags: tags.length ? tags : undefined,
     };
@@ -93,6 +127,8 @@ export default function AccountingNewBillPage() {
     const r = fullSchema.safeParse({ vendor, billNumber, entity: entityName, currency, billDate, dueDate, subtotal, description });
     if (!r.success) { toast.error(r.error.errors[0]?.message ?? "Please complete required fields"); return; }
     if (dueDate < billDate) { toast.error("Due date must be on or after bill date"); return; }
+    if (!expenseCoaId) { toast.error("Pick an expense/asset account from the chart of accounts"); return; }
+    if (!apCoaId) { toast.error("No AP control account available for this entity / currency — add one in Chart of accounts"); return; }
     addApBill(buildPayload("PENDING_REVIEW"));
     toast.success("Bill submitted for review"); navigate("/accounting/ap");
   }
@@ -149,7 +185,38 @@ export default function AccountingNewBillPage() {
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
-          <Field label="Linked COA account"><Input value={coa} onChange={(e) => setCoa(e.target.value)} /></Field>
+          <Field label="Expense / asset account (Dr) *">
+            <Select value={expenseCoaId || "__none__"} onValueChange={(v) => setExpenseCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
+              <SelectTrigger><SelectValue placeholder={entityId ? "Select expense account…" : "Select an entity first"} /></SelectTrigger>
+              <SelectContent>
+                {!entityId ? (
+                  <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : eligibleExpenseAccounts.length === 0 ? (
+                  <SelectItem value="__none__" disabled>No {currency} expense / asset accounts for this entity — add one in Chart of accounts</SelectItem>
+                ) : (
+                  eligibleExpenseAccounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="AP control account (Cr)">
+            <Select value={apCoaId || "__none__"} onValueChange={(v) => setApCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
+              <SelectTrigger><SelectValue placeholder={entityId ? "Auto-selected" : "Select an entity first"} /></SelectTrigger>
+              <SelectContent>
+                {!entityId ? (
+                  <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : eligibleApAccounts.length === 0 ? (
+                  <SelectItem value="__none__" disabled>No {currency} AP account for this entity — add one in Chart of accounts</SelectItem>
+                ) : (
+                  eligibleApAccounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Linked bank account">
             <Select value={bankId || "__none__"} onValueChange={(v) => setBankId(v === "__none__" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Select bank…" /></SelectTrigger>

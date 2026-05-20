@@ -48,6 +48,7 @@ export interface CustomerInvoice {
   linkedJournalId?: string;
   linkedBankAccountId?: string;
   linkedCOACode: string;
+  linkedRevenueCOACode?: string;
   paidDate?: string;
   paymentMethod?: 'BANK_TRANSFER' | 'CASH' | 'CHEQUE' | 'UPI' | 'CARD' | 'WIRE' | 'OTHER';
   paymentReference?: string;

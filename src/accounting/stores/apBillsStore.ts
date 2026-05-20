@@ -233,22 +233,31 @@ function makeLine(opts: {
   };
 }
 
-function findApAccount() {
+function findApAccount(bill?: VendorBill) {
   const coa = getAccounts();
-  return coa.find((a) => a.code === "2000" && a.isPostable !== false && a.status !== "INACTIVE");
+  const postable = (a: any) => a.isPostable !== false && a.status !== "INACTIVE";
+  if (bill?.linkedCOACode) {
+    const chosen = coa.find((a) => a.code === bill.linkedCOACode && postable(a));
+    if (chosen) return chosen;
+  }
+  return coa.find((a) => a.code === "2000" && postable(a))
+    ?? coa.find((a) => a.groupCode === "LIABILITY" && a.typeCode === "AP" && postable(a));
 }
 
 function findExpenseAccount(bill: VendorBill) {
   const coa = getAccounts();
-  const ap = findApAccount();
-  // Prefer the bill's linkedCOACode if it differs from AP and is postable.
-  const linked = coa.find((a) => a.code === bill.linkedCOACode && a.isPostable !== false && a.status !== "INACTIVE");
+  const ap = findApAccount(bill);
+  const postable = (a: any) => a.isPostable !== false && a.status !== "INACTIVE";
+  // 1. Prefer the explicit expense account chosen on the bill.
+  if (bill.linkedExpenseCOACode) {
+    const chosen = coa.find((a) => a.code === bill.linkedExpenseCOACode && postable(a));
+    if (chosen && (!ap || chosen.id !== ap.id)) return chosen;
+  }
+  // 2. Back-compat: linkedCOACode used to hold the expense account.
+  const linked = coa.find((a) => a.code === bill.linkedCOACode && postable(a));
   if (linked && (!ap || linked.id !== ap.id)) return linked;
-  // Fallback: first postable EXPENSE-group account (entity-scoped if possible).
-  const expenses = coa.filter(
-    (a) => a.groupCode === "EXPENSE" && a.isPostable !== false && a.status !== "INACTIVE",
-  );
-  return expenses[0];
+  // 3. Fallback: first postable EXPENSE-group account.
+  return coa.find((a) => a.groupCode === "EXPENSE" && postable(a));
 }
 
 function findBankCoaAccount(bill: VendorBill) {
@@ -269,7 +278,7 @@ function findBankCoaAccount(bill: VendorBill) {
 }
 
 function autoPostAccrual(bill: VendorBill) {
-  const ap = findApAccount();
+  const ap = findApAccount(bill);
   const expense = findExpenseAccount(bill);
   if (!ap || !expense || ap.id === expense.id) {
     toast.error("Could not auto-post accrual journal — open it manually");
@@ -310,7 +319,7 @@ function autoPostAccrual(bill: VendorBill) {
 }
 
 function autoPostPayment(bill: VendorBill) {
-  const ap = findApAccount();
+  const ap = findApAccount(bill);
   const bank = findBankCoaAccount(bill);
   if (!ap || !bank) {
     toast.error("Could not auto-post payment journal — payment journal pending");

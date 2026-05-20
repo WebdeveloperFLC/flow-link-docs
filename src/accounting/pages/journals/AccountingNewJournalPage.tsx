@@ -181,8 +181,11 @@ export default function AccountingNewJournalPage() {
       ? `Payment for ${bill.billNumber}`
       : `AP bill ${bill.billNumber} — ${bill.vendor}`);
 
-    const ap = accounts.find(a => a.code === '2000' && a.isPostable !== false);
-    const expense = accounts.find(a => a.code === bill.linkedCOACode && a.isPostable !== false && a.id !== ap?.id)
+    const ap = accounts.find(a => a.code === (bill.linkedCOACode || '2000') && a.isPostable !== false)
+      ?? accounts.find(a => a.code === '2000' && a.isPostable !== false);
+    const expense =
+      (bill.linkedExpenseCOACode && accounts.find(a => a.code === bill.linkedExpenseCOACode && a.isPostable !== false))
+      ?? accounts.find(a => a.code === bill.linkedCOACode && a.isPostable !== false && a.id !== ap?.id)
       ?? accounts.find(a => a.groupCode === 'EXPENSE' && a.isPostable !== false);
     const banks = getBankAccounts();
     const linkedBank = bill.linkedBankAccountId ? banks.find(b => b.id === bill.linkedBankAccountId) : undefined;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { COUNSELORS, type CustomerInvoice } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { useClients } from "../../stores/clientsStore";
 import { addArInvoice } from "../../stores/arInvoicesStore";
+import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
@@ -32,6 +33,7 @@ export default function AccountingNewInvoicePage() {
   const clients = useClients();
   const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
+  const accounts = useAccounts();
 
   const [client, setClient] = useState(""); const [clientEmail, setClientEmail] = useState(""); const [clientPhone, setClientPhone] = useState("");
   const [counselor, setCounselor] = useState(""); const [serviceType, setServiceType] = useState("");
@@ -41,7 +43,8 @@ export default function AccountingNewInvoicePage() {
   const [subtotal, setSubtotal] = useState<number>(0); const [taxCode, setTaxCode] = useState(""); const [taxAmount, setTaxAmount] = useState<number>(0);
   const [paymentTerms, setPaymentTerms] = useState("");
   const [description, setDescription] = useState(""); const [notes, setNotes] = useState("");
-  const [coa, setCoa] = useState("1200 — Accounts receivable"); const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
+  const [revenueCoaId, setRevenueCoaId] = useState(""); const [arCoaId, setArCoaId] = useState("");
+  const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
   const [installmentPlan, setInstallmentPlan] = useState(false); const [totalInstallments, setTotalInstallments] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]); const [tagInput, setTagInput] = useState("");
 
@@ -52,6 +55,30 @@ export default function AccountingNewInvoicePage() {
   const branchName = entities.find((e) => e.id === branchId)?.name ?? "";
 
   const clientOptions = clients.map((c) => c.name);
+
+  const coaScope = (a: typeof accounts[number]) =>
+    a.status === "ACTIVE" && a.isPostable &&
+    (a.entityId === entityId || a.entityId === null) &&
+    a.currency === currency;
+
+  const eligibleRevenueAccounts = accounts.filter(
+    (a) => coaScope(a) && a.groupCode === "REVENUE",
+  );
+  const eligibleArAccounts = accounts.filter(
+    (a) => coaScope(a) && a.groupCode === "ASSET" && a.typeCode === "AR",
+  );
+
+  useEffect(() => {
+    if (revenueCoaId && !eligibleRevenueAccounts.some((a) => a.id === revenueCoaId)) {
+      setRevenueCoaId("");
+    }
+  }, [entityId, currency, revenueCoaId, eligibleRevenueAccounts]);
+
+  useEffect(() => {
+    if (!entityId) { setArCoaId(""); return; }
+    if (arCoaId && eligibleArAccounts.some((a) => a.id === arCoaId)) return;
+    setArCoaId(eligibleArAccounts[0]?.id ?? "");
+  }, [entityId, currency, arCoaId, eligibleArAccounts]);
 
   function applyTax(code: string) {
     setTaxCode(code);
@@ -79,7 +106,9 @@ export default function AccountingNewInvoicePage() {
       taxCode: masterLabel("tax_codes", taxCode) || taxCode || "NONE",
       taxAmount, totalAmount: total,
       receivedAmount: 0, outstandingBalance: total, status,
-      linkedCOACode: "1200", linkedBankAccountId: bankId || undefined,
+      linkedCOACode: accounts.find((a) => a.id === arCoaId)?.code ?? "1200",
+      linkedRevenueCOACode: accounts.find((a) => a.id === revenueCoaId)?.code,
+      linkedBankAccountId: bankId || undefined,
       paymentMethod: pm,
       notes: notes || (paymentTerms ? `Payment terms: ${masterLabel("payment_terms", paymentTerms)}` : undefined),
       installmentPlan: installmentPlan || undefined,
@@ -98,6 +127,8 @@ export default function AccountingNewInvoicePage() {
     const r = fullSchema.safeParse({ client, invoiceNumber, entity: entityName, currency, invoiceDate, dueDate, subtotal, description });
     if (!r.success) { toast.error(r.error.errors[0]?.message ?? "Please complete required fields"); return; }
     if (dueDate < invoiceDate) { toast.error("Due date must be on or after invoice date"); return; }
+    if (!revenueCoaId) { toast.error("Pick a revenue account from the chart of accounts"); return; }
+    if (!arCoaId) { toast.error("No AR control account available for this entity / currency — add one in Chart of accounts"); return; }
     addArInvoice(buildPayload("SENT"));
     toast.success("Invoice created and ready to send"); navigate("/accounting/ar");
   }
@@ -158,7 +189,38 @@ export default function AccountingNewInvoicePage() {
         </CardContent></Card>
 
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
-          <Field label="Linked COA account"><Input value={coa} onChange={(e) => setCoa(e.target.value)} /></Field>
+          <Field label="Revenue account (Cr) *">
+            <Select value={revenueCoaId || "__none__"} onValueChange={(v) => setRevenueCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
+              <SelectTrigger><SelectValue placeholder={entityId ? "Select revenue account…" : "Select an entity first"} /></SelectTrigger>
+              <SelectContent>
+                {!entityId ? (
+                  <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : eligibleRevenueAccounts.length === 0 ? (
+                  <SelectItem value="__none__" disabled>No {currency} revenue accounts for this entity — add one in Chart of accounts</SelectItem>
+                ) : (
+                  eligibleRevenueAccounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="AR control account (Dr)">
+            <Select value={arCoaId || "__none__"} onValueChange={(v) => setArCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
+              <SelectTrigger><SelectValue placeholder={entityId ? "Auto-selected" : "Select an entity first"} /></SelectTrigger>
+              <SelectContent>
+                {!entityId ? (
+                  <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : eligibleArAccounts.length === 0 ? (
+                  <SelectItem value="__none__" disabled>No {currency} AR account for this entity — add one in Chart of accounts</SelectItem>
+                ) : (
+                  eligibleArAccounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Linked bank account">
             <Select value={bankId || "__none__"} onValueChange={(v) => setBankId(v === "__none__" ? "" : v)}>
               <SelectTrigger><SelectValue placeholder="Select bank…" /></SelectTrigger>
