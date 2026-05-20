@@ -28,6 +28,24 @@ import { Lock } from "lucide-react";
 import { useMockSources } from "../hooks/useInstitutionData";
 import { ALLOW_TEST_DELETIONS } from "../config";
 
+// Sanitize a filename for use as a Supabase Storage object key.
+// Storage path must round-trip through createSignedUrl, which percent-encodes the
+// key. Literal `%`, spaces, accented chars, parentheses etc. cause double-encoding
+// and a 400 from storage (preview iframe shows a broken-image icon).
+function safeStorageName(name: string): string {
+  const lastDot = name.lastIndexOf(".");
+  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+  const ext = lastDot > 0 ? name.slice(lastDot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const cleanBase = base
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 120) || "file";
+  return ext ? `${cleanBase}.${ext}` : cleanBase;
+}
+
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
   if (!id) {
@@ -238,7 +256,7 @@ export default function InstitutionDetailPage() {
       return;
     }
     setBusy(true);
-    const path = `${id}/${Date.now()}-${file.name}`;
+    const path = `${id}/${Date.now()}-${safeStorageName(file.name)}`;
     const { error: upErr } = await supabase.storage.from("institution-documents").upload(path, file);
     if (upErr) { setBusy(false); return toast.error(upErr.message); }
     const { data: doc, error: dErr } = await supabase.from("upi_uploaded_documents").insert({
@@ -256,6 +274,40 @@ export default function InstitutionDetailPage() {
     if (orchErr) toast.error(orchErr.message);
     else toast.success("Extraction complete — open Review to verify");
     setBusy(false); load();
+  };
+
+  // Rename a doc's storage object to a sanitized key (fixes broken iframe preview
+  // when the original file_path contains `%` or other URL-unsafe chars).
+  const repairDocPath = async (d: any) => {
+    if (!d?.file_path || !/%/.test(d.file_path)) return;
+    setBusy(true);
+    try {
+      const oldPath: string = d.file_path;
+      const segs = oldPath.split("/");
+      const last = segs.pop() ?? "";
+      // strip the leading "<timestamp>-" prefix when re-sanitizing
+      const dashIdx = last.indexOf("-");
+      const ts = dashIdx > 0 ? last.slice(0, dashIdx) : String(Date.now());
+      const rest = dashIdx > 0 ? last.slice(dashIdx + 1) : last;
+      const newLast = `${ts}-${safeStorageName(rest)}`;
+      const newPath = [...segs, newLast].join("/");
+      if (newPath === oldPath) { setBusy(false); return; }
+      const { error: mvErr } = await supabase.storage
+        .from("institution-documents")
+        .move(oldPath, newPath);
+      if (mvErr) throw mvErr;
+      const { error: upErr } = await supabase
+        .from("upi_uploaded_documents")
+        .update({ file_path: newPath })
+        .eq("id", d.id);
+      if (upErr) throw upErr;
+      toast.success("Preview link repaired");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Repair failed");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const deleteDoc = async (d: any) => {
@@ -517,6 +569,11 @@ export default function InstitutionDetailPage() {
                     {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
                   </Badge>
                   <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
+                  {d.file_path && /%/.test(d.file_path) && (
+                    <Button size="sm" variant="outline" onClick={() => repairDocPath(d)} disabled={busy}>
+                      Fix preview
+                    </Button>
+                  )}
                   {ALLOW_TEST_DELETIONS && (
                     <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
                       <Trash2 className="size-4" />

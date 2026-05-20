@@ -26,10 +26,12 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
   const [editedPayload, setEditedPayload] = useState<string>("");
   const [docKind, setDocKind] = useState<string>("");
   const [busy, setBusy] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
 
   useEffect(() => {
     if (!docProp) { setDoc(null); return; }
     setDoc(docProp);
+    setPreviewFailed(false);
     // Re-fetch the latest row so confidence / pipeline_status reflect the post-orchestrator state
     supabase
       .from("upi_uploaded_documents")
@@ -49,6 +51,14 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
         }
       });
   }, [docProp]);
+
+  // If the iframe doesn't load within a few seconds, show fallback download/open links.
+  useEffect(() => {
+    if (!previewUrl) return;
+    setPreviewFailed(false);
+    const t = setTimeout(() => setPreviewFailed(true), 5000);
+    return () => clearTimeout(t);
+  }, [previewUrl]);
 
   if (!doc) return null;
 
@@ -122,7 +132,30 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[70vh]">
           <div className="border rounded overflow-hidden bg-muted/30 min-h-[50vh]">
             {previewUrl ? (
-              <iframe src={previewUrl} className="w-full h-[70vh]" title="Document preview" />
+              <div className="relative w-full h-[70vh]">
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full"
+                  title="Document preview"
+                  onLoad={() => setPreviewFailed(false)}
+                  onError={() => setPreviewFailed(true)}
+                />
+                {previewFailed && (
+                  <div className="absolute inset-x-0 bottom-0 bg-background/95 border-t p-3 flex items-center justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                      Inline preview unavailable (large file or unsupported viewer).
+                    </span>
+                    <div className="flex gap-2">
+                      <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                        Open in new tab
+                      </a>
+                      <a href={previewUrl} download={doc.file_name} className="underline">
+                        Download
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="p-6 text-sm text-muted-foreground">Loading preview…</div>
             )}
