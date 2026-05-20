@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import DynamicSelect from "../../components/shared/DynamicSelect";
 import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
-import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import { useBankAccounts } from "../../stores/bankAccountsStore";
 import { useVendors } from "../../stores/vendorsStore";
 import { addApBill } from "../../stores/apBillsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
@@ -32,6 +32,7 @@ export default function AccountingNewBillPage() {
   const vendors = useVendors();
   const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
+  const bankAccounts = useBankAccounts();
 
   const [vendor, setVendor] = useState(""); const [vendorEmail, setVendorEmail] = useState(""); const [vendorPhone, setVendorPhone] = useState("");
   const [category, setCategory] = useState(""); const [department, setDepartment] = useState("");
@@ -49,6 +50,14 @@ export default function AccountingNewBillPage() {
   const branches = entities.filter((e) => e.parentId === entityId);
   const entityName = entities.find((e) => e.id === entityId)?.name ?? "";
   const branchName = entities.find((e) => e.id === branchId)?.name ?? "";
+
+  const eligibleBanks = bankAccounts.filter(
+    (b) => b.status === "ACTIVE" && b.entityId === entityId && b.currency === currency,
+  );
+
+  useEffect(() => {
+    if (bankId && !eligibleBanks.some((b) => b.id === bankId)) setBankId("");
+  }, [entityId, currency, bankId, eligibleBanks]);
 
   function applyTax(code: string) {
     setTaxCode(code);
@@ -146,7 +155,13 @@ export default function AccountingNewBillPage() {
               <SelectTrigger><SelectValue placeholder="Select bank…" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="__none__">—</SelectItem>
-                {SEED_BANK_ACCOUNTS.filter((b) => b.currency === currency).map((b) => <SelectItem key={b.id} value={b.id}>{b.nickname} · ••••{b.accountNumber.slice(-4)}</SelectItem>)}
+                {!entityId ? (
+                  <SelectItem value="__hint__" disabled>Select an entity first</SelectItem>
+                ) : eligibleBanks.length === 0 ? (
+                  <SelectItem value="__empty__" disabled>No {currency} bank accounts for this entity — add one in Bank accounts</SelectItem>
+                ) : (
+                  eligibleBanks.map((b) => <SelectItem key={b.id} value={b.id}>{b.nickname} · ••••{b.accountNumber.slice(-4)}</SelectItem>)
+                )}
               </SelectContent>
             </Select>
           </Field>
