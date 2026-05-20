@@ -569,6 +569,11 @@ export default function InstitutionDetailPage() {
                     {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
                   </Badge>
                   <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
+                  {d.file_path && /%/.test(d.file_path) && (
+                    <Button size="sm" variant="outline" onClick={() => repairDocPath(d)} disabled={busy}>
+                      Fix preview
+                    </Button>
+                  )}
                   {ALLOW_TEST_DELETIONS && (
                     <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
                       <Trash2 className="size-4" />
