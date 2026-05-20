@@ -16,7 +16,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-const VALID_ROLES = ["admin", "counselor", "documentation", "telecaller", "viewer"] as const;
+const VALID_ROLES = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"] as const;
 type Role = typeof VALID_ROLES[number];
 
 async function findUserByEmail(svc: ReturnType<typeof createClient>, email: string) {
@@ -79,9 +79,13 @@ Deno.serve(async (req) => {
     const action = body.action as string;
 
     if (action === "create") {
-      const { first_name, last_name, email, phone, role, password } = body as Record<string, string>;
-      if (!first_name || !last_name || !email || !phone || !role || !password) return json({ error: "Missing fields" }, 400);
-      if (!VALID_ROLES.includes(role as Role)) return json({ error: "Invalid role" }, 400);
+      const { first_name, last_name, email, phone, password } = body as Record<string, string>;
+      const rolesIn: string[] = Array.isArray((body as any).roles) && (body as any).roles.length
+        ? (body as any).roles
+        : (body as any).role ? [(body as any).role] : [];
+      if (!first_name || !last_name || !email || !phone || !password || rolesIn.length === 0) return json({ error: "Missing fields" }, 400);
+      const invalid = rolesIn.find((r) => !VALID_ROLES.includes(r as Role));
+      if (invalid) return json({ error: `Invalid role: ${invalid}` }, 400);
       if (password.length < 8 || password.length > 72) return json({ error: "Password must be 8–72 characters" }, 400);
 
       const existing = await findUserByEmail(svc, email);
@@ -112,13 +116,14 @@ Deno.serve(async (req) => {
         status: "active",
       });
       await svc.from("user_roles").delete().eq("user_id", newId);
-      await svc.from("user_roles").insert({ user_id: newId, role });
-      await logActivity(svc, callerId, "user.created", newId, { email, role });
+      await svc.from("user_roles").insert(rolesIn.map((role) => ({ user_id: newId, role })));
+      await logActivity(svc, callerId, "user.created", newId, { email, roles: rolesIn });
       return json({ ok: true, user_id: newId });
     }
 
     if (action === "update") {
       const { user_id, first_name, last_name, phone, role } = body;
+      const rolesIn: string[] | undefined = Array.isArray((body as any).roles) ? (body as any).roles : undefined;
       if (!user_id) return json({ error: "user_id required" }, 400);
       const patch: Record<string, unknown> = {};
       if (first_name !== undefined) patch.first_name = first_name;
@@ -126,18 +131,20 @@ Deno.serve(async (req) => {
       if ((first_name ?? last_name) !== undefined) patch.full_name = `${first_name ?? ""} ${last_name ?? ""}`.trim();
       if (phone !== undefined) patch.phone = phone;
       if (Object.keys(patch).length) await svc.from("profiles").update(patch).eq("id", user_id);
-      if (role) {
-        if (!VALID_ROLES.includes(role)) return json({ error: "Invalid role" }, 400);
+      const nextRoles = rolesIn ?? (role ? [role] : undefined);
+      if (nextRoles) {
+        const bad = nextRoles.find((r) => !VALID_ROLES.includes(r));
+        if (bad) return json({ error: `Invalid role: ${bad}` }, 400);
         // last-admin guard
         const { data: existingRoles } = await svc.from("user_roles").select("role").eq("user_id", user_id);
         const wasAdmin = (existingRoles ?? []).some((r) => r.role === "admin");
-        if (wasAdmin && role !== "admin" && (await adminCount(svc)) <= 1) {
+        if (wasAdmin && !nextRoles.includes("admin") && (await adminCount(svc)) <= 1) {
           return json({ error: "Cannot demote the last administrator" }, 400);
         }
         await svc.from("user_roles").delete().eq("user_id", user_id);
-        await svc.from("user_roles").insert({ user_id, role });
+        await svc.from("user_roles").insert(nextRoles.map((r) => ({ user_id, role: r })));
       }
-      await logActivity(svc, callerId, "user.updated", user_id, { ...patch, role });
+      await logActivity(svc, callerId, "user.updated", user_id, { ...patch, roles: nextRoles });
       return json({ ok: true });
     }
 
