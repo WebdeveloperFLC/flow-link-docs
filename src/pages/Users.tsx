@@ -4,12 +4,13 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { Navigate } from "react-router-dom";
-import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound } from "lucide-react";
+import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,12 @@ interface Profile { id: string; email: string | null; full_name: string | null; 
 interface RoleRow { user_id: string; role: AppRole; }
 
 const ALL_ROLES: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"];
+
+// Highest-privilege role wins for the "Reset to role defaults" hint in the
+// permissions dialog.
+const ROLE_PRIORITY: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer", "client"];
+const highestRole = (rs: AppRole[]): AppRole =>
+  ROLE_PRIORITY.find((r) => rs.includes(r)) ?? "viewer";
 
 const ROLE_HELP: Record<AppRole, string> = {
   admin: "Full system access, settings and team role management",
@@ -81,24 +88,34 @@ const Users = () => {
 
   const rolesFor = (uid: string) => roles.filter((r) => r.user_id === uid).map((r) => r.role);
 
-  const setRole = async (uid: string, role: AppRole) => {
-    if (uid === user?.id && role !== "admin") {
-      const stillAdmin = roles.some((r) => r.role === "admin" && r.user_id !== uid);
-      if (!stillAdmin) { toast.error("Cannot demote the last admin"); return; }
+  const updateUserRoles = async (uid: string, next: AppRole[]) => {
+    const nextSet = Array.from(new Set(next));
+    if (nextSet.length === 0) { toast.error("Select at least one role"); return; }
+    // Last-admin guard: prevent removing admin from the last admin globally.
+    const current = rolesFor(uid);
+    const removingAdmin = current.includes("admin") && !nextSet.includes("admin");
+    if (removingAdmin) {
+      const otherAdmins = roles.some((r) => r.role === "admin" && r.user_id !== uid);
+      if (!otherAdmins) { toast.error("Cannot demote the last admin"); return; }
     }
     setBusy(uid);
     try {
-      // Replace all roles for the user with the single chosen role
-      const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", uid);
-      if (delErr) throw delErr;
-      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: uid, role });
-      if (insErr) throw insErr;
-      await logActivity("user.role_changed", "user", uid, { role });
-      toast.success("Role updated");
+      const toAdd = nextSet.filter((r) => !current.includes(r));
+      const toRemove = current.filter((r) => !nextSet.includes(r));
+      if (toRemove.length) {
+        const { error } = await supabase.from("user_roles").delete().eq("user_id", uid).in("role", toRemove);
+        if (error) throw error;
+      }
+      if (toAdd.length) {
+        const { error } = await supabase.from("user_roles").insert(toAdd.map((role) => ({ user_id: uid, role })));
+        if (error) throw error;
+      }
+      await logActivity("user.roles_changed", "user", uid, { roles: nextSet });
+      toast.success("Roles updated");
       await load();
     } catch (e) {
       console.error(e);
-      toast.error(e instanceof Error ? e.message : "Failed to update role");
+      toast.error(e instanceof Error ? e.message : "Failed to update roles");
     } finally {
       setBusy(null);
     }
@@ -140,11 +157,11 @@ const Users = () => {
           </Button>
         </div>
         <Card className="overflow-hidden shadow-elev-sm">
-          <div className="grid grid-cols-[minmax(0,3fr)_110px_160px_minmax(0,2fr)_60px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
+          <div className="grid grid-cols-[minmax(0,3fr)_110px_minmax(0,2fr)_minmax(0,2fr)_60px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
             <div>User</div>
             <div>Status</div>
-            <div>Role</div>
-            <div>Access level</div>
+            <div>Roles</div>
+            <div>Assign roles</div>
             <div className="text-right">Actions</div>
           </div>
           <div className="divide-y">
@@ -155,11 +172,11 @@ const Users = () => {
             )}
             {profiles.map((p) => {
               const userRoles = rolesFor(p.id);
-              const primary = (userRoles[0] ?? "viewer") as AppRole;
+              const primary = highestRole(userRoles.length ? userRoles : ["viewer"]);
               const isMe = p.id === user?.id;
               const status = p.status ?? "active";
               return (
-                <div key={p.id} className="grid grid-cols-[minmax(0,3fr)_110px_160px_minmax(0,2fr)_60px] gap-4 px-6 py-3.5 items-center">
+                <div key={p.id} className="grid grid-cols-[minmax(0,3fr)_110px_minmax(0,2fr)_minmax(0,2fr)_60px] gap-4 px-6 py-3.5 items-center">
                   <div className="min-w-0">
                     <div className="font-medium text-sm truncate flex items-center gap-1.5">
                       <span className="truncate">{p.full_name ?? p.email}</span>
@@ -168,30 +185,57 @@ const Users = () => {
                     <div className="text-xs text-muted-foreground truncate">{p.email}</div>
                   </div>
                   <div>{statusBadge(status)}</div>
-                  <div className="min-w-0">
-                    <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider max-w-full truncate", ROLE_COLORS[primary])}>
-                      <Shield className="size-2.5 shrink-0" />
-                      <span className="truncate">{roleOptionLabel(primary)}</span>
-                    </span>
+                  <div className="min-w-0 flex flex-wrap gap-1">
+                    {(userRoles.length ? userRoles : ["viewer" as AppRole]).map((r) => (
+                      <span key={r} className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider", ROLE_COLORS[r])}>
+                        <Shield className="size-2.5 shrink-0" />
+                        <span className="truncate">{roleOptionLabel(r)}</span>
+                      </span>
+                    ))}
                   </div>
                   <div className="min-w-0">
-                    <Select value={primary} onValueChange={(v) => setRole(p.id, v as AppRole)} disabled={busy === p.id}>
-                      <SelectTrigger className="h-9 text-xs w-full">
-                        <SelectValue>
-                          <span className="truncate block text-left">{ROLE_SHORT[primary]}</span>
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ALL_ROLES.map((r) => (
-                          <SelectItem key={r} value={r}>
-                            <span className="flex flex-col py-1">
-                              <span>{roleOptionLabel(r)}</span>
-                              <span className="text-[10px] text-muted-foreground">{ROLE_HELP[r]}</span>
-                            </span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" disabled={busy === p.id} className="h-9 w-full justify-between text-xs font-normal">
+                          <span className="truncate">
+                            {userRoles.length === 0
+                              ? "No roles"
+                              : userRoles.length === 1
+                                ? roleOptionLabel(userRoles[0])
+                                : `${userRoles.length} roles`}
+                          </span>
+                          <ChevronDown className="size-3.5 shrink-0 opacity-60" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-72 p-2">
+                        <div className="text-[11px] uppercase tracking-wider text-muted-foreground px-2 pt-1 pb-2">
+                          Assign one or more roles
+                        </div>
+                        <div className="space-y-1">
+                          {ALL_ROLES.map((r) => {
+                            const checked = userRoles.includes(r);
+                            return (
+                              <label key={r} className="flex items-start gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer">
+                                <Checkbox
+                                  checked={checked}
+                                  disabled={busy === p.id}
+                                  onCheckedChange={(v) => {
+                                    const next = v
+                                      ? [...userRoles, r]
+                                      : userRoles.filter((x) => x !== r);
+                                    updateUserRoles(p.id, next);
+                                  }}
+                                />
+                                <span className="flex flex-col">
+                                  <span className="text-sm">{roleOptionLabel(r)}</span>
+                                  <span className="text-[10px] text-muted-foreground leading-tight">{ROLE_HELP[r]}</span>
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="flex justify-end">
                     <DropdownMenu>
@@ -234,10 +278,11 @@ const Users = () => {
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
           <p>
-            <b>Administrator</b> manages the CRM (clients, documents, telephony, settings) but <b>does not</b> see Accounting or Commissions.{" "}
+            Users can hold <b>multiple roles</b> at once (e.g. Counselor + Documentation). Tick all that apply in <b>Assign roles</b>.{" "}
+            <b>Administrator</b> manages the CRM (clients, documents, telephony, settings).{" "}
             <b>Commission admin</b> manages commissions, claims, agreements and invoicing.{" "}
             <b>Accounting</b> access is managed separately in <code>/accounting/settings/users</code>.{" "}
-            <b>Edit</b> users add clients/documents · <b>Viewer</b> is read-only. Per-section overrides (including <b>Institutions</b> — View / Edit / Delete to add institutions, programs, campuses, agreements) via the <b>Module access</b> action.
+            <b>Edit</b> users add clients/documents · <b>Viewer</b> is read-only. Use <b>Module access</b> to grant per-section View / Edit / Delete — including <b>Institutions</b> and <b>Commissions</b> independently.
           </p>
         </div>
       </div>
@@ -289,7 +334,7 @@ const Users = () => {
           onOpenChange={(o) => { if (!o) setPermsUser(null); }}
           userId={permsUser.id}
           userName={permsUser.full_name ?? permsUser.email ?? ""}
-          role={(rolesFor(permsUser.id)[0] ?? "viewer") as AppRole}
+          role={highestRole(rolesFor(permsUser.id).length ? rolesFor(permsUser.id) : ["viewer"]) as AppRole}
         />
       )}
       {lifecycle && (

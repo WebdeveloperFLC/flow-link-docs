@@ -4,12 +4,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { ShieldAlert } from "lucide-react";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
-export const CommissionsProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { user, loading, isCommissionAdmin } = useAuth();
+export const CommissionsProtectedRoute = ({
+  children,
+  requireEdit = false,
+}: {
+  children: ReactNode;
+  requireEdit?: boolean;
+}) => {
+  const { user, loading, isAdmin, isCommissionAdmin } = useAuth();
+  const { canView, canEdit, loading: permLoading } = useModulePermission("commissions");
   const loc = useLocation();
 
-  if (loading) {
+  if (loading || permLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="size-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
@@ -17,7 +25,9 @@ export const CommissionsProtectedRoute = ({ children }: { children: ReactNode })
     );
   }
   if (!user) return <Navigate to="/auth" state={{ from: loc }} replace />;
-  if (!isCommissionAdmin) {
+  const allowed =
+    isAdmin || isCommissionAdmin || (requireEdit ? canEdit : canView);
+  if (!allowed) {
     return (
       <AppLayout>
         <div className="p-8">
@@ -25,8 +35,8 @@ export const CommissionsProtectedRoute = ({ children }: { children: ReactNode })
             <ShieldAlert className="size-10 mx-auto text-destructive" />
             <div className="text-lg font-semibold">Access restricted</div>
             <p className="text-sm text-muted-foreground">
-              The Commissions module is available to commission admins and
-              accounting admins only. Ask an admin to grant you access.
+              You don't have access to the Commissions section. Ask an admin to
+              grant you access in <b>Team &amp; roles → Permissions → Commissions</b>.
             </p>
           </Card>
         </div>

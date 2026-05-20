@@ -14,6 +14,7 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "tasks", label: "Tasks", description: "Task board and reminders." },
   { key: "telephony", label: "Telephony / Calls", description: "Call queue, dialer, call history." },
   { key: "institutions", label: "Institutions", description: "Partner institutions (commissions/claims managed separately)." },
+  { key: "commissions", label: "Commissions & Claims", description: "Partner commissions, claims, agreements, invoicing." },
   { key: "assessments", label: "Assessments", description: "Assessment sessions and PDFs." },
   { key: "reports", label: "Reports & Analytics", description: "Dashboards and reports (UI-gated)." },
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
@@ -41,17 +42,17 @@ export const ROLE_DEFAULTS: Record<RoleKey, PermissionMap> = {
   commission_admin: Object.fromEntries(CRM_MODULES.map((m) => [m.key, VIEW])),
   counselor: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: VIEW,
-    institutions: VIEW, assessments: EDIT,
+    institutions: VIEW, commissions: NONE, assessments: EDIT,
     reports: VIEW, letter_templates: EDIT, settings: NONE,
   },
   documentation: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: NONE,
-    institutions: VIEW, assessments: VIEW,
+    institutions: VIEW, commissions: NONE, assessments: VIEW,
     reports: VIEW, letter_templates: EDIT, settings: NONE,
   },
   telecaller: {
     clients: VIEW, documents: NONE, tasks: EDIT, telephony: EDIT,
-    institutions: NONE, assessments: NONE,
+    institutions: NONE, commissions: NONE, assessments: NONE,
     reports: NONE, letter_templates: NONE, settings: NONE,
   },
   viewer: Object.fromEntries(CRM_MODULES.map((m) => [m.key, VIEW])),

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -15,7 +15,7 @@ const schema = z.object({
   last_name: z.string().trim().min(1).max(50),
   email: z.string().trim().email().max(255),
   phone: z.string().trim().min(5).max(40),
-  role: z.enum(["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"]),
+  roles: z.array(z.enum(["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"])).min(1, "Select at least one role"),
   password: z.string().min(8, "Password must be at least 8 characters").max(72),
 });
 
@@ -31,15 +31,18 @@ const ROLE_LABEL: Record<AppRole, string> = {
 
 export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; }) => {
   const [busy, setBusy] = useState(false);
-  const [role, setRole] = useState<AppRole>("viewer");
+  const [roles, setRoles] = useState<AppRole[]>(["viewer"]);
   const [showPw, setShowPw] = useState(false);
+
+  const toggleRole = (r: AppRole, on: boolean) =>
+    setRoles((prev) => (on ? Array.from(new Set([...prev, r])) : prev.filter((x) => x !== r)));
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const parsed = schema.safeParse({
       first_name: fd.get("first_name"), last_name: fd.get("last_name"),
-      email: fd.get("email"), phone: fd.get("phone"), role,
+      email: fd.get("email"), phone: fd.get("phone"), roles,
       password: fd.get("password"),
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
@@ -81,15 +84,15 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
             <Input id="phone" name="phone" required />
           </div>
           <div className="space-y-1.5">
-            <Label>Role *</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {(["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"] as AppRole[]).map((r) => (
-                  <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label>Roles * <span className="text-muted-foreground font-normal">(select one or more)</span></Label>
+            <div className="rounded-md border divide-y">
+              {(["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"] as AppRole[]).map((r) => (
+                <label key={r} className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-muted/40">
+                  <Checkbox checked={roles.includes(r)} onCheckedChange={(v) => toggleRole(r, !!v)} />
+                  <span className="text-sm">{ROLE_LABEL[r]}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Password *</Label>
