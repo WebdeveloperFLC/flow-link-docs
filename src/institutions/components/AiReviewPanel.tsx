@@ -203,7 +203,38 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
             <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Extracted fields (editable JSON)
             </div>
-            {payloadIsEmpty && (
+            {courses.length > 0 && (
+              <div className="rounded border bg-muted/30">
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b">
+                  Programs found ({courses.length})
+                </div>
+                <div className="max-h-56 overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/60 text-muted-foreground">
+                      <tr>
+                        <th className="text-left px-2 py-1">Title</th>
+                        <th className="text-left px-2 py-1">Duration</th>
+                        <th className="text-left px-2 py-1">Tuition</th>
+                        <th className="text-left px-2 py-1">Intake</th>
+                        <th className="text-left px-2 py-1">Campus</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses.map((c) => (
+                        <tr key={c.id} className="border-t">
+                          <td className="px-2 py-1 truncate max-w-[18ch]" title={c.course_title}>{c.course_title}</td>
+                          <td className="px-2 py-1">{c.duration_value ? `${c.duration_value} ${c.duration_unit ?? ""}` : "—"}</td>
+                          <td className="px-2 py-1">{c.tuition_fee ? `${c.tuition_fee} ${c.currency ?? ""}` : "—"}</td>
+                          <td className="px-2 py-1">{Array.isArray(c.intake_months) && c.intake_months.length ? c.intake_months.join(", ") : "—"}</td>
+                          <td className="px-2 py-1">{c.campus_name || c.city || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {payloadIsEmpty && courses.length === 0 && (
               <div className="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
                 No fields extracted. The file was likely processed as the wrong document type — change the type above and click <span className="font-semibold">Reprocess</span>.
               </div>
