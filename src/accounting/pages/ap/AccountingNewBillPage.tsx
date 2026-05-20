@@ -19,6 +19,7 @@ import { addApBill } from "../../stores/apBillsStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
+import { expenseTypesFor } from "../../lib/coaCategoryMap";
 
 const DEPARTMENTS = ["Operations", "Marketing", "Academics", "Visa & Immigration", "Finance & Accounts", "HR & Admin", "Technology", "Management"];
 const TAG_SUGGESTIONS = ["urgent", "recurring", "reimbursable", "petty-cash", "capex"];
@@ -64,11 +65,17 @@ export default function AccountingNewBillPage() {
     a.currency === currency;
 
   const eligibleExpenseAccounts = accounts.filter(
-    (a) => coaScope(a) && (a.groupCode === "EXPENSE" || a.groupCode === "ASSET"),
+    (a) =>
+      coaScope(a) &&
+      (a.groupCode === "EXPENSE" || a.groupCode === "ASSET") &&
+      mappedExpenseTypes.includes(a.typeCode),
   );
+
   const eligibleApAccounts = accounts.filter(
     (a) => coaScope(a) && a.groupCode === "LIABILITY" && a.typeCode === "AP",
   );
+
+  const mappedExpenseTypes = expenseTypesFor(category);
 
   useEffect(() => {
     if (bankId && !eligibleBanks.some((b) => b.id === bankId)) setBankId("");
