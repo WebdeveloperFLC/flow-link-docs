@@ -120,10 +120,19 @@ export default function InstitutionDetailPage() {
   };
 
   const addSource = async () => {
-    if (!newSourceUrl.trim()) return toast.error("URL required");
+    const raw = newSourceUrl.trim();
+    if (!raw) return toast.error("URL required");
+    try {
+      const u = new URL(raw);
+      if (u.protocol !== "http:" && u.protocol !== "https:") {
+        return toast.error("URL must start with http:// or https://");
+      }
+    } catch {
+      return toast.error("Invalid URL — paste a full https://… link");
+    }
     const { data, error } = await supabase
       .from("upi_institution_sources")
-      .insert({ institution_id: id, source_type: newSourceType, url: newSourceUrl.trim() })
+      .insert({ institution_id: id, source_type: newSourceType, url: raw })
       .select()
       .single();
     if (error) {
