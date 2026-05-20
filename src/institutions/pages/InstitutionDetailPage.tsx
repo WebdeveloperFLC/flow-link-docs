@@ -28,6 +28,24 @@ import { Lock } from "lucide-react";
 import { useMockSources } from "../hooks/useInstitutionData";
 import { ALLOW_TEST_DELETIONS } from "../config";
 
+// Sanitize a filename for use as a Supabase Storage object key.
+// Storage path must round-trip through createSignedUrl, which percent-encodes the
+// key. Literal `%`, spaces, accented chars, parentheses etc. cause double-encoding
+// and a 400 from storage (preview iframe shows a broken-image icon).
+function safeStorageName(name: string): string {
+  const lastDot = name.lastIndexOf(".");
+  const base = lastDot > 0 ? name.slice(0, lastDot) : name;
+  const ext = lastDot > 0 ? name.slice(lastDot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const cleanBase = base
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "")
+    .slice(0, 120) || "file";
+  return ext ? `${cleanBase}.${ext}` : cleanBase;
+}
+
 export default function InstitutionDetailPage() {
   const { id = "" } = useParams();
   if (!id) {
