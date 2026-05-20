@@ -16,6 +16,33 @@ export type DestinationCountry =
   | 'UAE' | 'Singapore' | 'Japan' | 'South Korea' | 'Italy' | 'Spain' | 'Portugal' | 'Malta'
   | 'Poland' | 'Hungary' | 'Czech Republic' | 'Other';
 
+export type RevenueCategory =
+  | 'COACHING_TRAINING'
+  | 'LANGUAGE_COURSES'
+  | 'TEST_PREP'
+  | 'VISA_IMMIGRATION'
+  | 'UNIVERSITY_ADMISSIONS'
+  | 'INSTITUTION_COMMISSION'
+  | 'STUDY_ABROAD_PACKAGE'
+  | 'DOCUMENTATION_SERVICES'
+  | 'TRANSLATION_ATTESTATION'
+  | 'CONSULTING_FEES'
+  | 'OTHER';
+
+export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = {
+  COACHING_TRAINING: 'Coaching & training',
+  LANGUAGE_COURSES: 'Language courses',
+  TEST_PREP: 'Test prep (IELTS / TOEFL / PTE)',
+  VISA_IMMIGRATION: 'Visa & immigration',
+  UNIVERSITY_ADMISSIONS: 'University admissions',
+  INSTITUTION_COMMISSION: 'Institution commission',
+  STUDY_ABROAD_PACKAGE: 'Study-abroad package',
+  DOCUMENTATION_SERVICES: 'Documentation services',
+  TRANSLATION_ATTESTATION: 'Translation & attestation',
+  CONSULTING_FEES: 'Consulting fees',
+  OTHER: 'Other revenue',
+};
+
 export interface CustomerInvoice {
   id: string;
   invoiceNumber: string;
@@ -29,6 +56,7 @@ export interface CustomerInvoice {
   branch: string;
   branchCountry: 'CA' | 'US' | 'IN' | 'AE' | 'OTHER';
   serviceType: ServiceType;
+  revenueCategory?: RevenueCategory;
   destinationCountry?: DestinationCountry;
   programName?: string;
   universityName?: string;

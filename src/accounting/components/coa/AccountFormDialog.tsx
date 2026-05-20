@@ -14,7 +14,7 @@ import { addAccount, getAccounts, getDescendantIds, updateAccount } from "../../
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { getExpenseCategories, getRevenueCategories, setAccountCategories } from "../../stores/coaCategoriesStore";
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "../../data/mockAP";
-import { useMaster } from "../../stores/accountingMastersStore";
+import { REVENUE_CATEGORY_LABELS, type RevenueCategory } from "../../data/mockAR";
 import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
 import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
@@ -52,9 +52,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const [isPostable, setIsPostable] = useState<boolean>(true);
   const [description, setDescription] = useState("");
   const [expenseCategories, setExpenseCategoriesState] = useState<ExpenseCategory[]>([]);
-  const [revenueCategories, setRevenueCategoriesState] = useState<string[]>([]);
-
-  const revenueOptions = useMaster("client_categories");
+  const [revenueCategories, setRevenueCategoriesState] = useState<RevenueCategory[]>([]);
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -78,7 +76,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setIsPostable(initial.isPostable !== false);
       setDescription(initial.description ?? "");
       setExpenseCategoriesState(getExpenseCategories(initial.code) as ExpenseCategory[]);
-      setRevenueCategoriesState(getRevenueCategories(initial.code));
+      setRevenueCategoriesState(getRevenueCategories(initial.code) as RevenueCategory[]);
     } else {
       const parent = forcedParentId ? accounts.find((a) => a.id === forcedParentId) : null;
       setCode("");
@@ -207,12 +205,10 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
     setExpenseCategoriesState((prev) =>
       prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
     );
-  const toggleRevenueCat = (label: string) => {
-    const v = label.trim().toLowerCase();
+  const toggleRevenueCat = (c: RevenueCategory) =>
     setRevenueCategoriesState((prev) =>
-      prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
     );
-  };
 
   return (
     <>
@@ -364,7 +360,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2 rounded-md border border-input p-3">
                 <Label className="text-sm">Categories</Label>
                 <p className="text-[11px] text-muted-foreground -mt-1">
-                  Controls which {showRevenueCats ? "AR service types" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
+                  Controls which {showRevenueCats ? "AR revenue categories" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
                 </p>
                 {showExpenseCats && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -385,20 +381,16 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
                 )}
                 {showRevenueCats && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {revenueOptions.length === 0 && (
-                      <span className="text-[11px] text-muted-foreground">No service types defined in Masters → client_categories.</span>
-                    )}
-                    {revenueOptions.map((o) => {
-                      const v = o.label.trim().toLowerCase();
-                      const on = revenueCategories.includes(v);
+                    {(Object.entries(REVENUE_CATEGORY_LABELS) as [RevenueCategory, string][]).map(([code, label]) => {
+                      const on = revenueCategories.includes(code);
                       return (
                         <button
-                          key={o.code ?? o.label}
+                          key={code}
                           type="button"
-                          onClick={() => toggleRevenueCat(o.label)}
+                          onClick={() => toggleRevenueCat(code)}
                           className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent"}`}
                         >
-                          {o.label}
+                          {label}
                         </button>
                       );
                     })}

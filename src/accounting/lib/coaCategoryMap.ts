@@ -1,4 +1,5 @@
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "../data/mockAP";
+import { REVENUE_CATEGORY_LABELS, type RevenueCategory } from "../data/mockAR";
 import type { CoaAccount } from "../types/coa";
 import { getExpenseCategories, getRevenueCategories } from "../stores/coaCategoriesStore";
 
@@ -99,81 +100,69 @@ export function matchesExpenseCategory(account: CoaAccount, category: string): b
 }
 
 /**
- * AR uses a free-text "service type" pulled from the client_categories master
- * list. Map common labels and substrings to revenue typeCodes.
+ * AR revenue category → COA typeCode mapping (mirrors EXPENSE_CATEGORY_TYPES).
  */
-const REVENUE_EXACT: Record<string, string[]> = {
-  "ielts coaching": ["COACHING_REV", "LANGUAGE_REV"],
-  "toefl coaching": ["COACHING_REV", "LANGUAGE_REV"],
-  "pte coaching": ["COACHING_REV", "LANGUAGE_REV"],
-  "french language": ["LANGUAGE_REV", "COACHING_REV"],
-  "german language": ["LANGUAGE_REV", "COACHING_REV"],
-  "spanish language": ["LANGUAGE_REV", "COACHING_REV"],
-  "japanese language": ["LANGUAGE_REV", "COACHING_REV"],
-  "mandarin language": ["LANGUAGE_REV", "COACHING_REV"],
-  "mock test package": ["COACHING_REV"],
-  "university admissions": ["TUITION_REV", "COMMISSION_REV"],
-  "study abroad package": ["TUITION_REV", "COMMISSION_REV", "VISA_REV"],
-  "scholarship guidance": ["TUITION_REV", "COMMISSION_REV"],
-  "institution commission": ["COMMISSION_REV"],
-  "commission": ["COMMISSION_REV"],
-  "document attestation": ["VISA_REV"],
-  "translation services": ["VISA_REV"],
-  "sop & lor writing": ["VISA_REV"],
-  "sop lor writing": ["VISA_REV"],
-  "accommodation assistance": ["VISA_REV"],
+export const REVENUE_CATEGORY_TYPES: Record<RevenueCategory, string[]> = {
+  COACHING_TRAINING: ["COACHING_REV", "LANGUAGE_REV"],
+  LANGUAGE_COURSES: ["LANGUAGE_REV", "COACHING_REV"],
+  TEST_PREP: ["COACHING_REV"],
+  VISA_IMMIGRATION: ["VISA_REV", "IMMIGRATION_REV"],
+  UNIVERSITY_ADMISSIONS: ["TUITION_REV", "COMMISSION_REV"],
+  INSTITUTION_COMMISSION: ["COMMISSION_REV"],
+  STUDY_ABROAD_PACKAGE: ["TUITION_REV", "COMMISSION_REV", "VISA_REV"],
+  DOCUMENTATION_SERVICES: ["VISA_REV"],
+  TRANSLATION_ATTESTATION: ["VISA_REV"],
+  CONSULTING_FEES: ["COMMISSION_REV"],
+  OTHER: [],
 };
 
-export function revenueTypesFor(label: string): string[] {
-  if (!label) return [];
-  const v = label.trim().toLowerCase();
-  if (REVENUE_EXACT[v]) return REVENUE_EXACT[v];
+const REVENUE_LABEL_TO_KEY: Record<string, RevenueCategory> = Object.fromEntries(
+  (Object.entries(REVENUE_CATEGORY_LABELS) as [RevenueCategory, string][]).map(
+    ([k, v]) => [v.toLowerCase(), k],
+  ),
+);
 
-  // Substring heuristics
-  if (/(visa|work permit|pr application|express entry|pnp)/.test(v)) {
-    return ["VISA_REV", "IMMIGRATION_REV"];
+const REVENUE_CATEGORY_NAME_RX: Record<RevenueCategory, RegExp | null> = {
+  COACHING_TRAINING: /\b(coaching|tutor|training|class)\b/i,
+  LANGUAGE_COURSES: /\b(language|french|german|spanish|japanese|mandarin|english)\b/i,
+  TEST_PREP: /\b(ielts|toefl|pte|gre|gmat|test prep|mock)\b/i,
+  VISA_IMMIGRATION: /\b(visa|immigrat|work permit|pr|express entry|pnp)\b/i,
+  UNIVERSITY_ADMISSIONS: /\b(admission|university|college|tuition|enrol|scholarship)\b/i,
+  INSTITUTION_COMMISSION: /\b(commission|referral|institution|partner)\b/i,
+  STUDY_ABROAD_PACKAGE: /\b(study abroad|overseas|abroad package)\b/i,
+  DOCUMENTATION_SERVICES: /\b(document|sop|lor|application)\b/i,
+  TRANSLATION_ATTESTATION: /\b(translat|attest|notar|apostille)\b/i,
+  CONSULTING_FEES: /\b(consult|advisory|service fee|professional)\b/i,
+  OTHER: null,
+};
+
+function normalizeRevenueKey(category: string): RevenueCategory | null {
+  if (!category) return null;
+  if ((REVENUE_CATEGORY_TYPES as Record<string, string[]>)[category]) {
+    return category as RevenueCategory;
   }
-  if (/commission/.test(v)) return ["COMMISSION_REV"];
-  if (/(coaching|tutoring|test prep|mock)/.test(v)) return ["COACHING_REV", "LANGUAGE_REV"];
-  if (/(language)/.test(v)) return ["LANGUAGE_REV", "COACHING_REV"];
-  if (/(tuition|admission|university|college|scholarship|study abroad)/.test(v)) {
-    return ["TUITION_REV", "COMMISSION_REV"];
-  }
-  return [];
+  return REVENUE_LABEL_TO_KEY[category.trim().toLowerCase()] ?? null;
+}
+
+export function revenueTypesFor(category: string): string[] {
+  const key = normalizeRevenueKey(category);
+  return key ? REVENUE_CATEGORY_TYPES[key] : [];
 }
 
 /**
- * Name-keyword fallback for revenue accounts.
+ * Unified resolver: does this CoA account serve the given AR revenue category?
+ * Precedence: explicit per-account link → seeded typeCode map → name regex.
  */
-function revenueNameMatches(label: string, name: string): boolean {
-  const v = label.trim().toLowerCase();
-  const n = name.toLowerCase();
-  if (!v || !n) return false;
-  // direct substring (e.g. "rent expense" name vs "rent" category)
-  if (n.includes(v)) return true;
-  if (/(visa|work permit|pr|express entry|pnp|immigrat)/.test(v) &&
-      /(visa|immigrat|work permit|pr)/.test(n)) return true;
-  if (/commission/.test(v) && /commission/.test(n)) return true;
-  if (/(coaching|tutoring|test prep|mock|ielts|toefl|pte)/.test(v) &&
-      /(coaching|tutor|test|mock|ielts|toefl|pte|language|training)/.test(n)) return true;
-  if (/language/.test(v) && /(language|coaching|training)/.test(n)) return true;
-  if (/(tuition|admission|university|college|scholarship|study abroad)/.test(v) &&
-      /(tuition|admission|university|college|scholarship|study abroad|commission)/.test(n)) return true;
-  return false;
-}
-
-/**
- * Unified resolver: does this CoA account serve the given AR service-type label?
- */
-export function matchesRevenueCategory(account: CoaAccount, label: string): boolean {
-  if (!label) return false;
-  const lower = label.trim().toLowerCase();
-  // 1. explicit per-account link
+export function matchesRevenueCategory(account: CoaAccount, category: string): boolean {
+  const key = normalizeRevenueKey(category);
+  if (!key) return false;
+  // 1. explicit links by code (stored lowercased: either the key or the label)
   const explicit = getRevenueCategories(account.code);
-  if (explicit.includes(lower)) return true;
-  // 2. typeCode map (via existing helper)
-  const types = revenueTypesFor(label);
-  if (types.includes(account.typeCode)) return true;
+  if (explicit.includes(key.toLowerCase())) return true;
+  if (explicit.includes(REVENUE_CATEGORY_LABELS[key].toLowerCase())) return true;
+  // 2. seeded typeCode map
+  if (REVENUE_CATEGORY_TYPES[key].includes(account.typeCode)) return true;
   // 3. name keyword fallback
-  return revenueNameMatches(label, account.name);
+  const rx = REVENUE_CATEGORY_NAME_RX[key];
+  return !!rx && rx.test(account.name);
 }

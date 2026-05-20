@@ -1,87 +1,70 @@
-## Problem
+# Fix: AR invoices missing a real "COA category" field
 
-The screenshot shows **CA-5200 Rent Expense** exists in CoA but its `typeCode` is **`OPERATING_EXP`** — a user-added type, not one of the seeded codes (`RENT`, `UTILITIES`, …). Our current mapping in `coaCategoryMap.ts` only matches by a fixed list of typeCodes, so the AP "Rent & utilities" dropdown comes up empty even though the right account clearly exists. Same brittleness affects AR: any user-created revenue account with a non-seeded typeCode (e.g. `OPERATING_REV`) is invisible.
+## Root cause
 
-Root cause: there is no real link between an AP **expense category** / AR **service type** and a CoA account. The static typeCode map is a guess that breaks the moment the user creates their own type.
+AP bills have a first-class **Expense category** dropdown (`EXPENSE_CATEGORY_LABELS`: Rent & utilities, Salaries, etc.) that drives the linked-COA filter. AR invoices were wired to **`client_categories`** master, but that list is actually *client segments* (Student / Professional / Family / Corporate / Partner) — not revenue/service categories. So:
 
-## Fix (single coherent change)
+- The AR form's "Service type" dropdown shows client segments, none of which map to any revenue COA.
+- The "Revenue account (Cr)" select stays disabled or empty ("No COA account mapped for this category").
+- The COA account editor's "Revenue categories" chips list the same wrong values, so accountants can't tag a revenue account properly.
 
-Make the link **explicit on the CoA account**, with a smart name-based fallback so existing accounts keep working without manual mapping.
+Net effect from the user's POV: **no COA category field on AR invoices** that actually does anything.
 
-### 1. `src/accounting/types/coa.ts`
+## Fix (single coherent change, mirrors the AP pattern)
 
-Add two optional fields to `CoaAccount` and `CoaAccountInput`:
+### 1. New enum + labels — `src/accounting/data/mockAR.ts`
 
-- `expenseCategories?: string[]` — AP `ExpenseCategory` codes this account serves (e.g. `["RENT_UTILITIES"]`).
-- `revenueCategories?: string[]` — AR free-text service labels this account serves (e.g. `["Institution commission"]`).
-
-Both default to empty arrays. No DB change — these live in the existing localStorage-backed `coaStore`.
-
-### 2. `src/accounting/stores/coaStore.ts`
-
-- Persist the two new fields through `createAccount` / `updateAccount`.
-- One-time migration on load: leave existing accounts untouched (fallback below covers them).
-
-### 3. `src/accounting/pages/coa/AccountingCOAPage.tsx` (edit/create dialog)
-
-- Add a **"Categories"** section in the account editor with two multi-select chips:
-  - **Expense categories** — visible only when `groupCode === "EXPENSE"` (or `ASSET` for prepaids). Options come from `EXPENSE_CATEGORY_LABELS` in `mockAP.ts`.
-  - **Revenue categories** — visible only when `groupCode === "REVENUE"`. Options come from `useMaster("client_categories")` (same source the AR form uses).
-- Helper copy: "Controls which categories see this account in AP/AR dropdowns. Leave blank to fall back to auto-matching by name."
-
-### 4. `src/accounting/lib/coaCategoryMap.ts` (extend, don't replace)
-
-Add **name-keyword fallback tables** (no DB needed) so legacy accounts without explicit categories still resolve:
+Add alongside the existing `ServiceType`:
 
 ```ts
-const EXPENSE_CATEGORY_NAME_RX: Record<ExpenseCategory, RegExp> = {
-  RENT_UTILITIES: /\b(rent|utilit|electric|water|gas)\b/i,
-  SALARIES_PAYROLL: /\b(salar|payroll|wage|bonus|gratuity)\b/i,
-  TECHNOLOGY_SOFTWARE: /\b(software|saas|subscription|hosting|cloud|it)\b/i,
-  MARKETING_ADVERTISING: /\b(marketing|advert|campaign|seo|ads)\b/i,
-  PROFESSIONAL_FEES: /\b(professional|legal|consult|audit|accounting)\b/i,
-  BANK_CHARGES: /\b(bank|wire|transfer|charge|fee)\b/i,
-  TRAVEL_TRANSPORT: /\b(travel|taxi|uber|flight|transport|fuel)\b/i,
-  OFFICE_SUPPLIES: /\b(office|stationery|supplies|printing)\b/i,
-  TELECOMS: /\b(telecom|phone|mobile|internet|broadband)\b/i,
-  COACHING_MATERIALS: /\b(coaching|material|book|study)\b/i,
-  EXAM_FEES: /\b(exam|test|ielts|toefl|pte)\b/i,
-  VISA_FILING_COSTS: /\b(visa|embassy|biometric|application)\b/i,
-  UNIVERSITY_LIAISON_FEES: /\b(university|tuition|liaison|institution)\b/i,
-  GOVERNMENT_FEES: /\b(government|govt|tax|stamp|notar)\b/i,
-  INSURANCE: /\b(insurance|policy|premium)\b/i,
-  MAINTENANCE: /\b(maintenance|repair|cleaning|janitor)\b/i,
-  OTHER: /.^/, // never matches — OTHER must be mapped explicitly
-};
+export type RevenueCategory =
+  | "COACHING_TRAINING"
+  | "LANGUAGE_COURSES"
+  | "VISA_IMMIGRATION"
+  | "UNIVERSITY_ADMISSIONS"
+  | "INSTITUTION_COMMISSION"
+  | "DOCUMENTATION_SERVICES"
+  | "TEST_PREP"
+  | "STUDY_ABROAD_PACKAGE"
+  | "TRANSLATION_ATTESTATION"
+  | "CONSULTING_FEES"
+  | "OTHER";
+
+export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = { ... };
 ```
 
-Add a single resolver used by both AP and AR pages:
+Add `revenueCategory?: RevenueCategory` to `CustomerInvoice`.
 
-```ts
-matchesExpenseCategory(account, category): boolean
-  = account.expenseCategories?.includes(category)
- || EXPENSE_CATEGORY_TYPES[category]?.includes(account.typeCode)
- || EXPENSE_CATEGORY_NAME_RX[category]?.test(account.name);
-```
+### 2. `src/accounting/lib/coaCategoryMap.ts`
 
-Mirror for revenue: `matchesRevenueCategory(account, label)` — explicit `revenueCategories` first, then exact-label/substring rules already in `REVENUE_EXACT` + heuristics, then a final name-regex check against the label keywords.
+- Replace the free-text `REVENUE_EXACT` map with a typed `REVENUE_CATEGORY_TYPES: Record<RevenueCategory, string[]>` (same shape as `EXPENSE_CATEGORY_TYPES`).
+- Add `REVENUE_CATEGORY_NAME_RX: Record<RevenueCategory, RegExp | null>` for name fallback (commission, coaching, ielts/toefl, visa, tuition, etc.).
+- Rewrite `matchesRevenueCategory(account, category)` to take a `RevenueCategory` code and use the 3-step precedence already used for expenses (explicit per-account link → typeCode map → name regex).
 
-### 5. `src/accounting/pages/ap/AccountingNewBillPage.tsx`
+### 3. `src/accounting/components/coa/AccountFormDialog.tsx`
 
-Replace the `mappedExpenseTypes.includes(a.typeCode)` filter with `matchesExpenseCategory(a, category)`. Drop the `useEffect` that recomputes `mappedExpenseTypes`. Update empty-state copy:
+Swap the revenue-category source: instead of `useMaster("client_categories")`, render chips from `REVENUE_CATEGORY_LABELS` (exact mirror of the existing expense-category chip block). Keep storage in `coaCategoriesStore` keyed by account `code`.
 
-> "No COA account assigned to this category. Open Chart of Accounts → edit an expense account → add this category."
+### 4. `src/accounting/pages/ar/AccountingNewInvoicePage.tsx`
 
-### 6. `src/accounting/pages/ar/AccountingNewInvoicePage.tsx`
+- Add a new **"Revenue category *"** field (the COA-driver) using a plain `Select` over `REVENUE_CATEGORY_LABELS`. Keep the existing **Service type** field (free-text descriptor from `client_categories` — used only as a label on the invoice, not for COA filtering).
+- Change `eligibleRevenueAccounts` filter to use the new `revenueCategory` state.
+- Disable the "Revenue account (Cr)" select on `!revenueCategory` (instead of `!serviceType`), and update the placeholder/empty-state copy to "No COA account mapped for this category — add one in Chart of Accounts."
+- Persist `revenueCategory` on the saved invoice.
 
-Replace `mappedRevenueTypes.includes(a.typeCode)` with `matchesRevenueCategory(a, serviceType)`. Same updated empty-state copy.
+### 5. `src/accounting/stores/arInvoicesStore.ts` (and any list/detail views)
 
-## Why this fixes the user's screenshot
+Pass through the new `revenueCategory` field. No other behavior change.
 
-CA-5200 has `typeCode = OPERATING_EXP` (no match), no `expenseCategories` yet, but `name = "Rent Expense"`. The new name-regex fallback `/\b(rent|utilit|…)\b/i` matches "Rent Expense" → account appears in the **Rent & utilities** dropdown. As soon as the accountant edits the account and ticks **Rent & utilities** in the new Categories field, that explicit link takes over and the regex is no longer needed.
+## Why this fixes it
+
+- AR invoices get a real, AP-symmetric "Revenue category" field driving the linked COA dropdown.
+- The COA account editor exposes the same set of revenue categories accountants can tag, so explicit links actually work.
+- "Service type" remains as a free-text descriptor for client-facing wording, decoupled from COA filtering.
+- Existing accounts without explicit links still resolve via the typeCode + name-regex fallback.
 
 ## Out of scope
 
-- No DB migration, no Supabase changes.
-- AP/AR control accounts, journal posting, payload shape — untouched.
-- No new system types added to `coaMasterStore` (user keeps full freedom to use `OPERATING_EXP` or any other label).
+- No DB / Supabase migration. New fields live in localStorage stores.
+- AR control account, journal posting, tax logic — untouched.
+- `client_categories` master is left as-is (still useful for client segmentation).
