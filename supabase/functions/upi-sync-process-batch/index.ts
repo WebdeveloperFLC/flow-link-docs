@@ -83,7 +83,7 @@ const COURSE_TOOL = {
 };
 
 async function logMsg(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   job_id: string,
   level: "info" | "warn" | "error",
   message: string,
@@ -178,7 +178,7 @@ function chainNext(job_id: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const supabase = createClient(
+  const supabase: any = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
@@ -345,7 +345,7 @@ Deno.serve(async (req) => {
   }
 });
 
-async function finalizeIfDone(supabase: ReturnType<typeof createClient>, job_id: string) {
+async function finalizeIfDone(supabase: any, job_id: string) {
   const { count: pendingOrProcessing } = await supabase.from("upi_sync_queue")
     .select("id", { count: "exact", head: true })
     .eq("job_id", job_id).in("status", ["pending", "processing"]);

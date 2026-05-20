@@ -205,7 +205,7 @@ async function discoverAlgoliaProgramLinks(pageUrl: string, html: string): Promi
 }
 
 async function logMsg(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   job_id: string,
   level: "info" | "warn" | "error",
   message: string,
@@ -307,7 +307,7 @@ function triggerBatch(job_id: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const supabase = createClient(
+  const supabase: any = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
