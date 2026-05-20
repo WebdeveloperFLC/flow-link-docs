@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -16,6 +16,7 @@ import { COUNSELORS, type CustomerInvoice } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { useClients } from "../../stores/clientsStore";
 import { addArInvoice } from "../../stores/arInvoicesStore";
+import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
 
@@ -32,6 +33,7 @@ export default function AccountingNewInvoicePage() {
   const clients = useClients();
   const entities = useScopedEntities();
   const taxCodes = useMaster("tax_codes");
+  const accounts = useAccounts();
 
   const [client, setClient] = useState(""); const [clientEmail, setClientEmail] = useState(""); const [clientPhone, setClientPhone] = useState("");
   const [counselor, setCounselor] = useState(""); const [serviceType, setServiceType] = useState("");
@@ -41,7 +43,8 @@ export default function AccountingNewInvoicePage() {
   const [subtotal, setSubtotal] = useState<number>(0); const [taxCode, setTaxCode] = useState(""); const [taxAmount, setTaxAmount] = useState<number>(0);
   const [paymentTerms, setPaymentTerms] = useState("");
   const [description, setDescription] = useState(""); const [notes, setNotes] = useState("");
-  const [coa, setCoa] = useState("1200 — Accounts receivable"); const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
+  const [revenueCoaId, setRevenueCoaId] = useState(""); const [arCoaId, setArCoaId] = useState("");
+  const [bankId, setBankId] = useState(""); const [payMethod, setPayMethod] = useState("");
   const [installmentPlan, setInstallmentPlan] = useState(false); const [totalInstallments, setTotalInstallments] = useState<number>(1);
   const [tags, setTags] = useState<string[]>([]); const [tagInput, setTagInput] = useState("");
 
@@ -52,6 +55,30 @@ export default function AccountingNewInvoicePage() {
   const branchName = entities.find((e) => e.id === branchId)?.name ?? "";
 
   const clientOptions = clients.map((c) => c.name);
+
+  const coaScope = (a: typeof accounts[number]) =>
+    a.status === "ACTIVE" && a.isPostable &&
+    (a.entityId === entityId || a.entityId === null) &&
+    a.currency === currency;
+
+  const eligibleRevenueAccounts = accounts.filter(
+    (a) => coaScope(a) && a.groupCode === "REVENUE",
+  );
+  const eligibleArAccounts = accounts.filter(
+    (a) => coaScope(a) && a.groupCode === "ASSET" && a.typeCode === "AR",
+  );
+
+  useEffect(() => {
+    if (revenueCoaId && !eligibleRevenueAccounts.some((a) => a.id === revenueCoaId)) {
+      setRevenueCoaId("");
+    }
+  }, [entityId, currency, revenueCoaId, eligibleRevenueAccounts]);
+
+  useEffect(() => {
+    if (!entityId) { setArCoaId(""); return; }
+    if (arCoaId && eligibleArAccounts.some((a) => a.id === arCoaId)) return;
+    setArCoaId(eligibleArAccounts[0]?.id ?? "");
+  }, [entityId, currency, arCoaId, eligibleArAccounts]);
 
   function applyTax(code: string) {
     setTaxCode(code);
