@@ -157,21 +157,31 @@ const Users = () => {
             <Plus className="size-4 mr-1" /> Add new user
           </Button>
         </div>
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
-          <ModuleAccessCard
-            module="institutions"
-            title="Institutions access"
-            description="Who can view or manage institutions, programs and related details."
-            profiles={profiles}
-            roles={roles}
-          />
-          <ModuleAccessCard
-            module="commissions"
-            title="Commissions access"
-            description="Who can view or manage commissions, claims and agreements."
-            profiles={profiles}
-            roles={roles}
-          />
+        <div className="mb-6">
+          <div className="mb-2">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Section access
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Institutions and Commissions are managed independently. Grant or revoke access per teammate below.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <ModuleAccessCard
+              module="institutions"
+              title="Institutions section"
+              description="Who can view or manage partner institutions, programs and related details."
+              profiles={profiles}
+              roles={roles}
+            />
+            <ModuleAccessCard
+              module="commissions"
+              title="Commissions section"
+              description="Who can view or manage commissions, claims, agreements and invoicing."
+              profiles={profiles}
+              roles={roles}
+            />
+          </div>
         </div>
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="grid grid-cols-[minmax(0,3fr)_110px_minmax(0,2fr)_minmax(0,2fr)_60px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
