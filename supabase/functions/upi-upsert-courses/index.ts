@@ -22,6 +22,20 @@ async function sha256Hex(s: string): Promise<string> {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Canonicalize a printed program title for dedup. Strips AI-added suffixes
+// such as "(Master)" or "@ Oshawa", collapses whitespace, and lowercases.
+function canonicalTitle(title: string, level?: string): string {
+  let s = String(title || "").trim();
+  s = s.replace(/\s*@\s*[A-Za-z][\w\s.&'-]+$/, "");
+  if (level) {
+    const lvl = String(level).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    s = s.replace(new RegExp(`\\s*\\(\\s*${lvl}\\s*\\)\\s*$`, "i"), "");
+  }
+  s = s.replace(/\s*\((Bachelor|Master|Diploma|Certificate|PhD|Doctorate|Doctoral|Graduate Certificate|Postgraduate)\s*\)\s*$/i, "");
+  s = s.replace(/\s{2,}/g, " ").trim().toLowerCase();
+  return s;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -44,7 +58,7 @@ Deno.serve(async (req) => {
         if (!known.course_title) { rejected++; continue; }
         // Dedup hash now includes program_level and campus so multi-campus / multi-level
         // programs with the same title don't collapse into a single staging row.
-        const titleKey = String(known.course_title).toLowerCase().trim();
+        const titleKey = canonicalTitle(String(known.course_title), String(known.program_level ?? ""));
         const levelKey = String(known.program_level ?? "").toLowerCase().trim();
         const campusKey = String(known.campus_name ?? "").toLowerCase().trim();
         const urlKey = String(known.source_url ?? "").trim();
