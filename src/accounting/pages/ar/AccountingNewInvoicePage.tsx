@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import DynamicSelect from "../../components/shared/DynamicSelect";
-import { COUNSELORS, type CustomerInvoice } from "../../data/mockAR";
+import { COUNSELORS, REVENUE_CATEGORY_LABELS, type CustomerInvoice, type RevenueCategory } from "../../data/mockAR";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { useClients } from "../../stores/clientsStore";
 import { addArInvoice } from "../../stores/arInvoicesStore";
@@ -38,6 +38,7 @@ export default function AccountingNewInvoicePage() {
 
   const [client, setClient] = useState(""); const [clientEmail, setClientEmail] = useState(""); const [clientPhone, setClientPhone] = useState("");
   const [counselor, setCounselor] = useState(""); const [serviceType, setServiceType] = useState("");
+  const [revenueCategory, setRevenueCategory] = useState<RevenueCategory | "">("");
   const [destinationCountry, setDestinationCountry] = useState(""); const [universityName, setUniversityName] = useState(""); const [intakeMonth, setIntakeMonth] = useState("");
   const [entityId, setEntityId] = useState(""); const [branchId, setBranchId] = useState(""); const [currency, setCurrency] = useState("CAD");
   const [invoiceNumber, setInvoiceNumber] = useState(""); const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().slice(0, 10)); const [dueDate, setDueDate] = useState("");
@@ -63,7 +64,7 @@ export default function AccountingNewInvoicePage() {
     a.currency === currency;
 
   const eligibleRevenueAccounts = accounts.filter(
-    (a) => coaScope(a) && a.groupCode === "REVENUE" && matchesRevenueCategory(a, serviceType),
+    (a) => coaScope(a) && a.groupCode === "REVENUE" && matchesRevenueCategory(a, revenueCategory),
   );
   const eligibleArAccounts = accounts.filter(
     (a) => coaScope(a) && a.groupCode === "ASSET" && a.typeCode === "AR",
@@ -102,6 +103,7 @@ export default function AccountingNewInvoicePage() {
       destinationCountry: (destinationCountry as CustomerInvoice["destinationCountry"]) || undefined,
       universityName: universityName || undefined, intakeMonth: intakeMonth || undefined,
       programName: serviceType || undefined,
+      revenueCategory: revenueCategory || undefined,
       description: description || "—",
       invoiceDate, dueDate, currency: cur, subtotal,
       taxCode: masterLabel("tax_codes", taxCode) || taxCode || "NONE",
@@ -155,6 +157,16 @@ export default function AccountingNewInvoicePage() {
 
         <Card><CardHeader><CardTitle className="text-sm">Service details</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Service type"><DynamicSelect listKey="client_categories" value={serviceType} onValueChange={setServiceType} placeholder="Select service type" /></Field>
+          <Field label="Revenue category *">
+            <Select value={revenueCategory || "__none__"} onValueChange={(v) => setRevenueCategory(v === "__none__" ? "" : (v as RevenueCategory))}>
+              <SelectTrigger><SelectValue placeholder="Select revenue category" /></SelectTrigger>
+              <SelectContent>
+                {(Object.entries(REVENUE_CATEGORY_LABELS) as [RevenueCategory, string][]).map(([code, label]) => (
+                  <SelectItem key={code} value={code}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Destination country"><DynamicSelect listKey="countries" value={destinationCountry} onValueChange={setDestinationCountry} /></Field>
           <Field label="University / institution"><Input value={universityName} onChange={(e) => setUniversityName(e.target.value)} /></Field>
           <Field label="Intake month"><Input value={intakeMonth} onChange={(e) => setIntakeMonth(e.target.value)} placeholder="e.g. September 2025" /></Field>
@@ -191,13 +203,13 @@ export default function AccountingNewInvoicePage() {
 
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Revenue account (Cr) *">
-            <Select value={revenueCoaId || "__none__"} onValueChange={(v) => setRevenueCoaId(v === "__none__" ? "" : v)} disabled={!entityId || !serviceType}>
-              <SelectTrigger><SelectValue placeholder={!entityId ? "Select an entity first" : !serviceType ? "Select a service type first" : "Select revenue account…"} /></SelectTrigger>
+            <Select value={revenueCoaId || "__none__"} onValueChange={(v) => setRevenueCoaId(v === "__none__" ? "" : v)} disabled={!entityId || !revenueCategory}>
+              <SelectTrigger><SelectValue placeholder={!entityId ? "Select an entity first" : !revenueCategory ? "Select a revenue category first" : "Select revenue account…"} /></SelectTrigger>
               <SelectContent>
                 {!entityId ? (
                   <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
-                ) : !serviceType ? (
-                  <SelectItem value="__none__" disabled>Select a service type first</SelectItem>
+                ) : !revenueCategory ? (
+                  <SelectItem value="__none__" disabled>Select a revenue category first</SelectItem>
                 ) : eligibleRevenueAccounts.length === 0 ? (
                   <SelectItem value="__none__" disabled>No COA account mapped for this category — add one in Chart of Accounts.</SelectItem>
                 ) : (
