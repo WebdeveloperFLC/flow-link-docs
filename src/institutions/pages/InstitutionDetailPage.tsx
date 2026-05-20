@@ -276,6 +276,40 @@ export default function InstitutionDetailPage() {
     setBusy(false); load();
   };
 
+  // Rename a doc's storage object to a sanitized key (fixes broken iframe preview
+  // when the original file_path contains `%` or other URL-unsafe chars).
+  const repairDocPath = async (d: any) => {
+    if (!d?.file_path || !/%/.test(d.file_path)) return;
+    setBusy(true);
+    try {
+      const oldPath: string = d.file_path;
+      const segs = oldPath.split("/");
+      const last = segs.pop() ?? "";
+      // strip the leading "<timestamp>-" prefix when re-sanitizing
+      const dashIdx = last.indexOf("-");
+      const ts = dashIdx > 0 ? last.slice(0, dashIdx) : String(Date.now());
+      const rest = dashIdx > 0 ? last.slice(dashIdx + 1) : last;
+      const newLast = `${ts}-${safeStorageName(rest)}`;
+      const newPath = [...segs, newLast].join("/");
+      if (newPath === oldPath) { setBusy(false); return; }
+      const { error: mvErr } = await supabase.storage
+        .from("institution-documents")
+        .move(oldPath, newPath);
+      if (mvErr) throw mvErr;
+      const { error: upErr } = await supabase
+        .from("upi_uploaded_documents")
+        .update({ file_path: newPath })
+        .eq("id", d.id);
+      if (upErr) throw upErr;
+      toast.success("Preview link repaired");
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Repair failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const deleteDoc = async (d: any) => {
     if (!confirm(`Delete document "${d.file_name}"?\n\nThis removes the file and all pipeline events. Irreversible.`)) return;
     if (d.file_path) {
