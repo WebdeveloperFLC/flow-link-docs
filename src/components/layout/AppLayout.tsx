@@ -9,6 +9,7 @@ import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 import { useCan } from "@/accounting/hooks/usePermission";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -86,6 +87,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const primaryRole = roles[0] ?? "viewer";
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
+  const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const sidebarMode = theme.sidebarMode;
@@ -190,7 +192,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             </>
           )}
 
-          {isAdmin && <>
+          {(isAdmin || canViewInstitutions) && <>
             <div className="border-t border-sidebar-border my-2" />
             {!iconsOnly && (
               <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
