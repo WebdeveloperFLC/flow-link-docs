@@ -14,7 +14,7 @@ import { addAccount, getAccounts, getDescendantIds, updateAccount } from "../../
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { getExpenseCategories, getRevenueCategories, setAccountCategories } from "../../stores/coaCategoriesStore";
 import { EXPENSE_CATEGORY_LABELS, type ExpenseCategory } from "../../data/mockAP";
-import { useMaster } from "@/lib/masters";
+import { useMasterItems } from "@/lib/masters";
 import AddGroupInlineDialog from "./AddGroupInlineDialog";
 import AddTypeInlineDialog from "./AddTypeInlineDialog";
 import AddSubTypeInlineDialog from "./AddSubTypeInlineDialog";
@@ -54,7 +54,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const [expenseCategories, setExpenseCategoriesState] = useState<ExpenseCategory[]>([]);
   const [revenueCategories, setRevenueCategoriesState] = useState<string[]>([]);
 
-  const revenueOptions = useMaster("client_categories");
+  const revenueOptions = useMasterItems("client_categories");
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
