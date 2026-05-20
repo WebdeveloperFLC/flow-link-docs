@@ -510,7 +510,12 @@ export default function InstitutionDetailPage() {
                   className={`p-4 flex items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{s.url ?? s.file_path}</div>
+                    <div className="font-medium truncate">
+                      {(s as any).name ?? s.url ?? s.file_path}
+                      {(s as any).document_id && (
+                        <span className="ml-2 text-xs text-muted-foreground">(from Documents)</span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
                     {s.crawl_status === "failed" && sourceError && (
                       <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
