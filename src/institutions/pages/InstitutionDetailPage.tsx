@@ -65,6 +65,7 @@ export default function InstitutionDetailPage() {
   const [suggestions, setSuggestions] = useState<UpiSuggestion[]>([]);
   const [newSourceUrl, setNewSourceUrl] = useState("");
   const [newSourceType, setNewSourceType] = useState("website_url");
+  const [newSourceDocId, setNewSourceDocId] = useState<string>("");
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
@@ -146,19 +147,35 @@ export default function InstitutionDetailPage() {
   };
 
   const addSource = async () => {
-    const raw = newSourceUrl.trim();
-    if (!raw) return toast.error("URL required");
-    try {
-      const u = new URL(raw);
-      if (u.protocol !== "http:" && u.protocol !== "https:") {
-        return toast.error("URL must start with http:// or https://");
+    const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+    const isDocType = DOC_TYPES.has(newSourceType);
+    let insertPayload: any = { institution_id: id, source_type: newSourceType };
+    if (isDocType) {
+      if (!newSourceDocId) return toast.error("Pick an uploaded document — or upload one in the Documents tab first");
+      const doc = docs.find((d) => d.id === newSourceDocId);
+      if (!doc) return toast.error("Selected document not found");
+      insertPayload = {
+        ...insertPayload,
+        document_id: doc.id,
+        file_path: doc.file_path,
+        name: doc.file_name,
+      };
+    } else {
+      const raw = newSourceUrl.trim();
+      if (!raw) return toast.error("URL required");
+      try {
+        const u = new URL(raw);
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          return toast.error("URL must start with http:// or https://");
+        }
+      } catch {
+        return toast.error("Invalid URL — paste a full https://… link");
       }
-    } catch {
-      return toast.error("Invalid URL — paste a full https://… link");
+      insertPayload.url = raw;
     }
     const { data, error } = await supabase
       .from("upi_institution_sources")
-      .insert({ institution_id: id, source_type: newSourceType, url: raw })
+      .insert(insertPayload)
       .select()
       .single();
     if (error) {
@@ -167,6 +184,7 @@ export default function InstitutionDetailPage() {
     }
     console.log("[addSource] inserted", data);
     setNewSourceUrl("");
+    setNewSourceDocId("");
     await load();
     if (data?.id) {
       setHighlightSourceId(data.id);
@@ -175,7 +193,7 @@ export default function InstitutionDetailPage() {
       }, 50);
       setTimeout(() => setHighlightSourceId(null), 2500);
     }
-    toast.success("Source added — click Sync now to fetch courses");
+    toast.success("Source added — click Sync now to extract programs");
   };
 
   const pollSyncJob = async (jobId: string) => {
