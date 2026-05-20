@@ -1,75 +1,46 @@
-# Fix: team members can't be granted access to Institutions
+# Plan: Multi-role users + separate Institutions / Commissions access
 
-## Root cause
+## Goals
+1. **Commissions access** should be a per-user toggle (like Institutions), independent of the `commission_admin` role.
+2. **Institutions access** stays a per-user toggle (already wired) — make it more discoverable on the Users page.
+3. A user can hold **multiple roles at once** (e.g. Counselor + Documentation + Telecaller), not just one.
 
-Two places hard-gate Institutions to `isAdmin`, ignoring the per-user permission system that already exists for the `institutions` module:
+## Changes
 
-1. `src/institutions/components/InstitutionsProtectedRoute.tsx` — renders "Access restricted" unless `isAdmin`.
-2. `src/components/layout/AppLayout.tsx` (~line 193) — the entire Institutions sidebar group is wrapped in `{isAdmin && …}`, so non-admins never even see the nav links.
+### 1. Add "Commissions" as a permissioned module
+`src/lib/modulePermissions.ts`
+- Add `{ key: "commissions", label: "Commissions & Claims", description: "Partner commissions, claims, agreements, invoicing." }` to `CRM_MODULES`.
+- `ROLE_DEFAULTS`: grant `admin` and `commission_admin` full access; everyone else `NONE`.
 
-The plumbing for per-user access is already in place:
-- `CRM_MODULES` in `src/lib/modulePermissions.ts` already includes `{ key: "institutions", label: "Institutions" }`.
-- `user_module_permissions` table + `fetchUserPermissions` / `saveUserPermissions` already support view / edit / delete for it.
-- `UserPermissionsDialog` (opened from **Users**) already renders Institutions as a togglable row.
-- Role defaults already grant `counselor` and `documentation` view-level on institutions.
+`src/institutions/components/CommissionsProtectedRoute.tsx`
+- Use `useModulePermission("commissions")`. Allow when `isAdmin || isCommissionAdmin || canView` (and `canEdit` when `requireEdit`). Update copy to mention "Team & roles → Permissions → Commissions".
 
-So the admin **already can** grant access from Users → Permissions; the two guards above just refuse to honor it.
+`src/components/layout/AppLayout.tsx`
+- Gate the Commissions sidebar entry on `isAdmin || isCommissionAdmin || canViewCommissions` using the hook.
 
-## Fix
+### 2. Multi-role selection on the Users page
+`src/pages/Users.tsx`
+- Replace the single-select Role dropdown with a **multi-select popover** (checkbox list of `ALL_ROLES`), showing all assigned roles as small chips in the Role column.
+- Rewrite `setRole` → `setRoles(uid, nextRoles[])`:
+  - Diff against existing roles, insert missing rows, delete removed rows in `user_roles`.
+  - Preserve last-admin guard: prevent removing `admin` from the only remaining admin.
+  - Log `user.roles_changed` activity.
+- `UserPermissionsDialog` already accepts a single `role` for defaults — pass the **highest-privilege** role from the user's set (priority: admin > commission_admin > counselor > documentation > telecaller > viewer) so "Reset to role defaults" stays useful.
+- Update footer help text: clarify that roles are additive and that Institutions/Commissions access is granted per-user via **Module access**.
 
-### 1. New hook — `src/hooks/useModulePermission.ts`
+### 3. Add-user dialog
+`src/components/users/AddUserDialog.tsx` + edge function `admin-users` (action `create`)
+- Replace single role select with a multi-select (checkbox list); send `roles: AppRole[]`.
+- In the edge function `create` handler, accept either `role` (back-compat) or `roles[]` and insert one `user_roles` row per role.
 
-Thin wrapper around `fetchUserPermissions` keyed to the current `auth.uid()`:
-
-```ts
-useModulePermission("institutions") → { canView, canEdit, canDelete, loading }
-```
-
-- Admins short-circuit to `{ true, true, true }`.
-- Result is cached per (userId, module) for the session and re-fetched on `onAuthStateChange`.
-
-### 2. `InstitutionsProtectedRoute` — honor permissions
-
-Add an optional prop `requireEdit?: boolean` (default false → view). Replace the `isAdmin`-only gate with:
-
-```
-allowed = isAdmin || (requireEdit ? canEdit : canView)
-```
-
-Show the same "Access restricted" card otherwise, but with copy that points the user to "ask an admin to grant Institutions access in Users → Permissions".
-
-### 3. `App.tsx` route guards
-
-Keep all 4 institutions routes wrapped in `InstitutionsProtectedRoute`. No prop change needed for now — view-level is enough to load the pages; create/edit/delete buttons inside the pages enforce edit/delete separately (step 5).
-
-### 4. `AppLayout` sidebar — show Institutions group for any permitted user
-
-Replace `{isAdmin && …}` around the Institutions block with a `canViewInstitutions` check from the new hook. Admins keep full visibility; team members with at least view access see the group with the same three links.
-
-### 5. Edit/delete gating inside the Institutions pages
-
-Use the same hook to hide / disable mutating affordances when `!canEdit`:
-
-- `src/institutions/pages/InstitutionsListPage.tsx` — "Add institution", bulk actions, row edit buttons.
-- `src/institutions/pages/InstitutionDetailPage.tsx` — save / add-program / add-campus / add-promotion / delete buttons in `OverviewPanel`, `PromotionsPanel`, `CampaignsPanel`, `AgreementsPanel`.
-- `src/institutions/pages/CourseReviewPage.tsx` and `AiSuggestionsPage.tsx` — accept/reject suggestion actions require `canEdit`.
-
-Read-only viewers still see the full data; only write affordances are hidden.
-
-### 6. Users page copy tweak
-
-`src/pages/Users.tsx` line 237: the "Administrator manages …" paragraph implies Institutions is admin-only. Reword to "Institutions access is granted per user from the Permissions dialog (View / Edit / Delete)" so admins know how to delegate.
+### 4. Minor copy
+`src/pages/Users.tsx` footer paragraph — mention both Institutions and Commissions per-user toggles.
 
 ## Out of scope
+- No DB schema change (user_roles already supports multiple rows per user — `unique(user_id, role)`).
+- No RLS change.
+- No changes to accounting module access.
 
-- No DB / RLS changes — `user_module_permissions` already covers `institutions`.
-- Commissions module access (separate `commission_admin` role + its own protected route) — untouched.
-- No new role; we use the existing per-module grants.
-
-## Result
-
-After this change an admin opens **Users → ⋯ → Permissions** on any team member, toggles **Institutions → View / Edit**, saves, and that member immediately:
-
-- Sees the Institutions group in the left nav.
-- Can open Institutions, Course Review, AI Suggestions, and institution detail pages.
-- Can add institutions, programs, campuses, agreements, promotions, etc. when granted **Edit**; delete when granted **Delete**.
+## Technical notes
+- `useAuth().isCommissionAdmin` stays as-is (role-based) so commission_admin role still implicitly grants access; the new module toggle is an additive grant for non-commission_admin users.
+- `useModulePermission` cache is keyed by user id; no invalidation needed for this change since admins editing other users don't read their own perms.
