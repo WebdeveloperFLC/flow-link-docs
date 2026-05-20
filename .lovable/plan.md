@@ -1,43 +1,38 @@
-Do I know what the issue is? Yes.
+## Goal
+Add Firecrawl as a third-tier fallback in the sync pipeline so Cloudflare-protected pages (like Brock's graduate programs) succeed even when Jina credits are exhausted and direct fetch returns 403.
 
-The failing row in the screenshot is not failing because of Team & Roles. It is failing because Brock blocks direct automated fetching with Cloudflare HTTP 403, and the external reader fallback is returning HTTP 402 credits exhausted. The current code correctly reports both blockers:
+## Fetch order (after change)
+1. **Jina Reader** (current primary) — fast, cheap, LLM-ready markdown
+2. **Direct fetch** with browser-like User-Agent (current secondary) — handles simple sites
+3. **Firecrawl** (new tertiary) — handles Cloudflare/JS-challenge sites
 
-```text
-Jina Reader credits exhausted; Site blocks automated fetch (HTTP 403)
-```
+If all three fail, mark source as `failed` with a clear actionable message.
 
-I also checked Brock’s program page, sitemap, WordPress JSON endpoints, and calendar URLs directly; they all return the same Cloudflare “Just a moment…” page to server-side fetches. Canadore worked because it exposes an Algolia index; Brock does not expose an equivalent unblocked source on that URL.
+## Setup steps
+1. Connect Firecrawl via Connectors (one-click managed connection — comes with free credits, no API key entry required).
+2. Confirm `FIRECRAWL_API_KEY` is available in edge functions.
 
-Plan to recover this properly:
+## Code changes
+- **`supabase/functions/upi-sync-source/index.ts`**
+  - Add `fetchViaFirecrawl(url, maxChars)` helper that calls `POST https://api.firecrawl.dev/v2/scrape` with `formats: ['markdown']` and `onlyMainContent: true`.
+  - In the fetch chain, after Jina fails AND direct fetch returns 403 / Cloudflare HTML, call Firecrawl.
+  - On success, return `{ md, via: 'firecrawl' }`.
+  - On Firecrawl 402 (out of credits), surface: "Firecrawl credits exhausted — top up at firecrawl.dev or reconnect a paid plan."
+  - Only attempt Firecrawl if `FIRECRAWL_API_KEY` is set; otherwise keep current behavior.
 
-1. Keep roles in place
-   - Do not reset Team & Roles unless you explicitly choose a full rollback in History.
-   - The backend sync functions use server-side credentials and are not blocked by the role changes.
+- **`supabase/functions/upi-sync-process-batch/index.ts`**
+  - Same three-tier fetch chain for per-program page scraping.
 
-2. Fix blocked-source handling for Brock
-   - Update the sync function so a Cloudflare-blocked page with exhausted reader credits does not stay as a generic failed source.
-   - Mark the source as `blocked`/failed with a clearer actionable message: “Brock blocks server fetch; add reader credits or use an alternate accessible source.”
-   - Avoid repeatedly retrying the same blocked URL in `Sync all` unless the user manually clicks `Sync now`.
+- **No frontend changes required.** The existing `sourceErrors` UI already displays the `error_summary`, which will now reflect the deeper fallback chain.
 
-3. Add alternate-source recovery for Brock
-   - Add support for accessible official/near-official directories when the main university page blocks fetch.
-   - For Brock undergraduate programs, use the reachable OUInfo program listing as a fallback.
-   - For Brock graduate programs, keep the Brock source blocked unless a reachable graduate directory/source is provided or reader credits are restored, because Brock and OUAC graduate pages are both Cloudflare-blocked from backend fetch.
+## Out of scope
+- No DB migration.
+- No changes to roles/permissions/auth.
+- No changes to Canadore/Algolia path (still works as-is).
+- No removal of Jina or direct fetch — Firecrawl is only used when both fail.
 
-4. Improve the UI so this is obvious
-   - Show a visible blocked-source note under the row with the exact recovery options.
-   - Change the red failure text from a long technical message into a short actionable message.
-   - Keep “View programs” available so successful sources like Canadore can still be reviewed.
-
-5. Verification after implementation
-   - Deploy the sync functions.
-   - Re-test the Brock row and confirm it no longer pretends the roles broke sync.
-   - Confirm Canadore/listing sources still discover and stage programs.
-   - Confirm `Sync all` does not get stuck on Brock’s blocked URL.
-
-If you want the old version instead, use History to restore the version before Team & Roles; but that will remove the access-control work and will not fix Brock’s Cloudflare/Jina-credit blocker.
-
-<presentation-actions>
-  <presentation-open-history>View History</presentation-open-history>
-  <presentation-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</presentation-link>
-</presentation-actions>
+## Verification
+1. Deploy both edge functions.
+2. Trigger `Sync now` on Brock graduate URL — expect Firecrawl path to succeed and programs to be discovered.
+3. Trigger `Sync now` on Canadore URL — expect existing Algolia path still works (no regression).
+4. Check `upi_sync_jobs` logs for `via: 'firecrawl'` marker on Brock.
