@@ -13,6 +13,31 @@ const BATCH_PAUSE_MS = 150;
 const DETAIL_MAX_CHARS = 40_000;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+type FetchResult = { md: string | null; status: number; error?: string; via?: "jina" | "direct" };
+
+function decodeHtml(input: string): string {
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function htmlToText(html: string, maxChars: number): string {
+  const text = decodeHtml(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<\/(h[1-6]|p|div|li|tr|section|article|header|footer)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[ \t\r\f\v]+/g, " ")
+    .replace(/\n\s+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
 
 const COURSE_TOOL = {
   type: "function",
@@ -72,7 +97,7 @@ async function logMsg(
   } catch (_) { /* ignore */ }
 }
 
-async function fetchMarkdown(url: string, maxChars: number): Promise<{ md: string | null; status: number; error?: string }> {
+async function fetchMarkdown(url: string, maxChars: number): Promise<FetchResult> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
   const headers: Record<string, string> = {
     Accept: "text/markdown",
@@ -95,14 +120,15 @@ async function fetchMarkdown(url: string, maxChars: number): Promise<{ md: strin
       if (r.ok) {
         let md = await r.text();
         if (md.length > maxChars) md = md.slice(0, maxChars);
-        return { md, status: r.status };
+        return { md, status: r.status, via: "jina" };
       }
       if (r.status !== 429 && r.status < 500) {
         try { await r.text(); } catch (_) {/* */}
         const msg = r.status === 402
           ? "Jina Reader credits exhausted — add or top up JINA_API_KEY"
           : `HTTP ${r.status}`;
-        return { md: null, status: r.status, error: msg };
+        lastError = msg;
+        break;
       }
       const retryAfter = parseInt(r.headers.get("retry-after") ?? "", 10);
       try { await r.text(); } catch (_) {/* */}
@@ -115,7 +141,23 @@ async function fetchMarkdown(url: string, maxChars: number): Promise<{ md: strin
       await sleep(Math.min(7000, 1000 * Math.pow(2, attempt)));
     }
   }
-  return { md: null, status: lastStatus, error: lastError ?? `HTTP ${lastStatus}` };
+  try {
+    const r = await fetch(url, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; FutureLinkProgramSync/1.0)",
+      },
+    });
+    const html = await r.text();
+    if (r.ok && /html|text/i.test(r.headers.get("content-type") ?? "")) {
+      return { md: htmlToText(html, maxChars), status: r.status, via: "direct", error: lastError };
+    }
+    const directError = r.status === 403 ? "Site blocks automated fetch (HTTP 403)" : `Direct fetch HTTP ${r.status}`;
+    return { md: null, status: r.status, error: lastError ? `${lastError}; ${directError}` : directError, via: "direct" };
+  } catch (e) {
+    const directError = e instanceof Error ? e.message : String(e);
+    return { md: null, status: lastStatus, error: lastError ? `${lastError}; direct fetch failed: ${directError}` : directError };
+  }
 }
 
 function chainNext(job_id: string) {
