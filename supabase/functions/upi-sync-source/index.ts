@@ -18,6 +18,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const LISTY_URL_HINTS = ["/programs", "/program/", "/courses", "/course/", "/study", "/academics", "/list", "/faculties", "/schools", "/area-of-study"];
 const SKIP_URL_HINTS = ["/news", "/blog", "/events", "/about", "/contact", "/login", "/apply-now", "/staff", "/faculty-staff", "/library", "/alumni", "/giving", "/parents", "/media", "/privacy", "/terms"];
 
+type ProgramLink = { course_title: string; program_url: string };
+type FetchResult = { md: string | null; html?: string | null; status: number; error?: string; via?: "jina" | "direct" };
+
 const LINK_TOOL = {
   type: "function",
   function: {
@@ -113,6 +116,94 @@ function shouldSkipUrl(url: string, originHost: string): boolean {
   } catch { return true; }
 }
 
+function decodeHtml(input: string): string {
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function htmlToText(html: string, maxChars: number): string {
+  const text = decodeHtml(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<\/(h[1-6]|p|div|li|tr|section|article|header|footer)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[ \t\r\f\v]+/g, " ")
+    .replace(/\n\s+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
+function extractProgramLinksFromHtml(pageUrl: string, html: string): ProgramLink[] {
+  const origin = new URL(pageUrl).host;
+  const out: ProgramLink[] = [];
+  const seen = new Set<string>();
+  const anchorRe = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const m of html.matchAll(anchorRe)) {
+    const norm = normalizeUrl(m[1], pageUrl);
+    if (!norm || shouldSkipUrl(norm, origin) || !looksListy(norm) || seen.has(norm)) continue;
+    const title = htmlToText(m[2], 300).replace(/\s+/g, " ").trim();
+    const pathParts = new URL(norm).pathname.split("/").filter(Boolean);
+    const fallback = pathParts[pathParts.length - 1]?.replace(/[-_]+/g, " ") ?? norm;
+    const course_title = title && title.length <= 120 ? title : fallback.replace(/\b\w/g, c => c.toUpperCase());
+    seen.add(norm);
+    out.push({ course_title, program_url: norm });
+  }
+  return out;
+}
+
+function hiddenValue(html: string, id: string): string | null {
+  const re = new RegExp(`<input[^>]+id=["']${id}["'][^>]+value=["']([^"']+)["']`, "i");
+  const match = html.match(re);
+  return match ? decodeHtml(match[1]) : null;
+}
+
+async function discoverAlgoliaProgramLinks(pageUrl: string, html: string): Promise<ProgramLink[]> {
+  const appId = hiddenValue(html, "Algolia_AppId");
+  const apiKey = hiddenValue(html, "Algolia_ApiKey");
+  const index = hiddenValue(html, "Algolia_Idx_Programs_Relevance");
+  if (!appId || !apiKey || !index) return [];
+
+  const params = new URLSearchParams();
+  params.set("query", new URL(pageUrl).searchParams.get("search") ?? "");
+  params.set("hitsPerPage", String(MAX_DETAIL_FETCHES));
+  params.set("page", "0");
+  if (/Full-Time/i.test(pageUrl)) params.set("filters", 'ProgramType:"Full-Time"');
+  if (/Part-Time/i.test(pageUrl)) params.set("filters", 'ProgramType:"Part-Time"');
+
+  const r = await fetch(`https://${appId}-dsn.algolia.net/1/indexes/${index}/query`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Algolia-Application-Id": appId,
+      "X-Algolia-API-Key": apiKey,
+      Origin: new URL(pageUrl).origin,
+      Referer: pageUrl,
+    },
+    body: JSON.stringify({ params: params.toString() }),
+  });
+  if (!r.ok) return [];
+  const data = await r.json().catch(() => null);
+  const hits = Array.isArray(data?.hits) ? data.hits : [];
+  const origin = new URL(pageUrl).host;
+  const seen = new Set<string>();
+  const links: ProgramLink[] = [];
+  for (const hit of hits) {
+    const norm = normalizeUrl(String(hit?.ProgramURL ?? hit?.url ?? ""), pageUrl);
+    const title = String(hit?.ProgramName ?? hit?.title ?? "").trim();
+    if (!norm || !title || shouldSkipUrl(norm, origin) || seen.has(norm)) continue;
+    seen.add(norm);
+    links.push({ course_title: title, program_url: norm });
+  }
+  return links;
+}
+
 async function logMsg(
   supabase: ReturnType<typeof createClient>,
   job_id: string,
@@ -131,7 +222,7 @@ async function logMsg(
 async function fetchMarkdown(
   url: string,
   maxChars: number,
-): Promise<{ md: string | null; status: number; error?: string }> {
+): Promise<FetchResult> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
   const headers: Record<string, string> = {
     Accept: "text/markdown",
@@ -154,14 +245,15 @@ async function fetchMarkdown(
       if (r.ok) {
         let md = await r.text();
         if (md.length > maxChars) md = md.slice(0, maxChars);
-        return { md, status: r.status };
+        return { md, status: r.status, via: "jina" };
       }
       if (r.status !== 429 && r.status < 500) {
         try { await r.text(); } catch (_) { /* ignore */ }
         const msg = r.status === 402
           ? "Jina Reader credits exhausted — add or top up JINA_API_KEY"
           : `HTTP ${r.status}`;
-        return { md: null, status: r.status, error: msg };
+        lastError = msg;
+        break;
       }
       const retryAfter = parseInt(r.headers.get("retry-after") ?? "", 10);
       try { await r.text(); } catch (_) { /* ignore */ }
@@ -174,7 +266,23 @@ async function fetchMarkdown(
       await sleep(Math.min(7000, 1000 * Math.pow(2, attempt)));
     }
   }
-  return { md: null, status: lastStatus, error: lastError ?? `HTTP ${lastStatus}` };
+  try {
+    const r = await fetch(url, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; FutureLinkProgramSync/1.0)",
+      },
+    });
+    const html = await r.text();
+    if (r.ok && /html|text/i.test(r.headers.get("content-type") ?? "")) {
+      return { md: htmlToText(html, maxChars), html, status: r.status, via: "direct", error: lastError };
+    }
+    const directError = r.status === 403 ? "Site blocks automated fetch (HTTP 403)" : `Direct fetch HTTP ${r.status}`;
+    return { md: null, html, status: r.status, error: lastError ? `${lastError}; ${directError}` : directError, via: "direct" };
+  } catch (e) {
+    const directError = e instanceof Error ? e.message : String(e);
+    return { md: null, status: lastStatus, error: lastError ? `${lastError}; direct fetch failed: ${directError}` : directError };
+  }
 }
 
 function triggerBatch(job_id: string) {
