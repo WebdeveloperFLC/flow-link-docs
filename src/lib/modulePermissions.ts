@@ -126,7 +126,7 @@ export async function fetchModuleAccessList(module: string) {
     .select("user_id, can_view, can_edit, can_delete")
     .eq("module", module);
   if (error) throw error;
-  return (data ?? []) as Array<{
+  return ((data ?? []) as unknown) as Array<{
     user_id: string;
     can_view: boolean;
     can_edit: boolean;
