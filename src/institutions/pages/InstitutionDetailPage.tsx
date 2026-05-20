@@ -65,6 +65,7 @@ export default function InstitutionDetailPage() {
   const [suggestions, setSuggestions] = useState<UpiSuggestion[]>([]);
   const [newSourceUrl, setNewSourceUrl] = useState("");
   const [newSourceType, setNewSourceType] = useState("website_url");
+  const [newSourceDocId, setNewSourceDocId] = useState<string>("");
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
   const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
@@ -146,19 +147,35 @@ export default function InstitutionDetailPage() {
   };
 
   const addSource = async () => {
-    const raw = newSourceUrl.trim();
-    if (!raw) return toast.error("URL required");
-    try {
-      const u = new URL(raw);
-      if (u.protocol !== "http:" && u.protocol !== "https:") {
-        return toast.error("URL must start with http:// or https://");
+    const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+    const isDocType = DOC_TYPES.has(newSourceType);
+    let insertPayload: any = { institution_id: id, source_type: newSourceType };
+    if (isDocType) {
+      if (!newSourceDocId) return toast.error("Pick an uploaded document — or upload one in the Documents tab first");
+      const doc = docs.find((d) => d.id === newSourceDocId);
+      if (!doc) return toast.error("Selected document not found");
+      insertPayload = {
+        ...insertPayload,
+        document_id: doc.id,
+        file_path: doc.file_path,
+        name: doc.file_name,
+      };
+    } else {
+      const raw = newSourceUrl.trim();
+      if (!raw) return toast.error("URL required");
+      try {
+        const u = new URL(raw);
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          return toast.error("URL must start with http:// or https://");
+        }
+      } catch {
+        return toast.error("Invalid URL — paste a full https://… link");
       }
-    } catch {
-      return toast.error("Invalid URL — paste a full https://… link");
+      insertPayload.url = raw;
     }
     const { data, error } = await supabase
       .from("upi_institution_sources")
-      .insert({ institution_id: id, source_type: newSourceType, url: raw })
+      .insert(insertPayload)
       .select()
       .single();
     if (error) {
@@ -167,6 +184,7 @@ export default function InstitutionDetailPage() {
     }
     console.log("[addSource] inserted", data);
     setNewSourceUrl("");
+    setNewSourceDocId("");
     await load();
     if (data?.id) {
       setHighlightSourceId(data.id);
@@ -175,7 +193,7 @@ export default function InstitutionDetailPage() {
       }, 50);
       setTimeout(() => setHighlightSourceId(null), 2500);
     }
-    toast.success("Source added — click Sync now to fetch courses");
+    toast.success("Source added — click Sync now to extract programs");
   };
 
   const pollSyncJob = async (jobId: string) => {
@@ -419,11 +437,57 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="sources">
             <Card className="p-4 mb-4 flex gap-2 flex-wrap items-end">
-              <select className="h-10 px-3 rounded-md border bg-background text-sm" value={newSourceType} onChange={(e) => setNewSourceType(e.target.value)}>
-                {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
-              </select>
-              <Input ref={urlInputRef} className="flex-1 min-w-[260px]" placeholder="https://university.edu/programs" value={newSourceUrl} onChange={(e) => setNewSourceUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSource()} />
-              <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+              {(() => {
+                const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+                const isDocType = DOC_TYPES.has(newSourceType);
+                const linkedDocIds = new Set(sources.map((s: any) => s.document_id).filter(Boolean));
+                return (
+                  <>
+                    <select
+                      className="h-10 px-3 rounded-md border bg-background text-sm"
+                      value={newSourceType}
+                      onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); }}
+                    >
+                      {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                    {isDocType ? (
+                      <div className="flex-1 min-w-[260px] flex flex-col gap-1">
+                        <select
+                          className="h-10 px-3 rounded-md border bg-background text-sm"
+                          value={newSourceDocId}
+                          onChange={(e) => setNewSourceDocId(e.target.value)}
+                        >
+                          <option value="">
+                            {docs.length === 0 ? "No documents uploaded yet — upload one in the Documents tab" : "Choose an uploaded document…"}
+                          </option>
+                          {docs.map((d: any) => {
+                            const dt = d.created_at ? new Date(d.created_at).toLocaleDateString() : "";
+                            const used = linkedDocIds.has(d.id) ? " · already linked" : "";
+                            return (
+                              <option key={d.id} value={d.id}>
+                                {d.file_name}{dt ? ` · ${dt}` : ""}{used}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <div className="text-xs text-muted-foreground">
+                          Pulls directly from a document already uploaded in the Documents tab — no re-upload needed.
+                        </div>
+                      </div>
+                    ) : (
+                      <Input
+                        ref={urlInputRef}
+                        className="flex-1 min-w-[260px]"
+                        placeholder="https://university.edu/programs"
+                        value={newSourceUrl}
+                        onChange={(e) => setNewSourceUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && addSource()}
+                      />
+                    )}
+                    <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+                  </>
+                );
+              })()}
               {sources.length > 0 && (
                 <Button variant="secondary" onClick={syncAll} disabled={syncingAll}>
                   <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
@@ -446,7 +510,12 @@ export default function InstitutionDetailPage() {
                   className={`p-4 flex items-center gap-4 transition-colors ${highlightSourceId === s.id ? "ring-2 ring-primary bg-primary/5" : ""}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{s.url ?? s.file_path}</div>
+                    <div className="font-medium truncate">
+                      {(s as any).name ?? s.url ?? s.file_path}
+                      {(s as any).document_id && (
+                        <span className="ml-2 text-xs text-muted-foreground">(from Documents)</span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
                     {s.crawl_status === "failed" && sourceError && (
                       <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
