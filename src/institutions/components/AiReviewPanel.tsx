@@ -168,6 +168,10 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
             <div className={`-mt-2 mb-2 rounded border px-3 py-2 text-xs flex flex-wrap items-center gap-x-4 gap-y-1 ${incomplete ? "border-amber-500/50 bg-amber-500/10" : "bg-muted/30"}`}>
               <span>Pages <b>{cov}</b></span>
               <span>Programs <b>{meta.programsFound ?? 0}</b> ({meta.programsUpserted ?? 0} staged)</span>
+              {typeof meta.nonProgramSkipped === "number" && meta.nonProgramSkipped > 0 && (
+                <span>Skipped non-program items <b>{meta.nonProgramSkipped}</b></span>
+              )}
+              {meta.docKind && <span>Mode <b>{String(meta.docKind)}</b></span>}
               {typeof meta.runMs === "number" && <span>Run <b>{Math.round(meta.runMs/1000)}s</b></span>}
               {failed.length > 0 && <span className="text-amber-700 dark:text-amber-400">Failed pages: {failed.slice(0,10).join(", ")}{failed.length>10 ? "…" : ""}</span>}
               {incomplete && <span className="font-semibold text-amber-700 dark:text-amber-400">Incomplete extraction — re-run recommended</span>}
