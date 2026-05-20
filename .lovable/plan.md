@@ -1,56 +1,34 @@
-## Problem
+# Fix the brochure preview ("not working")
 
-The uploaded brochure shows a broken-image icon in the AI Review preview. The file was uploaded fine and the AI pipeline ran (status `extracted`, 95% confidence) — the issue is only the inline PDF preview.
+## What's actually happening
 
-Looking at the DB row, the stored file name and storage key both contain literal `%20` characters:
+The repaired storage object is fine — `file_path` is sanitized and the signed URL is valid. The failure is in the **iframe**:
 
-```
-file_name: ULeth%20InternationalViewbook%202026%20Screen.pdf
-file_path: 4d564a37-.../1779309163025-ULeth%20InternationalViewbook%202026%20Screen.pdf
-```
+- Chrome shows "This page has been blocked by Chrome" then a broken-image icon.
+- Cause: Chrome's PDF viewer is increasingly refusing to render cross-origin signed URLs from Supabase Storage inside an `<iframe>` (especially large files, or when COOP/embedder headers don't match). The signed URL itself works — opening in a new tab is fine.
+- Secondary cosmetic issue: the dialog still shows the original `ULeth%20InternationalViewbook%202026%20Screen.pdf` (literal `%20`s in `file_name`) because we only sanitized `file_path`, not the display name.
+- Separate concern (out of scope here): extraction returned `{ ok: true, found: 1 }` — the brochure pipeline produces almost no fields. Flagging only; will tackle in a follow-up.
 
-The user's source file already had `%20` in its name (likely saved from a URL). When `supabase.storage.createSignedUrl(path)` runs, it percent-encodes that path, turning each `%` into `%25` → the resulting URL points to `…%2520…` which does not match the stored object key, so storage returns 400 and the iframe renders the broken icon. New uploads with spaces or other special characters will hit the same class of bug.
+## Changes (frontend only, `src/institutions/components/AiReviewPanel.tsx`)
 
-## Fix
+1. **Load the PDF as a blob, render the blob URL in the iframe.**
+   - Replace the `createSignedUrl` → `setPreviewUrl` flow with: `supabase.storage.from("institution-documents").download(file_path)` → `URL.createObjectURL(new Blob([buf], { type: "application/pdf" }))`.
+   - Keep a separate `downloadUrl` (the signed URL) for the "Open in new tab" / "Download" links so users still have a working escape hatch even if the blob is huge.
+   - Revoke the object URL on unmount / when the doc changes.
+   - Fallback panel: keep the 5s timeout + `onError` behavior, but the fallback links now use `downloadUrl` (signed URL) and a clean filename.
 
-### 1. Sanitize file names on upload (`src/institutions/pages/InstitutionDetailPage.tsx`)
+2. **Show a clean filename in the dialog title and download link.**
+   - Add a small helper `prettyName(name)` that `decodeURIComponent`s and replaces `%20`/`+` with spaces so the title reads `ULeth InternationalViewbook 2026 Screen.pdf`. Used in `<DialogTitle>` and the Download `download={...}` attribute. (Pure display — DB row is untouched.)
 
-In `uploadDoc`, build the storage path from a sanitized version of `file.name`:
-
-- Lowercase the extension, keep alnum, dash, dot, underscore.
-- Replace any other character (spaces, `%`, parentheses, accents, etc.) with `-`.
-- Collapse repeated `-`.
-- Keep the original `file.name` as `file_name` in the DB row so the UI still shows the user's name; only the `file_path` (storage key) is sanitized.
-
-```text
-path = `${id}/${Date.now()}-${safeName(file.name)}`
-```
-
-Apply the same `safeName` helper in any other upload entry points if present (sources / agreements re-upload). Scope here: just the institutions upload path the user hit.
-
-### 2. Repair the existing broken row (one-off, in the same change)
-
-Add a tiny "Fix preview" action only when the current `file_path` contains `%`:
-- Copy the storage object from the broken key to a sanitized key (`storage.copy(old, new)`), then `remove([old])`, then update `file_path` on the row.
-- This avoids re-uploading the 50 MB viewbook.
-
-Alternatively, do this as a one-shot script via the orchestrator UI — but inline repair button is faster for the user.
-
-### 3. Preview fallback (`src/institutions/components/AiReviewPanel.tsx`)
-
-Even after the path fix, browsers sometimes refuse to inline-render very large PDFs. Add a small fallback under the iframe:
-
-- If iframe `onError` fires, or after a 4s timeout with no load event, show a "Open PDF in new tab" link using the same signed URL plus a "Download" button.
-- No behavior change when the iframe loads normally.
+3. **Loading state.**
+   - While the blob downloads, keep the existing "Loading preview…" placeholder; flip `previewFailed` only after the 5s timeout once the blob URL is set.
 
 ## Out of scope
 
-- The brochure extraction quality (`upi-detect-promotions` reads a binary PDF as text and lets the AI hallucinate "promotions") is a separate, deeper issue. Not touching it in this change — if you want, I can follow up with a proper PDF→text step for brochures.
-- No DB migration, no edge function changes, no auth/roles changes.
+- No DB migration, no edge function changes, no changes to upload/sanitization (already done last turn).
+- Brochure extractor quality (`{ ok: true, found: 1 }`) — tracked separately.
+- No changes to other preview surfaces (`documentPreview.ts` already uses the blob approach for client docs).
 
-## Verification
+## Files touched
 
-- Upload the same `ULeth …%20… .pdf` again → new row's `file_path` has no `%` and preview renders inline.
-- Click "Fix preview" on the existing row → storage object is renamed, iframe loads.
-- Upload a PDF with spaces, parentheses, accents → preview renders.
-- Existing already-working previews keep working (no regression on normal filenames).
+- `src/institutions/components/AiReviewPanel.tsx`
