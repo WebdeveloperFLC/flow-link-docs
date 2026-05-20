@@ -234,10 +234,10 @@ const Users = () => {
         <div className="mt-4 text-xs text-muted-foreground flex items-start gap-2">
           <UserCog className="size-3.5 mt-0.5 shrink-0" />
           <p>
-            <b>Administrator</b> manages the CRM (clients, documents, telephony, institutions, settings) but <b>does not</b> see Accounting or Commissions.{" "}
+            <b>Administrator</b> manages the CRM (clients, documents, telephony, settings) but <b>does not</b> see Accounting or Commissions.{" "}
             <b>Commission admin</b> manages commissions, claims, agreements and invoicing.{" "}
             <b>Accounting</b> access is managed separately in <code>/accounting/settings/users</code>.{" "}
-            <b>Edit</b> users add clients/documents · <b>Viewer</b> is read-only. Per-section overrides via the <b>Module access</b> action.
+            <b>Edit</b> users add clients/documents · <b>Viewer</b> is read-only. Per-section overrides (including <b>Institutions</b> — View / Edit / Delete to add institutions, programs, campuses, agreements) via the <b>Module access</b> action.
           </p>
         </div>
       </div>

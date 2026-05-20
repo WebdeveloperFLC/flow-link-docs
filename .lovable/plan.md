@@ -1,70 +1,75 @@
-# Fix: AR invoices missing a real "COA category" field
+# Fix: team members can't be granted access to Institutions
 
 ## Root cause
 
-AP bills have a first-class **Expense category** dropdown (`EXPENSE_CATEGORY_LABELS`: Rent & utilities, Salaries, etc.) that drives the linked-COA filter. AR invoices were wired to **`client_categories`** master, but that list is actually *client segments* (Student / Professional / Family / Corporate / Partner) — not revenue/service categories. So:
+Two places hard-gate Institutions to `isAdmin`, ignoring the per-user permission system that already exists for the `institutions` module:
 
-- The AR form's "Service type" dropdown shows client segments, none of which map to any revenue COA.
-- The "Revenue account (Cr)" select stays disabled or empty ("No COA account mapped for this category").
-- The COA account editor's "Revenue categories" chips list the same wrong values, so accountants can't tag a revenue account properly.
+1. `src/institutions/components/InstitutionsProtectedRoute.tsx` — renders "Access restricted" unless `isAdmin`.
+2. `src/components/layout/AppLayout.tsx` (~line 193) — the entire Institutions sidebar group is wrapped in `{isAdmin && …}`, so non-admins never even see the nav links.
 
-Net effect from the user's POV: **no COA category field on AR invoices** that actually does anything.
+The plumbing for per-user access is already in place:
+- `CRM_MODULES` in `src/lib/modulePermissions.ts` already includes `{ key: "institutions", label: "Institutions" }`.
+- `user_module_permissions` table + `fetchUserPermissions` / `saveUserPermissions` already support view / edit / delete for it.
+- `UserPermissionsDialog` (opened from **Users**) already renders Institutions as a togglable row.
+- Role defaults already grant `counselor` and `documentation` view-level on institutions.
 
-## Fix (single coherent change, mirrors the AP pattern)
+So the admin **already can** grant access from Users → Permissions; the two guards above just refuse to honor it.
 
-### 1. New enum + labels — `src/accounting/data/mockAR.ts`
+## Fix
 
-Add alongside the existing `ServiceType`:
+### 1. New hook — `src/hooks/useModulePermission.ts`
+
+Thin wrapper around `fetchUserPermissions` keyed to the current `auth.uid()`:
 
 ```ts
-export type RevenueCategory =
-  | "COACHING_TRAINING"
-  | "LANGUAGE_COURSES"
-  | "VISA_IMMIGRATION"
-  | "UNIVERSITY_ADMISSIONS"
-  | "INSTITUTION_COMMISSION"
-  | "DOCUMENTATION_SERVICES"
-  | "TEST_PREP"
-  | "STUDY_ABROAD_PACKAGE"
-  | "TRANSLATION_ATTESTATION"
-  | "CONSULTING_FEES"
-  | "OTHER";
-
-export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = { ... };
+useModulePermission("institutions") → { canView, canEdit, canDelete, loading }
 ```
 
-Add `revenueCategory?: RevenueCategory` to `CustomerInvoice`.
+- Admins short-circuit to `{ true, true, true }`.
+- Result is cached per (userId, module) for the session and re-fetched on `onAuthStateChange`.
 
-### 2. `src/accounting/lib/coaCategoryMap.ts`
+### 2. `InstitutionsProtectedRoute` — honor permissions
 
-- Replace the free-text `REVENUE_EXACT` map with a typed `REVENUE_CATEGORY_TYPES: Record<RevenueCategory, string[]>` (same shape as `EXPENSE_CATEGORY_TYPES`).
-- Add `REVENUE_CATEGORY_NAME_RX: Record<RevenueCategory, RegExp | null>` for name fallback (commission, coaching, ielts/toefl, visa, tuition, etc.).
-- Rewrite `matchesRevenueCategory(account, category)` to take a `RevenueCategory` code and use the 3-step precedence already used for expenses (explicit per-account link → typeCode map → name regex).
+Add an optional prop `requireEdit?: boolean` (default false → view). Replace the `isAdmin`-only gate with:
 
-### 3. `src/accounting/components/coa/AccountFormDialog.tsx`
+```
+allowed = isAdmin || (requireEdit ? canEdit : canView)
+```
 
-Swap the revenue-category source: instead of `useMaster("client_categories")`, render chips from `REVENUE_CATEGORY_LABELS` (exact mirror of the existing expense-category chip block). Keep storage in `coaCategoriesStore` keyed by account `code`.
+Show the same "Access restricted" card otherwise, but with copy that points the user to "ask an admin to grant Institutions access in Users → Permissions".
 
-### 4. `src/accounting/pages/ar/AccountingNewInvoicePage.tsx`
+### 3. `App.tsx` route guards
 
-- Add a new **"Revenue category *"** field (the COA-driver) using a plain `Select` over `REVENUE_CATEGORY_LABELS`. Keep the existing **Service type** field (free-text descriptor from `client_categories` — used only as a label on the invoice, not for COA filtering).
-- Change `eligibleRevenueAccounts` filter to use the new `revenueCategory` state.
-- Disable the "Revenue account (Cr)" select on `!revenueCategory` (instead of `!serviceType`), and update the placeholder/empty-state copy to "No COA account mapped for this category — add one in Chart of Accounts."
-- Persist `revenueCategory` on the saved invoice.
+Keep all 4 institutions routes wrapped in `InstitutionsProtectedRoute`. No prop change needed for now — view-level is enough to load the pages; create/edit/delete buttons inside the pages enforce edit/delete separately (step 5).
 
-### 5. `src/accounting/stores/arInvoicesStore.ts` (and any list/detail views)
+### 4. `AppLayout` sidebar — show Institutions group for any permitted user
 
-Pass through the new `revenueCategory` field. No other behavior change.
+Replace `{isAdmin && …}` around the Institutions block with a `canViewInstitutions` check from the new hook. Admins keep full visibility; team members with at least view access see the group with the same three links.
 
-## Why this fixes it
+### 5. Edit/delete gating inside the Institutions pages
 
-- AR invoices get a real, AP-symmetric "Revenue category" field driving the linked COA dropdown.
-- The COA account editor exposes the same set of revenue categories accountants can tag, so explicit links actually work.
-- "Service type" remains as a free-text descriptor for client-facing wording, decoupled from COA filtering.
-- Existing accounts without explicit links still resolve via the typeCode + name-regex fallback.
+Use the same hook to hide / disable mutating affordances when `!canEdit`:
+
+- `src/institutions/pages/InstitutionsListPage.tsx` — "Add institution", bulk actions, row edit buttons.
+- `src/institutions/pages/InstitutionDetailPage.tsx` — save / add-program / add-campus / add-promotion / delete buttons in `OverviewPanel`, `PromotionsPanel`, `CampaignsPanel`, `AgreementsPanel`.
+- `src/institutions/pages/CourseReviewPage.tsx` and `AiSuggestionsPage.tsx` — accept/reject suggestion actions require `canEdit`.
+
+Read-only viewers still see the full data; only write affordances are hidden.
+
+### 6. Users page copy tweak
+
+`src/pages/Users.tsx` line 237: the "Administrator manages …" paragraph implies Institutions is admin-only. Reword to "Institutions access is granted per user from the Permissions dialog (View / Edit / Delete)" so admins know how to delegate.
 
 ## Out of scope
 
-- No DB / Supabase migration. New fields live in localStorage stores.
-- AR control account, journal posting, tax logic — untouched.
-- `client_categories` master is left as-is (still useful for client segmentation).
+- No DB / RLS changes — `user_module_permissions` already covers `institutions`.
+- Commissions module access (separate `commission_admin` role + its own protected route) — untouched.
+- No new role; we use the existing per-module grants.
+
+## Result
+
+After this change an admin opens **Users → ⋯ → Permissions** on any team member, toggles **Institutions → View / Edit**, saves, and that member immediately:
+
+- Sees the Institutions group in the left nav.
+- Can open Institutions, Course Review, AI Suggestions, and institution detail pages.
+- Can add institutions, programs, campuses, agreements, promotions, etc. when granted **Edit**; delete when granted **Delete**.
