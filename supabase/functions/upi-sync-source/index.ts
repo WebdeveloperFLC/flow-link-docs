@@ -377,17 +377,21 @@ Deno.serve(async (req) => {
         try { return JSON.parse(args); } catch { return null; }
       }
 
-      async function discoverLinks(pageUrl: string, md: string): Promise<{ course_title: string; program_url: string }[]> {
+      async function discoverLinks(pageUrl: string, md: string, html?: string | null): Promise<ProgramLink[]> {
+        const deterministic = html ? [
+          ...await discoverAlgoliaProgramLinks(pageUrl, html).catch(() => []),
+          ...extractProgramLinksFromHtml(pageUrl, html),
+        ] : [];
         const parsed = await callAI(
           SYSTEM_PROMPT_LIST,
           `This may be a program-list or category page. Return distinct program detail URLs only.\n\nSource URL: ${pageUrl}\n\n--- PAGE MARKDOWN ---\n${md}`,
           LINK_TOOL,
-        );
+        ).catch(() => null);
         const links: { course_title: string; program_url: string }[] = Array.isArray(parsed?.programs) ? parsed.programs : [];
         const origin = new URL(pageUrl).host;
         const seen = new Set<string>();
         const out: { course_title: string; program_url: string }[] = [];
-        for (const l of links) {
+        for (const l of [...deterministic, ...links]) {
           const norm = normalizeUrl(l.program_url, pageUrl);
           if (!norm || shouldSkipUrl(norm, origin) || seen.has(norm)) continue;
           seen.add(norm);
@@ -396,14 +400,15 @@ Deno.serve(async (req) => {
         return out;
       }
 
-      await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader`);
+      await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader, with direct fallback`);
       if (!Deno.env.get("JINA_API_KEY")) {
         await logMsg(supabase, job_id!, "warn", "JINA_API_KEY not set — using anonymous Jina Reader (rate-limited).");
       }
       const rootRes = await fetchMarkdown(source.url, MAX_CHARS);
-      if (!rootRes.md) throw new Error(`Jina fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
+      if (rootRes.error) await logMsg(supabase, job_id!, rootRes.md ? "warn" : "error", rootRes.error);
+      if (!rootRes.md) throw new Error(`Fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
       const rootMd = rootRes.md;
-      await logMsg(supabase, job_id!, "info", `Fetched root page (${rootMd.length} chars)`);
+      await logMsg(supabase, job_id!, "info", `Fetched root page via ${rootRes.via ?? "unknown"} (${rootMd.length} chars)`);
 
       let pagesScanned = 1;
       const rootIsListy = looksListy(source.url) || ["website","program_list","sitemap","list_page"].includes(source.source_type ?? "");
@@ -411,13 +416,13 @@ Deno.serve(async (req) => {
 
       if (rootIsListy) {
         await logMsg(supabase, job_id!, "info", "Root URL looks listy — discovering program links");
-        programLinks = await discoverLinks(source.url, rootMd);
+        programLinks = await discoverLinks(source.url, rootMd, rootRes.html);
         await logMsg(supabase, job_id!, "info", `Discovered ${programLinks.length} direct program links from root`);
       }
 
       if (rootIsListy && programLinks.length < 3) {
         await logMsg(supabase, job_id!, "info", "Few direct programs — expanding via category pages");
-        const candidateCats = await discoverLinks(source.url, rootMd);
+        const candidateCats = await discoverLinks(source.url, rootMd, rootRes.html);
         const origin = new URL(source.url).host;
         const categoryUrls = Array.from(new Set(
           candidateCats
@@ -432,7 +437,7 @@ Deno.serve(async (req) => {
             const res = await fetchMarkdown(cUrl, MAX_CHARS);
             if (!res.md) return [];
             pagesScanned++;
-            return discoverLinks(cUrl, res.md).catch(() => []);
+            return discoverLinks(cUrl, res.md, res.html).catch(() => []);
           }));
           for (const arr of results) programLinks.push(...arr);
           await sleep(BATCH_PAUSE_MS);
