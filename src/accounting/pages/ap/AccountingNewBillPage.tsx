@@ -64,6 +64,8 @@ export default function AccountingNewBillPage() {
     (a.entityId === entityId || a.entityId === null) &&
     a.currency === currency;
 
+  const mappedExpenseTypes = expenseTypesFor(category);
+
   const eligibleExpenseAccounts = accounts.filter(
     (a) =>
       coaScope(a) &&
@@ -74,8 +76,6 @@ export default function AccountingNewBillPage() {
   const eligibleApAccounts = accounts.filter(
     (a) => coaScope(a) && a.groupCode === "LIABILITY" && a.typeCode === "AP",
   );
-
-  const mappedExpenseTypes = expenseTypesFor(category);
 
   useEffect(() => {
     if (bankId && !eligibleBanks.some((b) => b.id === bankId)) setBankId("");
