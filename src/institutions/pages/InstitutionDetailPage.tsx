@@ -209,6 +209,10 @@ export default function InstitutionDetailPage() {
     setSyncingAll(true);
     let total = 0;
     for (const s of sources) {
+      // Skip sources that are already known to be blocked — user can retry manually
+      if (s.crawl_status === "failed" && /blocks automated fetch|cloudflare|credits exhausted/i.test(sourceErrors[s.id] ?? "")) {
+        continue;
+      }
       try {
         total += await syncNow(s, true);
       } catch (e: any) {

@@ -277,7 +277,10 @@ async function fetchMarkdown(
     if (r.ok && /html|text/i.test(r.headers.get("content-type") ?? "")) {
       return { md: htmlToText(html, maxChars), html, status: r.status, via: "direct", error: lastError };
     }
-    const directError = r.status === 403 ? "Site blocks automated fetch (HTTP 403)" : `Direct fetch HTTP ${r.status}`;
+    const looksCloudflare = /just a moment|cf-chl|cloudflare/i.test(html ?? "");
+    const directError = r.status === 403 || looksCloudflare
+      ? "This site blocks automated fetch (Cloudflare). Add reader credits or use an alternate accessible source URL."
+      : `Direct fetch HTTP ${r.status}`;
     return { md: null, html, status: r.status, error: lastError ? `${lastError}; ${directError}` : directError, via: "direct" };
   } catch (e) {
     const directError = e instanceof Error ? e.message : String(e);
