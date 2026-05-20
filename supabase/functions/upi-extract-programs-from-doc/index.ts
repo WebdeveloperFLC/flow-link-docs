@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractFileText, buildAiContent } from "../_shared/extractFileText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -71,23 +72,27 @@ Deno.serve(async (req) => {
 
     await supabase.from("upi_uploaded_documents").update({ review_status: "processing" }).eq("id", document_id);
 
-    let rawText = doc.raw_text ?? "";
+    let rawText = (doc.raw_text ?? "").trim();
+    let extracted = { text: rawText } as Awaited<ReturnType<typeof extractFileText>>;
     if (!rawText && doc.file_path) {
       const { data: file } = await supabase.storage.from("institution-documents").download(doc.file_path);
       if (file) {
-        try { rawText = await file.text(); } catch { rawText = ""; }
+        extracted = await extractFileText(file, { mime: doc.mime_type, fileName: doc.file_name });
+        rawText = extracted.text;
       }
     }
     const snippet = (rawText || "").slice(0, 80000);
+    const userText = `File: ${doc.file_name}\nMIME: ${doc.mime_type ?? "?"}\n\n${snippet || "(no embedded text — see attached file)"}`;
+    const userContent = buildAiContent(userText, extracted);
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: "You extract academic program data from institution-supplied sheets (PDF/Excel/CSV). One row per distinct program × campus. Never invent fees, IELTS, or durations." },
-          { role: "user", content: `File: ${doc.file_name}\nMIME: ${doc.mime_type ?? "?"}\n\n${snippet || "(empty / binary)"}` },
+          { role: "user", content: userContent },
         ],
         tools: [COURSE_TOOL],
         tool_choice: { type: "function", function: { name: "extract_courses" } },
@@ -112,17 +117,27 @@ Deno.serve(async (req) => {
 
     let upserted = 0;
     if (courses.length > 0) {
+      const tagged = courses.map((c) => ({
+        ...c,
+        source_document_id: document_id,
+        source_document_name: doc.file_name,
+      }));
       const { data: upRes } = await supabase.functions.invoke("upi-upsert-courses", {
-        body: { courses, institution_id },
+        body: { courses: tagged, institution_id, source_id: doc.source_id ?? undefined },
       });
       upserted = (upRes as any)?.upserted ?? 0;
     }
 
     const docConfidence = courses.length
       ? Math.round(courses.reduce((s, c) => s + Number(c.confidence_score ?? 0), 0) / courses.length)
-      : 95;
+      : 0;
     await supabase.from("upi_uploaded_documents")
-      .update({ is_processed: true, confidence_score: docConfidence, review_status: "approved" })
+      .update({
+        is_processed: true,
+        confidence_score: docConfidence,
+        review_status: courses.length ? "approved" : "needs_review",
+        ...(rawText ? { raw_text: snippet } : {}),
+      })
       .eq("id", document_id);
 
     return new Response(JSON.stringify({ ok: true, found: courses.length, upserted, confidence: docConfidence }), {
