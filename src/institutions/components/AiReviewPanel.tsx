@@ -23,33 +23,60 @@ const DOC_KINDS = [
 export function AiReviewPanel({ open, onOpenChange, document: docProp, institutionId, onChanged }: Props) {
   const [doc, setDoc] = useState<any | null>(docProp);
   const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [downloadUrl, setDownloadUrl] = useState<string>("");
   const [editedPayload, setEditedPayload] = useState<string>("");
   const [docKind, setDocKind] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
 
+  const prettyName = (n?: string) => {
+    if (!n) return "";
+    try { return decodeURIComponent(n.replace(/\+/g, " ")); } catch { return n.replace(/%20/g, " "); }
+  };
+
   useEffect(() => {
     if (!docProp) { setDoc(null); return; }
     setDoc(docProp);
     setPreviewFailed(false);
+    setPreviewUrl("");
+    setDownloadUrl("");
+    let revokeUrl: string | null = null;
+    let cancelled = false;
     // Re-fetch the latest row so confidence / pipeline_status reflect the post-orchestrator state
     supabase
       .from("upi_uploaded_documents")
       .select("*")
       .eq("id", docProp.id)
       .single()
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         const fresh = data ?? docProp;
+        if (cancelled) return;
         setDoc(fresh);
         setEditedPayload(JSON.stringify(fresh.extracted_payload ?? {}, null, 2));
         setDocKind(fresh.metadata?.doc_kind ?? "");
-        if (fresh.file_path) {
-          supabase.storage
-            .from("institution-documents")
-            .createSignedUrl(fresh.file_path, 600)
-            .then(({ data: sig }) => setPreviewUrl(sig?.signedUrl ?? ""));
-        }
+        if (!fresh.file_path) return;
+        // Signed URL for the "Open in new tab" / "Download" fallback.
+        supabase.storage
+          .from("institution-documents")
+          .createSignedUrl(fresh.file_path, 600)
+          .then(({ data: sig }) => { if (!cancelled) setDownloadUrl(sig?.signedUrl ?? ""); });
+        // Download as blob and render via object URL — Chrome blocks many
+        // cross-origin signed PDF URLs inside <iframe>, but blob: URLs render fine.
+        const { data: file, error } = await supabase.storage
+          .from("institution-documents")
+          .download(fresh.file_path);
+        if (cancelled || error || !file) return;
+        const buf = await file.arrayBuffer();
+        if (cancelled || buf.byteLength === 0) return;
+        const mime = fresh.mime_type || "application/pdf";
+        const url = URL.createObjectURL(new Blob([buf], { type: mime }));
+        revokeUrl = url;
+        setPreviewUrl(url);
       });
+    return () => {
+      cancelled = true;
+      if (revokeUrl) URL.revokeObjectURL(revokeUrl);
+    };
   }, [docProp]);
 
   // If the iframe doesn't load within a few seconds, show fallback download/open links.
@@ -114,7 +141,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
       <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <span className="truncate">{doc.file_name}</span>
+            <span className="truncate">{prettyName(doc.file_name)}</span>
             <Badge variant="outline">{doc.pipeline_status ?? doc.review_status}</Badge>
             <Badge>{doc.confidence_score ?? 0}% confidence</Badge>
           </DialogTitle>
@@ -146,10 +173,10 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
                       Inline preview unavailable (large file or unsupported viewer).
                     </span>
                     <div className="flex gap-2">
-                      <a href={previewUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                      <a href={downloadUrl || previewUrl} target="_blank" rel="noopener noreferrer" className="underline">
                         Open in new tab
                       </a>
-                      <a href={previewUrl} download={doc.file_name} className="underline">
+                      <a href={downloadUrl || previewUrl} download={prettyName(doc.file_name)} className="underline">
                         Download
                       </a>
                     </div>
