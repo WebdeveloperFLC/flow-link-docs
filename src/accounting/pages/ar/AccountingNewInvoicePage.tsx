@@ -19,6 +19,7 @@ import { addArInvoice } from "../../stores/arInvoicesStore";
 import { useAccounts } from "../../stores/coaStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useMaster, masterLabel } from "../../stores/accountingMastersStore";
+import { revenueTypesFor } from "../../lib/coaCategoryMap";
 
 const TAG_SUGGESTIONS = ["urgent", "vip", "scholarship", "installment", "referral"];
 
@@ -61,8 +62,10 @@ export default function AccountingNewInvoicePage() {
     (a.entityId === entityId || a.entityId === null) &&
     a.currency === currency;
 
+  const mappedRevenueTypes = revenueTypesFor(serviceType);
+
   const eligibleRevenueAccounts = accounts.filter(
-    (a) => coaScope(a) && a.groupCode === "REVENUE",
+    (a) => coaScope(a) && a.groupCode === "REVENUE" && mappedRevenueTypes.includes(a.typeCode),
   );
   const eligibleArAccounts = accounts.filter(
     (a) => coaScope(a) && a.groupCode === "ASSET" && a.typeCode === "AR",
@@ -190,13 +193,15 @@ export default function AccountingNewInvoicePage() {
 
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Revenue account (Cr) *">
-            <Select value={revenueCoaId || "__none__"} onValueChange={(v) => setRevenueCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
-              <SelectTrigger><SelectValue placeholder={entityId ? "Select revenue account…" : "Select an entity first"} /></SelectTrigger>
+            <Select value={revenueCoaId || "__none__"} onValueChange={(v) => setRevenueCoaId(v === "__none__" ? "" : v)} disabled={!entityId || !serviceType}>
+              <SelectTrigger><SelectValue placeholder={!entityId ? "Select an entity first" : !serviceType ? "Select a service type first" : "Select revenue account…"} /></SelectTrigger>
               <SelectContent>
                 {!entityId ? (
                   <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : !serviceType ? (
+                  <SelectItem value="__none__" disabled>Select a service type first</SelectItem>
                 ) : eligibleRevenueAccounts.length === 0 ? (
-                  <SelectItem value="__none__" disabled>No {currency} revenue accounts for this entity — add one in Chart of accounts</SelectItem>
+                  <SelectItem value="__none__" disabled>No COA account mapped for this category — add one in Chart of Accounts.</SelectItem>
                 ) : (
                   eligibleRevenueAccounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
