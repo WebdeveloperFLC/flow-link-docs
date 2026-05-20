@@ -147,7 +147,10 @@ export default function InstitutionDetailPage() {
   };
 
   const addSource = async () => {
-    const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+    const DOC_TYPES = new Set([
+      "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
+      "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+    ]);
     const isDocType = DOC_TYPES.has(newSourceType);
     let insertPayload: any = { institution_id: id, source_type: newSourceType };
     if (isDocType) {
@@ -438,9 +441,44 @@ export default function InstitutionDetailPage() {
           <TabsContent value="sources">
             <Card className="p-4 mb-4 flex gap-2 flex-wrap items-end">
               {(() => {
-                const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+                // Source kinds that pull from an already-uploaded Document
+                // (these now mirror the Documents tab's doc_kind values).
+                const DOC_TYPES = new Set([
+                  "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
+                  "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
+                ]);
                 const isDocType = DOC_TYPES.has(newSourceType);
                 const linkedDocIds = new Set(sources.map((s: any) => s.document_id).filter(Boolean));
+                // Friendly labels — keep stored values stable for the backend.
+                const SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+                  { value: "program_sheet",      label: "Program sheet (from Documents)" },
+                  { value: "brochure",           label: "Brochure (from Documents)" },
+                  { value: "commission_sheet",   label: "Commission sheet (from Documents)" },
+                  { value: "agreement",          label: "Agreement (from Documents)" },
+                  { value: "promotion_campaign", label: "Promotion / Campaign (from Documents)" },
+                  { value: "website_url",        label: "Website URL" },
+                  { value: "listing_page",       label: "Program listing page (URL)" },
+                  { value: "scholarship_page",   label: "Scholarship page (URL)" },
+                  { value: "tuition_page",       label: "Tuition page (URL)" },
+                  { value: "international_page", label: "International page (URL)" },
+                  { value: "sitemap",            label: "Sitemap (URL)" },
+                  { value: "api_endpoint",       label: "API endpoint (URL)" },
+                  { value: "json_feed",          label: "JSON feed (URL)" },
+                ];
+                // When the chosen doc kind narrows the doc list, only show
+                // matching uploaded documents (e.g. Program sheet → program_sheet docs).
+                const KIND_FOR_TYPE: Record<string, string> = {
+                  program_sheet:      "program_sheet",
+                  brochure:           "brochure",
+                  pdf_brochure:       "brochure",
+                  agreement:          "agreement",
+                  commission_sheet:   "commission_sheet",
+                  promotion_campaign: "promotion_campaign",
+                };
+                const wantedKind = KIND_FOR_TYPE[newSourceType];
+                const filteredDocs = wantedKind
+                  ? docs.filter((d: any) => (d.metadata?.doc_kind ?? "") === wantedKind)
+                  : docs;
                 return (
                   <>
                     <select
@@ -448,7 +486,9 @@ export default function InstitutionDetailPage() {
                       value={newSourceType}
                       onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); }}
                     >
-                      {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
+                      {SOURCE_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
                     </select>
                     {isDocType ? (
                       <div className="flex-1 min-w-[260px] flex flex-col gap-1">
@@ -458,9 +498,13 @@ export default function InstitutionDetailPage() {
                           onChange={(e) => setNewSourceDocId(e.target.value)}
                         >
                           <option value="">
-                            {docs.length === 0 ? "No documents uploaded yet — upload one in the Documents tab" : "Choose an uploaded document…"}
+                            {filteredDocs.length === 0
+                              ? (wantedKind
+                                  ? `No ${wantedKind.replace("_", " ")} documents — upload one in the Documents tab`
+                                  : "No documents uploaded yet — upload one in the Documents tab")
+                              : "Choose an uploaded document…"}
                           </option>
-                          {docs.map((d: any) => {
+                          {filteredDocs.map((d: any) => {
                             const dt = d.created_at ? new Date(d.created_at).toLocaleDateString() : "";
                             const used = linkedDocIds.has(d.id) ? " · already linked" : "";
                             return (
@@ -471,7 +515,10 @@ export default function InstitutionDetailPage() {
                           })}
                         </select>
                         <div className="text-xs text-muted-foreground">
-                          Pulls directly from a document already uploaded in the Documents tab — no re-upload needed.
+                          Pulls from a file already uploaded in the Documents tab — no re-upload needed.
+                          {filteredDocs.length === 0 && (
+                            <>  Go to <span className="font-semibold">Documents</span> and upload one first.</>
+                          )}
                         </div>
                       </div>
                     ) : (
