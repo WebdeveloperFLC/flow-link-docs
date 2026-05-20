@@ -13,7 +13,7 @@ const BATCH_PAUSE_MS = 150;
 const DETAIL_MAX_CHARS = 40_000;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-type FetchResult = { md: string | null; status: number; error?: string; via?: "jina" | "direct" };
+ type FetchResult = { md: string | null; status: number; error?: string; via?: "jina" | "direct" | "firecrawl" };
 
 function decodeHtml(input: string): string {
   return input
@@ -152,11 +152,46 @@ async function fetchMarkdown(url: string, maxChars: number): Promise<FetchResult
     if (r.ok && /html|text/i.test(r.headers.get("content-type") ?? "")) {
       return { md: htmlToText(html, maxChars), status: r.status, via: "direct", error: lastError };
     }
-    const directError = r.status === 403 ? "Site blocks automated fetch (HTTP 403)" : `Direct fetch HTTP ${r.status}`;
-    return { md: null, status: r.status, error: lastError ? `${lastError}; ${directError}` : directError, via: "direct" };
+    const looksCloudflare = /just a moment|cf-chl|cloudflare/i.test(html ?? "");
+    const directError = r.status === 403 || looksCloudflare
+      ? "Site blocks automated fetch (Cloudflare)."
+      : `Direct fetch HTTP ${r.status}`;
+    const fc = await fetchViaFirecrawl(url, maxChars);
+    if (fc.md) return { ...fc, error: lastError };
+    const combined = [lastError, directError, fc.error].filter(Boolean).join("; ");
+    return { md: null, status: r.status, error: combined, via: "direct" };
   } catch (e) {
     const directError = e instanceof Error ? e.message : String(e);
-    return { md: null, status: lastStatus, error: lastError ? `${lastError}; direct fetch failed: ${directError}` : directError };
+    const fc = await fetchViaFirecrawl(url, maxChars);
+    if (fc.md) return { ...fc, error: lastError };
+    const combined = [lastError, `direct fetch failed: ${directError}`, fc.error].filter(Boolean).join("; ");
+    return { md: null, status: lastStatus, error: combined };
+  }
+}
+
+async function fetchViaFirecrawl(url: string, maxChars: number): Promise<FetchResult> {
+  const key = Deno.env.get("FIRECRAWL_API_KEY");
+  if (!key) {
+    return { md: null, status: 0, error: "Firecrawl not configured (FIRECRAWL_API_KEY missing)" };
+  }
+  try {
+    const r = await fetch("https://api.firecrawl.dev/v2/scrape", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ url, formats: ["markdown"], onlyMainContent: true }),
+    });
+    const data = await r.json().catch(() => null);
+    if (!r.ok) {
+      const msg = r.status === 402
+        ? "Firecrawl credits exhausted — top up at firecrawl.dev or reconnect a paid plan."
+        : `Firecrawl HTTP ${r.status}: ${(data?.error ?? "").toString().slice(0, 200)}`;
+      return { md: null, status: r.status, error: msg, via: "firecrawl" };
+    }
+    const md: string | undefined = data?.data?.markdown ?? data?.markdown;
+    if (!md) return { md: null, status: r.status, error: "Firecrawl returned no markdown", via: "firecrawl" };
+    return { md: md.length > maxChars ? md.slice(0, maxChars) : md, status: r.status, via: "firecrawl" };
+  } catch (e) {
+    return { md: null, status: 0, error: `Firecrawl request failed: ${e instanceof Error ? e.message : String(e)}`, via: "firecrawl" };
   }
 }
 
