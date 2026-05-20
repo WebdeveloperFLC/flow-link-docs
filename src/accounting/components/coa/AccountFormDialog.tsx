@@ -393,7 +393,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
                       const on = revenueCategories.includes(v);
                       return (
                         <button
-                          key={o.id ?? o.label}
+                          key={o.code ?? o.label}
                           type="button"
                           onClick={() => toggleRevenueCat(o.label)}
                           className={`text-[11px] px-2 py-1 rounded-full border transition-colors ${on ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-accent"}`}
