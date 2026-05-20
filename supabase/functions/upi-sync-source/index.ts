@@ -378,10 +378,9 @@ Deno.serve(async (req) => {
       }
 
       async function discoverLinks(pageUrl: string, md: string, html?: string | null): Promise<ProgramLink[]> {
-        const deterministic = html ? [
-          ...await discoverAlgoliaProgramLinks(pageUrl, html).catch(() => []),
-          ...extractProgramLinksFromHtml(pageUrl, html),
-        ] : [];
+        const algoliaLinks = html ? await discoverAlgoliaProgramLinks(pageUrl, html).catch(() => []) : [];
+        const htmlLinks = html ? extractProgramLinksFromHtml(pageUrl, html) : [];
+        const deterministic = [...algoliaLinks, ...htmlLinks];
         const parsed = await callAI(
           SYSTEM_PROMPT_LIST,
           `This may be a program-list or category page. Return distinct program detail URLs only.\n\nSource URL: ${pageUrl}\n\n--- PAGE MARKDOWN ---\n${md}`,
