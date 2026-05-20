@@ -88,7 +88,7 @@ const Users = () => {
 
   const rolesFor = (uid: string) => roles.filter((r) => r.user_id === uid).map((r) => r.role);
 
-  const setRoles = async (uid: string, next: AppRole[]) => {
+  const updateUserRoles = async (uid: string, next: AppRole[]) => {
     const nextSet = Array.from(new Set(next));
     if (nextSet.length === 0) { toast.error("Select at least one role"); return; }
     // Last-admin guard: prevent removing admin from the last admin globally.
@@ -223,7 +223,7 @@ const Users = () => {
                                     const next = v
                                       ? [...userRoles, r]
                                       : userRoles.filter((x) => x !== r);
-                                    setRoles(p.id, next);
+                                    updateUserRoles(p.id, next);
                                   }}
                                 />
                                 <span className="flex flex-col">
