@@ -437,11 +437,57 @@ export default function InstitutionDetailPage() {
 
           <TabsContent value="sources">
             <Card className="p-4 mb-4 flex gap-2 flex-wrap items-end">
-              <select className="h-10 px-3 rounded-md border bg-background text-sm" value={newSourceType} onChange={(e) => setNewSourceType(e.target.value)}>
-                {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
-              </select>
-              <Input ref={urlInputRef} className="flex-1 min-w-[260px]" placeholder="https://university.edu/programs" value={newSourceUrl} onChange={(e) => setNewSourceUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addSource()} />
-              <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+              {(() => {
+                const DOC_TYPES = new Set(["pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email"]);
+                const isDocType = DOC_TYPES.has(newSourceType);
+                const linkedDocIds = new Set(sources.map((s: any) => s.document_id).filter(Boolean));
+                return (
+                  <>
+                    <select
+                      className="h-10 px-3 rounded-md border bg-background text-sm"
+                      value={newSourceType}
+                      onChange={(e) => { setNewSourceType(e.target.value); setNewSourceDocId(""); }}
+                    >
+                      {["website_url","listing_page","scholarship_page","tuition_page","international_page","pdf_brochure","excel_sheet","csv_feed","api_endpoint","uploaded_email","json_feed","sitemap"].map((t) => <option key={t}>{t}</option>)}
+                    </select>
+                    {isDocType ? (
+                      <div className="flex-1 min-w-[260px] flex flex-col gap-1">
+                        <select
+                          className="h-10 px-3 rounded-md border bg-background text-sm"
+                          value={newSourceDocId}
+                          onChange={(e) => setNewSourceDocId(e.target.value)}
+                        >
+                          <option value="">
+                            {docs.length === 0 ? "No documents uploaded yet — upload one in the Documents tab" : "Choose an uploaded document…"}
+                          </option>
+                          {docs.map((d: any) => {
+                            const dt = d.created_at ? new Date(d.created_at).toLocaleDateString() : "";
+                            const used = linkedDocIds.has(d.id) ? " · already linked" : "";
+                            return (
+                              <option key={d.id} value={d.id}>
+                                {d.file_name}{dt ? ` · ${dt}` : ""}{used}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <div className="text-xs text-muted-foreground">
+                          Pulls directly from a document already uploaded in the Documents tab — no re-upload needed.
+                        </div>
+                      </div>
+                    ) : (
+                      <Input
+                        ref={urlInputRef}
+                        className="flex-1 min-w-[260px]"
+                        placeholder="https://university.edu/programs"
+                        value={newSourceUrl}
+                        onChange={(e) => setNewSourceUrl(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && addSource()}
+                      />
+                    )}
+                    <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+                  </>
+                );
+              })()}
               {sources.length > 0 && (
                 <Button variant="secondary" onClick={syncAll} disabled={syncingAll}>
                   <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
