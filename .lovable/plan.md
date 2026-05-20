@@ -1,58 +1,59 @@
+## Goal
+
+Restrict the **Expense / asset account (Dr)** dropdown on the New Bill page and the **Revenue account (Cr)** dropdown on the New Invoice page so they only show COA accounts that are mapped to the currently selected category — never the full eligible list. AP/AR control accounts and the existing entity + currency + active + postable filters stay unchanged.
+
 ## Problem
 
-On `/accounting/ap/new` (and `/accounting/ar/new`), the **Linked COA account** is a hard-coded free-text input ("2000 — Accounts payable" / "1200 — Accounts receivable"). It ignores entity + currency, never reads the live COA store, and conflates the expense/revenue ledger with the AP/AR control account. So a Rent bill cannot be coded to `5200 Rent expense`, and every bill posts against `2000` regardless of the entity's actual chart.
+Today both dropdowns filter only by `entity + currency + group (EXPENSE/ASSET or REVENUE) + ACTIVE + isPostable`. The selected expense category (AP) and service / revenue category (AR) are ignored, so a "Rent & Utilities" bill still sees every expense account for the entity.
 
-## Fix (frontend + thin store wiring)
+The COA itself has no `category` column — but every seeded account already carries a `typeCode` (RENT, UTILITIES, PROFESSIONAL_FEES, COMMISSION_REV, VISA_REV, COACHING_REV, etc.) and some carry `automationTags` (institution_commission, coaching_revenue, …). We will treat **typeCode (+ automationTag where useful) as the source-of-truth category link** and add a single mapping module on top of it. No DB / schema change.
 
-### 1. AP New bill — replace single COA input with two Selects
+## Files
 
-`src/accounting/pages/ap/AccountingNewBillPage.tsx`:
+1. **New** `src/accounting/lib/coaCategoryMap.ts`
+   - `EXPENSE_CATEGORY_TYPES: Record<ExpenseCategory, string[]>` — each AP `ExpenseCategory` → array of allowed COA `typeCode`s. Examples:
+     - `RENT_UTILITIES` → `["RENT", "UTILITIES"]`
+     - `SALARIES_PAYROLL` → `["SALARIES", "PAYROLL_LIAB"]`
+     - `TECHNOLOGY_SOFTWARE` → `["SOFTWARE"]`
+     - `MARKETING_ADVERTISING` → `["MARKETING"]`
+     - `PROFESSIONAL_FEES`, `UNIVERSITY_LIAISON_FEES`, `VISA_FILING_COSTS`, `GOVERNMENT_FEES` → `["PROFESSIONAL_FEES"]`
+     - `BANK_CHARGES` → `["BANK_CHARGES"]`
+     - `TRAVEL_TRANSPORT` → `["TRAVEL"]`
+     - `OFFICE_SUPPLIES` → `["OFFICE_SUPPLIES"]`
+     - `TELECOMS`, `COACHING_MATERIALS`, `EXAM_FEES`, `INSURANCE`, `MAINTENANCE`, `OTHER` → `[]` (no narrow type yet — falls through to "no mapping" state, accountant can map a new type in CoA)
+   - `REVENUE_CATEGORY_TYPES: Record<string, string[]>` keyed by the labels emitted by `useMaster("client_categories")` / the AR `serviceType` selection. Examples:
+     - `"IELTS coaching" | "PTE coaching" | "TOEFL coaching" | "Language coaching" | "Mock test package"` → `["COACHING_REV", "LANGUAGE_REV"]`
+     - any `* student visa` / `* work permit` / `* PR` / `Tourist visa *` / `Schengen visa` → `["VISA_REV", "IMMIGRATION_REV"]`
+     - `"University admissions" | "Study abroad package" | "Scholarship guidance"` → `["TUITION_REV", "COMMISSION_REV"]`
+     - `"Institution commission" / commission-shaped labels` → `["COMMISSION_REV"]`
+     - fallthrough (`"Other services"`, custom free-text) → `[]`
+   - Helpers `expenseTypesFor(category)` and `revenueTypesFor(label)` that normalise the lookup (case-insensitive, handles unknown values → `[]`).
+   - Pure data + functions — no React, no store.
 
-- **Expense / asset account (Dr)** — user-selectable, REQUIRED.
-  Source `useAccounts()` filtered to:
-  ```ts
-  a.status === "ACTIVE"
-  && a.isPostable
-  && (a.entityId === entityId || a.entityId === null)
-  && a.currency === currency
-  && (a.groupCode === "EXPENSE" || a.groupCode === "ASSET")
-  ```
-- **AP control account (Cr)** — auto-prefilled & read-only-ish (still a Select so it can be changed for exceptional cases). Default = first `groupCode === "LIABILITY" && typeCode === "AP"` for the entity+currency.
-- Empty / not-ready states inside the Select (same pattern already used for bank dropdown).
-- Clear the chosen expense account when entity/currency changes and it's no longer eligible.
-- `buildPayload` writes `linkedExpenseCOACode` (Dr) and `linkedCOACode` (Cr = AP).
+2. **Edit** `src/accounting/pages/ap/AccountingNewBillPage.tsx`
+   - Track the selected expense category as a controlled value (already `category` state) and resolve `mappedTypes = expenseTypesFor(category)`.
+   - Replace `eligibleExpenseAccounts` filter with: existing entity / currency / ACTIVE / isPostable / group ∈ {EXPENSE, ASSET} **AND** `mappedTypes.includes(a.typeCode)`. When `category === ""`, keep dropdown disabled with placeholder "Select an expense category first".
+   - Empty-state items inside the Select:
+     - no category yet → "Select an expense category first"
+     - category chosen but `mappedTypes.length === 0` OR no matching accounts → **"No COA account mapped for this category — add one in Chart of Accounts."**
+   - Existing `useEffect` that clears `expenseCoaId` when ineligible already covers category changes (the eligibility list shrinks).
+   - AP control account dropdown, bank dropdown, validation, payload — unchanged.
 
-### 2. AR New invoice — mirror fix
-
-`src/accounting/pages/ar/AccountingNewInvoicePage.tsx`:
-
-- **Revenue account (Cr)** — user-selectable, REQUIRED, filtered to `groupCode === "REVENUE"` + entity + currency.
-- **AR control account (Dr)** — auto-prefilled, default = first `groupCode === "ASSET" && typeCode === "AR"` for the entity+currency.
-- `buildPayload` writes `linkedRevenueCOACode` (Cr) and `linkedCOACode` (Dr = AR).
-
-### 3. Type fields
-
-- `src/accounting/data/mockAP.ts` — add `linkedExpenseCOACode?: string` to `VendorBill`.
-- `src/accounting/data/mockAR.ts` — add `linkedRevenueCOACode?: string` to `CustomerInvoice`.
-
-### 4. Auto-post uses the chosen accounts
-
-`src/accounting/stores/apBillsStore.ts`:
-- `findExpenseAccount(bill)` → first try `bill.linkedExpenseCOACode`, then current heuristic.
-- AP side: first try `bill.linkedCOACode`, then `findApAccount()`.
-
-### 5. Journal prefill
-
-`src/accounting/pages/journals/AccountingNewJournalPage.tsx` — accrual leg uses `bill.linkedExpenseCOACode` for the Dr line and `bill.linkedCOACode` for the Cr (AP) line; fall back to existing heuristics if unset.
-
-## Worked examples (must match)
-
-- AP Rent bill (Canada entity, CAD): Dr `CA-5200 Rent expense` / Cr `2000 Accounts payable`.
-- AR Commission invoice (Canada entity, CAD): Dr `1200 Accounts receivable` / Cr `4301 Canada institution commission`.
+3. **Edit** `src/accounting/pages/ar/AccountingNewInvoicePage.tsx`
+   - Resolve `mappedRevenueTypes = revenueTypesFor(serviceType)`.
+   - Tighten `eligibleRevenueAccounts` the same way: entity / currency / ACTIVE / isPostable / `groupCode === "REVENUE"` **AND** `mappedRevenueTypes.includes(a.typeCode)`.
+   - Disable until service type chosen; identical empty-state copy: **"No COA account mapped for this category — add one in Chart of Accounts."**
+   - AR control account (Dr) stays auto-prefilled and untouched.
 
 ## Out of scope
 
-- No DB / schema migrations.
-- No changes to `coaStore`, `bankAccountsStore`, or journal posting trigger logic (we only change *which* account is chosen).
-- AR bank dropdown stays as-is for now (still uses `SEED_BANK_ACCOUNTS`); fix tracked separately.
-- Currency filter preserved on every dropdown (no cross-currency mixing).
+- No DB / Supabase migration, no `coaStore` change, no journal-posting changes.
+- AP control / AR control accounts remain system-managed exactly as today.
+- No new field on `CoaAccount` — the mapping table is the only new artifact.
+- No changes to the Chart of Accounts page (accountants already pick `typeCode` when creating accounts, which is what feeds the filter).
+
+## Worked examples
+
+- AP, entity = Canada HQ, currency = CAD, category = **Rent & utilities** → dropdown lists only CAD expense accounts whose `typeCode ∈ {RENT, UTILITIES}` (e.g. `CA-5200 Rent expense`, `CA-5210 Utilities`). Hides `6700 Management Fee Expense`, `5101 Embassy Fees Paid`, etc.
+- AR, entity = Canada HQ, currency = CAD, service type = **Institution commission** → only `4301 Canada Institution Commission` (and any other COMMISSION_REV / CAD accounts the user added). Hides visa-revenue accounts.
+- AP, category = **Insurance** (no mapping yet) → dropdown shows the empty-state message, prompting the user to add an "Insurance" type / account in CoA.
