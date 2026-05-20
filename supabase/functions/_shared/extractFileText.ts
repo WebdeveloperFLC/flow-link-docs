@@ -6,7 +6,7 @@
 // Images / scanned PDFs return base64 so callers can send them as an
 // `image_url` data URL to Gemini via the Lovable AI gateway.
 
-import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@0.12.1";
+import { extractText, getDocumentProxy, renderPageAsImage } from "https://esm.sh/unpdf@0.12.1";
 
 export interface ExtractResult {
   text: string;
@@ -23,6 +23,70 @@ function toBase64(bytes: Uint8Array): string {
     binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
   }
   return btoa(binary);
+}
+
+/** Per-page text for a PDF. `pages` is 1-indexed; failed pages get "". */
+export interface PdfPagesResult {
+  pageCount: number;
+  pages: string[];        // index 0 = page 1
+  pagesNeedingOcr: number[]; // 1-indexed page numbers with <50 chars
+}
+
+export async function extractPdfPages(blob: Blob): Promise<PdfPagesResult> {
+  const buf = new Uint8Array(await blob.arrayBuffer());
+  const pdf = await getDocumentProxy(buf);
+  const pageCount = pdf.numPages;
+  const pages: string[] = [];
+  const pagesNeedingOcr: number[] = [];
+  // unpdf's extractText supports mergePages:false to return string[]
+  try {
+    const { text } = await extractText(pdf, { mergePages: false });
+    const arr = Array.isArray(text) ? text : [String(text || "")];
+    for (let i = 0; i < pageCount; i++) {
+      const t = (arr[i] ?? "").toString().trim();
+      pages.push(t);
+      if (t.length < 50) pagesNeedingOcr.push(i + 1);
+    }
+  } catch (_e) {
+    for (let i = 0; i < pageCount; i++) {
+      pages.push("");
+      pagesNeedingOcr.push(i + 1);
+    }
+  }
+  return { pageCount, pages, pagesNeedingOcr };
+}
+
+/** Render one PDF page to a base64 PNG for vision input. 1-indexed. */
+export async function renderPdfPageBase64(
+  blob: Blob,
+  pageNumber: number,
+  scale = 1.5,
+): Promise<{ mime: string; base64: string } | null> {
+  try {
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    const pdf = await getDocumentProxy(buf);
+    const img = await renderPageAsImage(pdf, pageNumber, { scale, canvas: () => new OffscreenCanvas(1, 1) as any });
+    // unpdf returns ArrayBuffer of PNG bytes
+    const bytes = new Uint8Array(img as ArrayBuffer);
+    return { mime: "image/png", base64: toBase64(bytes) };
+  } catch (_e) {
+    return null;
+  }
+}
+
+/** Build OpenAI-style multimodal content with multiple inline page images. */
+export function buildMultiImageContent(
+  textPrompt: string,
+  images: Array<{ mime: string; base64: string }>,
+): Array<Record<string, unknown>> {
+  const parts: Array<Record<string, unknown>> = [{ type: "text", text: textPrompt }];
+  for (const img of images) {
+    parts.push({
+      type: "image_url",
+      image_url: { url: `data:${img.mime};base64,${img.base64}` },
+    });
+  }
+  return parts;
 }
 
 function isPdf(mime?: string, name?: string) {

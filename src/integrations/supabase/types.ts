@@ -8767,6 +8767,7 @@ export type Database = {
           confidence_score: number | null
           crawl_status: string | null
           created_at: string | null
+          document_id: string | null
           error_log: Json | null
           extracted_records_count: number | null
           file_path: string | null
@@ -8791,6 +8792,7 @@ export type Database = {
           confidence_score?: number | null
           crawl_status?: string | null
           created_at?: string | null
+          document_id?: string | null
           error_log?: Json | null
           extracted_records_count?: number | null
           file_path?: string | null
@@ -8815,6 +8817,7 @@ export type Database = {
           confidence_score?: number | null
           crawl_status?: string | null
           created_at?: string | null
+          document_id?: string | null
           error_log?: Json | null
           extracted_records_count?: number | null
           file_path?: string | null
@@ -8836,6 +8839,13 @@ export type Database = {
           url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "upi_institution_sources_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "upi_uploaded_documents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "upi_institution_sources_institution_id_fkey"
             columns: ["institution_id"]

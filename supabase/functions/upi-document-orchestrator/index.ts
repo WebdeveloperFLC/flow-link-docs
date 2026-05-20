@@ -81,6 +81,12 @@ Deno.serve(async (req) => {
       programs_found: Number((data as any)?.found ?? (data as any)?.count ?? 0),
       programs_upserted: Number((data as any)?.upserted ?? 0),
       promotions_found: Number(promosResult?.found ?? 0),
+      extraction_meta: (data as any)?.extraction_meta ?? null,
+      confidence: Number((data as any)?.confidence ?? 0),
+      pageCount: (data as any)?.pageCount ?? null,
+      pagesSucceeded: (data as any)?.pagesSucceeded ?? null,
+      pagesFailed: (data as any)?.pagesFailed ?? null,
+      runMs: (data as any)?.runMs ?? null,
       raw: data ?? {},
     };
     const anythingFound =

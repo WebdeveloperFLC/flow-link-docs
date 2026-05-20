@@ -361,7 +361,9 @@ Deno.serve(async (req) => {
     const { data: source, error: srcErr } = await supabase
       .from("upi_institution_sources").select("*").eq("id", source_id).single();
     if (srcErr || !source) throw new Error(srcErr?.message ?? "Source not found");
-    if (!source.url) throw new Error("Source has no URL to fetch");
+    if (!source.url && !source.document_id) {
+      throw new Error("Source has no URL or linked document to process");
+    }
 
     if (existing_job_id) {
       job_id = existing_job_id;
@@ -381,6 +383,63 @@ Deno.serve(async (req) => {
 
     await supabase.from("upi_institution_sources")
       .update({ crawl_status: "running" }).eq("id", source.id);
+
+    // If this source points at an uploaded document, route directly through
+    // the document orchestrator instead of the web-crawl pipeline.
+    if (source.document_id) {
+      try {
+        const { data: docRow } = await supabase
+          .from("upi_uploaded_documents")
+          .select("id, metadata")
+          .eq("id", source.document_id)
+          .single();
+        const docKind = (docRow?.metadata as any)?.doc_kind
+          ?? (source.source_type === "excel_sheet" || source.source_type === "csv_feed"
+                ? "program_sheet"
+                : "brochure");
+        const { data: orchRes, error: orchErr } = await supabase.functions.invoke("upi-document-orchestrator", {
+          body: { document_id: source.document_id, institution_id: source.institution_id, doc_kind: docKind },
+        });
+        if (orchErr) throw orchErr;
+        const agg = (orchRes as any)?.result ?? {};
+        const programsFound = Number(agg?.programs_found ?? 0);
+        const programsUpserted = Number(agg?.programs_upserted ?? 0);
+        const meta = (agg?.raw?.extraction_meta) ?? null;
+        await supabase.from("upi_sync_jobs").update({
+          status: "completed",
+          finished_at: new Date().toISOString(),
+          records_extracted: programsFound,
+          records_upserted: programsUpserted,
+        }).eq("id", job_id);
+        await supabase.from("upi_institution_sources").update({
+          crawl_status: "completed",
+          last_synced_at: new Date().toISOString(),
+          extracted_records_count: programsUpserted,
+          pages_scanned: meta?.pagesSucceeded ?? null,
+          pages_found: meta?.pageCount ?? null,
+          confidence_score: Math.max(0, Math.min(100, Math.round(Number(agg?.raw?.confidence ?? 0)))),
+        }).eq("id", source.id);
+        return new Response(JSON.stringify({
+          ok: true,
+          job_id,
+          via: "document",
+          programs_found: programsFound,
+          programs_upserted: programsUpserted,
+          extraction_meta: meta,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        await supabase.from("upi_sync_jobs").update({
+          status: "failed", finished_at: new Date().toISOString(), error_summary: msg,
+        }).eq("id", job_id);
+        await supabase.from("upi_institution_sources").update({
+          crawl_status: "failed",
+        }).eq("id", source.id);
+        return new Response(JSON.stringify({ error: msg, job_id }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     const work = (async () => {
       const SYSTEM_PROMPT_LIST =
