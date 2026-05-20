@@ -31,6 +31,7 @@ export interface VendorBill {
   linkedPaymentJournalId?: string;
   linkedBankAccountId?: string;
   linkedCOACode: string;
+  linkedExpenseCOACode?: string;
   paymentDate?: string;
   paymentReference?: string;
   paymentMethod?: 'BANK_TRANSFER' | 'CHEQUE' | 'CASH' | 'CREDIT_CARD' | 'UPI' | 'WIRE' | 'OTHER';
