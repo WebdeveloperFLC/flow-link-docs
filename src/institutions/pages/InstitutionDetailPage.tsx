@@ -380,7 +380,10 @@ export default function InstitutionDetailPage() {
               </Button>
             </Card>
             <div className="space-y-2">
-              {sources.map((s) => (
+              {sources.map((s) => {
+                const isSyncing = syncingSourceIds.has(s.id) || s.crawl_status === "queued" || s.crawl_status === "running";
+                const sourceError = sourceErrors[s.id];
+                return (
                 <Card
                   key={s.id}
                   id={`source-row-${s.id}`}
@@ -389,16 +392,19 @@ export default function InstitutionDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{s.url ?? s.file_path}</div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
+                    {s.crawl_status === "failed" && sourceError && (
+                      <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
+                    )}
                   </div>
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
-                  <Button onClick={() => syncNow(s)} className="shrink-0">
-                    <RefreshCw className="size-4" /> Sync now
+                  <Button onClick={() => syncNow(s)} className="shrink-0" disabled={isSyncing}>
+                    <RefreshCw className={`size-4 ${isSyncing ? "animate-spin" : ""}`} /> {isSyncing ? "Syncing" : "Sync now"}
                   </Button>
                   <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteSource(s)} title="Delete source">
                     <Trash2 className="size-4" />
                   </Button>
                 </Card>
-              ))}
+              );})}
               {sources.length === 0 && (
                 <>
                 {mockSourceRows.length > 0 && (
