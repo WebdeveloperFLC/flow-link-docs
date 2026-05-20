@@ -360,7 +360,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2 rounded-md border border-input p-3">
                 <Label className="text-sm">Categories</Label>
                 <p className="text-[11px] text-muted-foreground -mt-1">
-                  Controls which {showRevenueCats ? "AR service types" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
+                  Controls which {showRevenueCats ? "AR revenue categories" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
                 </p>
                 {showExpenseCats && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
