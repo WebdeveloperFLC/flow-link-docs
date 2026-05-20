@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractFileText, buildAiContent } from "../_shared/extractFileText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,12 +25,20 @@ Deno.serve(async (req) => {
       .from("upi_uploaded_documents").select("*").eq("id", document_id).single();
     if (!doc) throw new Error("doc not found");
 
-    let rawText = doc.raw_text ?? "";
+    let rawText = (doc.raw_text ?? "").trim();
+    let extracted = { text: rawText } as Awaited<ReturnType<typeof extractFileText>>;
     if (!rawText && doc.file_path) {
       const { data: file } = await supabase.storage.from("institution-documents").download(doc.file_path);
-      if (file) try { rawText = await file.text(); } catch { /* binary */ }
+      if (file) {
+        extracted = await extractFileText(file, { mime: doc.mime_type, fileName: doc.file_name });
+        rawText = extracted.text;
+      }
     }
-    if (!rawText) return new Response(JSON.stringify({ ok: true, found: 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!rawText && !extracted.inlineBase64) {
+      return new Response(JSON.stringify({ ok: true, found: 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const userText = `File: ${doc.file_name}\n\n${rawText.slice(0, 50000) || "(no embedded text — see attached file)"}`;
+    const userContent = buildAiContent(userText, extracted);
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -38,7 +47,7 @@ Deno.serve(async (req) => {
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: SYS },
-          { role: "user", content: rawText.slice(0, 50000) },
+          { role: "user", content: userContent },
         ],
         tools: [{
           type: "function",

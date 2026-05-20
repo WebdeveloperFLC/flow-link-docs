@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { extractFileText, buildAiContent } from "../_shared/extractFileText.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -28,15 +29,18 @@ Deno.serve(async (req) => {
     await supabase.from("upi_uploaded_documents")
       .update({ review_status: "processing" }).eq("id", document_id);
 
-    // Load file text. For binary docs, fall back to file metadata only.
-    let rawText = doc.raw_text ?? "";
+    let rawText = (doc.raw_text ?? "").trim();
+    let extracted = { text: rawText } as Awaited<ReturnType<typeof extractFileText>>;
     if (!rawText && doc.file_path) {
       const { data: file } = await supabase.storage.from("institution-documents").download(doc.file_path);
       if (file) {
-        try { rawText = await file.text(); } catch { rawText = ""; }
+        extracted = await extractFileText(file, { mime: doc.mime_type, fileName: doc.file_name });
+        rawText = extracted.text;
       }
     }
     const snippet = rawText.slice(0, 60000);
+    const userText = `File: ${doc.file_name}\nMIME: ${doc.mime_type ?? "?"}\n\nContent:\n${snippet || "(no embedded text — see attached file)"}`;
+    const userContent = buildAiContent(userText, extracted);
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -45,7 +49,7 @@ Deno.serve(async (req) => {
         model: "google/gemini-2.5-pro",
         messages: [
           { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `File: ${doc.file_name}\nMIME: ${doc.mime_type ?? "?"}\n\nContent:\n${snippet || "(binary file — extract from filename + provided metadata)"}` },
+          { role: "user", content: userContent },
         ],
         tools: [{
           type: "function",
@@ -122,10 +126,15 @@ Deno.serve(async (req) => {
       : 0;
 
     await supabase.from("upi_uploaded_documents")
-      .update({ is_processed: true, confidence_score: avg, review_status: "approved" })
+      .update({
+        is_processed: true,
+        confidence_score: avg,
+        review_status: extractions.length ? "approved" : "needs_review",
+        ...(rawText ? { raw_text: snippet } : {}),
+      })
       .eq("id", document_id);
 
-    return new Response(JSON.stringify({ ok: true, count: extractions.length }), {
+    return new Response(JSON.stringify({ ok: true, count: extractions.length, confidence: avg }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

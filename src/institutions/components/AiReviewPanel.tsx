@@ -28,6 +28,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
   const [docKind, setDocKind] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
 
   const prettyName = (n?: string) => {
     if (!n) return "";
@@ -40,6 +41,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
     setPreviewFailed(false);
     setPreviewUrl("");
     setDownloadUrl("");
+    setCourses([]);
     let revokeUrl: string | null = null;
     let cancelled = false;
     // Re-fetch the latest row so confidence / pipeline_status reflect the post-orchestrator state
@@ -54,6 +56,16 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
         setDoc(fresh);
         setEditedPayload(JSON.stringify(fresh.extracted_payload ?? {}, null, 2));
         setDocKind(fresh.metadata?.doc_kind ?? "");
+        // Load any program rows extracted from this document so the reviewer
+        // can see real course data, not just the orchestrator's summary JSON.
+        supabase
+          .from("upi_courses_staging")
+          .select("id, course_title, program_level_id, duration_value, duration_unit, tuition_fee, currency, intake_months, city, campus_name, confidence_score, metadata")
+          .eq("institution_id", institutionId)
+          .filter("metadata->>source_document_id", "eq", fresh.id)
+          .order("created_at", { ascending: false })
+          .limit(100)
+          .then(({ data: rows }) => { if (!cancelled) setCourses(rows ?? []); });
         if (!fresh.file_path) return;
         // Signed URL for the "Open in new tab" / "Download" fallback.
         supabase.storage
@@ -191,7 +203,38 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
             <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Extracted fields (editable JSON)
             </div>
-            {payloadIsEmpty && (
+            {courses.length > 0 && (
+              <div className="rounded border bg-muted/30">
+                <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b">
+                  Programs found ({courses.length})
+                </div>
+                <div className="max-h-56 overflow-auto">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/60 text-muted-foreground">
+                      <tr>
+                        <th className="text-left px-2 py-1">Title</th>
+                        <th className="text-left px-2 py-1">Duration</th>
+                        <th className="text-left px-2 py-1">Tuition</th>
+                        <th className="text-left px-2 py-1">Intake</th>
+                        <th className="text-left px-2 py-1">Campus</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {courses.map((c) => (
+                        <tr key={c.id} className="border-t">
+                          <td className="px-2 py-1 truncate max-w-[18ch]" title={c.course_title}>{c.course_title}</td>
+                          <td className="px-2 py-1">{c.duration_value ? `${c.duration_value} ${c.duration_unit ?? ""}` : "—"}</td>
+                          <td className="px-2 py-1">{c.tuition_fee ? `${c.tuition_fee} ${c.currency ?? ""}` : "—"}</td>
+                          <td className="px-2 py-1">{Array.isArray(c.intake_months) && c.intake_months.length ? c.intake_months.join(", ") : "—"}</td>
+                          <td className="px-2 py-1">{c.campus_name || c.city || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            {payloadIsEmpty && courses.length === 0 && (
               <div className="rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs">
                 No fields extracted. The file was likely processed as the wrong document type — change the type above and click <span className="font-semibold">Reprocess</span>.
               </div>

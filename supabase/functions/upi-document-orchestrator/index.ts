@@ -9,7 +9,8 @@ const ROUTE: Record<string, string> = {
   program_sheet: "upi-extract-programs-from-doc",
   agreement: "upi-analyze-agreement",
   commission_sheet: "upi-extract-commission-sheet",
-  brochure: "upi-detect-promotions",
+  // Brochures get a multi-step pipeline (programs + promotions) below.
+  brochure: "upi-extract-programs-from-doc",
 };
 
 Deno.serve(async (req) => {
@@ -66,20 +67,37 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    // Always sweep promotions (any doc type may reveal a promo)
-    if (doc_kind !== "brochure") {
-      try {
-        await supabase.functions.invoke("upi-detect-promotions", { body: { document_id, institution_id } });
-      } catch (_) { /* non-fatal */ }
-    }
+    // Always sweep promotions (any doc type may reveal a promo, brochures included)
+    let promosResult: any = null;
+    try {
+      const { data: pr } = await supabase.functions.invoke("upi-detect-promotions", {
+        body: { document_id, institution_id },
+      });
+      promosResult = pr ?? null;
+    } catch (_) { /* non-fatal */ }
 
+    const aggregated = {
+      route,
+      programs_found: Number((data as any)?.found ?? (data as any)?.count ?? 0),
+      programs_upserted: Number((data as any)?.upserted ?? 0),
+      promotions_found: Number(promosResult?.found ?? 0),
+      raw: data ?? {},
+    };
+    const anythingFound =
+      aggregated.programs_found > 0 ||
+      aggregated.programs_upserted > 0 ||
+      aggregated.promotions_found > 0 ||
+      doc_kind === "agreement"; // agreement extractor doesn't return found count
     await supabase.from("upi_document_pipeline_events").insert({
-      document_id, state: "extracted", edge_function: route, payload: data ?? {},
+      document_id,
+      state: anythingFound ? "extracted" : "needs_review",
+      edge_function: route,
+      payload: aggregated,
     });
     const resultConf = Number((data as any)?.confidence);
     const confidence_score = Number.isFinite(resultConf)
       ? Math.max(0, Math.min(100, Math.round(resultConf)))
-      : 95;
+      : (anythingFound ? 80 : 0);
     let mergedMetadata: Record<string, unknown> | undefined;
     if (agreementId) {
       const { data: cur } = await supabase
@@ -91,16 +109,16 @@ Deno.serve(async (req) => {
     }
     await supabase.from("upi_uploaded_documents")
       .update({
-        pipeline_status: "extracted",
-        review_status: "approved",
+        pipeline_status: anythingFound ? "extracted" : "needs_review",
+        review_status: anythingFound ? "approved" : "needs_review",
         is_processed: true,
         confidence_score,
-        extracted_payload: data ?? {},
+        extracted_payload: aggregated,
         ...(mergedMetadata ? { metadata: mergedMetadata } : {}),
       })
       .eq("id", document_id);
 
-    return new Response(JSON.stringify({ ok: true, route, result: data }), {
+    return new Response(JSON.stringify({ ok: true, route, result: aggregated }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
