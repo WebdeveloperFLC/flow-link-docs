@@ -11,9 +11,11 @@ import { Plus, School, Globe } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { UpiInstitution } from "../types/upi";
+import { useModulePermission } from "@/hooks/useModulePermission";
 
 export default function InstitutionsListPage() {
   const navigate = useNavigate();
+  const { canEdit } = useModulePermission("institutions");
   const [items, setItems] = useState<UpiInstitution[]>([]);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "partners" | "active" | "inactive">("all");
@@ -87,7 +89,7 @@ export default function InstitutionsListPage() {
             ))}
           </div>
           <div className="flex-1" />
-          <Dialog open={open} onOpenChange={setOpen}>
+          {canEdit && <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="size-4" /> Add institution</Button></DialogTrigger>
             <DialogContent>
               <DialogHeader><DialogTitle>Add institution</DialogTitle></DialogHeader>
@@ -98,7 +100,7 @@ export default function InstitutionsListPage() {
               </div>
               <DialogFooter><Button onClick={create}>Create</Button></DialogFooter>
             </DialogContent>
-          </Dialog>
+          </Dialog>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
