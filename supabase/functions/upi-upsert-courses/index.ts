@@ -42,13 +42,23 @@ Deno.serve(async (req) => {
           if (KNOWN.has(k)) known[k] = v; else metadata[k] = v;
         }
         if (!known.course_title) { rejected++; continue; }
-        const dedup = await sha256Hex(`${known.institution_id ?? ""}||${String(known.course_title).toLowerCase()}||${known.source_url ?? ""}`);
+        // Dedup hash now includes program_level and campus so multi-campus / multi-level
+        // programs with the same title don't collapse into a single staging row.
+        const titleKey = String(known.course_title).toLowerCase().trim();
+        const levelKey = String(known.program_level ?? "").toLowerCase().trim();
+        const campusKey = String(known.campus_name ?? "").toLowerCase().trim();
+        const urlKey = String(known.source_url ?? "").trim();
+        const dedup = await sha256Hex(
+          `${known.institution_id ?? ""}||${titleKey}||${levelKey}||${campusKey}||${urlKey}`,
+        );
 
         const { data: existing } = await supabase.from("upi_courses_staging")
-          .select("id, review_status").eq("dedup_hash", dedup).maybeSingle();
+          .select("id, review_status, metadata").eq("dedup_hash", dedup).maybeSingle();
 
         const review_status = existing?.review_status === "published" ? "needs_update" : "pending_review";
-        const payload = { ...known, dedup_hash: dedup, metadata, review_status, updated_at: new Date().toISOString() };
+        // Merge metadata: keep prior keys, overwrite with new non-null values.
+        const mergedMeta = { ...((existing?.metadata as any) ?? {}), ...metadata };
+        const payload = { ...known, dedup_hash: dedup, metadata: mergedMeta, review_status, updated_at: new Date().toISOString() };
 
         const { error } = await supabase.from("upi_courses_staging").upsert(payload, { onConflict: "dedup_hash" });
         if (error) {
