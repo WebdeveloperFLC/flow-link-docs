@@ -193,13 +193,15 @@ export default function AccountingNewBillPage() {
 
         <Card><CardHeader><CardTitle className="text-sm">Payment & accounting</CardTitle></CardHeader><CardContent className="grid grid-cols-2 gap-3">
           <Field label="Expense / asset account (Dr) *">
-            <Select value={expenseCoaId || "__none__"} onValueChange={(v) => setExpenseCoaId(v === "__none__" ? "" : v)} disabled={!entityId}>
-              <SelectTrigger><SelectValue placeholder={entityId ? "Select expense account…" : "Select an entity first"} /></SelectTrigger>
+            <Select value={expenseCoaId || "__none__"} onValueChange={(v) => setExpenseCoaId(v === "__none__" ? "" : v)} disabled={!entityId || !category}>
+              <SelectTrigger><SelectValue placeholder={!entityId ? "Select an entity first" : !category ? "Select an expense category first" : "Select expense account…"} /></SelectTrigger>
               <SelectContent>
                 {!entityId ? (
                   <SelectItem value="__none__" disabled>Select an entity first</SelectItem>
+                ) : !category ? (
+                  <SelectItem value="__none__" disabled>Select an expense category first</SelectItem>
                 ) : eligibleExpenseAccounts.length === 0 ? (
-                  <SelectItem value="__none__" disabled>No {currency} expense / asset accounts for this entity — add one in Chart of accounts</SelectItem>
+                  <SelectItem value="__none__" disabled>No COA account mapped for this category — add one in Chart of Accounts.</SelectItem>
                 ) : (
                   eligibleExpenseAccounts.map((a) => (
                     <SelectItem key={a.id} value={a.id}>{a.code} — {a.name}</SelectItem>
