@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { HandleUserDataDialog, LifecycleAction } from "@/components/users/HandleUserDataDialog";
 import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog";
+import { ModuleAccessCard } from "@/components/users/ModuleAccessCard";
 
 interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
@@ -155,6 +156,22 @@ const Users = () => {
           <Button onClick={() => setAddOpen(true)} className="gradient-brand text-primary-foreground">
             <Plus className="size-4 mr-1" /> Add new user
           </Button>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <ModuleAccessCard
+            module="institutions"
+            title="Institutions access"
+            description="Who can view or manage institutions, programs and related details."
+            profiles={profiles}
+            roles={roles}
+          />
+          <ModuleAccessCard
+            module="commissions"
+            title="Commissions access"
+            description="Who can view or manage commissions, claims and agreements."
+            profiles={profiles}
+            roles={roles}
+          />
         </div>
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="grid grid-cols-[minmax(0,3fr)_110px_minmax(0,2fr)_minmax(0,2fr)_60px] gap-4 px-6 py-3 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">

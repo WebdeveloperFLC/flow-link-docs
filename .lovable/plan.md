@@ -1,46 +1,53 @@
-# Plan: Multi-role users + separate Institutions / Commissions access
+## Goal
 
-## Goals
-1. **Commissions access** should be a per-user toggle (like Institutions), independent of the `commission_admin` role.
-2. **Institutions access** stays a per-user toggle (already wired) — make it more discoverable on the Users page.
-3. A user can hold **multiple roles at once** (e.g. Counselor + Documentation + Telecaller), not just one.
+Add a visible **Institutions access** card on the Team & Roles page (`/users`) — mirroring how Commissions is surfaced — so admins can see at a glance who has Institutions access and grant / revoke it in one click, without opening the full Module access dialog.
 
-## Changes
+Also add a matching **Commissions access** card for symmetry, since the user expects the two to live side-by-side.
 
-### 1. Add "Commissions" as a permissioned module
-`src/lib/modulePermissions.ts`
-- Add `{ key: "commissions", label: "Commissions & Claims", description: "Partner commissions, claims, agreements, invoicing." }` to `CRM_MODULES`.
-- `ROLE_DEFAULTS`: grant `admin` and `commission_admin` full access; everyone else `NONE`.
+## What the user will see
 
-`src/institutions/components/CommissionsProtectedRoute.tsx`
-- Use `useModulePermission("commissions")`. Allow when `isAdmin || isCommissionAdmin || canView` (and `canEdit` when `requireEdit`). Update copy to mention "Team & roles → Permissions → Commissions".
+On `/users`, above the existing team table, two new cards in a 2-column grid:
 
-`src/components/layout/AppLayout.tsx`
-- Gate the Commissions sidebar entry on `isAdmin || isCommissionAdmin || canViewCommissions` using the hook.
+```text
+┌────────────────────────────┐  ┌────────────────────────────┐
+│ Institutions access        │  │ Commissions access         │
+│ Who can view / manage      │  │ Who can view / manage      │
+│ institutions, programs.    │  │ commissions and claims.    │
+│                            │  │                            │
+│ • Alice  [View ▼] Revoke   │  │ • Alice  [Edit ▼] Revoke   │
+│ • Bob    [Edit ▼] Revoke   │  │ • Carol  [View ▼] Revoke   │
+│ + Grant access to user…    │  │ + Grant access to user…    │
+└────────────────────────────┘  └────────────────────────────┘
+```
 
-### 2. Multi-role selection on the Users page
-`src/pages/Users.tsx`
-- Replace the single-select Role dropdown with a **multi-select popover** (checkbox list of `ALL_ROLES`), showing all assigned roles as small chips in the Role column.
-- Rewrite `setRole` → `setRoles(uid, nextRoles[])`:
-  - Diff against existing roles, insert missing rows, delete removed rows in `user_roles`.
-  - Preserve last-admin guard: prevent removing `admin` from the only remaining admin.
-  - Log `user.roles_changed` activity.
-- `UserPermissionsDialog` already accepts a single `role` for defaults — pass the **highest-privilege** role from the user's set (priority: admin > commission_admin > counselor > documentation > telecaller > viewer) so "Reset to role defaults" stays useful.
-- Update footer help text: clarify that roles are additive and that Institutions/Commissions access is granted per-user via **Module access**.
+Each card:
+- Lists every active user who currently has `view` or higher on that module (admins shown as locked "Full access" chip).
+- Per row: a small **View / Edit / Delete** dropdown to change the level, and **Revoke** to clear that module's permissions.
+- A **Grant access** button that opens a popover with a searchable user picker and a level select.
+- Empty state: "No one has access yet. Click Grant access to add a teammate."
 
-### 3. Add-user dialog
-`src/components/users/AddUserDialog.tsx` + edge function `admin-users` (action `create`)
-- Replace single role select with a multi-select (checkbox list); send `roles: AppRole[]`.
-- In the edge function `create` handler, accept either `role` (back-compat) or `roles[]` and insert one `user_roles` row per role.
+This is purely a shortcut over the existing `user_module_permissions` table — no new schema.
 
-### 4. Minor copy
-`src/pages/Users.tsx` footer paragraph — mention both Institutions and Commissions per-user toggles.
+## Files to change / add
+
+1. **New** `src/components/users/ModuleAccessCard.tsx`
+   - Props: `module: "institutions" | "commissions"`, `title`, `description`, `profiles`, `roles`, `onChanged`.
+   - Loads all rows from `user_module_permissions` where `module = props.module` on mount; subscribes to a refresh callback after writes.
+   - Renders the list described above using `Card`, `Badge`, `DropdownMenu`, `Popover`, `Command` (search).
+   - Write helpers wrap `saveUserPermissions` from `@/lib/modulePermissions` (only touching the one module's row via a focused upsert on `user_module_permissions`), with `logActivity("user.module_access_changed", ...)`.
+
+2. **Edit** `src/pages/Users.tsx`
+   - Import `ModuleAccessCard`.
+   - Render two cards in a `grid md:grid-cols-2 gap-4 mb-4` block between the "Add new user" button row and the team `Card` table.
+   - Pass `profiles` and a `refresh` callback (reuses existing `load()`).
+
+3. **Edit** `src/lib/modulePermissions.ts`
+   - Export a small helper `saveSingleModulePermission(userId, module, level)` that upserts one row only (so the card doesn't need to fetch+rewrite the full permission map). Implements view/edit/delete implication rules already used in the dialog.
+
+No other files change. No DB migration, no edge-function change, no routing change.
 
 ## Out of scope
-- No DB schema change (user_roles already supports multiple rows per user — `unique(user_id, role)`).
-- No RLS change.
-- No changes to accounting module access.
 
-## Technical notes
-- `useAuth().isCommissionAdmin` stays as-is (role-based) so commission_admin role still implicitly grants access; the new module toggle is an additive grant for non-commission_admin users.
-- `useModulePermission` cache is keyed by user id; no invalidation needed for this change since admins editing other users don't read their own perms.
+- No new role (`institution_admin` is not added).
+- No changes to the existing Module access dialog, Add user dialog, or sidebar gating.
+- No changes to Accounting users page.

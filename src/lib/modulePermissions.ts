@@ -89,3 +89,47 @@ export async function saveUserPermissions(userId: string, map: PermissionMap) {
     .upsert(rows, { onConflict: "user_id,module" });
   if (error) throw error;
 }
+
+export type ModuleAccessLevel = "none" | "view" | "edit" | "delete";
+
+export async function saveSingleModulePermission(
+  userId: string,
+  module: string,
+  level: ModuleAccessLevel,
+) {
+  if (level === "none") {
+    const { error } = await supabase
+      .from("user_module_permissions" as any)
+      .delete()
+      .eq("user_id", userId)
+      .eq("module", module);
+    if (error) throw error;
+    return;
+  }
+  const row = {
+    user_id: userId,
+    module,
+    can_view: true,
+    can_edit: level === "edit" || level === "delete",
+    can_delete: level === "delete",
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from("user_module_permissions" as any)
+    .upsert([row], { onConflict: "user_id,module" });
+  if (error) throw error;
+}
+
+export async function fetchModuleAccessList(module: string) {
+  const { data, error } = await supabase
+    .from("user_module_permissions" as any)
+    .select("user_id, can_view, can_edit, can_delete")
+    .eq("module", module);
+  if (error) throw error;
+  return ((data ?? []) as unknown) as Array<{
+    user_id: string;
+    can_view: boolean;
+    can_edit: boolean;
+    can_delete: boolean;
+  }>;
+}
