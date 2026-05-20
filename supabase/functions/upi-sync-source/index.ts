@@ -136,13 +136,20 @@ async function fetchMarkdown(
   const headers: Record<string, string> = {
     Accept: "text/markdown",
     "X-Return-Format": "markdown",
+    "Content-Type": "application/json",
   };
   if (jinaKey) headers["Authorization"] = `Bearer ${jinaKey}`;
   let lastStatus = 0;
   let lastError: string | undefined;
   for (let attempt = 0; attempt < FETCH_RETRIES; attempt++) {
     try {
-      const r = await fetch(`https://r.jina.ai/${url}`, { headers });
+      // POST endpoint avoids URL-encoding issues when the target URL contains
+      // complex query strings (e.g. `?filter[ProgramType][0]=…`).
+      const r = await fetch("https://r.jina.ai/", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ url }),
+      });
       lastStatus = r.status;
       if (r.ok) {
         let md = await r.text();
@@ -151,7 +158,10 @@ async function fetchMarkdown(
       }
       if (r.status !== 429 && r.status < 500) {
         try { await r.text(); } catch (_) { /* ignore */ }
-        return { md: null, status: r.status, error: `HTTP ${r.status}` };
+        const msg = r.status === 402
+          ? "Jina Reader credits exhausted — add or top up JINA_API_KEY"
+          : `HTTP ${r.status}`;
+        return { md: null, status: r.status, error: msg };
       }
       const retryAfter = parseInt(r.headers.get("retry-after") ?? "", 10);
       try { await r.text(); } catch (_) { /* ignore */ }
