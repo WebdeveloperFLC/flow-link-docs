@@ -238,7 +238,7 @@ export default function InstitutionDetailPage() {
       return;
     }
     setBusy(true);
-    const path = `${id}/${Date.now()}-${file.name}`;
+    const path = `${id}/${Date.now()}-${safeStorageName(file.name)}`;
     const { error: upErr } = await supabase.storage.from("institution-documents").upload(path, file);
     if (upErr) { setBusy(false); return toast.error(upErr.message); }
     const { data: doc, error: dErr } = await supabase.from("upi_uploaded_documents").insert({
