@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
       .limit(BATCH_SIZE);
     if (claimErr) throw claimErr;
 
-    const rows = pending ?? [];
+    const rows: any[] = pending ?? [];
     if (rows.length === 0) {
       // No work — try to finalize if job still running
       await finalizeIfDone(supabase, job_id);
@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const ids = rows.map(r => r.id);
+    const ids = rows.map((r: any) => r.id);
     await supabase.from("upi_sync_queue").update({
       status: "processing", updated_at: new Date().toISOString(),
     }).in("id", ids);
@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
       await supabase.from("upi_sync_queue").update({
         status: "failed",
         last_error: f.err.slice(0, 500),
-        attempts: (rows.find(r => r.id === f.id)?.attempts as number ?? 0) + 1,
+        attempts: (rows.find((r: any) => r.id === f.id)?.attempts as number ?? 0) + 1,
         updated_at: new Date().toISOString(),
       }).eq("id", f.id);
     }
