@@ -28,6 +28,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
   const [docKind, setDocKind] = useState<string>("");
   const [busy, setBusy] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [courses, setCourses] = useState<any[]>([]);
 
   const prettyName = (n?: string) => {
     if (!n) return "";
@@ -40,6 +41,7 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
     setPreviewFailed(false);
     setPreviewUrl("");
     setDownloadUrl("");
+    setCourses([]);
     let revokeUrl: string | null = null;
     let cancelled = false;
     // Re-fetch the latest row so confidence / pipeline_status reflect the post-orchestrator state
@@ -54,6 +56,16 @@ export function AiReviewPanel({ open, onOpenChange, document: docProp, instituti
         setDoc(fresh);
         setEditedPayload(JSON.stringify(fresh.extracted_payload ?? {}, null, 2));
         setDocKind(fresh.metadata?.doc_kind ?? "");
+        // Load any program rows extracted from this document so the reviewer
+        // can see real course data, not just the orchestrator's summary JSON.
+        supabase
+          .from("upi_courses_staging")
+          .select("id, course_title, program_level_id, duration_value, duration_unit, tuition_fee, currency, intake_months, city, campus_name, confidence_score, metadata")
+          .eq("institution_id", institutionId)
+          .filter("metadata->>source_document_id", "eq", fresh.id)
+          .order("created_at", { ascending: false })
+          .limit(100)
+          .then(({ data: rows }) => { if (!cancelled) setCourses(rows ?? []); });
         if (!fresh.file_path) return;
         // Signed URL for the "Open in new tab" / "Download" fallback.
         supabase.storage
