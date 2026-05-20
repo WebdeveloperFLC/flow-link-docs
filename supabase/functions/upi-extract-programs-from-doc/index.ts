@@ -151,12 +151,22 @@ async function pMap<T, R>(items: T[], n: number, fn: (x: T, i: number) => Promis
 const ENUM_SYSTEM = "You enumerate academic programs from institution brochures, prospectuses, and program tables. Be exhaustive: capture every distinct program, including duplicates across campuses or levels. Do not invent programs. Only return what you can see in the supplied pages.";
 const ENRICH_SYSTEM = "You enrich a known list of academic programs with details (fees, durations, English requirements, intakes, campus). Never invent numeric fields; leave them null if not present on the page.";
 
+// Stricter prompt for narrow program sheets / foldouts where non-program items
+// (workshops, fees, professional development, certificates) must NOT be staged
+// as courses unless they are clearly listed as academic programs in a table.
+const ENUM_SYSTEM_SHEET =
+  "You extract academic programs from a structured program sheet or fees foldout. " +
+  "ONLY return real degree-granting academic programs (Bachelor, Master, PhD, Diploma, Certificate when offered as a credential). " +
+  "Do NOT return workshops, professional development items, e-learning modules, generic 'micro-credentials', fee line items, or marketing copy. " +
+  "If a program is listed under multiple campuses, return one entry per campus. Preserve the printed program title verbatim — do not append the level or campus to the title.";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const startedAt = Date.now();
   try {
-    const { document_id, institution_id } = await req.json();
+    const { document_id, institution_id, doc_kind } = await req.json();
     if (!document_id || !institution_id) throw new Error("document_id and institution_id required");
+    const isProgramSheet = doc_kind === "program_sheet";
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
@@ -224,7 +234,8 @@ Deno.serve(async (req) => {
           modelMix.fast += 1;
           content = `Document: ${doc.file_name}\nPages ${chunk.from}–${chunk.to}.\n\n${chunk.text || "(no embedded text)"}`;
         }
-        const parsed = await callAiTool(LOVABLE_API_KEY, FAST_MODEL, ENUM_SYSTEM, content, ENUM_TOOL, 1);
+        const sys = isProgramSheet ? ENUM_SYSTEM_SHEET : ENUM_SYSTEM;
+        const parsed = await callAiTool(LOVABLE_API_KEY, FAST_MODEL, sys, content, ENUM_TOOL, 1);
         const arr = Array.isArray(parsed?.programs) ? parsed.programs : [];
         return { chunk, programs: arr, ok: true };
       } catch (e) {
@@ -235,6 +246,21 @@ Deno.serve(async (req) => {
     const pagesSucceeded = new Set<number>();
     const pagesFailed = new Set<number>();
     const skeleton: Array<{ course_title: string; program_level?: string; campus_name?: string; page_number: number }> = [];
+    let nonProgramSkipped = 0;
+    // Filter obvious non-program items when processing a program sheet.
+    const NON_PROGRAM_PATTERNS = [
+      /\bworkshops?\b/i,
+      /\bprofessional\s+(skills?|development)\b/i,
+      /\bself[-\s]?directed\b/i,
+      /\be[-\s]?learning\b/i,
+      /\bmicro[-\s]?credentials?\b/i,
+      /\bcareer\s+readiness\b/i,
+      /\bancillary\b/i,
+      /\bmeal\s+plan\b/i,
+      /\bresidences?\b/i,
+      /\buhip\b/i,
+      /\bfees?\b/i,
+    ];
     for (const r of pass1Results) {
       if (!r.ok) {
         for (let p = r.chunk.from; p <= r.chunk.to; p++) pagesFailed.add(p);
@@ -244,6 +270,10 @@ Deno.serve(async (req) => {
       for (const prog of r.programs) {
         const title = String(prog.course_title ?? "").trim();
         if (!title) continue;
+        if (isProgramSheet && NON_PROGRAM_PATTERNS.some((re) => re.test(title))) {
+          nonProgramSkipped++;
+          continue;
+        }
         const rel = Number(prog.page_number) || 1;
         const absPage = r.chunk.from + Math.max(0, rel - 1);
         skeleton.push({
@@ -312,12 +342,34 @@ Deno.serve(async (req) => {
     });
     for (const arr of enrichResults) allEnriched.push(...arr);
 
-    // Normalize confidence scores
+    // Normalize titles + confidence scores.
+    // Some models return confidence as 0–1 instead of 0–100; rescale safely.
+    // Also strip AI-added suffixes like "(Master)" or "@ Oshawa" from titles so
+    // upsert dedup doesn't see N variants of the same printed program name.
+    const stripTitleNoise = (t: string, level?: string, campus?: string): string => {
+      let s = String(t || "").trim();
+      // remove trailing "@ <campus>"
+      s = s.replace(/\s*@\s*[A-Za-z][\w\s.&'-]+$/, "").trim();
+      // remove parenthetical that matches the level (e.g. "(Master)")
+      if (level) {
+        const lvl = String(level).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        s = s.replace(new RegExp(`\\s*\\(\\s*${lvl}\\s*\\)\\s*$`, "i"), "").trim();
+      }
+      // generic trailing parenthetical that's just a degree word
+      s = s.replace(/\s*\((Bachelor|Master|Diploma|Certificate|PhD|Doctorate|Doctoral|Graduate Certificate|Postgraduate)\s*\)\s*$/i, "").trim();
+      // collapse whitespace
+      s = s.replace(/\s{2,}/g, " ");
+      return s;
+    };
     const courses = allEnriched.map((c) => {
       const raw = Number(c.confidence_score);
-      const cs = Number.isFinite(raw) ? Math.max(0, Math.min(100, Math.round(raw))) : 60;
+      let cs: number;
+      if (!Number.isFinite(raw)) cs = 60;
+      else if (raw > 0 && raw <= 1) cs = Math.round(raw * 100);
+      else cs = Math.max(0, Math.min(100, Math.round(raw)));
       const { _page, _enrichment_failed, _enrichment_error, ...clean } = c;
-      return { ...clean, confidence_score: cs };
+      const cleanedTitle = stripTitleNoise(clean.course_title, clean.program_level, clean.campus_name);
+      return { ...clean, course_title: cleanedTitle, confidence_score: cs };
     });
 
     // ---- Upsert ----
@@ -350,9 +402,11 @@ Deno.serve(async (req) => {
       pagesWithText,
       programsFound: courses.length,
       programsUpserted: upserted,
+      nonProgramSkipped,
+      docKind: doc_kind ?? null,
       runMs,
       modelMix,
-      version: 2,
+      version: 3,
     };
 
     const reviewStatus = courses.length === 0 || coverage < 0.8 ? "needs_review" : "approved";
