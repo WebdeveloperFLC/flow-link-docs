@@ -88,6 +88,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { hasAccess: hasAccountingAccess, loading: accountingAccessLoading } = useAccountingAccess();
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");
+  const { canView: canViewCommissions } = useModulePermission("commissions");
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const sidebarMode = theme.sidebarMode;
@@ -202,7 +203,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             {institutionsNav.map(renderNavLink)}
           </>}
 
-          {isCommissionAdmin && <>
+          {(isAdmin || isCommissionAdmin || canViewCommissions) && <>
             <div className="border-t border-sidebar-border my-2" />
             {!iconsOnly && (
               <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
