@@ -18,6 +18,9 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const LISTY_URL_HINTS = ["/programs", "/program/", "/courses", "/course/", "/study", "/academics", "/list", "/faculties", "/schools", "/area-of-study"];
 const SKIP_URL_HINTS = ["/news", "/blog", "/events", "/about", "/contact", "/login", "/apply-now", "/staff", "/faculty-staff", "/library", "/alumni", "/giving", "/parents", "/media", "/privacy", "/terms"];
 
+type ProgramLink = { course_title: string; program_url: string };
+type FetchResult = { md: string | null; html?: string | null; status: number; error?: string; via?: "jina" | "direct" };
+
 const LINK_TOOL = {
   type: "function",
   function: {
@@ -113,8 +116,96 @@ function shouldSkipUrl(url: string, originHost: string): boolean {
   } catch { return true; }
 }
 
+function decodeHtml(input: string): string {
+  return input
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'");
+}
+
+function htmlToText(html: string, maxChars: number): string {
+  const text = decodeHtml(html)
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<\/(h[1-6]|p|div|li|tr|section|article|header|footer)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/[ \t\r\f\v]+/g, " ")
+    .replace(/\n\s+/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > maxChars ? text.slice(0, maxChars) : text;
+}
+
+function extractProgramLinksFromHtml(pageUrl: string, html: string): ProgramLink[] {
+  const origin = new URL(pageUrl).host;
+  const out: ProgramLink[] = [];
+  const seen = new Set<string>();
+  const anchorRe = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const m of html.matchAll(anchorRe)) {
+    const norm = normalizeUrl(m[1], pageUrl);
+    if (!norm || shouldSkipUrl(norm, origin) || !looksListy(norm) || seen.has(norm)) continue;
+    const title = htmlToText(m[2], 300).replace(/\s+/g, " ").trim();
+    const pathParts = new URL(norm).pathname.split("/").filter(Boolean);
+    const fallback = pathParts[pathParts.length - 1]?.replace(/[-_]+/g, " ") ?? norm;
+    const course_title = title && title.length <= 120 ? title : fallback.replace(/\b\w/g, c => c.toUpperCase());
+    seen.add(norm);
+    out.push({ course_title, program_url: norm });
+  }
+  return out;
+}
+
+function hiddenValue(html: string, id: string): string | null {
+  const re = new RegExp(`<input[^>]+id=["']${id}["'][^>]+value=["']([^"']+)["']`, "i");
+  const match = html.match(re);
+  return match ? decodeHtml(match[1]) : null;
+}
+
+async function discoverAlgoliaProgramLinks(pageUrl: string, html: string): Promise<ProgramLink[]> {
+  const appId = hiddenValue(html, "Algolia_AppId");
+  const apiKey = hiddenValue(html, "Algolia_ApiKey");
+  const index = hiddenValue(html, "Algolia_Idx_Programs_Relevance");
+  if (!appId || !apiKey || !index) return [];
+
+  const params = new URLSearchParams();
+  params.set("query", new URL(pageUrl).searchParams.get("search") ?? "");
+  params.set("hitsPerPage", String(MAX_DETAIL_FETCHES));
+  params.set("page", "0");
+  if (/Full-Time/i.test(pageUrl)) params.set("filters", 'ProgramType:"Full-Time"');
+  if (/Part-Time/i.test(pageUrl)) params.set("filters", 'ProgramType:"Part-Time"');
+
+  const r = await fetch(`https://${appId}-dsn.algolia.net/1/indexes/${index}/query`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Algolia-Application-Id": appId,
+      "X-Algolia-API-Key": apiKey,
+      Origin: new URL(pageUrl).origin,
+      Referer: pageUrl,
+    },
+    body: JSON.stringify({ params: params.toString() }),
+  });
+  if (!r.ok) return [];
+  const data = await r.json().catch(() => null);
+  const hits = Array.isArray(data?.hits) ? data.hits : [];
+  const origin = new URL(pageUrl).host;
+  const seen = new Set<string>();
+  const links: ProgramLink[] = [];
+  for (const hit of hits) {
+    const norm = normalizeUrl(String(hit?.ProgramURL ?? hit?.url ?? ""), pageUrl);
+    const title = String(hit?.ProgramName ?? hit?.title ?? "").trim();
+    if (!norm || !title || shouldSkipUrl(norm, origin) || seen.has(norm)) continue;
+    seen.add(norm);
+    links.push({ course_title: title, program_url: norm });
+  }
+  return links;
+}
+
 async function logMsg(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   job_id: string,
   level: "info" | "warn" | "error",
   message: string,
@@ -131,7 +222,7 @@ async function logMsg(
 async function fetchMarkdown(
   url: string,
   maxChars: number,
-): Promise<{ md: string | null; status: number; error?: string }> {
+): Promise<FetchResult> {
   const jinaKey = Deno.env.get("JINA_API_KEY");
   const headers: Record<string, string> = {
     Accept: "text/markdown",
@@ -154,14 +245,15 @@ async function fetchMarkdown(
       if (r.ok) {
         let md = await r.text();
         if (md.length > maxChars) md = md.slice(0, maxChars);
-        return { md, status: r.status };
+        return { md, status: r.status, via: "jina" };
       }
       if (r.status !== 429 && r.status < 500) {
         try { await r.text(); } catch (_) { /* ignore */ }
         const msg = r.status === 402
           ? "Jina Reader credits exhausted — add or top up JINA_API_KEY"
           : `HTTP ${r.status}`;
-        return { md: null, status: r.status, error: msg };
+        lastError = msg;
+        break;
       }
       const retryAfter = parseInt(r.headers.get("retry-after") ?? "", 10);
       try { await r.text(); } catch (_) { /* ignore */ }
@@ -174,7 +266,23 @@ async function fetchMarkdown(
       await sleep(Math.min(7000, 1000 * Math.pow(2, attempt)));
     }
   }
-  return { md: null, status: lastStatus, error: lastError ?? `HTTP ${lastStatus}` };
+  try {
+    const r = await fetch(url, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (compatible; FutureLinkProgramSync/1.0)",
+      },
+    });
+    const html = await r.text();
+    if (r.ok && /html|text/i.test(r.headers.get("content-type") ?? "")) {
+      return { md: htmlToText(html, maxChars), html, status: r.status, via: "direct", error: lastError };
+    }
+    const directError = r.status === 403 ? "Site blocks automated fetch (HTTP 403)" : `Direct fetch HTTP ${r.status}`;
+    return { md: null, html, status: r.status, error: lastError ? `${lastError}; ${directError}` : directError, via: "direct" };
+  } catch (e) {
+    const directError = e instanceof Error ? e.message : String(e);
+    return { md: null, status: lastStatus, error: lastError ? `${lastError}; direct fetch failed: ${directError}` : directError };
+  }
 }
 
 function triggerBatch(job_id: string) {
@@ -199,7 +307,7 @@ function triggerBatch(job_id: string) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const supabase = createClient(
+  const supabase: any = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
@@ -269,17 +377,20 @@ Deno.serve(async (req) => {
         try { return JSON.parse(args); } catch { return null; }
       }
 
-      async function discoverLinks(pageUrl: string, md: string): Promise<{ course_title: string; program_url: string }[]> {
+      async function discoverLinks(pageUrl: string, md: string, html?: string | null): Promise<ProgramLink[]> {
+        const algoliaLinks = html ? await discoverAlgoliaProgramLinks(pageUrl, html).catch(() => []) : [];
+        const htmlLinks = html ? extractProgramLinksFromHtml(pageUrl, html) : [];
+        const deterministic = [...algoliaLinks, ...htmlLinks];
         const parsed = await callAI(
           SYSTEM_PROMPT_LIST,
           `This may be a program-list or category page. Return distinct program detail URLs only.\n\nSource URL: ${pageUrl}\n\n--- PAGE MARKDOWN ---\n${md}`,
           LINK_TOOL,
-        );
+        ).catch(() => null);
         const links: { course_title: string; program_url: string }[] = Array.isArray(parsed?.programs) ? parsed.programs : [];
         const origin = new URL(pageUrl).host;
         const seen = new Set<string>();
         const out: { course_title: string; program_url: string }[] = [];
-        for (const l of links) {
+        for (const l of [...deterministic, ...links]) {
           const norm = normalizeUrl(l.program_url, pageUrl);
           if (!norm || shouldSkipUrl(norm, origin) || seen.has(norm)) continue;
           seen.add(norm);
@@ -288,14 +399,15 @@ Deno.serve(async (req) => {
         return out;
       }
 
-      await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader`);
+      await logMsg(supabase, job_id!, "info", `Fetching ${source.url} via Jina Reader, with direct fallback`);
       if (!Deno.env.get("JINA_API_KEY")) {
         await logMsg(supabase, job_id!, "warn", "JINA_API_KEY not set — using anonymous Jina Reader (rate-limited).");
       }
       const rootRes = await fetchMarkdown(source.url, MAX_CHARS);
-      if (!rootRes.md) throw new Error(`Jina fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
+      if (rootRes.error) await logMsg(supabase, job_id!, rootRes.md ? "warn" : "error", rootRes.error);
+      if (!rootRes.md) throw new Error(`Fetch failed for ${source.url}: ${rootRes.error ?? rootRes.status}`);
       const rootMd = rootRes.md;
-      await logMsg(supabase, job_id!, "info", `Fetched root page (${rootMd.length} chars)`);
+      await logMsg(supabase, job_id!, "info", `Fetched root page via ${rootRes.via ?? "unknown"} (${rootMd.length} chars)`);
 
       let pagesScanned = 1;
       const rootIsListy = looksListy(source.url) || ["website","program_list","sitemap","list_page"].includes(source.source_type ?? "");
@@ -303,13 +415,13 @@ Deno.serve(async (req) => {
 
       if (rootIsListy) {
         await logMsg(supabase, job_id!, "info", "Root URL looks listy — discovering program links");
-        programLinks = await discoverLinks(source.url, rootMd);
+        programLinks = await discoverLinks(source.url, rootMd, rootRes.html);
         await logMsg(supabase, job_id!, "info", `Discovered ${programLinks.length} direct program links from root`);
       }
 
       if (rootIsListy && programLinks.length < 3) {
         await logMsg(supabase, job_id!, "info", "Few direct programs — expanding via category pages");
-        const candidateCats = await discoverLinks(source.url, rootMd);
+        const candidateCats = await discoverLinks(source.url, rootMd, rootRes.html);
         const origin = new URL(source.url).host;
         const categoryUrls = Array.from(new Set(
           candidateCats
@@ -324,7 +436,7 @@ Deno.serve(async (req) => {
             const res = await fetchMarkdown(cUrl, MAX_CHARS);
             if (!res.md) return [];
             pagesScanned++;
-            return discoverLinks(cUrl, res.md).catch(() => []);
+            return discoverLinks(cUrl, res.md, res.html).catch(() => []);
           }));
           for (const arr of results) programLinks.push(...arr);
           await sleep(BATCH_PAUSE_MS);

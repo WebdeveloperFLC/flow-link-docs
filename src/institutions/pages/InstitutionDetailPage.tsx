@@ -49,6 +49,8 @@ export default function InstitutionDetailPage() {
   const [newSourceType, setNewSourceType] = useState("website_url");
   const [highlightSourceId, setHighlightSourceId] = useState<string | null>(null);
   const [syncingAll, setSyncingAll] = useState(false);
+  const [syncingSourceIds, setSyncingSourceIds] = useState<Set<string>>(new Set());
+  const [sourceErrors, setSourceErrors] = useState<Record<string, string | null>>({});
   const urlInputRef = useRef<HTMLInputElement>(null);
   const [campaignChannel, setCampaignChannel] = useState("email");
   const [generated, setGenerated] = useState("");
@@ -97,7 +99,7 @@ export default function InstitutionDetailPage() {
   ];
 
   const load = async () => {
-    const [i, s, d, a, c, p, mc, sg] = await Promise.all([
+    const [i, s, d, a, c, p, mc, sg, j] = await Promise.all([
       supabase.from("upi_institutions").select("*").eq("id", id).single(),
       supabase.from("upi_institution_sources").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_uploaded_documents").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
@@ -106,10 +108,16 @@ export default function InstitutionDetailPage() {
       supabase.from("upi_promotions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_marketing_campaigns").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_ai_suggestions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
+      supabase.from("upi_sync_jobs").select("source_id,status,error_summary").eq("institution_id", id).order("started_at", { ascending: false }).limit(100),
     ]);
     setInst(i.data as UpiInstitution); setSources((s.data ?? []) as UpiSource[]); setDocs(d.data ?? []);
     setAgreements(a.data ?? []); setCommissions(c.data ?? []); setPromos(p.data ?? []);
     setCampaigns(mc.data ?? []); setSuggestions((sg.data ?? []) as UpiSuggestion[]);
+    const latestErrors: Record<string, string | null> = {};
+    (j.data ?? []).forEach((row: any) => {
+      if (row.source_id && latestErrors[row.source_id] === undefined) latestErrors[row.source_id] = row.error_summary ?? null;
+    });
+    setSourceErrors(latestErrors);
   };
   useEffect(() => { load(); }, [id]);
 
@@ -152,19 +160,48 @@ export default function InstitutionDetailPage() {
     toast.success("Source added — click Sync now to fetch courses");
   };
 
-  const syncNow = async (source: UpiSource) => {
-    toast.info("Starting sync…");
+  const pollSyncJob = async (jobId: string) => {
+    for (let attempt = 0; attempt < 90; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const { data } = await supabase
+        .from("upi_sync_jobs")
+        .select("status,error_summary,records_upserted,pages_scanned,pages_discovered")
+        .eq("id", jobId)
+        .maybeSingle();
+      if (!data || ["running", "queued"].includes(data.status as string)) continue;
+      return data as any;
+    }
+    return null;
+  };
+
+  const syncNow = async (source: UpiSource, quiet = false) => {
+    if (!quiet) toast.info("Sync started — watching job status…");
+    setSyncingSourceIds((prev) => new Set(prev).add(source.id));
     await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
     const { data, error } = await supabase.functions.invoke("upi-sync-source", {
       body: { source_id: source.id },
     });
     if (error) {
+      setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
       toast.error(error.message);
-    } else {
-      const res = data as { extracted?: number; upserted?: number; rejected?: number };
-      toast.success(`Sync complete — ${res?.upserted ?? 0} course(s) staged for review`);
+      await load();
+      return 0;
     }
-    load();
+    const jobId = (data as any)?.job_id;
+    const job = jobId ? await pollSyncJob(jobId) : null;
+    setSyncingSourceIds((prev) => { const next = new Set(prev); next.delete(source.id); return next; });
+    await load();
+    if (!job) {
+      if (!quiet) toast.info("Sync is still running — refresh in a moment to see results");
+      return 0;
+    }
+    if (job.status === "failed") {
+      toast.error(job.error_summary ?? "Sync failed");
+      return 0;
+    }
+    const upserted = job.records_upserted ?? 0;
+    if (!quiet) toast.success(`Sync ${job.status} — ${upserted} course(s) staged for review`);
+    return upserted;
   };
 
   const syncAll = async () => {
@@ -173,9 +210,7 @@ export default function InstitutionDetailPage() {
     let total = 0;
     for (const s of sources) {
       try {
-        const { data, error } = await supabase.functions.invoke("upi-sync-source", { body: { source_id: s.id } });
-        if (error) toast.error(`${s.url}: ${error.message}`);
-        else total += (data as any)?.upserted ?? 0;
+        total += await syncNow(s, true);
       } catch (e: any) {
         toast.error(`${s.url}: ${e?.message ?? "failed"}`);
       }
@@ -345,7 +380,10 @@ export default function InstitutionDetailPage() {
               </Button>
             </Card>
             <div className="space-y-2">
-              {sources.map((s) => (
+              {sources.map((s) => {
+                const isSyncing = syncingSourceIds.has(s.id) || s.crawl_status === "queued" || s.crawl_status === "running";
+                const sourceError = sourceErrors[s.id];
+                return (
                 <Card
                   key={s.id}
                   id={`source-row-${s.id}`}
@@ -354,16 +392,19 @@ export default function InstitutionDetailPage() {
                   <div className="flex-1 min-w-0">
                     <div className="font-medium truncate">{s.url ?? s.file_path}</div>
                     <div className="text-xs text-muted-foreground">{s.source_type} · {s.crawl_status} · {s.pages_scanned}/{s.pages_found} pages · {s.confidence_score}% confidence</div>
+                    {s.crawl_status === "failed" && sourceError && (
+                      <div className="mt-1 text-xs text-destructive line-clamp-2">{sourceError}</div>
+                    )}
                   </div>
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
-                  <Button onClick={() => syncNow(s)} className="shrink-0">
-                    <RefreshCw className="size-4" /> Sync now
+                  <Button onClick={() => syncNow(s)} className="shrink-0" disabled={isSyncing}>
+                    <RefreshCw className={`size-4 ${isSyncing ? "animate-spin" : ""}`} /> {isSyncing ? "Syncing" : "Sync now"}
                   </Button>
                   <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteSource(s)} title="Delete source">
                     <Trash2 className="size-4" />
                   </Button>
                 </Card>
-              ))}
+              );})}
               {sources.length === 0 && (
                 <>
                 {mockSourceRows.length > 0 && (
