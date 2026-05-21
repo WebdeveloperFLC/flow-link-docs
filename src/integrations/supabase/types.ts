@@ -5247,6 +5247,42 @@ export type Database = {
         }
         Relationships: []
       }
+      dsh_ai_generations: {
+        Row: {
+          brief: Json
+          created_at: string
+          id: string
+          image_paths: string[]
+          kind: string
+          model: string | null
+          output_text: string | null
+          prompt: string | null
+          user_id: string
+        }
+        Insert: {
+          brief?: Json
+          created_at?: string
+          id?: string
+          image_paths?: string[]
+          kind: string
+          model?: string | null
+          output_text?: string | null
+          prompt?: string | null
+          user_id: string
+        }
+        Update: {
+          brief?: Json
+          created_at?: string
+          id?: string
+          image_paths?: string[]
+          kind?: string
+          model?: string | null
+          output_text?: string | null
+          prompt?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       dsh_branch_contacts: {
         Row: {
           branch_id: string
