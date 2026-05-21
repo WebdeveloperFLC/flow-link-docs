@@ -12,7 +12,8 @@ const ROLE_LABEL: Record<RefRole, string> = {
   style: "Style (match palette / typography)",
   layout: "Layout (mirror composition)",
   subject: "Subject (use this person / landmark)",
-  logo: "Logo (place verbatim)",
+  logo: "Future Link logo (top-left, verbatim)",
+  institution_logo: "Institution logo (top-right, verbatim)",
   edit_base: "Edit this image directly",
 };
 
@@ -21,7 +22,7 @@ export function ReferenceTray({
 }: {
   refs: RefImage[];
   setRefs: (r: RefImage[]) => void;
-  onPickFromLibrary: (kind: "logo" | "reference") => Promise<BrandAsset | null>;
+  onPickFromLibrary: (kind: "logo" | "institution_logo" | "reference") => Promise<BrandAsset | null>;
   fileToDataUrl: (f: File) => Promise<string>;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
@@ -40,11 +41,11 @@ export function ReferenceTray({
     setRefs([...refs, ...next]);
   }
 
-  async function pickFromLibrary(kind: "logo" | "reference") {
+  async function pickFromLibrary(kind: "logo" | "institution_logo" | "reference") {
     const asset = await onPickFromLibrary(kind);
     if (!asset) return;
     if (refs.length >= MAX_REFS) return toast.error(`Max ${MAX_REFS} references`);
-    const role: RefRole = kind === "logo" ? "logo" : "style";
+    const role: RefRole = kind === "logo" ? "logo" : kind === "institution_logo" ? "institution_logo" : "style";
     // Convert via signed url -> dataURL upstream; here we just store asset_id + placeholder. The caller will resolve.
     setRefs([...refs, { data_url: "", role, source: "library", asset_id: asset.id, name: asset.title }]);
   }
@@ -69,7 +70,10 @@ export function ReferenceTray({
               <Library className="size-3 mr-1" />From library
             </Button>
             <Button size="sm" variant="outline" onClick={() => pickFromLibrary("logo")}>
-              <Library className="size-3 mr-1" />Add logo
+              <Library className="size-3 mr-1" />FLC logo
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => pickFromLibrary("institution_logo")}>
+              <Library className="size-3 mr-1" />Institution logo
             </Button>
             <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={refs.length >= MAX_REFS}>
               <Upload className="size-3 mr-1" />Upload
