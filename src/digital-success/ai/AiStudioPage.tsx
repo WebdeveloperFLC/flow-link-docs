@@ -503,6 +503,28 @@ function _BriefFormImpl({ brief, update, branches, serviceKeys, languages }: any
           <Textarea rows={2} value={brief.custom_instructions} onChange={(e) => update({ custom_instructions: e.target.value })}
             placeholder="Anything specific about layout, colors, campus photos, deadlines, contact info to include…" />
         </div>
+        <div className="rounded-md border p-3 space-y-2">
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Contact details on the poster (verbatim — leave blank to omit)</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid gap-1">
+              <Label className="text-xs">Phone</Label>
+              <Input value={brief.contact_phone ?? ""} onChange={(e) => update({ contact_phone: e.target.value })} placeholder="e.g. +91 99982 24688" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Email</Label>
+              <Input value={brief.contact_email ?? ""} onChange={(e) => update({ contact_email: e.target.value })} placeholder="e.g. info@futurelinkconsultants.com" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Website</Label>
+              <Input value={brief.contact_website ?? ""} onChange={(e) => update({ contact_website: e.target.value })} placeholder="www.futurelinkconsultants.com" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Call-to-action (optional)</Label>
+              <Input value={brief.cta ?? ""} onChange={(e) => update({ cta: e.target.value })} placeholder="e.g. APPLY NOW · SECURE YOUR SEAT" />
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Only the values you enter will appear. Blank fields are omitted — no placeholders like XXXXXXXXXX will be drawn.</p>
+        </div>
       </CardContent>
     </Card>
   );
