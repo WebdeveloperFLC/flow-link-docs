@@ -60,7 +60,7 @@ export default function AiStudioPage() {
 
   // Multi-reference state
   const [refs, setRefs] = useState<RefImage[]>([]);
-  const [pickingKind, setPickingKind] = useState<"logo" | "reference" | null>(null);
+  const [pickingKind, setPickingKind] = useState<"logo" | "institution_logo" | "reference" | null>(null);
   const [pickerResolve, setPickerResolve] = useState<((a: BrandAsset | null) => void) | null>(null);
 
   // Seed default Future Link logo and auto-attach when use_brand is on
@@ -98,7 +98,7 @@ export default function AiStudioPage() {
 
   useEffect(() => { refreshRecent(); /* eslint-disable-next-line */ }, []);
 
-  async function pickFromLibrary(kind: "logo" | "reference"): Promise<BrandAsset | null> {
+  async function pickFromLibrary(kind: "logo" | "institution_logo" | "reference"): Promise<BrandAsset | null> {
     setPickingKind(kind);
     return new Promise<BrandAsset | null>((resolve) => {
       setPickerResolve(() => resolve);
@@ -108,7 +108,9 @@ export default function AiStudioPage() {
   async function onLibraryPicked(asset: BrandAsset) {
     try {
       const dataUrl = await studio.brandAssetToDataUrl(asset);
-      const role = pickingKind === "logo" ? "logo" : "style";
+      const role = pickingKind === "logo" ? "logo"
+                  : pickingKind === "institution_logo" ? "institution_logo"
+                  : "style";
       setRefs((cur) => [...cur, { data_url: dataUrl, role, source: "library", asset_id: asset.id, name: asset.title }]);
       toast.success(`Added "${asset.title}"`);
     } catch (e: any) {
