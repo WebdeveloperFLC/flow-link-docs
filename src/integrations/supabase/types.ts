@@ -5369,6 +5369,48 @@ export type Database = {
           },
         ]
       }
+      dsh_brand_assets: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          institution_id: string | null
+          is_default_brand: boolean
+          kind: string
+          storage_path: string
+          tags: string[]
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          is_default_brand?: boolean
+          kind: string
+          storage_path: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          institution_id?: string | null
+          is_default_brand?: boolean
+          kind?: string
+          storage_path?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       dsh_media: {
         Row: {
           branch_id: string | null
