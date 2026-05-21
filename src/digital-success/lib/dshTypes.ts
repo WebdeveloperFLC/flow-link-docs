@@ -84,6 +84,8 @@ export type DshMedia = {
   google_review_rating: number | null;
   google_review_screenshot_path: string | null;
   client_link_url: string | null;
+  credited_user_id: string | null;
+  review_received_at: string | null;
   created_at: string;
   updated_at: string;
 };
