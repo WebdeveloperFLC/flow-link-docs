@@ -93,3 +93,17 @@ export function useBranches() {
     },
   });
 }
+
+export function useTeamMembers() {
+  return useQuery({
+    queryKey: ["dsh_team_members"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .order("full_name");
+      if (error) throw error;
+      return (data ?? []) as { id: string; full_name: string | null; email: string | null }[];
+    },
+  });
+}
