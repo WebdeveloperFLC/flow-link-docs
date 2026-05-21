@@ -74,7 +74,7 @@ export function useServiceCatalogueOptions() {
         .order("master_key")
         .order("display_order");
       if (error) throw error;
-      return (data ?? []) as { master_key: string; sub_category: string | null; service_name: string }[];
+      return (data ?? []) as unknown as { master_key: string; sub_category: string | null; service_name: string }[];
     },
   });
 }
