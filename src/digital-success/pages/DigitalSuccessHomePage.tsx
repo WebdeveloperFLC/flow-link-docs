@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useDshMedia, useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
 import { CONTENT_TYPES, type HubTab } from "../lib/dshTypes";
 import { MediaListTable } from "../components/MediaListTable";
@@ -51,7 +53,14 @@ export default function DigitalSuccessHomePage() {
         <PageHeader
           title="Digital Success Hub"
           description="Search clients, link OneDrive-first promotional content, and notify branches."
-          actions={<MediaUploadDialog />}
+          actions={
+            <div className="flex gap-2">
+              <Button asChild variant="outline">
+                <Link to="/digital-success/ai"><Sparkles className="size-4 mr-2" />AI Studio</Link>
+              </Button>
+              <MediaUploadDialog />
+            </div>
+          }
         />
 
         <div className="flex flex-wrap items-center gap-2">
