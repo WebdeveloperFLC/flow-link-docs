@@ -28,9 +28,17 @@ Deno.serve(async (req) => {
     const {
       institution_name, country, service, intake, highlights, tone = "energetic",
       language = "English", format = "portrait", variations = 1, custom_instructions = "",
-      use_brand = true, model = "google/gemini-3-pro-image-preview",
+      use_brand = true, quality = "standard",
+      model: requestedModel,
       references = [],
     } = body ?? {};
+
+    // Quality → model mapping. Premium uses Nano Banana Pro for max fidelity.
+    const model = requestedModel
+      || (quality === "premium" ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview");
+    const premiumDirective = quality === "premium"
+      ? "\nQuality directive: Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject with realistic skin texture and natural lighting. No compression artifacts, no banding. Print-ready 300dpi feel."
+      : "";
 
     const dims = format === "square" ? "1024x1024 square 1:1"
                : format === "story" ? "1080x1920 vertical story 9:16"
@@ -69,10 +77,12 @@ Intake: ${intake || "—"}
 Key highlights (must appear as bullet points with icons): ${highlights || "—"}
 Tone: ${tone}. Language for all text on the poster: ${language}.
 ${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}
-${refHintLines.length ? "\nReferences attached:\n- " + refHintLines.join("\n- ") : ""}
+${refHintLines.length ? "\nReferences attached:\n- " + refHintLines.join("\n- ") : ""}${premiumDirective}
 Make sure all text is spelled correctly, legible, and the layout looks professional and print-ready. No watermarks. No placeholder lorem ipsum.`;
 
-    const n = Math.max(1, Math.min(4, Number(variations) || 1));
+    // Cap premium variations to keep latency reasonable
+    const maxN = quality === "premium" ? 2 : 4;
+    const n = Math.max(1, Math.min(maxN, Number(variations) || 1));
     const image_paths: string[] = [];
     const errors: string[] = [];
 

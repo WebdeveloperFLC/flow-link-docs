@@ -9,9 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon } from "lucide-react";
+import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap } from "lucide-react";
 import { toast } from "sonner";
-import { usePromoStudio, type PosterBrief, type CopyPack, type RefImage, type BrandAsset } from "./usePromoStudio";
+import { usePromoStudio, type PosterBrief, type CopyPack, type RefImage, type BrandAsset, type RecentGeneration } from "./usePromoStudio";
 import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
 import { ReferenceTray } from "./ReferenceTray";
 import { BrandLibraryPanel } from "./BrandLibraryPanel";
@@ -44,10 +44,19 @@ export default function AiStudioPage() {
     variations: 2,
     custom_instructions: "",
     use_brand: true,
+    quality: "standard",
   });
 
-  const [images, setImages] = useState<{ path: string; url: string }[]>([]);
+  const [images, setImages] = useState<{ path: string; url: string }[]>(() => {
+    try {
+      const raw = sessionStorage.getItem("dsh-ai-last-images");
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
   const [pack, setPack] = useState<CopyPack | null>(null);
+  const [recent, setRecent] = useState<RecentGeneration[]>([]);
+  const [recentUrls, setRecentUrls] = useState<Record<string, string>>({});
+  const [enhancingPath, setEnhancingPath] = useState<string | null>(null);
 
   // Multi-reference state
   const [refs, setRefs] = useState<RefImage[]>([]);
@@ -67,6 +76,27 @@ export default function AiStudioPage() {
     })();
     // eslint-disable-next-line
   }, []);
+
+  // Persist last generated batch so a refresh/navigation doesn't wipe results
+  useEffect(() => {
+    try { sessionStorage.setItem("dsh-ai-last-images", JSON.stringify(images)); } catch {}
+  }, [images]);
+
+  async function refreshRecent() {
+    try {
+      const rows = await studio.listRecentGenerations(20);
+      setRecent(rows);
+      // Build signed URLs for all thumbnails
+      const entries = await Promise.all(
+        rows.flatMap((r) => r.image_paths).map(async (p) => [p, await studio.getSignedUrl(p)] as const),
+      );
+      setRecentUrls(Object.fromEntries(entries));
+    } catch (e: any) {
+      console.warn("recent load failed", e);
+    }
+  }
+
+  useEffect(() => { refreshRecent(); /* eslint-disable-next-line */ }, []);
 
   async function pickFromLibrary(kind: "logo" | "reference"): Promise<BrandAsset | null> {
     setPickingKind(kind);
@@ -107,6 +137,7 @@ export default function AiStudioPage() {
       const urls = await Promise.all(res.image_paths.map(async (p) => ({ path: p, url: await studio.getSignedUrl(p) })));
       setImages(urls);
       toast.success(`Generated ${urls.length} variation(s)`);
+      refreshRecent();
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   }
 
@@ -133,21 +164,41 @@ export default function AiStudioPage() {
     } catch (e: any) { toast.error(e?.message ?? "Save failed"); }
   }
 
+  async function onDownload(url: string, filename: string) {
+    try { await studio.downloadAsset(url, filename); }
+    catch (e: any) { toast.error(e?.message ?? "Download failed"); }
+  }
+
+  async function onEnhance(img: { path: string; url: string }, index: number) {
+    setEnhancingPath(img.path);
+    try {
+      const out = await studio.enhanceStored(img.path);
+      const newUrl = await studio.getSignedUrl(out.image_path);
+      setImages((prev) => prev.map((p, i) => i === index ? { path: out.image_path, url: newUrl } : p));
+      toast.success("Enhanced");
+      refreshRecent();
+    } catch (e: any) { toast.error(e?.message ?? "Enhance failed"); }
+    finally { setEnhancingPath(null); }
+  }
+
   // Edit image
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editInstruction, setEditInstruction] = useState("");
   const [editedUrl, setEditedUrl] = useState<string | null>(null);
   const [editedPath, setEditedPath] = useState<string | null>(null);
+  const [editQuality, setEditQuality] = useState<"standard" | "premium">("standard");
   async function onEditImage() {
     if (!editFile) return toast.error("Upload a base image first");
     if (!editInstruction.trim()) return toast.error("Describe what to change");
     const dataUrl = await studio.fileToDataUrl(editFile);
     try {
-      const out = await studio.editImage(dataUrl, editInstruction);
+      const model = editQuality === "premium" ? "google/gemini-3-pro-image-preview" : "google/gemini-3.1-flash-image-preview";
+      const out = await studio.editImage(dataUrl, editInstruction, model);
       const url = await studio.getSignedUrl(out.image_path);
       setEditedPath(out.image_path);
       setEditedUrl(url);
       toast.success("Edited");
+      refreshRecent();
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   }
 
@@ -214,6 +265,16 @@ export default function AiStudioPage() {
                 <Switch checked={brief.use_brand} onCheckedChange={(v) => update({ use_brand: v })} />
                 <Label className="text-sm">Apply Future Link branding</Label>
               </div>
+              <div className="grid gap-1">
+                <Label className="text-xs">Quality</Label>
+                <Select value={brief.quality ?? "standard"} onValueChange={(v: any) => update({ quality: v })}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard (fast)</SelectItem>
+                    <SelectItem value="premium">Premium ✨</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button className="ml-auto mt-5" onClick={onGeneratePoster} disabled={studio.loading}>
                 {studio.loading ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Sparkles className="size-4 mr-2" />}
                 {hasEditBase ? "Apply edits" : "Generate poster"}
@@ -226,11 +287,15 @@ export default function AiStudioPage() {
                   <Card key={img.path}>
                     <CardContent className="p-2 space-y-2">
                       <img src={img.url} alt={`Variation ${i + 1}`} className="w-full rounded-md border" />
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="outline" asChild className="flex-1">
-                          <a href={img.url} download={`flc-poster-${i + 1}.png`}><Download className="size-3 mr-1" />Download</a>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 min-w-[88px]" onClick={() => onDownload(img.url, `flc-poster-${i + 1}.png`)}>
+                          <Download className="size-3 mr-1" />Download
                         </Button>
-                        <Button size="sm" className="flex-1" onClick={() => onSave(img.path)}>
+                        <Button size="sm" variant="outline" className="flex-1 min-w-[88px]" onClick={() => onEnhance(img, i)} disabled={enhancingPath === img.path}>
+                          {enhancingPath === img.path ? <Loader2 className="size-3 mr-1 animate-spin" /> : <Zap className="size-3 mr-1" />}
+                          Enhance
+                        </Button>
+                        <Button size="sm" className="flex-1 min-w-[88px]" onClick={() => onSave(img.path)}>
                           <Save className="size-3 mr-1" />Save
                         </Button>
                       </div>
@@ -239,6 +304,14 @@ export default function AiStudioPage() {
                 ))}
               </div>
             )}
+
+            <RecentGenerationsPanel
+              rows={recent}
+              urls={recentUrls}
+              onDownload={onDownload}
+              onSave={onSave}
+              onRefresh={refreshRecent}
+            />
           </TabsContent>
 
           <TabsContent value="copy" className="space-y-4">
@@ -271,12 +344,22 @@ export default function AiStudioPage() {
                   {studio.loading ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Wand2 className="size-4 mr-2" />}
                   Edit image
                 </Button>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs">Quality</Label>
+                  <Select value={editQuality} onValueChange={(v: any) => setEditQuality(v)}>
+                    <SelectTrigger className="w-[160px] h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="standard">Standard (fast)</SelectItem>
+                      <SelectItem value="premium">Premium ✨</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 {editedUrl && (
                   <div className="space-y-2">
                     <img src={editedUrl} alt="Edited" className="max-w-md rounded-md border" />
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={editedUrl} download="flc-edited.png"><Download className="size-3 mr-1" />Download</a>
+                      <Button size="sm" variant="outline" onClick={() => onDownload(editedUrl, "flc-edited.png")}>
+                        <Download className="size-3 mr-1" />Download
                       </Button>
                       {editedPath && (
                         <Button size="sm" onClick={() => onSave(editedPath)}>
@@ -300,6 +383,59 @@ export default function AiStudioPage() {
 }
 
 function BriefForm({ brief, update, branches, serviceKeys, languages }: any) {
+  return _BriefFormImpl({ brief, update, branches, serviceKeys, languages });
+}
+
+function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh }: {
+  rows: RecentGeneration[];
+  urls: Record<string, string>;
+  onDownload: (url: string, filename: string) => void;
+  onSave: (path: string) => void;
+  onRefresh: () => void;
+}) {
+  if (!rows.length) return null;
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base flex items-center gap-2"><History className="size-4" /> Recent generations</CardTitle>
+        <Button size="sm" variant="ghost" onClick={onRefresh}>Refresh</Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {rows.map((r) => (
+          <div key={r.id} className="border-t pt-3 first:border-t-0 first:pt-0">
+            <div className="text-xs text-muted-foreground mb-2 flex flex-wrap gap-2">
+              <span>{new Date(r.created_at).toLocaleString()}</span>
+              <span>· {r.kind}</span>
+              {r.model && <span>· {r.model.split("/").pop()}</span>}
+              {r.brief?.institution_name && <span>· {r.brief.institution_name}</span>}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {r.image_paths.map((p, i) => (
+                <div key={p} className="space-y-1">
+                  {urls[p] ? (
+                    <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                  ) : (
+                    <div className="aspect-square bg-muted rounded animate-pulse" />
+                  )}
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.png`)}>
+                      <Download className="size-3" />
+                    </Button>
+                    <Button size="sm" className="flex-1 h-7 text-xs px-2" onClick={() => onSave(p)}>
+                      <Save className="size-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function _BriefFormImpl({ brief, update, branches, serviceKeys, languages }: any) {
   return (
     <Card>
       <CardHeader><CardTitle>Brief</CardTitle></CardHeader>
