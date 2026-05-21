@@ -57,7 +57,9 @@ Deno.serve(async (req) => {
       const n = i + 1;
       switch (r.role) {
         case "logo":
-          return `Reference image #${n}: LOGO — place this artwork VERBATIM in the top-right corner at ~12% poster width. Do NOT redraw, recolor, re-letter, or restyle it. Preserve the exact glyphs, colors, and aspect ratio. No alternative wordmark.`;
+          return `Reference image #${n}: FUTURE LINK LOGO — place VERBATIM in the TOP-LEFT corner at ~18% poster width. Preserve exact glyphs, colors and aspect ratio. No alternative wordmark.`;
+        case "institution_logo":
+          return `Reference image #${n}: INSTITUTION LOGO — place VERBATIM in the TOP-RIGHT corner at ~14% poster width. Preserve exact glyphs, colors and aspect ratio. Do NOT add an "OFFICIAL LOGO" caption or invent a crest.`;
         case "layout":
           return `Reference image #${n}: LAYOUT — mirror its overall composition and grid; replace all text with the Brief above.`;
         case "subject":
