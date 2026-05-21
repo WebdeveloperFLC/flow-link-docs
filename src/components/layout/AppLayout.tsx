@@ -217,6 +217,16 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             )}
             {commissionsNav.map(renderNavLink)}
           </>}
+
+          {(isAdmin || canViewDsh) && <>
+            <div className="border-t border-sidebar-border my-2" />
+            {!iconsOnly && (
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                Marketing
+              </div>
+            )}
+            {digitalSuccessNav.map(renderNavLink)}
+          </>}
         </nav>
 
         <div className={cn("border-t border-sidebar-border space-y-2", iconsOnly ? "p-2" : "p-3")}>
