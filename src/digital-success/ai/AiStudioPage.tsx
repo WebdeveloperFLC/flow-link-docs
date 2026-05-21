@@ -45,6 +45,10 @@ export default function AiStudioPage() {
     custom_instructions: "",
     use_brand: true,
     quality: "standard",
+    contact_phone: "",
+    contact_email: "",
+    contact_website: "www.futurelinkconsultants.com",
+    cta: "",
   });
 
   const [images, setImages] = useState<{ path: string; url: string }[]>(() => {
