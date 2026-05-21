@@ -9,10 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download } from "lucide-react";
+import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoStudio, type PosterBrief, type CopyPack } from "./usePromoStudio";
 import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const PRESETS = [
   { label: "September intake flyer", patch: { intake: "September 2026", tone: "energetic", highlights: "Applications open, fast offer letter, scholarships available" } },
@@ -47,11 +48,29 @@ export default function AiStudioPage() {
   const [images, setImages] = useState<{ path: string; url: string }[]>([]);
   const [pack, setPack] = useState<CopyPack | null>(null);
 
+  // Reference image state (shared with poster tab)
+  const [refFile, setRefFile] = useState<File | null>(null);
+  const [refDataUrl, setRefDataUrl] = useState<string>("");
+  const [refMode, setRefMode] = useState<"match" | "inspire" | "edit">("match");
+
+  async function onPickRef(file: File | null) {
+    if (!file) { setRefFile(null); setRefDataUrl(""); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error("Image too large (max 8 MB)"); return; }
+    setRefFile(file);
+    const dataUrl = await studio.fileToDataUrl(file);
+    setRefDataUrl(dataUrl);
+  }
+
   const update = (p: Partial<PosterBrief>) => setBrief((b) => ({ ...b, ...p }));
 
   async function onGeneratePoster() {
     try {
-      const res = await studio.generatePoster(brief);
+      const payload: PosterBrief = {
+        ...brief,
+        reference_image_data_url: refDataUrl || undefined,
+        reference_mode: refDataUrl ? refMode : undefined,
+      };
+      const res = await studio.generatePoster(payload);
       const urls = await Promise.all(res.image_paths.map(async (p) => ({ path: p, url: await studio.getSignedUrl(p) })));
       setImages(urls);
       toast.success(`Generated ${urls.length} variation(s)`);
@@ -123,6 +142,14 @@ export default function AiStudioPage() {
           <TabsContent value="poster" className="space-y-4">
             <BriefForm brief={brief} update={update} branches={branches} serviceKeys={serviceKeys} languages={LANGS} />
 
+            <ReferenceImageCard
+              file={refFile}
+              dataUrl={refDataUrl}
+              mode={refMode}
+              onMode={setRefMode}
+              onPick={onPickRef}
+            />
+
             <div className="flex flex-wrap gap-2">
               <span className="text-xs text-muted-foreground self-center mr-2">Presets:</span>
               {PRESETS.map((p) => (
@@ -131,7 +158,7 @@ export default function AiStudioPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="grid gap-1">
+              <div className={`grid gap-1 ${refDataUrl && refMode === "edit" ? "opacity-50 pointer-events-none" : ""}`}>
                 <Label className="text-xs">Format</Label>
                 <Select value={brief.format} onValueChange={(v: any) => update({ format: v })}>
                   <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
@@ -142,7 +169,7 @@ export default function AiStudioPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid gap-1">
+              <div className={`grid gap-1 ${refDataUrl && refMode === "edit" ? "opacity-50 pointer-events-none" : ""}`}>
                 <Label className="text-xs">Variations</Label>
                 <Select value={String(brief.variations)} onValueChange={(v) => update({ variations: Number(v) })}>
                   <SelectTrigger className="w-[120px]"><SelectValue /></SelectTrigger>
@@ -157,7 +184,7 @@ export default function AiStudioPage() {
               </div>
               <Button className="ml-auto mt-5" onClick={onGeneratePoster} disabled={studio.loading}>
                 {studio.loading ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Sparkles className="size-4 mr-2" />}
-                Generate poster
+                {refDataUrl && refMode === "edit" ? "Apply edits" : "Generate poster"}
               </Button>
             </div>
 
