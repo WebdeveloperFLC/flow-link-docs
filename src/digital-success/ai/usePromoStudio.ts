@@ -38,7 +38,18 @@ export interface PosterBrief {
   custom_instructions: string;
   use_brand: boolean;
   model?: string;
+  quality?: "standard" | "premium";
   references?: RefImage[];
+}
+
+export interface RecentGeneration {
+  id: string;
+  kind: string;
+  prompt: string | null;
+  image_paths: string[];
+  model: string | null;
+  created_at: string;
+  brief: any;
 }
 
 export interface CopyPack {
@@ -114,12 +125,77 @@ export function usePromoStudio() {
     if (!data?.ok) throw new Error(data?.error || "Edit failed");
     return data as { generation_id: string; image_path: string };
   }
-  async function editImage(image_data_url: string, instruction: string) {
+  async function editImage(image_data_url: string, instruction: string, model?: string) {
     setLoading(true); setError(null);
-    try { return await editImageInternal(image_data_url, instruction); }
+    try { return await editImageInternalWithModel(image_data_url, instruction, model); }
     catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
     finally { setLoading(false); }
   }
+
+  async function editImageInternalWithModel(image_data_urls: string | string[], instruction: string, model?: string) {
+    const arr = Array.isArray(image_data_urls) ? image_data_urls : [image_data_urls];
+    const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", {
+      body: { image_data_urls: arr, image_data_url: arr[0], instruction, model },
+    });
+    if (error) {
+      const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
+      throw new Error(ctxMsg || error.message || "Edit failed");
+    }
+    if (!data?.ok) throw new Error(data?.error || "Edit failed");
+    return data as { generation_id: string; image_path: string };
+  }
+
+  /** Re-edit a stored image by storage path (downloads, re-encodes, calls edit). */
+  async function enhanceStored(storage_path: string, instruction?: string) {
+    setLoading(true); setError(null);
+    try {
+      const { data, error } = await supabase.storage.from("dsh-media").download(storage_path);
+      if (error) throw error;
+      const dataUrl: string = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result as string);
+        r.onerror = () => rej(r.error);
+        r.readAsDataURL(data);
+      });
+      const inst = instruction || "Upscale and sharpen this poster. Preserve every text glyph, logo, layout, colors and composition EXACTLY. Improve photo realism of subjects, refine typography edges, remove compression artifacts. Do not add or remove any element.";
+      return await editImageInternalWithModel(dataUrl, inst, "google/gemini-3-pro-image-preview");
+    } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
+    finally { setLoading(false); }
+  }
+
+  /** Programmatic download — fetches blob and triggers save dialog without navigating away. */
+  async function downloadAsset(url: string, filename: string) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Download failed (${res.status})`);
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = filename;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(obj), 1500);
+    } catch (e: any) {
+      throw new Error(e?.message ?? "Download failed");
+    }
+  }
+
+  async function listRecentGenerations(limit = 20): Promise<RecentGeneration[]> {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth?.user) return [];
+    const { data, error } = await supabase
+      .from("dsh_ai_generations")
+      .select("id,kind,prompt,image_paths,model,created_at,brief")
+      .eq("user_id", auth.user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data as any[]) as RecentGeneration[];
+  }
+
 
   // Read an image File into a (resized) clean data URL.
   async function fileToDataUrl(file: File, maxEdge = 1536): Promise<string> {
@@ -283,7 +359,8 @@ export function usePromoStudio() {
 
   return {
     loading, error,
-    generatePoster, generateCopy, editImage, getSignedUrl, saveToHub, fileToDataUrl,
+    generatePoster, generateCopy, editImage, enhanceStored, downloadAsset, listRecentGenerations,
+    getSignedUrl, saveToHub, fileToDataUrl,
     listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
   };
 }
