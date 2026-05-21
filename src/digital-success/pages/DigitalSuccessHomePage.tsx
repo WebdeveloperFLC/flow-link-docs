@@ -9,6 +9,8 @@ import { useDshMedia, useBranches, useServiceCatalogueOptions } from "../hooks/u
 import { CONTENT_TYPES, type HubTab } from "../lib/dshTypes";
 import { MediaListTable } from "../components/MediaListTable";
 import { MediaUploadDialog } from "../components/MediaUploadDialog";
+import { NotifyBranchesDialog } from "../components/NotifyBranchesDialog";
+import type { DshMedia } from "../lib/dshTypes";
 
 const TABS: { value: HubTab; label: string }[] = [
   { value: "all", label: "All Content" },
@@ -27,6 +29,7 @@ export default function DigitalSuccessHomePage() {
   const [country, setCountry] = useState("");
   const [branchId, setBranchId] = useState<string>("all");
   const [serviceKey, setServiceKey] = useState<string>("all");
+  const [notifyTarget, setNotifyTarget] = useState<DshMedia | null>(null);
 
   const { data: branches = [] } = useBranches();
   const { data: services = [] } = useServiceCatalogueOptions();
@@ -97,7 +100,12 @@ export default function DigitalSuccessHomePage() {
           </TabsList>
         </Tabs>
 
-        <MediaListTable rows={rows} loading={isLoading} />
+        <MediaListTable rows={rows} loading={isLoading} onNotify={setNotifyTarget} />
+        <NotifyBranchesDialog
+          media={notifyTarget}
+          open={!!notifyTarget}
+          onOpenChange={(v) => !v && setNotifyTarget(null)}
+        />
       </div>
     </AppLayout>
   );
