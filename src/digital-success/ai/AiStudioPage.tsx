@@ -356,3 +356,74 @@ function CopyPackView({ pack }: { pack: CopyPack }) {
     </div>
   );
 }
+
+function ReferenceImageCard({
+  file, dataUrl, mode, onMode, onPick,
+}: {
+  file: File | null;
+  dataUrl: string;
+  mode: "match" | "inspire" | "edit";
+  onMode: (m: "match" | "inspire" | "edit") => void;
+  onPick: (f: File | null) => void;
+}) {
+  return (
+    <Card>
+      <CardHeader className="py-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Upload className="size-4" /> Reference image (optional)
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-3 md:grid-cols-[180px_1fr]">
+        <div className="space-y-2">
+          {dataUrl ? (
+            <div className="relative">
+              <img src={dataUrl} alt="Reference" className="w-full rounded-md border" />
+              <Button
+                size="icon" variant="secondary"
+                className="absolute top-1 right-1 size-6"
+                onClick={() => onPick(null)}
+              ><X className="size-3" /></Button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed rounded-md cursor-pointer text-xs text-muted-foreground hover:bg-muted/50">
+              <Upload className="size-5 mb-1" />
+              <span>Upload image</span>
+              <span className="text-[10px]">PNG/JPG ≤ 8 MB</span>
+              <input
+                type="file" accept="image/*" className="hidden"
+                onChange={(e) => onPick(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">How should the AI use this image?</Label>
+          <RadioGroup value={mode} onValueChange={(v) => onMode(v as any)} className="grid gap-2" disabled={!dataUrl}>
+            <label className={`flex items-start gap-2 p-2 rounded border cursor-pointer ${mode === "match" ? "border-primary bg-primary/5" : ""}`}>
+              <RadioGroupItem value="match" />
+              <div>
+                <div className="text-sm font-medium">Match theme</div>
+                <div className="text-xs text-muted-foreground">Generate a brand-new poster from the Brief, using this image only as a style / colour / typography reference.</div>
+              </div>
+            </label>
+            <label className={`flex items-start gap-2 p-2 rounded border cursor-pointer ${mode === "inspire" ? "border-primary bg-primary/5" : ""}`}>
+              <RadioGroupItem value="inspire" />
+              <div>
+                <div className="text-sm font-medium">Inspire layout</div>
+                <div className="text-xs text-muted-foreground">Keep this image's composition and colour story, but replace all text with the Brief content.</div>
+              </div>
+            </label>
+            <label className={`flex items-start gap-2 p-2 rounded border cursor-pointer ${mode === "edit" ? "border-primary bg-primary/5" : ""}`}>
+              <RadioGroupItem value="edit" />
+              <div>
+                <div className="text-sm font-medium">Edit this image</div>
+                <div className="text-xs text-muted-foreground">Modify the uploaded image directly (change dates, swap campus, restyle, translate, add logo). Uses "Extra instructions" from the Brief.</div>
+              </div>
+            </label>
+          </RadioGroup>
+          {file && <p className="text-[11px] text-muted-foreground">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
