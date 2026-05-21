@@ -14,6 +14,8 @@ export interface PosterBrief {
   custom_instructions: string;
   use_brand: boolean;
   model?: string;
+  reference_image_data_url?: string;
+  reference_mode?: "match" | "inspire" | "edit";
 }
 
 export interface CopyPack {
@@ -35,8 +37,18 @@ export function usePromoStudio() {
   async function generatePoster(brief: PosterBrief) {
     setLoading(true); setError(null);
     try {
+      // Route to edit-image when the user wants direct edits on the reference
+      if (brief.reference_mode === "edit" && brief.reference_image_data_url) {
+        const instruction = brief.custom_instructions?.trim()
+          || `Update the attached flyer. Institution: ${brief.institution_name}. Country: ${brief.country}. Intake: ${brief.intake}. Highlights: ${brief.highlights}. Keep the existing layout and theme.`;
+        const out = await editImageInternal(brief.reference_image_data_url, instruction);
+        return { generation_id: out.generation_id, image_paths: [out.image_path], errors: [] };
+      }
       const { data, error } = await supabase.functions.invoke("dsh-ai-generate-poster", { body: brief });
-      if (error) throw error;
+      if (error) {
+        const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
+        throw new Error(ctxMsg || error.message || "Generation failed");
+      }
       if (!data?.ok) throw new Error(data?.error || data?.errors?.join("; ") || "Generation failed");
       return data as { generation_id: string; image_paths: string[]; errors: string[] };
     } catch (e: any) {
@@ -48,23 +60,57 @@ export function usePromoStudio() {
     setLoading(true); setError(null);
     try {
       const { data, error } = await supabase.functions.invoke("dsh-ai-generate-copy", { body: brief });
-      if (error) throw error;
+      if (error) {
+        const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
+        throw new Error(ctxMsg || error.message || "Copy generation failed");
+      }
       return data as { generation_id: string; pack: CopyPack };
     } catch (e: any) {
       setError(e?.message ?? "Failed"); throw e;
     } finally { setLoading(false); }
   }
 
+  async function editImageInternal(image_data_url: string, instruction: string) {
+    const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", { body: { image_data_url, instruction } });
+    if (error) {
+      const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
+      throw new Error(ctxMsg || error.message || "Edit failed");
+    }
+    if (!data?.ok) throw new Error(data?.error || "Edit failed");
+    return data as { generation_id: string; image_path: string };
+  }
   async function editImage(image_data_url: string, instruction: string) {
     setLoading(true); setError(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", { body: { image_data_url, instruction } });
-      if (error) throw error;
-      if (!data?.ok) throw new Error(data?.error || "Edit failed");
-      return data as { generation_id: string; image_path: string };
-    } catch (e: any) {
-      setError(e?.message ?? "Failed"); throw e;
-    } finally { setLoading(false); }
+    try { return await editImageInternal(image_data_url, instruction); }
+    catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
+    finally { setLoading(false); }
+  }
+
+  // Read an image File into a (resized) clean data URL.
+  async function fileToDataUrl(file: File, maxEdge = 1536): Promise<string> {
+    const raw: string = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result as string);
+      r.onerror = () => rej(r.error);
+      r.readAsDataURL(file);
+    });
+    // Resize via canvas to keep payload small
+    return await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return resolve(raw);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/png"));
+      };
+      img.onerror = () => resolve(raw);
+      img.src = raw;
+    });
   }
 
   async function getSignedUrl(path: string) {
@@ -108,5 +154,5 @@ export function usePromoStudio() {
     if (error) throw error;
   }
 
-  return { loading, error, generatePoster, generateCopy, editImage, getSignedUrl, saveToHub };
+  return { loading, error, generatePoster, generateCopy, editImage, getSignedUrl, saveToHub, fileToDataUrl };
 }
