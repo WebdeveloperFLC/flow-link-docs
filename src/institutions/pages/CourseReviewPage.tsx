@@ -44,7 +44,8 @@ export default function CourseReviewPage() {
     let q = supabase.from("upi_courses_staging").select("*").order("extracted_at", { ascending: false }).limit(500);
     if (statusFilter !== "all") q = q.eq("review_status", statusFilter);
     if (instFilter !== "all") q = q.eq("institution_id", instFilter);
-    if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
+    if (levelFilter === "unclassified") q = q.is("program_level_id", null);
+    else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
     const { data } = await q;
     setRows((data ?? []) as Row[]);
     setSelected(new Set());
@@ -172,6 +173,7 @@ export default function CourseReviewPage() {
               <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All levels</SelectItem>
+                <SelectItem value="unclassified">Unclassified</SelectItem>
                 {levels.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
               </SelectContent>
             </Select>
