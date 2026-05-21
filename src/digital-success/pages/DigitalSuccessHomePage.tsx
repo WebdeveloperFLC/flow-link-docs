@@ -10,6 +10,7 @@ import { CONTENT_TYPES, type HubTab } from "../lib/dshTypes";
 import { MediaListTable } from "../components/MediaListTable";
 import { MediaUploadDialog } from "../components/MediaUploadDialog";
 import { NotifyBranchesDialog } from "../components/NotifyBranchesDialog";
+import { GoogleReviewsPanel } from "../components/GoogleReviewsPanel";
 import type { DshMedia } from "../lib/dshTypes";
 
 const TABS: { value: HubTab; label: string }[] = [
@@ -100,7 +101,11 @@ export default function DigitalSuccessHomePage() {
           </TabsList>
         </Tabs>
 
-        <MediaListTable rows={rows} loading={isLoading} onNotify={setNotifyTarget} />
+        {tab === "google_reviews" ? (
+          <GoogleReviewsPanel rows={rows} loading={isLoading} />
+        ) : (
+          <MediaListTable rows={rows} loading={isLoading} onNotify={setNotifyTarget} />
+        )}
         <NotifyBranchesDialog
           media={notifyTarget}
           open={!!notifyTarget}

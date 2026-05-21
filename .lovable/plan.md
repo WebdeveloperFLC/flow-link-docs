@@ -1,125 +1,58 @@
-## Digital Success Hub — Phase 1 (Final, merged)
+## Why Google Reviews tab is empty
 
-A CRM module to search clients, link OneDrive-first promotional media, organize material by country / institution / branch / **service category**, surface **Google Reviews**, and notify branches when content is published.
+The earlier seed skipped Google Reviews because the validation trigger requires real `client_id` + `branch_id` (FK-enforced) and you asked not to link to existing modules. Net effect: zero rows with `is_google_review = true`, so the tab shows nothing.
 
----
+Also, the current schema does not track **which counselor / team member** got the review — only `uploaded_by` (the person who saved the record), which is not the same thing. Without that, monthly per-counselor leaderboards are not possible.
 
-### 1. Content scope (new required field)
+## What to add
 
-Every media row must declare `content_scope` (enum, required):
+### 1. Schema change (one small migration)
 
-- `common` — All / general use
-- `country` — country-specific (requires `country_name`)
-- `institution` — institution-specific (requires `institution_id`)
-- `service_category` — service-specific (requires `service_master_key`)
+Add to `dsh_media`:
 
-Drives the tab the item appears under and is validated server-side via trigger.
+- `credited_user_id uuid references auth.users(id)` — the counselor/team member credited for the review
+- `review_received_at date` — when the client posted the review (used for monthly grouping; defaults to created_at::date)
 
-### 2. Service category (reuse, no duplicate master)
+Index: `(is_google_review, review_received_at, credited_user_id, branch_id)`.
 
-Reuse the existing `public.service_catalogue` table (already holds Student Visa, PR, Visitor Visa, Work Permit, etc. — grouped by `master_key` / `sub_category`).
+Validation trigger update: when `is_google_review = true`, require `credited_user_id` and `review_received_at` in addition to existing client/country/branch/service rules.
 
-- `dsh_media.service_master_key text` — references `service_catalogue.master_key`
-- `dsh_media.service_sub_category text null` — optional finer bucket
-- UI dropdown loads distinct `(master_key, sub_category, service_name)` from `service_catalogue` where `is_active = true`, grouped by `master_key`.
-- No new master table. The existing free-text `clients.application_type` is **not** used as the dropdown source (too noisy).
+### 2. Seed Google Reviews mock data
 
-### 3. Google Reviews (no new module — review subtype)
+Insert ~8 rows into `dsh_media` with `is_google_review = true`, using **real** branch + client + counselor IDs already in the DB (this is the only way to satisfy the FK + validation trigger). Spread across the last 3 months so the monthly view has something to show.
 
-Built on existing `content_type = 'review'`. New optional fields on `dsh_media`:
+Fields per row: title, `google_review_url`, `google_review_text`, `google_review_rating` (4–5), `client_id`, `branch_id`, `country_name`, `service_master_key`, `credited_user_id`, `review_received_at`, optional `google_review_screenshot_path` placeholder.
 
-- `is_google_review boolean default false`
-- `google_review_url text null`
-- `google_review_text text null` (pasted snippet, searchable)
-- `google_review_rating smallint null` (1–5)
-- `google_review_screenshot_path text null` (small image upload, ≤10 MB)
-- `client_link_url text null` (optional pointer to client profile, e.g. `/clients/<id>`)
+### 3. UI — Add content dialog
 
-Selecting "Google Review" in the form auto-sets `content_type='review'`, `is_google_review=true`, and forces `client_id`, `country_name`, `branch_id`, `service_master_key` as required.
+In `MediaUploadDialog.tsx`, when the "Google Review" toggle is on, add:
 
-### 4. Dedicated content search bar
+- **Credited counselor / team member** — required Select populated from team members (reuse existing profiles query)
+- **Review received on** — required date input
+- **Screenshot upload** — optional image picker that uploads to the `dsh-media` storage bucket and stores the path in `google_review_screenshot_path` (≤10 MB, image/* only). Reuses the existing upload code path.
 
-Single search input on `/digital-success` that matches across:
+### 4. UI — Google Reviews tab enhancements
 
-- `title`, `description`, `campaign_name`, `content_type`
-- `country_name`, institution name (joined), branch name (joined)
-- `service_master_key` / `service_sub_category` / resolved `service_name`
-- `google_review_text`
+In `DigitalSuccessHomePage.tsx` Google Reviews tab, add a small monthly tracker panel above the table:
 
-Implementation: generated tsvector column `search_doc` on `dsh_media` populated by trigger from the above fields (institution/branch/service names resolved at write time). GIN index on `search_doc`. Filter chips (scope, country, institution, branch, service, content type, status) combine with the search box (AND).
+- Month picker (defaults to current month)
+- Two compact tables side by side:
+  - **By counselor**: name, review count, average rating
+  - **By branch**: branch name, review count, average rating
+- Aggregations done client-side from the same `useDshMedia` result filtered by `review_received_at` month, so no extra endpoint needed.
 
-### 5. Tabs / sections on the hub
+Existing table already shows rating, review text, link and screenshot link — keep as is, just add a "Counselor" column and a "Received" date column.
 
-`/digital-success` (single page, tabs):
+### 5. Out of scope (Phase 1)
 
-1. **All Content** — default
-2. **Common** — `content_scope='common'`
-3. **By Country** — grouped/filterable by `country_name`
-4. **By Institution** — grouped/filterable by `institution_id`
-5. **By Service Category** — grouped by `service_master_key`
-6. **Google Reviews** — `is_google_review=true`
-7. **Front Desk** — `is_front_desk=true`, ordered by `front_desk_priority`
+- No analytics dashboards beyond the simple monthly counts
+- No automated review-fetch from Google
+- No notifications/reminders
+- No exports (can add later)
 
-Each tab inherits the global search bar + filter chips.
+## Technical notes
 
----
-
-### Database — `dsh_media` (full Phase 1 column set)
-
-Identity & classification
-- `id`, `title`, `description`, `campaign_name`
-- `content_type` enum, `content_scope` enum (NEW, required)
-- `content_owner_department` enum, `visa_category` enum
-- `service_master_key`, `service_sub_category` (NEW)
-
-Source / storage (OneDrive-first, 10 MB cap on uploads, no video uploads)
-- `source_type` (`upload`|`link`), `upload_source`, `link_type`
-- `external_url`, `storage_path`, `file_name`, `file_size`, `mime_type`
-- `preview_image_url`
-
-Scoping
-- `client_id`, `institution_id`, `branch_id`, `department_id`, `country_name`
-- `visible_to_all_branches boolean default false`
-
-Display & lifecycle
-- `is_pinned`, `sort_order`, `is_front_desk`, `front_desk_priority`
-- `display_until`, `status` (`active`|`archived`)
-
-Google Review extension (NEW)
-- `is_google_review`, `google_review_url`, `google_review_text`, `google_review_rating`, `google_review_screenshot_path`, `client_link_url`
-
-Search & audit
-- `search_doc tsvector` (generated by trigger)
-- `last_notified_at`, `notify_count`
-- `uploaded_by`, `created_at`, `updated_at`
-
-Validation trigger enforces required fields per `content_scope` and per `is_google_review`.
-
-Plus tables: `dsh_branch_notifications`, `dsh_branch_contacts` (unchanged).
-
-### Frontend additions to existing plan
-
-```
-src/digital-success/
-  components/
-    ContentScopePicker.tsx          (NEW — radio: common/country/institution/service)
-    ServiceCategorySelect.tsx       (NEW — reads service_catalogue)
-    GoogleReviewFields.tsx          (NEW — conditional form section)
-    HubSearchBar.tsx                (NEW — global search input + chips)
-    HubTabs.tsx                     (NEW — All/Common/Country/Institution/Service/Reviews/Front Desk)
-  pages/
-    DigitalSuccessHomePage.tsx      (uses HubTabs + HubSearchBar)
-  hooks/useDshMedia.ts              (search via tsvector + filter chips)
-```
-
-`MediaUploadDialog.tsx` extended with: scope picker (required), service selector (when scope=service or always optional), Google Review toggle that swaps in `GoogleReviewFields`.
-
-### Out of scope (unchanged)
-
-Analytics, AI, OCR, social auto-post, screen auto-sync, free-form tags, hard deletes from UI.
-
-### Confirmations needed
-
-1. Service dropdown source = `service_catalogue` (master_key + sub_category). OK?
-2. Google Review screenshot allowed up to 10 MB image only (PNG/JPG). OK?
-3. Keep the previously-agreed defaults: OneDrive-first, no video uploads, archive over delete, controlled vocabularies only.
+- Migration is additive (nullable columns + index); existing rows are unaffected.
+- Validation trigger update is gated on `is_google_review = true` so non-review rows are not impacted.
+- Screenshot uses the existing private `dsh-media` bucket; preview is shown via signed URL on demand (already in `CopyLinkButton`/preview logic — extend with a small "View screenshot" link).
+- The monthly leaderboard query uses `review_received_at` rather than `created_at` so back-dated entries are counted in the correct month.

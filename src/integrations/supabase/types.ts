@@ -5252,6 +5252,7 @@ export type Database = {
           content_type: Database["public"]["Enums"]["dsh_content_type"]
           country_name: string | null
           created_at: string
+          credited_user_id: string | null
           department_id: string | null
           description: string | null
           display_until: string | null
@@ -5273,6 +5274,7 @@ export type Database = {
           mime_type: string | null
           notify_count: number
           preview_image_url: string | null
+          review_received_at: string | null
           search_doc: unknown
           service_master_key: string | null
           service_sub_category: string | null
@@ -5299,6 +5301,7 @@ export type Database = {
           content_type: Database["public"]["Enums"]["dsh_content_type"]
           country_name?: string | null
           created_at?: string
+          credited_user_id?: string | null
           department_id?: string | null
           description?: string | null
           display_until?: string | null
@@ -5320,6 +5323,7 @@ export type Database = {
           mime_type?: string | null
           notify_count?: number
           preview_image_url?: string | null
+          review_received_at?: string | null
           search_doc?: unknown
           service_master_key?: string | null
           service_sub_category?: string | null
@@ -5346,6 +5350,7 @@ export type Database = {
           content_type?: Database["public"]["Enums"]["dsh_content_type"]
           country_name?: string | null
           created_at?: string
+          credited_user_id?: string | null
           department_id?: string | null
           description?: string | null
           display_until?: string | null
@@ -5367,6 +5372,7 @@ export type Database = {
           mime_type?: string | null
           notify_count?: number
           preview_image_url?: string | null
+          review_received_at?: string | null
           search_doc?: unknown
           service_master_key?: string | null
           service_sub_category?: string | null
