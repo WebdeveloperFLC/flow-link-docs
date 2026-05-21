@@ -31,7 +31,7 @@ export default function CourseReviewPage() {
   const initialInst = searchParams.get("institutionId") ?? "all";
   const initialStatus = searchParams.get("status") ?? "pending_review";
   const [rows, setRows] = useState<Row[]>([]);
-  const [institutions, setInstitutions] = useState<{ id: string; name: string }[]>([]);
+  const [institutions, setInstitutions] = useState<{ id: string; name: string; country_name: string | null }[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [instFilter, setInstFilter] = useState<string>(initialInst);
@@ -48,29 +48,41 @@ export default function CourseReviewPage() {
     if (instFilter !== "all") q = q.eq("institution_id", instFilter);
     if (levelFilter === "unclassified") q = q.is("program_level_id", null);
     else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
-    if (countryFilter === "unspecified") q = q.is("country_name", null);
-    else if (countryFilter !== "all") q = q.eq("country_name", countryFilter);
+    if (countryFilter !== "all") {
+      const matchingIds =
+        countryFilter === "unspecified"
+          ? institutions.filter((i) => !i.country_name).map((i) => i.id)
+          : institutions.filter((i) => i.country_name === countryFilter).map((i) => i.id);
+      if (matchingIds.length === 0) {
+        setRows([]); setSelected(new Set()); return;
+      }
+      q = q.in("institution_id", matchingIds);
+    }
     const { data } = await q;
     setRows((data ?? []) as Row[]);
     setSelected(new Set());
   };
   const loadAux = async () => {
-    const [i, l, c] = await Promise.all([
-      supabase.from("upi_institutions").select("id,name").order("name"),
+    const [i, l] = await Promise.all([
+      supabase.from("upi_institutions").select("id,name,country_name").order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
-      supabase.from("upi_courses_staging").select("country_name").not("country_name", "is", null).limit(1000),
     ]);
-    setInstitutions((i.data ?? []) as any);
+    const insts = ((i.data ?? []) as { id: string; name: string; country_name: string | null }[]);
+    setInstitutions(insts);
     setLevels((l.data ?? []) as any);
-    const uniq = Array.from(new Set(((c.data ?? []) as { country_name: string }[]).map((r) => r.country_name).filter(Boolean))).sort();
+    const uniq = Array.from(new Set(insts.map((r) => r.country_name).filter(Boolean) as string[])).sort();
     setCountries(uniq);
   };
   useEffect(() => { loadAux(); }, []);
-  useEffect(() => { load(); }, [statusFilter, instFilter, levelFilter, countryFilter]);
+  useEffect(() => { load(); }, [statusFilter, instFilter, levelFilter, countryFilter, institutions]);
 
   const instName = useMemo(() => {
     const m = new Map(institutions.map((i) => [i.id, i.name]));
     return (id: string | null) => (id ? m.get(id) ?? "—" : "—");
+  }, [institutions]);
+  const instCountry = useMemo(() => {
+    const m = new Map(institutions.map((i) => [i.id, i.country_name]));
+    return (id: string | null) => (id ? m.get(id) ?? null : null);
   }, [institutions]);
   const levelName = useMemo(() => {
     const m = new Map(levels.map((l) => [l.id, l.name]));
@@ -87,13 +99,13 @@ export default function CourseReviewPage() {
         r.review_status, r.ielts_overall, r.toefl_overall, r.pte_overall, r.duolingo_overall,
         Array.isArray(r.intake_months) ? r.intake_months.join(" ") : "",
         r.is_pgwp_eligible === true ? "yes pgwp eligible" : r.is_pgwp_eligible === false ? "no pgwp" : "",
-        instName(r.institution_id), levelName(r.program_level_id),
+        instName(r.institution_id), instCountry(r.institution_id), levelName(r.program_level_id),
       ];
       try { parts.push(JSON.stringify(r.metadata ?? {})); } catch {}
       const hay = parts.filter((v) => v !== null && v !== undefined && v !== "").join(" ").toLowerCase();
       return tokens.every((t) => hay.includes(t));
     });
-  }, [rows, searchText, instName, levelName]);
+  }, [rows, searchText, instName, instCountry, levelName]);
 
   const setStatus = async (ids: string[], status: string) => {
     if (!ids.length) return;
@@ -225,6 +237,7 @@ export default function CourseReviewPage() {
                   <th className="p-3 w-10"><Checkbox checked={selected.size > 0 && selected.size === visibleRows.length} onCheckedChange={toggleAll} /></th>
                   <th className="p-3">Course</th>
                   <th className="p-3">Institution</th>
+                  <th className="p-3">Country</th>
                   <th className="p-3">Level</th>
                   <th className="p-3">Tuition</th>
                   <th className="p-3">Intakes</th>
@@ -237,7 +250,7 @@ export default function CourseReviewPage() {
               </thead>
               <tbody>
                 {visibleRows.length === 0 && (
-                  <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">
+                  <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">
                     {searchText
                       ? `No programs match "${searchText}".`
                       : statusFilter === "published"
@@ -250,6 +263,7 @@ export default function CourseReviewPage() {
                     <td className="p-3"><Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} /></td>
                     <td className="p-3 font-medium">{r.course_title}</td>
                     <td className="p-3">{instName(r.institution_id)}</td>
+                    <td className="p-3">{instCountry(r.institution_id) ?? r.country_name ?? "—"}</td>
                     <td className="p-3">{levelName(r.program_level_id)}</td>
                     <td className="p-3 tabular-nums">{r.tuition_fee ? `${r.tuition_fee} ${r.currency ?? ""}` : "—"}</td>
                     <td className="p-3">{Array.isArray(r.intake_months) ? r.intake_months.join(", ") : "—"}</td>
