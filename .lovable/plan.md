@@ -1,29 +1,125 @@
-## Problem
+## Digital Success Hub — Phase 1 (Final, merged)
 
-On `/institutions/review`:
-1. The Country dropdown only shows **Canada** because it's populated from `upi_courses_staging.country_name`, which is null on most rows. Real country data lives on `upi_institutions.country_name` (Canada, UK, New Zealand, UAE, …).
-2. The Course table has no Country column, so reviewers can't see where each program is offered.
+A CRM module to search clients, link OneDrive-first promotional media, organize material by country / institution / branch / **service category**, surface **Google Reviews**, and notify branches when content is published.
 
-## Fix (frontend only — `src/institutions/pages/CourseReviewPage.tsx`)
+---
 
-1. **Source countries from institutions**
-   - In `loadAux`, replace the staging `country_name` query with `upi_institutions.select("id, name, country_name")`. Build `countries` from the distinct non-null `country_name` values across institutions (sorted).
-   - Extend the existing institutions state shape to keep `country_name` per institution, and build an `instCountry(id)` lookup alongside `instName(id)`.
+### 1. Content scope (new required field)
 
-2. **Country filter now matches by institution**
-   - In `load()`, replace the staging `country_name` filter with an `institution_id IN (...)` filter where the IDs are institutions whose `country_name` matches the selected country.
-   - Keep `"all"` (no filter) and `"unspecified"` (institutions with null country_name, or rows whose institution has no country). Selected list is computed client-side from the already-loaded institutions, so no extra round-trip.
+Every media row must declare `content_scope` (enum, required):
 
-3. **Add a Country column to the table**
-   - New `<th>Country</th>` between Institution and Level.
-   - Row cell: `instCountry(r.institution_id) ?? r.country_name ?? "—"` (institution wins; fall back to staging value if institution lookup is missing).
-   - Update the empty-state `colSpan` from 11 to 12.
+- `common` — All / general use
+- `country` — country-specific (requires `country_name`)
+- `institution` — institution-specific (requires `institution_id`)
+- `service_category` — service-specific (requires `service_master_key`)
 
-4. **Search haystack**
-   - Include `instCountry(r.institution_id)` in the per-row haystack so the search box matches on country too.
+Drives the tab the item appears under and is validated server-side via trigger.
 
-## Out of scope
+### 2. Service category (reuse, no duplicate master)
 
-- No backend, edge function, or schema changes. The "United Kingddom" typo in one institution row is data, not a UI bug — separate cleanup.
-- No change to how the extractor writes `country_name` onto staging rows.
-- No change to publishing, Edit sheet, or other filters.
+Reuse the existing `public.service_catalogue` table (already holds Student Visa, PR, Visitor Visa, Work Permit, etc. — grouped by `master_key` / `sub_category`).
+
+- `dsh_media.service_master_key text` — references `service_catalogue.master_key`
+- `dsh_media.service_sub_category text null` — optional finer bucket
+- UI dropdown loads distinct `(master_key, sub_category, service_name)` from `service_catalogue` where `is_active = true`, grouped by `master_key`.
+- No new master table. The existing free-text `clients.application_type` is **not** used as the dropdown source (too noisy).
+
+### 3. Google Reviews (no new module — review subtype)
+
+Built on existing `content_type = 'review'`. New optional fields on `dsh_media`:
+
+- `is_google_review boolean default false`
+- `google_review_url text null`
+- `google_review_text text null` (pasted snippet, searchable)
+- `google_review_rating smallint null` (1–5)
+- `google_review_screenshot_path text null` (small image upload, ≤10 MB)
+- `client_link_url text null` (optional pointer to client profile, e.g. `/clients/<id>`)
+
+Selecting "Google Review" in the form auto-sets `content_type='review'`, `is_google_review=true`, and forces `client_id`, `country_name`, `branch_id`, `service_master_key` as required.
+
+### 4. Dedicated content search bar
+
+Single search input on `/digital-success` that matches across:
+
+- `title`, `description`, `campaign_name`, `content_type`
+- `country_name`, institution name (joined), branch name (joined)
+- `service_master_key` / `service_sub_category` / resolved `service_name`
+- `google_review_text`
+
+Implementation: generated tsvector column `search_doc` on `dsh_media` populated by trigger from the above fields (institution/branch/service names resolved at write time). GIN index on `search_doc`. Filter chips (scope, country, institution, branch, service, content type, status) combine with the search box (AND).
+
+### 5. Tabs / sections on the hub
+
+`/digital-success` (single page, tabs):
+
+1. **All Content** — default
+2. **Common** — `content_scope='common'`
+3. **By Country** — grouped/filterable by `country_name`
+4. **By Institution** — grouped/filterable by `institution_id`
+5. **By Service Category** — grouped by `service_master_key`
+6. **Google Reviews** — `is_google_review=true`
+7. **Front Desk** — `is_front_desk=true`, ordered by `front_desk_priority`
+
+Each tab inherits the global search bar + filter chips.
+
+---
+
+### Database — `dsh_media` (full Phase 1 column set)
+
+Identity & classification
+- `id`, `title`, `description`, `campaign_name`
+- `content_type` enum, `content_scope` enum (NEW, required)
+- `content_owner_department` enum, `visa_category` enum
+- `service_master_key`, `service_sub_category` (NEW)
+
+Source / storage (OneDrive-first, 10 MB cap on uploads, no video uploads)
+- `source_type` (`upload`|`link`), `upload_source`, `link_type`
+- `external_url`, `storage_path`, `file_name`, `file_size`, `mime_type`
+- `preview_image_url`
+
+Scoping
+- `client_id`, `institution_id`, `branch_id`, `department_id`, `country_name`
+- `visible_to_all_branches boolean default false`
+
+Display & lifecycle
+- `is_pinned`, `sort_order`, `is_front_desk`, `front_desk_priority`
+- `display_until`, `status` (`active`|`archived`)
+
+Google Review extension (NEW)
+- `is_google_review`, `google_review_url`, `google_review_text`, `google_review_rating`, `google_review_screenshot_path`, `client_link_url`
+
+Search & audit
+- `search_doc tsvector` (generated by trigger)
+- `last_notified_at`, `notify_count`
+- `uploaded_by`, `created_at`, `updated_at`
+
+Validation trigger enforces required fields per `content_scope` and per `is_google_review`.
+
+Plus tables: `dsh_branch_notifications`, `dsh_branch_contacts` (unchanged).
+
+### Frontend additions to existing plan
+
+```
+src/digital-success/
+  components/
+    ContentScopePicker.tsx          (NEW — radio: common/country/institution/service)
+    ServiceCategorySelect.tsx       (NEW — reads service_catalogue)
+    GoogleReviewFields.tsx          (NEW — conditional form section)
+    HubSearchBar.tsx                (NEW — global search input + chips)
+    HubTabs.tsx                     (NEW — All/Common/Country/Institution/Service/Reviews/Front Desk)
+  pages/
+    DigitalSuccessHomePage.tsx      (uses HubTabs + HubSearchBar)
+  hooks/useDshMedia.ts              (search via tsvector + filter chips)
+```
+
+`MediaUploadDialog.tsx` extended with: scope picker (required), service selector (when scope=service or always optional), Google Review toggle that swaps in `GoogleReviewFields`.
+
+### Out of scope (unchanged)
+
+Analytics, AI, OCR, social auto-post, screen auto-sync, free-form tags, hard deletes from UI.
+
+### Confirmations needed
+
+1. Service dropdown source = `service_catalogue` (master_key + sub_category). OK?
+2. Google Review screenshot allowed up to 10 MB image only (PNG/JPG). OK?
+3. Keep the previously-agreed defaults: OneDrive-first, no video uploads, archive over delete, controlled vocabularies only.
