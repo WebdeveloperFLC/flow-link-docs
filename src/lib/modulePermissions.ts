@@ -19,6 +19,7 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "reports", label: "Reports & Analytics", description: "Dashboards and reports (UI-gated)." },
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
   { key: "settings", label: "Settings", description: "Org settings, integrations, branding." },
+  { key: "digital_success_hub", label: "Digital Success Hub", description: "Promotional media, client links, branch notifications." },
 ];
 
 export type RoleKey =
