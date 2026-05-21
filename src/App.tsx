@@ -133,6 +133,7 @@ import AiSuggestionsPage from "./institutions/pages/AiSuggestionsPage";
 import { InstitutionsProtectedRoute } from "./institutions/components/InstitutionsProtectedRoute";
 import { CommissionsProtectedRoute } from "./institutions/components/CommissionsProtectedRoute";
 import CommissionsPage from "./pages/CommissionsPage";
+import AiHelpPage from "./ai-help/pages/AiHelpPage";
 
 const queryClient = new QueryClient();
 
@@ -198,6 +199,7 @@ const App = () => (
             <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
             <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
             <Route path="/digital-success" element={<ProtectedRoute><DigitalSuccessHomePage /></ProtectedRoute>} />
+            <Route path="/ai-help" element={<ProtectedRoute><AiHelpPage /></ProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/no-access" element={<AccountingProtectedRoute><AccountingNoAccessPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/access" element={<AccountingSectionRoute section="access_admin"><AccountingAccessAdminPage /></AccountingSectionRoute>} />
