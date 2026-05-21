@@ -105,6 +105,11 @@ Intake: ${intake || "—"}
 Key highlights (must appear as bullet points with icons): ${highlights || "—"}
 Tone: ${tone}. Language for all text on the poster: ${language}.
 ${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}
+
+LOGO RULES (strict):
+- ${logoRules.join("\n- ")}
+
+${contactBlock}
 ${refHintLines.length ? "\nReferences attached:\n- " + refHintLines.join("\n- ") : ""}${premiumDirective}
 Make sure all text is spelled correctly, legible, and the layout looks professional and print-ready. No watermarks. No placeholder lorem ipsum.`;
 
