@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale, ArrowLeftRight, ReceiptText, CreditCard, ShieldCheck, UserPlus, Snowflake, Flame } from "lucide-react";
+import { LayoutDashboard, Users, Workflow, ScrollText, LogOut, Shield, UserCog, Settings as SettingsIcon, Mail, Database, FileStack, Share2, GraduationCap, Phone, KeyRound, MessageSquare, Headphones, Tag, ClipboardCheck, BookOpen, Layers, ArrowDownCircle, ArrowUpCircle, ScanLine, CheckSquare, BarChart2, Receipt, ShieldAlert, GitMerge, PieChart, Sparkles, Truck, Briefcase, Building2, Landmark, Wallet, School, ListChecks, Lightbulb, Menu, X, Scale, ArrowLeftRight, ReceiptText, CreditCard, ShieldCheck, UserPlus, Snowflake, Flame, Megaphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -81,6 +81,10 @@ const commissionsNav: NavItem[] = [
   { to: "/commissions", icon: Receipt, label: "Commissions", end: true },
 ];
 
+const digitalSuccessNav: NavItem[] = [
+  { to: "/digital-success", icon: Megaphone, label: "Digital Success Hub", end: true },
+];
+
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin } = useAuth();
   const navigate = useNavigate();
@@ -89,6 +93,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { can: canAcct, isAdmin: isAcctAdmin } = useCan();
   const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { canView: canViewCommissions } = useModulePermission("commissions");
+  const { canView: canViewDsh } = useModulePermission("digital_success_hub");
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const sidebarMode = theme.sidebarMode;
@@ -211,6 +216,16 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               </div>
             )}
             {commissionsNav.map(renderNavLink)}
+          </>}
+
+          {(isAdmin || canViewDsh) && <>
+            <div className="border-t border-sidebar-border my-2" />
+            {!iconsOnly && (
+              <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
+                Marketing
+              </div>
+            )}
+            {digitalSuccessNav.map(renderNavLink)}
           </>}
         </nav>
 
