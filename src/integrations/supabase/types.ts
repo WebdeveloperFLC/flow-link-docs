@@ -5153,6 +5153,258 @@ export type Database = {
         }
         Relationships: []
       }
+      dsh_branch_contacts: {
+        Row: {
+          branch_id: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          label: string | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id: string
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsh_branch_contacts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dsh_branch_notifications: {
+        Row: {
+          branch_id: string | null
+          id: string
+          media_id: string
+          message_id: number | null
+          recipient_email: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+        }
+        Insert: {
+          branch_id?: string | null
+          id?: string
+          media_id: string
+          message_id?: number | null
+          recipient_email: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+        }
+        Update: {
+          branch_id?: string | null
+          id?: string
+          media_id?: string
+          message_id?: number | null
+          recipient_email?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsh_branch_notifications_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dsh_branch_notifications_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "dsh_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dsh_media: {
+        Row: {
+          branch_id: string | null
+          campaign_name: string | null
+          client_id: string | null
+          client_link_url: string | null
+          content_owner_department:
+            | Database["public"]["Enums"]["dsh_owner_department"]
+            | null
+          content_scope: Database["public"]["Enums"]["dsh_content_scope"]
+          content_type: Database["public"]["Enums"]["dsh_content_type"]
+          country_name: string | null
+          created_at: string
+          department_id: string | null
+          description: string | null
+          display_until: string | null
+          external_url: string | null
+          file_name: string | null
+          file_size: number | null
+          front_desk_priority: number | null
+          google_review_rating: number | null
+          google_review_screenshot_path: string | null
+          google_review_text: string | null
+          google_review_url: string | null
+          id: string
+          institution_id: string | null
+          is_front_desk: boolean
+          is_google_review: boolean
+          is_pinned: boolean
+          last_notified_at: string | null
+          link_type: Database["public"]["Enums"]["dsh_link_type"] | null
+          mime_type: string | null
+          notify_count: number
+          preview_image_url: string | null
+          search_doc: unknown
+          service_master_key: string | null
+          service_sub_category: string | null
+          sort_order: number
+          source_type: Database["public"]["Enums"]["dsh_source_type"]
+          status: Database["public"]["Enums"]["dsh_status"]
+          storage_path: string | null
+          title: string
+          updated_at: string
+          upload_source: Database["public"]["Enums"]["dsh_upload_source"]
+          uploaded_by: string | null
+          visa_category: string | null
+          visible_to_all_branches: boolean
+        }
+        Insert: {
+          branch_id?: string | null
+          campaign_name?: string | null
+          client_id?: string | null
+          client_link_url?: string | null
+          content_owner_department?:
+            | Database["public"]["Enums"]["dsh_owner_department"]
+            | null
+          content_scope: Database["public"]["Enums"]["dsh_content_scope"]
+          content_type: Database["public"]["Enums"]["dsh_content_type"]
+          country_name?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          display_until?: string | null
+          external_url?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          front_desk_priority?: number | null
+          google_review_rating?: number | null
+          google_review_screenshot_path?: string | null
+          google_review_text?: string | null
+          google_review_url?: string | null
+          id?: string
+          institution_id?: string | null
+          is_front_desk?: boolean
+          is_google_review?: boolean
+          is_pinned?: boolean
+          last_notified_at?: string | null
+          link_type?: Database["public"]["Enums"]["dsh_link_type"] | null
+          mime_type?: string | null
+          notify_count?: number
+          preview_image_url?: string | null
+          search_doc?: unknown
+          service_master_key?: string | null
+          service_sub_category?: string | null
+          sort_order?: number
+          source_type: Database["public"]["Enums"]["dsh_source_type"]
+          status?: Database["public"]["Enums"]["dsh_status"]
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          upload_source: Database["public"]["Enums"]["dsh_upload_source"]
+          uploaded_by?: string | null
+          visa_category?: string | null
+          visible_to_all_branches?: boolean
+        }
+        Update: {
+          branch_id?: string | null
+          campaign_name?: string | null
+          client_id?: string | null
+          client_link_url?: string | null
+          content_owner_department?:
+            | Database["public"]["Enums"]["dsh_owner_department"]
+            | null
+          content_scope?: Database["public"]["Enums"]["dsh_content_scope"]
+          content_type?: Database["public"]["Enums"]["dsh_content_type"]
+          country_name?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          display_until?: string | null
+          external_url?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          front_desk_priority?: number | null
+          google_review_rating?: number | null
+          google_review_screenshot_path?: string | null
+          google_review_text?: string | null
+          google_review_url?: string | null
+          id?: string
+          institution_id?: string | null
+          is_front_desk?: boolean
+          is_google_review?: boolean
+          is_pinned?: boolean
+          last_notified_at?: string | null
+          link_type?: Database["public"]["Enums"]["dsh_link_type"] | null
+          mime_type?: string | null
+          notify_count?: number
+          preview_image_url?: string | null
+          search_doc?: unknown
+          service_master_key?: string | null
+          service_sub_category?: string | null
+          sort_order?: number
+          source_type?: Database["public"]["Enums"]["dsh_source_type"]
+          status?: Database["public"]["Enums"]["dsh_status"]
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          upload_source?: Database["public"]["Enums"]["dsh_upload_source"]
+          uploaded_by?: string | null
+          visa_category?: string | null
+          visible_to_all_branches?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dsh_media_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dsh_media_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dsh_media_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_attachments: {
         Row: {
           created_at: string
@@ -10413,6 +10665,7 @@ export type Database = {
         Args: { _lead_ids: string[]; _rule_id: string }
         Returns: Json
       }
+      dsh_can: { Args: { _level: string; _uid: string }; Returns: boolean }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
@@ -10540,6 +10793,44 @@ export type Database = {
         | "busy"
         | "cancelled"
       client_permission: "view" | "edit" | "upload" | "full"
+      dsh_content_scope:
+        | "common"
+        | "country"
+        | "institution"
+        | "service_category"
+      dsh_content_type:
+        | "testimonial"
+        | "review"
+        | "visa_approval"
+        | "promo_video"
+        | "reel"
+        | "poster"
+        | "document"
+        | "social"
+        | "branch_promo"
+        | "institution_promo"
+        | "country_promo"
+        | "visa_category_promo"
+        | "other"
+      dsh_link_type:
+        | "onedrive_file"
+        | "onedrive_folder"
+        | "google_drive_file"
+        | "google_drive_folder"
+        | "download"
+        | "video"
+        | "shared_folder"
+        | "other"
+      dsh_owner_department:
+        | "marketing"
+        | "admissions"
+        | "visa_team"
+        | "pr_team"
+        | "ielts_team"
+        | "other"
+      dsh_source_type: "upload" | "link"
+      dsh_status: "active" | "archived"
+      dsh_upload_source: "upload" | "onedrive" | "google_drive" | "external_url"
       person_role:
         | "applicant"
         | "co_applicant"
@@ -10721,6 +11012,48 @@ export const Constants = {
         "cancelled",
       ],
       client_permission: ["view", "edit", "upload", "full"],
+      dsh_content_scope: [
+        "common",
+        "country",
+        "institution",
+        "service_category",
+      ],
+      dsh_content_type: [
+        "testimonial",
+        "review",
+        "visa_approval",
+        "promo_video",
+        "reel",
+        "poster",
+        "document",
+        "social",
+        "branch_promo",
+        "institution_promo",
+        "country_promo",
+        "visa_category_promo",
+        "other",
+      ],
+      dsh_link_type: [
+        "onedrive_file",
+        "onedrive_folder",
+        "google_drive_file",
+        "google_drive_folder",
+        "download",
+        "video",
+        "shared_folder",
+        "other",
+      ],
+      dsh_owner_department: [
+        "marketing",
+        "admissions",
+        "visa_team",
+        "pr_team",
+        "ielts_team",
+        "other",
+      ],
+      dsh_source_type: ["upload", "link"],
+      dsh_status: ["active", "archived"],
+      dsh_upload_source: ["upload", "onedrive", "google_drive", "external_url"],
       person_role: [
         "applicant",
         "co_applicant",
