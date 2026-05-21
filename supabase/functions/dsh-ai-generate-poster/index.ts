@@ -28,11 +28,18 @@ Deno.serve(async (req) => {
       institution_name, country, service, intake, highlights, tone = "energetic",
       language = "English", format = "portrait", variations = 1, custom_instructions = "",
       use_brand = true, model = "google/gemini-3-pro-image-preview",
+      reference_image_data_url = "", reference_mode = "match",
     } = body ?? {};
 
     const dims = format === "square" ? "1024x1024 square 1:1"
                : format === "story" ? "1080x1920 vertical story 9:16"
                : "1024x1536 portrait poster 2:3";
+
+    const referenceHint = reference_image_data_url
+      ? (reference_mode === "inspire"
+          ? "\nReference image attached: match its overall layout, color story, and typography vibe, but REPLACE all text and product specifics with the Brief above."
+          : "\nReference image attached: use it ONLY as a style/color/typography reference. Do not copy text or composition.")
+      : "";
 
     const prompt = `Design a ${dims} promotional flyer for a study-abroad consultancy.
 ${use_brand ? BRAND_DEFAULT : ""}
@@ -42,12 +49,19 @@ Service / category: ${service || "Study Abroad"}
 Intake: ${intake || "—"}
 Key highlights (must appear as bullet points with icons): ${highlights || "—"}
 Tone: ${tone}. Language for all text on the poster: ${language}.
-${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}
+${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}${referenceHint}
 Make sure all text is spelled correctly, legible, and the layout looks professional and print-ready. No watermarks. No placeholder lorem ipsum.`;
 
     const n = Math.max(1, Math.min(4, Number(variations) || 1));
     const image_paths: string[] = [];
     const errors: string[] = [];
+
+    const userContent: any = reference_image_data_url
+      ? [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: reference_image_data_url } },
+        ]
+      : prompt;
 
     for (let i = 0; i < n; i++) {
       const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -55,7 +69,7 @@ Make sure all text is spelled correctly, legible, and the layout looks professio
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           model,
-          messages: [{ role: "user", content: prompt }],
+          messages: [{ role: "user", content: userContent }],
           modalities: ["image", "text"],
         }),
       });
