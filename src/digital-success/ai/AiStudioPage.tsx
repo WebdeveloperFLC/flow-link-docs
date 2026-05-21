@@ -383,6 +383,59 @@ export default function AiStudioPage() {
 }
 
 function BriefForm({ brief, update, branches, serviceKeys, languages }: any) {
+  return _BriefFormImpl({ brief, update, branches, serviceKeys, languages });
+}
+
+function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh }: {
+  rows: RecentGeneration[];
+  urls: Record<string, string>;
+  onDownload: (url: string, filename: string) => void;
+  onSave: (path: string) => void;
+  onRefresh: () => void;
+}) {
+  if (!rows.length) return null;
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base flex items-center gap-2"><History className="size-4" /> Recent generations</CardTitle>
+        <Button size="sm" variant="ghost" onClick={onRefresh}>Refresh</Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {rows.map((r) => (
+          <div key={r.id} className="border-t pt-3 first:border-t-0 first:pt-0">
+            <div className="text-xs text-muted-foreground mb-2 flex flex-wrap gap-2">
+              <span>{new Date(r.created_at).toLocaleString()}</span>
+              <span>· {r.kind}</span>
+              {r.model && <span>· {r.model.split("/").pop()}</span>}
+              {r.brief?.institution_name && <span>· {r.brief.institution_name}</span>}
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {r.image_paths.map((p, i) => (
+                <div key={p} className="space-y-1">
+                  {urls[p] ? (
+                    <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                  ) : (
+                    <div className="aspect-square bg-muted rounded animate-pulse" />
+                  )}
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.png`)}>
+                      <Download className="size-3" />
+                    </Button>
+                    <Button size="sm" className="flex-1 h-7 text-xs px-2" onClick={() => onSave(p)}>
+                      <Save className="size-3" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
+function _BriefFormImpl({ brief, update, branches, serviceKeys, languages }: any) {
   return (
     <Card>
       <CardHeader><CardTitle>Brief</CardTitle></CardHeader>
