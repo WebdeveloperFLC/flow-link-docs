@@ -41,6 +41,7 @@ import Messages from "./pages/Messages";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import DigitalSuccessHomePage from "./digital-success/pages/DigitalSuccessHomePage";
 import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
 import PortalAuth from "./pages/portal/PortalAuth";
 import PortalDashboard from "./pages/portal/PortalDashboard";
@@ -196,6 +197,7 @@ const App = () => (
             <Route path="/institutions/suggestions" element={<InstitutionsProtectedRoute><AiSuggestionsPage /></InstitutionsProtectedRoute>} />
             <Route path="/institutions/:id" element={<InstitutionsProtectedRoute><InstitutionDetailPage /></InstitutionsProtectedRoute>} />
             <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
+            <Route path="/digital-success" element={<ProtectedRoute><DigitalSuccessHomePage /></ProtectedRoute>} />
             <Route path="/accounting" element={<AccountingProtectedRoute><AccountingOverviewPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/no-access" element={<AccountingProtectedRoute><AccountingNoAccessPage /></AccountingProtectedRoute>} />
             <Route path="/accounting/access" element={<AccountingSectionRoute section="access_admin"><AccountingAccessAdminPage /></AccountingSectionRoute>} />
