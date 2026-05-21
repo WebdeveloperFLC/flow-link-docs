@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import flcLogo from "@/assets/flc-logo.png";
 
-export type RefRole = "style" | "layout" | "subject" | "logo" | "edit_base";
+export type RefRole = "style" | "layout" | "subject" | "logo" | "institution_logo" | "edit_base";
 
 export interface RefImage {
   data_url: string;
@@ -40,6 +40,10 @@ export interface PosterBrief {
   model?: string;
   quality?: "standard" | "premium";
   references?: RefImage[];
+  contact_phone?: string;
+  contact_email?: string;
+  contact_website?: string;
+  cta?: string;
 }
 
 export interface RecentGeneration {
@@ -371,7 +375,8 @@ function buildEditInstruction(brief: PosterBrief, refs: RefImage[]): string {
   if (!refs.length) return base;
   const notes = refs.map((r, i) => {
     const n = i + 2; // first image is the edit base
-    if (r.role === "logo") return `Image #${n} is a LOGO — place it VERBATIM (do not redraw or recolor) in the top-right corner at about 12% of the poster width, preserving original glyphs and colors.`;
+    if (r.role === "logo") return `Image #${n} is the FUTURE LINK LOGO — place it VERBATIM (do not redraw, recolor, re-letter) in the TOP-LEFT corner at about 18% of poster width.`;
+    if (r.role === "institution_logo") return `Image #${n} is the INSTITUTION LOGO — place it VERBATIM (do not redraw, recolor, re-letter, add an "OFFICIAL LOGO" badge, or invent a crest) in the TOP-RIGHT corner at about 14% of poster width.`;
     if (r.role === "style") return `Image #${n} is a STYLE reference — match its palette/typography vibe.`;
     if (r.role === "layout") return `Image #${n} is a LAYOUT reference — mirror its composition.`;
     if (r.role === "subject") return `Image #${n} is a SUBJECT reference — feature this person/landmark.`;

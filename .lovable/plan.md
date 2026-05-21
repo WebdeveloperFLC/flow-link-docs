@@ -1,59 +1,52 @@
+## Problem
 
-## Issues to fix
+The generated posters keep showing:
+- **A made-up "University of Canada West" logo** (the model invents one because the prompt explicitly says "institution logo placeholder at top-right" — and FLC logo also gets placed top-right, so they collide).
+- **Fake contact details** like `+91-XXXXXXXXXX`, `info@futurelink.com`, `www.futurelink.com` — because the prompt never gives the model the real phone, email, or website, so it freelances placeholders.
 
-1. **Download hijacks the screen and wipes results.** `<a href={signedUrl} download>` doesn't actually force a download for cross-origin signed URLs — the browser navigates to the image instead, which (a) replaces the page, and (b) on back, React state (`images`) is gone so posters 1 and 2 vanish.
-2. **No way to recover generations.** Anything not explicitly "Saved to Hub" is lost on refresh, even though the backend already stores rows in `dsh_ai_generations` with `image_paths`.
-3. **Need a higher-quality mode** beyond the current default.
+## Fix
 
-## Changes
+### 1. Backend prompt (`supabase/functions/dsh-ai-generate-poster/index.ts`)
 
-### 1. Robust download (frontend only)
+**Logos — never hallucinate.**
+- Replace `BRAND_DEFAULT_NO_LOGO` placeholder text. When no logo refs are attached, instruct the model: *"Do NOT draw, invent, redraw or imagine ANY logo, wordmark, badge, monogram or graduation-cap icon for Future Link Consultants or for the institution. Leave logo areas empty."*
+- Differentiate two logo roles:
+  - `logo` (FLC brand logo) → top-LEFT, ~18% width, verbatim.
+  - `institution_logo` (university/college logo) → top-RIGHT, ~14% width, verbatim.
+- If `use_brand` is on but no FLC logo ref is attached, the prompt explicitly forbids drawing a Future Link wordmark.
+- If no `institution_logo` ref is attached, the prompt forbids drawing any university logo, wordmark, crest or "OFFICIAL LOGO" badge — even if the institution name is mentioned in the body text.
 
-Replace the anchor-based download with a programmatic blob download helper in `usePromoStudio.ts`:
+**Contact details — verbatim or omit.**
+- Accept new brief fields: `contact_phone`, `contact_email`, `contact_website`, `cta` (call-to-action line).
+- Build a `CONTACT BLOCK` instruction that:
+  - Lists ONLY the values the user provided, verbatim, in the footer.
+  - Explicitly says: *"Do NOT invent, modify, mask, or add any other phone numbers, emails, websites, or social handles. If a field is not listed here, omit it entirely — no placeholders like XXXXXXXXXX, no example.com, no lorem ipsum."*
+- If all three are empty and no CTA, omit the contact footer entirely (model instructed to leave bottom band clean / use a generic "Contact your Future Link counsellor" line).
 
-```ts
-async function downloadAsset(url: string, filename: string) {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  const obj = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = obj; a.download = filename; a.rel = "noopener";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(obj), 1000);
-}
-```
+### 2. `usePromoStudio.ts`
 
-Use it for every Download button (poster grid, edit tab, recent generations, library). Buttons stay as `<Button onClick={...}>` — no `<a>` navigation, no screen takeover, results panel stays mounted.
+- Extend `RefRole` union: add `"institution_logo"`.
+- Extend `PosterBrief` with `contact_phone?`, `contact_email?`, `contact_website?`, `cta?`.
+- Update `buildEditInstruction` so `institution_logo` refs map to top-right verbatim placement (mirrors the generate path).
 
-### 2. Persist results across reloads + Recent Generations panel
+### 3. `ReferenceTray.tsx`
 
-- On mount of `AiStudioPage`, hydrate `images` from `sessionStorage` (`dsh-ai-last-images`) so a stray navigation/refresh doesn't lose the last batch.
-- Write to `sessionStorage` whenever `images` updates.
-- Add a new **"Recent generations"** collapsible section at the bottom of the Poster tab, fed by a new helper `listRecentGenerations(limit=20)` that selects from `dsh_ai_generations` (kind='poster', current user, newest first). Each row renders thumbnails of all `image_paths` with **Download** and **Save to Hub** buttons. This is the "temp library" — anything generated is recoverable even if never explicitly saved.
-- No schema changes; `dsh_ai_generations` already records every successful generation.
+- Add `institution_logo` to `ROLE_LABEL` ("Institution logo (place verbatim, top-right)").
+- Add a third quick button: **"Add institution logo"** next to "Add logo" — routes through the same library picker, then forces the role to `institution_logo`.
 
-### 3. Premium quality tier
+### 4. `AiStudioPage.tsx` (BriefForm)
 
-Add a **Quality** selector next to Format/Variations: `Standard` (default) / `Premium`.
+- Add a small **Contact details** sub-section in `BriefForm` with four optional inputs: Phone, Email, Website, CTA. Persist them on the brief.
+- Sensible default for website (e.g. `www.futurelinkconsultants.com`) but phone/email stay blank by default to force the user to supply real ones — empty = omitted, never placeheld.
+- Plumb `pickFromLibrary("logo")` to also allow the new institution-logo role: when the user clicks "Add institution logo", pass that intent through and stamp `role: "institution_logo"` on the resulting ref.
 
-- `Standard` → `google/gemini-3.1-flash-image-preview` (fast, current quality).
-- `Premium` → `google/gemini-3-pro-image-preview` (slower, higher fidelity; already supported by Lovable AI Gateway).
-- Wire `quality` through `PosterBrief` → edge function `dsh-ai-generate-poster`, which maps it to `model` (overriding the current hardcoded default). Premium also appends a short fidelity directive to the prompt: *"Render at maximum detail, sharp typography, photoreal subject, no compression artifacts, print-ready."* and forces `variations` ≤ 2 to keep latency reasonable (with a toast notice if user picked more).
-- Same `quality` option exposed on the **Edit image** tab and forwarded to `dsh-ai-edit-image` (which already accepts arbitrary instructions; add an optional `model` field there too).
+### Out of scope
+- Per-institution logo auto-lookup from the institutions table (could be a follow-up — for now the user attaches it manually).
+- Auto-pulling contact info from a branch/settings profile (kept manual; defaults can be added in a later pass).
+- Background removal for institution logos.
 
-### 4. Optional one-click "Enhance" on each poster card
-
-Add an **Enhance ✨** button next to Download/Save on each generated poster. It calls `dsh-ai-edit-image` with the poster as the base image and a fixed instruction: *"Upscale and sharpen this poster. Preserve every text glyph, logo, layout, colors exactly. Improve photo realism of subjects, refine typography edges, remove compression artifacts."* The enhanced result replaces that card's image (old path stays in Recent Generations).
-
-## Files touched
-
-- `src/digital-success/ai/usePromoStudio.ts` — add `downloadAsset`, `listRecentGenerations`, `quality` field on `PosterBrief`, optional `model` on `editImage`.
-- `src/digital-success/ai/AiStudioPage.tsx` — Quality select, swap download anchors for `onClick` handler, sessionStorage hydration, Recent Generations panel, Enhance button.
-- `supabase/functions/dsh-ai-generate-poster/index.ts` — accept `quality`, map to model, append premium directive, soft cap variations.
-- `supabase/functions/dsh-ai-edit-image/index.ts` — accept optional `model` (default `google/gemini-3-pro-image-preview` for the Enhance flow).
-
-## Out of scope
-
-- A permanent gallery for non-saved generations beyond the current user's own history.
-- Server-side upscaling via a separate vendor (Real-ESRGAN, etc.) — Enhance reuses the existing image model.
-- Watermark removal / OCR text re-rendering.
+### Files to touch
+- `supabase/functions/dsh-ai-generate-poster/index.ts`
+- `src/digital-success/ai/usePromoStudio.ts`
+- `src/digital-success/ai/ReferenceTray.tsx`
+- `src/digital-success/ai/AiStudioPage.tsx`

@@ -14,7 +14,7 @@ export function BrandLibraryPanel({
   onClosePick,
 }: {
   onPick?: (asset: BrandAsset) => void;
-  pickingKind?: "logo" | "reference" | null;
+  pickingKind?: "logo" | "institution_logo" | "reference" | null;
   onClosePick?: () => void;
 }) {
   const studio = usePromoStudio();
@@ -73,7 +73,7 @@ export function BrandLibraryPanel({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue={pickingKind === "logo" ? "logos" : "refs"}>
+        <Tabs defaultValue={pickingKind === "logo" || pickingKind === "institution_logo" ? "logos" : "refs"}>
           <TabsList>
             <TabsTrigger value="logos">Logos ({logos.length})</TabsTrigger>
             <TabsTrigger value="refs">References ({refs.length})</TabsTrigger>
@@ -85,7 +85,7 @@ export function BrandLibraryPanel({
               assets={logos} urls={urls}
               onDelete={onDelete}
               onSetDefault={onSetDefault}
-              onPick={pickingKind === "logo" ? onPick : undefined}
+              onPick={(pickingKind === "logo" || pickingKind === "institution_logo") ? onPick : undefined}
               showDefaultBadge
             />
           </TabsContent>

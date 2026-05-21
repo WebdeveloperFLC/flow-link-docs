@@ -45,6 +45,10 @@ export default function AiStudioPage() {
     custom_instructions: "",
     use_brand: true,
     quality: "standard",
+    contact_phone: "",
+    contact_email: "",
+    contact_website: "www.futurelinkconsultants.com",
+    cta: "",
   });
 
   const [images, setImages] = useState<{ path: string; url: string }[]>(() => {
@@ -60,7 +64,7 @@ export default function AiStudioPage() {
 
   // Multi-reference state
   const [refs, setRefs] = useState<RefImage[]>([]);
-  const [pickingKind, setPickingKind] = useState<"logo" | "reference" | null>(null);
+  const [pickingKind, setPickingKind] = useState<"logo" | "institution_logo" | "reference" | null>(null);
   const [pickerResolve, setPickerResolve] = useState<((a: BrandAsset | null) => void) | null>(null);
 
   // Seed default Future Link logo and auto-attach when use_brand is on
@@ -98,7 +102,7 @@ export default function AiStudioPage() {
 
   useEffect(() => { refreshRecent(); /* eslint-disable-next-line */ }, []);
 
-  async function pickFromLibrary(kind: "logo" | "reference"): Promise<BrandAsset | null> {
+  async function pickFromLibrary(kind: "logo" | "institution_logo" | "reference"): Promise<BrandAsset | null> {
     setPickingKind(kind);
     return new Promise<BrandAsset | null>((resolve) => {
       setPickerResolve(() => resolve);
@@ -108,7 +112,9 @@ export default function AiStudioPage() {
   async function onLibraryPicked(asset: BrandAsset) {
     try {
       const dataUrl = await studio.brandAssetToDataUrl(asset);
-      const role = pickingKind === "logo" ? "logo" : "style";
+      const role = pickingKind === "logo" ? "logo"
+                  : pickingKind === "institution_logo" ? "institution_logo"
+                  : "style";
       setRefs((cur) => [...cur, { data_url: dataUrl, role, source: "library", asset_id: asset.id, name: asset.title }]);
       toast.success(`Added "${asset.title}"`);
     } catch (e: any) {
@@ -496,6 +502,28 @@ function _BriefFormImpl({ brief, update, branches, serviceKeys, languages }: any
           <Label>Extra instructions (optional)</Label>
           <Textarea rows={2} value={brief.custom_instructions} onChange={(e) => update({ custom_instructions: e.target.value })}
             placeholder="Anything specific about layout, colors, campus photos, deadlines, contact info to include…" />
+        </div>
+        <div className="rounded-md border p-3 space-y-2">
+          <Label className="text-xs uppercase tracking-wide text-muted-foreground">Contact details on the poster (verbatim — leave blank to omit)</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid gap-1">
+              <Label className="text-xs">Phone</Label>
+              <Input value={brief.contact_phone ?? ""} onChange={(e) => update({ contact_phone: e.target.value })} placeholder="e.g. +91 99982 24688" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Email</Label>
+              <Input value={brief.contact_email ?? ""} onChange={(e) => update({ contact_email: e.target.value })} placeholder="e.g. info@futurelinkconsultants.com" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Website</Label>
+              <Input value={brief.contact_website ?? ""} onChange={(e) => update({ contact_website: e.target.value })} placeholder="www.futurelinkconsultants.com" />
+            </div>
+            <div className="grid gap-1">
+              <Label className="text-xs">Call-to-action (optional)</Label>
+              <Input value={brief.cta ?? ""} onChange={(e) => update({ cta: e.target.value })} placeholder="e.g. APPLY NOW · SECURE YOUR SEAT" />
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Only the values you enter will appear. Blank fields are omitted — no placeholders like XXXXXXXXXX will be drawn.</p>
         </div>
       </CardContent>
     </Card>
