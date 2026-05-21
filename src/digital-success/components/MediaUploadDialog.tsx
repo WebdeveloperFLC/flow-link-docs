@@ -17,7 +17,7 @@ import {
   OWNER_DEPARTMENTS,
   UPLOAD_SOURCES,
 } from "../lib/dshTypes";
-import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
+import { useBranches, useServiceCatalogueOptions, useTeamMembers } from "../hooks/useDshMedia";
 
 const MAX_UPLOAD = 10 * 1024 * 1024;
 
@@ -56,9 +56,13 @@ export function MediaUploadDialog() {
   const [gReviewText, setGReviewText] = useState("");
   const [gReviewRating, setGReviewRating] = useState<string>("");
   const [clientId, setClientId] = useState("");
+  const [creditedUserId, setCreditedUserId] = useState<string>("");
+  const [reviewReceivedAt, setReviewReceivedAt] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
 
   const { data: services = [] } = useServiceCatalogueOptions();
   const { data: branches = [] } = useBranches();
+  const { data: team = [] } = useTeamMembers();
 
   const serviceMasterKeys = useMemo(() => {
     const seen = new Set<string>();
@@ -95,8 +99,14 @@ export function MediaUploadDialog() {
       }
 
       let google_review_screenshot_path: string | null = null;
-      // Optional screenshot for Google review (re-uses same bucket)
-      // (UX skipped here to keep Phase 1 simple; user can use upload mode for screenshot if needed.)
+      if (isGoogleReview && screenshotFile) {
+        if (!screenshotFile.type.startsWith("image/")) throw new Error("Screenshot must be an image");
+        if (screenshotFile.size > MAX_UPLOAD) throw new Error("Screenshot exceeds 10 MB");
+        const path = `reviews/${crypto.randomUUID()}-${screenshotFile.name.replace(/[^\w.\-]/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("dsh-media").upload(path, screenshotFile);
+        if (upErr) throw upErr;
+        google_review_screenshot_path = path;
+      }
 
       const { data: auth } = await supabase.auth.getUser();
 
@@ -128,6 +138,8 @@ export function MediaUploadDialog() {
         google_review_rating: isGoogleReview && gReviewRating ? Number(gReviewRating) : null,
         google_review_screenshot_path,
         client_id: clientId.trim() || null,
+        credited_user_id: isGoogleReview ? (creditedUserId || null) : null,
+        review_received_at: isGoogleReview ? (reviewReceivedAt || null) : null,
         uploaded_by: auth?.user?.id ?? null,
       };
 
@@ -141,6 +153,7 @@ export function MediaUploadDialog() {
       // reset minimal
       setTitle(""); setDescription(""); setCampaign(""); setExternalUrl(""); setFile(null);
       setGReviewUrl(""); setGReviewText(""); setGReviewRating(""); setClientId("");
+      setCreditedUserId(""); setScreenshotFile(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Failed to save"),
   });
@@ -293,6 +306,23 @@ export function MediaUploadDialog() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="grid gap-2">
+                    <Label>Credited counselor / team member *</Label>
+                    <Select value={creditedUserId} onValueChange={setCreditedUserId}>
+                      <SelectTrigger><SelectValue placeholder="Select team member" /></SelectTrigger>
+                      <SelectContent>
+                        {team.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.full_name ?? u.email ?? u.id.slice(0, 8)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label>Review received on *</Label>
+                    <Input type="date" value={reviewReceivedAt} onChange={(e) => setReviewReceivedAt(e.target.value)} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-2">
                     <Label>Google review URL</Label>
                     <Input value={gReviewUrl} onChange={(e) => setGReviewUrl(e.target.value)} />
                   </div>
@@ -304,6 +334,10 @@ export function MediaUploadDialog() {
                 <div className="grid gap-2">
                   <Label>Review text</Label>
                   <Textarea value={gReviewText} onChange={(e) => setGReviewText(e.target.value)} rows={3} />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Screenshot (optional, image ≤10 MB)</Label>
+                  <Input type="file" accept="image/*" onChange={(e) => setScreenshotFile(e.target.files?.[0] ?? null)} />
                 </div>
               </>
             )}
