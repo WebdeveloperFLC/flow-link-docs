@@ -36,6 +36,8 @@ export default function CourseReviewPage() {
   const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
   const [instFilter, setInstFilter] = useState<string>(initialInst);
   const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [countries, setCountries] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Row | null>(null);
@@ -46,28 +48,25 @@ export default function CourseReviewPage() {
     if (instFilter !== "all") q = q.eq("institution_id", instFilter);
     if (levelFilter === "unclassified") q = q.is("program_level_id", null);
     else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
+    if (countryFilter === "unspecified") q = q.is("country_name", null);
+    else if (countryFilter !== "all") q = q.eq("country_name", countryFilter);
     const { data } = await q;
     setRows((data ?? []) as Row[]);
     setSelected(new Set());
   };
   const loadAux = async () => {
-    const [i, l] = await Promise.all([
+    const [i, l, c] = await Promise.all([
       supabase.from("upi_institutions").select("id,name").order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
+      supabase.from("upi_courses_staging").select("country_name").not("country_name", "is", null).limit(1000),
     ]);
     setInstitutions((i.data ?? []) as any);
     setLevels((l.data ?? []) as any);
+    const uniq = Array.from(new Set(((c.data ?? []) as { country_name: string }[]).map((r) => r.country_name).filter(Boolean))).sort();
+    setCountries(uniq);
   };
   useEffect(() => { loadAux(); }, []);
-  useEffect(() => { load(); }, [statusFilter, instFilter, levelFilter]);
-
-  const visibleRows = useMemo(() => {
-    const q = searchText.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter((r) => {
-      try { return JSON.stringify(r).toLowerCase().includes(q); } catch { return true; }
-    });
-  }, [rows, searchText]);
+  useEffect(() => { load(); }, [statusFilter, instFilter, levelFilter, countryFilter]);
 
   const instName = useMemo(() => {
     const m = new Map(institutions.map((i) => [i.id, i.name]));
@@ -77,6 +76,24 @@ export default function CourseReviewPage() {
     const m = new Map(levels.map((l) => [l.id, l.name]));
     return (id: string | null) => (id ? m.get(id) ?? "—" : "—");
   }, [levels]);
+
+  const visibleRows = useMemo(() => {
+    const tokens = searchText.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!tokens.length) return rows;
+    return rows.filter((r) => {
+      const parts: (string | number | null | undefined)[] = [
+        r.course_title, r.course_description, r.campus_name, r.city, r.state_province,
+        r.country_name, r.currency, r.gpa_requirement, r.source_url, r.source_identifier,
+        r.review_status, r.ielts_overall, r.toefl_overall, r.pte_overall, r.duolingo_overall,
+        Array.isArray(r.intake_months) ? r.intake_months.join(" ") : "",
+        r.is_pgwp_eligible === true ? "yes pgwp eligible" : r.is_pgwp_eligible === false ? "no pgwp" : "",
+        instName(r.institution_id), levelName(r.program_level_id),
+      ];
+      try { parts.push(JSON.stringify(r.metadata ?? {})); } catch {}
+      const hay = parts.filter((v) => v !== null && v !== undefined && v !== "").join(" ").toLowerCase();
+      return tokens.every((t) => hay.includes(t));
+    });
+  }, [rows, searchText, instName, levelName]);
 
   const setStatus = async (ids: string[], status: string) => {
     if (!ids.length) return;
@@ -178,6 +195,17 @@ export default function CourseReviewPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Country</Label>
+            <Select value={countryFilter} onValueChange={setCountryFilter}>
+              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All countries</SelectItem>
+                <SelectItem value="unspecified">Unspecified</SelectItem>
+                {countries.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="flex-1" />
           {selected.size > 0 && (
             <div className="flex gap-2">
@@ -214,7 +242,7 @@ export default function CourseReviewPage() {
                       ? `No programs match "${searchText}".`
                       : statusFilter === "published"
                       ? "Nothing published yet. Approve rows under \"approved\" status, then click Bulk Publish to push them to Course Finder."
-                      : "No courses match the filters."}
+                      : "No programs match the current filters. Try clearing Country / Level / Status or the search box."}
                   </td></tr>
                 )}
                 {visibleRows.map((r) => (
