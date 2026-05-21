@@ -13,6 +13,7 @@ import { useModulePermission } from "@/hooks/useModulePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { AiHelpDrawer } from "@/ai-help/components/AiHelpDrawer";
 
 type NavItem = { to: string; icon: typeof LayoutDashboard; label: string; end?: boolean; adminOnly?: boolean; roles?: string[]; section?: string; acctAdminOnly?: boolean };
 
@@ -30,6 +31,7 @@ const nav: NavItem[] = [
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
   { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
   { to: "/activity", icon: ScrollText, label: "Activity" },
+  { to: "/ai-help", icon: Sparkles, label: "AI Help" },
   { to: "/team-access", icon: Share2, label: "Team access" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
@@ -272,6 +274,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
       <main key={typeof window !== "undefined" ? window.location.pathname : "main"} className="flex-1 overflow-auto page-transition">{children}</main>
       <ThemeCustomizer />
+      <AiHelpDrawer />
     </div>
     </TooltipProvider>
   );
