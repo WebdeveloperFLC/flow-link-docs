@@ -5,7 +5,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BRAND_DEFAULT = `Brand: "Future Link Consultants" — a way to career abroad. Primary navy #0F2A5F, accent yellow #FFC72C, accent red #E11D2A. Use modern, clean, high-energy education marketing poster aesthetic similar to Indian study-abroad consultancies. Always include the brand wordmark "Future Link Consultants" subtly at top-left and the institution logo at top-right. Use a real young Indian student photo (smiling, holding books/backpack) with a recognizable landmark of the destination country behind. Bold display typography. Yellow brushstroke highlight bars under key phrases. Crisp icons for highlights.`;
+const BRAND_DEFAULT_BASE = `Brand: "Future Link Consultants" — a way to career abroad. Primary navy #0F2A5F, accent yellow #FFC72C, accent red #E11D2A. Modern, clean, high-energy education marketing poster aesthetic similar to Indian study-abroad consultancies. Use a real young Indian student photo (smiling, holding books/backpack) with a recognizable landmark of the destination country behind. Bold display typography. Yellow brushstroke highlight bars under key phrases. Crisp icons for highlights.`;
+const BRAND_DEFAULT_NO_LOGO = ` Include the Future Link Consultants wordmark subtly at top-left and the institution logo placeholder at top-right.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -28,38 +29,57 @@ Deno.serve(async (req) => {
       institution_name, country, service, intake, highlights, tone = "energetic",
       language = "English", format = "portrait", variations = 1, custom_instructions = "",
       use_brand = true, model = "google/gemini-3-pro-image-preview",
-      reference_image_data_url = "", reference_mode = "match",
+      references = [],
     } = body ?? {};
 
     const dims = format === "square" ? "1024x1024 square 1:1"
                : format === "story" ? "1080x1920 vertical story 9:16"
                : "1024x1536 portrait poster 2:3";
 
-    const referenceHint = reference_image_data_url
-      ? (reference_mode === "inspire"
-          ? "\nReference image attached: match its overall layout, color story, and typography vibe, but REPLACE all text and product specifics with the Brief above."
-          : "\nReference image attached: use it ONLY as a style/color/typography reference. Do not copy text or composition.")
+    const refs: { data_url: string; role: string }[] = Array.isArray(references)
+      ? references.filter((r: any) => r && typeof r.data_url === "string" && r.data_url.startsWith("data:image/"))
+      : [];
+    const hasLogoRef = refs.some((r) => r.role === "logo");
+
+    const brandBlock = use_brand
+      ? (BRAND_DEFAULT_BASE + (hasLogoRef ? "" : BRAND_DEFAULT_NO_LOGO))
       : "";
 
+    const refHintLines: string[] = refs.map((r, i) => {
+      const n = i + 1;
+      switch (r.role) {
+        case "logo":
+          return `Reference image #${n}: LOGO — place this artwork VERBATIM in the top-right corner at ~12% poster width. Do NOT redraw, recolor, re-letter, or restyle it. Preserve the exact glyphs, colors, and aspect ratio. No alternative wordmark.`;
+        case "layout":
+          return `Reference image #${n}: LAYOUT — mirror its overall composition and grid; replace all text with the Brief above.`;
+        case "subject":
+          return `Reference image #${n}: SUBJECT — feature this person / landmark / building in the hero area.`;
+        case "style":
+        default:
+          return `Reference image #${n}: STYLE — match its palette, typography vibe, and overall feel. Do NOT copy its text or exact composition.`;
+      }
+    });
+
     const prompt = `Design a ${dims} promotional flyer for a study-abroad consultancy.
-${use_brand ? BRAND_DEFAULT : ""}
+${brandBlock}
 Institution: ${institution_name || "—"}
 Country: ${country || "—"}
 Service / category: ${service || "Study Abroad"}
 Intake: ${intake || "—"}
 Key highlights (must appear as bullet points with icons): ${highlights || "—"}
 Tone: ${tone}. Language for all text on the poster: ${language}.
-${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}${referenceHint}
+${custom_instructions ? `Extra instructions: ${custom_instructions}` : ""}
+${refHintLines.length ? "\nReferences attached:\n- " + refHintLines.join("\n- ") : ""}
 Make sure all text is spelled correctly, legible, and the layout looks professional and print-ready. No watermarks. No placeholder lorem ipsum.`;
 
     const n = Math.max(1, Math.min(4, Number(variations) || 1));
     const image_paths: string[] = [];
     const errors: string[] = [];
 
-    const userContent: any = reference_image_data_url
+    const userContent: any = refs.length
       ? [
           { type: "text", text: prompt },
-          { type: "image_url", image_url: { url: reference_image_data_url } },
+          ...refs.map((r) => ({ type: "image_url", image_url: { url: r.data_url } })),
         ]
       : prompt;
 
