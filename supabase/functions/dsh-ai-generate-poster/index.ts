@@ -5,8 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const BRAND_DEFAULT_BASE = `Brand: "Future Link Consultants" — a way to career abroad. Primary navy #0F2A5F, accent yellow #FFC72C, accent red #E11D2A. Modern, clean, high-energy education marketing poster aesthetic similar to Indian study-abroad consultancies. Use a real young Indian student photo (smiling, holding books/backpack) with a recognizable landmark of the destination country behind. Bold display typography. Yellow brushstroke highlight bars under key phrases. Crisp icons for highlights.`;
-const BRAND_DEFAULT_NO_LOGO = ` Include the Future Link Consultants wordmark subtly at top-left and the institution logo placeholder at top-right.`;
+const BRAND_DEFAULT_BASE = `Brand palette: navy #0F2A5F, accent yellow #FFC72C, accent red #E11D2A. Modern, clean, high-energy education marketing poster aesthetic similar to Indian study-abroad consultancies. Use a real young Indian student photo (smiling, holding books/backpack) with a recognizable landmark of the destination country behind. Bold display typography. Yellow brushstroke highlight bars under key phrases. Crisp icons for highlights.`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -47,11 +46,38 @@ Deno.serve(async (req) => {
     const refs: { data_url: string; role: string }[] = Array.isArray(references)
       ? references.filter((r: any) => r && typeof r.data_url === "string" && r.data_url.startsWith("data:image/"))
       : [];
-    const hasLogoRef = refs.some((r) => r.role === "logo");
+    const hasBrandLogo = refs.some((r) => r.role === "logo");
+    const hasInstitutionLogo = refs.some((r) => r.role === "institution_logo");
 
-    const brandBlock = use_brand
-      ? (BRAND_DEFAULT_BASE + (hasLogoRef ? "" : BRAND_DEFAULT_NO_LOGO))
-      : "";
+    const logoRules: string[] = [];
+    if (use_brand) {
+      if (hasBrandLogo) {
+        logoRules.push(`The Future Link Consultants logo is attached as a reference image and MUST be placed VERBATIM in the TOP-LEFT corner at ~18% of poster width. Do NOT redraw, recolor, re-letter or restyle it.`);
+      } else {
+        logoRules.push(`Do NOT draw, invent, redraw or imagine any Future Link Consultants logo, wordmark, badge or graduation-cap icon. Leave the top-left area clean.`);
+      }
+    }
+    if (hasInstitutionLogo) {
+      logoRules.push(`The institution logo is attached as a reference image and MUST be placed VERBATIM in the TOP-RIGHT corner at ~14% of poster width. Do NOT redraw, recolor, re-letter, add an "OFFICIAL LOGO" caption, or invent a crest/shield.`);
+    } else {
+      logoRules.push(`Do NOT draw, invent or imagine ANY university / institution / college logo, crest, shield, monogram, "OFFICIAL LOGO" badge, or wordmark — even if the institution name appears in the body text. Leave the top-right area clean.`);
+    }
+
+    const brandBlock = use_brand ? BRAND_DEFAULT_BASE : "";
+
+    const cPhone = (body?.contact_phone || "").toString().trim();
+    const cEmail = (body?.contact_email || "").toString().trim();
+    const cSite  = (body?.contact_website || "").toString().trim();
+    const cCta   = (body?.cta || "").toString().trim();
+    const contactLines: string[] = [];
+    if (cPhone) contactLines.push(`Phone: ${cPhone}`);
+    if (cEmail) contactLines.push(`Email: ${cEmail}`);
+    if (cSite)  contactLines.push(`Website: ${cSite}`);
+    const contactBlock = (contactLines.length || cCta)
+      ? `CONTACT FOOTER — render EXACTLY and ONLY these values, verbatim, in the bottom band:
+${contactLines.map((l) => "  • " + l).join("\n")}${cCta ? `\n  • Call-to-action banner: "${cCta}"` : ""}
+Do NOT invent, modify, mask, abbreviate or add any other phone numbers, emails, websites, social handles, or addresses. No placeholders like "XXXXXXXXXX", "info@example.com", "www.example.com" or lorem ipsum. If a line above is missing, OMIT it entirely.`
+      : `CONTACT FOOTER — leave the bottom band clean. Do NOT invent any phone numbers, emails, websites, social handles or placeholders like "XXXXXXXXXX". You may include a generic line: "Contact your Future Link counsellor".`;
 
     const refHintLines: string[] = refs.map((r, i) => {
       const n = i + 1;
