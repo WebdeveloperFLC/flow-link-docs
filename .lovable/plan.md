@@ -1,64 +1,54 @@
-# Fix AI Studio + Add Reference Image Support
+## Approved scope + logo seeding
 
-## 1. Fix "Failed to send a request to the Edge Function"
+Same as the previously approved plan, with one addition: the uploaded `FLC_logo_1_-01-6.png` is saved as the default Future Link logo in the new Brand Library so it auto-attaches to every generation.
 
-**Root cause:** The three AI Studio edge functions (`dsh-ai-generate-poster`, `dsh-ai-generate-copy`, `dsh-ai-edit-image`) were created but never successfully deployed, so calls from `/digital-success/ai` 404'd at the gateway, which the client shows as "Failed to send a request to the Edge Function."
+## Changes
 
-**Fix:** Functions have now been deployed and a live `POST /dsh-ai-generate-poster` test returned `200 OK` with a generated image saved to the `dsh-media` bucket. No code change required for the fix itself — just the redeploy that already ran.
+### 1. Seed the Future Link logo
+- Copy `user-uploads://FLC_logo_1_-01-6.png` → `src/assets/flc-logo.png`.
+- On first load of the Brand Library, if no asset with `kind='logo'` and `is_default_brand=true` exists for the workspace, auto-upload `flc-logo.png` to `dsh-media` bucket at `brand/logos/flc-default.png` and insert a `dsh_brand_assets` row (title: "Future Link Consultants", `is_default_brand=true`). Idempotent.
+- When `use_brand` is on, the default logo is added automatically as a `role=logo` reference on every poster request.
 
-I'll also add small resiliency improvements:
-- Surface the real backend error string in the toast (instead of the generic invoke error) by reading `error.context?.body` from `supabase.functions.invoke`.
-- Add a "Retry" button next to the error toast in `AiStudioPage`.
+### 2. New table `dsh_brand_assets`
+Columns: `kind` ('logo' | 'reference'), `title`, `tags text[]`, `storage_path`, `institution_id?`, `country?`, `is_default_brand bool`, `uploaded_by`. RLS: authenticated read; insert/update/delete by owner or admin.
 
-## 2. Reference image upload (new feature)
+### 3. Multi-reference UI (`ReferenceTray`)
+- Up to **4 reference images** per generation, drag/paste/file-pick, plus "Pick from Library" modal.
+- Each tile: thumbnail + role selector (`style`, `layout`, `subject`, `logo`, `edit_base`) + remove.
+- Separate "Logos" strip showing default Future Link logo (pre-attached, removable) and "+ Add partner logo" from library.
 
-Goal: let a team member upload an existing flyer/screenshot/photo and either
-(a) **generate a new poster in the same theme**, or
-(b) **edit that exact image** (change date, swap campus, restyle, translate, add logo).
+### 4. Brand Library panel (`BrandLibraryPanel`)
+- Two tabs: Logos / References.
+- Upload, rename, tag, delete, "Set as default Future Link logo".
+- Stored in existing `dsh-media` bucket under `brand/logos/*` and `brand/refs/*`.
 
-### UI changes — `src/digital-success/ai/AiStudioPage.tsx`
+### 5. Backend prompt fidelity
+- `dsh-ai-generate-poster`: accept `references: [{ data_url, role }]`. Build a multimodal user message where each image is preceded by a role-specific text block:
+  - `style` → "match palette/typography/composition; do not copy text"
+  - `layout` → "mirror composition; replace text per brief"
+  - `subject` → "use this person/landmark"
+  - `logo` → **"Place this logo VERBATIM at top-right (~12% width). Do NOT redraw, recolor, or re-letter it. Preserve exact glyphs and proportions."**
+- When a `logo` reference is present, strip the "draw the Future Link wordmark" line from `BRAND_DEFAULT` (this is what causes the wrong-logo hallucination).
+- `dsh-ai-edit-image`: accept `image_data_urls[]` (first = edit base, rest = role-labeled refs); keep single-image backwards compatibility.
+- Improve error surfacing: include `finish_reason` and any text reply in `errors[]`.
 
-New "Reference image" card above the Brief form, with:
-- Drag-and-drop / file picker (PNG/JPG/WebP, ≤ 8 MB, client-side resize to max 1536px long edge).
-- Thumbnail preview + "Remove" button.
-- Mode toggle (radio):
-  - **Match theme** — use the reference only as style guidance for a brand-new poster generated from the Brief.
-  - **Edit this image** — modify the uploaded image directly using the instruction in "Extra instructions".
-  - **Inspire layout** — keep composition/colors close to the reference but replace text with Brief content.
-- Tooltip explaining each mode.
-
-The existing "Generate poster" button stays. When mode = "Edit this image", the button label switches to **"Apply edits"** and the Format/Variations selectors are hidden (edit returns one image at the source aspect ratio).
-
-### Hook changes — `src/digital-success/ai/usePromoStudio.ts`
-
-- Extend `PosterBrief` with `reference_image_data_url?: string` and `reference_mode?: "match" | "inspire" | "edit"`.
-- `generatePoster(brief)` keeps the same signature; the hook routes to `dsh-ai-edit-image` when `reference_mode === "edit"` and to `dsh-ai-generate-poster` otherwise (passing the reference along).
-- Add `uploadReference(file)` helper that converts the file to a clean base64 data URL (strip prefix, validate) before sending — guards against the common base64-format bug.
-
-### Edge function changes
-
-**`dsh-ai-generate-poster/index.ts`**
-- Accept optional `reference_image_data_url` and `reference_mode` in the body.
-- When present, send the image as a second `content` part on the user message (multimodal input is already supported by `google/gemini-3-pro-image-preview`):
-  - `match` → append: "Use the attached image only as a style/colour/typography reference. Do not copy text or composition."
-  - `inspire` → append: "Match the overall layout and colour story of the attached image, but replace all text and product specifics with the Brief above."
-- Cap reference at ~4 MB after decode; reject larger with a 400.
-
-**`dsh-ai-edit-image/index.ts`**
-- Already accepts `image_data_url` + `instruction`. No schema change, but:
-  - Add input validation (data-URL regex, size cap).
-  - Return `ok: true` consistently and include `image_path` plus a fresh signed URL in the response so the UI can render the edited result without a second round-trip.
-
-### Save to Hub
-No change — both flows already write the generated PNG to `dsh-media` and `saveToHub` picks it up by `storage_path`.
-
-## Out of scope (v1)
-- Storing reference uploads permanently (kept only in-memory for the generation call).
-- Multi-image references (only one reference per generation).
-- Style presets derived from previously generated posters.
+### 6. `usePromoStudio.ts`
+- `PosterBrief.references: { data_url, role, source, asset_id? }[]` (replaces old single-reference fields).
+- `generatePoster` routes to edit endpoint if any ref has `role='edit_base'`.
+- New helpers: `listBrandAssets`, `uploadBrandAsset`, `deleteBrandAsset`, `setDefaultLogo`, `ensureDefaultLogo` (the seeding routine).
+- Resize each ref to max 1536px; warn if total payload >6MB.
 
 ## Files touched
-- edit `src/digital-success/ai/AiStudioPage.tsx`
-- edit `src/digital-success/ai/usePromoStudio.ts`
-- edit `supabase/functions/dsh-ai-generate-poster/index.ts`
-- edit `supabase/functions/dsh-ai-edit-image/index.ts`
+
+- `supabase/migrations/<new>.sql` — `dsh_brand_assets` + RLS
+- `src/assets/flc-logo.png` — seeded asset (copied from upload)
+- `src/digital-success/ai/AiStudioPage.tsx` — wire ReferenceTray + Brand Library tab
+- `src/digital-success/ai/usePromoStudio.ts` — references[] shape, library CRUD, seed default logo
+- `src/digital-success/ai/ReferenceTray.tsx` — new
+- `src/digital-success/ai/BrandLibraryPanel.tsx` — new
+- `supabase/functions/dsh-ai-generate-poster/index.ts` — multi-ref + verbatim-logo prompt
+- `supabase/functions/dsh-ai-edit-image/index.ts` — accept multiple images
+
+## Out of scope
+- Per-branch ACLs on the library (workspace-wide for v1).
+- Auto background removal for logos (upload a clean PNG).

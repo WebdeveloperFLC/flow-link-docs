@@ -20,9 +20,14 @@ Deno.serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const { image_data_url, instruction, model = "google/gemini-3.1-flash-image-preview" } = await req.json();
-    if (!image_data_url || !instruction) {
-      return new Response(JSON.stringify({ error: "image_data_url and instruction required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const body = await req.json();
+    const instruction: string = body.instruction;
+    const model: string = body.model || "google/gemini-3.1-flash-image-preview";
+    const urls: string[] = Array.isArray(body.image_data_urls)
+      ? body.image_data_urls.filter((s: any) => typeof s === "string" && s.startsWith("data:image/"))
+      : (typeof body.image_data_url === "string" ? [body.image_data_url] : []);
+    if (!urls.length || !instruction) {
+      return new Response(JSON.stringify({ error: "image_data_url(s) and instruction required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -34,7 +39,7 @@ Deno.serve(async (req) => {
           role: "user",
           content: [
             { type: "text", text: instruction },
-            { type: "image_url", image_url: { url: image_data_url } },
+            ...urls.map((u) => ({ type: "image_url", image_url: { url: u } })),
           ],
         }],
         modalities: ["image", "text"],

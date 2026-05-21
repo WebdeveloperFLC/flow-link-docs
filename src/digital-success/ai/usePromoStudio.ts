@@ -1,5 +1,29 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import flcLogo from "@/assets/flc-logo.png";
+
+export type RefRole = "style" | "layout" | "subject" | "logo" | "edit_base";
+
+export interface RefImage {
+  data_url: string;
+  role: RefRole;
+  source: "upload" | "library";
+  asset_id?: string;
+  name?: string;
+}
+
+export interface BrandAsset {
+  id: string;
+  kind: "logo" | "reference";
+  title: string;
+  tags: string[];
+  storage_path: string;
+  institution_id: string | null;
+  country: string | null;
+  is_default_brand: boolean;
+  uploaded_by: string | null;
+  created_at: string;
+}
 
 export interface PosterBrief {
   institution_name: string;
@@ -14,8 +38,7 @@ export interface PosterBrief {
   custom_instructions: string;
   use_brand: boolean;
   model?: string;
-  reference_image_data_url?: string;
-  reference_mode?: "match" | "inspire" | "edit";
+  references?: RefImage[];
 }
 
 export interface CopyPack {
@@ -37,14 +60,23 @@ export function usePromoStudio() {
   async function generatePoster(brief: PosterBrief) {
     setLoading(true); setError(null);
     try {
-      // Route to edit-image when the user wants direct edits on the reference
-      if (brief.reference_mode === "edit" && brief.reference_image_data_url) {
-        const instruction = brief.custom_instructions?.trim()
-          || `Update the attached flyer. Institution: ${brief.institution_name}. Country: ${brief.country}. Intake: ${brief.intake}. Highlights: ${brief.highlights}. Keep the existing layout and theme.`;
-        const out = await editImageInternal(brief.reference_image_data_url, instruction);
+      const refs = (brief.references || []).filter((r) => r.data_url);
+      const editBase = refs.find((r) => r.role === "edit_base");
+      // Route to edit-image when the user wants direct edits on a reference
+      if (editBase) {
+        const others = refs.filter((r) => r !== editBase);
+        const instruction = buildEditInstruction(brief, others);
+        const out = await editImageInternal(
+          [editBase.data_url, ...others.map((r) => r.data_url)],
+          instruction,
+        );
         return { generation_id: out.generation_id, image_paths: [out.image_path], errors: [] };
       }
-      const { data, error } = await supabase.functions.invoke("dsh-ai-generate-poster", { body: brief });
+      const payload = {
+        ...brief,
+        references: refs.map(({ data_url, role }) => ({ data_url, role })),
+      };
+      const { data, error } = await supabase.functions.invoke("dsh-ai-generate-poster", { body: payload });
       if (error) {
         const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
         throw new Error(ctxMsg || error.message || "Generation failed");
@@ -70,8 +102,11 @@ export function usePromoStudio() {
     } finally { setLoading(false); }
   }
 
-  async function editImageInternal(image_data_url: string, instruction: string) {
-    const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", { body: { image_data_url, instruction } });
+  async function editImageInternal(image_data_urls: string | string[], instruction: string) {
+    const arr = Array.isArray(image_data_urls) ? image_data_urls : [image_data_urls];
+    const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", {
+      body: { image_data_urls: arr, image_data_url: arr[0], instruction },
+    });
     if (error) {
       const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
       throw new Error(ctxMsg || error.message || "Edit failed");
@@ -154,5 +189,116 @@ export function usePromoStudio() {
     if (error) throw error;
   }
 
-  return { loading, error, generatePoster, generateCopy, editImage, getSignedUrl, saveToHub, fileToDataUrl };
+  // ---------- Brand Library ----------
+
+  async function listBrandAssets(kind?: "logo" | "reference"): Promise<BrandAsset[]> {
+    let q = supabase.from("dsh_brand_assets" as any).select("*").order("created_at", { ascending: false });
+    if (kind) q = q.eq("kind", kind);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data as any[]) as BrandAsset[];
+  }
+
+  async function uploadBrandAsset(args: {
+    file: File;
+    kind: "logo" | "reference";
+    title: string;
+    tags?: string[];
+    is_default_brand?: boolean;
+  }): Promise<BrandAsset> {
+    const { data: auth } = await supabase.auth.getUser();
+    const ext = (args.file.name.split(".").pop() || "png").toLowerCase();
+    const folder = args.kind === "logo" ? "brand/logos" : "brand/refs";
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const up = await supabase.storage.from("dsh-media").upload(path, args.file, {
+      contentType: args.file.type || "image/png",
+      upsert: false,
+    });
+    if (up.error) throw up.error;
+    if (args.is_default_brand && args.kind === "logo") {
+      await supabase.from("dsh_brand_assets" as any)
+        .update({ is_default_brand: false })
+        .eq("kind", "logo").eq("is_default_brand", true);
+    }
+    const { data, error } = await supabase.from("dsh_brand_assets" as any).insert({
+      kind: args.kind,
+      title: args.title,
+      tags: args.tags || [],
+      storage_path: path,
+      is_default_brand: !!args.is_default_brand,
+      uploaded_by: auth?.user?.id ?? null,
+    }).select("*").single();
+    if (error) throw error;
+    return data as any as BrandAsset;
+  }
+
+  async function deleteBrandAsset(asset: BrandAsset) {
+    await supabase.storage.from("dsh-media").remove([asset.storage_path]).catch(() => {});
+    const { error } = await supabase.from("dsh_brand_assets" as any).delete().eq("id", asset.id);
+    if (error) throw error;
+  }
+
+  async function setDefaultLogo(assetId: string) {
+    await supabase.from("dsh_brand_assets" as any)
+      .update({ is_default_brand: false })
+      .eq("kind", "logo").eq("is_default_brand", true);
+    const { error } = await supabase.from("dsh_brand_assets" as any)
+      .update({ is_default_brand: true })
+      .eq("id", assetId);
+    if (error) throw error;
+  }
+
+  /** Idempotently seed the bundled Future Link logo if no default logo exists yet. */
+  async function ensureDefaultLogo(): Promise<BrandAsset | null> {
+    const existing = await listBrandAssets("logo");
+    const def = existing.find((a) => a.is_default_brand);
+    if (def) return def;
+    try {
+      const res = await fetch(flcLogo);
+      const blob = await res.blob();
+      const file = new File([blob], "flc-logo.png", { type: blob.type || "image/png" });
+      return await uploadBrandAsset({
+        file,
+        kind: "logo",
+        title: "Future Link Consultants",
+        tags: ["default", "future-link"],
+        is_default_brand: true,
+      });
+    } catch (e) {
+      console.warn("ensureDefaultLogo failed", e);
+      return null;
+    }
+  }
+
+  async function brandAssetToDataUrl(asset: BrandAsset): Promise<string> {
+    const { data, error } = await supabase.storage.from("dsh-media").download(asset.storage_path);
+    if (error) throw error;
+    return await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result as string);
+      r.onerror = () => rej(r.error);
+      r.readAsDataURL(data);
+    });
+  }
+
+  return {
+    loading, error,
+    generatePoster, generateCopy, editImage, getSignedUrl, saveToHub, fileToDataUrl,
+    listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
+  };
+}
+
+function buildEditInstruction(brief: PosterBrief, refs: RefImage[]): string {
+  const base = brief.custom_instructions?.trim()
+    || `Update the attached flyer. Institution: ${brief.institution_name}. Country: ${brief.country}. Intake: ${brief.intake}. Highlights: ${brief.highlights}. Keep the existing layout and theme.`;
+  if (!refs.length) return base;
+  const notes = refs.map((r, i) => {
+    const n = i + 2; // first image is the edit base
+    if (r.role === "logo") return `Image #${n} is a LOGO — place it VERBATIM (do not redraw or recolor) in the top-right corner at about 12% of the poster width, preserving original glyphs and colors.`;
+    if (r.role === "style") return `Image #${n} is a STYLE reference — match its palette/typography vibe.`;
+    if (r.role === "layout") return `Image #${n} is a LAYOUT reference — mirror its composition.`;
+    if (r.role === "subject") return `Image #${n} is a SUBJECT reference — feature this person/landmark.`;
+    return `Image #${n} is a reference.`;
+  }).join(" ");
+  return `${base}\n\n${notes}`;
 }
