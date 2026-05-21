@@ -16,6 +16,40 @@ const KNOWN = new Set([
   "is_online","is_part_time","commission_info","bonus_info","confidence_score","source_last_updated",
 ]);
 
+// Map free-text program level (from extractor) to a canonical level name
+// matching rows in upi_program_levels. Returns null if no confident match.
+function normalizeLevelName(raw: string): string | null {
+  const s = String(raw || "").toLowerCase().replace(/[._-]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!s) return null;
+  // Order matters: more specific patterns first.
+  if (/\bmba\b/.test(s)) return "MBA";
+  if (/\b(phd|ph\.?d|doctorate|doctoral|dphil)\b/.test(s)) return "PhD / Doctorate";
+  if (/\bpost\s*doc(toral)?\b/.test(s)) return "Postdoctoral";
+  if (/\b(graduate|grad|postgraduate|pg)\s+certificate\b/.test(s) || /\bontario college graduate certificate\b/.test(s)) return "Graduate Certificate";
+  if (/\b(graduate|grad|postgraduate|pg)\s+diploma\b/.test(s) || /\bpostgraduate diploma\b/.test(s)) return "Graduate Diploma";
+  if (/\bassociate\b/.test(s)) return "Associate Degree";
+  if (/\badvanced\s+diploma\b/.test(s)) return "Advanced Diploma";
+  if (/\b(master|masters|master's|m\.?a|m\.?sc|m\.?ed|m\.?eng|meng|mres)\b/.test(s) || /\bmaster of\b/.test(s)) return "Master";
+  if (/\b(bachelor|bachelors|bachelor's|undergrad(uate)?|b\.?a|b\.?sc|b\.?ed|b\.?eng|beng|bcom|honou?rs)\b/.test(s) || /\bbachelor of\b/.test(s)) return "Bachelor";
+  if (/\bdiploma\b/.test(s)) return "Diploma";
+  if (/\bcertificate\b/.test(s)) return "Certificate";
+  return null;
+}
+
+function buildLevelResolver(levels: Array<{ id: string; name: string }>) {
+  const byName = new Map(levels.map((l) => [l.name.toLowerCase(), l.id]));
+  return (raw: unknown): string | null => {
+    const text = String(raw ?? "").trim();
+    if (!text) return null;
+    // Direct case-insensitive match against canonical names first.
+    const direct = byName.get(text.toLowerCase());
+    if (direct) return direct;
+    const canonical = normalizeLevelName(text);
+    if (!canonical) return null;
+    return byName.get(canonical.toLowerCase()) ?? null;
+  };
+}
+
 async function sha256Hex(s: string): Promise<string> {
   const bytes = new TextEncoder().encode(s);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -47,6 +81,10 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    const { data: levelRows } = await supabase
+      .from("upi_program_levels").select("id,name");
+    const resolveLevelId = buildLevelResolver((levelRows ?? []) as any);
+
     let upserted = 0, rejected = 0;
     for (const raw of courses) {
       try {
@@ -56,6 +94,13 @@ Deno.serve(async (req) => {
           if (KNOWN.has(k)) known[k] = v; else metadata[k] = v;
         }
         if (!known.course_title) { rejected++; continue; }
+        // Resolve free-text program_level (kept in metadata) to FK so the
+        // Course Review level filter can find these rows.
+        if (!known.program_level_id) {
+          const fromMeta = (metadata as any).program_level;
+          const lvlId = resolveLevelId(fromMeta);
+          if (lvlId) known.program_level_id = lvlId;
+        }
         // Dedup hash now includes program_level and campus so multi-campus / multi-level
         // programs with the same title don't collapse into a single staging row.
         const titleKey = canonicalTitle(String(known.course_title), String(known.program_level ?? ""));
