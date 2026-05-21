@@ -1,58 +1,69 @@
-## Why Google Reviews tab is empty
 
-The earlier seed skipped Google Reviews because the validation trigger requires real `client_id` + `branch_id` (FK-enforced) and you asked not to link to existing modules. Net effect: zero rows with `is_google_review = true`, so the tab shows nothing.
+## Goal
 
-Also, the current schema does not track **which counselor / team member** got the review — only `uploaded_by` (the person who saved the record), which is not the same thing. Without that, monthly per-counselor leaderboards are not possible.
+A single, always-available AI assistant that team members can ask anything about how the CRM works — accounts, client entry, data uploading, flows, programs, institutions, digital success, course finder, templates, offers & discounts, Settle Abroad, telecaller, messages, leads, commissions, etc. It explains *how to use the CRM*, not customer data.
 
-## What to add
+## User experience
 
-### 1. Schema change (one small migration)
+- **Floating "Ask AI" button** (bottom-right) on every authenticated page via `AppLayout.tsx`. Hidden on `/auth` and portal routes.
+- Clicking opens a **side drawer chat** (sheet, ~480px wide on desktop, full-screen on mobile).
+- Also accessible from the sidebar as a top-level item: **"AI Help"** → `/ai-help` (full-page version of the same chat).
+- Features:
+  - Streaming responses (token-by-token) with markdown rendering.
+  - Conversation history per user, persisted in DB.
+  - "New chat" button, list of past conversations in a collapsible left rail (full-page view only).
+  - Suggested starter questions grouped by module ("How do I add a client?", "How do offers & discounts work?", "How do I import cold leads?", etc.).
+  - Each answer can include **deep links** to the relevant page (e.g. "Open Leads → Cold Pool") rendered as buttons.
+  - Copy / thumbs-up / thumbs-down on each assistant message (feedback stored for later prompt tuning).
 
-Add to `dsh_media`:
+## Scope of knowledge
 
-- `credited_user_id uuid references auth.users(id)` — the counselor/team member credited for the review
-- `review_received_at date` — when the client posted the review (used for monthly grouping; defaults to created_at::date)
+The assistant answers using a **curated CRM knowledge base** authored as markdown — not by reading live tenant data. Modules covered in v1:
+Accounts, Client entry, Data uploading, App flow overview, Programs, Institutions, Digital Success Hub, Course Finder, Templates, Letter templates, Offers & Discounts, Settle Abroad, Telecaller, Messages, Leads (warm/cold), Commissions, Forms & Questionnaires, Documents/Binder, Assessment, User & role management, Masters (branches/departments/services).
 
-Index: `(is_google_review, review_received_at, credited_user_id, branch_id)`.
+Content lives in `src/ai-help/knowledge/*.md`, one file per module, plus a short top-level overview. Easy to edit and expand later.
 
-Validation trigger update: when `is_google_review = true`, require `credited_user_id` and `review_received_at` in addition to existing client/country/branch/service rules.
+## Technical design
 
-### 2. Seed Google Reviews mock data
+### Frontend
+- New folder `src/ai-help/`:
+  - `pages/AiHelpPage.tsx` — full-page chat at `/ai-help`.
+  - `components/AiHelpDrawer.tsx` — floating button + Sheet wrapper, mounted once in `AppLayout`.
+  - `components/AiHelpChat.tsx` — shared chat UI (messages list, composer, streaming renderer, markdown via `react-markdown`).
+  - `components/SuggestedQuestions.tsx` — grouped starter prompts.
+  - `hooks/useAiHelpConversation.ts` — manages messages, streaming, persistence.
+  - `lib/aiHelpTypes.ts` — `AiHelpMessage`, `AiHelpConversation`.
+  - `knowledge/` — module markdown files bundled at build time (`import.meta.glob`).
+- Route added in `src/App.tsx`. Sidebar entry added in `AppLayout.tsx`.
+- Reuse existing UI tokens (no new colors); match look of existing chat components.
 
-Insert ~8 rows into `dsh_media` with `is_google_review = true`, using **real** branch + client + counselor IDs already in the DB (this is the only way to satisfy the FK + validation trigger). Spread across the last 3 months so the monthly view has something to show.
+### Backend
+- New tables:
+  - `ai_help_conversations` (id, user_id, title, created_at, updated_at)
+  - `ai_help_messages` (id, conversation_id, role, content, created_at)
+  - `ai_help_feedback` (id, message_id, user_id, rating, note, created_at)
+  - RLS: users can only read/write their own rows.
+- New edge function `ai-help-chat` (streaming, SSE):
+  - Validates JWT, loads the conversation's prior messages.
+  - Builds a system prompt that embeds the bundled knowledge base (passed in via request body from the client so the edge function stays stateless and content stays in the repo).
+  - Calls Lovable AI Gateway with `google/gemini-3-flash-preview`, `stream: true`.
+  - Returns SSE stream; persists final assistant message on the client side via a small follow-up insert (or via a second non-streamed write inside the function — TBD during implementation).
+  - Handles 429 / 402 with friendly error messages.
+- No new secrets required (uses `LOVABLE_API_KEY`).
 
-Fields per row: title, `google_review_url`, `google_review_text`, `google_review_rating` (4–5), `client_id`, `branch_id`, `country_name`, `service_master_key`, `credited_user_id`, `review_received_at`, optional `google_review_screenshot_path` placeholder.
+### Out of scope (v1)
+- Reading the user's live data (clients, leads, invoices). The assistant explains *how* to do things, not *what's in your data*.
+- Tool/function calling to perform actions (creating a lead, sending an email). Can be added later.
+- Multi-language responses (defaults to English; model will follow user's language if they ask in another).
+- Voice input.
 
-### 3. UI — Add content dialog
+## Deliverables checklist
 
-In `MediaUploadDialog.tsx`, when the "Google Review" toggle is on, add:
+- DB migration for the 3 tables + RLS.
+- Edge function `ai-help-chat` with streaming.
+- `src/ai-help/` module with chat UI, drawer, page, knowledge files.
+- Sidebar + floating button integration in `AppLayout`.
+- Route registration in `App.tsx`.
+- Seed knowledge markdown for all listed modules (concise, ~150–400 words each).
 
-- **Credited counselor / team member** — required Select populated from team members (reuse existing profiles query)
-- **Review received on** — required date input
-- **Screenshot upload** — optional image picker that uploads to the `dsh-media` storage bucket and stores the path in `google_review_screenshot_path` (≤10 MB, image/* only). Reuses the existing upload code path.
-
-### 4. UI — Google Reviews tab enhancements
-
-In `DigitalSuccessHomePage.tsx` Google Reviews tab, add a small monthly tracker panel above the table:
-
-- Month picker (defaults to current month)
-- Two compact tables side by side:
-  - **By counselor**: name, review count, average rating
-  - **By branch**: branch name, review count, average rating
-- Aggregations done client-side from the same `useDshMedia` result filtered by `review_received_at` month, so no extra endpoint needed.
-
-Existing table already shows rating, review text, link and screenshot link — keep as is, just add a "Counselor" column and a "Received" date column.
-
-### 5. Out of scope (Phase 1)
-
-- No analytics dashboards beyond the simple monthly counts
-- No automated review-fetch from Google
-- No notifications/reminders
-- No exports (can add later)
-
-## Technical notes
-
-- Migration is additive (nullable columns + index); existing rows are unaffected.
-- Validation trigger update is gated on `is_google_review = true` so non-review rows are not impacted.
-- Screenshot uses the existing private `dsh-media` bucket; preview is shown via signed URL on demand (already in `CopyLinkButton`/preview logic — extend with a small "View screenshot" link).
-- The monthly leaderboard query uses `review_received_at` rather than `created_at` so back-dated entries are counted in the correct month.
+Approve to implement, or tell me what to adjust (e.g. drop the floating button, change scope, add live-data tools).
