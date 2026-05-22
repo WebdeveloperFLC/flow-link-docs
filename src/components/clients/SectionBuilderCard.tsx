@@ -641,14 +641,31 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       )}
 
       {items.length === 0 ? (
-        <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
-          {dragActive
-            ? `Drop files into ${section.label}`
-            : (canEdit
-                ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
-                : "No documents in this section yet.")}
-        </div>
+        <>
+          <PendingRows
+            pending={pendingChecklist}
+            canEdit={canEdit}
+            linkableDocs={linkableDocs}
+            onLinkDocToChecklist={onLinkDocToChecklist}
+            onRemoveChecklistItem={onRemoveChecklistItem}
+          />
+          <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
+            {dragActive
+              ? `Drop files into ${section.label}`
+              : (canEdit
+                  ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
+                  : "No documents in this section yet.")}
+          </div>
+        </>
       ) : (
+        <>
+        <PendingRows
+          pending={pendingChecklist}
+          canEdit={canEdit}
+          linkableDocs={linkableDocs}
+          onLinkDocToChecklist={onLinkDocToChecklist}
+          onRemoveChecklistItem={onRemoveChecklistItem}
+        />
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
             <div className="divide-y">
@@ -680,6 +697,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             </div>
           </SortableContext>
         </DndContext>
+        </>
       )}
 
       {binder && (
