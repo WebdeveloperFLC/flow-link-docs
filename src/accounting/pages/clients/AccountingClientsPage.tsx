@@ -34,7 +34,11 @@ export default function AccountingClientsPage() {
 
   const [country, setCountry] = useState<string>("ALL");
   const [clientType, setClientType] = useState<string>("ALL");
-  const [servicePackage, setServicePackage] = useState<string>("ALL");
+  const [coachingFilter, setCoachingFilter] = useState<string>("ALL");
+  const [visaServiceFilter, setVisaServiceFilter] = useState<string>("ALL");
+  const [admissionFilter, setAdmissionFilter] = useState<string>("ALL");
+  const [alliedFilter, setAlliedFilter] = useState<string>("ALL");
+  const [travelFilter, setTravelFilter] = useState<string>("ALL");
   const [counselorId, setCounselorId] = useState<string>("ALL");
   const [visaCategory, setVisaCategory] = useState<string>("ALL");
   const [intake, setIntake] = useState<string>("ALL");
@@ -44,6 +48,9 @@ export default function AccountingClientsPage() {
   // Dynamic options sourced from the lead-form masters
   const [services, setServices] = useState<{ master_key: string; service_name: string }[]>([]);
   const [counselors, setCounselors] = useState<{ id: string; name: string }[]>([]);
+  const [crmServiceMap, setCrmServiceMap] = useState<Record<string, {
+    coaching: string[]; visa: string[]; admission: string[]; allied: string[]; travel: string[];
+  }>>({});
 
   useEffect(() => {
     let alive = true;
@@ -59,6 +66,32 @@ export default function AccountingClientsPage() {
     return () => { alive = false; };
   }, []);
 
+  // Load CRM client service arrays for accurate per-client filtering
+  useEffect(() => {
+    const ids = Array.from(new Set(clients.map(c => c.linkedCrmClientId).filter(Boolean))) as string[];
+    if (!ids.length) { setCrmServiceMap({}); return; }
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from("clients")
+        .select("id, coaching_services, visa_services, admission_services, allied_services, travel_financial_services")
+        .in("id", ids);
+      if (!alive) return;
+      const map: Record<string, any> = {};
+      for (const r of (data ?? []) as any[]) {
+        map[r.id] = {
+          coaching: r.coaching_services ?? [],
+          visa: r.visa_services ?? [],
+          admission: r.admission_services ?? [],
+          allied: r.allied_services ?? [],
+          travel: r.travel_financial_services ?? [],
+        };
+      }
+      setCrmServiceMap(map);
+    })();
+    return () => { alive = false; };
+  }, [clients]);
+
   const countryOptions = useMemo(
     () => Array.from(new Set(clients.map(c => c.country).filter(Boolean))).sort(),
     [clients],
@@ -67,15 +100,20 @@ export default function AccountingClientsPage() {
     () => Array.from(new Set(clients.map(c => c.intake).filter(Boolean) as string[])).sort(),
     [clients],
   );
-  const servicePackageOptions = useMemo(() => {
-    const fromMaster = services
-      .filter(s => s.master_key !== "visa_services")
-      .map(s => s.service_name);
-    const fromClients = clients.flatMap(c => (c.servicePackage ?? "").split(",").map(s => s.trim()).filter(Boolean));
-    return Array.from(new Set([...fromMaster, ...fromClients])).sort();
-  }, [services, clients]);
+  const optionsByKey = useMemo(() => {
+    const grp: Record<string, string[]> = {};
+    for (const s of services) {
+      (grp[s.master_key] ||= []).push(s.service_name);
+    }
+    return grp;
+  }, [services]);
+  const coachingOptions = useMemo(() => (optionsByKey["coaching_services"] ?? []).slice().sort(), [optionsByKey]);
+  const visaServiceOptions = useMemo(() => (optionsByKey["visa_immigration"] ?? []).slice().sort(), [optionsByKey]);
+  const admissionOptions = useMemo(() => (optionsByKey["admission_services"] ?? []).slice().sort(), [optionsByKey]);
+  const alliedOptions = useMemo(() => (optionsByKey["allied_services"] ?? []).slice().sort(), [optionsByKey]);
+  const travelOptions = useMemo(() => (optionsByKey["travel_financial"] ?? []).slice().sort(), [optionsByKey]);
   const visaOptions = useMemo(() => {
-    const fromMaster = services.filter(s => s.master_key === "visa_services").map(s => s.service_name);
+    const fromMaster = services.filter(s => s.master_key === "visa_immigration").map(s => s.service_name);
     const fromClients = clients.map(c => c.visaCategory).filter(Boolean) as string[];
     return Array.from(new Set([...fromMaster, ...fromClients])).sort();
   }, [services, clients]);
@@ -87,17 +125,32 @@ export default function AccountingClientsPage() {
     return [...counselors, ...extras];
   }, [counselors, clients]);
 
+  const matchService = (
+    c: Client,
+    bucket: "coaching" | "visa" | "admission" | "allied" | "travel",
+    val: string,
+  ) => {
+    if (val === "ALL") return true;
+    const arr = c.linkedCrmClientId ? crmServiceMap[c.linkedCrmClientId]?.[bucket] : undefined;
+    if (arr && arr.length) return arr.includes(val);
+    return (c.servicePackage ?? "").toLowerCase().includes(val.toLowerCase());
+  };
+
   const rows = useMemo(() => clients.filter(c =>
     (country === "ALL" || c.country === country) &&
     (clientType === "ALL" || c.clientType === clientType) &&
-    (servicePackage === "ALL" || (c.servicePackage ?? "").toLowerCase().includes(servicePackage.toLowerCase())) &&
+    matchService(c, "coaching", coachingFilter) &&
+    matchService(c, "visa", visaServiceFilter) &&
+    matchService(c, "admission", admissionFilter) &&
+    matchService(c, "allied", alliedFilter) &&
+    matchService(c, "travel", travelFilter) &&
     (counselorId === "ALL" || c.counselorId === counselorId) &&
     (visaCategory === "ALL" || c.visaCategory === visaCategory) &&
     (intake === "ALL" || c.intake === intake) &&
     (paymentStatus === "ALL" ||
       (paymentStatus === "OUTSTANDING" ? c.outstandingReceivable > 0 : c.outstandingReceivable === 0)) &&
     (status === "ALL" || c.status === status),
-  ), [clients, country, clientType, servicePackage, counselorId, visaCategory, intake, paymentStatus, status]);
+  ), [clients, crmServiceMap, country, clientType, coachingFilter, visaServiceFilter, admissionFilter, alliedFilter, travelFilter, counselorId, visaCategory, intake, paymentStatus, status]);
 
   const cols = useMemo<ColDef<Client>[]>(() => [
     {
@@ -200,11 +253,39 @@ export default function AccountingClientsPage() {
                   <SelectItem key={k} value={k}>{v}</SelectItem>)}
               </SelectContent>
             </Select>
-            <Select value={servicePackage} onValueChange={setServicePackage}>
-              <SelectTrigger className="w-[200px] h-9"><SelectValue placeholder="Service" /></SelectTrigger>
+            <Select value={coachingFilter} onValueChange={setCoachingFilter}>
+              <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Coaching" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">All services</SelectItem>
-                {servicePackageOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                <SelectItem value="ALL">All coaching</SelectItem>
+                {coachingOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={visaServiceFilter} onValueChange={setVisaServiceFilter}>
+              <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Visa & Immigration" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All visa & immigration</SelectItem>
+                {visaServiceOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={admissionFilter} onValueChange={setAdmissionFilter}>
+              <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Admission" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All admission</SelectItem>
+                {admissionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={alliedFilter} onValueChange={setAlliedFilter}>
+              <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Allied" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All allied</SelectItem>
+                {alliedOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={travelFilter} onValueChange={setTravelFilter}>
+              <SelectTrigger className="w-[180px] h-9"><SelectValue placeholder="Travel & Financial" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All travel & financial</SelectItem>
+                {travelOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={counselorId} onValueChange={setCounselorId}>
