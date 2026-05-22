@@ -420,14 +420,15 @@ const Users = () => {
               if (!resetUser) return;
               if (newPw.length < 8 || newPw.length > 72) { toast.error("Password must be 8–72 characters"); return; }
               setResetBusy(true);
-              const { data, error } = await supabase.functions.invoke("admin-users", {
-                body: { action: "reset_password", user_id: resetUser.id, password: newPw },
-              });
-              setResetBusy(false);
-              const msg = await extractFnError(data, error as any);
-              if (msg) { toast.error(msg); return; }
-              toast.success("Password updated");
-              setResetUser(null);
+              try {
+                await callAdminUsers({ action: "reset_password", user_id: resetUser.id, password: newPw });
+                toast.success("Password updated");
+                setResetUser(null);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Password update failed");
+              } finally {
+                setResetBusy(false);
+              }
             }}
             className="space-y-4"
           >
