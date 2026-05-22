@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { supabase } from "@/integrations/supabase/client";
+import { appendAllPages } from "./combinePdfs";
 
 interface DocItem {
   name: string;
@@ -117,9 +118,16 @@ export async function generateBinder(input: BinderInput): Promise<Uint8Array> {
       const { data, error } = await supabase.storage.from("client-documents").download(doc.storage_path);
       if (error || !data) throw error;
       const bytes = new Uint8Array(await data.arrayBuffer());
-      const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
-      const pages = await finalPdf.copyPages(src, src.getPageIndices());
-      pages.forEach((p) => finalPdf.addPage(p));
+      const src = await PDFDocument.load(bytes, {
+        ignoreEncryption: true,
+        updateMetadata: false,
+        throwOnInvalidObject: false,
+      });
+      const added = await appendAllPages(finalPdf, src);
+      if (added === 0) {
+        const err = finalPdf.addPage([595, 842]);
+        err.drawText(`Could not embed pages from: ${doc.file_name}`, { x: 50, y: 780, size: 12, font: helvBold, color: rgb(0.83,0.13,0.18) });
+      }
     } catch (e) {
       const err = finalPdf.addPage([595, 842]);
       err.drawText(`Failed to embed: ${doc.file_name}`, { x: 50, y: 780, size: 12, font: helvBold, color: rgb(0.83,0.13,0.18) });
