@@ -423,6 +423,18 @@ export default function AiStudioPage() {
           <TabsContent value="library" className="space-y-4">
             <BrandLibraryPanel />
           </TabsContent>
+
+          <TabsContent value="stock" className="space-y-4">
+            <StockImagesPanel
+              onUseAsReference={(dataUrl, name) =>
+                setRefs((cur) => [...cur, { data_url: dataUrl, role: "subject", source: "upload", name }])
+              }
+            />
+          </TabsContent>
+
+          <TabsContent value="video" className="space-y-4">
+            <VideoClipPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
