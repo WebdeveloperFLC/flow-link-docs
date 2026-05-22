@@ -171,8 +171,8 @@ Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject w
         if (aiRes.status === 401) {
           return new Response(JSON.stringify({ error: "OpenAI rejected the API key (401). Check OPENAI_API_KEY." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        if (t.includes("insufficient_quota") || t.includes("billing")) {
-          return new Response(JSON.stringify({ error: "OpenAI account has no remaining credits. Add billing on platform.openai.com.", details: t.slice(0, 400) }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (t.includes("insufficient_quota") || t.includes("billing") || t.includes("hard_limit") || t.includes("quota")) {
+          return new Response(JSON.stringify({ error: "OpenAI account has no remaining credits. Falling back to Gemini Premium if available.", details: t.slice(0, 400) }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
         errors.push(`variant ${i + 1}: ${aiRes.status} ${t.slice(0, 300)}`);
         continue;
