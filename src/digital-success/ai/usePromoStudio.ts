@@ -472,6 +472,7 @@ export function usePromoStudio() {
     getSignedUrl, saveToHub, fileToDataUrl,
     listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
     deleteGeneration, deleteGeneratedImage,
+    generateStockImages, uploadVideoClip,
   };
 }
 
