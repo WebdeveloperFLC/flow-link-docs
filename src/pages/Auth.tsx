@@ -29,13 +29,35 @@ const Auth = () => {
     const parsed = schema.safeParse({ email: fd.get("email"), password: fd.get("password") });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: parsed.data.email,
-      password: parsed.data.password,
-    });
-    setBusy(false);
-    if (error) toast.error(error.message);
-    else toast.success("Welcome back");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
+      if (error) {
+        const msg = error.message || "";
+        if (/invalid login credentials/i.test(msg)) {
+          toast.error("Wrong email or password. If you reset it recently, use the new password.");
+        } else if (/email not confirmed/i.test(msg)) {
+          toast.error("Email not confirmed yet — ask your admin to confirm your account.");
+        } else if (/too many|rate/i.test(msg)) {
+          toast.error("Too many attempts. Wait a minute and try again.");
+        } else {
+          toast.error(msg);
+        }
+      } else {
+        toast.success("Welcome back");
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+        toast.error("Can't reach the server. Check your internet / VPN / ad-blocker and try again.");
+      } else {
+        toast.error(msg);
+      }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
