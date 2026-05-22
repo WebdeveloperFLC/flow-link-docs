@@ -38,7 +38,7 @@ export interface PosterBrief {
   custom_instructions: string;
   use_brand: boolean;
   model?: string;
-  quality?: "standard" | "premium";
+  quality?: "standard" | "premium" | "premium_openai";
   references?: RefImage[];
   contact_phone?: string;
   contact_email?: string;
@@ -91,7 +91,10 @@ export function usePromoStudio() {
         ...brief,
         references: refs.map(({ data_url, role }) => ({ data_url, role })),
       };
-      const { data, error } = await supabase.functions.invoke("dsh-ai-generate-poster", { body: payload });
+      const fnName = brief.quality === "premium_openai"
+        ? "dsh-ai-generate-poster-openai"
+        : "dsh-ai-generate-poster";
+      const { data, error } = await supabase.functions.invoke(fnName, { body: payload });
       if (error) {
         const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
         throw new Error(ctxMsg || error.message || "Generation failed");
