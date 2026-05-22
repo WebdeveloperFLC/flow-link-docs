@@ -1,27 +1,51 @@
-# Fix: "Object not found" on Saved Hub
+## Problem
 
-## What's happening
+The Lead form's **Service Required → Visa & Immigration** tab is populated from `service_catalogue` where `master_key = 'visa_immigration'` (e.g. Canada SDS, UK Student, USA F1, Australia Subclass 500, Visit Visa, PR streams, etc.).
 
-`SavedHubPanel.refresh()` (in `src/digital-success/ai/SavedHubPanel.tsx`) does:
+The Workflow Templates editor currently exposes:
+- **Country** — already from the countries master ✅
+- **Application Category** — wired to `useMasterLabels("application_types")`, a different/legacy list that no longer matches what is selected on the lead. ❌
 
-```ts
-const entries = await Promise.all(
-  data.filter(r => r.storage_path)
-      .map(async r => [r.id, await studio.getSignedUrl(r.storage_path)]),
-);
-```
+This break means a lead's selected visa service can never match a workflow template's category, so the document checklist never auto-applies after a lead is created/converted.
 
-`getSignedUrl` calls `supabase.storage.from("dsh-media").createSignedUrl(path, 3600)`. If **any** row's file has been deleted from the `dsh-media` bucket (orphan `dsh_media` row), that call throws `Object not found`. Because everything is inside one `Promise.all`, the whole batch rejects → no thumbnails get URLs (all cards render as grey placeholders) and the catch block shows the `Object not found` toast.
+The user wants the Workflow Template's "Category" dropdown to be the **same Visa & Immigration list** used in the Lead form, under the label **"Application Category"** (label is already correct in the editor — just the data source is wrong).
 
-This is a data-state issue, not a code regression — it appeared because at least one saved Hub asset's underlying file is gone (manually removed, bucket cleanup, or a failed save).
+## Fix (single, surgical change)
 
-## Fix
+**File: `src/components/templates/TemplateEditorDialog.tsx`**
 
-Only touch `src/digital-success/ai/SavedHubPanel.tsx` (frontend only):
+1. Remove `const APPLICATION_TYPES = useMasterLabels("application_types");`.
+2. Add a new state + effect that loads Visa & Immigration services from `service_catalogue`:
+   ```ts
+   const [visaServices, setVisaServices] = useState<{ code: string; name: string; country?: string | null }[]>([]);
+   useEffect(() => {
+     if (!open) return;
+     fetchServiceCatalogue("visa_immigration").then((rows) =>
+       setVisaServices(rows.map((r) => ({
+         code: r.service_code || r.id,
+         name: r.service_name,
+         country: r.country_tag ?? null,
+       })))
+     ).catch(() => setVisaServices([]));
+   }, [open]);
+   ```
+3. Replace the Application Category `<Select>` options:
+   - Use `visaServices` instead of `APPLICATION_TYPES`.
+   - Optionally filter by the currently selected `country` (match `country_tag`) so the user only sees services for that country; fall back to all if none match.
+   - Value stored in `category` = the service's `service_code` (stable, language-independent) and the display label = `service_name`.
+4. Keep the rest of the editor (sections, items, save) untouched. `workflow_templates.category` stays a `text` column — no schema change needed.
 
-1. Replace `Promise.all` with `Promise.allSettled` so one missing file can't poison the batch.
-2. Per row, store either a signed URL or a `missing: true` flag in state.
-3. Render missing rows with a clear "File no longer available" placeholder (warning icon + message) instead of a blank grey box. Disable Open / Download for those cards; keep the **Delete** button enabled so the user can prune the orphan row from the Hub.
-4. Remove the noisy `toast.error("Failed to load saved assets")` for this specific case — only toast on genuine list-query failures.
+**File: `src/pages/Templates.tsx`**
 
-No backend, schema, or other component changes. After the fix, broken entries are visible and removable, and the rest of the gallery loads normally.
+- The card subtitle currently shows raw `t.category`. After the change it will show a service code (e.g. `VI_CA_SDS`). Map it back to the human name using a small lookup built from the same `fetchServiceCatalogue("visa_immigration")` call (or `fetchServiceCodeMap()` already in `src/lib/leads.ts`). One small render change, no other logic affected.
+
+## What this restores
+
+- A lead created with country = **Canada** and visa service = **Canada SDS** will now match the workflow template `country = Canada` + `category = Canada SDS (VI_CA_SDS)`, so the document binder auto-applies as before.
+- Admins setting up templates pick from the exact same list the counsellors see on the lead form — no more drift between the two masters.
+
+## Out of scope (not touched)
+
+- No DB migration. `workflow_templates.category` remains `text`.
+- No changes to the lead form, ServiceTabs, or `service_catalogue` data.
+- No changes to existing templates' rows; admins can edit them to re-pick the matching service if their old `category` value is now an orphan string (we'll show the raw value in that case so nothing disappears).
