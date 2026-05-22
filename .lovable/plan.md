@@ -1,55 +1,47 @@
-## Goal
+## What I found
 
-Replace the current three stacked document surfaces on the client detail page with **one unified, section-based view** so the page is no longer messy or repetitive.
+- The documents are not deleted: this client still has 7 active documents and 0 trashed documents.
+- The “vanished” effect is caused by the new UI only rendering documents where `document.section_id === currentSection.id`.
+- Some section matching is inconsistent: the template uses section keys like `academics`, `work_experience`, and `other_documents`, while the fallback mapper still prefers older keys like `academic`, `experience`, and `other`.
+- The unified UI is also missing the previous “default document / required checklist” clarity because uploaded documents and default checklist rows are not displayed as one complete row per requirement.
 
-Today the page renders three overlapping surfaces:
+## Plan
 
-1. **Document checklist card** (top) — required items grouped by section, with link/unlink/remove.
-2. **Sections cards** (middle) — `SectionBuilderCard` per section for upload + combine binder.
-3. **All uploaded documents (flat list)** (bottom accordion) — view/download/share/delete.
+1. **Fix section mapping so documents reappear reliably**
+   - Update the section inference helper to understand all active section keys:
+     - `academic` and `academics`
+     - `experience` and `work_experience`
+     - `financial` and `finance`
+     - `institutional`, `institution_docs`, `supporting`
+     - `other`, `additional`, `other_documents`
+   - In `ClientDetail`, render documents in a section by either:
+     - their saved `section_id`, or
+     - inferred section from their document type/custom title when saved section is missing, stale, archived, or mismatched.
+   - Keep existing uploaded files; do not delete or recreate them.
 
-We will collapse 1, 2 and 3 into a single "Case documents" surface where each section appears exactly once and contains everything for that section.
+2. **Restore the workflow as section-wise default checklist rows**
+   - For each workflow/template section, show every default required/optional document row from the assigned template.
+   - If an uploaded file matches that default row, show it inside the same row as `Ready`/`Verified` instead of separating it into a different uploaded-only list.
+   - If no upload exists, keep the row visible as `Pending`/`Optional` with the default marker.
+   - Show non-template uploaded files under a small “Additional uploaded documents” area inside the correct section, not as repeated top/middle/bottom sections.
 
-## New unified surface
+3. **Make the UI cleaner and less confusing**
+   - Rename the visual flow inside each card to:
+     - section title + ready/total count
+     - checklist/default rows
+     - additional uploads
+     - one upload button
+     - one combine/binder button
+   - Add a clear `Default` badge for template-required rows and an `Added` badge only for manually-added requirements.
+   - Remove confusing empty drop-zone messaging when a section already has pending default rows; keep upload affordance compact.
 
-A single card titled **"Case documents"** at the top of the left column. Inside, sections render in order. For each section:
+4. **Restore documents that are effectively hidden**
+   - Add a safe client-side recovery pass for active documents whose `section_id` points to archived/legacy sections or a wrong bucket.
+   - Reassign them to the best active section based on document type/custom title.
+   - This will restore visibility without touching storage files.
 
-- Section header with: name, `ready / total` counter, `Upload to <section>`, `Auto/Manual order`, and a single section-level **Combine** action (with built-in multi-select).
-- Body lists rows in this order:
-  1. **Required & optional checklist items** for that section (status badge: Ready / Verified / Pending / Optional / Rejected / Reissue). If a doc is attached → show file name + view/download/share/delete/verify icons inline. If not attached → show `Link doc` + `Remove from checklist` actions (current behavior, just inline).
-  2. **Other uploaded docs in this section that aren't tied to a checklist item** — same inline action row (view/download/share/verify/delete/optimize).
-- One **checkbox per row** drives multi-select; the section header's **Combine** button uses the selection (or all rows if none selected) to produce / refresh the section binder. This replaces the separate "Combine N files" button currently inside `SectionBuilderCard`.
-- Drag-to-reorder stays available when section is in Manual order mode.
-
-Below the unified card we keep, unchanged:
-- Generated binders card
-- Custom binders panel
-- Final binder panel
-- Profile / letters / forms / etc.
-
-The top-right **page actions** keep `Grouped binders` and `Full binder` buttons (they operate across all sections).
-
-## What gets removed
-
-- The standalone "Document checklist" card block (lines ~776–933 of `src/pages/ClientDetail.tsx`).
-- The standalone "Sections · upload into the right one…" block (lines ~954–997).
-- The "All uploaded documents (flat list)" accordion (lines ~999–1075).
-- The internal per-row "Combine"/"Merge into one" UI inside `SectionBuilderCard` (replaced by the unified section-header combine + checkbox selection).
-
-## What gets added / changed
-
-- New component `src/components/clients/CaseDocumentsCard.tsx` that renders the unified section list and owns:
-  - row composition (checklist item rows + orphan-doc rows),
-  - per-row checkbox selection,
-  - section header (`Upload`, `Auto/Manual order`, `Combine selected/all`),
-  - all row actions currently spread across the three surfaces (view, download, share link, verify, delete, optimize, link/unlink to checklist, remove from checklist, drag reorder).
-- `ClientDetail.tsx` is trimmed to render `<CaseDocumentsCard />` once where the checklist card used to be, and the three old blocks are deleted.
-- `SectionBuilderCard.tsx` is either deleted or reduced to a small helper used by the new card (the existing combine/merge logic in it is reused — only the UI wrapper changes).
-- "New section" button (admin only) moves into the `CaseDocumentsCard` header.
-- No backend/schema changes. No changes to upload/extraction logic, checklist linking semantics, or binder generation logic — only UI composition.
-
-## Out of scope
-
-- Auth, user search, password reset (already addressed previously).
-- Right-column cards (Access, Portal access, Custom binders, People).
-- Changing how documents are auto-classified into sections.
+5. **Validate after implementation**
+   - Confirm this client still shows all 7 active documents.
+   - Confirm Canada PGWP shows all 17 default checklist documents section-wise.
+   - Confirm uploaded documents appear against the correct default rows where possible.
+   - Confirm remaining missing items stay visible as pending, not vanished.
