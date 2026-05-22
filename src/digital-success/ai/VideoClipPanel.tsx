@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Film, Save, Download } from "lucide-react";
+import { Loader2, Film, Save, Download, Sparkles } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { usePromoStudio } from "./usePromoStudio";
+import { supabase } from "@/integrations/supabase/client";
 
 type Aspect = "9:16" | "16:9" | "1:1";
 
@@ -19,6 +21,16 @@ const SIZE: Record<Aspect, { w: number; h: number }> = {
 
 export function VideoClipPanel() {
   const studio = usePromoStudio();
+  const [mode, setMode] = useState<"ai" | "kenburns">("ai");
+  // AI mode state
+  const [aiConcept, setAiConcept] = useState("");
+  const [aiStyle, setAiStyle] = useState<"cinematic" | "documentary" | "festive" | "editorial">("festive");
+  const [aiAspect, setAiAspect] = useState<"16:9" | "9:16" | "1:1">("16:9");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiVideoUrl, setAiVideoUrl] = useState<string | null>(null);
+  const [aiVideoPath, setAiVideoPath] = useState<string | null>(null);
+
+  // Ken Burns mode state
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [concept, setConcept] = useState("");
   const [headline, setHeadline] = useState("");
@@ -29,6 +41,46 @@ export function VideoClipPanel() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoPath, setVideoPath] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  async function onGenerateAi() {
+    if (!aiConcept.trim()) return toast.error("Describe the clip first");
+    setAiGenerating(true);
+    setAiVideoUrl(null);
+    setAiVideoPath(null);
+    try {
+      const res = await studio.generateVideoFromConcept({
+        concept: aiConcept,
+        style: aiStyle,
+        aspect: aiAspect,
+        duration: 5,
+      });
+      const { data: signed } = await supabase.storage.from("dsh-media").createSignedUrl(res.path, 60 * 60);
+      setAiVideoUrl(signed?.signedUrl ?? null);
+      setAiVideoPath(res.path);
+      toast.success("Video generated");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Generation failed");
+    } finally { setAiGenerating(false); }
+  }
+
+  async function onSaveAiToHub() {
+    if (!aiVideoPath) return;
+    try {
+      await studio.saveToHub({
+        storage_path: aiVideoPath,
+        title: aiConcept.slice(0, 60) || `AI clip ${new Date().toLocaleDateString()}`,
+        content_type: "reel",
+        content_scope: "common",
+        description: aiConcept,
+      });
+      toast.success("Saved to Hub");
+    } catch (e: any) {
+      const msg = String(e?.message ?? "");
+      if (e?.code === "42501" || /row-level security|permission/i.test(msg)) {
+        toast.error("You don't have permission to save to the Hub. Ask an admin to grant Digital Success edit access.");
+      } else { toast.error(msg || "Save failed"); }
+    }
+  }
 
   function loadImage(file: File): Promise<HTMLImageElement> {
     return new Promise((res, rej) => {
@@ -155,6 +207,73 @@ export function VideoClipPanel() {
     <Card>
       <CardHeader><CardTitle>Concept → video clip</CardTitle></CardHeader>
       <CardContent className="space-y-3">
+        <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
+          <TabsList>
+            <TabsTrigger value="ai"><Sparkles className="size-3.5 mr-1.5" />Generate from concept (AI)</TabsTrigger>
+            <TabsTrigger value="kenburns"><Film className="size-3.5 mr-1.5" />Animate an image (Ken Burns)</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="ai" className="space-y-3 pt-3">
+            <p className="text-sm text-muted-foreground">
+              Describe the scene. We'll generate a real 5-second video clip with people and motion — no reference image needed.
+            </p>
+            <div className="grid gap-2">
+              <Label>Concept</Label>
+              <Textarea
+                rows={3}
+                value={aiConcept}
+                onChange={(e) => setAiConcept(e.target.value)}
+                placeholder="Indian family laughing together and celebrating Christmas in Canada. Parents, children, and grandchildren altogether around a decorated tree."
+              />
+            </div>
+            <div className="flex flex-wrap items-end gap-3">
+              <div className="grid gap-1">
+                <Label className="text-xs">Style</Label>
+                <Select value={aiStyle} onValueChange={(v: any) => setAiStyle(v)}>
+                  <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="festive">Warm & festive</SelectItem>
+                    <SelectItem value="cinematic">Cinematic</SelectItem>
+                    <SelectItem value="documentary">Documentary</SelectItem>
+                    <SelectItem value="editorial">Editorial</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1">
+                <Label className="text-xs">Aspect</Label>
+                <Select value={aiAspect} onValueChange={(v: any) => setAiAspect(v)}>
+                  <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="16:9">Landscape 16:9</SelectItem>
+                    <SelectItem value="9:16">Story 9:16</SelectItem>
+                    <SelectItem value="1:1">Square 1:1</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="button" className="ml-auto" onClick={onGenerateAi} disabled={aiGenerating}>
+                {aiGenerating ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Sparkles className="size-4 mr-2" />}
+                {aiGenerating ? "Generating (30–90s)…" : "Generate clip"}
+              </Button>
+            </div>
+            {aiGenerating && (
+              <p className="text-xs text-muted-foreground">Rendering with AI video model. This typically takes 30–90 seconds — keep this tab open.</p>
+            )}
+            {aiVideoUrl && (
+              <div className="space-y-2">
+                <video src={aiVideoUrl} controls className="w-full rounded-md border max-h-[480px] bg-black" />
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" onClick={() => studio.downloadAsset(aiVideoUrl, "flc-ai-clip.mp4")}>
+                    <Download className="size-4 mr-2" />Download
+                  </Button>
+                  <Button type="button" onClick={onSaveAiToHub} disabled={!aiVideoPath}>
+                    <Save className="size-4 mr-2" />Save to Hub
+                  </Button>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="kenburns" className="space-y-3 pt-3">
         <p className="text-sm text-muted-foreground">
           Pick a base image (a generated poster, brand photo, or upload) and add a headline. We render a short cinematic
           Ken-Burns clip with subtle zoom and text reveal, ready to share to WhatsApp/Reels.
@@ -224,6 +343,8 @@ export function VideoClipPanel() {
             </p>
           </div>
         )}
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
