@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
+import { callAdminUsers } from "@/lib/adminUsers";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { AppRole } from "@/contexts/AuthContext";
@@ -47,17 +47,16 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
-    const { data, error } = await supabase.functions.invoke("admin-users", {
-      body: { action: "create", ...parsed.data },
-    });
-    setBusy(false);
-    if (error || (data as { error?: string })?.error) {
-      toast.error((data as { error?: string })?.error ?? error?.message ?? "Failed to add user");
-      return;
+    try {
+      await callAdminUsers({ action: "create", ...parsed.data });
+      toast.success("Account created");
+      onOpenChange(false);
+      onCreated();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to add user");
+    } finally {
+      setBusy(false);
     }
-    toast.success("Account created — verification email sent");
-    onOpenChange(false);
-    onCreated();
   };
 
   return (

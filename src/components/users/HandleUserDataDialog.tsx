@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { supabase } from "@/integrations/supabase/client";
+import { callAdminUsers } from "@/lib/adminUsers";
 import { toast } from "sonner";
 
 export type LifecycleAction = "suspend" | "revoke" | "delete";
@@ -41,23 +41,24 @@ export const HandleUserDataDialog = ({ open, onOpenChange, action, userId, userN
     } else {
       // suspend/revoke: optionally transfer first
       if (mode === "transfer") {
-        const { data: t, error: te } = await supabase.functions.invoke("admin-users", {
-          body: { action: "transfer_data", from_user_id: userId, to_user_id: target },
-        });
-        if (te || (t as { error?: string })?.error) {
+        try {
+          await callAdminUsers({ action: "transfer_data", from_user_id: userId, to_user_id: target });
+        } catch (e) {
           setBusy(false);
-          toast.error((t as { error?: string })?.error ?? te?.message ?? "Transfer failed");
+          toast.error(e instanceof Error ? e.message : "Transfer failed");
           return;
         }
       }
       body.action = action;
     }
-    const { data, error } = await supabase.functions.invoke("admin-users", { body });
-    setBusy(false);
-    if (error || (data as { error?: string })?.error) {
-      toast.error((data as { error?: string })?.error ?? error?.message ?? "Action failed");
+    try {
+      await callAdminUsers(body);
+    } catch (e) {
+      setBusy(false);
+      toast.error(e instanceof Error ? e.message : "Action failed");
       return;
     }
+    setBusy(false);
     toast.success("Done");
     onOpenChange(false);
     onDone();

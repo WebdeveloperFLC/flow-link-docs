@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
+import { callAdminUsers } from "@/lib/adminUsers";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { HandleUserDataDialog, LifecycleAction } from "@/components/users/HandleUserDataDialog";
 import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog";
@@ -96,7 +97,9 @@ const Users = () => {
     const q = query.trim().toLowerCase();
     return profiles.filter((p) => {
       if (q) {
-        const hay = `${p.full_name ?? ""} ${p.email ?? ""}`.toLowerCase();
+        const userRoles = rolesFor(p.id);
+        const roleText = userRoles.flatMap((r) => [r, roleOptionLabel(r), ROLE_LABELS[r], ROLE_SHORT[r]]).join(" ");
+        const hay = `${p.full_name ?? ""} ${p.email ?? ""} ${p.status ?? "active"} ${roleText}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       const userRoles = rolesFor(p.id);
@@ -143,26 +146,14 @@ const Users = () => {
     }
   };
 
-  const extractFnError = async (
-    data: unknown,
-    error: { message?: string; context?: Response } | null,
-  ): Promise<string | null> => {
-    if ((data as { error?: string })?.error) return (data as { error?: string }).error!;
-    if (error?.context && typeof (error.context as Response).json === "function") {
-      try {
-        const body = await (error.context as Response).clone().json();
-        if (body?.error) return body.error as string;
-      } catch {/* ignore */}
-    }
-    return error?.message ?? null;
-  };
-
   const callAction = async (body: Record<string, unknown>, successMsg: string) => {
-    const { data, error } = await supabase.functions.invoke("admin-users", { body });
-    const msg = await extractFnError(data, error as any);
-    if (msg) { toast.error(msg); return; }
-    toast.success(successMsg);
-    await load();
+    try {
+      await callAdminUsers(body);
+      toast.success(successMsg);
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Action failed");
+    }
   };
 
   const candidatesFor = (excludeId: string) =>
@@ -191,7 +182,7 @@ const Users = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or email…"
+              placeholder="Search name, email, role, status…"
               className="pl-8 h-9"
             />
           </div>
@@ -429,14 +420,15 @@ const Users = () => {
               if (!resetUser) return;
               if (newPw.length < 8 || newPw.length > 72) { toast.error("Password must be 8–72 characters"); return; }
               setResetBusy(true);
-              const { data, error } = await supabase.functions.invoke("admin-users", {
-                body: { action: "reset_password", user_id: resetUser.id, password: newPw },
-              });
-              setResetBusy(false);
-              const msg = await extractFnError(data, error as any);
-              if (msg) { toast.error(msg); return; }
-              toast.success("Password updated");
-              setResetUser(null);
+              try {
+                await callAdminUsers({ action: "reset_password", user_id: resetUser.id, password: newPw });
+                toast.success("Password updated");
+                setResetUser(null);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Password update failed");
+              } finally {
+                setResetBusy(false);
+              }
             }}
             className="space-y-4"
           >
