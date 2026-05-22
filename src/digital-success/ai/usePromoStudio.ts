@@ -149,6 +149,53 @@ export function usePromoStudio() {
     } finally { setLoading(false); }
   }
 
+  async function generateStockImages(args: {
+    concept: string;
+    style?: "photoreal" | "cinematic" | "editorial" | "illustration";
+    aspect?: "landscape" | "portrait" | "square" | "story";
+    variations?: number;
+    quality?: "fast" | "premium";
+  }) {
+    setLoading(true); setError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("dsh-ai-generate-stock", { body: args });
+      if (error) {
+        const ctxMsg = await readFunctionError(error, "Stock generation failed");
+        throw new Error(ctxMsg);
+      }
+      if (!data?.ok) throw new Error(data?.error || "Stock generation failed");
+      return data as { generation_id: string; image_paths: string[]; errors: string[] };
+    } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
+    finally { setLoading(false); }
+  }
+
+  /** Upload a client-recorded video clip to storage and log a generation row. */
+  async function uploadVideoClip(args: { blob: Blob; brief: any; source_path?: string | null }) {
+    setLoading(true); setError(null);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const user = auth?.user;
+      if (!user) throw new Error("Not signed in");
+      const ext = args.blob.type.includes("mp4") ? "mp4" : "webm";
+      const path = `ai/video/${user.id}/${crypto.randomUUID()}.${ext}`;
+      const up = await supabase.storage.from("dsh-media").upload(path, args.blob, {
+        contentType: args.blob.type || "video/webm",
+        upsert: false,
+      });
+      if (up.error) throw up.error;
+      const { data: gen } = await supabase.from("dsh_ai_generations").insert({
+        user_id: user.id,
+        kind: "video",
+        brief: args.brief,
+        prompt: args.brief?.concept ?? null,
+        image_paths: [path],
+        model: "client/ken-burns-canvas",
+      }).select("id").single();
+      return { generation_id: gen?.id ?? null, path };
+    } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
+    finally { setLoading(false); }
+  }
+
   async function editImageInternal(image_data_urls: string | string[], instruction: string) {
     const arr = Array.isArray(image_data_urls) ? image_data_urls : [image_data_urls];
     const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", {
@@ -425,6 +472,7 @@ export function usePromoStudio() {
     getSignedUrl, saveToHub, fileToDataUrl,
     listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
     deleteGeneration, deleteGeneratedImage,
+    generateStockImages, uploadVideoClip,
   };
 }
 

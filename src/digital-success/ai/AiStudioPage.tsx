@@ -9,12 +9,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap, Trash2 } from "lucide-react";
+import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap, Trash2, Film, Search } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoStudio, type PosterBrief, type CopyPack, type RefImage, type BrandAsset, type RecentGeneration } from "./usePromoStudio";
 import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
 import { ReferenceTray } from "./ReferenceTray";
 import { BrandLibraryPanel } from "./BrandLibraryPanel";
+import { StockImagesPanel } from "./StockImagesPanel";
+import { VideoClipPanel } from "./VideoClipPanel";
 
 const PRESETS = [
   { label: "September intake flyer", patch: { intake: "September 2026", tone: "energetic", highlights: "Applications open, fast offer letter, scholarships available" } },
@@ -252,6 +254,8 @@ export default function AiStudioPage() {
             <TabsTrigger value="poster"><ImageIcon className="size-4 mr-2" />Generate poster</TabsTrigger>
             <TabsTrigger value="copy"><MessageSquareQuote className="size-4 mr-2" />Generate copy</TabsTrigger>
             <TabsTrigger value="edit"><Wand2 className="size-4 mr-2" />Edit image</TabsTrigger>
+            <TabsTrigger value="stock"><Search className="size-4 mr-2" />Stock images</TabsTrigger>
+            <TabsTrigger value="video"><Film className="size-4 mr-2" />Video clip</TabsTrigger>
             <TabsTrigger value="library"><LibraryIcon className="size-4 mr-2" />Brand Library</TabsTrigger>
           </TabsList>
 
@@ -419,6 +423,18 @@ export default function AiStudioPage() {
           <TabsContent value="library" className="space-y-4">
             <BrandLibraryPanel />
           </TabsContent>
+
+          <TabsContent value="stock" className="space-y-4">
+            <StockImagesPanel
+              onUseAsReference={(dataUrl, name) =>
+                setRefs((cur) => [...cur, { data_url: dataUrl, role: "subject", source: "upload", name }])
+              }
+            />
+          </TabsContent>
+
+          <TabsContent value="video" className="space-y-4">
+            <VideoClipPanel />
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
@@ -463,12 +479,19 @@ function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh, onD
               {r.image_paths.map((p, i) => (
                 <div key={p} className="space-y-1">
                   {urls[p] ? (
-                    <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                    /\.(webm|mp4|mov)$/i.test(p) ? (
+                      <video src={urls[p]} controls className="w-full rounded border bg-black" />
+                    ) : (
+                      <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                    )
                   ) : (
                     <div className="aspect-square bg-muted rounded animate-pulse" />
                   )}
                   <div className="flex gap-1">
-                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.png`)}>
+                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => {
+                      const ext = p.split(".").pop() || "png";
+                      onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.${ext}`);
+                    }}>
                       <Download className="size-3" />
                     </Button>
                     <Button size="sm" className="flex-1 h-7 text-xs px-2" onClick={() => onSave(p)}>
