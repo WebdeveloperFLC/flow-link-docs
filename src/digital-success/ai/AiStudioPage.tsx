@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap, Trash2, Film, Search } from "lucide-react";
+import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap, Trash2, Film, Search, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoStudio, type PosterBrief, type CopyPack, type RefImage, type BrandAsset, type RecentGeneration } from "./usePromoStudio";
 import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
@@ -17,6 +17,7 @@ import { ReferenceTray } from "./ReferenceTray";
 import { BrandLibraryPanel } from "./BrandLibraryPanel";
 import { StockImagesPanel } from "./StockImagesPanel";
 import { VideoClipPanel } from "./VideoClipPanel";
+import { SavedHubPanel } from "./SavedHubPanel";
 
 const PRESETS = [
   { label: "September intake flyer", patch: { intake: "September 2026", tone: "energetic", highlights: "Applications open, fast offer letter, scholarships available" } },
@@ -169,7 +170,8 @@ export default function AiStudioPage() {
         campaign: brief.intake,
         description: brief.highlights,
       });
-      toast.success("Saved to Hub");
+      toast.success("Saved to Hub — view it in the Saved Hub tab");
+      window.dispatchEvent(new CustomEvent("dsh-hub-refresh"));
     } catch (e: any) {
       const msg = e?.message ?? "Save failed";
       if (/row-level security|42501|permission/i.test(msg)) {
@@ -262,6 +264,7 @@ export default function AiStudioPage() {
             <TabsTrigger value="stock"><Search className="size-4 mr-2" />Stock images</TabsTrigger>
             <TabsTrigger value="video"><Film className="size-4 mr-2" />Video clip</TabsTrigger>
             <TabsTrigger value="library"><LibraryIcon className="size-4 mr-2" />Brand Library</TabsTrigger>
+            <TabsTrigger value="hub"><FolderOpen className="size-4 mr-2" />Saved Hub</TabsTrigger>
           </TabsList>
 
           {/* Shared brief */}
@@ -439,6 +442,10 @@ export default function AiStudioPage() {
 
           <TabsContent value="video" className="space-y-4">
             <VideoClipPanel />
+          </TabsContent>
+
+          <TabsContent value="hub" className="space-y-4">
+            <SavedHubPanel />
           </TabsContent>
         </Tabs>
       </div>

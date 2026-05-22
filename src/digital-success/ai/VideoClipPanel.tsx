@@ -147,7 +147,7 @@ export function VideoClipPanel() {
         content_scope: "common",
         description: concept,
       });
-      toast.success("Saved to Hub");
+      toast.success("Saved to Hub — view it in the Saved Hub tab"); window.dispatchEvent(new CustomEvent("dsh-hub-refresh"));
     } catch (e: any) { toast.error(e?.message ?? "Save failed"); }
   }
 

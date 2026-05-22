@@ -50,7 +50,7 @@ export function StockImagesPanel({ onUseAsReference }: Props) {
         content_scope: "common",
         description: concept,
       });
-      toast.success("Saved to Hub");
+      toast.success("Saved to Hub — view it in the Saved Hub tab"); window.dispatchEvent(new CustomEvent("dsh-hub-refresh"));
     } catch (e: any) {
       const msg = e?.message ?? "Save failed";
       if (/row-level security|42501|permission/i.test(msg)) {
