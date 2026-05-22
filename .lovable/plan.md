@@ -1,40 +1,37 @@
-## Add Video Clips + Image Search/Generate to AI Studio
+## Problem
 
-Extend the Digital Success AI Studio (`/digital-success/ai`) with two new capabilities alongside the existing poster generator:
+1. **"No access to Hub"** — The `dsh_media` insert RLS policy requires `admin` role OR `dsh_can(uid, 'edit')` (i.e. explicit `digital_success_hub` edit permission). Most users who can generate AI images don't have that module flag, so clicking **Hub** in Stock Images / Video / Poster panels throws an RLS error.
 
-### 1. Concept → Video Clip
-A new tab "Video Clip" in `AiStudioPage.tsx` that takes a short concept brief (institution, country, intake, vibe, duration 5s/10s, aspect ratio 9:16/16:9/1:1) and generates a short promo video.
+2. **"Page refreshes when clicking other buttons while image is rendering"** — The action buttons in `StockImagesPanel`, `VideoClipPanel`, and the result-card grid in `AiStudioPage` are `<Button>` (shadcn) without an explicit `type="button"`. When async generation triggers a re-render of a parent that wraps anything in a `<form>` (or when the browser treats the implicit submit), clicking Download/Save/Hub mid-render can cause a form submit → full page reload. Same for the file input change handlers re-mounting the canvas.
 
-- **Backend**: new edge function `dsh-ai-generate-video` that calls the Lovable AI video model (Veo via gateway) — or, if unavailable in-app, we use the platform's video generation through a server-side fetch. Optional starting frame: user can pick a reference image from the Brand Library or a previously generated poster as the first frame.
-- **Storage**: upload returned MP4 to `dsh-media` bucket, insert a row into `dsh_ai_generations` with `kind: 'video'` and `image_paths: [storage_path]` (reusing the same column to keep Recent Generations working). Add a `video/*` mime branch to the Recent Generations panel so it renders a `<video controls>` instead of `<img>`.
-- **Save to Hub**: same flow as posters, with `content_type: 'reel'`.
+## Fix Plan
 
-Honest note: video generation takes 30–90s and costs significantly more than image gen. Cap to 1 clip per request, max 10s.
+### A. Hub access (backend, migration)
+- Add a new RLS policy on `public.dsh_media` allowing **authenticated users to insert rows they uploaded themselves** (`uploaded_by = auth.uid()`), specifically for AI-generated marketing assets. Keep the existing admin/edit policy untouched.
+  - Policy: `dsh_media insert self` — `WITH CHECK (auth.uid() = uploaded_by)`.
+- Equivalent fallback for `update`/`delete` on rows the user uploaded, so they can remove their own mistakes.
+- Verify the `dsh_media_validate` trigger still passes for `content_scope='common'` (which is what `saveToHub` defaults to).
 
-### 2. Concept → Image Search / Generate (Stock Library)
-A new tab "Stock Images" that lets the user describe what they need ("Toronto skyline at dusk", "smiling Indian student with backpack") and returns 4 candidate images they can drag into the Reference Tray or save to Brand Library.
+### B. Prevent accidental form-submit refresh (frontend)
+- Add `type="button"` to every action `<Button>` in:
+  - `src/digital-success/ai/StockImagesPanel.tsx` (Generate, Use, Save, Hub)
+  - `src/digital-success/ai/VideoClipPanel.tsx` (Render clip, Download, Save to Hub)
+  - `src/digital-success/ai/AiStudioPage.tsx` result-card buttons (Download / Enhance / Save / Delete) and Generate button
+- Wrap async handlers' callers in arrow functions that don't return the promise to the event system, and add `e.preventDefault()` where a button is inside any implicit form context.
 
-Two sources, user picks per request:
-- **Generate**: edge function `dsh-ai-generate-stock` → Lovable AI Gateway, `google/gemini-3.1-flash-image-preview` (fast, pro-quality). Returns 4 variations.
-- **Search (web)**: edge function `dsh-ai-search-images` → calls Unsplash API (free, requires `UNSPLASH_ACCESS_KEY` secret) and returns 4 thumbnails with attribution. Falls back to Pexels if Unsplash key missing (`PEXELS_API_KEY`).
+### C. Stabilize "render in progress" state
+- In `StockImagesPanel`, after generating, the `results` state and signed URLs are already kept; ensure no parent state reset by memo-keying result cards on `img.path` (already done) and avoiding `studio.loading` causing the whole panel to unmount (it doesn't — confirmed). The button-type fix above addresses the refresh.
 
-Each result has buttons: **Use as reference** (adds to current poster's Reference Tray with role `subject` or `style`), **Save to Brand Library** (uploads to `dsh-media` and inserts `dsh_brand_assets` row with kind `reference`), **Download**.
+### D. Surface clearer error
+- In `onSaveToHub` (StockImagesPanel + AiStudioPage), if Supabase returns a `42501` / RLS error, show "You don't have Digital Success Hub edit permission yet — ask an admin to enable it" instead of the raw RLS message. (After migration A this should only fire for users who try to write into someone else's row.)
 
-### Files touched
-- `supabase/functions/dsh-ai-generate-video/index.ts` (new)
-- `supabase/functions/dsh-ai-generate-stock/index.ts` (new)
-- `supabase/functions/dsh-ai-search-images/index.ts` (new)
-- `src/digital-success/ai/AiStudioPage.tsx` — add two tabs
-- `src/digital-success/ai/VideoClipPanel.tsx` (new)
-- `src/digital-success/ai/StockImagesPanel.tsx` (new)
-- `src/digital-success/ai/usePromoStudio.ts` — add `generateVideo`, `generateStockImages`, `searchStockImages`
-- Recent Generations panel: detect video paths and render `<video>`
-- Secrets: optional `UNSPLASH_ACCESS_KEY` (for web search). Generation needs no extra key — uses existing `LOVABLE_API_KEY`. No `OPENAI_API_KEY` required.
+## Files Touched
 
-### Open questions before I build
-1. **Video provider** — Lovable AI Gateway currently exposes image gen but not video. For video, the cleanest path is the agent-side `videogen` tool, which isn't callable from the user's app at runtime. Two options:
-   - **A.** Server-side call to a 3rd-party video API (Replicate / fal.ai / Runway). Needs a new secret + has per-clip cost (~$0.50–$2 per 5s clip).
-   - **B.** Skip live video gen; instead let users assemble a "motion poster" — pan/zoom (Ken Burns) over a generated poster, exported as MP4 via FFmpeg in the edge function. Free, fast, but not true generative video.
-2. **Stock search provider** — Unsplash (free, 50 req/hr without app approval) vs Pexels (free, higher limits) vs paid (Shutterstock). Default to Unsplash unless you prefer Pexels.
+- **New migration** under `supabase/migrations/` — RLS additions for `dsh_media` self-insert/update/delete.
+- `src/digital-success/ai/StockImagesPanel.tsx` — button types, error message.
+- `src/digital-success/ai/VideoClipPanel.tsx` — button types.
+- `src/digital-success/ai/AiStudioPage.tsx` — button types on result cards, friendlier Save error.
 
-Tell me which video route (A or B) and which stock source, and I'll build it.
+## Out of scope
+
+- No changes to AI generation logic, no new edge functions, no design changes.
