@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap } from "lucide-react";
+import { Sparkles, Image as ImageIcon, MessageSquareQuote, Wand2, Save, Loader2, Download, Library as LibraryIcon, History, Zap, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoStudio, type PosterBrief, type CopyPack, type RefImage, type BrandAsset, type RecentGeneration } from "./usePromoStudio";
 import { useBranches, useServiceCatalogueOptions } from "../hooks/useDshMedia";
@@ -187,6 +187,36 @@ export default function AiStudioPage() {
     finally { setEnhancingPath(null); }
   }
 
+  async function onDeleteCurrent(path: string) {
+    if (!confirm("Delete this image permanently?")) return;
+    try {
+      await studio.deleteGeneratedImage(path);
+      setImages((prev) => prev.filter((p) => p.path !== path));
+      toast.success("Deleted");
+      refreshRecent();
+    } catch (e: any) { toast.error(e?.message ?? "Delete failed"); }
+  }
+
+  async function onDeleteRecentImage(path: string) {
+    if (!confirm("Delete this image permanently?")) return;
+    try {
+      await studio.deleteGeneratedImage(path);
+      setImages((prev) => prev.filter((p) => p.path !== path));
+      toast.success("Deleted");
+      refreshRecent();
+    } catch (e: any) { toast.error(e?.message ?? "Delete failed"); }
+  }
+
+  async function onDeleteRecentRow(id: string, paths: string[]) {
+    if (!confirm(`Delete this generation and all ${paths.length} image(s)?`)) return;
+    try {
+      await studio.deleteGeneration(id, paths);
+      setImages((prev) => prev.filter((p) => !paths.includes(p.path)));
+      toast.success("Deleted");
+      refreshRecent();
+    } catch (e: any) { toast.error(e?.message ?? "Delete failed"); }
+  }
+
   // Edit image
   const [editFile, setEditFile] = useState<File | null>(null);
   const [editInstruction, setEditInstruction] = useState("");
@@ -304,6 +334,9 @@ export default function AiStudioPage() {
                         <Button size="sm" className="flex-1 min-w-[88px]" onClick={() => onSave(img.path)}>
                           <Save className="size-3 mr-1" />Save
                         </Button>
+                        <Button size="sm" variant="destructive" className="flex-1 min-w-[88px]" onClick={() => onDeleteCurrent(img.path)}>
+                          <Trash2 className="size-3 mr-1" />Delete
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -317,6 +350,8 @@ export default function AiStudioPage() {
               onDownload={onDownload}
               onSave={onSave}
               onRefresh={refreshRecent}
+              onDeleteImage={onDeleteRecentImage}
+              onDeleteRow={onDeleteRecentRow}
             />
           </TabsContent>
 
@@ -392,12 +427,14 @@ function BriefForm({ brief, update, branches, serviceKeys, languages }: any) {
   return _BriefFormImpl({ brief, update, branches, serviceKeys, languages });
 }
 
-function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh }: {
+function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh, onDeleteImage, onDeleteRow }: {
   rows: RecentGeneration[];
   urls: Record<string, string>;
   onDownload: (url: string, filename: string) => void;
   onSave: (path: string) => void;
   onRefresh: () => void;
+  onDeleteImage: (path: string) => void;
+  onDeleteRow: (id: string, paths: string[]) => void;
 }) {
   if (!rows.length) return null;
   return (
@@ -409,11 +446,16 @@ function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh }: {
       <CardContent className="space-y-4">
         {rows.map((r) => (
           <div key={r.id} className="border-t pt-3 first:border-t-0 first:pt-0">
-            <div className="text-xs text-muted-foreground mb-2 flex flex-wrap gap-2">
-              <span>{new Date(r.created_at).toLocaleString()}</span>
-              <span>· {r.kind}</span>
-              {r.model && <span>· {r.model.split("/").pop()}</span>}
-              {r.brief?.institution_name && <span>· {r.brief.institution_name}</span>}
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-xs text-muted-foreground flex flex-wrap gap-2">
+                <span>{new Date(r.created_at).toLocaleString()}</span>
+                <span>· {r.kind}</span>
+                {r.model && <span>· {r.model.split("/").pop()}</span>}
+                {r.brief?.institution_name && <span>· {r.brief.institution_name}</span>}
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive hover:text-destructive" onClick={() => onDeleteRow(r.id, r.image_paths)}>
+                <Trash2 className="size-3 mr-1" />Delete all
+              </Button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
               {r.image_paths.map((p, i) => (
@@ -429,6 +471,9 @@ function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh }: {
                     </Button>
                     <Button size="sm" className="flex-1 h-7 text-xs px-2" onClick={() => onSave(p)}>
                       <Save className="size-3" />
+                    </Button>
+                    <Button size="sm" variant="destructive" className="flex-1 h-7 text-xs px-2" onClick={() => onDeleteImage(p)}>
+                      <Trash2 className="size-3" />
                     </Button>
                   </div>
                 </div>

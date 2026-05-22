@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import flcLogo from "@/assets/flc-logo.png";
 
-export type RefRole = "style" | "layout" | "subject" | "logo" | "institution_logo" | "edit_base";
+export type RefRole = "style" | "layout" | "blueprint" | "subject" | "logo" | "institution_logo" | "edit_base";
 
 export interface RefImage {
   data_url: string;
@@ -318,6 +318,32 @@ export function usePromoStudio() {
     if (error) throw error;
   }
 
+  /** Delete an entire generation row and all its storage files. */
+  async function deleteGeneration(id: string, paths: string[]) {
+    if (paths?.length) {
+      await supabase.storage.from("dsh-media").remove(paths).catch(() => {});
+    }
+    const { error } = await supabase.from("dsh_ai_generations").delete().eq("id", id);
+    if (error) throw error;
+  }
+
+  /** Delete a single generated image; prunes/strips matching dsh_ai_generations rows. */
+  async function deleteGeneratedImage(path: string) {
+    await supabase.storage.from("dsh-media").remove([path]).catch(() => {});
+    const { data } = await supabase
+      .from("dsh_ai_generations")
+      .select("id,image_paths")
+      .contains("image_paths", [path] as any);
+    for (const row of (data as any[]) ?? []) {
+      const next = (row.image_paths as string[]).filter((p) => p !== path);
+      if (next.length === 0) {
+        await supabase.from("dsh_ai_generations").delete().eq("id", row.id);
+      } else {
+        await supabase.from("dsh_ai_generations").update({ image_paths: next }).eq("id", row.id);
+      }
+    }
+  }
+
   async function setDefaultLogo(assetId: string) {
     await supabase.from("dsh_brand_assets" as any)
       .update({ is_default_brand: false })
@@ -366,6 +392,7 @@ export function usePromoStudio() {
     generatePoster, generateCopy, editImage, enhanceStored, downloadAsset, listRecentGenerations,
     getSignedUrl, saveToHub, fileToDataUrl,
     listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
+    deleteGeneration, deleteGeneratedImage,
   };
 }
 
@@ -378,7 +405,8 @@ function buildEditInstruction(brief: PosterBrief, refs: RefImage[]): string {
     if (r.role === "logo") return `Image #${n} is the FUTURE LINK LOGO — place it VERBATIM (do not redraw, recolor, re-letter) in the TOP-LEFT corner at about 18% of poster width.`;
     if (r.role === "institution_logo") return `Image #${n} is the INSTITUTION LOGO — place it VERBATIM (do not redraw, recolor, re-letter, add an "OFFICIAL LOGO" badge, or invent a crest) in the TOP-RIGHT corner at about 14% of poster width.`;
     if (r.role === "style") return `Image #${n} is a STYLE reference — match its palette/typography vibe.`;
-    if (r.role === "layout") return `Image #${n} is a LAYOUT reference — mirror its composition.`;
+    if (r.role === "layout") return `Image #${n} is a LAYOUT reference — mirror its composition; refresh copy per the brief but KEEP any visible institution wordmark, logo or landmark photo.`;
+    if (r.role === "blueprint") return `Image #${n} is a BLUEPRINT — use as master template. Preserve VERBATIM the institution name, official wordmark/logo, building/landmark photography, color scheme, DLI/identifier lines, and section structure. Only refresh intake date, highlights, and the contact footer.`;
     if (r.role === "subject") return `Image #${n} is a SUBJECT reference — feature this person/landmark.`;
     return `Image #${n} is a reference.`;
   }).join(" ");

@@ -1,49 +1,53 @@
-## Problem
+## Problems
 
-The generated posters keep showing:
-- **A made-up "University of Canada West" logo** (the model invents one because the prompt explicitly says "institution logo placeholder at top-right" — and FLC logo also gets placed top-right, so they collide).
-- **Fake contact details** like `+91-XXXXXXXXXX`, `info@futurelink.com`, `www.futurelink.com` — because the prompt never gives the model the real phone, email, or website, so it freelances placeholders.
+1. **Mirror composition loses the reference's main content.** When a user attaches an IBU poster with role `layout` ("mirror composition"), the edge function prompt currently says *"mirror its composition and grid; replace ALL text with the Brief above"* AND also says *"Do NOT draw, invent or imagine ANY university / institution / college logo, crest, shield, monogram, wordmark"* (because no `institution_logo` ref is attached). The combined effect is that IBU's name, "International Business University" wordmark, building, DLI line, etc. all disappear — the model is explicitly forbidden from reproducing them.
+
+2. **No way to delete generated images.** The grid and the "Recent generations" panel only have Download / Enhance / Save. Junk variants pile up in storage and clutter the UI.
 
 ## Fix
 
-### 1. Backend prompt (`supabase/functions/dsh-ai-generate-poster/index.ts`)
+### 1. New reference role `blueprint` (full content mirror)
 
-**Logos — never hallucinate.**
-- Replace `BRAND_DEFAULT_NO_LOGO` placeholder text. When no logo refs are attached, instruct the model: *"Do NOT draw, invent, redraw or imagine ANY logo, wordmark, badge, monogram or graduation-cap icon for Future Link Consultants or for the institution. Leave logo areas empty."*
-- Differentiate two logo roles:
-  - `logo` (FLC brand logo) → top-LEFT, ~18% width, verbatim.
-  - `institution_logo` (university/college logo) → top-RIGHT, ~14% width, verbatim.
-- If `use_brand` is on but no FLC logo ref is attached, the prompt explicitly forbids drawing a Future Link wordmark.
-- If no `institution_logo` ref is attached, the prompt forbids drawing any university logo, wordmark, crest or "OFFICIAL LOGO" badge — even if the institution name is mentioned in the body text.
+`usePromoStudio.ts` — extend `RefRole` union with `"blueprint"`.
 
-**Contact details — verbatim or omit.**
-- Accept new brief fields: `contact_phone`, `contact_email`, `contact_website`, `cta` (call-to-action line).
-- Build a `CONTACT BLOCK` instruction that:
-  - Lists ONLY the values the user provided, verbatim, in the footer.
-  - Explicitly says: *"Do NOT invent, modify, mask, or add any other phone numbers, emails, websites, or social handles. If a field is not listed here, omit it entirely — no placeholders like XXXXXXXXXX, no example.com, no lorem ipsum."*
-- If all three are empty and no CTA, omit the contact footer entirely (model instructed to leave bottom band clean / use a generic "Contact your Future Link counsellor" line).
+`ReferenceTray.tsx` — add label *"Blueprint (mirror layout AND keep institution name/logo/imagery)"*.
 
-### 2. `usePromoStudio.ts`
+`dsh-ai-generate-poster/index.ts`:
+- Detect `hasBlueprint = refs.some(r => r.role === "blueprint")`.
+- When `hasBlueprint` is true:
+  - Suppress the "do NOT draw any institution logo" rule (the institution logo/wordmark/landmark in the blueprint reference is the source of truth).
+  - Append a strong instruction for that ref: *"Reference image #N: BLUEPRINT — use as master template. Preserve VERBATIM: the institution name, official wordmark/logo, building/landmark photography, color scheme, DLI/identifier lines, section structure. Only refresh: intake date, highlights bullets, and the contact footer per the Brief above. Do NOT replace the institution name with the Brief's `institution_name` unless that field is non-empty."*
+- Tighten the existing `layout` role wording so it stops saying "replace ALL text" — change to "mirror composition; refresh copy per Brief but keep any visible institution wordmark/landmark."
 
-- Extend `RefRole` union: add `"institution_logo"`.
-- Extend `PosterBrief` with `contact_phone?`, `contact_email?`, `contact_website?`, `cta?`.
-- Update `buildEditInstruction` so `institution_logo` refs map to top-right verbatim placement (mirrors the generate path).
+### 2. Delete generated images
 
-### 3. `ReferenceTray.tsx`
+`usePromoStudio.ts` — add:
+```ts
+async function deleteGeneration(id: string, paths: string[]) {
+  if (paths?.length) await supabase.storage.from("dsh-media").remove(paths).catch(() => {});
+  const { error } = await supabase.from("dsh_ai_generations").delete().eq("id", id);
+  if (error) throw error;
+}
+async function deleteGeneratedImage(path: string) {
+  await supabase.storage.from("dsh-media").remove([path]).catch(() => {});
+  // also strip from any dsh_ai_generations.image_paths array row
+  const { data } = await supabase.from("dsh_ai_generations").select("id,image_paths").contains("image_paths", [path]);
+  for (const row of data ?? []) {
+    const next = (row.image_paths as string[]).filter((p) => p !== path);
+    if (next.length === 0) await supabase.from("dsh_ai_generations").delete().eq("id", row.id);
+    else await supabase.from("dsh_ai_generations").update({ image_paths: next }).eq("id", row.id);
+  }
+}
+```
 
-- Add `institution_logo` to `ROLE_LABEL` ("Institution logo (place verbatim, top-right)").
-- Add a third quick button: **"Add institution logo"** next to "Add logo" — routes through the same library picker, then forces the role to `institution_logo`.
-
-### 4. `AiStudioPage.tsx` (BriefForm)
-
-- Add a small **Contact details** sub-section in `BriefForm` with four optional inputs: Phone, Email, Website, CTA. Persist them on the brief.
-- Sensible default for website (e.g. `www.futurelinkconsultants.com`) but phone/email stay blank by default to force the user to supply real ones — empty = omitted, never placeheld.
-- Plumb `pickFromLibrary("logo")` to also allow the new institution-logo role: when the user clicks "Add institution logo", pass that intent through and stamp `role: "institution_logo"` on the resulting ref.
+`AiStudioPage.tsx`:
+- In the current-batch grid (lines 290–312): add a small destructive Trash button per card. On click → confirm, call `deleteGeneratedImage(path)`, remove from local `images` state, toast, refresh recent.
+- In `RecentGenerationsPanel`: add per-image Trash button (calls `deleteGeneratedImage`) and a "Delete all" button on each generation row header (calls `deleteGeneration(r.id, r.image_paths)`), then `onRefresh()`.
 
 ### Out of scope
-- Per-institution logo auto-lookup from the institutions table (could be a follow-up — for now the user attaches it manually).
-- Auto-pulling contact info from a branch/settings profile (kept manual; defaults can be added in a later pass).
-- Background removal for institution logos.
+- Trash/undo (hard delete only, with confirm dialog).
+- Bulk multi-select across rows.
+- Cross-user delete protection — RLS already restricts to user's own rows.
 
 ### Files to touch
 - `supabase/functions/dsh-ai-generate-poster/index.ts`
