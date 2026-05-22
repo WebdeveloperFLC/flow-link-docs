@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Lock } from "lucide-react";
 
 import { LeadModeToggle, type LeadMode } from "@/components/leads/LeadModeToggle";
-import { InterestedCountriesPicker } from "@/components/leads/InterestedCountriesPicker";
+import { RegionCountriesPicker } from "@/components/leads/RegionCountriesPicker";
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
 import { CountrySelect } from "@/components/leads/CountrySelect";
 import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
@@ -301,7 +301,7 @@ const LeadNew = () => {
               </div>
               <div className="space-y-1.5">
                 <Label>Countries of Interest *</Label>
-                <InterestedCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(autosave, 0); }} />
+                <RegionCountriesPicker value={interestedCountries} onChange={(v) => { setInterestedCountries(v); setTimeout(autosave, 0); }} />
               </div>
             </Card>
 
@@ -322,10 +322,6 @@ const LeadNew = () => {
                     <Input value={(f.last_education_other as string) || ""} onChange={(e) => setField("last_education_other", e.target.value)} onBlur={autosave} />
                   </div>
                 )}
-                <div className="space-y-1.5">
-                  <Label>Start Timeline</Label>
-                  <Input value={(f.start_timeline as string) || ""} onChange={(e) => setField("start_timeline", e.target.value)} onBlur={autosave} placeholder="e.g. Sep 2026" />
-                </div>
               </div>
             </Card>
 
