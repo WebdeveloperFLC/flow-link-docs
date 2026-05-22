@@ -196,27 +196,6 @@ export function usePromoStudio() {
     finally { setLoading(false); }
   }
 
-  /** Generate a real text-to-video clip via server-side providers. */
-  async function generateVideoFromConcept(args: {
-    concept: string;
-    style?: "cinematic" | "documentary" | "festive" | "editorial";
-    aspect?: "16:9" | "9:16" | "1:1";
-    duration?: 5 | 10;
-    starting_frame_data_url?: string;
-  }) {
-    setLoading(true); setError(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("dsh-ai-generate-video", { body: args });
-      if (error) {
-        const msg = await readFunctionError(error, "Video generation failed");
-        throw new Error(msg);
-      }
-      if (!data?.ok) throw new Error(data?.error || "Video generation failed");
-      return data as { generation_id: string | null; path: string; provider?: "google-veo-3-fast" | "google-veo-3-lite" | "replicate-minimax" | "pollinations" };
-    } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
-    finally { setLoading(false); }
-  }
-
   async function editImageInternal(image_data_urls: string | string[], instruction: string) {
     const arr = Array.isArray(image_data_urls) ? image_data_urls : [image_data_urls];
     const { data, error } = await supabase.functions.invoke("dsh-ai-edit-image", {
@@ -494,7 +473,6 @@ export function usePromoStudio() {
     listBrandAssets, uploadBrandAsset, deleteBrandAsset, setDefaultLogo, ensureDefaultLogo, brandAssetToDataUrl,
     deleteGeneration, deleteGeneratedImage,
     generateStockImages, uploadVideoClip,
-    generateVideoFromConcept,
   };
 }
 

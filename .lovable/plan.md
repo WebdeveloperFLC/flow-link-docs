@@ -1,28 +1,37 @@
-## Plan
+## Problem
 
-1. **Disable paid/uncertain AI video attempts by default**
-   - Add a server-side safety switch so `dsh-ai-generate-video` immediately returns a clear message when AI video generation is unavailable, instead of calling Google/Replicate/Pollinations and burning credits.
-   - Keep the existing code available behind an explicit environment flag, so it can be re-enabled later only when you confirm the Google AI Studio key has quota/billing.
+1. **"No access to Hub"** — The `dsh_media` insert RLS policy requires `admin` role OR `dsh_can(uid, 'edit')` (i.e. explicit `digital_success_hub` edit permission). Most users who can generate AI images don't have that module flag, so clicking **Hub** in Stock Images / Video / Poster panels throws an RLS error.
 
-2. **Reset the UI to the stable old workflow**
-   - Make **Animate an image (Ken Burns)** the default selected tab.
-   - Add clear copy near the AI tab explaining that text-to-video is paused to protect credits while quota is exhausted.
-   - Keep the Ken Burns render flow working because it runs in-browser and does not use AI video credits.
+2. **"Page refreshes when clicking other buttons while image is rendering"** — The action buttons in `StockImagesPanel`, `VideoClipPanel`, and the result-card grid in `AiStudioPage` are `<Button>` (shadcn) without an explicit `type="button"`. When async generation triggers a re-render of a parent that wraps anything in a `<form>` (or when the browser treats the implicit submit), clicking Download/Save/Hub mid-render can cause a form submit → full page reload. Same for the file input change handlers re-mounting the canvas.
 
-3. **Improve the failure behavior**
-   - If AI video is paused or quota is exhausted, show a clean toast/message instead of a scary runtime-looking error.
-   - Do not call backup providers that are known to fail or timeout unless explicitly enabled.
+## Fix Plan
 
-4. **No credit-burning validation**
-   - Validate by inspecting code paths only.
-   - Do not trigger real video generation, do not run edge-function tests that call providers, and do not deploy until you approve implementation.
+### A. Hub access (backend, migration)
+- Add a new RLS policy on `public.dsh_media` allowing **authenticated users to insert rows they uploaded themselves** (`uploaded_by = auth.uid()`), specifically for AI-generated marketing assets. Keep the existing admin/edit policy untouched.
+  - Policy: `dsh_media insert self` — `WITH CHECK (auth.uid() = uploaded_by)`.
+- Equivalent fallback for `update`/`delete` on rows the user uploaded, so they can remove their own mistakes.
+- Verify the `dsh_media_validate` trigger still passes for `content_scope='common'` (which is what `saveToHub` defaults to).
 
-## Technical details
+### B. Prevent accidental form-submit refresh (frontend)
+- Add `type="button"` to every action `<Button>` in:
+  - `src/digital-success/ai/StockImagesPanel.tsx` (Generate, Use, Save, Hub)
+  - `src/digital-success/ai/VideoClipPanel.tsx` (Render clip, Download, Save to Hub)
+  - `src/digital-success/ai/AiStudioPage.tsx` result-card buttons (Download / Enhance / Save / Delete) and Generate button
+- Wrap async handlers' callers in arrow functions that don't return the promise to the event system, and add `e.preventDefault()` where a button is inside any implicit form context.
 
-- Update `supabase/functions/dsh-ai-generate-video/index.ts` with an early guard such as `ENABLE_AI_VIDEO_GENERATION === "true"` before any provider calls.
-- Update `src/digital-success/ai/VideoClipPanel.tsx` so Ken Burns is default and the AI flow communicates paused/unavailable state gracefully.
-- Update `src/digital-success/ai/usePromoStudio.ts` only if needed to map the paused response into a friendly user-facing error.
+### C. Stabilize "render in progress" state
+- In `StockImagesPanel`, after generating, the `results` state and signed URLs are already kept; ensure no parent state reset by memo-keying result cards on `img.path` (already done) and avoiding `studio.loading` causing the whole panel to unmount (it doesn't — confirmed). The button-type fix above addresses the refresh.
 
-## Result
+### D. Surface clearer error
+- In `onSaveToHub` (StockImagesPanel + AiStudioPage), if Supabase returns a `42501` / RLS error, show "You don't have Digital Success Hub edit permission yet — ask an admin to enable it" instead of the raw RLS message. (After migration A this should only fire for users who try to write into someone else's row.)
 
-The app returns to the old safe behavior for video creation, avoids spending Google AI Studio or Replicate credits, and preserves the AI video code for later reactivation when you add a key with quota or enable higher limits.
+## Files Touched
+
+- **New migration** under `supabase/migrations/` — RLS additions for `dsh_media` self-insert/update/delete.
+- `src/digital-success/ai/StockImagesPanel.tsx` — button types, error message.
+- `src/digital-success/ai/VideoClipPanel.tsx` — button types.
+- `src/digital-success/ai/AiStudioPage.tsx` — button types on result cards, friendlier Save error.
+
+## Out of scope
+
+- No changes to AI generation logic, no new edge functions, no design changes.
