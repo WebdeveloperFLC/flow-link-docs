@@ -21,7 +21,7 @@ const SIZE: Record<Aspect, { w: number; h: number }> = {
 
 export function VideoClipPanel() {
   const studio = usePromoStudio();
-  const [mode, setMode] = useState<"ai" | "kenburns">("ai");
+  const [mode, setMode] = useState<"ai" | "kenburns">("kenburns");
   // AI mode state
   const [aiConcept, setAiConcept] = useState("");
   const [aiStyle, setAiStyle] = useState<"cinematic" | "documentary" | "festive" | "editorial">("festive");
@@ -226,7 +226,7 @@ export function VideoClipPanel() {
 
           <TabsContent value="ai" className="space-y-3 pt-3">
             <p className="text-sm text-muted-foreground">
-              Describe the scene. We'll generate a real 5-second video clip with people and motion — no reference image needed.
+              AI text-to-video is temporarily paused to protect credits while the Google AI Studio quota is exhausted. Use the <strong>Animate an image (Ken Burns)</strong> tab in the meantime. An admin can re-enable AI video once a key with quota is configured.
             </p>
             <div className="grid gap-2">
               <Label>Concept</Label>
