@@ -161,7 +161,13 @@ Deno.serve(async (req) => {
       }
       if (!targetId) return json({ error: "user_id or email required" }, 400);
       const { error } = await svc.auth.admin.updateUserById(targetId, { password });
-      if (error) return json({ error: error.message }, 400);
+      if (error) {
+        const raw = error.message ?? "Password update failed";
+        const friendly = /weak|known to be|pwned|leaked|breach/i.test(raw)
+          ? "Password has appeared in a known data breach. Use a longer, unique password mixing upper/lowercase, numbers, and symbols."
+          : raw;
+        return json({ error: friendly }, 400);
+      }
       await logActivity(svc, callerId, "user.password_reset", targetId, {});
       return json({ ok: true });
     }
