@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,6 +45,7 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
   const COUNTRIES = useMasterLabels("countries");
   const DOCUMENT_TYPES = useMasterLabels("document_types");
   const [visaServices, setVisaServices] = useState<ServiceCatalogueItem[]>([]);
+  const autoNameRef = useRef<string>("");
 
   useEffect(() => {
     if (!open) return;
@@ -293,7 +294,7 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
         <DialogHeader>
           <DialogTitle>{template ? "Edit template" : "New workflow template"}</DialogTitle>
           <p className="text-xs text-muted-foreground">
-            Country → Category → Section (e.g. Academics, Finance, Sponsor Documents) → Document type. Everything is fully customizable.
+            Country → Visa & Immigration → Section (e.g. Academics, Finance, Sponsor Documents) → Document type. Everything is fully customizable.
           </p>
         </DialogHeader>
 
@@ -311,8 +312,17 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Application Category *</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Label>Visa & Immigration *</Label>
+              <Select value={category} onValueChange={(v) => {
+                setCategory(v);
+                const opt = categoryOptions.find((o) => o.value === v);
+                if (opt) {
+                  if (!name.trim() || name === autoNameRef.current) {
+                    setName(opt.label);
+                    autoNameRef.current = opt.label;
+                  }
+                }
+              }}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   {!currentCategoryIsKnown && (
