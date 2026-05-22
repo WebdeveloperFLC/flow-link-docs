@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth, AppRole } from "@/contexts/AuthContext";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { Navigate } from "react-router-dom";
-import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound, ChevronDown } from "lucide-react";
+import { Shield, UserCog, Plus, MoreHorizontal, Eye, EyeOff, KeyRound, ChevronDown, Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,6 +73,9 @@ const Users = () => {
   const [newPw, setNewPw] = useState("");
   const [showNewPw, setShowNewPw] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<AppRole[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
   const load = async () => {
     const [{ data: p }, { data: r }] = await Promise.all([
@@ -88,6 +91,24 @@ const Users = () => {
   if (!isAdmin) return <Navigate to="/" replace />;
 
   const rolesFor = (uid: string) => roles.filter((r) => r.user_id === uid).map((r) => r.role);
+
+  const filteredProfiles = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return profiles.filter((p) => {
+      if (q) {
+        const hay = `${p.full_name ?? ""} ${p.email ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      const userRoles = rolesFor(p.id);
+      if (roleFilter.length && !roleFilter.some((r) => userRoles.includes(r))) return false;
+      const st = p.status ?? "active";
+      if (statusFilter.length && !statusFilter.includes(st)) return false;
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profiles, roles, query, roleFilter, statusFilter]);
+
+  const filtersActive = query.length > 0 || roleFilter.length > 0 || statusFilter.length > 0;
 
   const updateUserRoles = async (uid: string, next: AppRole[]) => {
     const nextSet = Array.from(new Set(next));
@@ -152,7 +173,72 @@ const Users = () => {
         description="Assign roles to team members. Only admins can change permissions."
       />
       <div className="p-8">
-        <div className="flex justify-end mb-4">
+        <div className="flex flex-wrap gap-2 items-center mb-4">
+          <div className="relative flex-1 min-w-[220px] max-w-md">
+            <Search className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name or email…"
+              className="pl-8 h-9"
+            />
+          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                Role{roleFilter.length ? ` · ${roleFilter.length}` : ""}
+                <ChevronDown className="size-3.5 ml-1 opacity-60" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-56 p-2">
+              {ALL_ROLES.map((r) => (
+                <label key={r} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm">
+                  <Checkbox
+                    checked={roleFilter.includes(r)}
+                    onCheckedChange={(v) =>
+                      setRoleFilter((prev) => (v ? [...prev, r] : prev.filter((x) => x !== r)))
+                    }
+                  />
+                  {roleOptionLabel(r)}
+                </label>
+              ))}
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                Status{statusFilter.length ? ` · ${statusFilter.length}` : ""}
+                <ChevronDown className="size-3.5 ml-1 opacity-60" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-44 p-2">
+              {(["active", "suspended", "revoked"] as const).map((s) => (
+                <label key={s} className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted cursor-pointer text-sm capitalize">
+                  <Checkbox
+                    checked={statusFilter.includes(s)}
+                    onCheckedChange={(v) =>
+                      setStatusFilter((prev) => (v ? [...prev, s] : prev.filter((x) => x !== s)))
+                    }
+                  />
+                  {s}
+                </label>
+              ))}
+            </PopoverContent>
+          </Popover>
+          {filtersActive && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 text-xs"
+              onClick={() => { setQuery(""); setRoleFilter([]); setStatusFilter([]); }}
+            >
+              <X className="size-3.5 mr-1" /> Clear
+            </Button>
+          )}
+          <div className="text-xs text-muted-foreground ml-1">
+            {filteredProfiles.length} of {profiles.length}
+          </div>
+          <div className="flex-1" />
           <Button onClick={() => setAddOpen(true)} className="gradient-brand text-primary-foreground">
             <Plus className="size-4 mr-1" /> Add new user
           </Button>
@@ -199,12 +285,14 @@ const Users = () => {
             <div className="text-right">Actions</div>
           </div>
           <div className="divide-y">
-            {profiles.length === 0 && (
+            {filteredProfiles.length === 0 && (
               <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-                No team members yet. Invite people by sharing the sign-up link.
+                {profiles.length === 0
+                  ? "No team members yet. Invite people by sharing the sign-up link."
+                  : "No users match the current filters."}
               </div>
             )}
-            {profiles.map((p) => {
+            {filteredProfiles.map((p) => {
               const userRoles = rolesFor(p.id);
               const primary = highestRole(userRoles.length ? userRoles : ["viewer"]);
               const isMe = p.id === user?.id;
