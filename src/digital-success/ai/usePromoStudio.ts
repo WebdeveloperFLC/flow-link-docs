@@ -212,7 +212,7 @@ export function usePromoStudio() {
         throw new Error(msg);
       }
       if (!data?.ok) throw new Error(data?.error || "Video generation failed");
-      return data as { generation_id: string | null; path: string };
+      return data as { generation_id: string | null; path: string; provider?: "google-veo-3-fast" | "pollinations" };
     } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
     finally { setLoading(false); }
   }

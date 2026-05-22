@@ -29,6 +29,7 @@ export function VideoClipPanel() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiVideoUrl, setAiVideoUrl] = useState<string | null>(null);
   const [aiVideoPath, setAiVideoPath] = useState<string | null>(null);
+  const [aiProvider, setAiProvider] = useState<"google-veo-3-fast" | "pollinations" | null>(null);
 
   // Ken Burns mode state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -47,6 +48,7 @@ export function VideoClipPanel() {
     setAiGenerating(true);
     setAiVideoUrl(null);
     setAiVideoPath(null);
+    setAiProvider(null);
     try {
       const res = await studio.generateVideoFromConcept({
         concept: aiConcept,
@@ -57,7 +59,12 @@ export function VideoClipPanel() {
       const { data: signed } = await supabase.storage.from("dsh-media").createSignedUrl(res.path, 60 * 60);
       setAiVideoUrl(signed?.signedUrl ?? null);
       setAiVideoPath(res.path);
-      toast.success("Video generated");
+      setAiProvider(res.provider ?? null);
+      if (res.provider === "pollinations") {
+        toast.warning("Generated with backup provider (Pollinations) — quality is lower. Google Veo quota may be exhausted.");
+      } else {
+        toast.success("Video generated with Google Veo 3 Fast");
+      }
     } catch (e: any) {
       toast.error(e?.message ?? "Generation failed");
     } finally { setAiGenerating(false); }
@@ -261,6 +268,13 @@ export function VideoClipPanel() {
             {aiVideoUrl && (
               <div className="space-y-2">
                 <video src={aiVideoUrl} controls className="w-full rounded-md border max-h-[480px] bg-black" />
+                {aiProvider && (
+                  <p className="text-xs text-muted-foreground">
+                    {aiProvider === "google-veo-3-fast"
+                      ? "Generated with Google Veo 3 Fast"
+                      : "Generated with Pollinations (backup — lower quality)"}
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button type="button" variant="outline" onClick={() => studio.downloadAsset(aiVideoUrl, "flc-ai-clip.mp4")}>
                     <Download className="size-4 mr-2" />Download
