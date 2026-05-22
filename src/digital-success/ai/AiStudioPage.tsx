@@ -143,6 +143,7 @@ export default function AiStudioPage() {
       const urls = await Promise.all(res.image_paths.map(async (p) => ({ path: p, url: await studio.getSignedUrl(p) })));
       setImages(urls);
       toast.success(`Generated ${urls.length} variation(s)`);
+      if (res.errors?.some((msg) => msg.includes("Gemini Premium"))) toast.info("OpenAI credits are exhausted, so Gemini Premium was used instead.");
       refreshRecent();
     } catch (e: any) { toast.error(e?.message ?? "Failed"); }
   }
