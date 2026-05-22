@@ -26,7 +26,7 @@ import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
-import { loadSections, inferSectionId, inferSectionIdFromList, type CaseSection } from "@/lib/sections";
+import { loadSections, inferSectionId, inferSectionIdFromList, resolveSectionIdByKey, type CaseSection } from "@/lib/sections";
 import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
