@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Download, Trash2, ExternalLink, FolderOpen, Loader2, FileText } from "lucide-react";
+import { Download, Trash2, ExternalLink, FolderOpen, Loader2, FileText, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { usePromoStudio } from "./usePromoStudio";
 
@@ -35,6 +35,7 @@ export function SavedHubPanel() {
   const studio = usePromoStudio();
   const [rows, setRows] = useState<HubRow[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
+  const [missing, setMissing] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
@@ -44,12 +45,20 @@ export function SavedHubPanel() {
     try {
       const data = (await studio.listMyHubMedia(200)) as HubRow[];
       setRows(data);
-      const entries = await Promise.all(
+      const settled = await Promise.allSettled(
         data
           .filter((r) => r.storage_path)
           .map(async (r) => [r.id, await studio.getSignedUrl(r.storage_path as string)] as const),
       );
-      setUrls(Object.fromEntries(entries));
+      const nextUrls: Record<string, string> = {};
+      const nextMissing: Record<string, boolean> = {};
+      settled.forEach((res, idx) => {
+        const row = data.filter((r) => r.storage_path)[idx];
+        if (res.status === "fulfilled") nextUrls[res.value[0]] = res.value[1];
+        else if (row) nextMissing[row.id] = true;
+      });
+      setUrls(nextUrls);
+      setMissing(nextMissing);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to load saved assets");
     } finally {
@@ -160,13 +169,20 @@ export function SavedHubPanel() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {filtered.map((r) => {
               const url = urls[r.id];
+              const isMissing = missing[r.id];
               const isVideo = (r.mime_type ?? "").startsWith("video/") || /\.(webm|mp4|mov)$/i.test(r.storage_path ?? "");
               const isImage = (r.mime_type ?? "").startsWith("image/") || /\.(png|jpe?g|webp|gif)$/i.test(r.storage_path ?? "");
               return (
                 <Card key={r.id} className="overflow-hidden">
                   <CardContent className="p-2 space-y-2">
                     <div className="aspect-square w-full bg-muted rounded overflow-hidden flex items-center justify-center">
-                      {!url ? (
+                      {isMissing ? (
+                        <div className="flex flex-col items-center justify-center text-center px-2 text-muted-foreground">
+                          <AlertTriangle className="size-8 text-destructive mb-1" />
+                          <div className="text-[11px] font-medium">File no longer available</div>
+                          <div className="text-[10px]">Delete to remove from Hub</div>
+                        </div>
+                      ) : !url ? (
                         <div className="w-full h-full animate-pulse" />
                       ) : isVideo ? (
                         <video src={url} controls className="w-full h-full object-cover bg-black" />
@@ -190,7 +206,7 @@ export function SavedHubPanel() {
                         size="sm"
                         variant="outline"
                         className="flex-1 h-7 px-2"
-                        disabled={!url}
+                        disabled={!url || isMissing}
                         onClick={() => url && window.open(url, "_blank", "noopener")}
                       >
                         <ExternalLink className="size-3" />
@@ -200,7 +216,7 @@ export function SavedHubPanel() {
                         size="sm"
                         variant="outline"
                         className="flex-1 h-7 px-2"
-                        disabled={!url}
+                        disabled={!url || isMissing}
                         onClick={() => onDownload(r)}
                       >
                         <Download className="size-3" />
