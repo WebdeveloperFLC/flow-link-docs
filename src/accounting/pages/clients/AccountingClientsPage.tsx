@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ExternalLink, Plus, Link2, MoreHorizontal, Trash2 } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
@@ -19,9 +19,8 @@ import LinkCrmClientDialog from "../../components/clients/LinkCrmClientDialog";
 import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { CLIENT_SEGMENT_LABEL } from "../../data/mockClients";
 import { useClients, deleteClient } from "../../stores/clientsStore";
-import {
-  MOCK_STAFF, SERVICE_PACKAGES, VISA_CATEGORIES, INTAKES, CLIENT_TYPE_LABEL,
-} from "../../data/mockStaff";
+import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
+import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "../../lib/format";
 import type { Client } from "../../types/clients";
 
@@ -42,10 +41,56 @@ export default function AccountingClientsPage() {
   const [paymentStatus, setPaymentStatus] = useState<string>("ALL");
   const [status, setStatus] = useState<string>("ALL");
 
+  // Dynamic options sourced from the lead-form masters
+  const [services, setServices] = useState<{ master_key: string; service_name: string }[]>([]);
+  const [counselors, setCounselors] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const [svc, prof] = await Promise.all([
+        supabase.from("service_catalogue").select("master_key, service_name").eq("is_active", true).order("display_order"),
+        supabase.from("profiles").select("id, full_name").order("full_name"),
+      ]);
+      if (!alive) return;
+      setServices(((svc.data ?? []) as any[]).map(r => ({ master_key: r.master_key, service_name: r.service_name })));
+      setCounselors(((prof.data ?? []) as any[]).map(r => ({ id: r.id, name: r.full_name || r.id })));
+    })();
+    return () => { alive = false; };
+  }, []);
+
+  const countryOptions = useMemo(
+    () => Array.from(new Set(clients.map(c => c.country).filter(Boolean))).sort(),
+    [clients],
+  );
+  const intakeOptions = useMemo(
+    () => Array.from(new Set(clients.map(c => c.intake).filter(Boolean) as string[])).sort(),
+    [clients],
+  );
+  const servicePackageOptions = useMemo(() => {
+    const fromMaster = services
+      .filter(s => s.master_key !== "visa_services")
+      .map(s => s.service_name);
+    const fromClients = clients.flatMap(c => (c.servicePackage ?? "").split(",").map(s => s.trim()).filter(Boolean));
+    return Array.from(new Set([...fromMaster, ...fromClients])).sort();
+  }, [services, clients]);
+  const visaOptions = useMemo(() => {
+    const fromMaster = services.filter(s => s.master_key === "visa_services").map(s => s.service_name);
+    const fromClients = clients.map(c => c.visaCategory).filter(Boolean) as string[];
+    return Array.from(new Set([...fromMaster, ...fromClients])).sort();
+  }, [services, clients]);
+  const counselorOptions = useMemo(() => {
+    const seenIds = new Set(counselors.map(c => c.id));
+    const extras = clients
+      .filter(c => c.counselorId && !seenIds.has(c.counselorId))
+      .map(c => ({ id: c.counselorId!, name: c.counselorName || c.counselorId! }));
+    return [...counselors, ...extras];
+  }, [counselors, clients]);
+
   const rows = useMemo(() => clients.filter(c =>
     (country === "ALL" || c.country === country) &&
     (clientType === "ALL" || c.clientType === clientType) &&
-    (servicePackage === "ALL" || c.servicePackage === servicePackage) &&
+    (servicePackage === "ALL" || (c.servicePackage ?? "").toLowerCase().includes(servicePackage.toLowerCase())) &&
     (counselorId === "ALL" || c.counselorId === counselorId) &&
     (visaCategory === "ALL" || c.visaCategory === visaCategory) &&
     (intake === "ALL" || c.intake === intake) &&
@@ -144,7 +189,7 @@ export default function AccountingClientsPage() {
               <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Country" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All countries</SelectItem>
-                {["CA","US","IN","GB"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={clientType} onValueChange={setClientType}>
@@ -159,28 +204,28 @@ export default function AccountingClientsPage() {
               <SelectTrigger className="w-[200px] h-9"><SelectValue placeholder="Service" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All services</SelectItem>
-                {SERVICE_PACKAGES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {servicePackageOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={counselorId} onValueChange={setCounselorId}>
               <SelectTrigger className="w-[170px] h-9"><SelectValue placeholder="Counselor" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All counselors</SelectItem>
-                {MOCK_STAFF.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                {counselorOptions.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={visaCategory} onValueChange={setVisaCategory}>
               <SelectTrigger className="w-[160px] h-9"><SelectValue placeholder="Visa" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All visas</SelectItem>
-                {VISA_CATEGORIES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {visaOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={intake} onValueChange={setIntake}>
               <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="Intake" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All intakes</SelectItem>
-                {INTAKES.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {intakeOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={paymentStatus} onValueChange={setPaymentStatus}>
