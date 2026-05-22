@@ -423,6 +423,29 @@ export function usePromoStudio() {
     }
   }
 
+  /** List media rows the current user uploaded (saved to Hub from AI Studio). */
+  async function listMyHubMedia(limit = 100) {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth?.user) return [];
+    const { data, error } = await supabase
+      .from("dsh_media" as any)
+      .select("id,title,description,content_type,content_scope,storage_path,mime_type,file_name,country_name,campaign_name,created_at")
+      .eq("uploaded_by", auth.user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return (data as any[]) ?? [];
+  }
+
+  /** Delete a Hub media row and its storage file. */
+  async function deleteHubMedia(row: { id: string; storage_path: string | null }) {
+    if (row.storage_path) {
+      await supabase.storage.from("dsh-media").remove([row.storage_path]).catch(() => {});
+    }
+    const { error } = await supabase.from("dsh_media" as any).delete().eq("id", row.id);
+    if (error) throw error;
+  }
+
   async function setDefaultLogo(assetId: string) {
     await supabase.from("dsh_brand_assets" as any)
       .update({ is_default_brand: false })
