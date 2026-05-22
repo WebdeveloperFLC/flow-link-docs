@@ -1,60 +1,67 @@
+# Fix Accounting → Clients filters
 
-# Fix: CRM ↔ Accounting client linkage & payment visibility
+## Problem
 
-## What's actually happening
+On `/accounting/clients` every filter shows nothing or doesn't match the data:
 
-I checked the database for "asd asdf asdf" (client `e9926243-…`):
+- **Service / Visa / Counselor / Intake** dropdowns are empty — `SERVICE_PACKAGES`, `VISA_CATEGORIES`, `INTAKES`, `MOCK_STAFF` in `src/accounting/data/mockStaff.ts` are all `[]`.
+- **Country** is hard-coded to `CA / US / IN / GB`, but CRM clients store labels like "India", "United Kingdom".
+- **Type** filter (Student/Immigration/…) and the `service_package / visa_category / intake / counselor_id` columns are all `—` because the `fn_sync_accounting_client` trigger only copies `name / email / phone / country` — it never pulls the lead-form fields that already exist on `public.clients` (`intake`, `visa_services`, `coaching_services`, `admission_services`, `allied_services`, `assigned_counselor_id`, `interested_countries`, `application_type`, `lead_source`).
 
-- **CRM client exists** in `clients` table ✅
-- **Draft invoice exists** in `accounting_ar_invoices`: `INV-DRAFT-0706636`, total ₹31,860, status `DRAFT` ✅
-- **No row in `accounting_clients`** — that's why Accounting → Clients shows 0 rows ❌
-- **CRM client page never queries invoices** — that's why you see no payment record on the client ❌
-- **"Link CRM client" dialog is broken** — it pushes to an in-memory mock array instead of saving, so even manual linking does nothing ❌
+Net effect: filtering produces zero matches because the rows have no value to match on, and the dropdowns have no options.
 
-The two modules are running on parallel client tables (`clients` for CRM, `accounting_clients` for accounting) with **no auto-sync**. The draft invoice the registration flow creates is orphaned from both client views.
+## Fix
 
-## Fix plan
+### 1. Sync lead-form fields into `accounting_clients`
 
-### 1. Auto-create accounting client when CRM client is created
-In `src/lib/clientRegistration.ts` (`createDraftInvoice` and/or `upsertClientRegistration`):
-- After inserting the CRM client / before inserting the draft invoice, upsert a matching row into `accounting_clients`:
-  - `id = <new uuid>`, `linked_crm_client_id = clients.id`
-  - `name`, `email`, `phone`, `country`, `currency` (INR default), `status = ACTIVE`, `segment = INDIVIDUAL`, `client_type` mapped from CRM `application_type`
-  - `payment_terms` from the registration form
-- Use `ON CONFLICT (linked_crm_client_id) DO UPDATE` (add unique index if missing via migration).
-- Backfill migration: insert one `accounting_clients` row for every existing `clients` row that doesn't already have a linked accounting record.
+New migration: rewrite `fn_sync_accounting_client()` so on insert/update of `public.clients` it also writes:
 
-### 2. Show invoices & payments on the CRM client page
-In `src/pages/ClientDetail.tsx`, add a new `<ClientPaymentsCard client_id={id} />` (new file `src/components/clients/ClientPaymentsCard.tsx`):
-- Query `accounting_ar_invoices` where `client_id = :id`, ordered by `invoice_date desc`.
-- Show invoice #, date, status badge (Draft/Sent/Partially Paid/Paid), total, outstanding, "Open in Accounting" button (→ `/accounting/ar/:id`), and "Record payment" button (→ same detail page).
-- Empty state: "No invoices yet · Create one in Accounting".
-- Place between `ClientProfileCard` and the documents accordion so it's visible immediately.
+| accounting_clients      | source on `clients`                                                                 |
+|-------------------------|--------------------------------------------------------------------------------------|
+| `intake`                | `clients.intake`                                                                     |
+| `visa_category`         | first non-null of `visa_services[1]`, else `application_type`                        |
+| `service_package`       | concat of `coaching_services ‖ admission_services ‖ allied_services ‖ visa_services` (comma-joined service names, truncated) |
+| `counselor_id`          | `clients.assigned_counselor_id::text`                                                |
+| `counselor_name`        | resolved from `profiles.full_name` for that counselor                                |
+| `lead_source`           | `clients.lead_source`                                                                |
+| `client_type`           | map from `application_type` ("Student Visa" → STUDENT, "Work Permit" → IMMIGRATION, "Dependent" → DEPENDENT, …); default STUDENT |
+| `country`               | `clients.country_of_residence` or `country` (keep the human label, not 2-letter code) |
+| `currency`              | derive from country label ("India" → INR, "Canada" → CAD, etc.)                      |
 
-### 3. Fix the "Link CRM client" dialog
-In `src/accounting/components/clients/LinkCrmClientDialog.tsx`:
-- Replace `MOCK_CLIENTS.push(newClient)` with `addClient(newClient)` from `clientsStore` so the row is persisted to `accounting_clients` and reflected in the list.
-- Filter out CRM clients that already have an `accounting_clients` row (query the store, not `MOCK_CLIENTS`).
+Trigger fires on `AFTER INSERT OR UPDATE` and uses the same `ON CONFLICT (linked_crm_client_id)` upsert.
 
-### 4. Make Accounting → Clients useful
+Backfill: run the same mapping over existing rows so the 56 already-synced clients get populated.
+
+### 2. Source filter options dynamically
+
 In `src/accounting/pages/clients/AccountingClientsPage.tsx`:
-- After hydration, also show a "Linked from CRM" badge for rows where `linked_crm_client_id` is set, with a link back to `/clients/:linked_crm_client_id`.
-- In the detail page (`AccountingClientDetailPage.tsx`), show the linked CRM client's invoices the same way the CRM page now does, plus a "Record payment / Send invoice" call to action when `outstandingBalance > 0`.
 
-### 5. Verify RLS lets the right users see the draft
-The current policy on `accounting_ar_invoices` is:
-```
-counselors read own draft invoices: status='DRAFT' AND created_by=auth.uid()
-  OR (client_id AND can_view_client(auth.uid(), client_id) AND (admin OR counselor))
-```
-That's already correct; the invoice simply wasn't being surfaced anywhere outside `/accounting/ar`. No policy change needed once step 2 puts it on the CRM client page.
+- **Country**: build from `useMasterLabels("countries")` plus a union of values seen in `clients` rows (so legacy values still match).
+- **Service package**: load active rows from `service_catalogue` (already used by lead form via `src/lib/leads.ts`); group by `master_key` so the dropdown shows real service names.
+- **Visa**: filter `service_catalogue` where `master_key = 'visa_services'`.
+- **Counselor**: load `profiles (id, full_name)` (same source the lead form uses for `assigned_counselor_id`).
+- **Intake**: distinct non-null values from the current `clients` list (intakes are free-text on the lead form).
+- **Type**: keep `CLIENT_TYPE_LABEL` (already correct enum).
+- **Payment / Status**: unchanged.
 
-## Out of scope
-- No changes to invoice numbering, GST calc, or receipt flow.
-- No changes to Leads, Telecaller, Workflows, Forms, Letters, Offers.
-- Accounting, Institutions, Commissions, Digital Hub remain untouched except for the four files above.
+Filter matching uses `includes` for the service_package column (which is a comma-joined string) so picking "IELTS Coaching" still matches "IELTS Coaching, SDS Visa".
 
-## Files touched
-- New: `src/components/clients/ClientPaymentsCard.tsx`
-- Edited: `src/pages/ClientDetail.tsx`, `src/lib/clientRegistration.ts`, `src/accounting/components/clients/LinkCrmClientDialog.tsx`, `src/accounting/pages/clients/AccountingClientsPage.tsx`, `src/accounting/pages/clients/AccountingClientDetailPage.tsx`
-- Migration: unique index on `accounting_clients.linked_crm_client_id` + backfill insert
+Delete the now-unused `SERVICE_PACKAGES / VISA_CATEGORIES / INTAKES / MOCK_STAFF` constants (or leave the file as an empty re-export to avoid breaking other imports — `rg` first).
+
+### 3. No UI restructure
+
+Only the filter bar logic and the trigger change. Table columns, badges, dialogs, and `clientsStore` stay as-is. The CRM↔Accounting bridge already works; this PR just makes the joined data visible and filterable.
+
+## Files
+
+- New migration: `supabase/migrations/<ts>_sync_lead_fields_to_accounting_clients.sql` — rewrite trigger fn + backfill UPDATE.
+- Edit `src/accounting/pages/clients/AccountingClientsPage.tsx` — dynamic filter options + service_package substring match.
+- New helper `src/accounting/lib/clientFilterOptions.ts` — small hooks: `useCounselorOptions()`, `useServiceOptions()`, `useVisaOptions()`, `useCountryOptions(clients)`, `useIntakeOptions(clients)`.
+- Possibly remove constants in `src/accounting/data/mockStaff.ts` after confirming no other imports depend on them.
+
+## Verification
+
+1. Migration runs, then `SELECT count(*) FROM accounting_clients WHERE intake IS NOT NULL OR visa_category IS NOT NULL` > 0.
+2. On `/accounting/clients`, each dropdown lists real options.
+3. Picking "Student" type, an existing counselor, or "Jan 2026" intake reduces the row count instead of zeroing it.
+4. Creating a new CRM client with intake/visa/services immediately shows those values on the accounting row.
