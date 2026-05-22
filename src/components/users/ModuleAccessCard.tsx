@@ -24,7 +24,7 @@ interface Profile { id: string; email: string | null; full_name: string | null; 
 interface RoleRow { user_id: string; role: AppRole; }
 
 interface Props {
-  module: "institutions" | "commissions";
+  module: "institutions" | "commissions" | "digital_success_hub";
   title: string;
   description: string;
   profiles: Profile[];

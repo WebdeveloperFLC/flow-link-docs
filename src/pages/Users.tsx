@@ -163,10 +163,10 @@ const Users = () => {
               Section access
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Institutions and Commissions are managed independently. Grant or revoke access per teammate below.
+              Institutions, Commissions and the Digital Success Hub are managed independently. Grant or revoke access per teammate below.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             <ModuleAccessCard
               module="institutions"
               title="Institutions section"
@@ -178,6 +178,13 @@ const Users = () => {
               module="commissions"
               title="Commissions section"
               description="Who can view or manage commissions, claims, agreements and invoicing."
+              profiles={profiles}
+              roles={roles}
+            />
+            <ModuleAccessCard
+              module="digital_success_hub"
+              title="Digital Success Hub"
+              description="Who can view or manage promotional media, AI Studio assets, client links, and branch notifications."
               profiles={profiles}
               roles={roles}
             />
