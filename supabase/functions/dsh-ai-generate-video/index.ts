@@ -188,6 +188,16 @@ Deno.serve(async (req) => {
     const styleHint = STYLE_HINTS[style] ?? STYLE_HINTS.cinematic;
     const prompt = `${concept}. ${styleHint}. Smooth natural motion, no on-screen text, no watermarks.`;
 
+    // Safety switch: AI video generation is paused by default to avoid burning credits
+    // while the Google AI Studio key has no quota. Set ENABLE_AI_VIDEO_GENERATION="true"
+    // in edge function secrets to re-enable provider calls.
+    if (Deno.env.get("ENABLE_AI_VIDEO_GENERATION") !== "true") {
+      return new Response(JSON.stringify({
+        error: "AI text-to-video is temporarily paused to protect credits. Use the Ken Burns image-to-video tab instead, or ask an admin to enable AI video once a GOOGLE_AI_API_KEY with quota is available.",
+        paused: true,
+      }), { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Try Google Veo 3 Fast → free Google lite fallback → Replicate backup → Pollinations last resort.
     let result = await generateWithGoogle("veo-3.0-fast-generate-001", "google-veo-3-fast", prompt, aspect, duration);
     if (!result) result = await generateWithGoogle("veo-3.1-lite-generate-preview", "google-veo-3-lite", prompt, aspect, duration);
