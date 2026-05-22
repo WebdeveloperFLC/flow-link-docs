@@ -9,6 +9,7 @@ import { TemplateEditorDialog } from "@/components/templates/TemplateEditorDialo
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
+import { fetchServiceCodeMap } from "@/lib/leads";
 
 export interface TemplateItem { id: string; name: string; mandatory: boolean; notes?: string; }
 export interface TemplateGroup {
@@ -29,12 +30,16 @@ const Templates = () => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [editing, setEditing] = useState<Template | null>(null);
   const [open, setOpen] = useState(false);
+  const [serviceMap, setServiceMap] = useState<Map<string, string>>(new Map());
 
   const load = async () => {
     const { data } = await supabase.from("workflow_templates").select("*").order("country").order("name");
     setTemplates(((data ?? []) as unknown) as Template[]);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    fetchServiceCodeMap().then(setServiceMap).catch(() => setServiceMap(new Map()));
+  }, []);
 
   const onDuplicate = async (t: Template) => {
     const { error } = await supabase.from("workflow_templates").insert({
@@ -87,7 +92,7 @@ const Templates = () => {
                   <div className="flex items-start justify-between">
                     <div className="min-w-0">
                       <div className="font-semibold truncate">{t.name}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{t.category} · v{t.version}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{serviceMap.get(t.category) ?? t.category} · v{t.version}</div>
                     </div>
                     {isAdmin && (
                       <div className="flex gap-1 -mr-2">
