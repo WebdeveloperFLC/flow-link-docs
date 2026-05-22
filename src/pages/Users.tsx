@@ -143,12 +143,24 @@ const Users = () => {
     }
   };
 
+  const extractFnError = async (
+    data: unknown,
+    error: { message?: string; context?: Response } | null,
+  ): Promise<string | null> => {
+    if ((data as { error?: string })?.error) return (data as { error?: string }).error!;
+    if (error?.context && typeof (error.context as Response).json === "function") {
+      try {
+        const body = await (error.context as Response).clone().json();
+        if (body?.error) return body.error as string;
+      } catch {/* ignore */}
+    }
+    return error?.message ?? null;
+  };
+
   const callAction = async (body: Record<string, unknown>, successMsg: string) => {
     const { data, error } = await supabase.functions.invoke("admin-users", { body });
-    if (error || (data as { error?: string })?.error) {
-      toast.error((data as { error?: string })?.error ?? error?.message ?? "Failed");
-      return;
-    }
+    const msg = await extractFnError(data, error as any);
+    if (msg) { toast.error(msg); return; }
     toast.success(successMsg);
     await load();
   };
