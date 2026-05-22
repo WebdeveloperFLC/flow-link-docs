@@ -200,7 +200,7 @@ export function VideoClipPanel() {
               </SelectContent>
             </Select>
           </div>
-          <Button className="ml-auto" onClick={onRender} disabled={rendering || studio.loading}>
+          <Button type="button" className="ml-auto" onClick={onRender} disabled={rendering || studio.loading}>
             {rendering ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Film className="size-4 mr-2" />}
             Render clip
           </Button>
@@ -212,10 +212,10 @@ export function VideoClipPanel() {
           <div className="space-y-2">
             <video src={videoUrl} controls className="w-full rounded-md border max-h-[480px] bg-black" />
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => studio.downloadAsset(videoUrl, "flc-clip.webm")}>
+              <Button type="button" variant="outline" onClick={() => studio.downloadAsset(videoUrl, "flc-clip.webm")}>
                 <Download className="size-4 mr-2" />Download
               </Button>
-              <Button onClick={onSaveToHub} disabled={!videoPath}>
+              <Button type="button" onClick={onSaveToHub} disabled={!videoPath}>
                 <Save className="size-4 mr-2" />Save to Hub
               </Button>
             </div>

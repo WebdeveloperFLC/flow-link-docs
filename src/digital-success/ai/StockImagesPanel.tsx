@@ -51,7 +51,12 @@ export function StockImagesPanel({ onUseAsReference }: Props) {
         description: concept,
       });
       toast.success("Saved to Hub");
-    } catch (e: any) { toast.error(e?.message ?? "Save failed"); }
+    } catch (e: any) {
+      const msg = e?.message ?? "Save failed";
+      if (/row-level security|42501|permission/i.test(msg)) {
+        toast.error("You don't have Hub edit permission. Ask an admin to enable Digital Success Hub edit access.");
+      } else toast.error(msg);
+    }
   }
 
   return (
@@ -110,7 +115,7 @@ export function StockImagesPanel({ onUseAsReference }: Props) {
               </SelectContent>
             </Select>
           </div>
-          <Button className="ml-auto" onClick={onGenerate} disabled={studio.loading}>
+          <Button type="button" className="ml-auto" onClick={onGenerate} disabled={studio.loading}>
             {studio.loading ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Sparkles className="size-4 mr-2" />}
             Generate
           </Button>
@@ -124,14 +129,14 @@ export function StockImagesPanel({ onUseAsReference }: Props) {
                   <img src={img.url} alt={`Stock ${i + 1}`} className="w-full rounded-md border" />
                   <div className="flex flex-wrap gap-1">
                     {onUseAsReference && (
-                      <Button size="sm" variant="outline" className="flex-1" onClick={() => onUseRef(img)}>
+                      <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => onUseRef(img)}>
                         <ImagePlus className="size-3 mr-1" />Use
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" className="flex-1" onClick={() => studio.downloadAsset(img.url, `stock-${i + 1}.png`)}>
+                    <Button type="button" size="sm" variant="outline" className="flex-1" onClick={() => studio.downloadAsset(img.url, `stock-${i + 1}.png`)}>
                       <Download className="size-3 mr-1" />Save
                     </Button>
-                    <Button size="sm" className="flex-1" onClick={() => onSaveToHub(img)}>
+                    <Button type="button" size="sm" className="flex-1" onClick={() => onSaveToHub(img)}>
                       <Save className="size-3 mr-1" />Hub
                     </Button>
                   </div>
