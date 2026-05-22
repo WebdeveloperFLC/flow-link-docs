@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal, Link2, X as XIcon, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -84,6 +85,22 @@ interface BinderRow {
   id: string; file_name: string; storage_path: string; generated_at: string;
 }
 
+export interface PendingChecklistItem {
+  id: string;
+  name: string;
+  mandatory: boolean;
+  notes?: string | null;
+  status?: "rejected" | "needs_reissue" | null;
+  attachedFileName?: string | null;
+  isExtra?: boolean;
+}
+
+export interface LinkableDoc {
+  id: string;
+  file_name: string;
+  label: string;
+}
+
 interface Props {
   clientId: string;
   section: CaseSection;
@@ -92,9 +109,13 @@ interface Props {
   canEdit: boolean;
   isAdmin: boolean;
   onChanged: () => void;
+  pendingChecklist?: PendingChecklistItem[];
+  linkableDocs?: LinkableDoc[];
+  onLinkDocToChecklist?: (docId: string, checklistName: string) => void | Promise<void>;
+  onRemoveChecklistItem?: (itemId: string, itemName: string, mandatory: boolean, isExtra: boolean) => void | Promise<void>;
 }
 
-export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, onChanged }: Props) => {
+export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, onChanged, pendingChecklist = [], linkableDocs = [], onLinkDocToChecklist, onRemoveChecklistItem }: Props) => {
   const [orderMode, setOrderModeState] = useState<"auto" | "manual">("auto");
   const [items, setItems] = useState<SectionDoc[]>([]);
   const [combining, setCombining] = useState(false);
@@ -620,14 +641,31 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
       )}
 
       {items.length === 0 ? (
-        <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
-          {dragActive
-            ? `Drop files into ${section.label}`
-            : (canEdit
-                ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
-                : "No documents in this section yet.")}
-        </div>
+        <>
+          <PendingRows
+            pending={pendingChecklist}
+            canEdit={canEdit}
+            linkableDocs={linkableDocs}
+            onLinkDocToChecklist={onLinkDocToChecklist}
+            onRemoveChecklistItem={onRemoveChecklistItem}
+          />
+          <div className="px-5 py-10 text-center text-xs text-muted-foreground border-2 border-dashed border-muted m-3 rounded">
+            {dragActive
+              ? `Drop files into ${section.label}`
+              : (canEdit
+                  ? `Drop files here or click "Upload to ${section.label}". Files are auto-classified, optimized for IRCC ≤ 4 MB, and their information is extracted into this section.`
+                  : "No documents in this section yet.")}
+          </div>
+        </>
       ) : (
+        <>
+        <PendingRows
+          pending={pendingChecklist}
+          canEdit={canEdit}
+          linkableDocs={linkableDocs}
+          onLinkDocToChecklist={onLinkDocToChecklist}
+          onRemoveChecklistItem={onRemoveChecklistItem}
+        />
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={items.map((it) => it.id)} strategy={verticalListSortingStrategy}>
             <div className="divide-y">
@@ -659,6 +697,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
             </div>
           </SortableContext>
         </DndContext>
+        </>
       )}
 
       {binder && (
@@ -842,6 +881,90 @@ function SortableRow({
       {isAdmin && (
         <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={onDelete}><Trash2 className="size-3.5" /></Button>
       )}
+    </div>
+  );
+}
+
+function PendingRows({
+  pending, canEdit, linkableDocs, onLinkDocToChecklist, onRemoveChecklistItem,
+}: {
+  pending: PendingChecklistItem[];
+  canEdit: boolean;
+  linkableDocs: LinkableDoc[];
+  onLinkDocToChecklist?: (docId: string, checklistName: string) => void | Promise<void>;
+  onRemoveChecklistItem?: (itemId: string, itemName: string, mandatory: boolean, isExtra: boolean) => void | Promise<void>;
+}) {
+  if (!pending || pending.length === 0) return null;
+  return (
+    <div className="divide-y bg-muted/20">
+      {pending.map((it) => {
+        const isRejected = it.status === "rejected";
+        const isReissue = it.status === "needs_reissue";
+        return (
+          <div key={`pending-${it.id}`} className="px-5 py-2.5 flex items-center gap-2">
+            <div className="size-6 flex items-center justify-center text-muted-foreground/50">
+              <AlertCircle className="size-3.5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium flex items-center gap-1.5 truncate">
+                <span className="truncate">{it.name}</span>
+                {it.mandatory && <span className="text-secondary text-[10px] font-semibold">REQUIRED</span>}
+                {it.isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
+              </div>
+              {it.notes && <div className="text-[11px] text-muted-foreground truncate">{it.notes}</div>}
+              {it.attachedFileName && (
+                <div className="text-[11px] text-muted-foreground truncate">{it.attachedFileName}</div>
+              )}
+            </div>
+            {isRejected ? (
+              <span className="text-[11px] px-2 py-0.5 rounded bg-destructive/10 text-destructive font-semibold uppercase tracking-wide">Rejected</span>
+            ) : isReissue ? (
+              <span className="text-[11px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 font-semibold uppercase tracking-wide">Reissue</span>
+            ) : (
+              <span className={`text-[11px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
+                {it.mandatory ? "Pending" : "Optional"}
+              </span>
+            )}
+            {canEdit && onLinkDocToChecklist && linkableDocs.length > 0 && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 text-[11px]" title="Link an already-uploaded document to this checklist item">
+                    <Link2 className="size-3 mr-1" /> Link doc
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-80 p-0">
+                  <div className="px-3 py-2 border-b text-[11px] text-muted-foreground">
+                    Pick an uploaded document to count for <span className="font-semibold text-foreground">{it.name}</span>
+                  </div>
+                  <div className="max-h-72 overflow-auto divide-y">
+                    {linkableDocs.map((doc) => (
+                      <button
+                        key={doc.id}
+                        onClick={() => onLinkDocToChecklist(doc.id, it.name)}
+                        className="w-full text-left px-3 py-2 hover:bg-accent text-xs"
+                      >
+                        <div className="font-medium truncate">{doc.file_name}</div>
+                        <div className="text-[10px] text-muted-foreground truncate">{doc.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+            {canEdit && onRemoveChecklistItem && (
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-7 text-muted-foreground hover:text-destructive"
+                title={it.isExtra ? "Remove this requirement (uploaded files stay)" : "Remove from this client's checklist (does not delete uploaded files)"}
+                onClick={() => onRemoveChecklistItem(it.id, it.name, it.mandatory, !!it.isExtra)}
+              >
+                <XIcon className="size-3.5" />
+              </Button>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -26,7 +26,7 @@ import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
-import { loadSections, inferSectionId, type CaseSection } from "@/lib/sections";
+import { loadSections, inferSectionId, inferSectionIdFromList, type CaseSection } from "@/lib/sections";
 import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
@@ -771,167 +771,8 @@ const ClientDetail = () => {
       />
 
       <div className="p-8 grid lg:grid-cols-3 gap-6">
-        {/* Left: checklist */}
+        {/* Left: unified case documents (sections + checklist + uploads) */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="overflow-hidden shadow-elev-sm">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <div>
-                <div className="font-semibold">Document checklist</div>
-                <div className="text-xs text-muted-foreground">
-                  {template ? `${template.name} · ${completed}/${checklistItems.length} ready` : "No template assigned"}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {requiredMissing.length > 0 && (
-                  <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
-                    <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
-                  </div>
-                )}
-                {suppressedIds.size > 0 && (
-                  <button
-                    type="button"
-                    onClick={onRestoreSuppressed}
-                    className="text-[11px] text-muted-foreground underline hover:text-foreground"
-                    title="Restore checklist items removed for this client"
-                  >
-                    Restore {suppressedIds.size} hidden
-                  </button>
-                )}
-                {canUpload && (
-                  <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
-                    <Plus className="size-3.5 mr-1" /> Add document
-                  </Button>
-                )}
-              </div>
-            </div>
-            {!template && (
-              <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-                No workflow template assigned. Edit this client to assign one, or create templates first.
-              </div>
-            )}
-            <div className="divide-y">
-              {(() => {
-                let runningIdx = 0;
-                return checklistSections.map((sec) => {
-                  const secReady = sec.items.filter((it) => docByType(it.name)).length;
-                  return (
-                    <div key={sec.id}>
-                      <div className="px-6 py-2.5 bg-muted/40 flex items-center justify-between">
-                        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{sec.label}</div>
-                        <div className="text-[11px] text-muted-foreground tabular-nums">{secReady}/{sec.items.length} ready</div>
-                      </div>
-                      {sec.items.map((it) => {
-                        runningIdx += 1;
-                        const i = runningIdx - 1;
-                        const d = docByType(it.name);
-                        const attached = attachedDocByType(it.name);
-                        const attachedStatus = attached?.status ?? "ready";
-                        const isRejected = !d && attached && attachedStatus === "rejected";
-                        const isReissue = !d && attached && attachedStatus === "needs_reissue";
-                        const isVerified = !!d && (d.status === "verified");
-                        const isExtra = extraItems.some((e) => e.id === it.id);
-                        const linkableDocs = docs.filter((doc) => {
-                          const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
-                          const t2 = doc.custom_type ?? "";
-                          return t1 !== it.name && t2 !== it.name;
-                        });
-                        return (
-                          <div key={it.id} className="px-6 py-3.5 flex items-center gap-4 border-t">
-                            <div className="text-xs font-mono tabular-nums text-muted-foreground w-6">{String(i+1).padStart(2,"0")}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm flex items-center gap-1.5">
-                        {it.name}
-                        {it.mandatory && <span className="text-secondary text-[10px]">REQUIRED</span>}
-                        {isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
-                      </div>
-                      {it.notes && <div className="text-xs text-muted-foreground">{it.notes}</div>}
-                      {(d || attached) && (
-                        <div className="text-xs text-muted-foreground mt-0.5">
-                          {(d ?? attached)!.file_name}
-                          {(d ?? attached)!.version > 1 ? ` · v${(d ?? attached)!.version}` : ""}
-                        </div>
-                      )}
-                    </div>
-                    {d ? (
-                      <span className="text-xs px-2 py-1 rounded bg-success/10 text-success font-semibold uppercase tracking-wide">
-                        {isVerified ? "Verified" : "Ready"}
-                      </span>
-                    ) : isRejected ? (
-                      <span className="text-xs px-2 py-1 rounded bg-destructive/10 text-destructive font-semibold uppercase tracking-wide">Rejected</span>
-                    ) : isReissue ? (
-                      <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-600 font-semibold uppercase tracking-wide">Reissue</span>
-                    ) : (
-                      <span className={`text-xs px-2 py-1 rounded font-semibold uppercase tracking-wide ${it.mandatory ? "bg-secondary/10 text-secondary" : "bg-muted text-muted-foreground"}`}>
-                        {it.mandatory ? "Pending" : "Optional"}
-                      </span>
-                    )}
-                    {canUpload && !d && linkableDocs.length > 0 && (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button size="sm" variant="outline" className="h-7 text-[11px]" title="Link an already-uploaded document to this checklist item">
-                            <Link2 className="size-3 mr-1" /> Link doc
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent align="end" className="w-80 p-0">
-                          <div className="px-3 py-2 border-b text-[11px] text-muted-foreground">
-                            Pick an uploaded document to count for <span className="font-semibold text-foreground">{it.name}</span>
-                          </div>
-                          <div className="max-h-72 overflow-auto divide-y">
-                            {linkableDocs.map((doc) => {
-                              const label = doc.document_type === "Other" ? (doc.custom_type ?? "Other") : doc.document_type;
-                              return (
-                                <button
-                                  key={doc.id}
-                                  onClick={() => linkDocToChecklist(doc.id, it.name)}
-                                  className="w-full text-left px-3 py-2 hover:bg-accent text-xs"
-                                >
-                                  <div className="font-medium truncate">{doc.file_name}</div>
-                                  <div className="text-[10px] text-muted-foreground truncate">{label}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    )}
-                    {canUpload && d && d.custom_type && d.custom_type === it.name && d.document_type !== "Other" && (
-                      <Button
-                        size="icon" variant="ghost" className="size-7 text-muted-foreground"
-                        title="Unlink this document from the checklist item (file stays uploaded)"
-                        onClick={() => unlinkDocFromChecklist(d.id)}
-                      >
-                        <Unlink className="size-3.5" />
-                      </Button>
-                    )}
-                    {canUpload && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-7 text-muted-foreground hover:text-destructive"
-                        title={
-                          isExtra
-                            ? "Remove this requirement (uploaded files stay)"
-                            : "Remove from this client's checklist (does not delete uploaded files)"
-                        }
-                        onClick={() =>
-                          isExtra
-                            ? onRemoveExtraItem(it.id)
-                            : onSuppressTemplateItem(it.id, it.name, !!it.mandatory)
-                        }
-                      >
-                        <X className="size-3.5" />
-                      </Button>
-                    )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                });
-              })()}
-            </div>
-          </Card>
-
           <ClientProfileCard
             clientId={client.id}
             canEdit={canUpload}
@@ -951,18 +792,45 @@ const ClientDetail = () => {
             canEdit={canUpload}
           />
 
-          {/* Section binders — upload many docs per section, drag to order, combine into a section binder. */}
+          {/* Unified case documents: every section in one place — checklist + uploaded files + per-section combine. */}
           {sections.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Sections · upload into the right one so info auto-fills there
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div>
+                  <div className="font-semibold text-sm">Case documents</div>
+                  <div className="text-xs text-muted-foreground">
+                    {template
+                      ? `${template.name} · ${completed}/${checklistItems.length} ready`
+                      : "No workflow template assigned"}
+                  </div>
                 </div>
-                {isAdmin && (
-                  <Button size="sm" variant="outline" onClick={() => setAddSectionOpen(true)}>
-                    <Plus className="size-3.5 mr-1.5" /> New section
-                  </Button>
-                )}
+                <div className="flex items-center gap-3 flex-wrap">
+                  {requiredMissing.length > 0 && (
+                    <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
+                      <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
+                    </div>
+                  )}
+                  {suppressedIds.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={onRestoreSuppressed}
+                      className="text-[11px] text-muted-foreground underline hover:text-foreground"
+                      title="Restore checklist items removed for this client"
+                    >
+                      Restore {suppressedIds.size} hidden
+                    </button>
+                  )}
+                  {canUpload && (
+                    <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
+                      <Plus className="size-3.5 mr-1" /> Add document
+                    </Button>
+                  )}
+                  {isAdmin && (
+                    <Button size="sm" variant="outline" onClick={() => setAddSectionOpen(true)}>
+                      <Plus className="size-3.5 mr-1.5" /> New section
+                    </Button>
+                  )}
+                </div>
               </div>
               {sections.map((sec) => {
                 const sectionDocs: SectionDoc[] = docs
@@ -980,6 +848,43 @@ const ClientDetail = () => {
                     uploaded_at: d.uploaded_at,
                     version: d.version,
                   }));
+                // Checklist items that belong to this section AND don't yet have an attached doc.
+                const pendingChecklist = checklistItems
+                  .filter((it) => {
+                    const ready = docByType(it.name);
+                    if (ready) return false;
+                    const inferred = inferSectionIdFromList(it.name, sections);
+                    return inferred === sec.id;
+                  })
+                  .map((it) => {
+                    const attached = attachedDocByType(it.name);
+                    const status = attached?.status === "rejected"
+                      ? ("rejected" as const)
+                      : attached?.status === "needs_reissue"
+                        ? ("needs_reissue" as const)
+                        : null;
+                    return {
+                      id: it.id,
+                      name: it.name,
+                      mandatory: !!it.mandatory,
+                      notes: it.notes ?? null,
+                      status,
+                      attachedFileName: attached?.file_name ?? null,
+                      isExtra: extraItems.some((e) => e.id === it.id),
+                    };
+                  });
+                // Docs uploaded but not (yet) linked to any checklist item — eligible for manual linking.
+                const linkableDocs = docs
+                  .filter((doc) => {
+                    const t1 = doc.document_type === "Other" ? (doc.custom_type ?? "") : doc.document_type;
+                    const t2 = doc.custom_type ?? "";
+                    return !checklistItems.some((it) => it.name === t1 || it.name === t2);
+                  })
+                  .map((doc) => ({
+                    id: doc.id,
+                    file_name: doc.file_name,
+                    label: doc.document_type === "Other" ? (doc.custom_type ?? "Other") : doc.document_type,
+                  }));
                 return (
                   <SectionBuilderCard
                     key={sec.id}
@@ -990,88 +895,19 @@ const ClientDetail = () => {
                     canEdit={canUpload}
                     isAdmin={isAdmin}
                     onChanged={load}
+                    pendingChecklist={pendingChecklist}
+                    linkableDocs={linkableDocs}
+                    onLinkDocToChecklist={linkDocToChecklist}
+                    onRemoveChecklistItem={(itemId, itemName, mandatory, isExtra) =>
+                      isExtra
+                        ? onRemoveExtraItem(itemId)
+                        : onSuppressTemplateItem(itemId, itemName, mandatory)
+                    }
                   />
                 );
               })}
             </div>
           )}
-
-          {/* Flat list — collapsed by default; section cards above are the primary surface. */}
-          <Card className="overflow-hidden shadow-elev-sm">
-            <Accordion type="single" collapsible>
-              <AccordionItem value="flat" className="border-0">
-                <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                  <div className="flex items-center justify-between gap-3 flex-1">
-                    <div className="text-left">
-                      <div className="font-semibold">All uploaded documents (flat list)</div>
-                      <div className="text-xs text-muted-foreground">
-                        {docs.length} file{docs.length===1?"":"s"} · auto-renamed, PDF-converted & compressed for IRCC (≤ 4 MB)
-                      </div>
-                    </div>
-                    {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
-                      <span className="px-2 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-semibold uppercase tracking-wide">
-                        Optimize available
-                      </span>
-                    )}
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  {canUpload && docs.some((d) => (d.size_bytes ?? 0) > LARGE_BYTES) && (
-                    <div className="px-6 pb-2">
-                      <Button variant="outline" size="sm" onClick={onOptimizeAll} disabled={optimizingAll}>
-                        {optimizingAll ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <Sparkles className="size-3.5 mr-1.5" />}
-                        Re-optimize all
-                      </Button>
-                    </div>
-                  )}
-                  <div className="divide-y border-t">
-              {docs.length === 0 && (
-                <div className="px-6 py-10 text-center text-sm text-muted-foreground">No documents uploaded yet.</div>
-              )}
-              {docs.map((d) => (
-                <div key={d.id} className="px-6 py-3 flex items-center gap-3">
-                  <FileText className="size-4 text-primary shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{d.file_name}</div>
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                      <span>{d.custom_type ?? d.document_type}</span>
-                      {d.size_bytes ? <span>· {(d.size_bytes/1024).toFixed(0)} KB</span> : null}
-                      {(d.size_bytes ?? 0) <= LARGE_BYTES ? (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-success/10 text-success text-[10px] font-semibold uppercase tracking-wide">
-                          <ShieldCheck className="size-3" /> IRCC ✓
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[10px] font-semibold uppercase tracking-wide">
-                          Optimize
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Button size="icon" variant="ghost" className="size-7" onClick={() => onView(d)}><Eye className="size-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="size-7" onClick={() => onDownload(d)}><Download className="size-3.5" /></Button>
-                  <Button size="icon" variant="ghost" className="size-7" title="Create share link"
-                    onClick={() => setShareTarget({ type: "document", id: d.id, label: d.file_name })}>
-                    <Link2 className="size-3.5" />
-                  </Button>
-                  <Link to={`/verification?document_id=${d.id}`} title="Verify authenticity">
-                    <Button size="icon" variant="ghost" className="size-7"><FileSearch className="size-3.5" /></Button>
-                  </Link>
-                  {(d.size_bytes ?? 0) > LARGE_BYTES && (
-                    <Button size="icon" variant="ghost" className="size-7" title="Optimize on server"
-                      onClick={() => onOptimize(d)} disabled={optimizing === d.id}>
-                      {optimizing === d.id ? <Loader2 className="size-3.5 animate-spin" /> : <Sparkles className="size-3.5" />}
-                    </Button>
-                  )}
-                  {canUpload && (
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Move to Trash" onClick={() => onDelete(d)}><Trash2 className="size-3.5" /></Button>
-                  )}
-                </div>
-              ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </Card>
 
           {secondaryLoading && binders.length === 0 && trashedDocs.length === 0 && (
             <Card className="overflow-hidden shadow-elev-sm">

@@ -99,6 +99,18 @@ export async function inferSectionId(typeName: string): Promise<string | null> {
   return fb?.id ?? null;
 }
 
+/** Synchronous variant — pick the matching section id from a list already in memory. */
+export function inferSectionIdFromList(typeName: string, sections: CaseSection[]): string | null {
+  const groupKey = groupForType(typeName).key;
+  const candidates = GROUP_TO_SECTION[groupKey] ?? ["additional", "other"];
+  for (const key of candidates) {
+    const hit = sections.find((s) => s.key === key);
+    if (hit) return hit.id;
+  }
+  const fb = sections.find((s) => s.key === "additional") ?? sections.find((s) => s.key === "other");
+  return fb?.id ?? null;
+}
+
 /** Persist a new ordering for documents inside one section. */
 export async function saveSectionOrder(docIds: string[]): Promise<void> {
   await Promise.all(
