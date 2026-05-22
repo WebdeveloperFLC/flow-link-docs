@@ -29,7 +29,7 @@ export function VideoClipPanel() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiVideoUrl, setAiVideoUrl] = useState<string | null>(null);
   const [aiVideoPath, setAiVideoPath] = useState<string | null>(null);
-  const [aiProvider, setAiProvider] = useState<"google-veo-3-fast" | "pollinations" | null>(null);
+  const [aiProvider, setAiProvider] = useState<"google-veo-3-fast" | "google-veo-2" | "pollinations" | null>(null);
 
   // Ken Burns mode state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -59,9 +59,11 @@ export function VideoClipPanel() {
       const { data: signed } = await supabase.storage.from("dsh-media").createSignedUrl(res.path, 60 * 60);
       setAiVideoUrl(signed?.signedUrl ?? null);
       setAiVideoPath(res.path);
-      setAiProvider(res.provider ?? null);
+      setAiProvider((res.provider as any) ?? null);
       if (res.provider === "pollinations") {
         toast.warning("Generated with backup provider (Pollinations) — quality is lower. Google Veo quota may be exhausted.");
+      } else if (res.provider === "google-veo-2") {
+        toast.success("Generated with Google Veo 2 (Veo 3 Fast quota exhausted)");
       } else {
         toast.success("Video generated with Google Veo 3 Fast");
       }
@@ -272,7 +274,9 @@ export function VideoClipPanel() {
                   <p className="text-xs text-muted-foreground">
                     {aiProvider === "google-veo-3-fast"
                       ? "Generated with Google Veo 3 Fast"
-                      : "Generated with Pollinations (backup — lower quality)"}
+                      : aiProvider === "google-veo-2"
+                        ? "Generated with Google Veo 2 (fallback)"
+                        : "Generated with Pollinations (backup — lower quality)"}
                   </p>
                 )}
                 <div className="flex gap-2">
