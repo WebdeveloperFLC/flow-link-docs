@@ -182,7 +182,7 @@ const Users = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name or email…"
+              placeholder="Search name, email, role, status…"
               className="pl-8 h-9"
             />
           </div>
