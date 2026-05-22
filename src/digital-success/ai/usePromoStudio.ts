@@ -72,6 +72,23 @@ export function usePromoStudio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function readFunctionError(error: any, fallback: string) {
+    const ctx = error?.context;
+    if (ctx instanceof Response) {
+      try {
+        const body = await ctx.clone().json();
+        return body?.error || body?.message || fallback;
+      } catch {
+        try { return await ctx.clone().text(); } catch { return fallback; }
+      }
+    }
+    return ctx?.body?.error || ctx?.error || error?.message || fallback;
+  }
+
+  function isOpenAiBillingLimit(message: string) {
+    return /billing|quota|credit|402|hard limit|insufficient/i.test(message);
+  }
+
   async function generatePoster(brief: PosterBrief) {
     setLoading(true); setError(null);
     try {
@@ -96,8 +113,20 @@ export function usePromoStudio() {
         : "dsh-ai-generate-poster";
       const { data, error } = await supabase.functions.invoke(fnName, { body: payload });
       if (error) {
-        const ctxMsg = (error as any)?.context?.body?.error || (error as any)?.context?.error;
-        throw new Error(ctxMsg || error.message || "Generation failed");
+        const ctxMsg = await readFunctionError(error, "Generation failed");
+        if (brief.quality === "premium_openai" && isOpenAiBillingLimit(ctxMsg)) {
+          const fallbackPayload = { ...payload, quality: "premium" };
+          const fallback = await supabase.functions.invoke("dsh-ai-generate-poster", { body: fallbackPayload });
+          if (fallback.error) {
+            throw new Error(await readFunctionError(fallback.error, ctxMsg));
+          }
+          if (!fallback.data?.ok) throw new Error(fallback.data?.error || fallback.data?.errors?.join("; ") || ctxMsg);
+          return {
+            ...(fallback.data as { generation_id: string; image_paths: string[]; errors: string[] }),
+            errors: ["OpenAI credits are exhausted, so Gemini Premium was used instead.", ...((fallback.data as any)?.errors || [])],
+          };
+        }
+        throw new Error(ctxMsg || "Generation failed");
       }
       if (!data?.ok) throw new Error(data?.error || data?.errors?.join("; ") || "Generation failed");
       return data as { generation_id: string; image_paths: string[]; errors: string[] };

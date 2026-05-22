@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const supaUser = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -129,6 +130,7 @@ Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject w
     const n = Math.max(1, Math.min(2, Number(variations) || 1));
     const image_paths: string[] = [];
     const errors: string[] = [];
+    const usedModels = new Set<string>();
 
     for (let i = 0; i < n; i++) {
       let aiRes: Response;
@@ -171,8 +173,40 @@ Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject w
         if (aiRes.status === 401) {
           return new Response(JSON.stringify({ error: "OpenAI rejected the API key (401). Check OPENAI_API_KEY." }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
         }
-        if (t.includes("insufficient_quota") || t.includes("billing")) {
-          return new Response(JSON.stringify({ error: "OpenAI account has no remaining credits. Add billing on platform.openai.com.", details: t.slice(0, 400) }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        if (t.includes("insufficient_quota") || t.includes("billing") || t.includes("hard_limit") || t.includes("quota")) {
+          if (!LOVABLE_API_KEY) {
+            return new Response(JSON.stringify({ error: "OpenAI account has no remaining credits and Gemini fallback is unavailable.", details: t.slice(0, 400) }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const fallbackContent: any = refs.length
+            ? [{ type: "text", text: prompt }, ...refs.map((r) => ({ type: "image_url", image_url: { url: r.data_url } }))]
+            : prompt;
+          const fallbackRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "google/gemini-3-pro-image-preview",
+              messages: [{ role: "user", content: fallbackContent }],
+              modalities: ["image", "text"],
+            }),
+          });
+          if (!fallbackRes.ok) {
+            const ft = await fallbackRes.text();
+            return new Response(JSON.stringify({ error: "OpenAI credits are exhausted and Gemini Premium fallback failed.", details: ft.slice(0, 400) }), { status: fallbackRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+          const fallbackJson = await fallbackRes.json();
+          const dataUrl: string | undefined = fallbackJson.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+          const m = dataUrl?.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+          if (!m) { errors.push(`variant ${i + 1}: Gemini fallback returned no image`); continue; }
+          const mime = m[1];
+          const ext = mime.split("/")[1]?.replace("jpeg", "jpg") || "png";
+          const bin = Uint8Array.from(atob(m[2]), (c) => c.charCodeAt(0));
+          const path = `ai/${user.id}/${crypto.randomUUID()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from("dsh-media").upload(path, bin, { contentType: mime, upsert: false });
+          if (upErr) { errors.push(`variant ${i + 1} Gemini fallback upload: ${upErr.message}`); continue; }
+          image_paths.push(path);
+          usedModels.add("google/gemini-3-pro-image-preview");
+          errors.push(`variant ${i + 1}: OpenAI credits exhausted; generated with Gemini Premium fallback.`);
+          continue;
         }
         errors.push(`variant ${i + 1}: ${aiRes.status} ${t.slice(0, 300)}`);
         continue;
@@ -186,12 +220,13 @@ Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject w
       const { error: upErr } = await supabase.storage.from("dsh-media").upload(path, bin, { contentType: "image/png", upsert: false });
       if (upErr) { errors.push(`variant ${i + 1} upload: ${upErr.message}`); continue; }
       image_paths.push(path);
+      usedModels.add("openai/gpt-image-1");
     }
 
     let generation_id: string | null = null;
     if (image_paths.length) {
       const { data: gen, error: genErr } = await supabase.from("dsh_ai_generations").insert({
-        user_id: user.id, kind: "poster", brief: body, prompt, image_paths, model: "openai/gpt-image-1",
+        user_id: user.id, kind: "poster", brief: body, prompt, image_paths, model: Array.from(usedModels).join(" + ") || "openai/gpt-image-1",
       }).select("id").single();
       if (genErr) console.error("save gen err", genErr);
       generation_id = gen?.id ?? null;
