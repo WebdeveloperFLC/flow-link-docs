@@ -220,12 +220,13 @@ Render at maximum detail. Sharp, kerning-perfect typography. Photoreal subject w
       const { error: upErr } = await supabase.storage.from("dsh-media").upload(path, bin, { contentType: "image/png", upsert: false });
       if (upErr) { errors.push(`variant ${i + 1} upload: ${upErr.message}`); continue; }
       image_paths.push(path);
+      usedModels.add("openai/gpt-image-1");
     }
 
     let generation_id: string | null = null;
     if (image_paths.length) {
       const { data: gen, error: genErr } = await supabase.from("dsh_ai_generations").insert({
-        user_id: user.id, kind: "poster", brief: body, prompt, image_paths, model: "openai/gpt-image-1",
+        user_id: user.id, kind: "poster", brief: body, prompt, image_paths, model: Array.from(usedModels).join(" + ") || "openai/gpt-image-1",
       }).select("id").single();
       if (genErr) console.error("save gen err", genErr);
       generation_id = gen?.id ?? null;
