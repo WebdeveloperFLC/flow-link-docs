@@ -1,56 +1,39 @@
-## Problems
+# Integrate OpenAI GPT-Image-1 for poster generation
 
-1. **Mirror composition loses the reference's main content.** When a user attaches an IBU poster with role `layout` ("mirror composition"), the edge function prompt currently says *"mirror its composition and grid; replace ALL text with the Brief above"* AND also says *"Do NOT draw, invent or imagine ANY university / institution / college logo, crest, shield, monogram, wordmark"* (because no `institution_logo` ref is attached). The combined effect is that IBU's name, "International Business University" wordmark, building, DLI line, etc. all disappear — the model is explicitly forbidden from reproducing them.
+Add OpenAI as an alternative image renderer alongside the existing Gemini path. User brings their own `OPENAI_API_KEY`; we call OpenAI's Images API directly from a new edge function (Lovable AI Gateway does not expose GPT image models).
 
-2. **No way to delete generated images.** The grid and the "Recent generations" panel only have Download / Enhance / Save. Junk variants pile up in storage and clutter the UI.
+## What changes
 
-## Fix
+### 1. Secret
+- Request `OPENAI_API_KEY` via the secrets tool. User pastes their key from https://platform.openai.com/api-keys.
 
-### 1. New reference role `blueprint` (full content mirror)
+### 2. New edge function: `dsh-ai-generate-poster-openai`
+Mirror of the current `dsh-ai-generate-poster`, but calls OpenAI directly.
 
-`usePromoStudio.ts` — extend `RefRole` union with `"blueprint"`.
+- Endpoint: `POST https://api.openai.com/v1/images/generations` (text-only) or `POST https://api.openai.com/v1/images/edits` (when references are attached, using multipart with up to 16 reference PNGs).
+- Model: `gpt-image-1`. Size: `1024x1536` (portrait), `1024x1024` (square), `1024x1536` for story (closest supported). Quality: `high` for premium, `medium` for standard.
+- Same prompt builder as current function: brand block, strict logo rules, blueprint/institution-logo handling, verbatim contact footer, reference hint lines.
+- Returns base64 PNG → upload to `dsh-media` storage → insert into `dsh_ai_generations` with `model: "openai/gpt-image-1"` so the existing Recent Generations panel and delete buttons keep working.
+- Auth, CORS, rate-limit (429) and quota (402/insufficient_quota) handling identical to existing functions.
 
-`ReferenceTray.tsx` — add label *"Blueprint (mirror layout AND keep institution name/logo/imagery)"*.
+### 3. Frontend wiring (`usePromoStudio.ts` + `AiStudioPage.tsx`)
+- Extend the quality selector to add a new tier: **"Premium (ChatGPT)"** in addition to existing Standard / Premium (Gemini).
+- When that tier is selected, `generatePosters()` invokes `dsh-ai-generate-poster-openai` instead of `dsh-ai-generate-poster`. Everything else (brief form, reference tray, brand library, recent generations, delete buttons) is unchanged.
+- Cap variations at 2 for the OpenAI path (latency + cost).
 
-`dsh-ai-generate-poster/index.ts`:
-- Detect `hasBlueprint = refs.some(r => r.role === "blueprint")`.
-- When `hasBlueprint` is true:
-  - Suppress the "do NOT draw any institution logo" rule (the institution logo/wordmark/landmark in the blueprint reference is the source of truth).
-  - Append a strong instruction for that ref: *"Reference image #N: BLUEPRINT — use as master template. Preserve VERBATIM: the institution name, official wordmark/logo, building/landmark photography, color scheme, DLI/identifier lines, section structure. Only refresh: intake date, highlights bullets, and the contact footer per the Brief above. Do NOT replace the institution name with the Brief's `institution_name` unless that field is non-empty."*
-- Tighten the existing `layout` role wording so it stops saying "replace ALL text" — change to "mirror composition; refresh copy per Brief but keep any visible institution wordmark/landmark."
+### 4. No DB migration needed
+`dsh_ai_generations` already stores `model` as text and `image_paths` as an array; OpenAI rows slot in alongside Gemini rows.
 
-### 2. Delete generated images
+## Honest trade-offs to know upfront
+- **Cost**: GPT-Image-1 `high` quality ~ $0.17–$0.25 per 1024×1536 image, billed directly to your OpenAI account (not Lovable credits).
+- **Reference fidelity**: GPT-Image-1 *does* accept reference images via `/images/edits`, but in practice it tends to *redraw* logos rather than paste them verbatim — the opposite of what Nano Banana Pro does well. The "Future Link logo top-left" / "institution logo top-right" rules will be looser than today. We'll keep the strict prompt instructions, but expect more touch-ups.
+- **Blueprint mirroring**: Likely worse than Gemini for preserving an existing poster's exact layout + institution wordmark. GPT excels at fresh compositions, not faithful template replication.
+- **Speed**: `high` quality takes ~30–60s per image (similar to Gemini 3 Pro Image).
 
-`usePromoStudio.ts` — add:
-```ts
-async function deleteGeneration(id: string, paths: string[]) {
-  if (paths?.length) await supabase.storage.from("dsh-media").remove(paths).catch(() => {});
-  const { error } = await supabase.from("dsh_ai_generations").delete().eq("id", id);
-  if (error) throw error;
-}
-async function deleteGeneratedImage(path: string) {
-  await supabase.storage.from("dsh-media").remove([path]).catch(() => {});
-  // also strip from any dsh_ai_generations.image_paths array row
-  const { data } = await supabase.from("dsh_ai_generations").select("id,image_paths").contains("image_paths", [path]);
-  for (const row of data ?? []) {
-    const next = (row.image_paths as string[]).filter((p) => p !== path);
-    if (next.length === 0) await supabase.from("dsh_ai_generations").delete().eq("id", row.id);
-    else await supabase.from("dsh_ai_generations").update({ image_paths: next }).eq("id", row.id);
-  }
-}
-```
+If logo/IBU/contact fidelity is your #1 pain point, the *prompt-rewrite-then-Gemini* route would likely score higher than swapping renderers. Happy to add both — say the word.
 
-`AiStudioPage.tsx`:
-- In the current-batch grid (lines 290–312): add a small destructive Trash button per card. On click → confirm, call `deleteGeneratedImage(path)`, remove from local `images` state, toast, refresh recent.
-- In `RecentGenerationsPanel`: add per-image Trash button (calls `deleteGeneratedImage`) and a "Delete all" button on each generation row header (calls `deleteGeneration(r.id, r.image_paths)`), then `onRefresh()`.
-
-### Out of scope
-- Trash/undo (hard delete only, with confirm dialog).
-- Bulk multi-select across rows.
-- Cross-user delete protection — RLS already restricts to user's own rows.
-
-### Files to touch
-- `supabase/functions/dsh-ai-generate-poster/index.ts`
+## Files touched
+- `supabase/functions/dsh-ai-generate-poster-openai/index.ts` (new)
 - `src/digital-success/ai/usePromoStudio.ts`
-- `src/digital-success/ai/ReferenceTray.tsx`
 - `src/digital-success/ai/AiStudioPage.tsx`
+- secret: `OPENAI_API_KEY`
