@@ -771,48 +771,8 @@ const ClientDetail = () => {
       />
 
       <div className="p-8 grid lg:grid-cols-3 gap-6">
-        {/* Left: checklist */}
+        {/* Left: unified case documents (sections + checklist + uploads) */}
         <div className="lg:col-span-2 space-y-6">
-          <Card className="overflow-hidden shadow-elev-sm">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <div>
-                <div className="font-semibold">Document checklist</div>
-                <div className="text-xs text-muted-foreground">
-                  {template ? `${template.name} · ${completed}/${checklistItems.length} ready` : "No template assigned"}
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {requiredMissing.length > 0 && (
-                  <div className="text-xs text-secondary flex items-center gap-1.5 font-medium">
-                    <AlertCircle className="size-3.5" /> {requiredMissing.length} required missing
-                  </div>
-                )}
-                {suppressedIds.size > 0 && (
-                  <button
-                    type="button"
-                    onClick={onRestoreSuppressed}
-                    className="text-[11px] text-muted-foreground underline hover:text-foreground"
-                    title="Restore checklist items removed for this client"
-                  >
-                    Restore {suppressedIds.size} hidden
-                  </button>
-                )}
-                {canUpload && (
-                  <Button size="sm" variant="outline" onClick={() => setAddDocOpen(true)}>
-                    <Plus className="size-3.5 mr-1" /> Add document
-                  </Button>
-                )}
-              </div>
-            </div>
-            {!template && (
-              <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-                No workflow template assigned. Edit this client to assign one, or create templates first.
-              </div>
-            )}
-            <div className="divide-y">
-              {(() => {
-                let runningIdx = 0;
-                return checklistSections.map((sec) => {
                   const secReady = sec.items.filter((it) => docByType(it.name)).length;
                   return (
                     <div key={sec.id}>
