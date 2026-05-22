@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useMasterLabels } from "@/lib/masters";
+import { fetchServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { GripVertical, Plus, Trash2, FolderPlus, ChevronDown, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,8 +43,28 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
   const [addDocCustom, setAddDocCustom] = useState<Record<string, string>>({});
 
   const COUNTRIES = useMasterLabels("countries");
-  const APPLICATION_TYPES = useMasterLabels("application_types");
   const DOCUMENT_TYPES = useMasterLabels("document_types");
+  const [visaServices, setVisaServices] = useState<ServiceCatalogueItem[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    fetchServiceCatalogue("visa_immigration")
+      .then(setVisaServices)
+      .catch(() => setVisaServices([]));
+  }, [open]);
+
+  const categoryOptions = useMemo(() => {
+    const filtered = country
+      ? visaServices.filter((s) => !s.country_tag || s.country_tag === country)
+      : visaServices;
+    const list = filtered.length > 0 ? filtered : visaServices;
+    return list.map((s) => ({ value: s.service_code || s.id, label: s.service_name }));
+  }, [visaServices, country]);
+
+  const currentCategoryIsKnown = useMemo(
+    () => !category || categoryOptions.some((o) => o.value === category),
+    [category, categoryOptions],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -293,7 +314,14 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
               <Label>Application Category *</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>{APPLICATION_TYPES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                <SelectContent>
+                  {!currentCategoryIsKnown && (
+                    <SelectItem value={category}>{category} (legacy)</SelectItem>
+                  )}
+                  {categoryOptions.map((o) => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           </div>
