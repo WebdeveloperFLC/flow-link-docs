@@ -479,12 +479,19 @@ function RecentGenerationsPanel({ rows, urls, onDownload, onSave, onRefresh, onD
               {r.image_paths.map((p, i) => (
                 <div key={p} className="space-y-1">
                   {urls[p] ? (
-                    <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                    /\.(webm|mp4|mov)$/i.test(p) ? (
+                      <video src={urls[p]} controls className="w-full rounded border bg-black" />
+                    ) : (
+                      <img src={urls[p]} alt={`gen-${i}`} className="w-full rounded border" />
+                    )
                   ) : (
                     <div className="aspect-square bg-muted rounded animate-pulse" />
                   )}
                   <div className="flex gap-1">
-                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.png`)}>
+                    <Button size="sm" variant="outline" className="flex-1 h-7 text-xs px-2" disabled={!urls[p]} onClick={() => {
+                      const ext = p.split(".").pop() || "png";
+                      onDownload(urls[p], `flc-${r.id.slice(0,6)}-${i + 1}.${ext}`);
+                    }}>
                       <Download className="size-3" />
                     </Button>
                     <Button size="sm" className="flex-1 h-7 text-xs px-2" onClick={() => onSave(p)}>
