@@ -29,7 +29,7 @@ export function VideoClipPanel() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiVideoUrl, setAiVideoUrl] = useState<string | null>(null);
   const [aiVideoPath, setAiVideoPath] = useState<string | null>(null);
-  const [aiProvider, setAiProvider] = useState<"google-veo-3-fast" | "google-veo-2" | "pollinations" | null>(null);
+  const [aiProvider, setAiProvider] = useState<"google-veo-3-fast" | "google-veo-3-lite" | "replicate-minimax" | "pollinations" | null>(null);
 
   // Ken Burns mode state
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -62,8 +62,10 @@ export function VideoClipPanel() {
       setAiProvider((res.provider as any) ?? null);
       if (res.provider === "pollinations") {
         toast.warning("Generated with backup provider (Pollinations) — quality is lower. Google Veo quota may be exhausted.");
-      } else if (res.provider === "google-veo-2") {
-        toast.success("Generated with Google Veo 2 (Veo 3 Fast quota exhausted)");
+      } else if (res.provider === "google-veo-3-lite") {
+        toast.success("Generated with Google Veo 3 Lite (Veo 3 Fast quota exhausted)");
+      } else if (res.provider === "replicate-minimax") {
+        toast.warning("Generated with backup provider (Replicate Minimax) — Google Veo quota may be exhausted.");
       } else {
         toast.success("Video generated with Google Veo 3 Fast");
       }
@@ -274,8 +276,10 @@ export function VideoClipPanel() {
                   <p className="text-xs text-muted-foreground">
                     {aiProvider === "google-veo-3-fast"
                       ? "Generated with Google Veo 3 Fast"
-                      : aiProvider === "google-veo-2"
-                        ? "Generated with Google Veo 2 (fallback)"
+                      : aiProvider === "google-veo-3-lite"
+                        ? "Generated with Google Veo 3 Lite (fallback)"
+                        : aiProvider === "replicate-minimax"
+                          ? "Generated with Replicate Minimax (backup)"
                         : "Generated with Pollinations (backup — lower quality)"}
                   </p>
                 )}

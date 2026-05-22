@@ -196,7 +196,7 @@ export function usePromoStudio() {
     finally { setLoading(false); }
   }
 
-  /** Generate a real text-to-video clip via Replicate (server-side). */
+  /** Generate a real text-to-video clip via server-side providers. */
   async function generateVideoFromConcept(args: {
     concept: string;
     style?: "cinematic" | "documentary" | "festive" | "editorial";
@@ -212,7 +212,7 @@ export function usePromoStudio() {
         throw new Error(msg);
       }
       if (!data?.ok) throw new Error(data?.error || "Video generation failed");
-      return data as { generation_id: string | null; path: string; provider?: "google-veo-3-fast" | "google-veo-2" | "pollinations" };
+      return data as { generation_id: string | null; path: string; provider?: "google-veo-3-fast" | "google-veo-3-lite" | "replicate-minimax" | "pollinations" };
     } catch (e: any) { setError(e?.message ?? "Failed"); throw e; }
     finally { setLoading(false); }
   }

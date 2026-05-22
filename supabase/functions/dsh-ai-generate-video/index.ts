@@ -12,7 +12,7 @@ const STYLE_HINTS: Record<string, string> = {
   editorial: "editorial magazine cinematography, refined color grading, elegant composition",
 };
 
-type Provider = "google-veo-3-fast" | "google-veo-2" | "pollinations";
+type Provider = "google-veo-3-fast" | "google-veo-3-lite" | "replicate-minimax" | "pollinations";
 type GenResult = { bytes: Uint8Array; provider: Provider } | null;
 
 async function generateWithGoogle(model: string, provider: Provider, prompt: string, aspect: string, duration: number): Promise<GenResult> {
@@ -101,6 +101,63 @@ async function generateWithPollinations(prompt: string): Promise<GenResult> {
   }
 }
 
+function outputUrl(output: unknown): string | undefined {
+  if (typeof output === "string") return output;
+  if (Array.isArray(output)) return output.find((item): item is string => typeof item === "string");
+  if (output && typeof output === "object") {
+    const obj = output as Record<string, unknown>;
+    return [obj.url, obj.uri, obj.file, obj.video].find((item): item is string => typeof item === "string");
+  }
+  return undefined;
+}
+
+async function generateWithReplicate(prompt: string): Promise<GenResult> {
+  const token = Deno.env.get("REPLICATE_API_TOKEN");
+  if (!token) return null;
+  try {
+    const startRes = await fetch("https://api.replicate.com/v1/models/minimax/video-01/predictions", {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "wait=5",
+      },
+      body: JSON.stringify({ input: { prompt, prompt_optimizer: true } }),
+    });
+    if (!startRes.ok) {
+      const t = await startRes.text();
+      console.warn("Replicate Minimax start failed:", startRes.status, t.slice(0, 300));
+      return null;
+    }
+
+    let prediction = await startRes.json();
+    const deadline = Date.now() + 130_000;
+    while (!["succeeded", "failed", "canceled"].includes(prediction?.status)) {
+      if (Date.now() > deadline) { console.warn("Replicate Minimax timeout"); return null; }
+      await new Promise((r) => setTimeout(r, 4000));
+      const pollUrl = prediction?.urls?.get;
+      if (!pollUrl) return null;
+      const pollRes = await fetch(pollUrl, { headers: { Authorization: `Token ${token}` } });
+      if (!pollRes.ok) { console.warn("Replicate Minimax poll failed", pollRes.status); return null; }
+      prediction = await pollRes.json();
+    }
+
+    if (prediction?.status !== "succeeded") {
+      console.warn("Replicate Minimax prediction failed:", prediction?.error ?? prediction?.status);
+      return null;
+    }
+
+    const url = outputUrl(prediction?.output);
+    if (!url) { console.warn("Replicate Minimax: no output URL"); return null; }
+    const videoRes = await fetch(url);
+    if (!videoRes.ok) { console.warn("Replicate Minimax download failed", videoRes.status); return null; }
+    return { bytes: new Uint8Array(await videoRes.arrayBuffer()), provider: "replicate-minimax" };
+  } catch (e) {
+    console.warn("Replicate Minimax exception:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -131,13 +188,15 @@ Deno.serve(async (req) => {
     const styleHint = STYLE_HINTS[style] ?? STYLE_HINTS.cinematic;
     const prompt = `${concept}. ${styleHint}. Smooth natural motion, no on-screen text, no watermarks.`;
 
-    // Try Google Veo 3 Fast → Veo 3.1 Lite Preview (Veo 2 requires GCP billing; Pollinations video API isn't public).
+    // Try Google Veo 3 Fast → free Google lite fallback → Replicate backup → Pollinations last resort.
     let result = await generateWithGoogle("veo-3.0-fast-generate-001", "google-veo-3-fast", prompt, aspect, duration);
-    if (!result) result = await generateWithGoogle("veo-3.1-lite-generate-preview", "google-veo-2", prompt, aspect, duration);
+    if (!result) result = await generateWithGoogle("veo-3.1-lite-generate-preview", "google-veo-3-lite", prompt, aspect, duration);
+    if (!result) result = await generateWithReplicate(prompt);
+    if (!result) result = await generateWithPollinations(prompt);
     if (!result) {
       return new Response(JSON.stringify({
-        error: "Veo video generation failed. Free-tier quota on this GOOGLE_AI_API_KEY may be exhausted (resets daily) — check aistudio.google.com/apikey, or enable GCP billing for higher limits.",
-      }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        error: "Video generation is temporarily unavailable. Google AI Studio quota is exhausted and backup providers did not return a video. Try again after the daily reset, update GOOGLE_AI_API_KEY with a key that has quota, or enable billing for higher limits.",
+      }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const buf = result.bytes;
     const provider = result.provider;
@@ -160,7 +219,8 @@ Deno.serve(async (req) => {
       image_paths: [path],
       model: provider === "google-veo-3-fast"
         ? "google/veo-3.0-fast"
-        : provider === "google-veo-2" ? "google/veo-2.0" : "pollinations/veo",
+        : provider === "google-veo-3-lite" ? "google/veo-3.1-lite"
+          : provider === "replicate-minimax" ? "replicate/minimax-video-01" : "pollinations/veo",
     }).select("id").single();
 
     return new Response(JSON.stringify({ ok: true, generation_id: gen?.id ?? null, path, provider }), {
