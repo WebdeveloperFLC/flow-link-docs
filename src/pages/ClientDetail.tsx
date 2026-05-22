@@ -901,7 +901,11 @@ const ClientDetail = () => {
               </div>
               {sections.map((sec) => {
                 const sectionDocs: SectionDoc[] = docs
-                  .filter((d) => d.section_id === sec.id)
+                  .filter((d) => {
+                    const target = docTargetSection.get(d.id);
+                    if (target) return target === sec.id;
+                    return d.section_id === sec.id;
+                  })
                   .map((d) => ({
                     id: d.id,
                     document_type: d.document_type,
@@ -920,8 +924,9 @@ const ClientDetail = () => {
                   .filter((it) => {
                     const ready = docByType(it.name);
                     if (ready) return false;
-                    const inferred = inferSectionIdFromList(it.name, sections);
-                    return inferred === sec.id;
+                    const placed = itemSectionIdById.get(it.id)
+                      ?? inferSectionIdFromList(it.name, sections);
+                    return placed === sec.id;
                   })
                   .map((it) => {
                     const attached = attachedDocByType(it.name);
