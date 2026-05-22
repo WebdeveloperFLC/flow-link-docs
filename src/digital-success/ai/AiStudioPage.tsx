@@ -308,6 +308,7 @@ export default function AiStudioPage() {
                   <SelectContent>
                     <SelectItem value="standard">Standard (fast)</SelectItem>
                     <SelectItem value="premium">Premium ✨</SelectItem>
+                    <SelectItem value="premium_openai">Premium (ChatGPT) ⚡</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
