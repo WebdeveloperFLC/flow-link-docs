@@ -8,7 +8,7 @@ Deno.serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
-    const model = "gemini-2.5-pro";
+    const model = "gemini-2.5-flash";
     const contents = (messages ?? []).map((m: { role: string; content: string }) => ({
       role: m.role === "assistant" ? "model" : "user",
       parts: [{ text: m.content }],
