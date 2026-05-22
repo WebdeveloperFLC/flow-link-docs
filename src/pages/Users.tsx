@@ -433,10 +433,8 @@ const Users = () => {
                 body: { action: "reset_password", user_id: resetUser.id, password: newPw },
               });
               setResetBusy(false);
-              if (error || (data as { error?: string })?.error) {
-                toast.error((data as { error?: string })?.error ?? error?.message ?? "Failed");
-                return;
-              }
+              const msg = await extractFnError(data, error as any);
+              if (msg) { toast.error(msg); return; }
               toast.success("Password updated");
               setResetUser(null);
             }}
