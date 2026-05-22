@@ -1,79 +1,60 @@
 
-## Problem
+# Fix: CRM ↔ Accounting client linkage & payment visibility
 
-In the uploaded sample `Financial_Binder_DMS.pdf` (22 pages), only pages 18–20 render visible content; pages 1–17 and 21–22 are blank. The cover/TOC and one source statement survived, but every other appended source PDF came out empty.
+## What's actually happening
 
-Root cause: both `src/lib/combinePdfs.ts` and `src/lib/binder.ts` rely solely on `pdf-lib`'s `PDFDocument.copyPages(...)`. That call is known to silently drop page content for source PDFs that use any of: compressed object streams (XRef streams), Form XObjects with indirect resources, AcroForm fields, scanner-flattened pages, certain image-only PDFs, or LinearizedDoc layouts. Many of our source documents (bank/MF statements, government letters, scanned passports) fall in those categories — hence the blank pages.
+I checked the database for "asd asdf asdf" (client `e9926243-…`):
 
-Two secondary issues compound it:
+- **CRM client exists** in `clients` table ✅
+- **Draft invoice exists** in `accounting_ar_invoices`: `INV-DRAFT-0706636`, total ₹31,860, status `DRAFT` ✅
+- **No row in `accounting_clients`** — that's why Accounting → Clients shows 0 rows ❌
+- **CRM client page never queries invoices** — that's why you see no payment record on the client ❌
+- **"Link CRM client" dialog is broken** — it pushes to an in-memory mock array instead of saving, so even manual linking does nothing ❌
 
-1. We never validate the merged output. The user gets a blank-looking binder with no warning.
-2. The merge runs in the browser on potentially 100+ MB of PDFs, which is slow and memory-heavy.
+The two modules are running on parallel client tables (`clients` for CRM, `accounting_clients` for accounting) with **no auto-sync**. The draft invoice the registration flow creates is orphaned from both client views.
 
-## Fix
+## Fix plan
 
-Move PDF combination to a Deno edge function with a robust two-pass strategy, and have the frontend call it instead of merging client-side.
+### 1. Auto-create accounting client when CRM client is created
+In `src/lib/clientRegistration.ts` (`createDraftInvoice` and/or `upsertClientRegistration`):
+- After inserting the CRM client / before inserting the draft invoice, upsert a matching row into `accounting_clients`:
+  - `id = <new uuid>`, `linked_crm_client_id = clients.id`
+  - `name`, `email`, `phone`, `country`, `currency` (INR default), `status = ACTIVE`, `segment = INDIVIDUAL`, `client_type` mapped from CRM `application_type`
+  - `payment_terms` from the registration form
+- Use `ON CONFLICT (linked_crm_client_id) DO UPDATE` (add unique index if missing via migration).
+- Backfill migration: insert one `accounting_clients` row for every existing `clients` row that doesn't already have a linked accounting record.
 
-### 1. New edge function: `supabase/functions/combine-pdfs/index.ts`
+### 2. Show invoices & payments on the CRM client page
+In `src/pages/ClientDetail.tsx`, add a new `<ClientPaymentsCard client_id={id} />` (new file `src/components/clients/ClientPaymentsCard.tsx`):
+- Query `accounting_ar_invoices` where `client_id = :id`, ordered by `invoice_date desc`.
+- Show invoice #, date, status badge (Draft/Sent/Partially Paid/Paid), total, outstanding, "Open in Accounting" button (→ `/accounting/ar/:id`), and "Record payment" button (→ same detail page).
+- Empty state: "No invoices yet · Create one in Accounting".
+- Place between `ClientProfileCard` and the documents accordion so it's visible immediately.
 
-Input:
+### 3. Fix the "Link CRM client" dialog
+In `src/accounting/components/clients/LinkCrmClientDialog.tsx`:
+- Replace `MOCK_CLIENTS.push(newClient)` with `addClient(newClient)` from `clientsStore` so the row is persisted to `accounting_clients` and reflected in the list.
+- Filter out CRM clients that already have an `accounting_clients` row (query the store, not `MOCK_CLIENTS`).
+
+### 4. Make Accounting → Clients useful
+In `src/accounting/pages/clients/AccountingClientsPage.tsx`:
+- After hydration, also show a "Linked from CRM" badge for rows where `linked_crm_client_id` is set, with a link back to `/clients/:linked_crm_client_id`.
+- In the detail page (`AccountingClientDetailPage.tsx`), show the linked CRM client's invoices the same way the CRM page now does, plus a "Record payment / Send invoice" call to action when `outstandingBalance > 0`.
+
+### 5. Verify RLS lets the right users see the draft
+The current policy on `accounting_ar_invoices` is:
 ```
-{
-  client_id: string,
-  paths: string[],             // ordered storage paths in client-documents bucket
-  output_path: string,         // where to upload the merged PDF
-  cover?: {                    // optional cover/TOC metadata for final binder
-    title: string,
-    client_name: string,
-    application_id?: string,
-    country?: string,
-    application_type?: string,
-    template_name?: string,
-    items?: { name: string; mandatory: boolean; notes?: string; matched: boolean }[]
-  }
-}
+counselors read own draft invoices: status='DRAFT' AND created_by=auth.uid()
+  OR (client_id AND can_view_client(auth.uid(), client_id) AND (admin OR counselor))
 ```
-
-Algorithm per source PDF:
-1. Download bytes from `client-documents` using the service-role client.
-2. Try `PDFDocument.load(bytes, { ignoreEncryption: true, updateMetadata: false })` then `copyPages`.
-3. After copy, verify each appended page has a non-empty content stream and at least one resource (Font, XObject, or non-trivial Contents length > 50 bytes). If any copied page fails the check, discard the just-copied pages and fall back to step 4 for that file.
-4. **Rasterization fallback**: render every page of the source PDF to a JPEG (150 DPI, quality 80) using `pdfjs-dist` running in Deno via `npm:pdfjs-dist@4`. Embed each JPEG as a full-page image in the output PDF using `pdf-lib`'s `embedJpg` + `drawImage`. This always produces a visible page even when `copyPages` can't preserve the original structure.
-5. If both methods fail (corrupt file, unsupported encryption), insert a single placeholder page noting the file name and storage path so the user knows which source failed.
-
-The function also writes a small `merge_report` row to a new `public.binder_merge_reports` table (optional, low priority — can defer) listing per-file outcome: `copied`, `rasterized`, or `failed`.
-
-Cover/TOC: when `cover` is provided, prepend the cover + TOC pages using the same code currently in `src/lib/binder.ts` (ported to the edge function). When `cover` is omitted, just the merged pages are returned (current `combinePdfsFromStorage` behavior).
-
-Upload the resulting PDF to `client-documents` at `output_path` with the service-role client (bucket already exists, RLS bypassed by service role). Return `{ ok: true, storage_path, size_bytes, report }`.
-
-`verify_jwt = true` (default) so the calling user's session is checked; inside the function, verify the JWT, then re-check `can_view_client(uid, client_id)` and `can_upload_client(uid, client_id)` via the user's anon-key client before doing service-role work.
-
-### 2. Frontend wiring
-
-- `src/lib/combinePdfs.ts`: replace the in-browser merge with `supabase.functions.invoke('combine-pdfs', { body: { paths, output_path } })`. Return the resulting storage path (and a freshly created signed URL for download) instead of raw bytes.
-- `src/lib/binder.ts`: replace the in-browser `generateBinder` with an invocation that also passes the `cover` payload. The cover page rendering logic moves into the edge function unchanged.
-- `src/components/clients/FinalBinderPanel.tsx`: adapt `buildOne` — instead of building bytes locally and uploading, call the new function with a target `output_path` it already computes, then download via signed URL for the user. Keep the `binders` table insert and `logActivity` call client-side as today.
-- `src/components/clients/CustomBindersPanel.tsx`: same refactor pattern.
-- The legacy in-browser merge helpers stay available behind a `legacy` export for tests but are no longer used in production paths.
-
-### 3. Test
-
-Add `src/test/combinePdfs.test.ts` covering the invoke wrapper (mock `supabase.functions.invoke`) — pure unit, no real PDF merge needed.
-
-After deployment, ask the user to regenerate the same Financial binder; verify all source pages render content.
+That's already correct; the invoice simply wasn't being surfaced anywhere outside `/accounting/ar`. No policy change needed once step 2 puts it on the CRM client page.
 
 ## Out of scope
-
-- No DB schema changes (the optional `binder_merge_reports` table is deferred until needed).
-- No UI/UX changes to the binder panels beyond the function call swap.
-- No changes to upload, splitting, or section logic.
+- No changes to invoice numbering, GST calc, or receipt flow.
+- No changes to Leads, Telecaller, Workflows, Forms, Letters, Offers.
+- Accounting, Institutions, Commissions, Digital Hub remain untouched except for the four files above.
 
 ## Files touched
-
-- `supabase/functions/combine-pdfs/index.ts` (new)
-- `src/lib/combinePdfs.ts` (rewrite to invoke)
-- `src/lib/binder.ts` (rewrite to invoke, keep cover payload shape)
-- `src/components/clients/FinalBinderPanel.tsx` (use new helper, fetch signed URL)
-- `src/components/clients/CustomBindersPanel.tsx` (same)
-- `src/test/combinePdfs.test.ts` (new)
+- New: `src/components/clients/ClientPaymentsCard.tsx`
+- Edited: `src/pages/ClientDetail.tsx`, `src/lib/clientRegistration.ts`, `src/accounting/components/clients/LinkCrmClientDialog.tsx`, `src/accounting/pages/clients/AccountingClientsPage.tsx`, `src/accounting/pages/clients/AccountingClientDetailPage.tsx`
+- Migration: unique index on `accounting_clients.linked_crm_client_id` + backfill insert
