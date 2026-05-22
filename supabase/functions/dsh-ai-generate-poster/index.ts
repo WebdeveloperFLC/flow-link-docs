@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
       : [];
     const hasBrandLogo = refs.some((r) => r.role === "logo");
     const hasInstitutionLogo = refs.some((r) => r.role === "institution_logo");
+    const hasBlueprint = refs.some((r) => r.role === "blueprint");
 
     const logoRules: string[] = [];
     if (use_brand) {
@@ -59,6 +60,8 @@ Deno.serve(async (req) => {
     }
     if (hasInstitutionLogo) {
       logoRules.push(`The institution logo is attached as a reference image and MUST be placed VERBATIM in the TOP-RIGHT corner at ~14% of poster width. Do NOT redraw, recolor, re-letter, add an "OFFICIAL LOGO" caption, or invent a crest/shield.`);
+    } else if (hasBlueprint) {
+      logoRules.push(`A BLUEPRINT reference is attached — preserve the institution wordmark, logo, crest, building and color scheme EXACTLY as shown in that reference. Do NOT invent a different logo, but DO faithfully reproduce the institution branding visible in the blueprint.`);
     } else {
       logoRules.push(`Do NOT draw, invent or imagine ANY university / institution / college logo, crest, shield, monogram, "OFFICIAL LOGO" badge, or wordmark — even if the institution name appears in the body text. Leave the top-right area clean.`);
     }
@@ -87,7 +90,9 @@ Do NOT invent, modify, mask, abbreviate or add any other phone numbers, emails, 
         case "institution_logo":
           return `Reference image #${n}: INSTITUTION LOGO — place VERBATIM in the TOP-RIGHT corner at ~14% poster width. Preserve exact glyphs, colors and aspect ratio. Do NOT add an "OFFICIAL LOGO" caption or invent a crest.`;
         case "layout":
-          return `Reference image #${n}: LAYOUT — mirror its overall composition and grid; replace all text with the Brief above.`;
+          return `Reference image #${n}: LAYOUT — mirror its overall composition and grid; refresh copy per the Brief but KEEP any visible institution wordmark, logo and landmark photography from this reference.`;
+        case "blueprint":
+          return `Reference image #${n}: BLUEPRINT — use as the master template. Preserve VERBATIM the institution name, official wordmark/logo, building/landmark photography, color scheme, DLI/identifier lines, and section structure. Only refresh: intake date, highlights bullets, and the contact footer per the Brief above. If the Brief's institution_name is empty, keep the institution name visible in this reference.`;
         case "subject":
           return `Reference image #${n}: SUBJECT — feature this person / landmark / building in the hero area.`;
         case "style":

@@ -11,6 +11,7 @@ const MAX_REFS = 4;
 const ROLE_LABEL: Record<RefRole, string> = {
   style: "Style (match palette / typography)",
   layout: "Layout (mirror composition)",
+  blueprint: "Blueprint (mirror layout + keep institution name/logo/imagery)",
   subject: "Subject (use this person / landmark)",
   logo: "Future Link logo (top-left, verbatim)",
   institution_logo: "Institution logo (top-right, verbatim)",
