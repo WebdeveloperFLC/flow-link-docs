@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getCRMClients, type CRMClient } from "../../lib/crmBridge";
-import { MOCK_CLIENTS } from "../../data/mockClients";
+import { addClient, getClients } from "../../stores/clientsStore";
 import type { Client } from "../../types/clients";
 
 interface Props {
@@ -33,7 +33,7 @@ export default function LinkCrmClientDialog({ open, onOpenChange, onLinked }: Pr
 
   const filtered = useMemo(() => {
     const ql = q.trim().toLowerCase();
-    const linkedIds = new Set(MOCK_CLIENTS.map(c => c.linkedCrmClientId).filter(Boolean));
+    const linkedIds = new Set(getClients().map(c => c.linkedCrmClientId).filter(Boolean));
     return crmClients
       .filter(c => !linkedIds.has(c.id))
       .filter(c => !ql ||
@@ -45,8 +45,7 @@ export default function LinkCrmClientDialog({ open, onOpenChange, onLinked }: Pr
   const handleLink = () => {
     const crm = crmClients.find(c => c.id === selectedId);
     if (!crm) { toast.error("Pick a CRM client"); return; }
-    const newClient: Client = {
-      id: `c-crm-${crm.id.slice(0, 8)}`,
+    const newClient: Omit<Client, "id" | "outstandingReceivable" | "ytdRevenue" | "lastTxnDate"> = {
       name: crm.name,
       legalName: crm.name,
       segment: "INDIVIDUAL",
@@ -56,17 +55,14 @@ export default function LinkCrmClientDialog({ open, onOpenChange, onLinked }: Pr
       paymentTerms: "Due on receipt",
       currency: crm.country === "IN" ? "INR" : crm.country === "US" ? "USD" : "CAD",
       status: "ACTIVE",
-      outstandingReceivable: 0,
-      ytdRevenue: 0,
-      lastTxnDate: new Date().toISOString().slice(0, 10),
       email: crm.email ?? "",
       phone: crm.phone ?? "",
       address: "",
       accountManager: "",
       linkedCrmClientId: crm.id,
     };
-    MOCK_CLIENTS.push(newClient);
-    onLinked?.(newClient);
+    const created = addClient(newClient);
+    onLinked?.(created);
     toast.success(`Linked ${crm.name} from CRM`);
     onOpenChange(false);
     setSelectedId(null); setQ("");

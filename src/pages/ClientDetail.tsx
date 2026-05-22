@@ -18,6 +18,7 @@ import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
+import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
@@ -849,6 +850,8 @@ const ClientDetail = () => {
             syncingOdoo={syncingOdoo}
             refreshKey={profileRefreshKey}
           />
+
+          <ClientPaymentsCard clientId={client.id} />
 
           <LetterCard clientId={client.id} canGenerate={canUpload} onGenerated={load} />
 
