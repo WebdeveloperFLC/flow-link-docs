@@ -63,14 +63,52 @@ export function seedTemplateSectionsFromItems(
  *  Multiple keys are tried in order — the first that exists in the DB wins. */
 const GROUP_TO_SECTION: Record<string, string[]> = {
   identity: ["identity"],
-  academic: ["academic", "academics"],
+  academic: ["academics", "academic"],
   experience: ["work_experience", "experience"],
   financial: ["financial", "finance"],
   forms: ["forms"],
   family: ["family"],
-  supporting: ["supporting", "institutional"],
-  other: ["other", "additional"],
+  supporting: ["supporting", "institutional", "institution_docs"],
+  other: ["other_documents", "other", "additional"],
 };
+
+/** Aliases for template `section_key` values → case_sections.key candidates.
+ *  Resolves legacy/renamed section keys defined inside template `groups` to
+ *  whichever active section currently exists in the DB. */
+const SECTION_KEY_ALIASES: Record<string, string[]> = {
+  identity: ["identity"],
+  academic: ["academics", "academic"],
+  academics: ["academics", "academic"],
+  experience: ["work_experience", "experience"],
+  work_experience: ["work_experience", "experience"],
+  financial: ["financial", "finance"],
+  finance: ["financial", "finance"],
+  forms: ["forms"],
+  family: ["family"],
+  supporting: ["supporting", "institutional", "institution_docs"],
+  institutional: ["institution_docs", "institutional", "supporting"],
+  institution_docs: ["institution_docs", "institutional", "supporting"],
+  other: ["other_documents", "other", "additional"],
+  other_documents: ["other_documents", "other", "additional"],
+  additional: ["other_documents", "additional", "other"],
+};
+
+/** Resolve a (possibly legacy) section key from a template group to an
+ *  active case_section id. Returns null when nothing matches. */
+export function resolveSectionIdByKey(
+  key: string | null | undefined,
+  sections: CaseSection[],
+): string | null {
+  if (!key) return null;
+  const direct = sections.find((s) => s.key === key);
+  if (direct) return direct.id;
+  const candidates = SECTION_KEY_ALIASES[key] ?? [key];
+  for (const k of candidates) {
+    const hit = sections.find((s) => s.key === k);
+    if (hit) return hit.id;
+  }
+  return null;
+}
 
 let cachedSections: CaseSection[] | null = null;
 

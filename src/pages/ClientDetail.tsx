@@ -26,7 +26,7 @@ import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
-import { loadSections, inferSectionId, inferSectionIdFromList, type CaseSection } from "@/lib/sections";
+import { loadSections, inferSectionId, inferSectionIdFromList, resolveSectionIdByKey, type CaseSection } from "@/lib/sections";
 import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
@@ -327,6 +327,73 @@ const ClientDetail = () => {
     }
     return out;
   }, [visibleTemplateItems, template?.groups, extraItems]);
+
+  /** Map each template checklist item id → the case_section id defined by the
+   *  template's `groups`. This is what drives section placement for pending
+   *  rows AND uploaded documents, so a "Job Offer letter" required item
+   *  always lands in the Experience section even when keyword inference would
+   *  bucket it differently. Falls back to `inferSectionIdFromList` per item. */
+  const itemSectionIdById = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!sections.length) return map;
+    const tplGroups = (template?.groups ?? []) as TemplateGroup[];
+    for (const g of tplGroups) {
+      const sid = resolveSectionIdByKey(g.section_key, sections);
+      if (!sid) continue;
+      for (const itemId of g.item_ids) map.set(itemId, sid);
+    }
+    // Fallbacks for items not placed in any group.
+    for (const it of checklistItems) {
+      if (map.has(it.id)) continue;
+      const sid = inferSectionIdFromList(it.name, sections);
+      if (sid) map.set(it.id, sid);
+    }
+    return map;
+  }, [template?.groups, sections, checklistItems]);
+
+  /** For each active document, the section it SHOULD live in based on the
+   *  matching checklist item's template-defined section (when applicable).
+   *  Used both for view-time placement and for a one-time backfill so the
+   *  stored `section_id` matches what the user sees. */
+  const docTargetSection = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!sections.length || !checklistItems.length) return map;
+    for (const d of docs) {
+      const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
+      const t2 = d.custom_type ?? "";
+      const match = checklistItems.find((it) => it.name === t1 || it.name === t2)
+        ?? checklistItems.find(
+          (it) =>
+            (t1 && isChecklistAlias(t1, it.name)) ||
+            (t2 && t2 !== t1 && isChecklistAlias(t2, it.name)),
+        );
+      const sid = match ? itemSectionIdById.get(match.id) : undefined;
+      if (sid) map.set(d.id, sid);
+    }
+    return map;
+  }, [docs, checklistItems, itemSectionIdById, sections.length]);
+
+  // Backfill: if a doc's stored section_id doesn't match the template-defined
+  // section for its checklist item, realign it (one-shot, idempotent).
+  useEffect(() => {
+    if (docTargetSection.size === 0) return;
+    let cancelled = false;
+    (async () => {
+      let n = 0;
+      for (const d of docs) {
+        const target = docTargetSection.get(d.id);
+        if (!target || target === d.section_id) continue;
+        const { error } = await supabase
+          .from("client_documents")
+          .update({ section_id: target })
+          .eq("id", d.id);
+        if (!error) n++;
+      }
+      if (!cancelled && n > 0) load();
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docTargetSection]);
 
   const onDelete = async (d: Doc) => {
     if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
@@ -834,7 +901,11 @@ const ClientDetail = () => {
               </div>
               {sections.map((sec) => {
                 const sectionDocs: SectionDoc[] = docs
-                  .filter((d) => d.section_id === sec.id)
+                  .filter((d) => {
+                    const target = docTargetSection.get(d.id);
+                    if (target) return target === sec.id;
+                    return d.section_id === sec.id;
+                  })
                   .map((d) => ({
                     id: d.id,
                     document_type: d.document_type,
@@ -853,8 +924,9 @@ const ClientDetail = () => {
                   .filter((it) => {
                     const ready = docByType(it.name);
                     if (ready) return false;
-                    const inferred = inferSectionIdFromList(it.name, sections);
-                    return inferred === sec.id;
+                    const placed = itemSectionIdById.get(it.id)
+                      ?? inferSectionIdFromList(it.name, sections);
+                    return placed === sec.id;
                   })
                   .map((it) => {
                     const attached = attachedDocByType(it.name);

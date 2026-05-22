@@ -908,6 +908,9 @@ function PendingRows({
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium flex items-center gap-1.5 truncate">
                 <span className="truncate">{it.name}</span>
+                {!it.isExtra && (
+                  <span className="text-[10px] uppercase font-semibold text-muted-foreground bg-muted px-1.5 py-0.5 rounded">Default</span>
+                )}
                 {it.mandatory && <span className="text-secondary text-[10px] font-semibold">REQUIRED</span>}
                 {it.isExtra && <span className="text-[10px] uppercase font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">Added</span>}
               </div>
