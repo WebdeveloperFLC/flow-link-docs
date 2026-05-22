@@ -26,7 +26,7 @@ async function generateWithGoogle(model: string, provider: Provider, prompt: str
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instances: [{ prompt }],
-          parameters: { aspectRatio: aspect, durationSeconds: duration, personGeneration: "allow_all" },
+          parameters: { aspectRatio: aspect, personGeneration: "allow_all" },
         }),
       },
     );
@@ -131,13 +131,12 @@ Deno.serve(async (req) => {
     const styleHint = STYLE_HINTS[style] ?? STYLE_HINTS.cinematic;
     const prompt = `${concept}. ${styleHint}. Smooth natural motion, no on-screen text, no watermarks.`;
 
-    // Try Google Veo 3 Fast → Veo 2 → Pollinations.
+    // Try Google Veo 3 Fast → Veo 3.1 Lite Preview (Veo 2 requires GCP billing; Pollinations video API isn't public).
     let result = await generateWithGoogle("veo-3.0-fast-generate-001", "google-veo-3-fast", prompt, aspect, duration);
-    if (!result) result = await generateWithGoogle("veo-2.0-generate-001", "google-veo-2", prompt, aspect, duration);
-    if (!result) result = await generateWithPollinations(prompt);
+    if (!result) result = await generateWithGoogle("veo-3.1-lite-generate-preview", "google-veo-2", prompt, aspect, duration);
     if (!result) {
       return new Response(JSON.stringify({
-        error: "All video providers failed. Veo 3 Fast and Veo 2 quotas may be exhausted on the GOOGLE_AI_API_KEY — check aistudio.google.com/apikey or retry shortly.",
+        error: "Veo video generation failed. Free-tier quota on this GOOGLE_AI_API_KEY may be exhausted (resets daily) — check aistudio.google.com/apikey, or enable GCP billing for higher limits.",
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const buf = result.bytes;
