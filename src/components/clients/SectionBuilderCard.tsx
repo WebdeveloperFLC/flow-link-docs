@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal } from "lucide-react";
+import { FileText, Loader2, Eye, Download, Trash2, GripVertical, Upload, Layers, FolderInput, Pencil, Check, Combine, MoreHorizontal, Link2, X as XIcon, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -84,6 +85,22 @@ interface BinderRow {
   id: string; file_name: string; storage_path: string; generated_at: string;
 }
 
+export interface PendingChecklistItem {
+  id: string;
+  name: string;
+  mandatory: boolean;
+  notes?: string | null;
+  status?: "rejected" | "needs_reissue" | null;
+  attachedFileName?: string | null;
+  isExtra?: boolean;
+}
+
+export interface LinkableDoc {
+  id: string;
+  file_name: string;
+  label: string;
+}
+
 interface Props {
   clientId: string;
   section: CaseSection;
@@ -92,9 +109,13 @@ interface Props {
   canEdit: boolean;
   isAdmin: boolean;
   onChanged: () => void;
+  pendingChecklist?: PendingChecklistItem[];
+  linkableDocs?: LinkableDoc[];
+  onLinkDocToChecklist?: (docId: string, checklistName: string) => void | Promise<void>;
+  onRemoveChecklistItem?: (itemId: string, itemName: string, mandatory: boolean, isExtra: boolean) => void | Promise<void>;
 }
 
-export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, onChanged }: Props) => {
+export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, onChanged, pendingChecklist = [], linkableDocs = [], onLinkDocToChecklist, onRemoveChecklistItem }: Props) => {
   const [orderMode, setOrderModeState] = useState<"auto" | "manual">("auto");
   const [items, setItems] = useState<SectionDoc[]>([]);
   const [combining, setCombining] = useState(false);
