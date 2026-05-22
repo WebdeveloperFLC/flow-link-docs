@@ -12,13 +12,13 @@ const STYLE_HINTS: Record<string, string> = {
   editorial: "editorial magazine cinematography, refined color grading, elegant composition",
 };
 
-type GenResult = { bytes: Uint8Array; provider: "google-veo-3-fast" | "pollinations" } | null;
+type Provider = "google-veo-3-fast" | "google-veo-2" | "pollinations";
+type GenResult = { bytes: Uint8Array; provider: Provider } | null;
 
-async function generateWithGoogle(prompt: string, aspect: string, duration: number): Promise<GenResult> {
+async function generateWithGoogle(model: string, provider: Provider, prompt: string, aspect: string, duration: number): Promise<GenResult> {
   const key = Deno.env.get("GOOGLE_AI_API_KEY");
   if (!key) return null;
   try {
-    const model = "veo-3.0-fast-generate-preview";
     const startRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${model}:predictLongRunning?key=${key}`,
       {
@@ -32,7 +32,7 @@ async function generateWithGoogle(prompt: string, aspect: string, duration: numb
     );
     if (!startRes.ok) {
       const t = await startRes.text();
-      console.warn("Google Veo start failed:", startRes.status, t.slice(0, 300));
+      console.warn(`Google ${model} start failed:`, startRes.status, t.slice(0, 300));
       return null;
     }
     let op = await startRes.json();
@@ -66,13 +66,13 @@ async function generateWithGoogle(prompt: string, aspect: string, duration: numb
       const bin = atob(inlineB64);
       const bytes = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-      return { bytes, provider: "google-veo-3-fast" };
+      return { bytes, provider };
     }
     if (fileUri) {
       const sep = fileUri.includes("?") ? "&" : "?";
       const dl = await fetch(`${fileUri}${sep}key=${key}`);
       if (!dl.ok) { console.warn("Veo download failed", dl.status); return null; }
-      return { bytes: new Uint8Array(await dl.arrayBuffer()), provider: "google-veo-3-fast" };
+      return { bytes: new Uint8Array(await dl.arrayBuffer()), provider };
     }
     console.warn("Veo: no video in response", JSON.stringify(resp).slice(0, 300));
     return null;
@@ -131,12 +131,13 @@ Deno.serve(async (req) => {
     const styleHint = STYLE_HINTS[style] ?? STYLE_HINTS.cinematic;
     const prompt = `${concept}. ${styleHint}. Smooth natural motion, no on-screen text, no watermarks.`;
 
-    // Try Google Veo 3 Fast first; fall back to Pollinations.
-    let result = await generateWithGoogle(prompt, aspect, duration);
+    // Try Google Veo 3 Fast → Veo 2 → Pollinations.
+    let result = await generateWithGoogle("veo-3.0-fast-generate-001", "google-veo-3-fast", prompt, aspect, duration);
+    if (!result) result = await generateWithGoogle("veo-2.0-generate-001", "google-veo-2", prompt, aspect, duration);
     if (!result) result = await generateWithPollinations(prompt);
     if (!result) {
       return new Response(JSON.stringify({
-        error: "Both Google Veo and Pollinations failed. Check GOOGLE_AI_API_KEY quota at aistudio.google.com or retry shortly.",
+        error: "All video providers failed. Veo 3 Fast and Veo 2 quotas may be exhausted on the GOOGLE_AI_API_KEY — check aistudio.google.com/apikey or retry shortly.",
       }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
     const buf = result.bytes;
@@ -158,7 +159,9 @@ Deno.serve(async (req) => {
       brief: { concept, style, aspect, duration, provider },
       prompt,
       image_paths: [path],
-      model: provider === "google-veo-3-fast" ? "google/veo-3.0-fast" : "pollinations/veo",
+      model: provider === "google-veo-3-fast"
+        ? "google/veo-3.0-fast"
+        : provider === "google-veo-2" ? "google/veo-2.0" : "pollinations/veo",
     }).select("id").single();
 
     return new Response(JSON.stringify({ ok: true, generation_id: gen?.id ?? null, path, provider }), {
