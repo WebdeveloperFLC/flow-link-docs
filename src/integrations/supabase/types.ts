@@ -11975,6 +11975,26 @@ export type Database = {
         Returns: boolean
       }
       is_telephony_admin: { Args: { _uid: string }; Returns: boolean }
+      list_assessment_sessions_admin: {
+        Args: { _limit?: number }
+        Returns: {
+          answers: Json
+          client_email: string
+          client_name: string
+          client_phone: string
+          country: string
+          created_at: string
+          goal: string
+          id: string
+          lead_email: string
+          lead_name: string
+          lead_phone: string
+          output: Json
+          pdf_path: string
+          status: string
+          submitted_at: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
