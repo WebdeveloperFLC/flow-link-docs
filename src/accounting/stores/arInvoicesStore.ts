@@ -42,6 +42,7 @@ function mapToDb(i: CustomerInvoice): Record<string, unknown> {
   return {
     id: i.id,
     invoice_number: i.invoiceNumber,
+    client_id: isUuid(i.clientId) ? i.clientId : null,
     client_name: i.client,
     invoice_date: i.invoiceDate,
     due_date: i.dueDate || null,
@@ -64,6 +65,7 @@ function mapToDb(i: CustomerInvoice): Record<string, unknown> {
 function mergeFromDb(local: CustomerInvoice | undefined, row: any): CustomerInvoice {
   return {
     id: row.id,
+    clientId: row.client_id ?? local?.clientId,
     invoiceNumber: row.invoice_number ?? local?.invoiceNumber ?? "",
     client: row.client_name ?? local?.client ?? "",
     clientEmail: local?.clientEmail ?? "",
