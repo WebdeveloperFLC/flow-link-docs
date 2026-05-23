@@ -1108,7 +1108,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                         {r.service_type && <span>· {r.service_type}</span>}
                       </div>
                     </td>
-                    <td className="px-2 py-1.5 text-muted-foreground">{r.due_date ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-muted-foreground">{formatDue(r.due_date)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{money(r.total, invCcy)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">{money(r.already_paid, invCcy)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{money(out, invCcy)}</td>
@@ -1179,7 +1179,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           {nextDueRow && (
             <div className="flex justify-between text-muted-foreground">
               <span>Next due</span>
-              <span>{buildLabel(nextDueRow)} — {nextDueRow.due_date}</span>
+              <span>{buildLabel(nextDueRow)} — {formatDue(nextDueRow.due_date)}</span>
             </div>
           )}
           {overpay && <div className="text-destructive">A row's amount exceeds its outstanding balance.</div>}
