@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
 
-export interface FamilyMember {
+export interface FamilyMember extends FamilyMemberExtras {
   id: string;
   primary_client_id: string | null;
   primary_lead_id: string | null;
