@@ -128,10 +128,21 @@ export const ServiceTabs = ({
                   s.pricing_type === "ON_REQUEST" ? "On request" : "—";
                 const hasNote = typeof s.notes === "string" && s.notes.trim().length > 0;
                 return (
-                  <label key={s.id} className="flex items-center gap-3 px-3 py-2 hover:bg-muted/30 cursor-pointer">
+                  <label
+                    key={s.id}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 cursor-pointer border-l-2 transition-colors",
+                      checked
+                        ? "bg-primary/5 border-primary hover:bg-primary/10"
+                        : "border-transparent hover:bg-muted/30",
+                    )}
+                  >
                     <Checkbox checked={checked} onCheckedChange={() => toggle(t.key, code)} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate flex items-center gap-1.5">
+                      <div className={cn(
+                        "text-sm truncate flex items-center gap-1.5",
+                        checked ? "font-semibold text-foreground" : "font-medium",
+                      )}>
                         <span className="truncate">{s.service_name}</span>
                         {hasNote && (
                           <Popover
