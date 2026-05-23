@@ -3440,6 +3440,159 @@ export type Database = {
           },
         ]
       }
+      client_document_extraction_queue: {
+        Row: {
+          attempts: number
+          client_id: string
+          created_at: string
+          document_id: string
+          finished_at: string | null
+          id: string
+          last_error: string | null
+          priority: number
+          scheduled_at: string
+          started_at: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          client_id: string
+          created_at?: string
+          document_id: string
+          finished_at?: string | null
+          id?: string
+          last_error?: string | null
+          priority?: number
+          scheduled_at?: string
+          started_at?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          client_id?: string
+          created_at?: string
+          document_id?: string
+          finished_at?: string | null
+          id?: string
+          last_error?: string | null
+          priority?: number
+          scheduled_at?: string
+          started_at?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_document_extraction_queue_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extraction_queue_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extraction_queue_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_document_extractions: {
+        Row: {
+          classify_confidence: number
+          client_id: string
+          created_at: string
+          doc_type_detected: string | null
+          document_id: string
+          error: string | null
+          fields: Json
+          id: string
+          ocr_lang: string | null
+          ocr_pages: number | null
+          ocr_text: string | null
+          overall_confidence: number
+          person_id: string | null
+          processed_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          classify_confidence?: number
+          client_id: string
+          created_at?: string
+          doc_type_detected?: string | null
+          document_id: string
+          error?: string | null
+          fields?: Json
+          id?: string
+          ocr_lang?: string | null
+          ocr_pages?: number | null
+          ocr_text?: string | null
+          overall_confidence?: number
+          person_id?: string | null
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          classify_confidence?: number
+          client_id?: string
+          created_at?: string
+          doc_type_detected?: string | null
+          document_id?: string
+          error?: string | null
+          fields?: Json
+          id?: string
+          ocr_lang?: string | null
+          ocr_pages?: number | null
+          ocr_text?: string | null
+          overall_confidence?: number
+          person_id?: string | null
+          processed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_document_extractions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extractions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extractions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: true
+            referencedRelation: "client_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_document_extractions_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "case_people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_documents: {
         Row: {
           client_id: string
