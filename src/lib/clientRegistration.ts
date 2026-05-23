@@ -121,6 +121,9 @@ export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" |
 /** Prefill a client draft from a lead row. */
 export function prefillFromLead(lead: Lead): ClientDraft {
   const visaCode = (lead.visa_services && lead.visa_services[0]) || "";
+  const seededHistory: EducationEntry[] = lead.last_education
+    ? [{ level: lead.last_education ?? undefined }]
+    : [];
   return {
     source_lead_id: lead.id,
     first_name: lead.first_name,
@@ -137,6 +140,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     country: lead.country_of_residence ?? "India",
     last_education: lead.last_education ?? null,
     last_education_other: lead.last_education_other ?? null,
+    education_history: seededHistory,
     interested_countries: lead.interested_countries ?? [],
     branch: lead.branch ?? null,
     department: lead.department ?? null,
