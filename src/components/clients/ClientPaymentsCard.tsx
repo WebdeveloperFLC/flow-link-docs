@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Receipt, Loader2 } from "lucide-react";
+import { ClientInvoicesPanel } from "./ClientInvoicesPanel";
 
 interface InvoiceRow {
   id: string;
@@ -64,6 +65,8 @@ export function ClientPaymentsCard({ clientId }: { clientId: string }) {
   const currency = rows[0]?.currency ?? "INR";
 
   return (
+    <div className="space-y-4">
+      <ClientInvoicesPanel clientId={clientId} />
     <Card className="p-5">
       <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
         <div>
@@ -133,5 +136,6 @@ export function ClientPaymentsCard({ clientId }: { clientId: string }) {
         </div>
       )}
     </Card>
+    </div>
   );
 }
