@@ -36,6 +36,26 @@ import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Seed education_history from the legacy scalar columns when the row was
+ * saved before multi-education support landed. Keeps the form populated.
+ */
+function hydrateClient(c: ClientRow): ClientRow {
+  const hasHistory = Array.isArray(c.education_history) && c.education_history.length > 0;
+  if (!hasHistory && (c.last_education || c.institution_name || c.year_of_passing || c.percentage_cgpa)) {
+    return {
+      ...c,
+      education_history: [{
+        level: c.last_education ?? undefined,
+        institution: c.institution_name ?? undefined,
+        year: c.year_of_passing ?? null,
+        percentage_cgpa: c.percentage_cgpa ?? undefined,
+      }],
+    };
+  }
+  return c;
+}
+
 const CLIENT_TYPES = ["Student", "Corporate", "Partner", "Referral", "B2B"];
 const PORTAL_ACCESS_LEVELS = [
   { value: "standard", label: "Standard — profile, docs, payments, messages" },
@@ -99,6 +119,7 @@ const ClientNew = () => {
         setClientId(lead.converted_to_client_id);
         fetchClient(lead.converted_to_client_id).then((c) => {
           if (!c) return;
+          c = hydrateClient(c);
           setRegNumber(c.registration_number ?? null);
           setF(c);
           setInterestedCountries(c.interested_countries ?? []);
@@ -133,6 +154,7 @@ const ClientNew = () => {
     if (!editId) return;
     fetchClient(editId).then((c) => {
       if (!c) return;
+      c = hydrateClient(c);
       setClientId(c.id);
       setRegNumber(c.registration_number ?? null);
       setF(c);
