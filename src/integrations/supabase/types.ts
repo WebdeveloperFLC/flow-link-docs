@@ -149,6 +149,13 @@ export type Database = {
             referencedRelation: "accounting_vendors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "accounting_ap_bills_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_vendors_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       accounting_ar_invoices: {
@@ -11652,6 +11659,97 @@ export type Database = {
       }
     }
     Views: {
+      accounting_vendors_safe: {
+        Row: {
+          bank_account: string | null
+          bank_ifsc: string | null
+          bank_name: string | null
+          bank_swift: string | null
+          category: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          email: string | null
+          id: string | null
+          linked_coa_id: string | null
+          name: string | null
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          status: string | null
+          tax_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          bank_account?: never
+          bank_ifsc?: never
+          bank_name?: string | null
+          bank_swift?: never
+          category?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          id?: string | null
+          linked_coa_id?: string | null
+          name?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          status?: string | null
+          tax_id?: never
+          updated_at?: string | null
+        }
+        Update: {
+          bank_account?: never
+          bank_ifsc?: never
+          bank_name?: string | null
+          bank_swift?: never
+          category?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          email?: string | null
+          id?: string | null
+          linked_coa_id?: string | null
+          name?: string | null
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          status?: string | null
+          tax_id?: never
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_vendors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "accounting_vendors_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "vw_counselor_productivity"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "accounting_vendors_linked_coa_id_fkey"
+            columns: ["linked_coa_id"]
+            isOneToOne: false
+            referencedRelation: "accounting_coa"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_invoice_aging: {
         Row: {
           aging_bucket: string | null

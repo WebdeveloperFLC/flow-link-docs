@@ -21,7 +21,9 @@ const schema = z.object({
 
 const ROLE_LABEL: Record<AppRole, string> = {
   admin: "Administrator",
+  administrator: "Administrator",
   commission_admin: "Commission admin",
+  manager: "Manager",
   counselor: "Edit – Counselor",
   documentation: "Edit – Documentation",
   telecaller: "Telecaller",

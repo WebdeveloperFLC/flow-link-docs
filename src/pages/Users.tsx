@@ -36,7 +36,9 @@ const highestRole = (rs: AppRole[]): AppRole =>
 
 const ROLE_HELP: Record<AppRole, string> = {
   admin: "Full system access, settings and team role management",
+  administrator: "Full system access, settings and team role management",
   commission_admin: "Full access to commissions, claims, agreements and invoicing",
+  manager: "Manager access across operational modules",
   counselor: "Edit access: add clients, upload documents and fill client details",
   documentation: "Edit access: add clients, upload documents and fill client details",
   telecaller: "Lead calling and remarks; can hand leads to counselors",
@@ -46,7 +48,9 @@ const ROLE_HELP: Record<AppRole, string> = {
 
 const ROLE_SHORT: Record<AppRole, string> = {
   admin: "Full system access",
+  administrator: "Full system access",
   commission_admin: "Commission admin",
+  manager: "Manager",
   counselor: "Edit access",
   documentation: "Edit access",
   telecaller: "Telecaller",
@@ -458,7 +462,12 @@ const Users = () => {
           onOpenChange={(o) => { if (!o) setPermsUser(null); }}
           userId={permsUser.id}
           userName={permsUser.full_name ?? permsUser.email ?? ""}
-          role={highestRole(rolesFor(permsUser.id).length ? rolesFor(permsUser.id) : ["viewer"]) as AppRole}
+          role={(() => {
+            const r = highestRole(rolesFor(permsUser.id).length ? rolesFor(permsUser.id) : ["viewer"]);
+            if (r === "administrator") return "admin";
+            if (r === "manager") return "commission_admin";
+            return r;
+          })()}
         />
       )}
       {lifecycle && (

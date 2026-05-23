@@ -77,11 +77,17 @@ function mergeFromDb(local: Vendor | undefined, row: any): Vendor {
 
 async function hydrateFromSupabase() {
   try {
-    const { data, error } = await supabase.from("accounting_vendors").select("*");
+    // Read from the safe view so non-admin accounting users get masked
+    // banking fields (column-level REVOKE on the base table would otherwise
+    // return null for these columns). Writes still go to accounting_vendors.
+    const { data, error } = await supabase
+      .from("accounting_vendors_safe" as any)
+      .select("*");
     if (error) throw error;
     if (!data) return;
+    const rows = data as any[];
     const byId = new Map(vendors.map((v) => [v.id, v]));
-    for (const row of data) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
+    for (const row of rows) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
     vendors = Array.from(byId.values());
     emit();
   } catch (e) {
