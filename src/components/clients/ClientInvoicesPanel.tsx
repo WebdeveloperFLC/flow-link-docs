@@ -849,3 +849,128 @@ function SendReminderDialog({ invoice, clientId, onClose }: { invoice: Invoice; 
     </Dialog>
   );
 }
+/* ───────────────────── Invoice Snapshot Drawer (read-only) ───────────────────── */
+function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
+  const [payments, setPayments] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const [p, r] = await Promise.all([
+        supabase.from("client_invoice_payments")
+          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
+          .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
+        supabase.from("client_invoice_receipts")
+          .select("id,receipt_number,generated_at,currency,amount,receipt_voided")
+          .eq("invoice_id", invoice.id).is("archived_at", null).order("generated_at", { ascending: false }),
+      ]);
+      setPayments(p.data ?? []);
+      setReceipts(r.data ?? []);
+      setLoading(false);
+    })();
+  }, [invoice.id]);
+
+  const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
+
+  return (
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Invoice snapshot — {invoice.invoice_number}</SheetTitle>
+        </SheetHeader>
+
+        <div className="mt-4 space-y-4 text-sm">
+          <div className="rounded-md border p-3 grid grid-cols-2 gap-2">
+            <div><div className="text-xs text-muted-foreground">Status</div>
+              <Badge variant="outline" className={STATUS_STYLE[invoice.status] ?? ""}>{invoice.status.replace(/_/g, " ")}</Badge>
+            </div>
+            <div><div className="text-xs text-muted-foreground">Due</div><div>{invoice.due_date ?? "—"}</div></div>
+            <div><div className="text-xs text-muted-foreground">Total</div><div className="font-medium tabular-nums">{money(Number(invoice.amount), invoice.currency)}</div></div>
+            <div><div className="text-xs text-muted-foreground">Paid</div><div className="tabular-nums">{money(Number(invoice.amount_paid || 0), invoice.currency)}</div></div>
+            <div className="col-span-2"><div className="text-xs text-muted-foreground">Outstanding</div>
+              <div className={`font-semibold tabular-nums ${balance > 0 ? "text-destructive" : "text-emerald-700"}`}>{money(balance, invoice.currency)}</div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Line items</div>
+            <div className="rounded-md border overflow-hidden">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr><th className="text-left px-2 py-1">Service</th><th className="text-right px-2 py-1">Qty</th><th className="text-right px-2 py-1">Total</th></tr>
+                </thead>
+                <tbody>
+                  {(Array.isArray(invoice.line_items) ? invoice.line_items : []).map((li: any, i: number) => (
+                    <tr key={i} className="border-t">
+                      <td className="px-2 py-1">{li.service_name || li.description || "—"}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{li.quantity ?? 1}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{money(Number(li.total ?? li.amount ?? 0), invoice.currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({payments.length})</div>
+            {loading ? <div className="text-muted-foreground">Loading…</div> : payments.length === 0 ? (
+              <div className="text-muted-foreground text-xs">No payments recorded.</div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr><th className="text-left px-2 py-1">Date</th><th className="text-left px-2 py-1">Method</th><th className="text-left px-2 py-1">Status</th><th className="text-right px-2 py-1">Amount</th></tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.id} className="border-t">
+                        <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
+                        <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""}</td>
+                        <td className="px-2 py-1">
+                          <Badge variant="outline" className={
+                            p.payment_status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
+                            p.payment_status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
+                            "bg-amber-500/10 text-amber-700 border-amber-500/20"
+                          }>{(p.payment_status || "verified").replace(/_/g, " ")}</Badge>
+                        </td>
+                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({receipts.length})</div>
+            {loading ? null : receipts.length === 0 ? (
+              <div className="text-muted-foreground text-xs">No receipts generated.</div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th></tr>
+                  </thead>
+                  <tbody>
+                    {receipts.map((r) => (
+                      <tr key={r.id} className="border-t">
+                        <td className="px-2 py-1 font-medium">{r.receipt_number}{r.receipt_voided ? " (voided)" : ""}</td>
+                        <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
+                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="text-[11px] text-muted-foreground italic">Read-only snapshot. Use the row actions to modify.</div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
