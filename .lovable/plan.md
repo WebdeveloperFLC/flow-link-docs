@@ -1,41 +1,55 @@
-# Make receipts discoverable
+## Redesign: Vibrant Semantic theme
 
-## What's happening today
+Apply the selected direction app-wide so every page (Dashboard, Clients, Accounting, Leads, etc.) inherits the new look — not just the dashboard.
 
-Receipts ARE being generated and saved to `client_invoice_receipts` (your toast "Receipt RCPT-FLC-GEN-2026-0002 generated" confirms it). They just have nowhere obvious to view, download, or reprint:
+### Locked design tokens
 
-- **Client section** — receipts are buried inside the invoice "eye" (👁️) drawer (`InvoiceSnapshotDrawer`) on each invoice row. No direct entry point from the card itself.
-- **Accounting section** — there is **no receipts page at all**. AR has Invoices and Verification Queue, but no Receipts list. The "Download receipt" button on the invoice detail page also rebuilds a fresh receipt instead of opening the saved one.
+- **Typography:** Sora (headings, 600/700), Manrope (body, 400/500/600). Loaded from Google Fonts in `index.html`.
+- **Surfaces:** page `#F8FAFC`, card white, border `slate-200`, soft shadow.
+- **Sidebar:** `#0F172A` dark, grouped sections with uppercase labels ("Menu", "Management"), active item = blue tint + white text.
+- **Semantic accents** (4px left bar on cards + tinted icon chips):
+  - Blue → Clients / Partners
+  - Violet → Documents
+  - Emerald → Binders / Success
+  - Rose → Pending review / Course queue / Danger
+  - Amber → Institutions / Warning
+  - Purple → AI / Insights
+- **Radius:** `rounded-xl` cards, `rounded-lg` buttons/chips.
 
-## Fix — frontend only, no schema changes
+### Changes
 
-### 1. Client section — surface receipts directly on the invoice card
-In `ClientInvoicesPanel.tsx`:
-- Make the header "· Receipts {N}" a clickable chip that opens a new **Receipts drawer** (reusing the same data fetch already in `InvoiceSnapshotDrawer`) listing every receipt for this client with: receipt #, invoice #, date, amount, payer, status, and View / Print / Download actions.
-- On each invoice row, change the existing greyed-out "Receipt" button (currently only generates) so that:
-  - if receipts exist for that invoice → split into "View receipt" (opens drawer scoped to that invoice) + "Generate" (existing flow)
-  - if none → keep "Generate receipt"
-- Add a small `RCPT-…` link badge under each row showing the latest receipt number.
+1. **Design system foundation**
+   - `index.css`: import Sora + Manrope; add HSL semantic tokens for `clients`, `documents`, `binders`, `review`, `institutions`, `ai`, plus their `-soft` (bg-50) and `-foreground` pairs; set `--font-display: Sora`, `--font-sans: Manrope`.
+   - `tailwind.config.ts`: register `fontFamily.display` / `fontFamily.sans`; expose the semantic colors as Tailwind utilities (`bg-clients-soft`, `text-documents`, etc.).
 
-### 2. Accounting section — add a Receipts page
-- New route `/accounting/ar/receipts` → `AccountingReceiptsPage.tsx` listing all rows from `client_invoice_receipts` (joined with `client_invoices` for invoice #, client name, branch).
-- Columns: Receipt #, Date, Client, Invoice #, Amount, Currency, Status (voided/active), Actions (View, Print PDF, Download).
-- Filters: date range, client, invoice #, voided/active, free-text search on receipt # / ref.
-- Add a "Receipts" button on `AccountingARPage` header (next to "Verification queue") and a sidebar entry under AR.
-- Wire the existing "Download receipt" button in `AccountingInvoiceDetailPage.tsx` to open the saved snapshot via `printReceiptSnapshot` when one exists, instead of regenerating.
+2. **Sidebar (`AppSidebar`)**
+   - Regroup nav into labeled sections: **Menu** (Dashboard, Leads, Cold Pool, Clients, Messages), **Operations** (Telecaller, Course finder, Workflows, Forms library, Letter templates), **Insights** (Activity, AI Help), **Admin** (Team access, Team & roles). Group labels = `text-[10px] font-bold uppercase tracking-wider text-slate-500`.
+   - Active item gets `bg-blue-600/10 text-white`; hover `bg-slate-800`.
+   - Keep `collapsible="icon"` behavior; trigger stays in header.
 
-### 3. Shared
-- Extract `printReceiptSnapshot` + the snapshot fetch from `ClientInvoicesPanel.tsx` into `src/accounting/lib/receiptHelpers.ts` so both the client drawer and the new accounting page use the exact same renderer.
+3. **Dashboard page**
+   - Header: Sora h1 + Manrope subtitle, right-aligned action buttons (Export / + New Client).
+   - KPI grid: 4-col responsive cards with absolute 4px left accent bar + tinted icon chip, value in Sora.
+   - "Recent clients" card: refined empty state with circular icon, Sora heading, primary CTA button.
 
-## Out of scope
-- No DB migrations, no changes to receipt generation logic, no changes to verification or payments flow.
-- No edits to the receipt PDF template itself.
+4. **Reusable primitives**
+   - `StatCard` component (`title`, `value`, `icon`, `tone`) consuming the semantic tokens — used by Dashboard and any other KPI screens (Accounting, Clients overview).
+   - `EmptyState` component (`icon`, `title`, `description`, `action`) so all empty cards match the new style.
 
-## Files touched
-- `src/components/clients/ClientInvoicesPanel.tsx` (surface receipts on card + row buttons)
-- `src/accounting/lib/receiptHelpers.ts` (shared print helper)
-- `src/accounting/pages/ar/AccountingReceiptsPage.tsx` (new)
-- `src/accounting/pages/ar/AccountingARPage.tsx` (header button)
-- `src/accounting/pages/ar/AccountingInvoiceDetailPage.tsx` (open saved snapshot)
-- `src/App.tsx` (new route)
-- Accounting sidebar entry (wherever AR nav is defined)
+5. **Global polish**
+   - Page background → `bg-background` token resolving to `#F8FAFC`.
+   - Headings across pages switch to `font-display`; body inherits Manrope.
+   - Existing pages don't need rewriting — they pick up fonts, surface, and sidebar automatically; only KPI/empty patterns get migrated to the new primitives over time.
+
+### Out of scope
+
+- No business logic, route, or data model changes.
+- No icon-set swap (keep current lucide icons).
+- No mobile-only redesign beyond what the sidebar already provides.
+
+### Files touched
+
+- `index.html`, `src/index.css`, `tailwind.config.ts`
+- `src/components/AppSidebar.tsx` (or equivalent)
+- `src/pages/Dashboard.tsx` (or equivalent)
+- New: `src/components/ui/stat-card.tsx`, `src/components/ui/empty-state.tsx`

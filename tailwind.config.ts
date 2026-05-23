@@ -19,6 +19,30 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        clients: {
+          DEFAULT: "hsl(var(--tone-clients))",
+          soft: "hsl(var(--tone-clients-soft))",
+        },
+        documents: {
+          DEFAULT: "hsl(var(--tone-documents))",
+          soft: "hsl(var(--tone-documents-soft))",
+        },
+        binders: {
+          DEFAULT: "hsl(var(--tone-binders))",
+          soft: "hsl(var(--tone-binders-soft))",
+        },
+        review: {
+          DEFAULT: "hsl(var(--tone-review))",
+          soft: "hsl(var(--tone-review-soft))",
+        },
+        institutions: {
+          DEFAULT: "hsl(var(--tone-institutions))",
+          soft: "hsl(var(--tone-institutions-soft))",
+        },
+        ai: {
+          DEFAULT: "hsl(var(--tone-ai))",
+          soft: "hsl(var(--tone-ai-soft))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -73,6 +97,10 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        display: ["Sora", "Inter", "system-ui", "sans-serif"],
+        sans: ["Manrope", "Inter", "system-ui", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
