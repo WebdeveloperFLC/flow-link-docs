@@ -1314,15 +1314,20 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
 
   useEffect(() => {
     (async () => {
-      const [p, f] = await Promise.all([
+      const [p, f, existing] = await Promise.all([
         supabase.from("client_invoice_payments")
           .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by")
           .eq("invoice_id", invoice.id).is("archived_at", null)
           .eq("payment_status", "verified")
           .order("paid_at", { ascending: false }),
         supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
+        supabase.from("client_invoice_receipts")
+          .select("payment_id")
+          .eq("invoice_id", invoice.id)
+          .is("archived_at", null),
       ]);
-      const list = (p.data ?? []).filter((x: any) => !x.is_refund);
+      const receiptedIds = new Set(((existing.data ?? []) as any[]).map(r => r.payment_id).filter(Boolean));
+      const list = (p.data ?? []).filter((x: any) => !x.is_refund && !receiptedIds.has(x.id));
       setPayments(list);
       if (list[0]) setPaymentId(list[0].id);
       setEntities((f.data ?? []) as any);
