@@ -264,9 +264,13 @@ export default function AccountingClientsPage() {
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mr-1">Filters</span>
             <Select value={country} onValueChange={setCountry}>
               <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Country" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[320px]">
                 <SelectItem value="ALL">All countries</SelectItem>
-                {countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {topCountries.map(c => <SelectItem key={`top-${c}`} value={c}>{c}</SelectItem>)}
+                {topCountries.length > 0 && restCountries.length > 0 && (
+                  <div className="my-1 border-t" />
+                )}
+                {restCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={clientType} onValueChange={setClientType}>
