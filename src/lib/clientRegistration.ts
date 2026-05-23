@@ -18,6 +18,40 @@ export interface FamilyMember {
   notes: string | null;
 }
 
+export interface EducationEntry {
+  level?: string;
+  institution?: string;
+  year?: number | null;
+  percentage_cgpa?: string;
+  country?: string;
+  specialization?: string;
+}
+
+export interface ExperienceEntry {
+  company?: string;
+  role?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  currently_working?: boolean;
+  country?: string;
+  description?: string;
+}
+
+export interface FamilyMemberExtras {
+  last_education?: string | null;
+  institution_name?: string | null;
+  year_of_passing?: number | null;
+  percentage_cgpa?: string | null;
+  english_test?: string | null;
+  english_overall?: string | null;
+  english_test_date?: string | null;
+  english_test_expiry?: string | null;
+  english_sections?: Record<string, string>;
+  other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
+  education_history?: EducationEntry[];
+  work_experience?: ExperienceEntry[];
+}
+
 export type FamilyDraft = Partial<Omit<FamilyMember, "id">> & {
   relationship: FamilyMember["relationship"];
   first_name: string;
@@ -58,7 +92,10 @@ export interface ClientRow {
   english_overall?: string | null;
   english_test_date?: string | null;
   english_test_expiry?: string | null;
-  other_tests?: Array<{ type: string; score?: string; date?: string }>;
+  other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
+  english_sections?: Record<string, string>;
+  education_history?: EducationEntry[];
+  work_experience?: ExperienceEntry[];
   branch?: string | null;
   department?: string | null;
   assigned_counselor_id?: string | null;
