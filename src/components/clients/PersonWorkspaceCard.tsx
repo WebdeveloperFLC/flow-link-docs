@@ -340,7 +340,7 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
           size_bytes: pdf.byteLength,
           group_label: BINDER_PRESETS[person.role].label,
           scope: "person",
-          metadata: { person_id: person.id, person_role: person.role } as never,
+          included_items: { person_id: person.id, person_role: person.role, doc_ids: selected.map((d) => d.id) } as never,
         })
         .select()
         .single();
