@@ -1,0 +1,78 @@
+import { supabase } from "@/integrations/supabase/client";
+
+/**
+ * Ensure the Supabase auth session is fresh before issuing an RLS-guarded
+ * write. If the access token is missing or close to expiry, force a refresh.
+ * Returns true when a usable session is in place after the call.
+ */
+export async function ensureFreshSession(): Promise<boolean> {
+  try {
+    const { data } = await supabase.auth.getSession();
+    const s = data.session;
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = s?.expires_at ?? 0;
+    if (!s?.access_token || expiresAt - now < 60) {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      return !!refreshed.session?.access_token;
+    }
+    return true;
+  } catch (e) {
+    console.warn("[ensureFreshSession] refresh failed", e);
+    return false;
+  }
+}
+
+function isAuthOrRlsError(err: any): boolean {
+  if (!err) return false;
+  const code = String(err.code ?? "");
+  const msg = String(err.message ?? "").toLowerCase();
+  return (
+    code === "42501" ||
+    code === "PGRST301" ||
+    code === "401" ||
+    msg.includes("row-level security") ||
+    msg.includes("row level security") ||
+    msg.includes("jwt") ||
+    msg.includes("not authenticated")
+  );
+}
+
+export class AuthExpiredError extends Error {
+  code = "AUTH_EXPIRED" as const;
+  constructor(message = "Your session expired. Please sign in again.") {
+    super(message);
+    this.name = "AuthExpiredError";
+  }
+}
+
+/**
+ * Run a Supabase write. If it fails with an RLS/JWT error, refresh the
+ * session and retry once. If it still fails, surface a friendly
+ * AuthExpiredError so the UI can prompt the user to sign in again.
+ *
+ * The callback should perform a single Supabase call and return its result
+ * (so the second attempt can re-run it cleanly).
+ */
+export async function runWithAuthRetry<T>(
+  fn: () => PromiseLike<{ data: T; error: any }>,
+): Promise<T> {
+  let res = await fn();
+  if (res.error && isAuthOrRlsError(res.error)) {
+    const refreshed = await ensureFreshSession();
+    if (refreshed) {
+      res = await fn();
+    }
+    if (res.error && isAuthOrRlsError(res.error)) {
+      const { data: sess } = await supabase.auth.getSession();
+      console.error("[runWithAuthRetry] giving up", {
+        hasSession: !!sess.session,
+        userId: sess.session?.user?.id ?? null,
+        expiresAt: sess.session?.expires_at ?? null,
+        original: res.error,
+      });
+      throw new AuthExpiredError();
+    }
+  }
+  if (res.error) throw res.error;
+  return res.data;
+}
