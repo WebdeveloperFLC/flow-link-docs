@@ -80,6 +80,7 @@ import AccountingBillDetailPage from "./accounting/pages/ap/AccountingBillDetail
 import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
 import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoicePage";
 import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
+import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVerificationQueuePage";
 import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
 import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
 import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
