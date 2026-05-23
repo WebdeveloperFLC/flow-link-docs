@@ -3686,12 +3686,22 @@ export type Database = {
           created_at: string
           created_by: string | null
           date_of_birth: string | null
+          education_history: Json
+          english_overall: string | null
+          english_sections: Json
+          english_test: string | null
+          english_test_date: string | null
+          english_test_expiry: string | null
           first_name: string
           id: string
+          institution_name: string | null
+          last_education: string | null
           last_name: string
           notes: string | null
+          other_tests: Json
           passport_expiry: string | null
           passport_number: string | null
+          percentage_cgpa: string | null
           primary_client_id: string | null
           primary_lead_id: string | null
           relationship: string
@@ -3699,18 +3709,30 @@ export type Database = {
           separate_lead_id: string | null
           updated_at: string
           visa_services: string[]
+          work_experience: Json
+          year_of_passing: number | null
         }
         Insert: {
           application_mode?: string
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
+          education_history?: Json
+          english_overall?: string | null
+          english_sections?: Json
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
           first_name: string
           id?: string
+          institution_name?: string | null
+          last_education?: string | null
           last_name: string
           notes?: string | null
+          other_tests?: Json
           passport_expiry?: string | null
           passport_number?: string | null
+          percentage_cgpa?: string | null
           primary_client_id?: string | null
           primary_lead_id?: string | null
           relationship: string
@@ -3718,18 +3740,30 @@ export type Database = {
           separate_lead_id?: string | null
           updated_at?: string
           visa_services?: string[]
+          work_experience?: Json
+          year_of_passing?: number | null
         }
         Update: {
           application_mode?: string
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
+          education_history?: Json
+          english_overall?: string | null
+          english_sections?: Json
+          english_test?: string | null
+          english_test_date?: string | null
+          english_test_expiry?: string | null
           first_name?: string
           id?: string
+          institution_name?: string | null
+          last_education?: string | null
           last_name?: string
           notes?: string | null
+          other_tests?: Json
           passport_expiry?: string | null
           passport_number?: string | null
+          percentage_cgpa?: string | null
           primary_client_id?: string | null
           primary_lead_id?: string | null
           relationship?: string
@@ -3737,6 +3771,8 @@ export type Database = {
           separate_lead_id?: string | null
           updated_at?: string
           visa_services?: string[]
+          work_experience?: Json
+          year_of_passing?: number | null
         }
         Relationships: [
           {
@@ -5411,9 +5447,11 @@ export type Database = {
           created_by: string | null
           date_of_birth: string | null
           department: string | null
+          education_history: Json
           email: string | null
           email_alternate: string | null
           english_overall: string | null
+          english_sections: Json
           english_test: string | null
           english_test_date: string | null
           english_test_expiry: string | null
@@ -5477,6 +5515,7 @@ export type Database = {
           updated_at: string
           visa_services: string[]
           whatsapp: string | null
+          work_experience: Json
           workflow_template_id: string | null
           year_of_passing: number | null
         }
@@ -5507,9 +5546,11 @@ export type Database = {
           created_by?: string | null
           date_of_birth?: string | null
           department?: string | null
+          education_history?: Json
           email?: string | null
           email_alternate?: string | null
           english_overall?: string | null
+          english_sections?: Json
           english_test?: string | null
           english_test_date?: string | null
           english_test_expiry?: string | null
@@ -5573,6 +5614,7 @@ export type Database = {
           updated_at?: string
           visa_services?: string[]
           whatsapp?: string | null
+          work_experience?: Json
           workflow_template_id?: string | null
           year_of_passing?: number | null
         }
@@ -5603,9 +5645,11 @@ export type Database = {
           created_by?: string | null
           date_of_birth?: string | null
           department?: string | null
+          education_history?: Json
           email?: string | null
           email_alternate?: string | null
           english_overall?: string | null
+          english_sections?: Json
           english_test?: string | null
           english_test_date?: string | null
           english_test_expiry?: string | null
@@ -5669,6 +5713,7 @@ export type Database = {
           updated_at?: string
           visa_services?: string[]
           whatsapp?: string | null
+          work_experience?: Json
           workflow_template_id?: string | null
           year_of_passing?: number | null
         }
@@ -11765,9 +11810,11 @@ export type Database = {
           created_by: string | null
           date_of_birth: string | null
           department: string | null
+          education_history: Json
           email: string | null
           email_alternate: string | null
           english_overall: string | null
+          english_sections: Json
           english_test: string | null
           english_test_date: string | null
           english_test_expiry: string | null
@@ -11831,6 +11878,7 @@ export type Database = {
           updated_at: string
           visa_services: string[]
           whatsapp: string | null
+          work_experience: Json
           workflow_template_id: string | null
           year_of_passing: number | null
         }

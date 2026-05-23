@@ -1,41 +1,108 @@
-# Fix two reported issues
 
-## Issue 1 — Settle Abroad submissions show "—" for Client/Email, no direct email to client
+## Goal
 
-**Root cause.** `SessionsTab` (in `src/pages/admin/AssessmentAdmin.tsx`) loads sessions with embedded joins:
+Extend the client registration form (Section 2 "Education & Test Scores") with:
+
+1. **Sectional scores** for every test (English + Other) — not just an overall score.
+2. **Multiple education history** entries — not just one row.
+3. **Work experience** entries (new sub-section).
+4. **Co-applicant parity** — the same education / tests / experience block on each family member.
+
+Constraint from the user: reuse the field names already used at the client stage. No renaming. Same field name in the form, in the DB column, in `prefillFromLead`, in the save payload, and in the reload — so values round-trip on every save/edit/save.
+
+## Storage approach (no renamed fields)
+
+Existing scalar columns stay as-is and remain the "primary" record:
+`last_education`, `institution_name`, `year_of_passing`, `percentage_cgpa`,
+`english_test`, `english_overall`, `english_test_date`, `english_test_expiry`,
+`other_tests` (jsonb).
+
+We extend with jsonb to hold the structured extras using the same names already in the codebase pattern (`other_tests` jsonb is the precedent):
+
+- `english_sections jsonb` — `{ listening, reading, writing, speaking }` (per `english_test`).
+- `other_tests` jsonb item shape extended from `{type, score, date}` to `{type, score, date, sections: {...}}` — additive, no rename.
+- `education_history jsonb` — array of `{ level, institution, year, percentage_cgpa, country, specialization }`. The form keeps the first row mirrored into the existing scalar columns so legacy reads keep working.
+- `work_experience jsonb` — array of `{ company, role, start_date, end_date, currently_working, country, description }`.
+
+Same columns added to `client_family_members` using the identical names, so co-applicants serialize through the same code path.
+
+## Migration
+
+```sql
+ALTER TABLE public.clients
+  ADD COLUMN IF NOT EXISTS english_sections   jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS education_history  jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS work_experience    jsonb NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE public.client_family_members
+  ADD COLUMN IF NOT EXISTS last_education      text,
+  ADD COLUMN IF NOT EXISTS institution_name    text,
+  ADD COLUMN IF NOT EXISTS year_of_passing     integer,
+  ADD COLUMN IF NOT EXISTS percentage_cgpa     text,
+  ADD COLUMN IF NOT EXISTS english_test        text,
+  ADD COLUMN IF NOT EXISTS english_overall     text,
+  ADD COLUMN IF NOT EXISTS english_test_date   date,
+  ADD COLUMN IF NOT EXISTS english_test_expiry date,
+  ADD COLUMN IF NOT EXISTS english_sections    jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS other_tests         jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS education_history   jsonb NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS work_experience     jsonb NOT NULL DEFAULT '[]'::jsonb;
 ```
-select(..., lead:assessment_leads(...), client:clients(...))
+
+No RLS changes (existing policies on both tables already cover these columns).
+
+## Sectional definitions
+
+Single source of truth in `src/lib/testSections.ts` (new):
+
+```text
+IELTS    : listening, reading, writing, speaking   (overall)
+PTE      : listening, reading, writing, speaking   (overall)
+TOEFL    : listening, reading, writing, speaking   (overall)
+CELPIP   : listening, reading, writing, speaking   (overall)
+Duolingo : (overall only)
+GRE      : verbal, quant, awa
+GMAT     : verbal, quant, ir, awa
+SAT      : math, ebrw
+DELF     : listening, reading, writing, speaking
+TestDaF  : listening, reading, writing, speaking
 ```
-The `clients` table has per-row RLS (`can_view_client`) that only allows the owner, an admin, or someone with explicit access. Most assessment-sessions are tied to clients created by other users / by the public portal, so the embedded `client` comes back `null` and the row renders `—`.
 
-**Fix.**
-1. Add a `SECURITY DEFINER` RPC `list_assessment_sessions_admin()` that returns the columns SessionsTab needs (session id/status/goal/country/answers/output/pdf_path/submitted_at/created_at + denormalised `client_name`, `client_email`, `client_phone`, `lead_name`, `lead_email`, `lead_phone`), restricted to authenticated users who can already access the page (`has_role(auth.uid(),'admin') OR has_role(auth.uid(),'counselor') OR has_role(auth.uid(),'telecaller') OR has_role(auth.uid(),'documentation')`).
-2. Rewrite `SessionsTab.load()` to call the RPC instead of selecting from `assessment_sessions` with embedded joins.
-3. Add a "Send email to client" action in the row's action group: a mailto link prefilled with the client/lead email and a subject like `Your Settle Abroad assessment`. Shown only when an email exists.
+Used by both the primary form and the co-applicant component.
 
-## Issue 2 — "Save failed" on Counselor notes after converting lead → client
+## Code changes
 
-**Diagnosis steps.** The current `autosave` swallows the underlying error and shows the generic "Save failed". First step is to surface the real Postgres error in the toast (already `console.error`'d, but we will also include `error.message` / `error.details` in the toast). Then fix the most likely cause: when the form is loaded via `?lead_id=…` on a lead that was already converted, `upsertClientRegistration` tries to INSERT a brand-new client, but the `clients_source_lead_id` unique relationship / accounting-sync trigger fires and rejects the duplicate. Even when the row is found, the page is in "new" mode so every blur tries to INSERT.
+### `src/lib/clientRegistration.ts`
+- Extend `ClientRow` / `ClientDraft`:
+  - `english_sections?: Record<string, string>`
+  - `other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>`
+  - `education_history?: Array<{ level?: string; institution?: string; year?: number|null; percentage_cgpa?: string; country?: string; specialization?: string }>`
+  - `work_experience?: Array<{ company?: string; role?: string; start_date?: string|null; end_date?: string|null; currently_working?: boolean; country?: string; description?: string }>`
+- Extend `FamilyMember` / `FamilyDraft` with the same education / test / experience fields.
+- `upsertClientRegistration`: before write, mirror `education_history[0]` → `last_education / institution_name / year_of_passing / percentage_cgpa` so legacy scalars stay in sync. Pass jsonb fields through untouched.
 
-**Fix.**
-1. In `src/pages/clients/ClientNew.tsx` `useEffect` for `leadIdParam`:
-   - After fetching the lead, check `leads.converted_to_client_id`. If set, set `clientId`/`editId` to that id and call `fetchClient` instead of treating it as a brand-new insert. This re-enters edit mode and prevents duplicate-insert attempts.
-2. Make `autosave` show the actual error: `toast.error(e?.message ?? e?.details ?? "Save failed")` so the next failure is diagnosable.
-3. Serialise autosaves (guard with the existing `saving` flag) so the rapid "unlock → autosave → blur → autosave" sequence cannot race two INSERTs.
-4. Verify the update path: clients RLS update policy uses `can_edit_client`, which requires `owner_id = auth.uid()` (set by `set_client_owner_defaults` trigger). If the converted client was created by a different user, current user (non-admin) would still be unable to update. We handle that by surfacing the real error so the user sees "Permission denied" instead of "Save failed", and by linking the client list to use the admin route when applicable. No RLS change unless the surfaced error confirms a permission gap.
+### `src/pages/clients/ClientNew.tsx`
+- Replace the single-education grid with an `EducationHistoryList` (add row / remove / reorder). First row writes back to the existing scalar fields.
+- English test block: when a test is selected, render the sectional inputs from `testSections.ts` alongside Overall / Date / Expiry. State stored in `f.english_sections`.
+- Other tests block: per selected test, render its sectional inputs under the existing Score / Date row. State stored in `otherTests[i].sections`.
+- Add a new sub-section "Work Experience" with add/remove rows.
+- Reload path (`fetchClient`) already sets `setF(c)` and `setOtherTests(c.other_tests ?? [])` — extend to also restore `english_sections`, `education_history`, `work_experience`. Same on the "lead already converted" branch.
 
-## Issue 3 — Background errors flooding logs: `permission denied for function has_role`
+### `src/components/clients/registration/FamilyMembersSection.tsx`
+- For each family member row, add a collapsible "Education, Tests & Experience" panel containing the same three blocks as the primary form, bound to the family member's own fields.
+- Save through the existing family-member upsert path with the new columns included.
+- On load, hydrate the new fields from the row.
 
-Recent migration only granted `EXECUTE` on `public.has_role(uuid, app_role)` to `authenticated`. Any anonymous request (public assessment page, portal pre-login, etc.) that touches a table whose policy calls `has_role` now errors out before evaluating. Grant `EXECUTE` to `anon` as well — the function still only returns `true` if the row exists in `user_roles`, so this is safe.
+### `src/lib/testSections.ts` (new)
+- Exports `ENGLISH_SECTIONS` and `OTHER_TEST_SECTIONS` maps + a tiny `<SectionalInputs />` helper used by both primary and co-applicant blocks to keep markup identical.
 
-## Files changed
+## Round-trip guarantee
 
-- New migration: RPC `list_assessment_sessions_admin`, `GRANT EXECUTE ... TO anon, authenticated` on `has_role`.
-- `src/pages/admin/AssessmentAdmin.tsx` — replace `SessionsTab.load()` query, add Email action.
-- `src/pages/clients/ClientNew.tsx` — short-circuit to edit mode when lead already converted; better error toast; race guard.
+- Field names in React state, in the `ClientDraft` payload, in the DB column, and in the reload are **identical** in every layer (`english_sections`, `education_history`, `work_experience`, `other_tests[i].sections`).
+- The first education row is mirrored to the legacy scalar columns on save so older reads (lists, exports, AI summaries) still work.
+- Save → reload → save produces the same JSON (verified by reading `fetchClient` output into the same state slots it was saved from).
 
 ## Out of scope
 
-- Visual redesign of SessionsTab table.
-- Changes to RLS on `clients` (only surfaced; not relaxed).
-- Reworking lead-conversion flow itself.
+- No visual restyle beyond adding the new inputs into the existing Section 2 card.
+- No changes to lead-stage forms, RLS, or reports.
