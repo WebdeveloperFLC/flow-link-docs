@@ -1,139 +1,83 @@
 ## Goal
 
-Fix the operational gaps surfaced during testing **without rebuilding** any of the existing invoice / payment / receipt / reminder system. Everything below extends existing tables, dialogs, and components. Delivered in **3 phases** so each phase is small, testable, and safe.
-
-## Guardrails (apply to every phase)
-
-- No renames, no deletes, no replacement of existing components or RPCs.
-- Continue to read/write `client_invoices`, `client_invoice_payments`, `client_invoice_receipts`, `client_invoice_reminders`, `client_invoice_payment_allocations`, `client_invoice_installments`, `client_invoice_refund_requests`, `client_invoice_adjustments`, `client_documents`, `client_timeline` exactly as today.
-- Snapshot fields, allocations, installments, refunds, adjustments, reconciliation, Power BI/ERP shape untouched.
-- All new behavior gated by existing role checks (`isAccounts` / `useAccountingAccess`).
-- All migrations are **additive** (new nullable columns + check constraints + indexes only) — existing rows keep working.
+Extend Phase 1–3 work into the rest of the accounting surface. **No rebuilds, no schema changes.** All new behavior reuses existing tables: `client_invoices`, `client_invoice_payments`, `client_invoice_receipts`, `client_timeline`. Delivered in 2 small phases.
 
 ---
 
-## PHASE 1 — Verification workflow + multi-currency + payment proof + payment source
+## PHASE 4 — Live DB on accounting pages + receipt reprint + timeline
 
-The most foundational changes, grouped so the data model and the Collect Payment dialog land together.
+### 4.1 Wire accounting client detail page to live DB
 
-### 1.1 Additive migration (safe, nullable)
+`src/accounting/pages/clients/AccountingClientDetailPage.tsx` currently reads `mockAR` for Transactions / Invoices / Receipts tabs. Switch to live data, keeping the AG-Grid layout and column defs intact.
 
-`client_invoice_payments` — add only if missing:
+- Add a `useLiveClientLedger(clientId)` hook (new file `src/accounting/hooks/useLiveClientLedger.ts`) that fetches:
+  - `client_invoices` for this client (real + linked CRM id)
+  - `client_invoice_payments` for this client
+  - `client_invoice_receipts` joined to those invoices
+- Build `invs`, `recs`, `txns`, `totals`, `aging` from those rows (same shape currently produced from mock).
+- Each AG-Grid row gets `onRowClicked` → opens the same **InvoiceSnapshotDrawer** already built in `ClientInvoicesPanel`. Extract that drawer into a shared module: `src/components/clients/InvoiceSnapshotDrawer.tsx`, then re-export from the panel.
+- Mock fallback retained only when no live rows exist (so demo clients still look populated).
 
-- `payment_status text` — values: `awaiting_verification | verified | rejected | cancelled`. Default `awaiting_verification` on insert when method ∈ (`bank_transfer`, `wire`, `upi`, `cheque`); default `verified` for `cash` and online gateway. Existing rows backfilled to `verified` so nothing regresses.
-- `payment_source text` — values: `walk_in | portal | counselor_collection | whatsapp_link | manual | branch_counter | online_gateway`. Nullable; backfill `manual`.
-- `verification_notes text` nullable.
-- `verification_rejected_reason text` nullable.
+### 4.2 Receipt reprint from snapshot
 
-Index on `(invoice_id, payment_status)`.
+In `InvoiceSnapshotDrawer`, each receipt row gets a **Download PDF** button.
 
-No change to existing columns. No change to `client_invoices.amount_paid` semantics — see 1.4.
+- Click → render `AccountingReceiptTemplate` into a hidden div from `receipt_snapshot_jsonb`, then `window.print()` (same pattern `AccountingReceiptModal.printReceipt` already uses).
+- New mapper `snapshotToReceiptData(snapshot)` in `src/accounting/lib/receiptHelpers.ts` converts the stored snapshot into the existing `ReceiptData` interface — no template changes required.
+- Legacy receipts without a snapshot show "Snapshot unavailable" (button disabled with tooltip).
 
-### 1.2 Collect Payment dialog — multi-currency
+### 4.3 Timeline events
 
-Update `CollectPaymentDialog` (`src/components/clients/ClientInvoicesPanel.tsx`) and `ClientPaymentDialog` (`src/accounting/pages/clients/AccountingClientDetailPage.tsx`):
+Add `appendTimeline(...)` calls (function already exists in `src/lib/timeline.ts`) at these write-points in `ClientInvoicesPanel.tsx`:
 
-- **Payment currency** selector (default = invoice currency) with `INR / CAD / USD` plus any extra codes from branch/entity config when present.
-- **FX rate** input — auto = 1 when currencies match; otherwise prefilled from a new `getFxRate(from,to)` helper (`src/accounting/lib/fx.ts`, static matrix today, swappable later). Editable for accounts/admin only.
-- Display block: invoice currency + total, payment currency + amount, FX rate, converted amount (in invoice ccy), outstanding after conversion.
-- Persist: `currency` = payment ccy, `amount` = entered amount, `fx_rate` = rate used, `amount_in_inr/_cad/_usd` filled via the rate.
+- After `client_invoice_payments` insert → `payment_submitted` (or `payment_awaiting_verification` when status is awaiting).
+- After proof upload → `payment_proof_uploaded`.
+- After verify update → `payment_verified`.
+- After reject update → `payment_rejected` (with reason in metadata).
+- After receipt insert → `receipt_generated` (receipt # in metadata).
 
-Existing invoice currency logic untouched.
-
-### 1.3 Payment proof upload (inside same dialog)
-
-- Drag-and-drop + browse + mobile `capture="environment"`.
-- Accepts `image/*, application/pdf`.
-- Uploaded via existing `supabase.storage` pattern; inserts a `client_documents` row tagged `kind = "payment_proof"`; returned id stored in `payment_proof_file_id`; `payment_proof_status = "uploaded"`.
-- For methods `bank_transfer / wire / upi / cheque / card`: block "Post payment" until proof is attached, unless an **Admin override** checkbox (visible only to accounts/admin) is ticked.
-- Timeline event `payment_proof_uploaded` inserted on success.
-
-Shared helper: `src/accounting/lib/paymentProof.ts`.
-
-### 1.4 Payment source
-
-- New `Payment source` select in the Collect Payment dialog with the seven values from 1.1.
-- Default chosen by context: portal-initiated → `portal`; in-app accounts page → `manual`; quick-action from client header → `counselor_collection`.
-
-### 1.5 "Awaiting verification" flow
-
-- After insert, payments default to `awaiting_verification` for the four methods listed above.
-- **`client_invoices.amount_paid` is only incremented when `payment_status` flips to `verified`.** Until then the payment shows in history as "Awaiting verification" and does not reduce outstanding balance.
-- Receipt generation is blocked while a payment is `awaiting_verification` or `rejected` (see Phase 2).
-- Timeline events: `payment_submitted`, `payment_awaiting_verification`.
+All summaries plain-English. Metadata holds payment_id / receipt_number / amount / currency. Failures are non-blocking (wrapped in try/catch and toasted lightly so a timeline write never fails the user action).
 
 ---
 
-## PHASE 2 — Verification UI, receipt gating, receipt numbering + snapshot
+## PHASE 5 — Global verification queue + payment-source analytics
 
-### 2.1 Verification queue + row actions
+### 5.1 Global Verification Queue page
 
-- New "Awaiting verification" filter chip on the payments tab (CRM panel + accounting detail page).
-- Row action menu per payment (accounts/admin only): **Preview proof · Verify · Reject · Replace proof · Download proof**.
-  - Verify → `payment_status = verified`, `verified_by/at` set, invoice `amount_paid` incremented, status recomputed (`PAID / PARTIALLY_PAID`), timeline `payment_verified`.
-  - Reject → `payment_status = rejected`, `verification_rejected_reason` captured, timeline `payment_rejected`. Invoice balance untouched.
-  - Replace → re-runs proof upload helper, timeline `payment_proof_replaced`.
+New route + page:
 
-### 2.2 Receipt generation gating
+- Route: `/accounting/ar/verification` registered in `src/App.tsx` (same role gate as other accounting AR pages).
+- Page: `src/accounting/pages/ar/AccountingVerificationQueuePage.tsx`.
+- Lists every `client_invoice_payments` row where `payment_status = 'awaiting_verification'` across all clients, joined to invoice + client name. Filter chips: Method, Source, Date range. Same Verify / Reject / View proof actions as the per-client queue (reuse the action helpers — pull `verify`/`reject` out of `PendingVerificationQueue` into `src/accounting/lib/paymentVerification.ts`).
+- Realtime subscription on `client_invoice_payments` so newly submitted items appear without refresh.
+- Nav entry added to the AR sidebar section.
 
-`GenerateReceiptDialog` only lists payments where `payment_status = 'verified'` AND `is_refund != true`. Other payments shown disabled with reason.
+### 5.2 Payment source analytics tile
 
-### 2.3 Receipt numbering uses real entity/branch codes
+On `src/accounting/pages/AccountingOverviewPage.tsx`, add a small **Payments by source** card:
 
-Replace hard-coded `p_entity_code: "FLC", p_branch_code: "GEN"` with codes resolved from `firm_profile` / `branches` for the invoice → produces e.g. `RCP-FLC-IN-AHD-2026-0001`. Falls back to existing defaults if codes missing.
-
-### 2.4 Receipt snapshot
-
-At insert, build `receipt_snapshot_jsonb` with: client, invoice, payment (currency, amount, fx_rate, converted), branch, entity, counselor, posted-by, footer text (legal name, tax #, address, support email/phone, disclaimer). Set `receipt_snapshot_taken_at = now()`. Stored on existing `client_invoice_receipts` columns.
-
-### 2.5 Receipt template improvements
-
-`AccountingReceiptTemplate` renders strictly from snapshot when present (live fallback for legacy receipts). Adds:
-
-- Counselor, Received by / Posted by, Branch rows.
-- Multi-currency block: invoice ccy + total, payment ccy + amount, FX rate, converted amount, outstanding.
-- Status badge (`PAID / PARTIALLY PAID / REFUNDED`) colored.
-- Footer: legal entity, GST/VAT, branch address, support email/phone, disclaimer.
-- Bolden totals, emphasize "Amount received".
+- Single query: `client_invoice_payments` where `payment_status='verified'`, grouped client-side by `payment_source`, summed by `amount_in_inr` (fallback to `amount`).
+- Renders a compact table: source · count · total. Optional sparkline omitted to keep scope tight.
+- Honors the existing entity scope hook (`useEntityScope`) if present so multi-firm setups stay filtered.
 
 ---
 
-## PHASE 3 — WhatsApp fix, clickable history, snapshot drawer, mobile polish
+## Guardrails
 
-### 3.1 WhatsApp external open
-
-New helper `src/lib/whatsappShare.ts` exporting `openWhatsApp(phone, message)`:
-
-- Builds `https://wa.me/<phone>?text=...`.
-- If running inside the Lovable preview iframe (`window.top !== window.self`), creates a temporary `<a target="_top" rel="noopener noreferrer">` and clicks it, breaking out of the iframe. Otherwise `window.open(url, "_blank", "noopener,noreferrer")`.
-
-Used by `AccountingReceiptModal.handleWhatsApp`, `QuickActionsBar`, and the reminder dialog. Message body generation logic unchanged.
-
-### 3.2 Clickable invoice / payment / receipt rows
-
-- Invoices, Transactions, Receipts tabs (accounting detail) + CRM panel: row click opens a read-only **Snapshot Drawer** showing the frozen invoice/receipt snapshot.
-- Per-row action menu: **View Invoice · View Payment · View Receipt · View Timeline · Download PDF**.
-- "Download PDF" reuses the existing receipt template print path. Snapshot drawer is strictly read-only, preserving immutability.
-
-### 3.3 UI/UX polish
-
-- Extend `STATUS_STYLE` with `refunded`; show `paid / partially_paid / overdue / refunded` badges everywhere.
-- Add `awaiting_verification` and `rejected` badges for payments.
-- Dialog wrappers switch to `sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto`; proof drop-zone stacks vertically below `sm`.
-- Preserve existing realtime subscriptions and `invoice_locked_for_edit` checks.
-
----
+- No schema changes. No DB migrations.
+- No edits to invoice numbering, allocation, refund, reconciliation, snapshot-jsonb shape, RLS.
+- Mock data path preserved as fallback for demo clients on the accounting detail page.
+- All new write paths gated by `useAccountingAccess` / `isAccounts` checks.
+- Timeline writes are best-effort; never block UX.
 
 ## Files touched
 
-- `src/components/clients/ClientInvoicesPanel.tsx` — collect dialog (P1), verification actions (P2), row clicks/menu (P3).
-- `src/accounting/pages/clients/AccountingClientDetailPage.tsx` — same dialog (P1), verification queue (P2), snapshot drawer (P3).
-- `src/accounting/components/receipts/AccountingReceiptModal.tsx` — WhatsApp helper (P3).
-- `src/accounting/components/receipts/AccountingReceiptTemplate.tsx` — multi-ccy + footer + badge (P2).
-- `src/components/clients/QuickActionsBar.tsx` — WhatsApp helper (P3).
-- New: `src/accounting/lib/fx.ts`, `src/accounting/lib/paymentProof.ts`, `src/lib/whatsappShare.ts`.
-- One additive migration in Phase 1.
+- New: `src/accounting/hooks/useLiveClientLedger.ts`, `src/components/clients/InvoiceSnapshotDrawer.tsx`, `src/accounting/lib/paymentVerification.ts`, `src/accounting/pages/ar/AccountingVerificationQueuePage.tsx`.
+- Edited: `src/accounting/pages/clients/AccountingClientDetailPage.tsx`, `src/components/clients/ClientInvoicesPanel.tsx` (timeline writes + drawer extraction + shared helpers), `src/accounting/lib/receiptHelpers.ts` (snapshot→ReceiptData mapper), `src/accounting/pages/AccountingOverviewPage.tsx`, `src/App.tsx` (route), accounting sidebar nav file.
 
 ## Out of scope
 
-- Any change to `client_invoices` schema, invoice currency logic, allocation engine, installment engine, refund engine, reconciliation, snapshots already in place, Power BI / ERP exports, portal payments table layout.
+- Email/PDF delivery of receipts (still print-based).
+- Reminder system changes.
+- Portal-side payment changes.
+- Power BI / ERP export shape.

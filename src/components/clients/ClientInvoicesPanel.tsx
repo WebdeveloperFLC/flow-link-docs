@@ -14,6 +14,12 @@ import { toast } from "sonner";
 import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
 import { Checkbox } from "@/components/ui/checkbox";
+import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
+import { appendTimeline } from "@/lib/timeline";
+import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
+import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
+import { createRoot } from "react-dom/client";
+import { Download } from "lucide-react";
 
 type Invoice = {
   id: string;
@@ -229,33 +235,12 @@ function PendingVerificationQueue({
 
   const verify = async (p: any) => {
     setBusyId(p.id);
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("client_invoice_payments")
-      .update({
-        payment_status: "verified",
-        verified_by: u?.user?.id ?? null,
-        verified_at: new Date().toISOString(),
-      } as any)
-      .eq("id", p.id);
+    const ok = await verifyPayment(p);
     setBusyId(null);
-    if (error) toast.error(error.message);
-    else { toast.success("Payment verified"); onChange(); }
+    if (ok) onChange();
   };
 
-  const openProof = async (p: any) => {
-    if (!p.payment_proof_file_id) { toast.info("No proof attached"); return; }
-    const { data, error } = await supabase
-      .from("client_documents")
-      .select("storage_path")
-      .eq("id", p.payment_proof_file_id)
-      .maybeSingle();
-    if (error || !data) { toast.error("Proof not found"); return; }
-    const path = (data as any).storage_path;
-    if (!path) { toast.info("No file path on proof"); return; }
-    const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
-    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
-    else toast.error("Could not open proof");
-  };
+  const openProof = (p: any) => openPaymentProof(p.payment_proof_file_id);
 
   return (
     <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5">
@@ -322,20 +307,10 @@ function RejectPaymentDialog({ payment, onClose }: { payment: any; onClose: (cha
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const save = async () => {
-    if (!reason.trim()) { toast.error("Enter a reason"); return; }
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("client_invoice_payments")
-      .update({
-        payment_status: "rejected",
-        verification_rejected_reason: reason,
-        verified_by: u?.user?.id ?? null,
-        verified_at: new Date().toISOString(),
-      } as any)
-      .eq("id", payment.id);
+    const ok = await rejectPayment(payment, reason);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Payment rejected"); onClose(true); }
+    if (ok) onClose(true);
   };
   return (
     <Dialog open onOpenChange={(o) => !o && onClose(false)}>
@@ -524,7 +499,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInUsd = convert(amtNum, payCcy, "USD");
       const status = adminOverride ? "verified" : defaultPaymentStatus(method);
 
-      const { error } = await supabase.from("client_invoice_payments").insert({
+      const { data: inserted, error } = await supabase.from("client_invoice_payments").insert({
         invoice_id: invoice.id,
         client_id: clientId,
         paid_at: new Date().toISOString(),
@@ -542,8 +517,29 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         payment_proof_status: proofDocId ? "uploaded" : "pending",
         payment_status: status,
         payment_source: source,
-      } as any);
+      } as any).select("id").maybeSingle();
       if (error) throw error;
+
+      // Best-effort timeline events
+      try {
+        const paymentId = (inserted as any)?.id;
+        await appendTimeline({
+          clientId,
+          eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
+          summary: status === "awaiting_verification"
+            ? `Payment of ${payCcy} ${amtNum.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
+            : `Payment of ${payCcy} ${amtNum.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
+          metadata: { payment_id: paymentId, invoice_id: invoice.id, amount: amtNum, currency: payCcy, method, source },
+        });
+        if (proofDocId) {
+          await appendTimeline({
+            clientId,
+            eventType: "payment_proof_uploaded",
+            summary: "Payment proof uploaded",
+            metadata: { payment_id: paymentId, invoice_id: invoice.id, document_id: proofDocId },
+          });
+        }
+      } catch {}
 
       toast.success(
         status === "awaiting_verification"
@@ -757,6 +753,16 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    try {
+      if (invRow.client_id) {
+        await appendTimeline({
+          clientId: invRow.client_id,
+          eventType: "receipt_generated",
+          summary: `Receipt ${num} generated for ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
+          metadata: { receipt_number: num, invoice_id: invoice.id, payment_id: paymentId, amount: Number(pay.amount), currency: pay.currency },
+        });
+      }
+    } catch {}
     toast.success(`Receipt ${num} generated`);
     onClose();
   };
@@ -862,7 +868,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
         supabase.from("client_invoice_receipts")
-          .select("id,receipt_number,generated_at,currency,amount,receipt_voided")
+          .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("generated_at", { ascending: false }),
       ]);
       setPayments(p.data ?? []);
@@ -952,16 +958,23 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
               <div className="rounded-md border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/40 text-muted-foreground">
-                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th></tr>
+                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th><th className="px-2 py-1"></th></tr>
                   </thead>
                   <tbody>
-                    {receipts.map((r) => (
+                  {receipts.map((r) => {
+                    const snap = r.receipt_snapshot_jsonb;
+                    return (
                       <tr key={r.id} className="border-t">
                         <td className="px-2 py-1 font-medium">{r.receipt_number}{r.receipt_voided ? " (voided)" : ""}</td>
                         <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
-                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      <td className="px-2 py-1 text-right whitespace-nowrap">
+                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
+                          <Download className="size-3.5" />
+                        </Button>
+                      </td>
                       </tr>
-                    ))}
+                  );})}
                   </tbody>
                 </table>
               </div>
@@ -973,4 +986,27 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
       </SheetContent>
     </Sheet>
   );
+}
+
+/** Render a stored receipt snapshot via AccountingReceiptTemplate and trigger window.print(). */
+function printReceiptSnapshot(snapshot: any) {
+  const data = snapshotToReceiptData(snapshot);
+  if (!data) { toast.error("Snapshot unavailable"); return; }
+  const existing = document.getElementById("accounting-receipt-print-root");
+  if (existing) existing.remove();
+  const mount = document.createElement("div");
+  mount.id = "accounting-receipt-print-root";
+  document.body.appendChild(mount);
+  const root = createRoot(mount);
+  root.render(<AccountingReceiptTemplate receipt={data} />);
+  const cleanup = () => {
+    try { root.unmount(); } catch {}
+    mount.remove();
+    window.removeEventListener("afterprint", cleanup);
+  };
+  window.addEventListener("afterprint", cleanup);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    window.print();
+    setTimeout(cleanup, 2000);
+  }));
 }

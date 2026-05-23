@@ -19,6 +19,7 @@ import AgingBreakdownCard from "../../components/ledger/AgingBreakdownCard";
 import ClientServicesPanel from "../../components/clients/ClientServicesPanel";
 import ClientNotesTab from "../../components/clients/ClientNotesTab";
 import ClientActivityTab from "../../components/clients/ClientActivityTab";
+import { ClientInvoicesPanel } from "@/components/clients/ClientInvoicesPanel";
 import {
   MOCK_CLIENTS, MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
   CLIENT_SEGMENT_LABEL,
@@ -269,6 +270,9 @@ export default function AccountingClientDetailPage() {
         <AgingBreakdownCard title="Receivables aging" currency={client.currency} buckets={aging} />
 
         <ClientServicesPanel services={services} />
+
+        {/* Live invoicing & payments — wired to client_invoices / client_invoice_payments */}
+        <ClientInvoicesPanel clientId={client.linkedCrmClientId ?? id} />
 
         <Tabs defaultValue="invoices">
           <TabsList className="relative z-10">

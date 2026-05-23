@@ -80,6 +80,7 @@ import AccountingBillDetailPage from "./accounting/pages/ap/AccountingBillDetail
 import AccountingARPage from "./accounting/pages/ar/AccountingARPage";
 import AccountingNewInvoicePage from "./accounting/pages/ar/AccountingNewInvoicePage";
 import AccountingInvoiceDetailPage from "./accounting/pages/ar/AccountingInvoiceDetailPage";
+import AccountingVerificationQueuePage from "./accounting/pages/ar/AccountingVerificationQueuePage";
 import AccountingVendorsPage from "./accounting/pages/vendors/AccountingVendorsPage";
 import AccountingVendorDetailPage from "./accounting/pages/vendors/AccountingVendorDetailPage";
 import AccountingClientsPage from "./accounting/pages/clients/AccountingClientsPage";
@@ -218,6 +219,7 @@ const App = () => (
             <Route path="/accounting/ap/:id" element={<AccountingSectionRoute section="ap"><AccountingBillDetailPage /></AccountingSectionRoute>} />
             <Route path="/accounting/ar" element={<AccountingSectionRoute section="ar"><AccountingARPage /></AccountingSectionRoute>} />
             <Route path="/accounting/ar/new" element={<AccountingSectionRoute section="ar" level="edit"><AccountingNewInvoicePage /></AccountingSectionRoute>} />
+            <Route path="/accounting/ar/verification" element={<AccountingSectionRoute section="ar"><AccountingVerificationQueuePage /></AccountingSectionRoute>} />
             <Route path="/accounting/ar/:id" element={<AccountingSectionRoute section="ar"><AccountingInvoiceDetailPage /></AccountingSectionRoute>} />
             <Route path="/accounting/vendors" element={<AccountingSectionRoute section="vendors"><AccountingVendorsPage /></AccountingSectionRoute>} />
             <Route path="/accounting/vendors/:id" element={<AccountingSectionRoute section="vendors"><AccountingVendorDetailPage /></AccountingSectionRoute>} />

@@ -132,7 +132,14 @@ export default function AccountingARPage() {
         <AccountingPageHeader
           title="AR — Customer invoices"
           subtitle="Accounts receivable · Future Link Flow"
-          actions={<Button onClick={() => navigate("/accounting/ar/new")}><Plus className="size-4 mr-1" /> New invoice</Button>}
+          actions={
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => navigate("/accounting/ar/verification")}>
+                Verification queue
+              </Button>
+              <Button onClick={() => navigate("/accounting/ar/new")}><Plus className="size-4 mr-1" /> New invoice</Button>
+            </div>
+          }
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
