@@ -775,8 +775,53 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             allocated_by: u?.user?.id ?? null,
           } as any;
         });
-        const { error: allocErr } = await supabase.from("client_invoice_payment_allocations").insert(rows);
-        if (allocErr) console.warn("[allocations] insert failed", allocErr);
+        const { data: allocInserted, error: allocErr } = await supabase
+          .from("client_invoice_payment_allocations")
+          .insert(rows)
+          .select("id");
+        const insertedCount = Array.isArray(allocInserted) ? allocInserted.length : 0;
+        if (allocErr || insertedCount !== rows.length) {
+          // Compensating rollback: remove the payment row so no silent allocation gap remains.
+          const { error: rollbackErr } = await supabase
+            .from("client_invoice_payments")
+            .delete()
+            .eq("id", paymentId);
+          // Best-effort audit trail of the failure for ops.
+          try {
+            await appendTimeline({
+              clientId,
+              eventType: "payment_allocation_failed",
+              summary: rollbackErr
+                ? `CRITICAL: allocation insert failed AND payment rollback failed (payment_id=${paymentId}). Manual reconciliation required.`
+                : `Payment rolled back: allocation insert failed (${rows.length} allocation${rows.length === 1 ? "" : "s"} expected, ${insertedCount} written).`,
+              metadata: {
+                payment_id: paymentId,
+                invoice_id: invoice.id,
+                expected_allocations: rows.length,
+                inserted_allocations: insertedCount,
+                allocation_error: allocErr?.message ?? null,
+                rollback_error: rollbackErr?.message ?? null,
+                allocations: allocationMetas,
+              },
+            });
+          } catch {}
+          if (rollbackErr) {
+            toast.error(
+              `Critical: payment ${paymentId.slice(0, 8)}… posted but allocations failed and rollback failed. Contact finance admin immediately.`,
+              { duration: 20000 },
+            );
+            throw new Error(
+              `Allocation insert failed and payment rollback failed (payment_id=${paymentId}): ${allocErr?.message ?? "partial insert"}`,
+            );
+          }
+          toast.error(
+            `Payment was not posted: allocation save failed (${allocErr?.message ?? "partial insert"}). Please retry.`,
+            { duration: 12000 },
+          );
+          throw new Error(
+            `Allocation insert failed; payment rolled back: ${allocErr?.message ?? "partial insert"}`,
+          );
+        }
       }
 
       try {
