@@ -753,6 +753,16 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    try {
+      if (invRow.client_id) {
+        await appendTimeline({
+          clientId: invRow.client_id,
+          eventType: "receipt_generated",
+          summary: `Receipt ${num} generated for ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
+          metadata: { receipt_number: num, invoice_id: invoice.id, payment_id: paymentId, amount: Number(pay.amount), currency: pay.currency },
+        });
+      }
+    } catch {}
     toast.success(`Receipt ${num} generated`);
     onClose();
   };
