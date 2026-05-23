@@ -1,11 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, MapPin, Building2, UserCheck, Link2, GraduationCap } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Building2, UserCheck, Link2, GraduationCap, CreditCard, ExternalLink, Plus } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
@@ -15,39 +20,77 @@ import ClientServicesPanel from "../../components/clients/ClientServicesPanel";
 import ClientNotesTab from "../../components/clients/ClientNotesTab";
 import ClientActivityTab from "../../components/clients/ClientActivityTab";
 import {
-  MOCK_CLIENTS, MOCK_CLIENT_INVOICES, MOCK_CLIENT_RECEIPTS, MOCK_CLIENT_TXNS,
-  MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
-  CLIENT_SEGMENT_LABEL, getClientAging,
+  MOCK_CLIENTS, MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
+  CLIENT_SEGMENT_LABEL,
 } from "../../data/mockClients";
 import { useClients } from "../../stores/clientsStore";
+import { useArInvoices, updateArInvoice } from "../../stores/arInvoicesStore";
 import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
 import { formatCurrency } from "../../lib/format";
 import type { ClientInvoice, ClientReceipt, ClientTxn } from "../../types/clients";
+import type { CustomerInvoice, InvoiceStatus } from "../../data/mockAR";
 
 export default function AccountingClientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const allClients = useClients();
+  const arInvoices = useArInvoices();
+  const [payDialog, setPayDialog] = useState<CustomerInvoice | null>(null);
   const client = useMemo(
     () => allClients.find(c => c.id === id) ?? MOCK_CLIENTS.find(c => c.id === id),
     [allClients, id]
   );
 
-  const txns = useMemo(() => MOCK_CLIENT_TXNS.filter(t => t.clientId === id), [id]);
-  const invs = useMemo(() => MOCK_CLIENT_INVOICES.filter(i => i.clientId === id), [id]);
-  const recs = useMemo(() => MOCK_CLIENT_RECEIPTS.filter(r => r.clientId === id), [id]);
-  const aging = useMemo(() => getClientAging(id), [id]);
+  const invoiceClientKeys = useMemo(() => new Set([id, client?.linkedCrmClientId].filter(Boolean) as string[]), [id, client?.linkedCrmClientId]);
+  const invs = useMemo(() => arInvoices.filter(i =>
+    (i.clientId && invoiceClientKeys.has(i.clientId)) ||
+    (!!client?.name && i.client.trim().toLowerCase() === client.name.trim().toLowerCase())
+  ), [arInvoices, invoiceClientKeys, client?.name]);
+  const recs = useMemo<ClientReceipt[]>(() => invs.filter(i => i.receivedAmount > 0).map(i => ({
+    id: `rc-${i.id}`,
+    clientId: id,
+    date: i.paidDate ?? i.invoiceDate,
+    reference: i.paymentReference ?? i.invoiceNumber,
+    method: ((i.paymentMethod ?? "BANK_TRANSFER") === "BANK_TRANSFER" ? "WIRE" : i.paymentMethod ?? "WIRE") as ClientReceipt["method"],
+    amount: i.receivedAmount,
+    currency: i.currency as ClientReceipt["currency"],
+    appliedTo: [i.invoiceNumber],
+    bankAccount: "—",
+  })), [invs, id]);
+  const txns = useMemo<ClientTxn[]>(() => {
+    let balance = 0;
+    return invs.slice().sort((a, b) => a.invoiceDate.localeCompare(b.invoiceDate)).flatMap((i) => {
+      const rows: ClientTxn[] = [];
+      balance += i.totalAmount;
+      rows.push({ id: `inv-${i.id}`, clientId: id, date: i.invoiceDate, reference: i.invoiceNumber, type: "INVOICE", description: i.description || "Invoice", debit: i.totalAmount, credit: 0, balance, currency: i.currency as ClientTxn["currency"] });
+      if (i.receivedAmount > 0) {
+        balance -= i.receivedAmount;
+        rows.push({ id: `pay-${i.id}`, clientId: id, date: i.paidDate ?? i.invoiceDate, reference: i.paymentReference ?? i.invoiceNumber, type: "RECEIPT", description: `Payment for ${i.invoiceNumber}`, debit: 0, credit: i.receivedAmount, balance, currency: i.currency as ClientTxn["currency"] });
+      }
+      return rows;
+    }).reverse();
+  }, [invs, id]);
+  const aging = useMemo(() => {
+    const today = Date.now();
+    return invs.filter(i => !["PAID", "VOID"].includes(i.status)).reduce((acc, i) => {
+      const open = Math.max(Number(i.outstandingBalance || 0), 0);
+      const days = i.dueDate ? Math.floor((today - new Date(i.dueDate).getTime()) / 86400000) : 0;
+      if (days <= 0) acc.current += open; else if (days <= 30) acc.d30 += open; else if (days <= 60) acc.d60 += open; else acc.d90 += open;
+      return acc;
+    }, { current: 0, d30: 0, d60: 0, d90: 0 });
+  }, [invs]);
   const services = useMemo(() => MOCK_CLIENT_SERVICES.filter(s => s.clientId === id), [id]);
   const notes = useMemo(() => MOCK_CLIENT_NOTES.filter(n => n.clientId === id), [id]);
   const activity = useMemo(() => MOCK_CLIENT_ACTIVITY.filter(a => a.clientId === id), [id]);
 
   const totals = useMemo(() => {
-    const billed = invs.reduce((s, i) => s + i.amount, 0);
+    const billed = invs.reduce((s, i) => s + i.totalAmount, 0);
     const received = recs.filter(r => !r.kind || r.kind === "PAYMENT").reduce((s, r) => s + r.amount, 0);
     const refunds = recs.filter(r => r.kind === "REFUND").reduce((s, r) => s + r.amount, 0);
     const installPaid = services.reduce((s, x) => s + (x.installmentsPaid ?? 0), 0);
     const installTotal = services.reduce((s, x) => s + (x.installmentsTotal ?? 0), 0);
-    return { billed, received, refunds, installPaid, installTotal };
+    const outstanding = invs.reduce((s, i) => s + Math.max(Number(i.outstandingBalance || 0), 0), 0);
+    return { billed, received, refunds, installPaid, installTotal, outstanding };
   }, [invs, recs, services]);
 
   const txnCols = useMemo<ColDef<ClientTxn>[]>(() => [
