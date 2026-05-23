@@ -51,6 +51,50 @@ export function generateReceiptNumber(invoiceNumber: string, paymentIndex: numbe
   return `RCP-${base}-${paymentIndex}`;
 }
 
+/**
+ * Build a ReceiptData object from a stored `client_invoice_receipts.receipt_snapshot_jsonb`.
+ * Allows reprinting/downloading historical receipts without re-querying live data.
+ * Returns null when the snapshot is missing or malformed.
+ */
+export function snapshotToReceiptData(snapshot: any): ReceiptData | null {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const inv = snapshot.invoice ?? {};
+  const pay = snapshot.payment ?? {};
+  const client = snapshot.client ?? {};
+  const firm = snapshot.firm ?? {};
+  const branch = snapshot.branch ?? {};
+  const footer = snapshot.footer ?? {};
+  return {
+    receiptNumber: snapshot.receipt_number ?? "",
+    receiptDate: snapshot.generated_at ?? new Date().toISOString(),
+    invoiceNumber: inv.invoice_number ?? "",
+    invoiceDate: inv.invoice_date ?? snapshot.generated_at ?? new Date().toISOString(),
+    companyName: firm.name ?? footer.legal_name ?? "Future Link Consultants",
+    companyEntity: snapshot.entity_code ?? "",
+    companyBranch: branch.name ?? snapshot.branch_code ?? "",
+    companyAddress: firm.address ?? footer.address ?? "",
+    companyEmail: firm.email ?? footer.support_email ?? "",
+    companyPhone: firm.phone ?? footer.support_phone ?? "",
+    clientName: client.name ?? "",
+    clientEmail: client.email ?? "",
+    clientPhone: client.phone ?? "",
+    serviceType: Array.isArray(inv.line_items) && inv.line_items[0]
+      ? (inv.line_items[0].service_name ?? inv.line_items[0].description ?? "Service")
+      : "Service",
+    counselorName: snapshot.posted_by_name ?? "—",
+    invoiceTotal: Number(inv.amount ?? 0),
+    amountPaid: Number(pay.amount ?? 0),
+    outstandingBalance: Number(inv.outstanding ?? Math.max((inv.amount ?? 0) - (inv.amount_paid ?? 0), 0)),
+    currency: pay.currency ?? inv.currency ?? "INR",
+    paymentDate: pay.paid_at ?? snapshot.generated_at ?? new Date().toISOString(),
+    paymentMethod: (pay.method ?? "").toString().replace(/_/g, " ").toUpperCase(),
+    paymentReference: pay.reference ?? undefined,
+    subtotal: Number(inv.subtotal ?? inv.amount ?? 0),
+    taxAmount: Number(inv.tax_amount ?? 0),
+    isInstalment: false,
+  };
+}
+
 interface EntityInfo {
   address: string;
   email: string;
