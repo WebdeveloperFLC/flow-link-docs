@@ -16,9 +16,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
-import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
-import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
-import { createRoot } from "react-dom/client";
+import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
