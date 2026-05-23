@@ -13,6 +13,7 @@ import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
+import { enqueueExtraction } from "@/lib/extractionQueue";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
@@ -357,6 +358,16 @@ export const SmartUploadZone = ({
         );
       } catch { /* best effort */ }
       patch(idx, { status: "done" });
+
+      // Phase 2: register for background OCR + extraction (fire-and-forget).
+      void enqueueExtraction({
+        documentId: ins.id,
+        clientId: targetClient.id,
+        personId: ownerPerson?.id ?? null,
+        docTypeDetected: effectiveType,
+        classifyConfidence: typeof item.confidence === "number" ? item.confidence : 0,
+        source: item.source ?? null,
+      });
 
       // Background field extraction (per-person where possible)
       try {
