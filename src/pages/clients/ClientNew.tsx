@@ -35,6 +35,7 @@ import { fetchLead, fetchBranches, fetchDepartments, fetchAllServiceCatalogue, t
 import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
 
 /**
  * Seed education_history from the legacy scalar columns when the row was
@@ -197,6 +198,8 @@ const ClientNew = () => {
     if (saving) return; // guard against rapid overlapping autosaves
     setSaving(true);
     try {
+      const ok = await ensureFreshSession();
+      if (!ok) { toast.error("Your session expired. Please sign in again."); return; }
       const saved = await upsertClientRegistration(clientId, buildDraft());
       if (!clientId) {
         setClientId(saved.id);
@@ -205,8 +208,14 @@ const ClientNew = () => {
       }
     } catch (e: any) {
       console.error("[client autosave]", e);
-      const msg = e?.message || e?.error_description || e?.details || e?.hint || "Save failed";
-      toast.error(`Save failed: ${msg}`);
+      if (e instanceof AuthExpiredError) {
+        toast.error(e.message);
+      } else if (e instanceof PermissionDeniedError) {
+        toast.error(`Save failed: ${e.message}${e.details ? ` — ${e.details}` : ""}`);
+      } else {
+        const msg = e?.message || e?.error_description || e?.details || e?.hint || "Save failed";
+        toast.error(`Save failed: ${msg}`);
+      }
     } finally {
       setSaving(false);
     }
@@ -228,6 +237,8 @@ const ClientNew = () => {
     if (!f.first_name || !f.last_name) { toast.error("Name required"); return; }
     setCreating(true);
     try {
+      const ok = await ensureFreshSession();
+      if (!ok) { toast.error("Your session expired. Please sign in again."); return; }
       // Final save
       await upsertClientRegistration(clientId, buildDraft());
       const res = await createDraftInvoice({
@@ -253,7 +264,13 @@ const ClientNew = () => {
       nav(`/clients/${clientId}`);
     } catch (e) {
       console.error("[create invoice]", e);
-      toast.error(e instanceof Error ? e.message : "Failed to create invoice");
+      if (e instanceof AuthExpiredError) {
+        toast.error(e.message);
+      } else if (e instanceof PermissionDeniedError) {
+        toast.error(`Failed: ${e.message}${e.details ? ` — ${e.details}` : ""}`);
+      } else {
+        toast.error(e instanceof Error ? e.message : "Failed to create invoice");
+      }
     } finally {
       setCreating(false);
     }
