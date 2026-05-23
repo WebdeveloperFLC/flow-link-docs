@@ -21,7 +21,6 @@ import { fetchServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { EducationExperienceFields } from "./EducationExperienceFields";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { useState as useReactState } from "react";
 
 interface Props {
   primaryClientId: string | null;
@@ -252,7 +251,7 @@ interface PanelProps {
 }
 
 const FamilyEduExpPanel = ({ member, onLocalChange, onCommit }: PanelProps) => {
-  const [open, setOpen] = useReactState(false);
+  const [open, setOpen] = useState(false);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="pt-2 border-t">
       <CollapsibleTrigger asChild>
