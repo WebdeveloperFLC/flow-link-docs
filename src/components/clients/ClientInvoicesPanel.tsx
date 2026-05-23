@@ -129,7 +129,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const [{ data, error }, { data: pend }, { data: verifiedPays }, { data: allPays }, { data: receipts }] = await Promise.all([
+    const [{ data, error }, { data: pend }, { data: verifiedPays }, allPaysRes] = await Promise.all([
       supabase
         .from("client_invoices")
         .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
@@ -154,11 +154,6 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         .select("id", { count: "exact", head: true })
         .eq("client_id", clientId)
         .is("archived_at", null),
-      supabase
-        .from("client_invoice_receipts")
-        .select("id", { count: "exact", head: true })
-        .eq("client_id", clientId)
-        .is("archived_at", null),
     ]);
     if (error) { console.warn("[invoices] load failed", error); setRows([]); }
     else setRows((data ?? []) as any);
@@ -169,8 +164,18 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       map[p.invoice_id] = (map[p.invoice_id] ?? 0) + sign * (Number(p.amount) || 0);
     }
     setVerifiedPaidByInvoice(map);
-    setPaymentCount(((allPays as any)?.length ?? (allPays as any)?.count) ?? 0);
-    setReceiptCount(((receipts as any)?.length ?? (receipts as any)?.count) ?? 0);
+    setPaymentCount((allPaysRes as any)?.count ?? 0);
+    const invIds = ((data ?? []) as any[]).map((i: any) => i.id);
+    if (invIds.length) {
+      const { count } = await supabase
+        .from("client_invoice_receipts")
+        .select("id", { count: "exact", head: true })
+        .in("invoice_id", invIds)
+        .is("archived_at", null);
+      setReceiptCount(count ?? 0);
+    } else {
+      setReceiptCount(0);
+    }
     setLoading(false);
   };
 
