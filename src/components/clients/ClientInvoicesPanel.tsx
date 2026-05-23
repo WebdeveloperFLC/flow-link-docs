@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
+import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Invoice = {
   id: string;
@@ -45,6 +48,15 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const METHODS = ["cash", "bank_transfer", "card", "upi", "etransfer", "cheque", "wallet", "referral_credits", "points"];
+const PAYMENT_SOURCES = [
+  { value: "manual", label: "Manual entry" },
+  { value: "walk_in", label: "Walk-in" },
+  { value: "portal", label: "Client portal" },
+  { value: "counselor_collection", label: "Counselor collection" },
+  { value: "whatsapp_link", label: "WhatsApp link" },
+  { value: "branch_counter", label: "Branch counter" },
+  { value: "online_gateway", label: "Online gateway" },
+];
 
 function money(amt: number, cur: string) {
   try { return new Intl.NumberFormat(undefined, { style: "currency", currency: cur || "INR", maximumFractionDigits: 2 }).format(amt || 0); }
@@ -299,57 +311,172 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
 /* ───────────────────── Collect Payment ───────────────────── */
 function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
   const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
+  const invCcy = (invoice.currency || "INR").toUpperCase();
+
+  const [payCcy, setPayCcy] = useState<string>(invCcy);
+  const [fxRate, setFxRate] = useState<number>(1);
   const [amount, setAmount] = useState<string>(balance.toFixed(2));
   const [method, setMethod] = useState("bank_transfer");
+  const [source, setSource] = useState("manual");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [adminOverride, setAdminOverride] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Re-prefill FX whenever payment currency changes.
+  useEffect(() => {
+    // rate is "payment ccy → invoice ccy"
+    setFxRate(getFxRate(payCcy, invCcy));
+  }, [payCcy, invCcy]);
+
+  const amtNum = Number(amount) || 0;
+  const convertedToInvoiceCcy = amtNum * fxRate;
+  const overpay = convertedToInvoiceCcy > balance + 0.01;
+  const proofRequired = isProofRequired(method);
+  const proofMissing = proofRequired && !proofFile && !adminOverride;
+  const willBeAwaitingVerification = defaultPaymentStatus(method) === "awaiting_verification";
+
   const save = async () => {
-    const amt = Number(amount);
-    if (!amt || amt <= 0) { toast.error("Enter a positive amount"); return; }
-    if (amt > balance + 0.01) { toast.error("Amount exceeds balance due"); return; }
+    if (!amtNum || amtNum <= 0) { toast.error("Enter a positive amount"); return; }
+    if (overpay) { toast.error("Converted amount exceeds balance due"); return; }
+    if (proofMissing) { toast.error("Attach a payment proof or enable admin override"); return; }
+
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("client_invoice_payments").insert({
-      invoice_id: invoice.id,
-      client_id: (await supabase.from("client_invoices").select("client_id").eq("id", invoice.id).maybeSingle()).data?.client_id,
-      paid_at: new Date().toISOString(),
-      method,
-      currency: invoice.currency,
-      amount: amt,
-      amount_in_inr: amt, amount_in_cad: amt, amount_in_usd: amt,
-      fx_rate: 1,
-      reference: reference || null,
-      notes: notes || null,
-      posted_by: u?.user?.id ?? null,
-      payment_proof_status: "pending",
-    } as any);
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    toast.success("Payment posted");
-    onClose();
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      const { data: invRow } = await supabase
+        .from("client_invoices").select("client_id").eq("id", invoice.id).maybeSingle();
+      const clientId = invRow?.client_id as string | undefined;
+      if (!clientId) throw new Error("Invoice has no client");
+
+      // Upload proof first (if any), so we can store the doc id on the payment.
+      let proofDocId: string | null = null;
+      if (proofFile) {
+        const res = await uploadPaymentProof({ clientId, invoiceId: invoice.id, file: proofFile });
+        proofDocId = res.documentId;
+      }
+
+      // Compute multi-ccy amounts using the rate the user confirmed.
+      const amtInInr = convert(amtNum, payCcy, "INR");
+      const amtInCad = convert(amtNum, payCcy, "CAD");
+      const amtInUsd = convert(amtNum, payCcy, "USD");
+      const status = adminOverride ? "verified" : defaultPaymentStatus(method);
+
+      const { error } = await supabase.from("client_invoice_payments").insert({
+        invoice_id: invoice.id,
+        client_id: clientId,
+        paid_at: new Date().toISOString(),
+        method,
+        currency: payCcy,
+        amount: amtNum,
+        amount_in_inr: amtInInr,
+        amount_in_cad: amtInCad,
+        amount_in_usd: amtInUsd,
+        fx_rate: fxRate,
+        reference: reference || null,
+        notes: notes || null,
+        posted_by: u?.user?.id ?? null,
+        payment_proof_file_id: proofDocId,
+        payment_proof_status: proofDocId ? "uploaded" : "pending",
+        payment_status: status,
+        payment_source: source,
+      } as any);
+      if (error) throw error;
+
+      toast.success(
+        status === "awaiting_verification"
+          ? "Payment submitted — awaiting verification"
+          : "Payment posted"
+      );
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to post payment");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Collect payment — {invoice.invoice_number}</DialogTitle></DialogHeader>
-        <div className="text-xs text-muted-foreground mb-2">Balance due: <b>{money(balance, invoice.currency)}</b></div>
+        <div className="text-xs text-muted-foreground mb-2">
+          Invoice total: <b>{money(Number(invoice.amount), invCcy)}</b> ·
+          Balance due: <b>{money(balance, invCcy)}</b>
+        </div>
         <div className="grid grid-cols-2 gap-3">
-          <div><Label>Amount ({invoice.currency})</Label><Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} /></div>
+          <div><Label>Payment currency</Label>
+            <Select value={payCcy} onValueChange={setPayCcy}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{SUPPORTED_CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div><Label>FX rate ({payCcy} → {invCcy})</Label>
+            <Input type="number" step="0.0001" value={fxRate}
+              onChange={(e) => setFxRate(parseFloat(e.target.value) || 0)}
+              disabled={payCcy === invCcy} />
+          </div>
+          <div><Label>Amount ({payCcy})</Label>
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </div>
           <div><Label>Method</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{METHODS.map(m => <SelectItem key={m} value={m}>{m.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
             </Select>
           </div>
+          <div className="col-span-2"><Label>Payment source</Label>
+            <Select value={source} onValueChange={setSource}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{PAYMENT_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
           <div className="col-span-2"><Label>Reference</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Txn ID, cheque #, UPI ref…" /></div>
           <div className="col-span-2"><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></div>
+
+          {/* Conversion / verification summary */}
+          <div className="col-span-2 rounded-md border bg-muted/30 p-3 text-xs space-y-1">
+            <div className="flex justify-between"><span>Amount received</span><b>{money(amtNum, payCcy)}</b></div>
+            {payCcy !== invCcy && (
+              <>
+                <div className="flex justify-between text-muted-foreground"><span>FX rate</span><span className="tabular-nums">{fxRate}</span></div>
+                <div className="flex justify-between"><span>Converted ({invCcy})</span><b>{money(convertedToInvoiceCcy, invCcy)}</b></div>
+              </>
+            )}
+            <div className="flex justify-between"><span>Outstanding after</span>
+              <b className={overpay ? "text-destructive" : ""}>{money(Math.max(balance - convertedToInvoiceCcy, 0), invCcy)}</b>
+            </div>
+            {willBeAwaitingVerification && !adminOverride && (
+              <div className="text-amber-700 pt-1">Will be marked <b>awaiting verification</b> — won't reduce outstanding until verified.</div>
+            )}
+          </div>
+
+          {/* Proof upload */}
+          <div className="col-span-2 grid gap-1.5">
+            <Label>
+              Payment proof{proofRequired ? " *" : " (optional)"}
+            </Label>
+            <Input
+              type="file"
+              accept="image/*,application/pdf"
+              capture="environment"
+              onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+            />
+            {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
+            {proofRequired && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <Checkbox checked={adminOverride} onCheckedChange={(v) => setAdminOverride(!!v)} />
+                Admin override — post without proof and mark verified
+              </label>
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={saving}>{saving ? "Posting…" : "Post payment"}</Button>
+          <Button onClick={save} disabled={saving || proofMissing || overpay || amtNum <= 0}>
+            {saving ? "Posting…" : willBeAwaitingVerification && !adminOverride ? "Submit for verification" : "Post payment"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
