@@ -13,6 +13,7 @@ import { matchPersonRoster } from "@/lib/matchPersonRoster";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 import { logActivity } from "@/lib/activity";
+import { enqueueExtraction } from "@/lib/extractionQueue";
 import { ROLE_SHORT, ROLE_LABEL, type CasePerson } from "@/lib/casePeople";
 import { inferSectionId } from "@/lib/sections";
 import {
