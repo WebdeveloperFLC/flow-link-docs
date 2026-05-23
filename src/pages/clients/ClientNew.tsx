@@ -241,7 +241,7 @@ const ClientNew = () => {
       if (portalEnabled && f.email) {
         try {
           await supabase.functions.invoke("client-portal-invite-create", {
-            body: { client_id: clientId, email: f.email, access_level: portalAccessLevel },
+            body: { clientId, email: f.email, access_level: portalAccessLevel },
           });
           toast.success(`Login credentials sent to ${f.email}`);
         } catch (e) {

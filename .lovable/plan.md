@@ -1,23 +1,38 @@
-## Problem
+## What I found
 
-On `/clients/new` (and `/clients/new?lead_id=…`), the only header actions are "Cancel" and a passive "Saving…" indicator. Saving relies on `onBlur` autosave after first/last name are filled. When users click "Create Draft Invoice" before any blur-triggered save has succeeded, they hit the `Save the client first` toast and have no obvious way to save manually. The lead form (`LeadNew.tsx`) has a "Save & View" button — the client form should have an equivalent.
+### 1. "InviteClientCard / RPC references non-existent `leads.client_id`"
+Verified against the live DB schema — this is a **misdiagnosis**. There is no `leads.client_id` column anywhere in our code; the references are:
+- `client_portal_invites.client_id` → FK to `clients(id)` ✓ exists
+- `client_portal_links.client_id` → FK to `clients(id)` ✓ exists
+- `leads.converted_to_client_id` → FK to `clients(id)` ✓ exists
 
-## Fix
+`InviteClientCard.tsx` correctly queries `client_portal_invites` / `client_portal_links` by `client_id` (the clients PK), not anything on leads. **No schema or migration change is needed.**
 
-Edit only `src/pages/clients/ClientNew.tsx`:
+What **is** broken: in `src/pages/clients/ClientNew.tsx` line 244, the call to the `client-portal-invite-create` edge function sends `{ client_id, email, access_level }`, but the function reads `{ clientId, email }`. That's why the "Create client login" path silently fails with "Missing fields". This is the real bug to fix.
 
-1. **Add a `Save Client` button** in the `PageHeader` actions, next to Cancel.
-   - Disabled when `saving` is true or when `first_name`/`last_name` are empty (with a tooltip/title explaining why).
-   - On click: runs the existing `autosave()` and, if a new client, shows the success toast already produced by autosave. Stays on the page (does not navigate) so the user can continue to add education, services, and create the invoice.
-   - Label switches to `Save Changes` when `clientId` already exists.
+### 2. "Workflow button still visible in the lead form"
+The current source (`src/pages/clients/ClientNew.tsx`) has only sections 1–9 — there is **no Section 10 Workflow** in the codebase. The screenshot is from `dms.futurelinkconsultants.com` (the published custom domain), which is running an older build. The Workflow section was already removed in the current code; the published site just needs a republish.
 
-2. **Surface a small inline hint** under the header when `!clientId && (!first_name || !last_name)`:  
-   `Enter first and last name, then click Save Client to begin.`  
-   Replaces the silent autosave-skip behavior that confuses users.
+### 3. "I don't see the Save Client button"
+The `Save Client` / `Save Changes` button exists in the `PageHeader`, but `PageHeader` is **not sticky**. As soon as the user scrolls down into sections 5–9, the header (and the only Save button) scrolls off-screen — which matches the screenshot. Same root cause as #2 also explains why the live site doesn't show it: stale published build.
 
-3. **No backend / RLS / schema changes.** The existing `upsertClientRegistration` path already works (per previous fix). This is a pure UX addition so the user always has a manual save path and clearer feedback.
+## Fix plan
+
+**Edit `src/pages/clients/ClientNew.tsx` only.** No backend, RLS, schema, or edge-function changes.
+
+1. **Fix the portal invite payload** (line ~244): change
+   `body: { client_id: clientId, email: f.email, access_level: portalAccessLevel }`
+   →
+   `body: { clientId, email: f.email, access_level: portalAccessLevel }`
+   so the edge function receives the field it expects.
+
+2. **Make the Save button always reachable.** Add a sticky bottom action bar that mirrors the header's Save/Cancel:
+   - Fixed to the bottom of the form column on scroll (`sticky bottom-0` inside the left column, with a translucent backdrop and top border).
+   - Same disabled/labels logic as the header button (`Save Client` / `Save Changes` / `Saving…`, disabled until first+last name are filled).
+   - Keep the existing header button too, so users see Save whether they're at the top or scrolled deep.
+
+3. **No change to the Workflow section** — it's already absent from the source. After this change is applied and the user republishes from Lovable, the live site will match (no Section 10, Save button visible at top and bottom).
 
 ## Out of scope
-
-- No changes to `clientRegistration.ts`, RLS, or the lead form.
-- No change to the invoice-creation flow — `handleCreateInvoice` already calls `upsertClientRegistration` before posting the invoice.
+- `InviteClientCard.tsx`, `client-portal-invite-create/index.ts`, RLS, migrations, `LeadNew.tsx`.
+- Security-scan findings shown in the side panel — separate task.
