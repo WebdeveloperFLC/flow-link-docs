@@ -4,9 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
-import { Users, FileStack, FileCheck2, AlertTriangle, ArrowUpRight, Building2, Handshake, ListChecks, Sparkles } from "lucide-react";
+import { Users, FileStack, FileCheck2, AlertTriangle, ArrowUpRight, Building2, Handshake, ListChecks, Sparkles, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { StatCard, type StatTone } from "@/components/ui/stat-card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -45,18 +47,18 @@ const Dashboard = () => {
     })();
   }, []);
 
-  const cards = [
-    { label: "Total Clients", value: stats.clients, icon: Users, accent: "text-primary" },
-    { label: "Documents Processed", value: stats.documents, icon: FileStack, accent: "text-primary" },
-    { label: "Binders Generated", value: stats.binders, icon: FileCheck2, accent: "text-success" },
-    { label: "Pending Review", value: Math.max(0, stats.clients - stats.binders), icon: AlertTriangle, accent: "text-secondary" },
+  const cards: { label: string; value: number; icon: typeof Users; tone: StatTone }[] = [
+    { label: "Total Clients", value: stats.clients, icon: Users, tone: "clients" },
+    { label: "Documents Processed", value: stats.documents, icon: FileStack, tone: "documents" },
+    { label: "Binders Generated", value: stats.binders, icon: FileCheck2, tone: "binders" },
+    { label: "Pending Review", value: Math.max(0, stats.clients - stats.binders), icon: AlertTriangle, tone: "review" },
   ];
 
-  const upiCards = [
-    { label: "Total Institutions", value: upiStats.institutions, icon: Building2, accent: "text-primary", to: "/institutions" },
-    { label: "Partner Institutions", value: upiStats.partners, icon: Handshake, accent: "text-success", to: "/institutions" },
-    { label: "Courses Pending Review", value: upiStats.coursesPending, icon: ListChecks, accent: "text-secondary", to: "/institutions/review" },
-    { label: "AI Suggestions Pending", value: upiStats.suggestionsPending, icon: Sparkles, accent: "text-primary", to: "/institutions/suggestions" },
+  const upiCards: { label: string; value: number; icon: typeof Users; tone: StatTone; to: string }[] = [
+    { label: "Total Institutions", value: upiStats.institutions, icon: Building2, tone: "institutions", to: "/institutions" },
+    { label: "Partner Institutions", value: upiStats.partners, icon: Handshake, tone: "binders", to: "/institutions" },
+    { label: "Courses Pending Review", value: upiStats.coursesPending, icon: ListChecks, tone: "review", to: "/institutions/review" },
+    { label: "AI Suggestions Pending", value: upiStats.suggestionsPending, icon: Sparkles, tone: "ai", to: "/institutions/suggestions" },
   ];
 
   return (
@@ -65,42 +67,20 @@ const Dashboard = () => {
       <div className="p-8 space-y-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {cards.map((c) => (
-            <Card key={c.label} className="p-5 shadow-elev-sm hover:shadow-elev-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</div>
-                  <div className="text-3xl font-bold mt-2 tabular-nums">{c.value}</div>
-                </div>
-                <div className="size-10 rounded-lg bg-accent flex items-center justify-center">
-                  <c.icon className={`size-5 ${c.accent}`} />
-                </div>
-              </div>
-            </Card>
+            <StatCard key={c.label} label={c.label} value={c.value} icon={c.icon} tone={c.tone} />
           ))}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {upiCards.map((c) => (
-            <Link key={c.label} to={c.to}>
-              <Card className="p-5 shadow-elev-sm hover:shadow-elev-md transition-shadow cursor-pointer">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</div>
-                    <div className="text-3xl font-bold mt-2 tabular-nums">{c.value}</div>
-                  </div>
-                  <div className="size-10 rounded-lg bg-accent flex items-center justify-center">
-                    <c.icon className={`size-5 ${c.accent}`} />
-                  </div>
-                </div>
-              </Card>
-            </Link>
+            <StatCard key={c.label} label={c.label} value={c.value} icon={c.icon} tone={c.tone} to={c.to} />
           ))}
         </div>
 
         <Card className="overflow-hidden shadow-elev-sm">
           <div className="px-6 py-4 border-b flex items-center justify-between">
             <div>
-              <div className="font-semibold">Recent clients</div>
+              <div className="font-display font-semibold text-base">Recent clients</div>
               <div className="text-xs text-muted-foreground">Latest profiles added</div>
             </div>
             <Button asChild variant="ghost" size="sm">
@@ -109,9 +89,16 @@ const Dashboard = () => {
           </div>
           <div className="divide-y">
             {recentClients.length === 0 && (
-              <div className="px-6 py-12 text-center text-sm text-muted-foreground">
-                No clients yet. <Link to="/clients" className="text-primary font-medium">Create the first one →</Link>
-              </div>
+              <EmptyState
+                icon={UserPlus}
+                title="No clients yet"
+                description="Start managing your educational consulting workflow by adding your first client profile."
+                action={
+                  <Button asChild>
+                    <Link to="/clients/new">Create the first one</Link>
+                  </Button>
+                }
+              />
             )}
             {recentClients.map((c) => (
               <Link key={c.id} to={`/clients/${c.id}`} className="block px-6 py-3.5 hover:bg-accent/40 transition-colors">
