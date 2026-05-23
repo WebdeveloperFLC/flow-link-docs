@@ -1553,12 +1553,13 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
   const [payments, setPayments] = useState<any[]>([]);
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     (async () => {
       const [p, r] = await Promise.all([
         supabase.from("client_invoice_payments")
-          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
+          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund,payment_proof_file_id")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
         supabase.from("client_invoice_receipts")
           .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb")
@@ -1570,7 +1571,26 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
     })();
   }, [invoice.id]);
 
-  const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
+  const verifiedPaid = payments.reduce((s, p) => s + (p.payment_status === "verified" ? (p.is_refund ? -1 : 1) * Number(p.amount || 0) : 0), 0);
+  const totals = computeInvoiceTotals(invoice, verifiedPaid);
+  const balance = totals.outstanding;
+  const awaitingCount = payments.filter((p) => p.payment_status === "awaiting_verification").length;
+  const receiptsByPaymentId = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const r of receipts) {
+      const snap = r.receipt_snapshot_jsonb as any;
+      const pid = snap?.payment?.id;
+      if (pid) m.set(pid, r);
+    }
+    return m;
+  }, [receipts]);
+  const q = search.trim().toLowerCase();
+  const filteredPayments = !q ? payments : payments.filter((p) => {
+    const rcpt = receiptsByPaymentId.get(p.id);
+    return [p.reference, p.method, p.payment_status, p.payment_source, rcpt?.receipt_number, invoice.invoice_number]
+      .filter(Boolean).some((v: any) => String(v).toLowerCase().includes(q));
+  });
+  const filteredReceipts = !q ? receipts : receipts.filter((r) => [r.receipt_number, invoice.invoice_number].filter(Boolean).some((v: any) => String(v).toLowerCase().includes(q)));
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
@@ -1582,14 +1602,23 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
         <div className="mt-4 space-y-4 text-sm">
           <div className="rounded-md border p-3 grid grid-cols-2 gap-2">
             <div><div className="text-xs text-muted-foreground">Status</div>
-              <Badge variant="outline" className={STATUS_STYLE[invoice.status] ?? ""}>{invoice.status.replace(/_/g, " ")}</Badge>
+              <Badge variant="outline" className={STATUS_STYLE[totals.displayStatus] ?? "bg-muted text-muted-foreground"}>{totals.displayStatus.replace(/_/g, " ")}</Badge>
             </div>
-            <div><div className="text-xs text-muted-foreground">Due</div><div>{invoice.due_date ?? "—"}</div></div>
+            <div><div className="text-xs text-muted-foreground">Due</div><div>{formatDue(invoice.due_date)}</div></div>
             <div><div className="text-xs text-muted-foreground">Total</div><div className="font-medium tabular-nums">{money(Number(invoice.amount), invoice.currency)}</div></div>
-            <div><div className="text-xs text-muted-foreground">Paid</div><div className="tabular-nums">{money(Number(invoice.amount_paid || 0), invoice.currency)}</div></div>
+            <div><div className="text-xs text-muted-foreground">Paid (verified)</div><div className="tabular-nums">{money(verifiedPaid, invoice.currency)}</div></div>
             <div className="col-span-2"><div className="text-xs text-muted-foreground">Outstanding</div>
               <div className={`font-semibold tabular-nums ${balance > 0 ? "text-destructive" : "text-emerald-700"}`}>{money(balance, invoice.currency)}</div>
             </div>
+            {awaitingCount > 0 && (
+              <div className="col-span-2 text-[11px] text-amber-700">
+                {awaitingCount} payment{awaitingCount === 1 ? "" : "s"} awaiting verification — not counted in paid/outstanding.
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Input placeholder="Search receipt #, ref, method, status…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 text-xs" />
           </div>
 
           <div>
@@ -1613,30 +1642,54 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({payments.length})</div>
-            {loading ? <div className="text-muted-foreground">Loading…</div> : payments.length === 0 ? (
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({filteredPayments.length}{q ? ` / ${payments.length}` : ""})</div>
+            {loading ? <div className="text-muted-foreground">Loading…</div> : filteredPayments.length === 0 ? (
               <div className="text-muted-foreground text-xs">No payments recorded.</div>
             ) : (
               <div className="rounded-md border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/40 text-muted-foreground">
-                    <tr><th className="text-left px-2 py-1">Date</th><th className="text-left px-2 py-1">Method</th><th className="text-left px-2 py-1">Status</th><th className="text-right px-2 py-1">Amount</th></tr>
+                    <tr>
+                      <th className="text-left px-2 py-1">Date</th>
+                      <th className="text-left px-2 py-1">Method · Source</th>
+                      <th className="text-left px-2 py-1">Receipt</th>
+                      <th className="text-left px-2 py-1">Status</th>
+                      <th className="text-right px-2 py-1">Amount</th>
+                      <th className="px-2 py-1"></th>
+                    </tr>
                   </thead>
                   <tbody>
-                    {payments.map((p) => (
-                      <tr key={p.id} className="border-t">
-                        <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
-                        <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""}</td>
-                        <td className="px-2 py-1">
-                          <Badge variant="outline" className={
-                            p.payment_status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
-                            p.payment_status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
-                            "bg-amber-500/10 text-amber-700 border-amber-500/20"
-                          }>{(p.payment_status || "verified").replace(/_/g, " ")}</Badge>
-                        </td>
-                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
-                      </tr>
-                    ))}
+                    {filteredPayments.map((p) => {
+                      const rcpt = receiptsByPaymentId.get(p.id);
+                      const status = p.payment_status || "verified";
+                      return (
+                        <tr key={p.id} className="border-t">
+                          <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
+                          <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""} · <span className="text-muted-foreground">{(p.payment_source || "—").replace(/_/g, " ")}</span></td>
+                          <td className="px-2 py-1">{rcpt?.receipt_number ?? "—"}</td>
+                          <td className="px-2 py-1">
+                            <Badge variant="outline" className={
+                              status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
+                              status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
+                              "bg-amber-500/10 text-amber-700 border-amber-500/20"
+                            }>{status.replace(/_/g, " ")}</Badge>
+                          </td>
+                          <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                          <td className="px-2 py-1 text-right whitespace-nowrap">
+                            {p.payment_proof_file_id && (
+                              <Button size="sm" variant="ghost" title="View proof" onClick={() => openPaymentProof(p.payment_proof_file_id)}>
+                                <Eye className="size-3.5" />
+                              </Button>
+                            )}
+                            {rcpt?.receipt_snapshot_jsonb && (
+                              <Button size="sm" variant="ghost" title="Print / Download receipt" onClick={() => printReceiptSnapshot(rcpt.receipt_snapshot_jsonb)}>
+                                <Download className="size-3.5" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1644,8 +1697,8 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({receipts.length})</div>
-            {loading ? null : receipts.length === 0 ? (
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({filteredReceipts.length}{q ? ` / ${receipts.length}` : ""})</div>
+            {loading ? null : filteredReceipts.length === 0 ? (
               <div className="text-muted-foreground text-xs">No receipts generated.</div>
             ) : (
               <div className="rounded-md border overflow-hidden">
@@ -1654,7 +1707,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                     <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th><th className="px-2 py-1"></th></tr>
                   </thead>
                   <tbody>
-                  {receipts.map((r) => {
+                  {filteredReceipts.map((r) => {
                     const snap = r.receipt_snapshot_jsonb;
                     return (
                       <tr key={r.id} className="border-t">
@@ -1662,7 +1715,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                         <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
                       <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
+                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Print / Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
                           <Download className="size-3.5" />
                         </Button>
                       </td>
