@@ -106,17 +106,32 @@ export default function AccountingClientDetailPage() {
       valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
   ], []);
 
-  const invCols = useMemo<ColDef<ClientInvoice>[]>(() => [
-    { headerName: "Number", field: "number", width: 180 },
-    { headerName: "Issue date", field: "issueDate", width: 120 },
+  const invCols = useMemo<ColDef<CustomerInvoice>[]>(() => [
+    { headerName: "Number", field: "invoiceNumber", width: 180 },
+    { headerName: "Issue date", field: "invoiceDate", width: 120 },
     { headerName: "Due date", field: "dueDate", width: 120 },
-    { headerName: "Amount", field: "amount", width: 150, type: "rightAligned", cellClass: "tabular-nums",
+    { headerName: "Amount", field: "totalAmount", width: 150, type: "rightAligned", cellClass: "tabular-nums",
       valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
-    { headerName: "Paid", field: "paidAmount", width: 130, type: "rightAligned", cellClass: "tabular-nums",
+    { headerName: "Paid", field: "receivedAmount", width: 130, type: "rightAligned", cellClass: "tabular-nums",
+      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
+    { headerName: "Outstanding", field: "outstandingBalance", width: 140, type: "rightAligned", cellClass: "tabular-nums font-medium",
       valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
     { headerName: "Status", field: "status", width: 150,
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} /> },
-  ], []);
+    { headerName: "Actions", width: 210, sortable: false, filter: false,
+      cellRenderer: (p: { data: CustomerInvoice }) => (
+        <div className="flex items-center gap-1">
+          {p.data.outstandingBalance > 0 && p.data.status !== "VOID" && (
+            <Button size="sm" variant="outline" className="h-7" onClick={() => setPayDialog(p.data)}>
+              <CreditCard className="size-3 mr-1" /> Add payment
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" className="h-7" onClick={() => navigate(`/accounting/ar/${p.data.id}`)}>
+            View <ExternalLink className="size-3 ml-1" />
+          </Button>
+        </div>
+      ) },
+  ], [navigate]);
 
   const recCols = useMemo<ColDef<ClientReceipt>[]>(() => [
     { headerName: "Date", field: "date", width: 110 },
@@ -215,7 +230,7 @@ export default function AccountingClientDetailPage() {
           <div className="grid gap-3">
             <Card className="p-4">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Outstanding</div>
-              <div className="text-2xl font-bold tabular-nums mt-1">{formatCurrency(client.outstandingReceivable, client.currency)}</div>
+              <div className="text-2xl font-bold tabular-nums mt-1">{formatCurrency(totals.outstanding, client.currency)}</div>
               <div className="text-[11px] text-muted-foreground mt-2">Last transaction · {client.lastTxnDate}</div>
             </Card>
             <div className="grid grid-cols-2 gap-3">
