@@ -981,8 +981,8 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           clientId,
           eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
           summary: status === "awaiting_verification"
-            ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
-            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
+            ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`
+            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`,
           metadata: {
             payment_id: paymentId,
             invoice_id: invoice.id,
@@ -990,6 +990,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             currency: payCcy,
             method,
             source,
+            note: noteForTimeline || null,
             allocations: allocationMetas,
           },
         });
