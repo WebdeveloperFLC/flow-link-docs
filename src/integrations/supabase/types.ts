@@ -3835,53 +3835,985 @@ export type Database = {
           },
         ]
       }
-      client_invoices: {
+      client_invoice_adjustments: {
         Row: {
+          adjustment_type: string
           amount: number
+          amount_in_cad: number | null
+          amount_in_inr: number | null
+          amount_in_usd: number | null
+          applied_at: string | null
+          applied_by: string | null
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
           client_id: string
           created_at: string
-          created_by: string | null
           currency: string
-          due_date: string | null
           id: string
-          invoice_number: string
-          line_items: Json
-          paid_at: string | null
-          points_redeemed: number
+          invoice_id: string
+          reason: string | null
+          requested_at: string
+          requested_by: string | null
+          reversed_at: string | null
+          reversed_by: string | null
           status: string
+          target_installment_id: string | null
+          target_line_item_key: string | null
           updated_at: string
         }
         Insert: {
-          amount?: number
+          adjustment_type: string
+          amount: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          applied_at?: string | null
+          applied_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
           client_id: string
           created_at?: string
-          created_by?: string | null
           currency?: string
-          due_date?: string | null
           id?: string
-          invoice_number: string
-          line_items?: Json
-          paid_at?: string | null
-          points_redeemed?: number
+          invoice_id: string
+          reason?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
           status?: string
+          target_installment_id?: string | null
+          target_line_item_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          adjustment_type?: string
+          amount?: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          applied_at?: string | null
+          applied_by?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id?: string
+          reason?: string | null
+          requested_at?: string
+          requested_by?: string | null
+          reversed_at?: string | null
+          reversed_by?: string | null
+          status?: string
+          target_installment_id?: string | null
+          target_line_item_key?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_adjustments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_adjustments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_adjustments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_installments: {
+        Row: {
+          amount_in_cad: number | null
+          amount_in_inr: number | null
+          amount_in_usd: number | null
+          archived_at: string | null
+          created_at: string
+          currency: string
+          fee_category: string | null
+          id: string
+          installment_amount: number
+          installment_due_date: string | null
+          installment_label: string | null
+          installment_number: number
+          installment_status: string
+          invoice_id: string
+          paid_amount: number | null
+          paid_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          archived_at?: string | null
+          created_at?: string
+          currency?: string
+          fee_category?: string | null
+          id?: string
+          installment_amount?: number
+          installment_due_date?: string | null
+          installment_label?: string | null
+          installment_number: number
+          installment_status?: string
+          invoice_id: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          archived_at?: string | null
+          created_at?: string
+          currency?: string
+          fee_category?: string | null
+          id?: string
+          installment_amount?: number
+          installment_due_date?: string | null
+          installment_label?: string | null
+          installment_number?: number
+          installment_status?: string
+          invoice_id?: string
+          paid_amount?: number | null
+          paid_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_installments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_installments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_payment_allocations: {
+        Row: {
+          allocated_at: string
+          allocated_by: string | null
+          amount_allocated: number
+          amount_in_cad: number | null
+          amount_in_inr: number | null
+          amount_in_usd: number | null
+          id: string
+          installment_id: string | null
+          invoice_id: string
+          line_item_key: string | null
+          payment_id: string
+          service_id: string | null
+        }
+        Insert: {
+          allocated_at?: string
+          allocated_by?: string | null
+          amount_allocated: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          id?: string
+          installment_id?: string | null
+          invoice_id: string
+          line_item_key?: string | null
+          payment_id: string
+          service_id?: string | null
+        }
+        Update: {
+          allocated_at?: string
+          allocated_by?: string | null
+          amount_allocated?: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          id?: string
+          installment_id?: string | null
+          invoice_id?: string
+          line_item_key?: string | null
+          payment_id?: string
+          service_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_payment_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payment_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payment_allocations_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_payments: {
+        Row: {
+          amount: number
+          amount_in_cad: number | null
+          amount_in_inr: number | null
+          amount_in_usd: number | null
+          archived_at: string | null
+          archived_by: string | null
+          bank_reconciled: boolean | null
+          bank_reconciled_at: string | null
+          bank_reconciled_by: string | null
+          bank_reconciliation_ref: string | null
+          client_id: string
+          created_at: string
+          currency: string
+          fx_rate: number | null
+          id: string
+          invoice_id: string
+          is_refund: boolean | null
+          method: string
+          notes: string | null
+          paid_at: string
+          payer_person_id: string | null
+          payer_type: string | null
+          payment_proof_file_id: string | null
+          payment_proof_status: string | null
+          posted_by: string | null
+          reference: string | null
+          refund_request_id: string | null
+          split_group_id: string | null
+          updated_at: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bank_reconciled?: boolean | null
+          bank_reconciled_at?: string | null
+          bank_reconciled_by?: string | null
+          bank_reconciliation_ref?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string
+          fx_rate?: number | null
+          id?: string
+          invoice_id: string
+          is_refund?: boolean | null
+          method: string
+          notes?: string | null
+          paid_at?: string
+          payer_person_id?: string | null
+          payer_type?: string | null
+          payment_proof_file_id?: string | null
+          payment_proof_status?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          refund_request_id?: string | null
+          split_group_id?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_in_cad?: number | null
+          amount_in_inr?: number | null
+          amount_in_usd?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
+          bank_reconciled?: boolean | null
+          bank_reconciled_at?: string | null
+          bank_reconciled_by?: string | null
+          bank_reconciliation_ref?: string | null
+          client_id?: string
+          created_at?: string
+          currency?: string
+          fx_rate?: number | null
+          id?: string
+          invoice_id?: string
+          is_refund?: boolean | null
+          method?: string
+          notes?: string | null
+          paid_at?: string
+          payer_person_id?: string | null
+          payer_type?: string | null
+          payment_proof_file_id?: string | null
+          payment_proof_status?: string | null
+          posted_by?: string | null
+          reference?: string | null
+          refund_request_id?: string | null
+          split_group_id?: string | null
+          updated_at?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_receipts: {
+        Row: {
+          amount: number
+          archived_at: string | null
+          archived_by: string | null
+          branch_id: string | null
+          created_at: string
+          currency: string
+          firm_entity_id: string | null
+          generated_at: string
+          generated_by: string | null
+          id: string
+          invoice_id: string
+          payment_id: string | null
+          pdf_path: string | null
+          receipt_number: string
+          receipt_prefix: string | null
+          receipt_sequence: number | null
+          receipt_snapshot_jsonb: Json | null
+          receipt_snapshot_taken_at: string | null
+          receipt_void_reason: string | null
+          receipt_voided: boolean | null
+          receipt_voided_at: string | null
+          receipt_voided_by: string | null
+        }
+        Insert: {
+          amount?: number
+          archived_at?: string | null
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          currency?: string
+          firm_entity_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          invoice_id: string
+          payment_id?: string | null
+          pdf_path?: string | null
+          receipt_number: string
+          receipt_prefix?: string | null
+          receipt_sequence?: number | null
+          receipt_snapshot_jsonb?: Json | null
+          receipt_snapshot_taken_at?: string | null
+          receipt_void_reason?: string | null
+          receipt_voided?: boolean | null
+          receipt_voided_at?: string | null
+          receipt_voided_by?: string | null
+        }
+        Update: {
+          amount?: number
+          archived_at?: string | null
+          archived_by?: string | null
+          branch_id?: string | null
+          created_at?: string
+          currency?: string
+          firm_entity_id?: string | null
+          generated_at?: string
+          generated_by?: string | null
+          id?: string
+          invoice_id?: string
+          payment_id?: string | null
+          pdf_path?: string | null
+          receipt_number?: string
+          receipt_prefix?: string | null
+          receipt_sequence?: number | null
+          receipt_snapshot_jsonb?: Json | null
+          receipt_snapshot_taken_at?: string | null
+          receipt_void_reason?: string | null
+          receipt_voided?: boolean | null
+          receipt_voided_at?: string | null
+          receipt_voided_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_receipts_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_receipts_firm_entity_id_fkey"
+            columns: ["firm_entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_receipts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_receipts_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_receipts_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_refund_requests: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          archived_at: string | null
+          client_id: string
+          created_at: string
+          currency: string
+          id: string
+          invoice_id: string
+          payment_id: string | null
+          processor_reference: string | null
+          refund_approved_by: string | null
+          refund_processed_at: string | null
+          refund_processed_by: string | null
+          refund_reason: string | null
+          refund_requested_by: string | null
+          refund_status: string
+          requested_at: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          archived_at?: string | null
+          client_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          invoice_id: string
+          payment_id?: string | null
+          processor_reference?: string | null
+          refund_approved_by?: string | null
+          refund_processed_at?: string | null
+          refund_processed_by?: string | null
+          refund_reason?: string | null
+          refund_requested_by?: string | null
+          refund_status?: string
+          requested_at?: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          approved_at?: string | null
+          archived_at?: string | null
           client_id?: string
           created_at?: string
-          created_by?: string | null
           currency?: string
-          due_date?: string | null
           id?: string
-          invoice_number?: string
-          line_items?: Json
-          paid_at?: string | null
-          points_redeemed?: number
-          status?: string
+          invoice_id?: string
+          payment_id?: string | null
+          processor_reference?: string | null
+          refund_approved_by?: string | null
+          refund_processed_at?: string | null
+          refund_processed_by?: string | null
+          refund_reason?: string | null
+          refund_requested_by?: string | null
+          refund_status?: string
+          requested_at?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "client_invoice_refund_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_refund_requests_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_reminders: {
+        Row: {
+          archived_at: string | null
+          channel: string
+          client_id: string
+          created_at: string
+          created_by: string | null
+          escalation_level: number | null
+          id: string
+          invoice_id: string
+          is_external: boolean
+          locked_by: string | null
+          locked_until: string | null
+          reminder_created_by: string | null
+          reminder_status: string
+          scheduled_for: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          channel: string
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          escalation_level?: number | null
+          id?: string
+          invoice_id: string
+          is_external?: boolean
+          locked_by?: string | null
+          locked_until?: string | null
+          reminder_created_by?: string | null
+          reminder_status?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          channel?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          escalation_level?: number | null
+          id?: string
+          invoice_id?: string
+          is_external?: boolean
+          locked_by?: string | null
+          locked_until?: string | null
+          reminder_created_by?: string | null
+          reminder_status?: string
+          scheduled_for?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_reminders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoice_reminders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_reminders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoice_snapshots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          reason: string | null
+          snapshot_jsonb: Json
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          reason?: string | null
+          snapshot_jsonb: Json
+          version: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          reason?: string | null
+          snapshot_jsonb?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoice_snapshots_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "client_invoice_snapshots_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_invoices: {
+        Row: {
+          amount: number
+          amount_paid: number | null
+          amount_paid_in_cad: number | null
+          amount_paid_in_inr: number | null
+          amount_paid_in_usd: number | null
+          archived_at: string | null
+          archived_by: string | null
+          assigned_accounts_user_id: string | null
+          assigned_counselor_id: string | null
+          balance_due_in_cad: number | null
+          balance_due_in_inr: number | null
+          balance_due_in_usd: number | null
+          bank_reconciled: boolean | null
+          bank_reconciled_at: string | null
+          bank_reconciled_by: string | null
+          bank_reconciliation_ref: string | null
+          branch_id: string | null
+          client_id: string
+          collected_by: string | null
+          converted_by: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          department_id: string | null
+          due_date: string | null
+          due_schedule: Json | null
+          escalation_level: number | null
+          escalation_locked: boolean | null
+          external_request_sent_today: boolean | null
+          firm_entity_id: string | null
+          followed_up_by: string | null
+          foreign_payment_due_amount: number | null
+          foreign_payment_due_currency: string | null
+          foreign_payment_status: string | null
+          fx_locked: boolean | null
+          fx_manual_override: boolean | null
+          fx_provider: string | null
+          fx_rate_to_cad: number | null
+          fx_rate_to_inr: number | null
+          fx_rate_to_usd: number | null
+          fx_snapshot_date: string | null
+          id: string
+          immutable_after_paid: boolean | null
+          invoice_branch_code: string | null
+          invoice_category: string | null
+          invoice_entity_code: string | null
+          invoice_locked: boolean | null
+          invoice_locked_at: string | null
+          invoice_locked_by: string | null
+          invoice_locked_for_edit: boolean | null
+          invoice_number: string
+          invoice_number_generated: boolean | null
+          invoice_prefix: string | null
+          invoice_reminder_last_sent_at: string | null
+          invoice_reminder_locked_until: string | null
+          invoice_sent_at: string | null
+          invoice_sequence: number | null
+          invoice_snapshot_jsonb: Json | null
+          invoice_snapshot_taken_at: string | null
+          invoice_snapshot_version: number | null
+          invoice_stage: string | null
+          invoice_viewed_at: string | null
+          invoice_year: number | null
+          line_items: Json
+          paid_at: string | null
+          payment_allocations: Json | null
+          payment_posted_by: string | null
+          payment_processing_lock: boolean | null
+          payment_processing_lock_at: string | null
+          payment_processing_lock_by: string | null
+          points_redeemed: number
+          receipt_generated_at: string | null
+          receipt_generated_by: string | null
+          receipt_prefix: string | null
+          receipt_sequence: number | null
+          reminder_lock_status: string | null
+          status: string
+          subtotal_in_cad: number | null
+          subtotal_in_inr: number | null
+          subtotal_in_usd: number | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          amount_paid?: number | null
+          amount_paid_in_cad?: number | null
+          amount_paid_in_inr?: number | null
+          amount_paid_in_usd?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assigned_accounts_user_id?: string | null
+          assigned_counselor_id?: string | null
+          balance_due_in_cad?: number | null
+          balance_due_in_inr?: number | null
+          balance_due_in_usd?: number | null
+          bank_reconciled?: boolean | null
+          bank_reconciled_at?: string | null
+          bank_reconciled_by?: string | null
+          bank_reconciliation_ref?: string | null
+          branch_id?: string | null
+          client_id: string
+          collected_by?: string | null
+          converted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          department_id?: string | null
+          due_date?: string | null
+          due_schedule?: Json | null
+          escalation_level?: number | null
+          escalation_locked?: boolean | null
+          external_request_sent_today?: boolean | null
+          firm_entity_id?: string | null
+          followed_up_by?: string | null
+          foreign_payment_due_amount?: number | null
+          foreign_payment_due_currency?: string | null
+          foreign_payment_status?: string | null
+          fx_locked?: boolean | null
+          fx_manual_override?: boolean | null
+          fx_provider?: string | null
+          fx_rate_to_cad?: number | null
+          fx_rate_to_inr?: number | null
+          fx_rate_to_usd?: number | null
+          fx_snapshot_date?: string | null
+          id?: string
+          immutable_after_paid?: boolean | null
+          invoice_branch_code?: string | null
+          invoice_category?: string | null
+          invoice_entity_code?: string | null
+          invoice_locked?: boolean | null
+          invoice_locked_at?: string | null
+          invoice_locked_by?: string | null
+          invoice_locked_for_edit?: boolean | null
+          invoice_number: string
+          invoice_number_generated?: boolean | null
+          invoice_prefix?: string | null
+          invoice_reminder_last_sent_at?: string | null
+          invoice_reminder_locked_until?: string | null
+          invoice_sent_at?: string | null
+          invoice_sequence?: number | null
+          invoice_snapshot_jsonb?: Json | null
+          invoice_snapshot_taken_at?: string | null
+          invoice_snapshot_version?: number | null
+          invoice_stage?: string | null
+          invoice_viewed_at?: string | null
+          invoice_year?: number | null
+          line_items?: Json
+          paid_at?: string | null
+          payment_allocations?: Json | null
+          payment_posted_by?: string | null
+          payment_processing_lock?: boolean | null
+          payment_processing_lock_at?: string | null
+          payment_processing_lock_by?: string | null
+          points_redeemed?: number
+          receipt_generated_at?: string | null
+          receipt_generated_by?: string | null
+          receipt_prefix?: string | null
+          receipt_sequence?: number | null
+          reminder_lock_status?: string | null
+          status?: string
+          subtotal_in_cad?: number | null
+          subtotal_in_inr?: number | null
+          subtotal_in_usd?: number | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number | null
+          amount_paid_in_cad?: number | null
+          amount_paid_in_inr?: number | null
+          amount_paid_in_usd?: number | null
+          archived_at?: string | null
+          archived_by?: string | null
+          assigned_accounts_user_id?: string | null
+          assigned_counselor_id?: string | null
+          balance_due_in_cad?: number | null
+          balance_due_in_inr?: number | null
+          balance_due_in_usd?: number | null
+          bank_reconciled?: boolean | null
+          bank_reconciled_at?: string | null
+          bank_reconciled_by?: string | null
+          bank_reconciliation_ref?: string | null
+          branch_id?: string | null
+          client_id?: string
+          collected_by?: string | null
+          converted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          department_id?: string | null
+          due_date?: string | null
+          due_schedule?: Json | null
+          escalation_level?: number | null
+          escalation_locked?: boolean | null
+          external_request_sent_today?: boolean | null
+          firm_entity_id?: string | null
+          followed_up_by?: string | null
+          foreign_payment_due_amount?: number | null
+          foreign_payment_due_currency?: string | null
+          foreign_payment_status?: string | null
+          fx_locked?: boolean | null
+          fx_manual_override?: boolean | null
+          fx_provider?: string | null
+          fx_rate_to_cad?: number | null
+          fx_rate_to_inr?: number | null
+          fx_rate_to_usd?: number | null
+          fx_snapshot_date?: string | null
+          id?: string
+          immutable_after_paid?: boolean | null
+          invoice_branch_code?: string | null
+          invoice_category?: string | null
+          invoice_entity_code?: string | null
+          invoice_locked?: boolean | null
+          invoice_locked_at?: string | null
+          invoice_locked_by?: string | null
+          invoice_locked_for_edit?: boolean | null
+          invoice_number?: string
+          invoice_number_generated?: boolean | null
+          invoice_prefix?: string | null
+          invoice_reminder_last_sent_at?: string | null
+          invoice_reminder_locked_until?: string | null
+          invoice_sent_at?: string | null
+          invoice_sequence?: number | null
+          invoice_snapshot_jsonb?: Json | null
+          invoice_snapshot_taken_at?: string | null
+          invoice_snapshot_version?: number | null
+          invoice_stage?: string | null
+          invoice_viewed_at?: string | null
+          invoice_year?: number | null
+          line_items?: Json
+          paid_at?: string | null
+          payment_allocations?: Json | null
+          payment_posted_by?: string | null
+          payment_processing_lock?: boolean | null
+          payment_processing_lock_at?: string | null
+          payment_processing_lock_by?: string | null
+          points_redeemed?: number
+          receipt_generated_at?: string | null
+          receipt_generated_by?: string | null
+          receipt_prefix?: string | null
+          receipt_sequence?: number | null
+          reminder_lock_status?: string | null
+          status?: string
+          subtotal_in_cad?: number | null
+          subtotal_in_inr?: number | null
+          subtotal_in_usd?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoices_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_invoices_client_id_fkey"
             columns: ["client_id"]
@@ -3894,6 +4826,20 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_firm_entity_id_fkey"
+            columns: ["firm_entity_id"]
+            isOneToOne: false
+            referencedRelation: "firm_profile"
             referencedColumns: ["id"]
           },
         ]
@@ -6131,6 +7077,27 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_number_sequences: {
+        Row: {
+          branch_code: string
+          entity_code: string
+          last_number: number
+          year: number
+        }
+        Insert: {
+          branch_code?: string
+          entity_code?: string
+          last_number?: number
+          year: number
+        }
+        Update: {
+          branch_code?: string
+          entity_code?: string
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
+      }
       lead_handoffs: {
         Row: {
           client_id: string
@@ -7295,6 +8262,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      receipt_number_sequences: {
+        Row: {
+          branch_code: string
+          entity_code: string
+          last_number: number
+          year: number
+        }
+        Insert: {
+          branch_code?: string
+          entity_code?: string
+          last_number?: number
+          year: number
+        }
+        Update: {
+          branch_code?: string
+          entity_code?: string
+          last_number?: number
+          year?: number
+        }
+        Relationships: []
       }
       referrals: {
         Row: {
@@ -10451,6 +11439,66 @@ export type Database = {
       }
     }
     Views: {
+      client_invoice_aging: {
+        Row: {
+          aging_bucket: string | null
+          amount: number | null
+          amount_paid: number | null
+          balance_due: number | null
+          client_id: string | null
+          currency: string | null
+          days_overdue: number | null
+          due_date: string | null
+          escalation_level: number | null
+          invoice_id: string | null
+          invoice_number: string | null
+          status: string | null
+        }
+        Insert: {
+          aging_bucket?: never
+          amount?: number | null
+          amount_paid?: number | null
+          balance_due?: never
+          client_id?: string | null
+          currency?: string | null
+          days_overdue?: never
+          due_date?: string | null
+          escalation_level?: number | null
+          invoice_id?: string | null
+          invoice_number?: string | null
+          status?: string | null
+        }
+        Update: {
+          aging_bucket?: never
+          amount?: number | null
+          amount_paid?: number | null
+          balance_due?: never
+          client_id?: string | null
+          currency?: string | null
+          days_overdue?: never
+          due_date?: string | null
+          escalation_level?: number | null
+          invoice_id?: string | null
+          invoice_number?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       smtp_settings_safe: {
         Row: {
           created_at: string | null
@@ -10781,6 +11829,18 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_invoice_from_services: {
+        Args: {
+          p_branch_id?: string
+          p_client_id: string
+          p_currency?: string
+          p_due_date?: string
+          p_firm_entity_id?: string
+          p_installments?: Json
+          p_service_ids: string[]
+        }
+        Returns: string
+      }
       create_lead_from_family_member: {
         Args: { _family_member_id: string }
         Returns: {
@@ -10849,7 +11909,15 @@ export type Database = {
         Returns: number
       }
       generate_client_registration_number: { Args: never; Returns: string }
+      generate_invoice_number: {
+        Args: { p_branch_code: string; p_entity_code: string }
+        Returns: string
+      }
       generate_lead_number: { Args: { p_type: string }; Returns: string }
+      generate_receipt_number: {
+        Args: { p_branch_code: string; p_entity_code: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
