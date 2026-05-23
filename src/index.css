@@ -51,6 +51,23 @@
     --shadow-md: 0 4px 12px -2px hsl(220 85% 32% / 0.08);
     --shadow-lg: 0 12px 32px -8px hsl(220 85% 32% / 0.18);
 
+    /* Semantic tone tokens for stat tiles and accents */
+    --tone-clients: 220 85% 50%;        /* blue */
+    --tone-clients-soft: 220 90% 96%;
+    --tone-documents: 262 78% 58%;      /* violet */
+    --tone-documents-soft: 262 90% 96%;
+    --tone-binders: 158 64% 40%;        /* emerald */
+    --tone-binders-soft: 158 70% 95%;
+    --tone-review: 350 84% 56%;         /* rose */
+    --tone-review-soft: 350 90% 96%;
+    --tone-institutions: 38 92% 50%;    /* amber */
+    --tone-institutions-soft: 42 95% 94%;
+    --tone-ai: 280 78% 56%;             /* purple */
+    --tone-ai-soft: 280 90% 96%;
+
+    --font-display: "Sora", "Inter", system-ui, sans-serif;
+    --font-sans: "Manrope", "Inter", system-ui, sans-serif;
+
     --sidebar-background: 222 47% 8%;
     --sidebar-foreground: 215 20% 80%;
     --sidebar-primary: 218 92% 56%;
@@ -86,7 +103,14 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground antialiased; }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
 }
 
 @layer utilities {
