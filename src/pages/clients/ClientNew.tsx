@@ -78,7 +78,6 @@ const ClientNew = () => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [templates, setTemplates] = useState<Array<{ id: string; name: string; country: string | null; category: string | null }>>([]);
-  const qualificationLevels = useMasterItems("qualification_levels");
   const leadNotesRef = useRef<string>("");
 
   useEffect(() => {
