@@ -868,7 +868,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
         supabase.from("client_invoice_receipts")
-          .select("id,receipt_number,generated_at,currency,amount,receipt_voided")
+          .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("generated_at", { ascending: false }),
       ]);
       setPayments(p.data ?? []);
@@ -961,13 +961,20 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                     <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th></tr>
                   </thead>
                   <tbody>
-                    {receipts.map((r) => (
+                  {receipts.map((r) => {
+                    const snap = r.receipt_snapshot_jsonb;
+                    return (
                       <tr key={r.id} className="border-t">
                         <td className="px-2 py-1 font-medium">{r.receipt_number}{r.receipt_voided ? " (voided)" : ""}</td>
                         <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
-                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      <td className="px-2 py-1 text-right whitespace-nowrap">
+                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
+                          <Download className="size-3.5" />
+                        </Button>
+                      </td>
                       </tr>
-                    ))}
+                  );})}
                   </tbody>
                 </table>
               </div>
