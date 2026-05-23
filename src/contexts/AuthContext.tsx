@@ -3,7 +3,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller" | "client" | "commission_admin";
+export type AppRole = "admin" | "administrator" | "counselor" | "documentation" | "viewer" | "telecaller" | "client" | "commission_admin" | "manager";
 
 interface AuthCtx {
   user: User | null;
@@ -87,7 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const hasRole = (r: AppRole | AppRole[]) => {
     const arr = Array.isArray(r) ? r : [r];
-    return arr.some((x) => roles.includes(x));
+    return arr.some((x) => roles.includes(x) || (x === "admin" && roles.includes("administrator")) || (x === "administrator" && roles.includes("admin")));
   };
 
   const value: AuthCtx = {
@@ -97,17 +97,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signOut: async () => { await supabase.auth.signOut(); },
     hasRole,
-    isAdmin: roles.includes("admin"),
-    isClient: roles.includes("client") && !roles.some((r) => ["admin","counselor","documentation","telecaller","viewer"].includes(r)),
-    canEdit: hasRole(["admin", "counselor", "documentation"]),
-    canUpload: hasRole(["admin", "counselor", "documentation"]),
+    isAdmin: roles.includes("admin") || roles.includes("administrator"),
+    isClient: roles.includes("client") && !roles.some((r) => ["admin","administrator","counselor","documentation","telecaller","viewer","commission_admin","manager"].includes(r)),
+    canEdit: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
+    canUpload: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canCreateClient: !!user,
     // Mirrors DB is_commission_admin(): commission_admin role OR an
     // accounting admin (SUPER_ADMIN / FINANCE_ADMIN). Plain ACCOUNTANT/
     // AUDITOR/VIEWER accounting users are intentionally excluded — RLS
     // would deny them anyway. Bootstrap mode (no accounting admins yet)
     // is not mirrored client-side; first admin must self-grant.
-    isCommissionAdmin: roles.includes("commission_admin") || isAccountingAdmin,
+    isCommissionAdmin: roles.includes("commission_admin") || roles.includes("manager") || isAccountingAdmin,
     isAccountingAdmin,
     isAccountingMember,
   };

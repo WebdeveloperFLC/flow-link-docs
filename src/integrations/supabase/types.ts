@@ -12139,6 +12139,10 @@ export type Database = {
         Returns: string
       }
       get_portal_invite_token: { Args: { _invite_id: string }; Returns: string }
+      has_any_app_role: {
+        Args: { _roles: string[]; _uid: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -12174,6 +12178,9 @@ export type Database = {
         Args: { _channel: string; _uid: string }
         Returns: boolean
       }
+      is_client_admin: { Args: { _uid: string }; Returns: boolean }
+      is_client_staff_editor: { Args: { _uid: string }; Returns: boolean }
+      is_client_staff_viewer: { Args: { _uid: string }; Returns: boolean }
       is_commission_admin: { Args: { _uid: string }; Returns: boolean }
       is_portal_user_for: {
         Args: { _cid: string; _uid: string }
@@ -12251,6 +12258,8 @@ export type Database = {
         | "telecaller"
         | "client"
         | "commission_admin"
+        | "administrator"
+        | "manager"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
       assessment_lead_source: "invite" | "referral" | "existing_client"
       assessment_session_status:
@@ -12466,6 +12475,8 @@ export const Constants = {
         "telecaller",
         "client",
         "commission_admin",
+        "administrator",
+        "manager",
       ],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
       assessment_lead_source: ["invite", "referral", "existing_client"],

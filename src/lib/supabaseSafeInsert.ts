@@ -59,6 +59,11 @@ export class PermissionDeniedError extends Error {
   }
 }
 
+export interface WriteDebugContext {
+  table?: string;
+  operation?: "insert" | "update" | "delete" | "upsert" | "write";
+}
+
 /**
  * Run a Supabase write. If it fails with an RLS/JWT error, refresh the
  * session and retry once. If it still fails, surface either an
@@ -70,6 +75,7 @@ export class PermissionDeniedError extends Error {
  */
 export async function runWithAuthRetry<T>(
   fn: () => PromiseLike<{ data: T; error: any }>,
+  context: WriteDebugContext = {},
 ): Promise<T> {
   let res = await fn();
   if (res.error && isAuthOrRlsError(res.error)) {
@@ -80,9 +86,17 @@ export async function runWithAuthRetry<T>(
     if (res.error && isAuthOrRlsError(res.error)) {
       const { data: sess } = await supabase.auth.getSession();
       const hasSession = !!sess.session?.access_token;
+      const userId = sess.session?.user?.id ?? null;
+      const { data: roleRows } = userId
+        ? await supabase.from("user_roles").select("role").eq("user_id", userId)
+        : { data: null };
       console.error("[runWithAuthRetry] giving up", {
+        table: context.table ?? "unknown",
+        operation: context.operation ?? "write",
         hasSession: !!sess.session,
-        userId: sess.session?.user?.id ?? null,
+        userId,
+        roles: roleRows?.map((r: { role: string }) => r.role) ?? [],
+        pgCode: res.error?.code ?? null,
         expiresAt: sess.session?.expires_at ?? null,
         original: res.error,
       });

@@ -187,11 +187,13 @@ export async function upsertClientRegistration(
   if (id) {
     const data = await runWithAuthRetry(() =>
       supabase.from("clients").update(body as never).eq("id", id).select().single(),
+      { table: "clients", operation: "update" },
     );
     return data as unknown as ClientRow;
   }
   const data = await runWithAuthRetry(() =>
     supabase.from("clients").insert([body as never]).select().single(),
+    { table: "clients", operation: "insert" },
   );
   return data as unknown as ClientRow;
 }
@@ -221,11 +223,13 @@ export async function upsertFamilyMember(
   if (id) {
     const data = await runWithAuthRetry(() =>
       supabase.from("client_family_members").update(patch as never).eq("id", id).select().single(),
+      { table: "client_family_members", operation: "update" },
     );
     return data as unknown as FamilyMember;
   }
   const data = await runWithAuthRetry(() =>
     supabase.from("client_family_members").insert([patch as never]).select().single(),
+    { table: "client_family_members", operation: "insert" },
   );
   return data as unknown as FamilyMember;
 }
