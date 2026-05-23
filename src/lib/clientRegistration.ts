@@ -255,6 +255,7 @@ export async function fetchAccountingEntities(): Promise<BillingEntity[]> {
     .from("accounting_entities")
     .select("id,name,type,currency")
     .eq("is_active", true)
+    .eq("type", "COMPANY")
     .order("name");
   if (error) {
     console.warn("accounting_entities read denied; falling back to empty list", error);
