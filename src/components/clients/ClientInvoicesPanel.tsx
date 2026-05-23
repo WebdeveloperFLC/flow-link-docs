@@ -650,7 +650,11 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
   useEffect(() => {
     (async () => {
       const [p, f] = await Promise.all([
-        supabase.from("client_invoice_payments").select("id,amount,currency,method,paid_at,reference,is_refund").eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
+        supabase.from("client_invoice_payments")
+          .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by")
+          .eq("invoice_id", invoice.id).is("archived_at", null)
+          .eq("payment_status", "verified")
+          .order("paid_at", { ascending: false }),
         supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
       ]);
       const list = (p.data ?? []).filter((x: any) => !x.is_refund);
@@ -665,16 +669,86 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     if (!pay) { toast.error("Pick a payment"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    const { data: num, error: numErr } = await supabase.rpc("generate_receipt_number", { p_entity_code: "FLC", p_branch_code: "GEN" });
+
+    // Resolve real entity & branch codes from invoice + masters (fallback FLC/GEN).
+    const [invRes, firmRes, branchRes] = await Promise.all([
+      supabase.from("client_invoices")
+        .select("invoice_number,invoice_date,invoice_entity_code,invoice_branch_code,branch_id,firm_entity_id,currency,amount,amount_paid,subtotal,tax_amount,line_items,client_id")
+        .eq("id", invoice.id).maybeSingle(),
+      firmId ? supabase.from("firm_profile").select("id,firm_name,firm_address,firm_email,firm_phone").eq("id", firmId).maybeSingle() : Promise.resolve({ data: null } as any),
+      invoice.branch_id ? supabase.from("branches").select("id,name,city,country").eq("id", invoice.branch_id).maybeSingle() : Promise.resolve({ data: null } as any),
+    ]);
+    const invRow: any = invRes.data ?? {};
+    const firmRow: any = firmRes.data ?? {};
+    const branchRow: any = branchRes.data ?? {};
+
+    const entityCode = (invRow.invoice_entity_code || (firmRow.firm_name || "FLC").slice(0, 3)).toUpperCase();
+    const branchCode = (invRow.invoice_branch_code || (branchRow.name || "GEN").slice(0, 3)).toUpperCase();
+
+    const { data: num, error: numErr } = await supabase.rpc("generate_receipt_number", {
+      p_entity_code: entityCode,
+      p_branch_code: branchCode,
+    });
     if (numErr) { setSaving(false); toast.error(numErr.message); return; }
+
+    // Build immutable snapshot
+    const clientRes = invRow.client_id ? await supabase.from("clients").select("name,email,phone").eq("id", invRow.client_id).maybeSingle() : { data: null } as any;
+    const clientRow: any = clientRes.data ?? {};
+    const snapshot = {
+      generated_at: new Date().toISOString(),
+      generated_by: u?.user?.id ?? null,
+      receipt_number: num,
+      entity_code: entityCode,
+      branch_code: branchCode,
+      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null },
+      branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
+      client: { id: invRow.client_id ?? null, name: clientRow.name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
+      invoice: {
+        id: invoice.id,
+        invoice_number: invRow.invoice_number,
+        invoice_date: invRow.invoice_date,
+        currency: invRow.currency,
+        amount: Number(invRow.amount || 0),
+        amount_paid: Number(invRow.amount_paid || 0),
+        subtotal: Number(invRow.subtotal || 0),
+        tax_amount: Number(invRow.tax_amount || 0),
+        line_items: invRow.line_items ?? [],
+        outstanding: Math.max(Number(invRow.amount || 0) - Number(invRow.amount_paid || 0), 0),
+      },
+      payment: {
+        id: pay.id,
+        method: pay.method,
+        source: pay.payment_source ?? null,
+        currency: pay.currency,
+        amount: Number(pay.amount),
+        fx_rate: pay.fx_rate ?? 1,
+        amount_in_inr: pay.amount_in_inr ?? null,
+        amount_in_cad: pay.amount_in_cad ?? null,
+        amount_in_usd: pay.amount_in_usd ?? null,
+        reference: pay.reference ?? null,
+        paid_at: pay.paid_at,
+        posted_by: pay.posted_by ?? null,
+      },
+      footer: {
+        legal_name: firmRow.firm_name ?? null,
+        address: firmRow.firm_address ?? null,
+        support_email: firmRow.firm_email ?? null,
+        support_phone: firmRow.firm_phone ?? null,
+        disclaimer: "This receipt is computer generated and does not require a physical signature.",
+      },
+    };
+
     const { error } = await supabase.from("client_invoice_receipts").insert({
       invoice_id: invoice.id,
       payment_id: paymentId,
       receipt_number: num as unknown as string,
       firm_entity_id: firmId ?? null,
+      branch_id: invoice.branch_id ?? null,
       currency: pay.currency,
       amount: Number(pay.amount),
       generated_by: u?.user?.id ?? null,
+      receipt_snapshot_jsonb: snapshot as any,
+      receipt_snapshot_taken_at: new Date().toISOString(),
     } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -684,10 +758,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
         <DialogHeader><DialogTitle>Generate receipt — {invoice.invoice_number}</DialogTitle></DialogHeader>
         {payments.length === 0 ? (
-          <div className="flex items-center gap-2 text-sm text-amber-600 py-2"><AlertTriangle className="size-4" /> No payments to receipt yet.</div>
+          <div className="flex items-center gap-2 text-sm text-amber-600 py-2">
+            <AlertTriangle className="size-4" />
+            No verified payments to receipt yet. Payments awaiting verification cannot be receipted.
+          </div>
         ) : (
           <div className="grid gap-3">
             <div><Label>Payment</Label>
