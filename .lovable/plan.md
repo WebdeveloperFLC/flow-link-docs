@@ -1,119 +1,61 @@
-## Root cause (from code + RLS audit)
+# Security Fixes — Round 2
 
-The toast "Your session expired. Please sign in again." is misleading. `runWithAuthRetry` in `src/lib/supabaseSafeInsert.ts` throws `AuthExpiredError` for **any** Postgres error with code `42501` (RLS denial) or `PGRST301`, not just expired JWTs. So non-admins are seeing the wrong message for a permissions problem.
+Apply the 6 fixes from the deep scan via a single migration, then patch any frontend reads that depend on now-revoked columns.
 
-The actual permission failure happens upstream of the client insert. Current RLS on `public.leads`:
+## 1. Database migration
 
-```text
-SELECT/UPDATE: admin OR is_accounting_admin OR auth.uid()=created_by OR auth.uid()=assigned_counselor_id
-INSERT: any authenticated user
-DELETE: admin only
-```
+Create one migration that runs all changes in a single transaction.
 
-The convert flow (`ClientNew.tsx` → `prefillFromLead` → `upsertClientRegistration`) first fetches the lead, then inserts a client. A Telecaller / Edit Documentation / Edit Counselor / Commission Admin who didn't create the lead and isn't its assigned counselor gets zero rows back on the lead read, then any subsequent update (e.g. autosave hitting an existing lead, or family-member writes referencing `primary_lead_id`) fails with 42501 → toast says "session expired".
+### A. Column-level REVOKEs (secrets stay edge-function-only)
 
-RLS on `public.clients` itself is fine:
-- INSERT: any authenticated user
-- SELECT/UPDATE: scoped via `can_view_client` / `can_edit_client`, which return 'full' when `owner_id = auth.uid()` (set by `trg_set_client_owner_defaults` BEFORE INSERT).
+- `telephony_agents`: REVOKE SELECT on `sbc_password`, `sbc_user_id` from `authenticated`. Edge function `telephony-sbc-credentials` (service role) keeps working.
+- `smtp_settings`: REVOKE SELECT on `password` from `authenticated`. Admin UI must use `smtp_settings_safe` view.
+- `telephony_provider_settings`: REVOKE SELECT on `secret`, `webhook_secret` from `authenticated`. Edge function `telephony-admin-config` (service role) keeps working.
+- `accounting_vendors`: REVOKE SELECT on `bank_account`, `bank_swift`, `bank_ifsc`, `tax_id` from `authenticated`.
 
-Triggers `fn_mark_lead_converted_on_client`, `fn_sync_accounting_client`, `ensure_applicant_for_client` are all SECURITY DEFINER and won't block non-admins. `accounting_clients` has RLS but not FORCED, so the SECURITY DEFINER insert by the table owner bypasses it.
+### B. Entity-scoped RLS
 
-## Allowed roles (per request)
+- `accounting_bank_accounts`: drop existing SELECT/UPDATE policies and recreate them so a non-admin accounting user only sees/updates rows whose `entity` is in their `accounting_users.entity_scope` (wildcard `*` = all). CRM admins keep full access.
 
-- `admin` — full
-- `counselor` — full (already)
-- `documentation` — read/write leads + convert
-- `telecaller` — read/write leads + convert
-- `commission_admin`, `commission_manager` — read/write leads + convert
-- `viewer` — read-only (no insert/update anywhere)
+### C. Safe view for vendor banking fields
 
-## Plan
+- Create/replace `accounting_vendors_safe` exposing all non-sensitive columns plus masked banking fields (real values only for `SUPER_ADMIN`/`FINANCE_ADMIN`).
 
-### 1. Database migration (single migration, RLS-only, no schema changes)
+### D. Scoped email logs
 
-`public.leads` — replace SELECT and UPDATE policies:
+- `app_email_logs`: drop existing staff read policies and replace with one that allows admin to see all and other staff to see only rows where `triggered_by = auth.uid()`.
 
-```sql
--- SELECT: admin, accounting/commission admins, creator, assigned counselor,
--- and any staff role that should be able to convert.
-DROP POLICY "leads select" ON public.leads;
-CREATE POLICY "leads select" ON public.leads
-FOR SELECT TO authenticated
-USING (
-  has_role(auth.uid(),'admin'::app_role)
-  OR is_accounting_admin(auth.uid())
-  OR is_commission_admin(auth.uid())
-  OR has_role(auth.uid(),'counselor'::app_role)
-  OR has_role(auth.uid(),'documentation'::app_role)
-  OR has_role(auth.uid(),'telecaller'::app_role)
-  OR auth.uid() = created_by
-  OR auth.uid() = assigned_counselor_id
-);
+### E. Confirm RLS enabled
 
--- UPDATE: same set EXCLUDING viewer
-DROP POLICY "leads update" ON public.leads;
-CREATE POLICY "leads update" ON public.leads
-FOR UPDATE TO authenticated
-USING ( /* same expression as SELECT */ );
-```
+- `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` on `accounting_bank_accounts`, `accounting_vendors`, `app_email_logs` (idempotent guard).
 
-Add a `viewer`-blocking guard on `public.clients` INSERT (today it allows any auth user including viewer):
+Before writing the migration I will run quick `read_query` checks to:
+- confirm exact existing policy names on `accounting_bank_accounts` and `app_email_logs`
+- confirm column names on `accounting_vendors` and `accounting_bank_accounts.entity`
+…and adjust the DROP/CREATE statements accordingly so nothing fails silently.
 
-```sql
-DROP POLICY "clients insert scoped" ON public.clients;
-CREATE POLICY "clients insert scoped" ON public.clients
-FOR INSERT TO authenticated
-WITH CHECK (
-  has_role(auth.uid(),'admin'::app_role)
-  OR has_role(auth.uid(),'counselor'::app_role)
-  OR has_role(auth.uid(),'documentation'::app_role)
-  OR has_role(auth.uid(),'telecaller'::app_role)
-  OR is_commission_admin(auth.uid())
-);
-```
+## 2. Frontend follow-ups
 
-No changes to `client_profile`, `case_people`, `client_invoices`, `accounting_clients` — they already gate on `can_edit_client`, which resolves to 'full' for the user that just inserted the client (owner_id = auth.uid()).
+Audit and patch any client-side reads of the now-revoked columns so they don't crash on `null`:
 
-### 2. Client-side error mapping
+- `src/pages/TelephonySettings.tsx` / `TelephonyIntegrationSettings.tsx` — never select `secret`/`webhook_secret`; show `••••••••` placeholders; saves still work.
+- `src/pages/EmailSmtpSettings.tsx` — read from `smtp_settings_safe`; never request `password`.
+- Telephony agent UI — never select `sbc_password`/`sbc_user_id`; rely on `telephony-sbc-credentials` edge function.
+- Vendor list/detail pages under `src/accounting/pages/` — switch display reads to `accounting_vendors_safe`; keep writes on the base table.
+- Bank accounts page — no code change needed; the new RLS just filters rows.
 
-In `src/lib/supabaseSafeInsert.ts`:
-- Keep `runWithAuthRetry`'s refresh-and-retry once.
-- After retry, only throw `AuthExpiredError` when `getSession()` truly has no token. Otherwise throw a `PermissionDeniedError` with the original Postgres `message`/`details` so the toast in `ClientNew.tsx` (`Save failed: <real reason>`) is honest.
-- Log `{ userId, role(s), table, code, message }` for any 42501 to the console for support.
+Each touched page gets a minimal edit: remove the sensitive column from the `.select(...)` list and read from the safe view where applicable. No UI redesign.
 
-In `src/pages/clients/ClientNew.tsx` `autosave`/`handleCreateInvoice` catch blocks: surface `e.message` from `PermissionDeniedError` directly, and only show "session expired" if the error is actually `AuthExpiredError`.
+## 3. Verification
 
-### 3. Session pre-flight
+After migration + frontend edits:
+1. Run `supabase--linter` and re-run the security scan.
+2. Mark the 6 findings as fixed via `security--manage_security_finding` with a short explanation each.
+3. Update `security--update_memory` to record: secrets are edge-function-only; bank-account RLS is entity-scoped; vendor banking fields go through `accounting_vendors_safe`; email logs scoped to `triggered_by` + admin.
 
-`ClientNew.tsx`: before the first autosave or `handleCreateInvoice`, call `ensureFreshSession()` once. If it returns false, show the sign-in toast and bail without attempting the write. This prevents the race described in the Stack-Overflow note for slow auth restore.
+## Technical notes
 
-### 4. Verification (no UI test scaffolding — manual matrix)
-
-Sign in as each role and confirm:
-
-| Role | Create lead | Convert (save client) | Create draft invoice |
-|---|---|---|---|
-| admin | ✓ | ✓ | ✓ |
-| counselor | ✓ | ✓ | ✓ |
-| documentation | ✓ | ✓ | ✓ |
-| telecaller | ✓ | ✓ | ✓ |
-| commission_admin/manager | ✓ | ✓ | ✓ |
-| viewer | blocked at insert | blocked at insert | blocked |
-
-Also run the live SQL after the migration to verify:
-
-```sql
-SELECT polname, polcmd FROM pg_policy
-WHERE polrelid IN ('public.leads'::regclass,'public.clients'::regclass)
-ORDER BY polrelid, polcmd;
-```
-
-## Out of scope
-
-- No UI/business-logic changes to the form, the workflow toggle, or the sticky Save bar.
-- No changes to edge functions (`client-portal-invite-create` etc.) — they already use service role.
-- No changes to `accounting_clients` RLS (the SECURITY DEFINER sync trigger handles it).
-
-## Risks
-
-- Broadening `leads SELECT` to all staff roles makes every staff member able to read every lead. This matches the user's stated requirement ("work exactly like Admin for all allowed roles except Viewer") but is a privacy widening — call this out before applying.
+- `service_role` bypasses both RLS and column GRANTs, so all edge functions continue to work without changes.
+- Column REVOKE on a base table does **not** propagate to views — `smtp_settings_safe` and `accounting_vendors_safe` continue to expose their (masked) projections.
+- The plan deliberately keeps vendor scoping at column-level (no `entity` column exists on `accounting_vendors`); entity-level scoping is only applied where the schema supports it (`accounting_bank_accounts`).
+- `app_email_logs` is scoped via `triggered_by` rather than client linkage because system emails (OTP, invites, password resets) have no client.
