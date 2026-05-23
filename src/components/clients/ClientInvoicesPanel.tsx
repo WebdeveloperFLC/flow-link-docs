@@ -1047,16 +1047,20 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     const { data: u } = await supabase.auth.getUser();
 
     // Resolve real entity & branch codes from invoice + masters (fallback FLC/GEN).
-    const [invRes, firmRes, branchRes] = await Promise.all([
+    const [invRes, firmRes, branchRes, allocRes] = await Promise.all([
       supabase.from("client_invoices")
         .select("invoice_number,invoice_entity_code,invoice_branch_code,branch_id,firm_entity_id,currency,amount,amount_paid,line_items,client_id,created_at")
         .eq("id", invoice.id).maybeSingle(),
       firmId ? supabase.from("firm_profile").select("id,firm_name,firm_address,firm_email,firm_phone").eq("id", firmId).maybeSingle() : Promise.resolve({ data: null } as any),
       invoice.branch_id ? supabase.from("branches").select("id,name,city,country").eq("id", invoice.branch_id).maybeSingle() : Promise.resolve({ data: null } as any),
+      supabase.from("client_invoice_payment_allocations")
+        .select("id,line_item_key,service_id,installment_id,amount_allocated,amount_in_inr,amount_in_cad,amount_in_usd")
+        .eq("payment_id", paymentId),
     ]);
     const invRow: any = invRes.data ?? {};
     const firmRow: any = firmRes.data ?? {};
     const branchRow: any = branchRes.data ?? {};
+    const allocRows: any[] = (allocRes as any)?.data ?? [];
 
     const entityCode = (invRow.invoice_entity_code || (firmRow.firm_name || "FLC").slice(0, 3)).toUpperCase();
     const branchCode = (invRow.invoice_branch_code || (branchRow.name || "GEN").slice(0, 3)).toUpperCase();
@@ -1104,6 +1108,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         reference: pay.reference ?? null,
         paid_at: pay.paid_at,
         posted_by: pay.posted_by ?? null,
+        allocations: await buildAllocationSnapshot(allocRows, invRow),
       },
       footer: {
         legal_name: firmRow.firm_name ?? null,
