@@ -355,83 +355,34 @@ const ClientNew = () => {
 
           {/* SECTION 2 — Education */}
           <Card className="p-4 sm:p-6 space-y-4">
-            <h3 className="font-semibold">2. Education &amp; Test Scores</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <Label>Last Education</Label>
-                <Select value={f.last_education ?? ""} onValueChange={(v) => { setField("last_education", v); setTimeout(autosave, 0); }}>
-                  <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    {qualificationLevels.map((q) => <SelectItem key={q.code} value={q.code}>{q.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Institution Name</Label>
-                <Input value={f.institution_name ?? ""} onChange={(e) => setField("institution_name", e.target.value)} onBlur={autosave} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Year of Passing</Label>
-                <Input type="number" value={f.year_of_passing ?? ""} onChange={(e) => setField("year_of_passing", e.target.value ? Number(e.target.value) : null)} onBlur={autosave} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Percentage / CGPA</Label>
-                <Input value={f.percentage_cgpa ?? ""} onChange={(e) => setField("percentage_cgpa", e.target.value)} onBlur={autosave} />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>English Test</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {ENGLISH_TESTS.map((t) => (
-                  <Button key={t} type="button" size="sm" variant={englishTest === t ? "default" : "outline"} onClick={() => { setField("english_test", t === englishTest ? null : t); setTimeout(autosave, 0); }}>
-                    {t}
-                  </Button>
-                ))}
-              </div>
-              {englishTest && englishTest !== "None" && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-                  <div className="space-y-1.5">
-                    <Label>Overall Score</Label>
-                    <Input value={f.english_overall ?? ""} onChange={(e) => setField("english_overall", e.target.value)} onBlur={autosave} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Test Date</Label>
-                    <Input type="date" value={f.english_test_date ?? ""} onChange={(e) => setField("english_test_date", e.target.value || null)} onBlur={autosave} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Expiry Date</Label>
-                    <Input type="date" value={f.english_test_expiry ?? ""} onChange={(e) => setField("english_test_expiry", e.target.value || null)} onBlur={autosave} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2 border-t pt-3">
-              <Label>Other Tests (optional)</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {OTHER_TESTS.map((t) => {
-                  const sel = otherTests.find((x) => x.type === t);
-                  return (
-                    <Button key={t} type="button" size="sm" variant={sel ? "default" : "outline"} onClick={() => {
-                      const next = sel ? otherTests.filter((x) => x.type !== t) : [...otherTests, { type: t, score: "", date: "" }];
-                      setOtherTests(next); setTimeout(autosave, 0);
-                    }}>{t}</Button>
-                  );
-                })}
-              </div>
-              {otherTests.map((ot, idx) => (
-                <div key={ot.type} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end pt-1">
-                  <div className="text-sm font-medium">{ot.type}</div>
-                  <Input placeholder="Score" value={ot.score ?? ""} onChange={(e) => {
-                    const next = [...otherTests]; next[idx] = { ...ot, score: e.target.value }; setOtherTests(next);
-                  }} onBlur={autosave} />
-                  <Input type="date" value={ot.date ?? ""} onChange={(e) => {
-                    const next = [...otherTests]; next[idx] = { ...ot, date: e.target.value }; setOtherTests(next); setTimeout(autosave, 0);
-                  }} />
-                </div>
-              ))}
-            </div>
+            <h3 className="font-semibold">2. Education, Tests &amp; Experience</h3>
+            <EducationExperienceFields
+              value={{
+                education_history: (f.education_history ?? []) as never,
+                english_test: f.english_test ?? null,
+                english_overall: f.english_overall ?? null,
+                english_test_date: f.english_test_date ?? null,
+                english_test_expiry: f.english_test_expiry ?? null,
+                english_sections: (f.english_sections ?? {}) as Record<string, string>,
+                other_tests: otherTests,
+                work_experience: (f.work_experience ?? []) as never,
+              }}
+              onChange={(patch) => {
+                if (patch.other_tests !== undefined) setOtherTests(patch.other_tests);
+                setF((p) => {
+                  const next: typeof p = { ...p };
+                  if (patch.education_history !== undefined) next.education_history = patch.education_history;
+                  if (patch.english_test !== undefined) next.english_test = patch.english_test;
+                  if (patch.english_overall !== undefined) next.english_overall = patch.english_overall;
+                  if (patch.english_test_date !== undefined) next.english_test_date = patch.english_test_date;
+                  if (patch.english_test_expiry !== undefined) next.english_test_expiry = patch.english_test_expiry;
+                  if (patch.english_sections !== undefined) next.english_sections = patch.english_sections;
+                  if (patch.work_experience !== undefined) next.work_experience = patch.work_experience;
+                  return next;
+                });
+              }}
+              onCommit={autosave}
+            />
           </Card>
 
           {/* SECTION 3 — Family */}
