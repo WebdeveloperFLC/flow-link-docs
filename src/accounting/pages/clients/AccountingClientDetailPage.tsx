@@ -187,6 +187,9 @@ export default function AccountingClientDetailPage() {
                 </Badge>
               )}
               <AccountingStatusBadge status={client.status} />
+              <Button size="sm" onClick={() => navigate("/accounting/ar/new")}>
+                <Plus className="size-4" /> New invoice
+              </Button>
             </div>
           }
         />
@@ -299,7 +302,59 @@ export default function AccountingClientDetailPage() {
             <ClientActivityTab items={activity} />
           </TabsContent>
         </Tabs>
+        {payDialog && (
+          <ClientPaymentDialog
+            invoice={payDialog}
+            onClose={() => setPayDialog(null)}
+            onConfirm={(patch) => {
+              const received = Number(payDialog.receivedAmount || 0) + patch.amount;
+              const outstanding = Math.max(Number(payDialog.totalAmount || 0) - received, 0);
+              const status: InvoiceStatus = outstanding <= 0 ? "PAID" : "PARTIALLY_PAID";
+              updateArInvoice(payDialog.id, {
+                receivedAmount: received,
+                outstandingBalance: outstanding,
+                status,
+                paidDate: patch.paidDate,
+                paymentMethod: patch.paymentMethod,
+                paymentReference: patch.reference,
+              });
+              toast.success(`${payDialog.invoiceNumber} payment recorded`);
+              setPayDialog(null);
+            }}
+          />
+        )}
       </div>
     </AppLayout>
+  );
+}
+
+function ClientPaymentDialog({ invoice, onClose, onConfirm }: { invoice: CustomerInvoice; onClose: () => void; onConfirm: (patch: { amount: number; paidDate: string; paymentMethod: CustomerInvoice["paymentMethod"]; reference?: string }) => void }) {
+  const [amount, setAmount] = useState(invoice.outstandingBalance);
+  const [paidDate, setPaidDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState<CustomerInvoice["paymentMethod"]>("BANK_TRANSFER");
+  const [reference, setReference] = useState("");
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Add payment — {invoice.invoiceNumber}</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          <div className="text-sm text-muted-foreground">Outstanding: <b>{fmtLedgerCurrency(invoice.outstandingBalance, invoice.currency)}</b></div>
+          <div className="grid gap-1.5"><Label>Amount received</Label><Input type="number" min={0} step={0.01} value={amount || ""} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} /></div>
+          <div className="grid gap-1.5"><Label>Payment date</Label><Input type="date" value={paidDate} onChange={(e) => setPaidDate(e.target.value)} /></div>
+          <div className="grid gap-1.5"><Label>Payment method</Label>
+            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as CustomerInvoice["paymentMethod"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{["BANK_TRANSFER", "CASH", "CHEQUE", "UPI", "CARD", "WIRE", "OTHER"].map((m) => <SelectItem key={m} value={m}>{m.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5"><Label>Reference</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Transaction / receipt reference" /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => amount > 0 ? onConfirm({ amount, paidDate, paymentMethod, reference: reference || undefined }) : toast.error("Enter a payment amount")}>Confirm payment</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
