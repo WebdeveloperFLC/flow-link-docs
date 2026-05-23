@@ -26,6 +26,9 @@ function fmtDate(iso: string): string {
 
 export default function AccountingReceiptTemplate({ receipt: r }: { receipt: ReceiptData }) {
   const fullyPaid = r.outstandingBalance <= 0;
+  const statusLabel = fullyPaid ? "PAID" : "PARTIALLY PAID";
+  const statusBg = fullyPaid ? "#dcfce7" : "#fef3c7";
+  const statusFg = fullyPaid ? "#166534" : "#92400e";
   return (
     <>
       <style>{`
@@ -73,6 +76,9 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
           </div>
           <div style={{ textAlign: "right", minWidth: 220 }}>
             <div style={{ fontSize: 36, fontWeight: 800, color: "#1a56db", letterSpacing: 2, lineHeight: 1 }}>RECEIPT</div>
+            <div style={{ marginTop: 6, display: "inline-block", padding: "3px 10px", borderRadius: 999, background: statusBg, color: statusFg, fontSize: 11, fontWeight: 700, letterSpacing: 1 }}>
+              {statusLabel}
+            </div>
             <div style={{ marginTop: 14, fontSize: 12 }}>
               <div style={{ color: "#6b7280" }}>Receipt #</div>
               <div style={{ fontWeight: 700, color: "#111827", marginBottom: 6 }}>{r.receiptNumber}</div>
