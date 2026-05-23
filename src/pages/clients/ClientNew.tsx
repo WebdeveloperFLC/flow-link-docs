@@ -36,6 +36,7 @@ import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
+import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
 
 /**
  * Seed education_history from the legacy scalar columns when the row was
@@ -205,6 +206,15 @@ const ClientNew = () => {
         setClientId(saved.id);
         setRegNumber(saved.registration_number ?? null);
         toast.success(`Client created: ${saved.registration_number ?? saved.application_id ?? saved.id}`);
+        // Best-effort: auto-assign stage pipeline from country + first visa service
+        const firstVisa = services.visa_services?.[0] ?? null;
+        const primaryCountry = interestedCountries?.[0] ?? saved.country ?? null;
+        void autoAssignPipelineForClient({
+          clientId: saved.id,
+          country: primaryCountry,
+          interestedCountries,
+          serviceCategory: firstVisa,
+        });
       }
     } catch (e: any) {
       console.error("[client autosave]", e);

@@ -48,6 +48,7 @@ import { ClientEmailCard } from "@/components/clients/ClientEmailCard";
 import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard";
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
+import { ClientStageCard } from "@/components/clients/ClientStageCard";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -843,6 +844,7 @@ const ClientDetail = () => {
       <div className="p-8 grid lg:grid-cols-3 gap-6">
         {/* Left: unified case documents (sections + checklist + uploads) */}
         <div className="lg:col-span-2 space-y-6">
+          <ClientStageCard clientId={client.id} clientCountry={client.country} />
           <ClientProfileCard
             clientId={client.id}
             canEdit={canUpload}
