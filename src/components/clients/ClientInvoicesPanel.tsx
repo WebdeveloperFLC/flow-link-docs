@@ -1062,6 +1062,61 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     const branchRow: any = branchRes.data ?? {};
     const allocRows: any[] = (allocRes as any)?.data ?? [];
 
+    // Resolve labels + service/installment metadata for allocation snapshot
+    const allocInstIds = Array.from(new Set(allocRows.map((a) => a.installment_id).filter(Boolean)));
+    const allocSvcIds = Array.from(new Set(allocRows.map((a) => a.service_id).filter(Boolean)));
+    const [instRes, svcRes] = await Promise.all([
+      allocInstIds.length
+        ? supabase.from("client_invoice_installments")
+            .select("id,installment_number,installment_label,installment_due_date,fee_category")
+            .in("id", allocInstIds)
+        : Promise.resolve({ data: [] } as any),
+      allocSvcIds.length
+        ? supabase.from("service_catalogue")
+            .select("id,service_name,country_tag,sub_category,pricing_type")
+            .in("id", allocSvcIds)
+        : Promise.resolve({ data: [] } as any),
+    ]);
+    const instMap = new Map<string, any>(((instRes as any).data ?? []).map((r: any) => [r.id, r]));
+    const svcMap = new Map<string, any>(((svcRes as any).data ?? []).map((r: any) => [r.id, r]));
+    const lineItemsArr: any[] = Array.isArray(invRow.line_items) ? invRow.line_items : [];
+    const lineByKey = new Map<string, any>();
+    lineItemsArr.forEach((li: any, idx: number) => {
+      const key = li?.service_id ? `svc:${li.service_id}` : `idx:${idx}`;
+      lineByKey.set(key, li);
+    });
+    const allocationsSnapshot = allocRows.map((a, idx) => {
+      const inst = a.installment_id ? instMap.get(a.installment_id) : null;
+      const svc = a.service_id ? svcMap.get(a.service_id) : null;
+      const li = a.line_item_key ? lineByKey.get(a.line_item_key) : null;
+      const service_name = svc?.service_name || li?.service_name || "Service";
+      const country = svc?.country_tag ?? null;
+      const category = (inst?.fee_category ?? svc?.sub_category) ?? null;
+      const service_type = svc?.pricing_type ?? null;
+      const label = inst
+        ? `${service_name} — ${inst.installment_label ?? `Installment ${inst.installment_number}`}`
+        : (category || service_type ? `${service_name} — ${category || service_type}` : service_name);
+      return {
+        allocation_id: a.id,
+        allocation_order: idx + 1,
+        allocation_label: label,
+        line_item_key: a.line_item_key ?? null,
+        service_id: a.service_id ?? null,
+        installment_id: a.installment_id ?? null,
+        installment_number: inst?.installment_number ?? null,
+        service_name,
+        country,
+        category,
+        service_type,
+        amount_allocated: Number(a.amount_allocated || 0),
+        currency: invRow.currency,
+        amount_in_inr: a.amount_in_inr,
+        amount_in_cad: a.amount_in_cad,
+        amount_in_usd: a.amount_in_usd,
+        fx_rate: pay.fx_rate ?? 1,
+      };
+    });
+
     const entityCode = (invRow.invoice_entity_code || (firmRow.firm_name || "FLC").slice(0, 3)).toUpperCase();
     const branchCode = (invRow.invoice_branch_code || (branchRow.name || "GEN").slice(0, 3)).toUpperCase();
 
@@ -1108,7 +1163,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         reference: pay.reference ?? null,
         paid_at: pay.paid_at,
         posted_by: pay.posted_by ?? null,
-        allocations: await buildAllocationSnapshot(allocRows, invRow),
+        allocations: allocationsSnapshot,
       },
       footer: {
         legal_name: firmRow.firm_name ?? null,
