@@ -319,11 +319,17 @@ function PendingVerificationQueue({
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<any | null>(null);
+  const [verifyFor, setVerifyFor] = useState<any | null>(null);
+  const [verifyNote, setVerifyNote] = useState("");
 
-  const verify = async (p: any) => {
+  const confirmVerify = async () => {
+    if (!verifyFor) return;
+    const p = verifyFor;
     setBusyId(p.id);
-    const ok = await verifyPayment(p);
+    const ok = await verifyPayment(p, verifyNote);
     setBusyId(null);
+    setVerifyFor(null);
+    setVerifyNote("");
     if (ok) onChange();
   };
 
@@ -370,7 +376,7 @@ function PendingVerificationQueue({
                     )}
                     {isAccounts && !rejected && (
                       <>
-                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => verify(p)}>
+                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => { setVerifyFor(p); setVerifyNote(""); }}>
                           <ShieldCheck className="size-3.5 mr-1" /> Verify
                         </Button>
                         <Button size="sm" variant="ghost" className="ml-1 text-destructive" onClick={() => setRejectFor(p)}>
@@ -386,6 +392,36 @@ function PendingVerificationQueue({
         </table>
       </div>
       {rejectFor && <RejectPaymentDialog payment={rejectFor} onClose={(changed) => { setRejectFor(null); if (changed) onChange(); }} />}
+      <AlertDialog open={!!verifyFor} onOpenChange={(o) => { if (!o) { setVerifyFor(null); setVerifyNote(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Verify payment?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>This will mark the payment as <b>verified</b> and reduce the invoice outstanding. This action is auditable.</div>
+                {verifyFor && (
+                  <div className="rounded-md border bg-muted/30 p-2 text-xs space-y-1">
+                    <div><b>Invoice:</b> {invoices.find(i => i.id === verifyFor.invoice_id)?.invoice_number ?? "—"}</div>
+                    <div><b>Amount:</b> {money(Number(verifyFor.amount), verifyFor.currency)}</div>
+                    <div><b>Method:</b> {verifyFor.method?.replace(/_/g, " ")}</div>
+                    <div><b>Reference:</b> {verifyFor.reference || "—"}</div>
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs">Verification note (optional)</Label>
+                  <Textarea rows={2} value={verifyNote} onChange={(e) => setVerifyNote(e.target.value)} placeholder="e.g. Confirmed against bank statement" />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmVerify} disabled={busyId === verifyFor?.id}>
+              {busyId === verifyFor?.id ? "Verifying…" : "Confirm verification"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
