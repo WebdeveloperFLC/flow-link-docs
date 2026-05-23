@@ -359,6 +359,16 @@ export const SmartUploadZone = ({
       } catch { /* best effort */ }
       patch(idx, { status: "done" });
 
+      // Phase 2: register for background OCR + extraction (fire-and-forget).
+      void enqueueExtraction({
+        documentId: ins.id,
+        clientId: targetClient.id,
+        personId: ownerPerson?.id ?? null,
+        docTypeDetected: effectiveType,
+        classifyConfidence: typeof item.confidence === "number" ? item.confidence : 0,
+        source: item.source ?? null,
+      });
+
       // Background field extraction (per-person where possible)
       try {
         const isPdf = item.file.type === "application/pdf" || item.file.name.toLowerCase().endsWith(".pdf");
