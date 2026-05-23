@@ -272,10 +272,23 @@ function SessionsTab() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("assessment_sessions")
-      .select("id, status, goal, country, answers, submitted_at, created_at, pdf_path, lead:assessment_leads(first_name, last_name, email, phone), client:clients(full_name, email, phone), output")
-      .order("created_at", { ascending: false }).limit(200);
-    setRows(data ?? []); setLoading(false);
+    const { data, error } = await supabase.rpc("list_assessment_sessions_admin", { _limit: 200 });
+    if (error) {
+      console.error("[assessment] list submissions failed", error);
+      toast.error(error.message ?? "Failed to load submissions");
+    }
+    const mapped = (data ?? []).map((r: any) => ({
+      id: r.id, status: r.status, goal: r.goal, country: r.country,
+      answers: r.answers, output: r.output, pdf_path: r.pdf_path,
+      submitted_at: r.submitted_at, created_at: r.created_at,
+      client: r.client_name || r.client_email || r.client_phone
+        ? { full_name: r.client_name, email: r.client_email, phone: r.client_phone }
+        : null,
+      lead: r.lead_name || r.lead_email || r.lead_phone
+        ? { full_name: r.lead_name, email: r.lead_email, phone: r.lead_phone }
+        : null,
+    }));
+    setRows(mapped); setLoading(false);
   };
   useEffect(() => { load(); }, []);
   const filtered = useMemo(() => {
@@ -408,6 +421,13 @@ function SessionsTab() {
                   {isAdmin && (
                     <Button size="sm" variant="outline" onClick={() => deleteSession(r.id)} title="Delete this assessment record (keeps client)">
                       <Trash2 className="size-3.5 text-destructive" />
+                    </Button>
+                  )}
+                  {hasEmail && (
+                    <Button size="sm" variant="outline" asChild title={`Email ${p.email}`}>
+                      <a href={`mailto:${p.email}?subject=${encodeURIComponent("Your Settle Abroad assessment")}`}>
+                        <Mail className="size-3.5" />
+                      </a>
                     </Button>
                   )}
                 </div>
