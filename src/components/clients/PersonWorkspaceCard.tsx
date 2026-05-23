@@ -499,7 +499,11 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
                           onClick={() => openClientDocument({ storagePath: doc.storage_path, fileName: doc.file_name, mimeType: doc.mime_type ?? undefined })}><Eye className="size-3.5" /></Button>
                         {canEdit && doc.status !== "verified" && (
                           <Button size="icon" variant="ghost" className="size-7 text-success" title="Mark verified"
-                            onClick={() => setDocStatus(doc, "verified")}><CheckCircle2 className="size-3.5" /></Button>
+                            onClick={() => {
+                              if (confirm(`Mark "${doc.file_name}" as verified?\n\nVerification means this document has been reviewed and matches the expected category. This action is auditable.`)) {
+                                setDocStatus(doc, "verified");
+                              }
+                            }}><CheckCircle2 className="size-3.5" /></Button>
                         )}
                         {canEdit && doc.status !== "rejected" && (
                           <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Reject"

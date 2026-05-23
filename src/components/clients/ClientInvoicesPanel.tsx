@@ -20,6 +20,10 @@ import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
 import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
 import { createRoot } from "react-dom/client";
 import { Download } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Invoice = {
   id: string;
@@ -48,11 +52,16 @@ const STATUS_STYLE: Record<string, string> = {
   viewed: "bg-primary/10 text-primary border-primary/20",
   pending_payment: "bg-amber-500/10 text-amber-700 border-amber-500/20",
   partially_paid: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  awaiting_verification: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  advance_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   paid: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   overdue: "bg-destructive/10 text-destructive border-destructive/20",
   cancelled: "bg-muted text-muted-foreground line-through",
+  void: "bg-muted text-muted-foreground line-through",
   refunded: "bg-muted text-muted-foreground",
 };
+
+const TERMINAL_STATUSES = new Set(["cancelled", "void", "refunded", "paid"]);
 
 const METHODS = ["cash", "bank_transfer", "card", "upi", "etransfer", "cheque", "wallet", "referral_credits", "points"];
 const PAYMENT_SOURCES = [
@@ -70,9 +79,46 @@ function money(amt: number, cur: string) {
   catch { return `${cur || ""} ${(amt || 0).toFixed(2)}`; }
 }
 
+/** Safe due-date formatter — never returns "NaN". */
+function formatDue(dueIso: string | null | undefined, fallbackIso?: string | null): string {
+  const iso = dueIso || fallbackIso || null;
+  if (!iso) return "No due date";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "No due date";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const due = new Date(d); due.setHours(0, 0, 0, 0);
+  const ms = due.getTime() - today.getTime();
+  const days = Math.round(ms / 86400000);
+  const dateStr = d.toLocaleDateString();
+  if (days === 0) return `Due today · ${dateStr}`;
+  if (days > 0) return `Due in ${days} day${days === 1 ? "" : "s"} · ${dateStr}`;
+  const n = Math.abs(days);
+  return `Overdue by ${n} day${n === 1 ? "" : "s"} · ${dateStr}`;
+}
+
+/** Derive totals strictly from verified payments. */
+function computeInvoiceTotals(invoice: Invoice, verifiedPaidForInvoice: number) {
+  const total = Number(invoice.amount) || 0;
+  const paid = Math.max(verifiedPaidForInvoice || 0, 0);
+  const outstanding = Math.max(total - paid, 0);
+  let displayStatus = invoice.status;
+  if (!TERMINAL_STATUSES.has(invoice.status)) {
+    if (outstanding <= 0.01 && paid > 0) displayStatus = "paid";
+    else if (paid > 0) displayStatus = "partially_paid";
+    else if (invoice.due_date) {
+      const d = new Date(invoice.due_date);
+      if (!isNaN(d.getTime()) && d.getTime() < Date.now()) displayStatus = "overdue";
+    }
+  }
+  return { total, paid, outstanding, displayStatus };
+}
+
 export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
   const [pending, setPending] = useState<any[]>([]);
+  const [verifiedPaidByInvoice, setVerifiedPaidByInvoice] = useState<Record<string, number>>({});
+  const [receiptCount, setReceiptCount] = useState<number>(0);
+  const [paymentCount, setPaymentCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,7 +129,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const [{ data, error }, { data: pend }] = await Promise.all([
+    const [{ data, error }, { data: pend }, { data: verifiedPays }, allPaysRes] = await Promise.all([
       supabase
         .from("client_invoices")
         .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
@@ -97,10 +143,39 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         .is("archived_at", null)
         .in("payment_status", ["awaiting_verification", "rejected"])
         .order("paid_at", { ascending: false }),
+      supabase
+        .from("client_invoice_payments")
+        .select("invoice_id,amount,is_refund")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .eq("payment_status", "verified"),
+      supabase
+        .from("client_invoice_payments")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .is("archived_at", null),
     ]);
     if (error) { console.warn("[invoices] load failed", error); setRows([]); }
     else setRows((data ?? []) as any);
     setPending((pend ?? []) as any[]);
+    const map: Record<string, number> = {};
+    for (const p of (verifiedPays ?? []) as any[]) {
+      const sign = p.is_refund ? -1 : 1;
+      map[p.invoice_id] = (map[p.invoice_id] ?? 0) + sign * (Number(p.amount) || 0);
+    }
+    setVerifiedPaidByInvoice(map);
+    setPaymentCount((allPaysRes as any)?.count ?? 0);
+    const invIds = ((data ?? []) as any[]).map((i: any) => i.id);
+    if (invIds.length) {
+      const { count } = await supabase
+        .from("client_invoice_receipts")
+        .select("id", { count: "exact", head: true })
+        .in("invoice_id", invIds)
+        .is("archived_at", null);
+      setReceiptCount(count ?? 0);
+    } else {
+      setReceiptCount(0);
+    }
     setLoading(false);
   };
 
@@ -126,7 +201,10 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
-  const outstanding = rows.reduce((s, r) => s + Math.max(Number(r.amount) - Number(r.amount_paid || 0), 0), 0);
+  const outstanding = rows.reduce((s, r) => {
+    const { outstanding } = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
+    return s + outstanding;
+  }, 0);
   const currency = rows[0]?.currency ?? "INR";
 
   return (
@@ -137,7 +215,14 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
             <Receipt className="size-4 text-primary" /> Client invoices & payments
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {loading ? "Loading…" : `${rows.length} invoice${rows.length === 1 ? "" : "s"} · Outstanding ${money(outstanding, currency)}`}
+            {loading ? "Loading…" : (
+              <>
+                {rows.length} invoice{rows.length === 1 ? "" : "s"} · Outstanding {money(outstanding, currency)}
+                <span className="ml-2">· Payments {paymentCount}</span>
+                <span className="ml-2">· Receipts {receiptCount}</span>
+                {pending.length > 0 && <span className="ml-2 text-amber-700">· Awaiting verification {pending.length}</span>}
+              </>
+            )}
           </div>
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
@@ -167,7 +252,9 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const balance = Math.max(Number(r.amount) - Number(r.amount_paid || 0), 0);
+                const totals = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
+                const balance = totals.outstanding;
+                const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked = !!r.external_request_sent_today
                   || (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
                 return (
@@ -177,12 +264,12 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       {r.invoice_locked_for_edit && <Lock className="inline size-3 ml-1 text-muted-foreground" />}
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant="outline" className={STATUS_STYLE[r.status] ?? ""}>{r.status.replace(/_/g, " ")}</Badge>
+                      <Badge variant="outline" className={STATUS_STYLE[totals.displayStatus] ?? "bg-muted text-muted-foreground"}>{totals.displayStatus.replace(/_/g, " ")}</Badge>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{money(Number(r.amount_paid || 0), r.currency)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{money(totals.paid, r.currency)}</td>
                     <td className={`px-3 py-2 text-right tabular-nums font-medium ${balance > 0 ? "" : "text-muted-foreground"}`}>{money(balance, r.currency)}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.due_date ?? "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{formatDue(r.due_date)}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" onClick={() => setSnapshotFor(r)} title="View snapshot">
                         <Eye className="size-3.5" />
@@ -190,10 +277,10 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       <Button size="sm" variant="outline" className="ml-1" disabled={remLocked || balance <= 0} title={remLocked ? "An external reminder was already sent for this invoice today." : undefined} onClick={() => setReminderFor(r)}>
                         <Bell className="size-3.5 mr-1" /> Remind
                       </Button>
-                      <Button size="sm" variant="default" className="ml-1" disabled={balance <= 0 || !isAccounts} title={!isAccounts ? "Only accounts users can post payments." : undefined} onClick={() => setCollectFor(r)}>
+                      <Button size="sm" variant="default" className="ml-1" disabled={collectDisabled} title={!isAccounts ? "Only accounts users can post payments." : (TERMINAL_STATUSES.has(r.status) ? `Invoice is ${r.status}` : (balance <= 0 ? "Nothing outstanding" : undefined))} onClick={() => setCollectFor(r)}>
                         <DollarSign className="size-3.5 mr-1" /> Collect
                       </Button>
-                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || Number(r.amount_paid || 0) <= 0} onClick={() => setReceiptFor(r)}>
+                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || totals.paid <= 0} onClick={() => setReceiptFor(r)}>
                         <FileCheck2 className="size-3.5 mr-1" /> Receipt
                       </Button>
                     </td>
@@ -232,11 +319,17 @@ function PendingVerificationQueue({
 }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [rejectFor, setRejectFor] = useState<any | null>(null);
+  const [verifyFor, setVerifyFor] = useState<any | null>(null);
+  const [verifyNote, setVerifyNote] = useState("");
 
-  const verify = async (p: any) => {
+  const confirmVerify = async () => {
+    if (!verifyFor) return;
+    const p = verifyFor;
     setBusyId(p.id);
-    const ok = await verifyPayment(p);
+    const ok = await verifyPayment(p, verifyNote);
     setBusyId(null);
+    setVerifyFor(null);
+    setVerifyNote("");
     if (ok) onChange();
   };
 
@@ -283,7 +376,7 @@ function PendingVerificationQueue({
                     )}
                     {isAccounts && !rejected && (
                       <>
-                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => verify(p)}>
+                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => { setVerifyFor(p); setVerifyNote(""); }}>
                           <ShieldCheck className="size-3.5 mr-1" /> Verify
                         </Button>
                         <Button size="sm" variant="ghost" className="ml-1 text-destructive" onClick={() => setRejectFor(p)}>
@@ -299,6 +392,36 @@ function PendingVerificationQueue({
         </table>
       </div>
       {rejectFor && <RejectPaymentDialog payment={rejectFor} onClose={(changed) => { setRejectFor(null); if (changed) onChange(); }} />}
+      <AlertDialog open={!!verifyFor} onOpenChange={(o) => { if (!o) { setVerifyFor(null); setVerifyNote(""); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Verify payment?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div>This will mark the payment as <b>verified</b> and reduce the invoice outstanding. This action is auditable.</div>
+                {verifyFor && (
+                  <div className="rounded-md border bg-muted/30 p-2 text-xs space-y-1">
+                    <div><b>Invoice:</b> {invoices.find(i => i.id === verifyFor.invoice_id)?.invoice_number ?? "—"}</div>
+                    <div><b>Amount:</b> {money(Number(verifyFor.amount), verifyFor.currency)}</div>
+                    <div><b>Method:</b> {verifyFor.method?.replace(/_/g, " ")}</div>
+                    <div><b>Reference:</b> {verifyFor.reference || "—"}</div>
+                  </div>
+                )}
+                <div>
+                  <Label className="text-xs">Verification note (optional)</Label>
+                  <Textarea rows={2} value={verifyNote} onChange={(e) => setVerifyNote(e.target.value)} placeholder="e.g. Confirmed against bank statement" />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmVerify} disabled={busyId === verifyFor?.id}>
+              {busyId === verifyFor?.id ? "Verifying…" : "Confirm verification"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -487,6 +610,22 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [adminOverride, setAdminOverride] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmNote, setConfirmNote] = useState("");
+  const [isAccountsUser, setIsAccountsUser] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user) return;
+      const [{ data: au }, { data: roles }] = await Promise.all([
+        supabase.from("accounting_users").select("id").eq("auth_user_id", u.user.id).eq("status", "ACTIVE").maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+      ]);
+      const adm = (roles ?? []).some((r: any) => r.role === "admin");
+      setIsAccountsUser(!!au || adm);
+    })();
+  }, []);
 
   useEffect(() => { setFxRate(getFxRate(payCcy, invCcy)); }, [payCcy, invCcy]);
 
@@ -686,11 +825,20 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
     return tail ? `${r.service_name} — ${tail}` : r.service_name;
   };
 
-  const save = async () => {
+  /** Validate, then open the confirmation modal. */
+  const requestSave = () => {
     if (selectedRows.length === 0) { toast.error("Select at least one service"); return; }
     if (sumPayNow <= 0) { toast.error("Enter a positive amount"); return; }
     if (overpay) { toast.error("A row exceeds its outstanding amount"); return; }
     if (proofMissing) { toast.error("Attach a payment proof or enable admin override"); return; }
+    setConfirmNote("");
+    setConfirmOpen(true);
+  };
+
+  /** Perform the actual insert + allocations + timeline. */
+  const save = async (forceAwaiting: boolean) => {
+    if (saving) return; // debounce double-click
+    setConfirmOpen(false);
 
     setSaving(true);
     try {
@@ -710,8 +858,12 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInInr = convert(totalPayInPayCcy, payCcy, "INR");
       const amtInCad = convert(totalPayInPayCcy, payCcy, "CAD");
       const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
-      const status = adminOverride ? "verified" : defaultPaymentStatus(method);
+      // Permission-aware: non-accounts users may NEVER post a verified payment.
+      // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
+      const baseStatus = adminOverride ? "verified" : defaultPaymentStatus(method);
+      const status = (forceAwaiting || !isAccountsUser) ? "awaiting_verification" : baseStatus;
 
+      const noteForTimeline = confirmNote.trim();
       const allocationMetas = selectedRows
         .map((r) => ({
           row: r,
@@ -829,8 +981,8 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           clientId,
           eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
           summary: status === "awaiting_verification"
-            ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
-            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
+            ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`
+            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`,
           metadata: {
             payment_id: paymentId,
             invoice_id: invoice.id,
@@ -838,6 +990,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             currency: payCcy,
             method,
             source,
+            note: noteForTimeline || null,
             allocations: allocationMetas,
           },
         });
@@ -955,7 +1108,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                         {r.service_type && <span>· {r.service_type}</span>}
                       </div>
                     </td>
-                    <td className="px-2 py-1.5 text-muted-foreground">{r.due_date ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-muted-foreground">{formatDue(r.due_date)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{money(r.total, invCcy)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">{money(r.already_paid, invCcy)}</td>
                     <td className="px-2 py-1.5 text-right tabular-nums">{money(out, invCcy)}</td>
@@ -1026,7 +1179,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           {nextDueRow && (
             <div className="flex justify-between text-muted-foreground">
               <span>Next due</span>
-              <span>{buildLabel(nextDueRow)} — {nextDueRow.due_date}</span>
+              <span>{buildLabel(nextDueRow)} — {formatDue(nextDueRow.due_date)}</span>
             </div>
           )}
           {overpay && <div className="text-destructive">A row's amount exceeds its outstanding balance.</div>}
@@ -1051,11 +1204,71 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={saving || proofMissing || overpay || sumPayNow <= 0 || selectedRows.length === 0}>
-            {saving ? "Posting…" : willBeAwaitingVerification && !adminOverride ? "Submit for verification" : "Post payment"}
+          <Button onClick={requestSave} disabled={saving || proofMissing || overpay || sumPayNow <= 0 || selectedRows.length === 0}>
+            {saving ? "Posting…" : (willBeAwaitingVerification && !adminOverride) || !isAccountsUser ? "Submit for verification" : "Post payment"}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Confirmation modal — prevents accidental verification. */}
+      <AlertDialog open={confirmOpen} onOpenChange={(o) => !saving && setConfirmOpen(o)}>
+        <AlertDialogContent className="sm:max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? "Submit payment for verification?" : "Confirm payment received?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm">
+                <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-1">
+                  <div><b>Invoice:</b> {invoice.invoice_number}</div>
+                  <div><b>Outstanding before:</b> {money(balance, invCcy)}</div>
+                  <div><b>Currency:</b> {invCcy}{payCcy !== invCcy ? ` (paid in ${payCcy})` : ""}</div>
+                  <div><b>Method:</b> {method.replace(/_/g, " ")} · <b>Source:</b> {source.replace(/_/g, " ")}</div>
+                  <div><b>Amount:</b> {money(sumPayNow, invCcy)}{payCcy !== invCcy ? ` (${money(amountInPayCcy, payCcy)})` : ""}</div>
+                  <div className="pt-1 border-t">
+                    <div className="font-medium mb-0.5">Allocations</div>
+                    <ul className="space-y-0.5">
+                      {selectedRows.map((r) => (
+                        <li key={r.key} className="flex justify-between gap-2">
+                          <span className="truncate">{buildLabel(r)}</span>
+                          <span className="tabular-nums">{money(Number(r.payNow) || 0, invCcy)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Note (optional)</Label>
+                  <Textarea rows={2} value={confirmNote} onChange={(e) => setConfirmNote(e.target.value)} placeholder="e.g. Cash received at branch, Bank transfer confirmed…" />
+                </div>
+                {(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? (
+                  <div className="text-amber-700 text-xs">
+                    This payment will be marked <b>awaiting verification</b>. It will NOT reduce outstanding until an accounts user verifies it.
+                  </div>
+                ) : (
+                  <div className="text-emerald-700 text-xs">
+                    This payment will be posted as <b>verified</b> immediately and will reduce outstanding.
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
+            {isAccountsUser && !(willBeAwaitingVerification && !adminOverride) && (
+              <Button variant="outline" disabled={saving} onClick={() => save(true)}>
+                Submit for verification instead
+              </Button>
+            )}
+            <AlertDialogAction
+              disabled={saving}
+              onClick={(e) => { e.preventDefault(); void save(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)); }}
+            >
+              {saving ? "Posting…" : ((!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? "Submit for verification" : "Confirm payment received")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
@@ -1340,12 +1553,13 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
   const [payments, setPayments] = useState<any[]>([]);
   const [receipts, setReceipts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     (async () => {
       const [p, r] = await Promise.all([
         supabase.from("client_invoice_payments")
-          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
+          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund,payment_proof_file_id")
           .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
         supabase.from("client_invoice_receipts")
           .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb")
@@ -1357,7 +1571,26 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
     })();
   }, [invoice.id]);
 
-  const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
+  const verifiedPaid = payments.reduce((s, p) => s + (p.payment_status === "verified" ? (p.is_refund ? -1 : 1) * Number(p.amount || 0) : 0), 0);
+  const totals = computeInvoiceTotals(invoice, verifiedPaid);
+  const balance = totals.outstanding;
+  const awaitingCount = payments.filter((p) => p.payment_status === "awaiting_verification").length;
+  const receiptsByPaymentId = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const r of receipts) {
+      const snap = r.receipt_snapshot_jsonb as any;
+      const pid = snap?.payment?.id;
+      if (pid) m.set(pid, r);
+    }
+    return m;
+  }, [receipts]);
+  const q = search.trim().toLowerCase();
+  const filteredPayments = !q ? payments : payments.filter((p) => {
+    const rcpt = receiptsByPaymentId.get(p.id);
+    return [p.reference, p.method, p.payment_status, p.payment_source, rcpt?.receipt_number, invoice.invoice_number]
+      .filter(Boolean).some((v: any) => String(v).toLowerCase().includes(q));
+  });
+  const filteredReceipts = !q ? receipts : receipts.filter((r) => [r.receipt_number, invoice.invoice_number].filter(Boolean).some((v: any) => String(v).toLowerCase().includes(q)));
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
@@ -1369,14 +1602,23 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
         <div className="mt-4 space-y-4 text-sm">
           <div className="rounded-md border p-3 grid grid-cols-2 gap-2">
             <div><div className="text-xs text-muted-foreground">Status</div>
-              <Badge variant="outline" className={STATUS_STYLE[invoice.status] ?? ""}>{invoice.status.replace(/_/g, " ")}</Badge>
+              <Badge variant="outline" className={STATUS_STYLE[totals.displayStatus] ?? "bg-muted text-muted-foreground"}>{totals.displayStatus.replace(/_/g, " ")}</Badge>
             </div>
-            <div><div className="text-xs text-muted-foreground">Due</div><div>{invoice.due_date ?? "—"}</div></div>
+            <div><div className="text-xs text-muted-foreground">Due</div><div>{formatDue(invoice.due_date)}</div></div>
             <div><div className="text-xs text-muted-foreground">Total</div><div className="font-medium tabular-nums">{money(Number(invoice.amount), invoice.currency)}</div></div>
-            <div><div className="text-xs text-muted-foreground">Paid</div><div className="tabular-nums">{money(Number(invoice.amount_paid || 0), invoice.currency)}</div></div>
+            <div><div className="text-xs text-muted-foreground">Paid (verified)</div><div className="tabular-nums">{money(verifiedPaid, invoice.currency)}</div></div>
             <div className="col-span-2"><div className="text-xs text-muted-foreground">Outstanding</div>
               <div className={`font-semibold tabular-nums ${balance > 0 ? "text-destructive" : "text-emerald-700"}`}>{money(balance, invoice.currency)}</div>
             </div>
+            {awaitingCount > 0 && (
+              <div className="col-span-2 text-[11px] text-amber-700">
+                {awaitingCount} payment{awaitingCount === 1 ? "" : "s"} awaiting verification — not counted in paid/outstanding.
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Input placeholder="Search receipt #, ref, method, status…" value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 text-xs" />
           </div>
 
           <div>
@@ -1400,30 +1642,54 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({payments.length})</div>
-            {loading ? <div className="text-muted-foreground">Loading…</div> : payments.length === 0 ? (
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({filteredPayments.length}{q ? ` / ${payments.length}` : ""})</div>
+            {loading ? <div className="text-muted-foreground">Loading…</div> : filteredPayments.length === 0 ? (
               <div className="text-muted-foreground text-xs">No payments recorded.</div>
             ) : (
               <div className="rounded-md border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/40 text-muted-foreground">
-                    <tr><th className="text-left px-2 py-1">Date</th><th className="text-left px-2 py-1">Method</th><th className="text-left px-2 py-1">Status</th><th className="text-right px-2 py-1">Amount</th></tr>
+                    <tr>
+                      <th className="text-left px-2 py-1">Date</th>
+                      <th className="text-left px-2 py-1">Method · Source</th>
+                      <th className="text-left px-2 py-1">Receipt</th>
+                      <th className="text-left px-2 py-1">Status</th>
+                      <th className="text-right px-2 py-1">Amount</th>
+                      <th className="px-2 py-1"></th>
+                    </tr>
                   </thead>
                   <tbody>
-                    {payments.map((p) => (
-                      <tr key={p.id} className="border-t">
-                        <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
-                        <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""}</td>
-                        <td className="px-2 py-1">
-                          <Badge variant="outline" className={
-                            p.payment_status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
-                            p.payment_status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
-                            "bg-amber-500/10 text-amber-700 border-amber-500/20"
-                          }>{(p.payment_status || "verified").replace(/_/g, " ")}</Badge>
-                        </td>
-                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
-                      </tr>
-                    ))}
+                    {filteredPayments.map((p) => {
+                      const rcpt = receiptsByPaymentId.get(p.id);
+                      const status = p.payment_status || "verified";
+                      return (
+                        <tr key={p.id} className="border-t">
+                          <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
+                          <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""} · <span className="text-muted-foreground">{(p.payment_source || "—").replace(/_/g, " ")}</span></td>
+                          <td className="px-2 py-1">{rcpt?.receipt_number ?? "—"}</td>
+                          <td className="px-2 py-1">
+                            <Badge variant="outline" className={
+                              status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
+                              status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
+                              "bg-amber-500/10 text-amber-700 border-amber-500/20"
+                            }>{status.replace(/_/g, " ")}</Badge>
+                          </td>
+                          <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                          <td className="px-2 py-1 text-right whitespace-nowrap">
+                            {p.payment_proof_file_id && (
+                              <Button size="sm" variant="ghost" title="View proof" onClick={() => openPaymentProof(p.payment_proof_file_id)}>
+                                <Eye className="size-3.5" />
+                              </Button>
+                            )}
+                            {rcpt?.receipt_snapshot_jsonb && (
+                              <Button size="sm" variant="ghost" title="Print / Download receipt" onClick={() => printReceiptSnapshot(rcpt.receipt_snapshot_jsonb)}>
+                                <Download className="size-3.5" />
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1431,8 +1697,8 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
           </div>
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({receipts.length})</div>
-            {loading ? null : receipts.length === 0 ? (
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({filteredReceipts.length}{q ? ` / ${receipts.length}` : ""})</div>
+            {loading ? null : filteredReceipts.length === 0 ? (
               <div className="text-muted-foreground text-xs">No receipts generated.</div>
             ) : (
               <div className="rounded-md border overflow-hidden">
@@ -1441,7 +1707,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                     <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th><th className="px-2 py-1"></th></tr>
                   </thead>
                   <tbody>
-                  {receipts.map((r) => {
+                  {filteredReceipts.map((r) => {
                     const snap = r.receipt_snapshot_jsonb;
                     return (
                       <tr key={r.id} className="border-t">
@@ -1449,7 +1715,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
                         <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
                       <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
                       <td className="px-2 py-1 text-right whitespace-nowrap">
-                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
+                        <Button size="sm" variant="ghost" disabled={!snap} title={snap ? "Print / Download PDF" : "Snapshot unavailable"} onClick={() => snap && printReceiptSnapshot(snap)}>
                           <Download className="size-3.5" />
                         </Button>
                       </td>

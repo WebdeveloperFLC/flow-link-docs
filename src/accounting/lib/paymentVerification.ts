@@ -3,7 +3,10 @@ import { toast } from "sonner";
 import { appendTimeline } from "@/lib/timeline";
 
 /** Mark a payment as verified. Caller should refresh after. */
-export async function verifyPayment(payment: { id: string; client_id: string; amount: number; currency: string }) {
+export async function verifyPayment(
+  payment: { id: string; client_id: string; amount: number; currency: string },
+  note?: string,
+) {
   const { data: u } = await supabase.auth.getUser();
   const { error } = await supabase
     .from("client_invoice_payments")
@@ -19,8 +22,8 @@ export async function verifyPayment(payment: { id: string; client_id: string; am
     await appendTimeline({
       clientId: payment.client_id,
       eventType: "payment_verified",
-      summary: `Payment of ${payment.currency} ${Number(payment.amount).toFixed(2)} verified`,
-      metadata: { payment_id: payment.id, amount: payment.amount, currency: payment.currency },
+      summary: `Payment of ${payment.currency} ${Number(payment.amount).toFixed(2)} verified${note?.trim() ? ` — ${note.trim()}` : ""}`,
+      metadata: { payment_id: payment.id, amount: payment.amount, currency: payment.currency, note: note?.trim() || null },
     });
   } catch {}
   return true;
