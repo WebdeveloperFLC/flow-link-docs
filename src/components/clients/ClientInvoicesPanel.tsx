@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle } from "lucide-react";
+import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle, ShieldCheck, ShieldX, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
@@ -65,6 +65,7 @@ function money(amt: number, cur: string) {
 
 export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
+  const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -74,14 +75,24 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("client_invoices")
-      .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
-      .eq("client_id", clientId)
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    const [{ data, error }, { data: pend }] = await Promise.all([
+      supabase
+        .from("client_invoices")
+        .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("client_invoice_payments")
+        .select("id,invoice_id,amount,currency,method,paid_at,reference,payment_status,payment_source,payment_proof_file_id,verification_rejected_reason")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .in("payment_status", ["awaiting_verification", "rejected"])
+        .order("paid_at", { ascending: false }),
+    ]);
     if (error) { console.warn("[invoices] load failed", error); setRows([]); }
     else setRows((data ?? []) as any);
+    setPending((pend ?? []) as any[]);
     setLoading(false);
   };
 
@@ -183,11 +194,155 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         </div>
       )}
 
+      {/* Awaiting verification queue */}
+      {!loading && pending.length > 0 && (
+        <PendingVerificationQueue
+          payments={pending}
+          invoices={rows}
+          isAccounts={isAccounts}
+          onChange={load}
+        />
+      )}
+
       {createOpen && <CreateInvoiceDialog clientId={clientId} onClose={() => { setCreateOpen(false); load(); }} />}
       {collectFor && <CollectPaymentDialog invoice={collectFor} onClose={() => { setCollectFor(null); load(); }} />}
       {receiptFor && <GenerateReceiptDialog invoice={receiptFor} onClose={() => { setReceiptFor(null); load(); }} />}
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
     </Card>
+  );
+}
+
+/* ───────────────────── Pending Verification Queue ───────────────────── */
+function PendingVerificationQueue({
+  payments, invoices, isAccounts, onChange,
+}: {
+  payments: any[]; invoices: Invoice[]; isAccounts: boolean; onChange: () => void;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [rejectFor, setRejectFor] = useState<any | null>(null);
+
+  const verify = async (p: any) => {
+    setBusyId(p.id);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_invoice_payments")
+      .update({
+        payment_status: "verified",
+        verified_by: u?.user?.id ?? null,
+        verified_at: new Date().toISOString(),
+      } as any)
+      .eq("id", p.id);
+    setBusyId(null);
+    if (error) toast.error(error.message);
+    else { toast.success("Payment verified"); onChange(); }
+  };
+
+  const openProof = async (p: any) => {
+    if (!p.payment_proof_file_id) { toast.info("No proof attached"); return; }
+    const { data, error } = await supabase
+      .from("client_documents")
+      .select("storage_path")
+      .eq("id", p.payment_proof_file_id)
+      .maybeSingle();
+    if (error || !data) { toast.error("Proof not found"); return; }
+    const path = (data as any).storage_path;
+    if (!path) { toast.info("No file path on proof"); return; }
+    const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
+    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
+    else toast.error("Could not open proof");
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5">
+      <div className="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
+        <Clock className="size-3.5" /> Awaiting verification ({payments.length})
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="text-left px-3 py-2">Invoice</th>
+              <th className="text-left px-3 py-2">Submitted</th>
+              <th className="text-left px-3 py-2">Method · Source</th>
+              <th className="text-right px-3 py-2">Amount</th>
+              <th className="text-left px-3 py-2">Status</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.map((p) => {
+              const inv = invoices.find(i => i.id === p.invoice_id);
+              const rejected = p.payment_status === "rejected";
+              return (
+                <tr key={p.id} className="border-t align-middle">
+                  <td className="px-3 py-2 font-medium">{inv?.invoice_number ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{new Date(p.paid_at).toLocaleString()}</td>
+                  <td className="px-3 py-2">{p.method?.replace(/_/g, " ")} · <span className="text-muted-foreground">{(p.payment_source || "—").replace(/_/g, " ")}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                  <td className="px-3 py-2">
+                    <Badge variant="outline" className={rejected ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-amber-500/10 text-amber-700 border-amber-500/20"}>
+                      {rejected ? "rejected" : "awaiting verification"}
+                    </Badge>
+                    {rejected && p.verification_rejected_reason && (
+                      <div className="text-[11px] text-destructive mt-0.5">{p.verification_rejected_reason}</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    {p.payment_proof_file_id && (
+                      <Button size="sm" variant="ghost" onClick={() => openProof(p)}>View proof</Button>
+                    )}
+                    {isAccounts && !rejected && (
+                      <>
+                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => verify(p)}>
+                          <ShieldCheck className="size-3.5 mr-1" /> Verify
+                        </Button>
+                        <Button size="sm" variant="ghost" className="ml-1 text-destructive" onClick={() => setRejectFor(p)}>
+                          <ShieldX className="size-3.5 mr-1" /> Reject
+                        </Button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {rejectFor && <RejectPaymentDialog payment={rejectFor} onClose={(changed) => { setRejectFor(null); if (changed) onChange(); }} />}
+    </div>
+  );
+}
+
+function RejectPaymentDialog({ payment, onClose }: { payment: any; onClose: (changed: boolean) => void }) {
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    if (!reason.trim()) { toast.error("Enter a reason"); return; }
+    setSaving(true);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_invoice_payments")
+      .update({
+        payment_status: "rejected",
+        verification_rejected_reason: reason,
+        verified_by: u?.user?.id ?? null,
+        verified_at: new Date().toISOString(),
+      } as any)
+      .eq("id", payment.id);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Payment rejected"); onClose(true); }
+  };
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose(false)}>
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
+        <DialogHeader><DialogTitle>Reject payment</DialogTitle></DialogHeader>
+        <Label>Reason</Label>
+        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Why is this payment being rejected?" />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onClose(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={save} disabled={saving}>{saving ? "Rejecting…" : "Reject"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -494,7 +649,11 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
   useEffect(() => {
     (async () => {
       const [p, f] = await Promise.all([
-        supabase.from("client_invoice_payments").select("id,amount,currency,method,paid_at,reference,is_refund").eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
+        supabase.from("client_invoice_payments")
+          .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by")
+          .eq("invoice_id", invoice.id).is("archived_at", null)
+          .eq("payment_status", "verified")
+          .order("paid_at", { ascending: false }),
         supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
       ]);
       const list = (p.data ?? []).filter((x: any) => !x.is_refund);
@@ -509,16 +668,86 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     if (!pay) { toast.error("Pick a payment"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    const { data: num, error: numErr } = await supabase.rpc("generate_receipt_number", { p_entity_code: "FLC", p_branch_code: "GEN" });
+
+    // Resolve real entity & branch codes from invoice + masters (fallback FLC/GEN).
+    const [invRes, firmRes, branchRes] = await Promise.all([
+      supabase.from("client_invoices")
+        .select("invoice_number,invoice_entity_code,invoice_branch_code,branch_id,firm_entity_id,currency,amount,amount_paid,line_items,client_id,created_at")
+        .eq("id", invoice.id).maybeSingle(),
+      firmId ? supabase.from("firm_profile").select("id,firm_name,firm_address,firm_email,firm_phone").eq("id", firmId).maybeSingle() : Promise.resolve({ data: null } as any),
+      invoice.branch_id ? supabase.from("branches").select("id,name,city,country").eq("id", invoice.branch_id).maybeSingle() : Promise.resolve({ data: null } as any),
+    ]);
+    const invRow: any = invRes.data ?? {};
+    const firmRow: any = firmRes.data ?? {};
+    const branchRow: any = branchRes.data ?? {};
+
+    const entityCode = (invRow.invoice_entity_code || (firmRow.firm_name || "FLC").slice(0, 3)).toUpperCase();
+    const branchCode = (invRow.invoice_branch_code || (branchRow.name || "GEN").slice(0, 3)).toUpperCase();
+
+    const { data: num, error: numErr } = await supabase.rpc("generate_receipt_number", {
+      p_entity_code: entityCode,
+      p_branch_code: branchCode,
+    });
     if (numErr) { setSaving(false); toast.error(numErr.message); return; }
+
+    // Build immutable snapshot
+    const clientRes = invRow.client_id ? await supabase.from("clients").select("full_name,email,phone").eq("id", invRow.client_id).maybeSingle() : { data: null } as any;
+    const clientRow: any = clientRes.data ?? {};
+    const snapshot = {
+      generated_at: new Date().toISOString(),
+      generated_by: u?.user?.id ?? null,
+      receipt_number: num,
+      entity_code: entityCode,
+      branch_code: branchCode,
+      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null },
+      branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
+      client: { id: invRow.client_id ?? null, name: clientRow.full_name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
+      invoice: {
+        id: invoice.id,
+        invoice_number: invRow.invoice_number,
+        invoice_date: invRow.created_at,
+        currency: invRow.currency,
+        amount: Number(invRow.amount || 0),
+        amount_paid: Number(invRow.amount_paid || 0),
+        subtotal: Number(invRow.amount || 0),
+        tax_amount: 0,
+        line_items: invRow.line_items ?? [],
+        outstanding: Math.max(Number(invRow.amount || 0) - Number(invRow.amount_paid || 0), 0),
+      },
+      payment: {
+        id: pay.id,
+        method: pay.method,
+        source: pay.payment_source ?? null,
+        currency: pay.currency,
+        amount: Number(pay.amount),
+        fx_rate: pay.fx_rate ?? 1,
+        amount_in_inr: pay.amount_in_inr ?? null,
+        amount_in_cad: pay.amount_in_cad ?? null,
+        amount_in_usd: pay.amount_in_usd ?? null,
+        reference: pay.reference ?? null,
+        paid_at: pay.paid_at,
+        posted_by: pay.posted_by ?? null,
+      },
+      footer: {
+        legal_name: firmRow.firm_name ?? null,
+        address: firmRow.firm_address ?? null,
+        support_email: firmRow.firm_email ?? null,
+        support_phone: firmRow.firm_phone ?? null,
+        disclaimer: "This receipt is computer generated and does not require a physical signature.",
+      },
+    };
+
     const { error } = await supabase.from("client_invoice_receipts").insert({
       invoice_id: invoice.id,
       payment_id: paymentId,
       receipt_number: num as unknown as string,
       firm_entity_id: firmId ?? null,
+      branch_id: invoice.branch_id ?? null,
       currency: pay.currency,
       amount: Number(pay.amount),
       generated_by: u?.user?.id ?? null,
+      receipt_snapshot_jsonb: snapshot as any,
+      receipt_snapshot_taken_at: new Date().toISOString(),
     } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -528,10 +757,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
         <DialogHeader><DialogTitle>Generate receipt — {invoice.invoice_number}</DialogTitle></DialogHeader>
         {payments.length === 0 ? (
-          <div className="flex items-center gap-2 text-sm text-amber-600 py-2"><AlertTriangle className="size-4" /> No payments to receipt yet.</div>
+          <div className="flex items-center gap-2 text-sm text-amber-600 py-2">
+            <AlertTriangle className="size-4" />
+            No verified payments to receipt yet. Payments awaiting verification cannot be receipted.
+          </div>
         ) : (
           <div className="grid gap-3">
             <div><Label>Payment</Label>
