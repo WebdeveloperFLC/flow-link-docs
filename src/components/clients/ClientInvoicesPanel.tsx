@@ -499,7 +499,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInUsd = convert(amtNum, payCcy, "USD");
       const status = adminOverride ? "verified" : defaultPaymentStatus(method);
 
-      const { error } = await supabase.from("client_invoice_payments").insert({
+      const { data: inserted, error } = await supabase.from("client_invoice_payments").insert({
         invoice_id: invoice.id,
         client_id: clientId,
         paid_at: new Date().toISOString(),
@@ -517,8 +517,29 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         payment_proof_status: proofDocId ? "uploaded" : "pending",
         payment_status: status,
         payment_source: source,
-      } as any);
+      } as any).select("id").maybeSingle();
       if (error) throw error;
+
+      // Best-effort timeline events
+      try {
+        const paymentId = (inserted as any)?.id;
+        await appendTimeline({
+          clientId,
+          eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
+          summary: status === "awaiting_verification"
+            ? `Payment of ${payCcy} ${amtNum.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
+            : `Payment of ${payCcy} ${amtNum.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
+          metadata: { payment_id: paymentId, invoice_id: invoice.id, amount: amtNum, currency: payCcy, method, source },
+        });
+        if (proofDocId) {
+          await appendTimeline({
+            clientId,
+            eventType: "payment_proof_uploaded",
+            summary: "Payment proof uploaded",
+            metadata: { payment_id: paymentId, invoice_id: invoice.id, document_id: proofDocId },
+          });
+        }
+      } catch {}
 
       toast.success(
         status === "awaiting_verification"
