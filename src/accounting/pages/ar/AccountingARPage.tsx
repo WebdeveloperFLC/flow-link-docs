@@ -13,6 +13,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
+import RecentReceiptsCard from "../../components/ar/RecentReceiptsCard";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
@@ -317,6 +318,8 @@ export default function AccountingARPage() {
         )}
 
         <AgingAnalysis invoices={invoices} />
+
+        <RecentReceiptsCard />
 
         {payDialog && <RecordReceiptDialog invoice={payDialog} onClose={() => setPayDialog(null)}
           onConfirm={(patch) => {
