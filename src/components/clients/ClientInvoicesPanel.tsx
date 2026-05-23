@@ -124,6 +124,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [receiptFor, setReceiptFor] = useState<Invoice | null>(null);
   const [reminderFor, setReminderFor] = useState<Invoice | null>(null);
   const [snapshotFor, setSnapshotFor] = useState<Invoice | null>(null);
+  const [receiptsDrawerOpen, setReceiptsDrawerOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -217,7 +218,15 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
               <>
                 {rows.length} invoice{rows.length === 1 ? "" : "s"} · Outstanding {money(outstanding, currency)}
                 <span className="ml-2">· Payments {paymentCount}</span>
-                <span className="ml-2">· Receipts {receiptCount}</span>
+                <button
+                  type="button"
+                  className="ml-2 underline-offset-2 hover:underline text-primary disabled:text-muted-foreground disabled:no-underline"
+                  disabled={receiptCount === 0}
+                  onClick={() => setReceiptsDrawerOpen(true)}
+                  title={receiptCount === 0 ? "No receipts yet" : "View all receipts"}
+                >
+                  · Receipts {receiptCount}
+                </button>
                 {pending.length > 0 && <span className="ml-2 text-amber-700">· Awaiting verification {pending.length}</span>}
               </>
             )}
@@ -305,6 +314,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       {receiptFor && <GenerateReceiptDialog invoice={receiptFor} onClose={() => { setReceiptFor(null); load(); }} />}
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
       {snapshotFor && <InvoiceSnapshotDrawer invoice={snapshotFor} onClose={() => setSnapshotFor(null)} />}
+      {receiptsDrawerOpen && <ClientReceiptsDrawer clientId={clientId} onClose={() => setReceiptsDrawerOpen(false)} />}
     </Card>
   );
 }
