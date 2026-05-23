@@ -12131,6 +12131,11 @@ export type Database = {
         Args: { p_branch_code: string; p_entity_code: string }
         Returns: string
       }
+      get_assessment_invite_token: {
+        Args: { _invite_id: string }
+        Returns: string
+      }
+      get_portal_invite_token: { Args: { _invite_id: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
