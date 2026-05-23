@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
+import { runWithAuthRetry } from "@/lib/supabaseSafeInsert";
 
 export interface FamilyMember extends FamilyMemberExtras {
   id: string;
