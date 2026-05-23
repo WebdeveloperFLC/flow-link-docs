@@ -1820,3 +1820,72 @@ function ClientReceiptsDrawer({ clientId, onClose }: { clientId: string; onClose
   );
 }
 
+
+/* ───────────────────── Inline Receipts list (always visible) ───────────────────── */
+function ClientReceiptsInline({ clientId }: { clientId: string }) {
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const { data: invs } = await supabase
+        .from("client_invoices")
+        .select("id,invoice_number")
+        .eq("client_id", clientId);
+      const invMap = new Map<string, string>();
+      for (const i of (invs ?? []) as any[]) invMap.set(i.id, i.invoice_number);
+      const ids = Array.from(invMap.keys());
+      if (!ids.length) { setRows([]); setLoading(false); return; }
+      const { data } = await supabase
+        .from("client_invoice_receipts")
+        .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb,invoice_id")
+        .in("invoice_id", ids)
+        .is("archived_at", null)
+        .order("generated_at", { ascending: false })
+        .limit(10);
+      setRows(((data ?? []) as any[]).map((r) => ({ ...r, invoice_number: invMap.get(r.invoice_id) ?? "—" })));
+      setLoading(false);
+    })();
+  }, [clientId]);
+
+  if (loading) return null;
+  if (rows.length === 0) return null;
+
+  return (
+    <div className="mt-4 rounded-md border bg-muted/20">
+      <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2 border-b">
+        <FileCheck2 className="size-3.5" /> Generated receipts ({rows.length})
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead className="text-[10px] uppercase text-muted-foreground">
+            <tr>
+              <th className="text-left px-3 py-1.5">Receipt #</th>
+              <th className="text-left px-3 py-1.5">Invoice</th>
+              <th className="text-left px-3 py-1.5">Date</th>
+              <th className="text-right px-3 py-1.5">Amount</th>
+              <th className="px-3 py-1.5"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t">
+                <td className="px-3 py-1.5 font-medium">
+                  {r.receipt_number}
+                  {r.receipt_voided && <span className="ml-1 text-destructive">(voided)</span>}
+                </td>
+                <td className="px-3 py-1.5">{r.invoice_number}</td>
+                <td className="px-3 py-1.5 text-muted-foreground">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : "—"}</td>
+                <td className="px-3 py-1.5 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                <td className="px-3 py-1.5 text-right">
+                  <Button size="sm" variant="ghost" disabled={!r.receipt_snapshot_jsonb} title={r.receipt_snapshot_jsonb ? "Print / Download PDF" : "Snapshot unavailable"} onClick={() => r.receipt_snapshot_jsonb && printReceiptSnapshot(r.receipt_snapshot_jsonb)}>
+                    <Download className="size-3.5" />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
