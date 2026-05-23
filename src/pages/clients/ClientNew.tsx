@@ -276,12 +276,28 @@ const ClientNew = () => {
           <div className="flex items-center gap-2">
             {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
             <Button variant="outline" onClick={() => nav("/clients")}>Cancel</Button>
+            <Button
+              onClick={autosave}
+              disabled={saving || !(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()}
+              title={
+                !(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()
+                  ? "Enter first and last name to save"
+                  : undefined
+              }
+            >
+              {saving ? "Saving…" : clientId ? "Save Changes" : "Save Client"}
+            </Button>
           </div>
         }
       />
       <div className="p-3 sm:p-6 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
         {/* LEFT COLUMN */}
         <div className="space-y-6">
+          {!clientId && (!(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()) && (
+            <Card className="p-3 bg-amber-500/10 border-amber-500/30 text-sm">
+              Enter first and last name, then click <span className="font-semibold">Save Client</span> to begin. Other sections unlock once the client is saved.
+            </Card>
+          )}
           {sourceLead && (
             <Card className="p-3 bg-primary/5 border-primary/20 flex items-center justify-between">
               <div className="text-sm">Converting lead: <span className="font-mono font-semibold">{sourceLead.lead_number}</span></div>
