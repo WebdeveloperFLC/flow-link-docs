@@ -19,6 +19,7 @@ import {
   MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
   CLIENT_SEGMENT_LABEL, getClientAging,
 } from "../../data/mockClients";
+import { useClients } from "../../stores/clientsStore";
 import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
 import { formatCurrency } from "../../lib/format";
 import type { ClientInvoice, ClientReceipt, ClientTxn } from "../../types/clients";
@@ -26,7 +27,11 @@ import type { ClientInvoice, ClientReceipt, ClientTxn } from "../../types/client
 export default function AccountingClientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const client = MOCK_CLIENTS.find(c => c.id === id);
+  const allClients = useClients();
+  const client = useMemo(
+    () => allClients.find(c => c.id === id) ?? MOCK_CLIENTS.find(c => c.id === id),
+    [allClients, id]
+  );
 
   const txns = useMemo(() => MOCK_CLIENT_TXNS.filter(t => t.clientId === id), [id]);
   const invs = useMemo(() => MOCK_CLIENT_INVOICES.filter(i => i.clientId === id), [id]);
