@@ -39,6 +39,7 @@ export default function AccountingClientDetailPage() {
   const allClients = useClients();
   const arInvoices = useArInvoices();
   const [payDialog, setPayDialog] = useState<CustomerInvoice | null>(null);
+  const [payPickerOpen, setPayPickerOpen] = useState(false);
   const client = useMemo(
     () => allClients.find(c => c.id === id) ?? MOCK_CLIENTS.find(c => c.id === id),
     [allClients, id]
@@ -121,7 +122,7 @@ export default function AccountingClientDetailPage() {
       valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
     { headerName: "Status", field: "status", width: 150,
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} /> },
-    { headerName: "Actions", width: 210, sortable: false, filter: false,
+    { headerName: "Actions", width: 220, sortable: false, filter: false, pinned: "right", lockPinned: true,
       cellRenderer: (p: { data: CustomerInvoice }) => (
         <div className="flex items-center gap-1">
           {p.data.outstandingBalance > 0 && p.data.status !== "VOID" && (
@@ -187,6 +188,9 @@ export default function AccountingClientDetailPage() {
                 </Badge>
               )}
               <AccountingStatusBadge status={client.status} />
+              <Button size="sm" variant="outline" onClick={() => setPayPickerOpen(true)} disabled={totals.outstanding <= 0}>
+                <CreditCard className="size-4" /> Record payment
+              </Button>
               <Button size="sm" onClick={() => navigate("/accounting/ar/new")}>
                 <Plus className="size-4" /> New invoice
               </Button>
@@ -266,8 +270,8 @@ export default function AccountingClientDetailPage() {
 
         <ClientServicesPanel services={services} />
 
-        <Tabs defaultValue="transactions">
-          <TabsList>
+        <Tabs defaultValue="invoices">
+          <TabsList className="relative z-10">
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
             <TabsTrigger value="invoices">Invoices</TabsTrigger>
             <TabsTrigger value="receipts">Receipts</TabsTrigger>
@@ -281,6 +285,12 @@ export default function AccountingClientDetailPage() {
             </Card>
           </TabsContent>
           <TabsContent value="invoices" className="mt-4">
+            <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
+              <span>Tip: scroll right or use <b>Record payment</b> above to post against an outstanding invoice.</span>
+              <Button size="sm" variant="outline" className="h-7" onClick={() => setPayPickerOpen(true)} disabled={totals.outstanding <= 0}>
+                <CreditCard className="size-3 mr-1" /> Record payment
+              </Button>
+            </div>
             <Card className="p-0 overflow-hidden">
               <AccountingAGGrid<CustomerInvoice> rowData={invs} columnDefs={invCols} height={420} />
             </Card>
@@ -322,6 +332,34 @@ export default function AccountingClientDetailPage() {
               setPayDialog(null);
             }}
           />
+        )}
+        {payPickerOpen && (
+          <Dialog open onOpenChange={(o) => !o && setPayPickerOpen(false)}>
+            <DialogContent>
+              <DialogHeader><DialogTitle>Select invoice to pay</DialogTitle></DialogHeader>
+              <div className="grid gap-2 max-h-[400px] overflow-auto">
+                {invs.filter(i => i.outstandingBalance > 0 && i.status !== "VOID").map(i => (
+                  <button
+                    key={i.id}
+                    className="flex items-center justify-between gap-3 p-3 border rounded-md hover:bg-muted text-left"
+                    onClick={() => { setPayPickerOpen(false); setPayDialog(i); }}
+                  >
+                    <div>
+                      <div className="font-medium text-sm">{i.invoiceNumber}</div>
+                      <div className="text-xs text-muted-foreground">{i.invoiceDate} · {i.status}</div>
+                    </div>
+                    <div className="text-sm font-semibold tabular-nums">{fmtLedgerCurrency(i.outstandingBalance, i.currency)}</div>
+                  </button>
+                ))}
+                {invs.filter(i => i.outstandingBalance > 0 && i.status !== "VOID").length === 0 && (
+                  <div className="text-sm text-muted-foreground p-4 text-center">No outstanding invoices.</div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setPayPickerOpen(false)}>Close</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         )}
       </div>
     </AppLayout>
