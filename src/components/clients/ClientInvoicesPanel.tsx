@@ -315,6 +315,9 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
       {snapshotFor && <InvoiceSnapshotDrawer invoice={snapshotFor} onClose={() => setSnapshotFor(null)} />}
       {receiptsDrawerOpen && <ClientReceiptsDrawer clientId={clientId} onClose={() => setReceiptsDrawerOpen(false)} />}
+
+      {/* Always-visible inline receipts list — so generated receipts are immediately discoverable */}
+      <ClientReceiptsInline clientId={clientId} />
     </Card>
   );
 }
