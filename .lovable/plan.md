@@ -1,38 +1,119 @@
-## What I found
+## Root cause (from code + RLS audit)
 
-### 1. "InviteClientCard / RPC references non-existent `leads.client_id`"
-Verified against the live DB schema — this is a **misdiagnosis**. There is no `leads.client_id` column anywhere in our code; the references are:
-- `client_portal_invites.client_id` → FK to `clients(id)` ✓ exists
-- `client_portal_links.client_id` → FK to `clients(id)` ✓ exists
-- `leads.converted_to_client_id` → FK to `clients(id)` ✓ exists
+The toast "Your session expired. Please sign in again." is misleading. `runWithAuthRetry` in `src/lib/supabaseSafeInsert.ts` throws `AuthExpiredError` for **any** Postgres error with code `42501` (RLS denial) or `PGRST301`, not just expired JWTs. So non-admins are seeing the wrong message for a permissions problem.
 
-`InviteClientCard.tsx` correctly queries `client_portal_invites` / `client_portal_links` by `client_id` (the clients PK), not anything on leads. **No schema or migration change is needed.**
+The actual permission failure happens upstream of the client insert. Current RLS on `public.leads`:
 
-What **is** broken: in `src/pages/clients/ClientNew.tsx` line 244, the call to the `client-portal-invite-create` edge function sends `{ client_id, email, access_level }`, but the function reads `{ clientId, email }`. That's why the "Create client login" path silently fails with "Missing fields". This is the real bug to fix.
+```text
+SELECT/UPDATE: admin OR is_accounting_admin OR auth.uid()=created_by OR auth.uid()=assigned_counselor_id
+INSERT: any authenticated user
+DELETE: admin only
+```
 
-### 2. "Workflow button still visible in the lead form"
-The current source (`src/pages/clients/ClientNew.tsx`) has only sections 1–9 — there is **no Section 10 Workflow** in the codebase. The screenshot is from `dms.futurelinkconsultants.com` (the published custom domain), which is running an older build. The Workflow section was already removed in the current code; the published site just needs a republish.
+The convert flow (`ClientNew.tsx` → `prefillFromLead` → `upsertClientRegistration`) first fetches the lead, then inserts a client. A Telecaller / Edit Documentation / Edit Counselor / Commission Admin who didn't create the lead and isn't its assigned counselor gets zero rows back on the lead read, then any subsequent update (e.g. autosave hitting an existing lead, or family-member writes referencing `primary_lead_id`) fails with 42501 → toast says "session expired".
 
-### 3. "I don't see the Save Client button"
-The `Save Client` / `Save Changes` button exists in the `PageHeader`, but `PageHeader` is **not sticky**. As soon as the user scrolls down into sections 5–9, the header (and the only Save button) scrolls off-screen — which matches the screenshot. Same root cause as #2 also explains why the live site doesn't show it: stale published build.
+RLS on `public.clients` itself is fine:
+- INSERT: any authenticated user
+- SELECT/UPDATE: scoped via `can_view_client` / `can_edit_client`, which return 'full' when `owner_id = auth.uid()` (set by `trg_set_client_owner_defaults` BEFORE INSERT).
 
-## Fix plan
+Triggers `fn_mark_lead_converted_on_client`, `fn_sync_accounting_client`, `ensure_applicant_for_client` are all SECURITY DEFINER and won't block non-admins. `accounting_clients` has RLS but not FORCED, so the SECURITY DEFINER insert by the table owner bypasses it.
 
-**Edit `src/pages/clients/ClientNew.tsx` only.** No backend, RLS, schema, or edge-function changes.
+## Allowed roles (per request)
 
-1. **Fix the portal invite payload** (line ~244): change
-   `body: { client_id: clientId, email: f.email, access_level: portalAccessLevel }`
-   →
-   `body: { clientId, email: f.email, access_level: portalAccessLevel }`
-   so the edge function receives the field it expects.
+- `admin` — full
+- `counselor` — full (already)
+- `documentation` — read/write leads + convert
+- `telecaller` — read/write leads + convert
+- `commission_admin`, `commission_manager` — read/write leads + convert
+- `viewer` — read-only (no insert/update anywhere)
 
-2. **Make the Save button always reachable.** Add a sticky bottom action bar that mirrors the header's Save/Cancel:
-   - Fixed to the bottom of the form column on scroll (`sticky bottom-0` inside the left column, with a translucent backdrop and top border).
-   - Same disabled/labels logic as the header button (`Save Client` / `Save Changes` / `Saving…`, disabled until first+last name are filled).
-   - Keep the existing header button too, so users see Save whether they're at the top or scrolled deep.
+## Plan
 
-3. **No change to the Workflow section** — it's already absent from the source. After this change is applied and the user republishes from Lovable, the live site will match (no Section 10, Save button visible at top and bottom).
+### 1. Database migration (single migration, RLS-only, no schema changes)
+
+`public.leads` — replace SELECT and UPDATE policies:
+
+```sql
+-- SELECT: admin, accounting/commission admins, creator, assigned counselor,
+-- and any staff role that should be able to convert.
+DROP POLICY "leads select" ON public.leads;
+CREATE POLICY "leads select" ON public.leads
+FOR SELECT TO authenticated
+USING (
+  has_role(auth.uid(),'admin'::app_role)
+  OR is_accounting_admin(auth.uid())
+  OR is_commission_admin(auth.uid())
+  OR has_role(auth.uid(),'counselor'::app_role)
+  OR has_role(auth.uid(),'documentation'::app_role)
+  OR has_role(auth.uid(),'telecaller'::app_role)
+  OR auth.uid() = created_by
+  OR auth.uid() = assigned_counselor_id
+);
+
+-- UPDATE: same set EXCLUDING viewer
+DROP POLICY "leads update" ON public.leads;
+CREATE POLICY "leads update" ON public.leads
+FOR UPDATE TO authenticated
+USING ( /* same expression as SELECT */ );
+```
+
+Add a `viewer`-blocking guard on `public.clients` INSERT (today it allows any auth user including viewer):
+
+```sql
+DROP POLICY "clients insert scoped" ON public.clients;
+CREATE POLICY "clients insert scoped" ON public.clients
+FOR INSERT TO authenticated
+WITH CHECK (
+  has_role(auth.uid(),'admin'::app_role)
+  OR has_role(auth.uid(),'counselor'::app_role)
+  OR has_role(auth.uid(),'documentation'::app_role)
+  OR has_role(auth.uid(),'telecaller'::app_role)
+  OR is_commission_admin(auth.uid())
+);
+```
+
+No changes to `client_profile`, `case_people`, `client_invoices`, `accounting_clients` — they already gate on `can_edit_client`, which resolves to 'full' for the user that just inserted the client (owner_id = auth.uid()).
+
+### 2. Client-side error mapping
+
+In `src/lib/supabaseSafeInsert.ts`:
+- Keep `runWithAuthRetry`'s refresh-and-retry once.
+- After retry, only throw `AuthExpiredError` when `getSession()` truly has no token. Otherwise throw a `PermissionDeniedError` with the original Postgres `message`/`details` so the toast in `ClientNew.tsx` (`Save failed: <real reason>`) is honest.
+- Log `{ userId, role(s), table, code, message }` for any 42501 to the console for support.
+
+In `src/pages/clients/ClientNew.tsx` `autosave`/`handleCreateInvoice` catch blocks: surface `e.message` from `PermissionDeniedError` directly, and only show "session expired" if the error is actually `AuthExpiredError`.
+
+### 3. Session pre-flight
+
+`ClientNew.tsx`: before the first autosave or `handleCreateInvoice`, call `ensureFreshSession()` once. If it returns false, show the sign-in toast and bail without attempting the write. This prevents the race described in the Stack-Overflow note for slow auth restore.
+
+### 4. Verification (no UI test scaffolding — manual matrix)
+
+Sign in as each role and confirm:
+
+| Role | Create lead | Convert (save client) | Create draft invoice |
+|---|---|---|---|
+| admin | ✓ | ✓ | ✓ |
+| counselor | ✓ | ✓ | ✓ |
+| documentation | ✓ | ✓ | ✓ |
+| telecaller | ✓ | ✓ | ✓ |
+| commission_admin/manager | ✓ | ✓ | ✓ |
+| viewer | blocked at insert | blocked at insert | blocked |
+
+Also run the live SQL after the migration to verify:
+
+```sql
+SELECT polname, polcmd FROM pg_policy
+WHERE polrelid IN ('public.leads'::regclass,'public.clients'::regclass)
+ORDER BY polrelid, polcmd;
+```
 
 ## Out of scope
-- `InviteClientCard.tsx`, `client-portal-invite-create/index.ts`, RLS, migrations, `LeadNew.tsx`.
-- Security-scan findings shown in the side panel — separate task.
+
+- No UI/business-logic changes to the form, the workflow toggle, or the sticky Save bar.
+- No changes to edge functions (`client-portal-invite-create` etc.) — they already use service role.
+- No changes to `accounting_clients` RLS (the SECURITY DEFINER sync trigger handles it).
+
+## Risks
+
+- Broadening `leads SELECT` to all staff roles makes every staff member able to read every lead. This matches the user's stated requirement ("work exactly like Admin for all allowed roles except Viewer") but is a privacy widening — call this out before applying.
