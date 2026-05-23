@@ -159,6 +159,16 @@ export async function upsertClientRegistration(
   const composedName = [fn, mn, ln].filter(Boolean).join(" ");
   const body: Record<string, unknown> = { ...patch };
   if (composedName) body.full_name = composedName;
+  // Keep legacy scalar education fields in sync with education_history[0]
+  // so older reads, exports and AI summaries continue to work.
+  const eh = (patch.education_history ?? []) as EducationEntry[];
+  if (eh.length > 0) {
+    const e0 = eh[0];
+    if (e0.level !== undefined) body.last_education = e0.level ?? null;
+    if (e0.institution !== undefined) body.institution_name = e0.institution ?? null;
+    if (e0.year !== undefined) body.year_of_passing = e0.year ?? null;
+    if (e0.percentage_cgpa !== undefined) body.percentage_cgpa = e0.percentage_cgpa ?? null;
+  }
   // clients table requires NOT NULL country and application_type at insert time.
   if (!id) {
     if (!body.country) body.country = "India";
