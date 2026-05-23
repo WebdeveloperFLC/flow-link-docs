@@ -36,6 +36,7 @@ import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
+import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
 
 /**
  * Seed education_history from the legacy scalar columns when the row was
