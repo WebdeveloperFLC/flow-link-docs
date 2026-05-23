@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Mail, Copy, Loader2, X, Send, UserCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-interface Invite { id: string; email: string; token: string; expires_at: string; used_at: string|null; revoked_at: string|null; created_at: string }
+interface Invite { id: string; email: string; expires_at: string; used_at: string|null; revoked_at: string|null; created_at: string }
 
 export function InviteClientCard({ clientId, defaultEmail }: { clientId: string; defaultEmail?: string|null }) {
   const { hasRole } = useAuth();
@@ -20,7 +20,9 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
 
   const load = async () => {
     const [{ data: inv }, { data: lk }] = await Promise.all([
-      supabase.from("client_portal_invites").select("*").eq("client_id", clientId).order("created_at", { ascending: false }),
+      supabase.from("client_portal_invites")
+        .select("id,email,expires_at,used_at,revoked_at,created_at")
+        .eq("client_id", clientId).order("created_at", { ascending: false }),
       supabase.from("client_portal_links").select("user_id").eq("client_id", clientId),
     ]);
     setInvites((inv ?? []) as Invite[]);
@@ -49,7 +51,9 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
     if (error) toast.error(error.message); else { toast.success("Revoked"); load(); }
   };
 
-  const copyLink = async (token: string) => {
+  const copyLink = async (inviteId: string) => {
+    const { data: token, error } = await supabase.rpc("get_portal_invite_token", { _invite_id: inviteId });
+    if (error || !token) { toast.error(error?.message ?? "Only the inviter or an admin can copy this link"); return; }
     const link = `${window.location.origin}/portal/invite?token=${token}`;
     await navigator.clipboard.writeText(link);
     toast.success("Link copied");
@@ -92,7 +96,7 @@ export function InviteClientCard({ clientId, defaultEmail }: { clientId: string;
                 }`}>{status}</span>
                 {status === "pending" && (
                   <>
-                    <Button size="icon" variant="ghost" className="size-6" onClick={()=>copyLink(inv.token)}><Copy className="size-3"/></Button>
+                    <Button size="icon" variant="ghost" className="size-6" onClick={()=>copyLink(inv.id)}><Copy className="size-3"/></Button>
                     <Button size="icon" variant="ghost" className="size-6" onClick={()=>revoke(inv.id)}><X className="size-3"/></Button>
                   </>
                 )}
