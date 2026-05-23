@@ -19,6 +19,7 @@ import { InterestedCountriesPicker } from "@/components/leads/InterestedCountrie
 import { ServiceTabs, type ServiceSelection } from "@/components/leads/ServiceTabs";
 import { FamilyMembersSection } from "@/components/clients/registration/FamilyMembersSection";
 import { InvoicePreviewSection } from "@/components/clients/registration/InvoicePreviewSection";
+import { EducationExperienceFields } from "@/components/clients/registration/EducationExperienceFields";
 
 import {
   upsertClientRegistration,
@@ -36,8 +37,6 @@ import { useMasterItems } from "@/lib/masters";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
-const ENGLISH_TESTS = ["IELTS", "PTE", "TOEFL", "CELPIP", "Duolingo", "None"];
-const OTHER_TESTS = ["GRE", "GMAT", "SAT", "DELF", "TestDaF"];
 const CLIENT_TYPES = ["Student", "Corporate", "Partner", "Referral", "B2B"];
 const PORTAL_ACCESS_LEVELS = [
   { value: "standard", label: "Standard — profile, docs, payments, messages" },
