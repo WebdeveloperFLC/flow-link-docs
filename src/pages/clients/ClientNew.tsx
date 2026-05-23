@@ -33,7 +33,6 @@ import {
 } from "@/lib/clientRegistration";
 import { fetchLead, fetchBranches, fetchDepartments, fetchAllServiceCatalogue, type Branch, type Department, type ServiceCatalogueItem } from "@/lib/leads";
 import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
-import { useMasterItems } from "@/lib/masters";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
