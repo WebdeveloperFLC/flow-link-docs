@@ -307,6 +307,35 @@ export interface InvoiceLineDraft {
 
 export interface CreateInvoiceResult { invoice_id: string; invoice_number: string; }
 
+function invoiceDueDate(paymentTerms: string | null | undefined): string | null {
+  const today = new Date();
+  const addDays = (days: number) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().slice(0, 10);
+  };
+  switch (paymentTerms) {
+    case "DUE_ON_RECEIPT": return today.toISOString().slice(0, 10);
+    case "NET_7": return addDays(7);
+    case "NET_15": return addDays(15);
+    case "NET_30": return addDays(30);
+    default: return null;
+  }
+}
+
+function invoiceLineSignature(lines: Array<Record<string, unknown>>): string {
+  return JSON.stringify(lines.map((l) => ({
+    service_code: String(l.service_code ?? ""),
+    person_type: String(l.person_type ?? ""),
+    person_name: String(l.person_name ?? ""),
+    family_member_id: String(l.family_member_id ?? ""),
+    quantity: Number(l.quantity ?? 1),
+    unit_price: Number(l.unit_price ?? l.amount ?? 0),
+    discount_amount: Number(l.discount_amount ?? l.discount ?? 0),
+    is_complimentary: !!l.is_complimentary,
+  })).sort((a, b) => `${a.service_code}|${a.person_type}|${a.person_name}|${a.family_member_id}`.localeCompare(`${b.service_code}|${b.person_type}|${b.person_name}|${b.family_member_id}`)));
+}
+
 export async function createDraftInvoice(args: {
   client_id: string;
   client_name: string;
@@ -315,8 +344,12 @@ export async function createDraftInvoice(args: {
   lines: InvoiceLineDraft[];
 }): Promise<CreateInvoiceResult> {
   const today = new Date().toISOString().slice(0, 10);
-  const stamp = Date.now().toString().slice(-7);
-  const invoice_number = `INV-DRAFT-${stamp}`;
+  const dueDate = invoiceDueDate(args.payment_terms);
+  const serviceCodes = Array.from(new Set(args.lines.map((l) => l.service_code).filter(Boolean))) as string[];
+  const { data: services } = serviceCodes.length
+    ? await supabase.from("service_catalogue").select("id,service_code").in("service_code", serviceCodes)
+    : { data: [] as Array<{ id: string; service_code: string }> };
+  const serviceIdByCode = new Map((services ?? []).map((s) => [s.service_code, s.id]));
 
   let subtotal = 0, taxTotal = 0, grandTotal = 0;
   const computed = args.lines.map((l) => {
@@ -326,51 +359,71 @@ export async function createDraftInvoice(args: {
     subtotal += base;
     taxTotal += gst;
     grandTotal += total;
-    return { ...l, gst_amount: gst, line_total: total };
+    return {
+      service_id: l.service_code ? serviceIdByCode.get(l.service_code) ?? null : null,
+      service_code: l.service_code,
+      service_name: l.service_name,
+      description: l.service_name,
+      person_type: l.person_type,
+      person_name: l.person_name,
+      family_member_id: l.family_member_id,
+      quantity: l.quantity,
+      currency: "INR",
+      amount: l.unit_price,
+      unit_price: l.unit_price,
+      discount: l.discount_amount,
+      discount_amount: l.discount_amount,
+      tax: gst,
+      gst_rate: l.gst_rate,
+      gst_amount: gst,
+      total,
+      line_total: total,
+      is_complimentary: l.is_complimentary,
+      offer_id: l.offer_id,
+    };
   });
+  const signature = invoiceLineSignature(computed);
+
+  const { data: existing } = await supabase
+    .from("client_invoices")
+    .select("id,invoice_number,status,line_items")
+    .eq("client_id", args.client_id)
+    .is("archived_at", null)
+    .not("status", "in", "(cancelled,void,refunded)");
+  const duplicate = (existing ?? []).find((inv) => invoiceLineSignature(Array.isArray(inv.line_items) ? inv.line_items as Array<Record<string, unknown>> : []) === signature);
+  if (duplicate) return { invoice_id: duplicate.id, invoice_number: duplicate.invoice_number };
 
   const { data: { user } } = await supabase.auth.getUser();
   const { data: inv, error: invErr } = await supabase
-    .from("accounting_ar_invoices")
+    .from("client_invoices")
     .insert([{
-      invoice_number,
       client_id: args.client_id,
-      client_name: args.client_name,
-      invoice_date: today,
-      status: "DRAFT",
+      invoice_number: `TEMP-${crypto.randomUUID()}`,
+      amount: grandTotal,
       currency: "INR",
-      subtotal,
-      tax_amount: taxTotal,
-      total_amount: grandTotal,
-      outstanding_balance: grandTotal,
-      entity: args.entity,
-      payment_terms: args.payment_terms,
+      status: "draft",
+      due_date: dueDate,
+      line_items: computed,
       created_by: user?.id ?? null,
+      invoice_entity_code: args.entity ? args.entity.slice(0, 12).replace(/[^A-Za-z0-9]/g, "").toUpperCase() || "FLC" : "FLC",
+      invoice_branch_code: "GEN",
+      invoice_year: Number(today.slice(0, 4)),
+      fx_snapshot_date: today,
+      fx_rate_to_inr: 1,
+      fx_rate_to_cad: 1,
+      fx_rate_to_usd: 1,
+      fx_provider: "manual",
+      fx_manual_override: true,
+      subtotal_in_inr: grandTotal,
+      subtotal_in_cad: grandTotal,
+      subtotal_in_usd: grandTotal,
+      balance_due_in_inr: grandTotal,
+      balance_due_in_cad: grandTotal,
+      balance_due_in_usd: grandTotal,
     } as never])
     .select("id, invoice_number")
     .single();
   if (invErr) throw invErr;
-
-  if (computed.length) {
-    const rows = computed.map((c) => ({
-      invoice_id: (inv as { id: string }).id,
-      service_code: c.service_code,
-      service_name: c.service_name,
-      person_type: c.person_type,
-      person_name: c.person_name,
-      family_member_id: c.family_member_id,
-      quantity: c.quantity,
-      unit_price: c.unit_price,
-      discount_amount: c.discount_amount,
-      gst_rate: c.gst_rate,
-      gst_amount: c.gst_amount,
-      line_total: c.line_total,
-      is_complimentary: c.is_complimentary,
-      offer_id: c.offer_id,
-    }));
-    const { error: linesErr } = await supabase.from("ar_invoice_line_items").insert(rows as never);
-    if (linesErr) throw linesErr;
-  }
 
   return { invoice_id: (inv as { id: string }).id, invoice_number: (inv as { invoice_number: string }).invoice_number };
 }
