@@ -240,12 +240,11 @@ function PendingVerificationQueue({
     if (!p.payment_proof_file_id) { toast.info("No proof attached"); return; }
     const { data, error } = await supabase
       .from("client_documents")
-      .select("file_path, storage_path, file_url, name")
+      .select("storage_path")
       .eq("id", p.payment_proof_file_id)
       .maybeSingle();
     if (error || !data) { toast.error("Proof not found"); return; }
-    const path = (data as any).storage_path || (data as any).file_path;
-    if ((data as any).file_url) { window.open((data as any).file_url, "_blank", "noopener,noreferrer"); return; }
+    const path = (data as any).storage_path;
     if (!path) { toast.info("No file path on proof"); return; }
     const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
     if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
