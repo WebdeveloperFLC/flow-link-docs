@@ -96,6 +96,28 @@ const ClientNew = () => {
       if (!lead) { toast.error("Lead not found"); return; }
       setSourceLead({ id: lead.id, lead_number: lead.lead_number });
       leadNotesRef.current = lead.notes ?? "";
+      // If this lead was already converted, jump straight to edit mode for the
+      // existing client instead of trying to insert a duplicate row.
+      if (lead.converted_to_client_id) {
+        setClientId(lead.converted_to_client_id);
+        fetchClient(lead.converted_to_client_id).then((c) => {
+          if (!c) return;
+          setRegNumber(c.registration_number ?? null);
+          setF(c);
+          setInterestedCountries(c.interested_countries ?? []);
+          setOtherTests(c.other_tests ?? []);
+          setServices({
+            coaching_services: c.coaching_services ?? [],
+            visa_services: c.visa_services ?? [],
+            admission_services: c.admission_services ?? [],
+            allied_services: c.allied_services ?? [],
+            travel_services: c.travel_financial_services ?? [],
+          });
+          setPaymentTerms(c.payment_terms ?? "DUE_ON_RECEIPT");
+          setBillingEntity(c.billing_entity ?? "");
+        });
+        return;
+      }
       const pre = prefillFromLead(lead);
       setF(pre);
       setInterestedCountries(lead.interested_countries ?? []);
@@ -150,6 +172,7 @@ const ClientNew = () => {
     const fn = (f.first_name ?? "").trim();
     const ln = (f.last_name ?? "").trim();
     if (!clientId && (!fn || !ln)) return;
+    if (saving) return; // guard against rapid overlapping autosaves
     setSaving(true);
     try {
       const saved = await upsertClientRegistration(clientId, buildDraft());
@@ -158,9 +181,10 @@ const ClientNew = () => {
         setRegNumber(saved.registration_number ?? null);
         toast.success(`Client created: ${saved.registration_number ?? saved.application_id ?? saved.id}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("[client autosave]", e);
-      toast.error(e instanceof Error ? e.message : "Save failed");
+      const msg = e?.message || e?.error_description || e?.details || e?.hint || "Save failed";
+      toast.error(`Save failed: ${msg}`);
     } finally {
       setSaving(false);
     }
