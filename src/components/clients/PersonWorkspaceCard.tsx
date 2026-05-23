@@ -496,7 +496,7 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
                       <>
                         {statusBadge(doc.status)}
                         <Button size="icon" variant="ghost" className="size-7" title="Preview"
-                          onClick={() => openClientDocument(doc)}><Eye className="size-3.5" /></Button>
+                          onClick={() => openClientDocument({ storagePath: doc.storage_path, fileName: doc.file_name, mimeType: doc.mime_type ?? undefined })}><Eye className="size-3.5" /></Button>
                         {canEdit && doc.status !== "verified" && (
                           <Button size="icon" variant="ghost" className="size-7 text-success" title="Mark verified"
                             onClick={() => setDocStatus(doc, "verified")}><CheckCircle2 className="size-3.5" /></Button>
@@ -550,7 +550,7 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
                     <span className="flex-1 truncate">{d.file_name}</span>
                     {statusBadge(d.status)}
                     <Button size="icon" variant="ghost" className="size-7" title="Preview"
-                      onClick={() => openClientDocument(d)}><Eye className="size-3.5" /></Button>
+                      onClick={() => openClientDocument({ storagePath: d.storage_path, fileName: d.file_name, mimeType: d.mime_type ?? undefined })}><Eye className="size-3.5" /></Button>
                     {canEdit && (
                       <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Delete"
                         onClick={() => onDeleteDoc(d)}><Trash2 className="size-3.5" /></Button>
