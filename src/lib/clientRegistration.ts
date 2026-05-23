@@ -185,21 +185,14 @@ export async function upsertClientRegistration(
   }
 
   if (id) {
-    const { data, error } = await supabase
-      .from("clients")
-      .update(body as never)
-      .eq("id", id)
-      .select()
-      .single();
-    if (error) throw error;
+    const data = await runWithAuthRetry(() =>
+      supabase.from("clients").update(body as never).eq("id", id).select().single(),
+    );
     return data as unknown as ClientRow;
   }
-  const { data, error } = await supabase
-    .from("clients")
-    .insert([body as never])
-    .select()
-    .single();
-  if (error) throw error;
+  const data = await runWithAuthRetry(() =>
+    supabase.from("clients").insert([body as never]).select().single(),
+  );
   return data as unknown as ClientRow;
 }
 
@@ -226,12 +219,14 @@ export async function upsertFamilyMember(
   patch: Partial<FamilyMember>,
 ): Promise<FamilyMember> {
   if (id) {
-    const { data, error } = await supabase.from("client_family_members").update(patch as never).eq("id", id).select().single();
-    if (error) throw error;
+    const data = await runWithAuthRetry(() =>
+      supabase.from("client_family_members").update(patch as never).eq("id", id).select().single(),
+    );
     return data as unknown as FamilyMember;
   }
-  const { data, error } = await supabase.from("client_family_members").insert([patch as never]).select().single();
-  if (error) throw error;
+  const data = await runWithAuthRetry(() =>
+    supabase.from("client_family_members").insert([patch as never]).select().single(),
+  );
   return data as unknown as FamilyMember;
 }
 
