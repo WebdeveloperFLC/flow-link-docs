@@ -14,6 +14,12 @@ import { toast } from "sonner";
 import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
 import { Checkbox } from "@/components/ui/checkbox";
+import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
+import { appendTimeline } from "@/lib/timeline";
+import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
+import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
+import { createRoot } from "react-dom/client";
+import { Download } from "lucide-react";
 
 type Invoice = {
   id: string;
