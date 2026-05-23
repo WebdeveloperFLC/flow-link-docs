@@ -673,7 +673,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     // Resolve real entity & branch codes from invoice + masters (fallback FLC/GEN).
     const [invRes, firmRes, branchRes] = await Promise.all([
       supabase.from("client_invoices")
-        .select("invoice_number,invoice_date,invoice_entity_code,invoice_branch_code,branch_id,firm_entity_id,currency,amount,amount_paid,subtotal,tax_amount,line_items,client_id")
+        .select("invoice_number,invoice_entity_code,invoice_branch_code,branch_id,firm_entity_id,currency,amount,amount_paid,line_items,client_id,created_at")
         .eq("id", invoice.id).maybeSingle(),
       firmId ? supabase.from("firm_profile").select("id,firm_name,firm_address,firm_email,firm_phone").eq("id", firmId).maybeSingle() : Promise.resolve({ data: null } as any),
       invoice.branch_id ? supabase.from("branches").select("id,name,city,country").eq("id", invoice.branch_id).maybeSingle() : Promise.resolve({ data: null } as any),
@@ -692,7 +692,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     if (numErr) { setSaving(false); toast.error(numErr.message); return; }
 
     // Build immutable snapshot
-    const clientRes = invRow.client_id ? await supabase.from("clients").select("name,email,phone").eq("id", invRow.client_id).maybeSingle() : { data: null } as any;
+    const clientRes = invRow.client_id ? await supabase.from("clients").select("full_name,email,phone").eq("id", invRow.client_id).maybeSingle() : { data: null } as any;
     const clientRow: any = clientRes.data ?? {};
     const snapshot = {
       generated_at: new Date().toISOString(),
@@ -702,16 +702,16 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       branch_code: branchCode,
       firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null },
       branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
-      client: { id: invRow.client_id ?? null, name: clientRow.name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
+      client: { id: invRow.client_id ?? null, name: clientRow.full_name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
       invoice: {
         id: invoice.id,
         invoice_number: invRow.invoice_number,
-        invoice_date: invRow.invoice_date,
+        invoice_date: invRow.created_at,
         currency: invRow.currency,
         amount: Number(invRow.amount || 0),
         amount_paid: Number(invRow.amount_paid || 0),
-        subtotal: Number(invRow.subtotal || 0),
-        tax_amount: Number(invRow.tax_amount || 0),
+        subtotal: Number(invRow.amount || 0),
+        tax_amount: 0,
         line_items: invRow.line_items ?? [],
         outstanding: Math.max(Number(invRow.amount || 0) - Number(invRow.amount_paid || 0), 0),
       },
