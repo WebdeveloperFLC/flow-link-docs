@@ -1356,6 +1356,18 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     const branchRow: any = branchRes.data ?? {};
     const allocRows: any[] = (allocRes as any)?.data ?? [];
 
+    // Resolve firm logo (signed URL from private `branding` bucket).
+    let firmLogoUrl: string | null = null;
+    if (firmId) {
+      const { data: logoRow } = await supabase.from("firm_profile").select("logo_path").eq("id", firmId).maybeSingle();
+      const logoPath = (logoRow as any)?.logo_path;
+      if (logoPath) {
+        // Signed URL valid for ~1 year so saved snapshot remains printable for a while.
+        const { data: signed } = await supabase.storage.from("branding").createSignedUrl(logoPath, 60 * 60 * 24 * 365);
+        if (signed?.signedUrl) firmLogoUrl = signed.signedUrl;
+      }
+    }
+
     // Resolve labels + service/installment metadata for allocation snapshot
     const allocInstIds = Array.from(new Set(allocRows.map((a) => a.installment_id).filter(Boolean)));
     const allocSvcIds = Array.from(new Set(allocRows.map((a) => a.service_id).filter(Boolean)));
@@ -1429,7 +1441,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       receipt_number: num,
       entity_code: entityCode,
       branch_code: branchCode,
-      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null },
+      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null, logo_url: firmLogoUrl },
       branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
       client: { id: invRow.client_id ?? null, name: clientRow.full_name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
       invoice: {
@@ -1481,7 +1493,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       receipt_snapshot_taken_at: new Date().toISOString(),
     } as any);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      const msg = /duplicate key|uq_cir_payment_active/i.test(error.message)
+        ? "A receipt already exists for this payment."
+        : error.message;
+      toast.error(msg);
+      return;
+    }
     try {
       if (invRow.client_id) {
         await appendTimeline({
