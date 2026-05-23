@@ -29,6 +29,8 @@ interface Stage {
   sort_order: number;
   color: string | null;
   notify_client: boolean;
+  is_client_visible: boolean;
+  client_label: string | null;
 }
 
 const slugify = (s: string) =>
@@ -90,6 +92,37 @@ export function StagePipelinesSection() {
     if (error) { toast.error(error.message); return; }
     toast.success("Pipeline deleted");
     await load();
+  };
+
+  const onToggleClientVisible = async (stage: Stage, next: boolean) => {
+    setStagesByPipeline((prev) => {
+      const list = (prev[stage.pipeline_id] ?? []).map((s) =>
+        s.id === stage.id ? { ...s, is_client_visible: next } : s,
+      );
+      return { ...prev, [stage.pipeline_id]: list };
+    });
+    const { error } = await supabase
+      .from("pipeline_stages")
+      .update({ is_client_visible: next })
+      .eq("id", stage.id);
+    if (error) { toast.error(error.message); await load(); }
+  };
+
+  const onChangeClientLabel = async (stage: Stage, value: string) => {
+    const trimmed = value.trim();
+    const next = trimmed === "" ? null : trimmed;
+    if ((stage.client_label ?? null) === next) return;
+    const { error } = await supabase
+      .from("pipeline_stages")
+      .update({ client_label: next })
+      .eq("id", stage.id);
+    if (error) { toast.error(error.message); await load(); return; }
+    setStagesByPipeline((prev) => {
+      const list = (prev[stage.pipeline_id] ?? []).map((s) =>
+        s.id === stage.id ? { ...s, client_label: next } : s,
+      );
+      return { ...prev, [stage.pipeline_id]: list };
+    });
   };
 
   return (
@@ -154,7 +187,12 @@ export function StagePipelinesSection() {
                         <div className="text-xs text-muted-foreground py-2">No stages yet.</div>
                       )}
                       {stages.map((s, i) => (
-                        <div key={s.id} className="flex items-center gap-2 text-sm border rounded-md px-3 py-1.5">
+                        <div
+                          key={s.id}
+                          className={`flex items-center gap-2 text-sm border rounded-md px-3 py-1.5 ${
+                            s.is_client_visible ? "" : "opacity-60"
+                          }`}
+                        >
                           {isAdmin && (
                             <div className="flex gap-0.5">
                               <Button size="icon" variant="ghost" className="size-6" disabled={i === 0}
@@ -164,9 +202,27 @@ export function StagePipelinesSection() {
                             </div>
                           )}
                           <span className="inline-block size-3 rounded-full border" style={{ background: s.color ?? "#6366f1" }} />
-                          <span className="font-medium flex-1">{s.label}</span>
-                          <span className="font-mono text-xs text-muted-foreground">{s.key}</span>
+                          <span className="font-medium min-w-[140px]">{s.label}</span>
+                          <span className="font-mono text-xs text-muted-foreground min-w-[100px]">{s.key}</span>
+                          <Input
+                            defaultValue={s.client_label ?? ""}
+                            placeholder="Same as internal label"
+                            disabled={!isAdmin}
+                            onBlur={(e) => onChangeClientLabel(s, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                            }}
+                            className="h-7 text-xs flex-1 min-w-[140px]"
+                          />
                           {s.notify_client && <span className="text-[10px] uppercase tracking-wider text-primary">notify</span>}
+                          <div className="flex items-center gap-1.5">
+                            <Switch
+                              checked={s.is_client_visible}
+                              onCheckedChange={(v) => onToggleClientVisible(s, v)}
+                              disabled={!isAdmin}
+                            />
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">client</span>
+                          </div>
                           {isAdmin && (
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" className="size-7"
