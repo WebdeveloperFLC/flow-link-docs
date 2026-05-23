@@ -20,6 +20,10 @@ import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
 import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
 import { createRoot } from "react-dom/client";
 import { Download } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Invoice = {
   id: string;
@@ -48,11 +52,16 @@ const STATUS_STYLE: Record<string, string> = {
   viewed: "bg-primary/10 text-primary border-primary/20",
   pending_payment: "bg-amber-500/10 text-amber-700 border-amber-500/20",
   partially_paid: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  awaiting_verification: "bg-amber-500/10 text-amber-700 border-amber-500/20",
+  advance_received: "bg-blue-500/10 text-blue-700 border-blue-500/20",
   paid: "bg-emerald-500/10 text-emerald-700 border-emerald-500/20",
   overdue: "bg-destructive/10 text-destructive border-destructive/20",
   cancelled: "bg-muted text-muted-foreground line-through",
+  void: "bg-muted text-muted-foreground line-through",
   refunded: "bg-muted text-muted-foreground",
 };
+
+const TERMINAL_STATUSES = new Set(["cancelled", "void", "refunded", "paid"]);
 
 const METHODS = ["cash", "bank_transfer", "card", "upi", "etransfer", "cheque", "wallet", "referral_credits", "points"];
 const PAYMENT_SOURCES = [
@@ -68,6 +77,40 @@ const PAYMENT_SOURCES = [
 function money(amt: number, cur: string) {
   try { return new Intl.NumberFormat(undefined, { style: "currency", currency: cur || "INR", maximumFractionDigits: 2 }).format(amt || 0); }
   catch { return `${cur || ""} ${(amt || 0).toFixed(2)}`; }
+}
+
+/** Safe due-date formatter — never returns "NaN". */
+function formatDue(dueIso: string | null | undefined, fallbackIso?: string | null): string {
+  const iso = dueIso || fallbackIso || null;
+  if (!iso) return "No due date";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "No due date";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const due = new Date(d); due.setHours(0, 0, 0, 0);
+  const ms = due.getTime() - today.getTime();
+  const days = Math.round(ms / 86400000);
+  const dateStr = d.toLocaleDateString();
+  if (days === 0) return `Due today · ${dateStr}`;
+  if (days > 0) return `Due in ${days} day${days === 1 ? "" : "s"} · ${dateStr}`;
+  const n = Math.abs(days);
+  return `Overdue by ${n} day${n === 1 ? "" : "s"} · ${dateStr}`;
+}
+
+/** Derive totals strictly from verified payments. */
+function computeInvoiceTotals(invoice: Invoice, verifiedPaidForInvoice: number) {
+  const total = Number(invoice.amount) || 0;
+  const paid = Math.max(verifiedPaidForInvoice || 0, 0);
+  const outstanding = Math.max(total - paid, 0);
+  let displayStatus = invoice.status;
+  if (!TERMINAL_STATUSES.has(invoice.status)) {
+    if (outstanding <= 0.01 && paid > 0) displayStatus = "paid";
+    else if (paid > 0) displayStatus = "partially_paid";
+    else if (invoice.due_date) {
+      const d = new Date(invoice.due_date);
+      if (!isNaN(d.getTime()) && d.getTime() < Date.now()) displayStatus = "overdue";
+    }
+  }
+  return { total, paid, outstanding, displayStatus };
 }
 
 export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
