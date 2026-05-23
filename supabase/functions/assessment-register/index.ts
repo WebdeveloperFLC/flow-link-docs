@@ -82,7 +82,10 @@ Deno.serve(async (req) => {
       if (!r.error) emailed = true;
     } catch (_) { /* queued */ }
 
-    return json({ leadId, emailed, link });
+    // SECURITY: never return the verification link to the caller — it would
+    // allow registering with someone else's email and self-verifying via the
+    // API response instead of the inbox. The token is only delivered by email.
+    return json({ leadId, emailed });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);
   }
