@@ -19,6 +19,7 @@ import { BINDER_GROUPS, groupForType } from "@/lib/binderGroups";
 import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTypeDialog";
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
+import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
