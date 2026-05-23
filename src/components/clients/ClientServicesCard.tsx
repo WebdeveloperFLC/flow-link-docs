@@ -116,6 +116,16 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       setSelection(draft);
       setOpen(false);
       toast.success("Services updated");
+
+      // Auto-draft an invoice for any newly added paid services that aren't already invoiced.
+      try {
+        const drafted = await autoDraftInvoiceForServices(clientId, draft, catalogue);
+        if (drafted > 0) {
+          toast.success(`Draft invoice created for ${drafted} new service${drafted === 1 ? "" : "s"}`);
+        }
+      } catch (e) {
+        console.warn("Auto-draft invoice skipped:", e);
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not save services";
       toast.error(msg);
