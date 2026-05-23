@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import AccountingReceiptTemplate from "./AccountingReceiptTemplate";
 import type { ReceiptData } from "../../lib/receiptHelpers";
+import { openWhatsApp } from "@/lib/whatsappShare";
 
 interface Props {
   receipt: ReceiptData;
@@ -50,17 +51,14 @@ export default function AccountingReceiptModal({ receipt, isOpen, onClose }: Pro
   }
 
   function handleWhatsApp() {
-    // Opens WhatsApp Web with a pre-filled message. For WhatsApp Business API,
-    // replace this with an edge function call when configured.
-    const msg = encodeURIComponent(
+    const msg =
       `Dear ${receipt.clientName},\n\n` +
       `Please find your payment receipt ${receipt.receiptNumber} for ${receipt.currency} ${receipt.amountPaid.toFixed(2)} received on ${receipt.receiptDate}.\n\n` +
       `Service: ${receipt.serviceType}\n` +
       `Reference: ${receipt.paymentReference ?? "N/A"}\n\n` +
       `Thank you for choosing Future Link Consultants!\n\n` +
-      `Team Future Link`
-    );
-    window.open(`https://wa.me/?text=${msg}`, "_blank");
+      `Team Future Link`;
+    openWhatsApp(receipt.clientPhone, msg);
   }
 
   return (

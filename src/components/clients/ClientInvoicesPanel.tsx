@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle, ShieldCheck, ShieldX, Clock } from "lucide-react";
+import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle, ShieldCheck, ShieldX, Clock, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
@@ -72,6 +73,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [collectFor, setCollectFor] = useState<Invoice | null>(null);
   const [receiptFor, setReceiptFor] = useState<Invoice | null>(null);
   const [reminderFor, setReminderFor] = useState<Invoice | null>(null);
+  const [snapshotFor, setSnapshotFor] = useState<Invoice | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -163,7 +165,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                 const remLocked = !!r.external_request_sent_today
                   || (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
                 return (
-                  <tr key={r.id} className="border-t hover:bg-muted/30 align-middle">
+                  <tr key={r.id} className="border-t hover:bg-muted/30 align-middle cursor-pointer" onClick={() => setSnapshotFor(r)}>
                     <td className="px-3 py-2 font-medium">
                       {r.invoice_number}
                       {r.invoice_locked_for_edit && <Lock className="inline size-3 ml-1 text-muted-foreground" />}
@@ -175,8 +177,11 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{money(Number(r.amount_paid || 0), r.currency)}</td>
                     <td className={`px-3 py-2 text-right tabular-nums font-medium ${balance > 0 ? "" : "text-muted-foreground"}`}>{money(balance, r.currency)}</td>
                     <td className="px-3 py-2 text-muted-foreground">{r.due_date ?? "—"}</td>
-                    <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <Button size="sm" variant="outline" disabled={remLocked || balance <= 0} title={remLocked ? "An external reminder was already sent for this invoice today." : undefined} onClick={() => setReminderFor(r)}>
+                    <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <Button size="sm" variant="ghost" onClick={() => setSnapshotFor(r)} title="View snapshot">
+                        <Eye className="size-3.5" />
+                      </Button>
+                      <Button size="sm" variant="outline" className="ml-1" disabled={remLocked || balance <= 0} title={remLocked ? "An external reminder was already sent for this invoice today." : undefined} onClick={() => setReminderFor(r)}>
                         <Bell className="size-3.5 mr-1" /> Remind
                       </Button>
                       <Button size="sm" variant="default" className="ml-1" disabled={balance <= 0 || !isAccounts} title={!isAccounts ? "Only accounts users can post payments." : undefined} onClick={() => setCollectFor(r)}>
@@ -208,6 +213,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       {collectFor && <CollectPaymentDialog invoice={collectFor} onClose={() => { setCollectFor(null); load(); }} />}
       {receiptFor && <GenerateReceiptDialog invoice={receiptFor} onClose={() => { setReceiptFor(null); load(); }} />}
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
+      {snapshotFor && <InvoiceSnapshotDrawer invoice={snapshotFor} onClose={() => setSnapshotFor(null)} />}
     </Card>
   );
 }
@@ -841,5 +847,130 @@ function SendReminderDialog({ invoice, clientId, onClose }: { invoice: Invoice; 
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+/* ───────────────────── Invoice Snapshot Drawer (read-only) ───────────────────── */
+function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose: () => void }) {
+  const [payments, setPayments] = useState<any[]>([]);
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const [p, r] = await Promise.all([
+        supabase.from("client_invoice_payments")
+          .select("id,paid_at,method,currency,amount,reference,payment_status,payment_source,fx_rate,is_refund")
+          .eq("invoice_id", invoice.id).is("archived_at", null).order("paid_at", { ascending: false }),
+        supabase.from("client_invoice_receipts")
+          .select("id,receipt_number,generated_at,currency,amount,receipt_voided")
+          .eq("invoice_id", invoice.id).is("archived_at", null).order("generated_at", { ascending: false }),
+      ]);
+      setPayments(p.data ?? []);
+      setReceipts(r.data ?? []);
+      setLoading(false);
+    })();
+  }, [invoice.id]);
+
+  const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
+
+  return (
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Invoice snapshot — {invoice.invoice_number}</SheetTitle>
+        </SheetHeader>
+
+        <div className="mt-4 space-y-4 text-sm">
+          <div className="rounded-md border p-3 grid grid-cols-2 gap-2">
+            <div><div className="text-xs text-muted-foreground">Status</div>
+              <Badge variant="outline" className={STATUS_STYLE[invoice.status] ?? ""}>{invoice.status.replace(/_/g, " ")}</Badge>
+            </div>
+            <div><div className="text-xs text-muted-foreground">Due</div><div>{invoice.due_date ?? "—"}</div></div>
+            <div><div className="text-xs text-muted-foreground">Total</div><div className="font-medium tabular-nums">{money(Number(invoice.amount), invoice.currency)}</div></div>
+            <div><div className="text-xs text-muted-foreground">Paid</div><div className="tabular-nums">{money(Number(invoice.amount_paid || 0), invoice.currency)}</div></div>
+            <div className="col-span-2"><div className="text-xs text-muted-foreground">Outstanding</div>
+              <div className={`font-semibold tabular-nums ${balance > 0 ? "text-destructive" : "text-emerald-700"}`}>{money(balance, invoice.currency)}</div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Line items</div>
+            <div className="rounded-md border overflow-hidden">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/40 text-muted-foreground">
+                  <tr><th className="text-left px-2 py-1">Service</th><th className="text-right px-2 py-1">Qty</th><th className="text-right px-2 py-1">Total</th></tr>
+                </thead>
+                <tbody>
+                  {(Array.isArray(invoice.line_items) ? invoice.line_items : []).map((li: any, i: number) => (
+                    <tr key={i} className="border-t">
+                      <td className="px-2 py-1">{li.service_name || li.description || "—"}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{li.quantity ?? 1}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{money(Number(li.total ?? li.amount ?? 0), invoice.currency)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Payments ({payments.length})</div>
+            {loading ? <div className="text-muted-foreground">Loading…</div> : payments.length === 0 ? (
+              <div className="text-muted-foreground text-xs">No payments recorded.</div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr><th className="text-left px-2 py-1">Date</th><th className="text-left px-2 py-1">Method</th><th className="text-left px-2 py-1">Status</th><th className="text-right px-2 py-1">Amount</th></tr>
+                  </thead>
+                  <tbody>
+                    {payments.map((p) => (
+                      <tr key={p.id} className="border-t">
+                        <td className="px-2 py-1">{new Date(p.paid_at).toLocaleDateString()}</td>
+                        <td className="px-2 py-1">{p.method?.replace(/_/g, " ")}{p.is_refund ? " (refund)" : ""}</td>
+                        <td className="px-2 py-1">
+                          <Badge variant="outline" className={
+                            p.payment_status === "verified" ? "bg-emerald-500/10 text-emerald-700 border-emerald-500/20" :
+                            p.payment_status === "rejected" ? "bg-destructive/10 text-destructive border-destructive/20" :
+                            "bg-amber-500/10 text-amber-700 border-amber-500/20"
+                          }>{(p.payment_status || "verified").replace(/_/g, " ")}</Badge>
+                        </td>
+                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Receipts ({receipts.length})</div>
+            {loading ? null : receipts.length === 0 ? (
+              <div className="text-muted-foreground text-xs">No receipts generated.</div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead className="bg-muted/40 text-muted-foreground">
+                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th></tr>
+                  </thead>
+                  <tbody>
+                    {receipts.map((r) => (
+                      <tr key={r.id} className="border-t">
+                        <td className="px-2 py-1 font-medium">{r.receipt_number}{r.receipt_voided ? " (voided)" : ""}</td>
+                        <td className="px-2 py-1">{new Date(r.generated_at).toLocaleDateString()}</td>
+                        <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="text-[11px] text-muted-foreground italic">Read-only snapshot. Use the row actions to modify.</div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
