@@ -263,6 +263,48 @@ export default function Reports() {
             </Table>
           </CardContent>
         </Card>
+
+        {/* Stage distribution */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2"><Workflow className="size-4" /> Stage distribution</CardTitle>
+            <div className="flex items-center gap-2">
+              {stageDist.length > 0 && (
+                <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
+                  <SelectTrigger className="w-[280px]"><SelectValue placeholder="Pipeline" /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from(new Map(stageDist.map((r) => [r.pipeline_id, r])).values()).map((p) => (
+                      <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
+                        {p.pipeline_name} <span className="text-muted-foreground">— {p.country}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              <Button variant="outline" size="sm" onClick={() => downloadCSV("stage_distribution", stageDist)}>
+                <Download className="size-4 mr-1" /> CSV
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent style={{ height: 320 }}>
+            {(() => {
+              const filtered = stageDist.filter((r) => r.pipeline_id === selectedPipeline);
+              if (!filtered.length) {
+                return <div className="text-sm text-muted-foreground text-center py-12">No pipeline data yet.</div>;
+              }
+              return (
+                <ResponsiveContainer>
+                  <BarChart data={filtered}>
+                    <XAxis dataKey="stage_label" fontSize={11} angle={-15} textAnchor="end" height={60} interval={0} />
+                    <YAxis fontSize={11} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="client_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
