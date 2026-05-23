@@ -958,7 +958,7 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
               <div className="rounded-md border overflow-hidden">
                 <table className="w-full text-xs">
                   <thead className="bg-muted/40 text-muted-foreground">
-                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th></tr>
+                    <tr><th className="text-left px-2 py-1">Receipt #</th><th className="text-left px-2 py-1">Date</th><th className="text-right px-2 py-1">Amount</th><th className="px-2 py-1"></th></tr>
                   </thead>
                   <tbody>
                   {receipts.map((r) => {
