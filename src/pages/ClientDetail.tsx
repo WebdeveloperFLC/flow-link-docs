@@ -852,6 +852,8 @@ const ClientDetail = () => {
             refreshKey={profileRefreshKey}
           />
 
+          <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+
           <ClientPaymentsCard clientId={client.id} />
 
           <LetterCard clientId={client.id} canGenerate={canUpload} onGenerated={load} />
