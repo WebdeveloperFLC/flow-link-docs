@@ -235,33 +235,12 @@ function PendingVerificationQueue({
 
   const verify = async (p: any) => {
     setBusyId(p.id);
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("client_invoice_payments")
-      .update({
-        payment_status: "verified",
-        verified_by: u?.user?.id ?? null,
-        verified_at: new Date().toISOString(),
-      } as any)
-      .eq("id", p.id);
+    const ok = await verifyPayment(p);
     setBusyId(null);
-    if (error) toast.error(error.message);
-    else { toast.success("Payment verified"); onChange(); }
+    if (ok) onChange();
   };
 
-  const openProof = async (p: any) => {
-    if (!p.payment_proof_file_id) { toast.info("No proof attached"); return; }
-    const { data, error } = await supabase
-      .from("client_documents")
-      .select("storage_path")
-      .eq("id", p.payment_proof_file_id)
-      .maybeSingle();
-    if (error || !data) { toast.error("Proof not found"); return; }
-    const path = (data as any).storage_path;
-    if (!path) { toast.info("No file path on proof"); return; }
-    const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
-    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
-    else toast.error("Could not open proof");
-  };
+  const openProof = (p: any) => openPaymentProof(p.payment_proof_file_id);
 
   return (
     <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5">
@@ -328,20 +307,10 @@ function RejectPaymentDialog({ payment, onClose }: { payment: any; onClose: (cha
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const save = async () => {
-    if (!reason.trim()) { toast.error("Enter a reason"); return; }
     setSaving(true);
-    const { data: u } = await supabase.auth.getUser();
-    const { error } = await supabase.from("client_invoice_payments")
-      .update({
-        payment_status: "rejected",
-        verification_rejected_reason: reason,
-        verified_by: u?.user?.id ?? null,
-        verified_at: new Date().toISOString(),
-      } as any)
-      .eq("id", payment.id);
+    const ok = await rejectPayment(payment, reason);
     setSaving(false);
-    if (error) toast.error(error.message);
-    else { toast.success("Payment rejected"); onClose(true); }
+    if (ok) onClose(true);
   };
   return (
     <Dialog open onOpenChange={(o) => !o && onClose(false)}>
