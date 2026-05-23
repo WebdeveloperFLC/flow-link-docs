@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Lead } from "@/lib/leads";
 
-export interface FamilyMember {
+export interface FamilyMember extends FamilyMemberExtras {
   id: string;
   primary_client_id: string | null;
   primary_lead_id: string | null;
@@ -16,6 +16,40 @@ export interface FamilyMember {
   separate_lead_id: string | null;
   separate_applied_at: string | null;
   notes: string | null;
+}
+
+export interface EducationEntry {
+  level?: string;
+  institution?: string;
+  year?: number | null;
+  percentage_cgpa?: string;
+  country?: string;
+  specialization?: string;
+}
+
+export interface ExperienceEntry {
+  company?: string;
+  role?: string;
+  start_date?: string | null;
+  end_date?: string | null;
+  currently_working?: boolean;
+  country?: string;
+  description?: string;
+}
+
+export interface FamilyMemberExtras {
+  last_education?: string | null;
+  institution_name?: string | null;
+  year_of_passing?: number | null;
+  percentage_cgpa?: string | null;
+  english_test?: string | null;
+  english_overall?: string | null;
+  english_test_date?: string | null;
+  english_test_expiry?: string | null;
+  english_sections?: Record<string, string>;
+  other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
+  education_history?: EducationEntry[];
+  work_experience?: ExperienceEntry[];
 }
 
 export type FamilyDraft = Partial<Omit<FamilyMember, "id">> & {
@@ -58,7 +92,10 @@ export interface ClientRow {
   english_overall?: string | null;
   english_test_date?: string | null;
   english_test_expiry?: string | null;
-  other_tests?: Array<{ type: string; score?: string; date?: string }>;
+  other_tests?: Array<{ type: string; score?: string; date?: string; sections?: Record<string, string> }>;
+  english_sections?: Record<string, string>;
+  education_history?: EducationEntry[];
+  work_experience?: ExperienceEntry[];
   branch?: string | null;
   department?: string | null;
   assigned_counselor_id?: string | null;
@@ -84,6 +121,9 @@ export type ClientDraft = Partial<Omit<ClientRow, "id" | "registration_number" |
 /** Prefill a client draft from a lead row. */
 export function prefillFromLead(lead: Lead): ClientDraft {
   const visaCode = (lead.visa_services && lead.visa_services[0]) || "";
+  const seededHistory: EducationEntry[] = lead.last_education
+    ? [{ level: lead.last_education ?? undefined }]
+    : [];
   return {
     source_lead_id: lead.id,
     first_name: lead.first_name,
@@ -100,6 +140,7 @@ export function prefillFromLead(lead: Lead): ClientDraft {
     country: lead.country_of_residence ?? "India",
     last_education: lead.last_education ?? null,
     last_education_other: lead.last_education_other ?? null,
+    education_history: seededHistory,
     interested_countries: lead.interested_countries ?? [],
     branch: lead.branch ?? null,
     department: lead.department ?? null,
@@ -122,6 +163,16 @@ export async function upsertClientRegistration(
   const composedName = [fn, mn, ln].filter(Boolean).join(" ");
   const body: Record<string, unknown> = { ...patch };
   if (composedName) body.full_name = composedName;
+  // Keep legacy scalar education fields in sync with education_history[0]
+  // so older reads, exports and AI summaries continue to work.
+  const eh = (patch.education_history ?? []) as EducationEntry[];
+  if (eh.length > 0) {
+    const e0 = eh[0];
+    if (e0.level !== undefined) body.last_education = e0.level ?? null;
+    if (e0.institution !== undefined) body.institution_name = e0.institution ?? null;
+    if (e0.year !== undefined) body.year_of_passing = e0.year ?? null;
+    if (e0.percentage_cgpa !== undefined) body.percentage_cgpa = e0.percentage_cgpa ?? null;
+  }
   // clients table requires NOT NULL country and application_type at insert time.
   if (!id) {
     if (!body.country) body.country = "India";
