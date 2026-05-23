@@ -10,6 +10,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
+import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type Invoice = {
   id: string;
@@ -45,6 +48,15 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 const METHODS = ["cash", "bank_transfer", "card", "upi", "etransfer", "cheque", "wallet", "referral_credits", "points"];
+const PAYMENT_SOURCES = [
+  { value: "manual", label: "Manual entry" },
+  { value: "walk_in", label: "Walk-in" },
+  { value: "portal", label: "Client portal" },
+  { value: "counselor_collection", label: "Counselor collection" },
+  { value: "whatsapp_link", label: "WhatsApp link" },
+  { value: "branch_counter", label: "Branch counter" },
+  { value: "online_gateway", label: "Online gateway" },
+];
 
 function money(amt: number, cur: string) {
   try { return new Intl.NumberFormat(undefined, { style: "currency", currency: cur || "INR", maximumFractionDigits: 2 }).format(amt || 0); }
