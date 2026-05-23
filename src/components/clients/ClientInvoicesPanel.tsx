@@ -273,6 +273,17 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                 const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked = !!r.external_request_sent_today
                   || (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
+                const verifiedIds = verifiedPaymentsByInvoice[r.id] ?? [];
+                const unreceiptedVerified = verifiedIds.filter(id => !receiptedPaymentIds.has(id)).length;
+                const allVerifiedReceipted = verifiedIds.length > 0 && unreceiptedVerified === 0;
+                const receiptDisabled = !isAccounts || totals.paid <= 0 || allVerifiedReceipted;
+                const receiptTitle = !isAccounts
+                  ? "Only accounts users can generate receipts."
+                  : totals.paid <= 0
+                  ? "No verified payments yet"
+                  : allVerifiedReceipted
+                  ? "All verified payments already have receipts"
+                  : undefined;
                 return (
                   <tr key={r.id} className="border-t hover:bg-muted/30 align-middle cursor-pointer" onClick={() => setSnapshotFor(r)}>
                     <td className="px-3 py-2 font-medium">
@@ -296,7 +307,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       <Button size="sm" variant="default" className="ml-1" disabled={collectDisabled} title={!isAccounts ? "Only accounts users can post payments." : (TERMINAL_STATUSES.has(r.status) ? `Invoice is ${r.status}` : (balance <= 0 ? "Nothing outstanding" : undefined))} onClick={() => setCollectFor(r)}>
                         <DollarSign className="size-3.5 mr-1" /> Collect
                       </Button>
-                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || totals.paid <= 0} onClick={() => setReceiptFor(r)}>
+                      <Button size="sm" variant="ghost" className="ml-1" disabled={receiptDisabled} title={receiptTitle} onClick={() => setReceiptFor(r)}>
                         <FileCheck2 className="size-3.5 mr-1" /> Receipt
                       </Button>
                     </td>
