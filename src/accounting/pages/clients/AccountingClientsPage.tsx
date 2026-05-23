@@ -23,6 +23,20 @@ import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency } from "../../lib/format";
 import type { Client } from "../../types/clients";
+import { useMasterLabels } from "@/lib/masters";
+
+const PRIORITY_COUNTRIES = ["Canada", "UK", "USA", "Australia", "Germany", "NZ", "UAE", "France", "Ireland"];
+const COUNTRY_ALIASES: Record<string, string[]> = {
+  UK: ["uk", "united kingdom"],
+  USA: ["usa", "us", "united states", "united states of america"],
+  NZ: ["nz", "new zealand"],
+  UAE: ["uae", "united arab emirates"],
+};
+const matchesPriority = (priority: string, label: string) => {
+  const l = label.trim().toLowerCase();
+  const aliases = COUNTRY_ALIASES[priority] ?? [priority.toLowerCase()];
+  return aliases.includes(l);
+};
 
 export default function AccountingClientsPage() {
   const navigate = useNavigate();
@@ -92,10 +106,20 @@ export default function AccountingClientsPage() {
     return () => { alive = false; };
   }, [clients]);
 
-  const countryOptions = useMemo(
-    () => Array.from(new Set(clients.map(c => c.country).filter(Boolean))).sort(),
-    [clients],
-  );
+  const masterCountries = useMasterLabels("countries");
+  const { topCountries, restCountries } = useMemo(() => {
+    const all = masterCountries.length
+      ? masterCountries
+      : (Array.from(new Set(clients.map(c => c.country).filter(Boolean))) as string[]);
+    const top: string[] = [];
+    const usedIdx = new Set<number>();
+    for (const p of PRIORITY_COUNTRIES) {
+      const idx = all.findIndex((c, i) => !usedIdx.has(i) && matchesPriority(p, c));
+      if (idx >= 0) { top.push(all[idx]); usedIdx.add(idx); }
+    }
+    const rest = all.filter((_, i) => !usedIdx.has(i)).sort((a, b) => a.localeCompare(b));
+    return { topCountries: top, restCountries: rest };
+  }, [masterCountries, clients]);
   const intakeOptions = useMemo(
     () => Array.from(new Set(clients.map(c => c.intake).filter(Boolean) as string[])).sort(),
     [clients],
@@ -240,9 +264,13 @@ export default function AccountingClientsPage() {
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mr-1">Filters</span>
             <Select value={country} onValueChange={setCountry}>
               <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Country" /></SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[320px]">
                 <SelectItem value="ALL">All countries</SelectItem>
-                {countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {topCountries.map(c => <SelectItem key={`top-${c}`} value={c}>{c}</SelectItem>)}
+                {topCountries.length > 0 && restCountries.length > 0 && (
+                  <div className="my-1 border-t" />
+                )}
+                {restCountries.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={clientType} onValueChange={setClientType}>
