@@ -342,7 +342,7 @@ function SelectFilter({ label, value, onChange, options, width }: { label: strin
       <SelectTrigger className={cn("h-9", width ?? "w-[160px]")}><SelectValue placeholder={label} /></SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>All {label.toLowerCase()}</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{o.replace(/_/g, " ")}</SelectItem>)}
+        {options.filter((o) => o !== "" && o != null).map((o) => <SelectItem key={o} value={o}>{o.replace(/_/g, " ")}</SelectItem>)}
       </SelectContent>
     </Select>
   );
