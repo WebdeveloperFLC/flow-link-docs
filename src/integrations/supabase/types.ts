@@ -5734,13 +5734,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "client_stage_history_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["pipeline_id"]
-          },
-          {
             foreignKeyName: "client_stage_history_stage_id_fkey"
             columns: ["stage_id"]
             isOneToOne: false
@@ -5751,8 +5744,8 @@ export type Database = {
             foreignKeyName: "client_stage_history_stage_id_fkey"
             columns: ["stage_id"]
             isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["stage_id"]
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -6153,8 +6146,8 @@ export type Database = {
             foreignKeyName: "clients_current_stage_id_fkey"
             columns: ["current_stage_id"]
             isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["stage_id"]
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "clients_linked_institution_id_fkey"
@@ -6176,13 +6169,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "stage_pipelines"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["pipeline_id"]
           },
           {
             foreignKeyName: "clients_source_lead_id_fkey"
@@ -8461,9 +8447,11 @@ export type Database = {
       }
       pipeline_stages: {
         Row: {
+          client_label: string | null
           color: string | null
           created_at: string
           id: string
+          is_client_visible: boolean
           key: string
           label: string
           notify_client: boolean
@@ -8472,9 +8460,11 @@ export type Database = {
           sort_order: number
         }
         Insert: {
+          client_label?: string | null
           color?: string | null
           created_at?: string
           id?: string
+          is_client_visible?: boolean
           key: string
           label: string
           notify_client?: boolean
@@ -8483,9 +8473,11 @@ export type Database = {
           sort_order?: number
         }
         Update: {
+          client_label?: string | null
           color?: string | null
           created_at?: string
           id?: string
+          is_client_visible?: boolean
           key?: string
           label?: string
           notify_client?: boolean
@@ -8500,13 +8492,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "stage_pipelines"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pipeline_stages_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["pipeline_id"]
           },
         ]
       }
@@ -12407,7 +12392,10 @@ export type Database = {
       vw_client_current_stage: {
         Row: {
           client_id: string | null
+          client_label: string | null
+          client_progress_percent: number | null
           current_stage_id: string | null
+          is_client_visible: boolean | null
           notify_client: boolean | null
           pipeline_country: string | null
           pipeline_id: string | null
@@ -12418,6 +12406,7 @@ export type Database = {
           stage_key: string | null
           stage_label: string | null
           stage_order: number | null
+          total_client_stages: number | null
           total_stages: number | null
         }
         Relationships: [
@@ -12432,8 +12421,8 @@ export type Database = {
             foreignKeyName: "clients_current_stage_id_fkey"
             columns: ["current_stage_id"]
             isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["stage_id"]
+            referencedRelation: "vw_portal_stages"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "clients_pipeline_id_fkey"
@@ -12441,13 +12430,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "stage_pipelines"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clients_pipeline_id_fkey"
-            columns: ["pipeline_id"]
-            isOneToOne: false
-            referencedRelation: "vw_stage_distribution"
-            referencedColumns: ["pipeline_id"]
           },
         ]
       }
@@ -12477,19 +12459,37 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_stage_distribution: {
+      vw_portal_stages: {
         Row: {
-          client_count: number | null
-          country: string | null
+          color: string | null
+          id: string | null
+          label: string | null
           pipeline_id: string | null
-          pipeline_name: string | null
-          service_category: string | null
           sort_order: number | null
-          stage_id: string | null
-          stage_key: string | null
-          stage_label: string | null
         }
-        Relationships: []
+        Insert: {
+          color?: string | null
+          id?: string | null
+          label?: never
+          pipeline_id?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          color?: string | null
+          id?: string | null
+          label?: never
+          pipeline_id?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_stages_pipeline_id_fkey"
+            columns: ["pipeline_id"]
+            isOneToOne: false
+            referencedRelation: "stage_pipelines"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vw_telecaller_productivity: {
         Row: {
