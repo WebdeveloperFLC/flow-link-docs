@@ -163,6 +163,9 @@ const ClientNew = () => {
     allied_services: services.allied_services,
     travel_financial_services: services.travel_services,
     other_tests: otherTests,
+    english_sections: f.english_sections ?? {},
+    education_history: f.education_history ?? [],
+    work_experience: f.work_experience ?? [],
     payment_terms: paymentTerms,
     billing_entity: billingEntity || null,
   });
