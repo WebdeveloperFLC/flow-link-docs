@@ -27,8 +27,11 @@ import { useClients } from "../../stores/clientsStore";
 import { useArInvoices, updateArInvoice } from "../../stores/arInvoicesStore";
 import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
 import { formatCurrency } from "../../lib/format";
-import type { ClientInvoice, ClientReceipt, ClientTxn } from "../../types/clients";
+import type { ClientReceipt, ClientTxn } from "../../types/clients";
 import type { CustomerInvoice, InvoiceStatus } from "../../data/mockAR";
+
+const fmtLedgerCurrency = (amount: number, currency: CustomerInvoice["currency"]) =>
+  formatCurrency(amount, currency as "CAD" | "USD" | "INR");
 
 export default function AccountingClientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
@@ -111,11 +114,11 @@ export default function AccountingClientDetailPage() {
     { headerName: "Issue date", field: "invoiceDate", width: 120 },
     { headerName: "Due date", field: "dueDate", width: 120 },
     { headerName: "Amount", field: "totalAmount", width: 150, type: "rightAligned", cellClass: "tabular-nums",
-      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
     { headerName: "Paid", field: "receivedAmount", width: 130, type: "rightAligned", cellClass: "tabular-nums",
-      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
     { headerName: "Outstanding", field: "outstandingBalance", width: 140, type: "rightAligned", cellClass: "tabular-nums font-medium",
-      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
     { headerName: "Status", field: "status", width: 150,
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} /> },
     { headerName: "Actions", width: 210, sortable: false, filter: false,
@@ -276,7 +279,7 @@ export default function AccountingClientDetailPage() {
           </TabsContent>
           <TabsContent value="invoices" className="mt-4">
             <Card className="p-0 overflow-hidden">
-              <AccountingAGGrid<ClientInvoice> rowData={invs} columnDefs={invCols} height={420} />
+              <AccountingAGGrid<CustomerInvoice> rowData={invs} columnDefs={invCols} height={420} />
             </Card>
           </TabsContent>
           <TabsContent value="receipts" className="mt-4">
