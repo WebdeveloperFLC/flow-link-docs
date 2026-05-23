@@ -241,7 +241,7 @@ const ClientNew = () => {
       if (portalEnabled && f.email) {
         try {
           await supabase.functions.invoke("client-portal-invite-create", {
-            body: { client_id: clientId, email: f.email, access_level: portalAccessLevel },
+            body: { clientId, email: f.email, access_level: portalAccessLevel },
           });
           toast.success(`Login credentials sent to ${f.email}`);
         } catch (e) {
@@ -570,6 +570,23 @@ const ClientNew = () => {
               </div>
             </div>
           </Card>
+
+          {/* Sticky bottom save bar — keeps Save reachable when scrolled */}
+          <div className="sticky bottom-0 z-10 -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 bg-background/90 backdrop-blur border-t flex items-center justify-end gap-2">
+            {saving && <span className="text-xs text-muted-foreground mr-auto">Saving…</span>}
+            <Button variant="outline" onClick={() => nav("/clients")}>Cancel</Button>
+            <Button
+              onClick={autosave}
+              disabled={saving || !(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()}
+              title={
+                !(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()
+                  ? "Enter first and last name to save"
+                  : undefined
+              }
+            >
+              {saving ? "Saving…" : clientId ? "Save Changes" : "Save Client"}
+            </Button>
+          </div>
 
         </div>
 
