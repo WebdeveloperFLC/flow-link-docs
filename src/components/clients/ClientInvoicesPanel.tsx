@@ -610,6 +610,22 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [adminOverride, setAdminOverride] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmNote, setConfirmNote] = useState("");
+  const [isAccountsUser, setIsAccountsUser] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user) return;
+      const [{ data: au }, { data: roles }] = await Promise.all([
+        supabase.from("accounting_users").select("id").eq("auth_user_id", u.user.id).eq("status", "ACTIVE").maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+      ]);
+      const adm = (roles ?? []).some((r: any) => r.role === "admin");
+      setIsAccountsUser(!!au || adm);
+    })();
+  }, []);
 
   useEffect(() => { setFxRate(getFxRate(payCcy, invCcy)); }, [payCcy, invCcy]);
 
@@ -809,11 +825,20 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
     return tail ? `${r.service_name} — ${tail}` : r.service_name;
   };
 
-  const save = async () => {
+  /** Validate, then open the confirmation modal. */
+  const requestSave = () => {
     if (selectedRows.length === 0) { toast.error("Select at least one service"); return; }
     if (sumPayNow <= 0) { toast.error("Enter a positive amount"); return; }
     if (overpay) { toast.error("A row exceeds its outstanding amount"); return; }
     if (proofMissing) { toast.error("Attach a payment proof or enable admin override"); return; }
+    setConfirmNote("");
+    setConfirmOpen(true);
+  };
+
+  /** Perform the actual insert + allocations + timeline. */
+  const save = async (forceAwaiting: boolean) => {
+    if (saving) return; // debounce double-click
+    setConfirmOpen(false);
 
     setSaving(true);
     try {
@@ -833,8 +858,12 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInInr = convert(totalPayInPayCcy, payCcy, "INR");
       const amtInCad = convert(totalPayInPayCcy, payCcy, "CAD");
       const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
-      const status = adminOverride ? "verified" : defaultPaymentStatus(method);
+      // Permission-aware: non-accounts users may NEVER post a verified payment.
+      // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
+      const baseStatus = adminOverride ? "verified" : defaultPaymentStatus(method);
+      const status = (forceAwaiting || !isAccountsUser) ? "awaiting_verification" : baseStatus;
 
+      const noteForTimeline = confirmNote.trim();
       const allocationMetas = selectedRows
         .map((r) => ({
           row: r,
