@@ -45,10 +45,25 @@ export class AuthExpiredError extends Error {
   }
 }
 
+export class PermissionDeniedError extends Error {
+  code = "PERMISSION_DENIED" as const;
+  pgCode?: string;
+  details?: string;
+  hint?: string;
+  constructor(message: string, pgCode?: string, details?: string, hint?: string) {
+    super(message);
+    this.name = "PermissionDeniedError";
+    this.pgCode = pgCode;
+    this.details = details;
+    this.hint = hint;
+  }
+}
+
 /**
  * Run a Supabase write. If it fails with an RLS/JWT error, refresh the
- * session and retry once. If it still fails, surface a friendly
- * AuthExpiredError so the UI can prompt the user to sign in again.
+ * session and retry once. If it still fails, surface either an
+ * AuthExpiredError (real missing token) or a PermissionDeniedError
+ * (RLS denial) so the UI can show a truthful message.
  *
  * The callback should perform a single Supabase call and return its result
  * (so the second attempt can re-run it cleanly).
@@ -64,13 +79,24 @@ export async function runWithAuthRetry<T>(
     }
     if (res.error && isAuthOrRlsError(res.error)) {
       const { data: sess } = await supabase.auth.getSession();
+      const hasSession = !!sess.session?.access_token;
       console.error("[runWithAuthRetry] giving up", {
         hasSession: !!sess.session,
         userId: sess.session?.user?.id ?? null,
         expiresAt: sess.session?.expires_at ?? null,
         original: res.error,
       });
-      throw new AuthExpiredError();
+      // Only call it a session expiry when we truly have no token.
+      if (!hasSession) {
+        throw new AuthExpiredError();
+      }
+      const e = res.error ?? {};
+      throw new PermissionDeniedError(
+        e.message || "You don't have permission to perform this action.",
+        e.code,
+        e.details,
+        e.hint,
+      );
     }
   }
   if (res.error) throw res.error;
