@@ -1,11 +1,16 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Mail, Phone, MapPin, Building2, UserCheck, Link2, GraduationCap } from "lucide-react";
+import { ArrowLeft, Mail, Phone, MapPin, Building2, UserCheck, Link2, GraduationCap, CreditCard, ExternalLink, Plus } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingAGGrid from "../../components/shared/AccountingAGGrid";
@@ -15,39 +20,80 @@ import ClientServicesPanel from "../../components/clients/ClientServicesPanel";
 import ClientNotesTab from "../../components/clients/ClientNotesTab";
 import ClientActivityTab from "../../components/clients/ClientActivityTab";
 import {
-  MOCK_CLIENTS, MOCK_CLIENT_INVOICES, MOCK_CLIENT_RECEIPTS, MOCK_CLIENT_TXNS,
-  MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
-  CLIENT_SEGMENT_LABEL, getClientAging,
+  MOCK_CLIENTS, MOCK_CLIENT_SERVICES, MOCK_CLIENT_NOTES, MOCK_CLIENT_ACTIVITY,
+  CLIENT_SEGMENT_LABEL,
 } from "../../data/mockClients";
 import { useClients } from "../../stores/clientsStore";
+import { useArInvoices, updateArInvoice } from "../../stores/arInvoicesStore";
 import { CLIENT_TYPE_LABEL } from "../../data/mockStaff";
 import { formatCurrency } from "../../lib/format";
-import type { ClientInvoice, ClientReceipt, ClientTxn } from "../../types/clients";
+import type { ClientReceipt, ClientTxn } from "../../types/clients";
+import type { CustomerInvoice, InvoiceStatus } from "../../data/mockAR";
+
+const fmtLedgerCurrency = (amount: number, currency: CustomerInvoice["currency"]) =>
+  formatCurrency(amount, currency as "CAD" | "USD" | "INR");
 
 export default function AccountingClientDetailPage() {
   const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const allClients = useClients();
+  const arInvoices = useArInvoices();
+  const [payDialog, setPayDialog] = useState<CustomerInvoice | null>(null);
   const client = useMemo(
     () => allClients.find(c => c.id === id) ?? MOCK_CLIENTS.find(c => c.id === id),
     [allClients, id]
   );
 
-  const txns = useMemo(() => MOCK_CLIENT_TXNS.filter(t => t.clientId === id), [id]);
-  const invs = useMemo(() => MOCK_CLIENT_INVOICES.filter(i => i.clientId === id), [id]);
-  const recs = useMemo(() => MOCK_CLIENT_RECEIPTS.filter(r => r.clientId === id), [id]);
-  const aging = useMemo(() => getClientAging(id), [id]);
+  const invoiceClientKeys = useMemo(() => new Set([id, client?.linkedCrmClientId].filter(Boolean) as string[]), [id, client?.linkedCrmClientId]);
+  const invs = useMemo(() => arInvoices.filter(i =>
+    (i.clientId && invoiceClientKeys.has(i.clientId)) ||
+    (!!client?.name && i.client.trim().toLowerCase() === client.name.trim().toLowerCase())
+  ), [arInvoices, invoiceClientKeys, client?.name]);
+  const recs = useMemo<ClientReceipt[]>(() => invs.filter(i => i.receivedAmount > 0).map(i => ({
+    id: `rc-${i.id}`,
+    clientId: id,
+    date: i.paidDate ?? i.invoiceDate,
+    reference: i.paymentReference ?? i.invoiceNumber,
+    method: ((i.paymentMethod ?? "BANK_TRANSFER") === "BANK_TRANSFER" ? "WIRE" : i.paymentMethod ?? "WIRE") as ClientReceipt["method"],
+    amount: i.receivedAmount,
+    currency: i.currency as ClientReceipt["currency"],
+    appliedTo: [i.invoiceNumber],
+    bankAccount: "—",
+  })), [invs, id]);
+  const txns = useMemo<ClientTxn[]>(() => {
+    let balance = 0;
+    return invs.slice().sort((a, b) => a.invoiceDate.localeCompare(b.invoiceDate)).flatMap((i) => {
+      const rows: ClientTxn[] = [];
+      balance += i.totalAmount;
+      rows.push({ id: `inv-${i.id}`, clientId: id, date: i.invoiceDate, reference: i.invoiceNumber, type: "INVOICE", description: i.description || "Invoice", debit: i.totalAmount, credit: 0, balance, currency: i.currency as ClientTxn["currency"] });
+      if (i.receivedAmount > 0) {
+        balance -= i.receivedAmount;
+        rows.push({ id: `pay-${i.id}`, clientId: id, date: i.paidDate ?? i.invoiceDate, reference: i.paymentReference ?? i.invoiceNumber, type: "RECEIPT", description: `Payment for ${i.invoiceNumber}`, debit: 0, credit: i.receivedAmount, balance, currency: i.currency as ClientTxn["currency"] });
+      }
+      return rows;
+    }).reverse();
+  }, [invs, id]);
+  const aging = useMemo(() => {
+    const today = Date.now();
+    return invs.filter(i => !["PAID", "VOID"].includes(i.status)).reduce((acc, i) => {
+      const open = Math.max(Number(i.outstandingBalance || 0), 0);
+      const days = i.dueDate ? Math.floor((today - new Date(i.dueDate).getTime()) / 86400000) : 0;
+      if (days <= 0) acc.current += open; else if (days <= 30) acc.d30 += open; else if (days <= 60) acc.d60 += open; else acc.d90 += open;
+      return acc;
+    }, { current: 0, d30: 0, d60: 0, d90: 0 });
+  }, [invs]);
   const services = useMemo(() => MOCK_CLIENT_SERVICES.filter(s => s.clientId === id), [id]);
   const notes = useMemo(() => MOCK_CLIENT_NOTES.filter(n => n.clientId === id), [id]);
   const activity = useMemo(() => MOCK_CLIENT_ACTIVITY.filter(a => a.clientId === id), [id]);
 
   const totals = useMemo(() => {
-    const billed = invs.reduce((s, i) => s + i.amount, 0);
+    const billed = invs.reduce((s, i) => s + i.totalAmount, 0);
     const received = recs.filter(r => !r.kind || r.kind === "PAYMENT").reduce((s, r) => s + r.amount, 0);
     const refunds = recs.filter(r => r.kind === "REFUND").reduce((s, r) => s + r.amount, 0);
     const installPaid = services.reduce((s, x) => s + (x.installmentsPaid ?? 0), 0);
     const installTotal = services.reduce((s, x) => s + (x.installmentsTotal ?? 0), 0);
-    return { billed, received, refunds, installPaid, installTotal };
+    const outstanding = invs.reduce((s, i) => s + Math.max(Number(i.outstandingBalance || 0), 0), 0);
+    return { billed, received, refunds, installPaid, installTotal, outstanding };
   }, [invs, recs, services]);
 
   const txnCols = useMemo<ColDef<ClientTxn>[]>(() => [
@@ -63,17 +109,32 @@ export default function AccountingClientDetailPage() {
       valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
   ], []);
 
-  const invCols = useMemo<ColDef<ClientInvoice>[]>(() => [
-    { headerName: "Number", field: "number", width: 180 },
-    { headerName: "Issue date", field: "issueDate", width: 120 },
+  const invCols = useMemo<ColDef<CustomerInvoice>[]>(() => [
+    { headerName: "Number", field: "invoiceNumber", width: 180 },
+    { headerName: "Issue date", field: "invoiceDate", width: 120 },
     { headerName: "Due date", field: "dueDate", width: 120 },
-    { headerName: "Amount", field: "amount", width: 150, type: "rightAligned", cellClass: "tabular-nums",
-      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
-    { headerName: "Paid", field: "paidAmount", width: 130, type: "rightAligned", cellClass: "tabular-nums",
-      valueFormatter: p => formatCurrency(p.value as number, p.data!.currency) },
+    { headerName: "Amount", field: "totalAmount", width: 150, type: "rightAligned", cellClass: "tabular-nums",
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
+    { headerName: "Paid", field: "receivedAmount", width: 130, type: "rightAligned", cellClass: "tabular-nums",
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
+    { headerName: "Outstanding", field: "outstandingBalance", width: 140, type: "rightAligned", cellClass: "tabular-nums font-medium",
+      valueFormatter: p => fmtLedgerCurrency(p.value as number, p.data!.currency) },
     { headerName: "Status", field: "status", width: 150,
       cellRenderer: (p: { value: string }) => <AccountingStatusBadge status={p.value} /> },
-  ], []);
+    { headerName: "Actions", width: 210, sortable: false, filter: false,
+      cellRenderer: (p: { data: CustomerInvoice }) => (
+        <div className="flex items-center gap-1">
+          {p.data.outstandingBalance > 0 && p.data.status !== "VOID" && (
+            <Button size="sm" variant="outline" className="h-7" onClick={() => setPayDialog(p.data)}>
+              <CreditCard className="size-3 mr-1" /> Add payment
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" className="h-7" onClick={() => navigate(`/accounting/ar/${p.data.id}`)}>
+            View <ExternalLink className="size-3 ml-1" />
+          </Button>
+        </div>
+      ) },
+  ], [navigate]);
 
   const recCols = useMemo<ColDef<ClientReceipt>[]>(() => [
     { headerName: "Date", field: "date", width: 110 },
@@ -126,6 +187,9 @@ export default function AccountingClientDetailPage() {
                 </Badge>
               )}
               <AccountingStatusBadge status={client.status} />
+              <Button size="sm" onClick={() => navigate("/accounting/ar/new")}>
+                <Plus className="size-4" /> New invoice
+              </Button>
             </div>
           }
         />
@@ -172,7 +236,7 @@ export default function AccountingClientDetailPage() {
           <div className="grid gap-3">
             <Card className="p-4">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Outstanding</div>
-              <div className="text-2xl font-bold tabular-nums mt-1">{formatCurrency(client.outstandingReceivable, client.currency)}</div>
+              <div className="text-2xl font-bold tabular-nums mt-1">{formatCurrency(totals.outstanding, client.currency)}</div>
               <div className="text-[11px] text-muted-foreground mt-2">Last transaction · {client.lastTxnDate}</div>
             </Card>
             <div className="grid grid-cols-2 gap-3">
@@ -218,7 +282,7 @@ export default function AccountingClientDetailPage() {
           </TabsContent>
           <TabsContent value="invoices" className="mt-4">
             <Card className="p-0 overflow-hidden">
-              <AccountingAGGrid<ClientInvoice> rowData={invs} columnDefs={invCols} height={420} />
+              <AccountingAGGrid<CustomerInvoice> rowData={invs} columnDefs={invCols} height={420} />
             </Card>
           </TabsContent>
           <TabsContent value="receipts" className="mt-4">
@@ -238,7 +302,59 @@ export default function AccountingClientDetailPage() {
             <ClientActivityTab items={activity} />
           </TabsContent>
         </Tabs>
+        {payDialog && (
+          <ClientPaymentDialog
+            invoice={payDialog}
+            onClose={() => setPayDialog(null)}
+            onConfirm={(patch) => {
+              const received = Number(payDialog.receivedAmount || 0) + patch.amount;
+              const outstanding = Math.max(Number(payDialog.totalAmount || 0) - received, 0);
+              const status: InvoiceStatus = outstanding <= 0 ? "PAID" : "PARTIALLY_PAID";
+              updateArInvoice(payDialog.id, {
+                receivedAmount: received,
+                outstandingBalance: outstanding,
+                status,
+                paidDate: patch.paidDate,
+                paymentMethod: patch.paymentMethod,
+                paymentReference: patch.reference,
+              });
+              toast.success(`${payDialog.invoiceNumber} payment recorded`);
+              setPayDialog(null);
+            }}
+          />
+        )}
       </div>
     </AppLayout>
+  );
+}
+
+function ClientPaymentDialog({ invoice, onClose, onConfirm }: { invoice: CustomerInvoice; onClose: () => void; onConfirm: (patch: { amount: number; paidDate: string; paymentMethod: CustomerInvoice["paymentMethod"]; reference?: string }) => void }) {
+  const [amount, setAmount] = useState(invoice.outstandingBalance);
+  const [paidDate, setPaidDate] = useState(new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState<CustomerInvoice["paymentMethod"]>("BANK_TRANSFER");
+  const [reference, setReference] = useState("");
+
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Add payment — {invoice.invoiceNumber}</DialogTitle></DialogHeader>
+        <div className="grid gap-3">
+          <div className="text-sm text-muted-foreground">Outstanding: <b>{fmtLedgerCurrency(invoice.outstandingBalance, invoice.currency)}</b></div>
+          <div className="grid gap-1.5"><Label>Amount received</Label><Input type="number" min={0} step={0.01} value={amount || ""} onChange={(e) => setAmount(parseFloat(e.target.value) || 0)} /></div>
+          <div className="grid gap-1.5"><Label>Payment date</Label><Input type="date" value={paidDate} onChange={(e) => setPaidDate(e.target.value)} /></div>
+          <div className="grid gap-1.5"><Label>Payment method</Label>
+            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as CustomerInvoice["paymentMethod"])}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{["BANK_TRANSFER", "CASH", "CHEQUE", "UPI", "CARD", "WIRE", "OTHER"].map((m) => <SelectItem key={m} value={m}>{m.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5"><Label>Reference</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Transaction / receipt reference" /></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={() => amount > 0 ? onConfirm({ amount, paidDate, paymentMethod, reference: reference || undefined }) : toast.error("Enter a payment amount")}>Confirm payment</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

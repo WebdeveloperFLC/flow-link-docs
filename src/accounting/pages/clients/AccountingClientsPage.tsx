@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Plus, Link2, MoreHorizontal, Trash2 } from "lucide-react";
+import { ExternalLink, Plus, Link2, MoreHorizontal, Trash2, Search } from "lucide-react";
 import type { ColDef } from "ag-grid-community";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -45,6 +46,7 @@ export default function AccountingClientsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
   const [country, setCountry] = useState<string>("ALL");
   const [clientType, setClientType] = useState<string>("ALL");
@@ -160,21 +162,26 @@ export default function AccountingClientsPage() {
     return (c.servicePackage ?? "").toLowerCase().includes(val.toLowerCase());
   };
 
-  const rows = useMemo(() => clients.filter(c =>
-    (country === "ALL" || c.country === country) &&
-    (clientType === "ALL" || c.clientType === clientType) &&
-    matchService(c, "coaching", coachingFilter) &&
-    matchService(c, "visa", visaServiceFilter) &&
-    matchService(c, "admission", admissionFilter) &&
-    matchService(c, "allied", alliedFilter) &&
-    matchService(c, "travel", travelFilter) &&
-    (counselorId === "ALL" || c.counselorId === counselorId) &&
-    (visaCategory === "ALL" || c.visaCategory === visaCategory) &&
-    (intake === "ALL" || c.intake === intake) &&
-    (paymentStatus === "ALL" ||
-      (paymentStatus === "OUTSTANDING" ? c.outstandingReceivable > 0 : c.outstandingReceivable === 0)) &&
-    (status === "ALL" || c.status === status),
-  ), [clients, crmServiceMap, country, clientType, coachingFilter, visaServiceFilter, admissionFilter, alliedFilter, travelFilter, counselorId, visaCategory, intake, paymentStatus, status]);
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return clients.filter(c => {
+      const hay = `${c.name} ${c.legalName} ${c.email} ${c.phone} ${c.country} ${c.servicePackage} ${c.visaCategory} ${c.intake} ${c.counselorName} ${c.accountManager}`.toLowerCase();
+      return (!q || hay.includes(q)) &&
+        (country === "ALL" || c.country === country) &&
+        (clientType === "ALL" || c.clientType === clientType) &&
+        matchService(c, "coaching", coachingFilter) &&
+        matchService(c, "visa", visaServiceFilter) &&
+        matchService(c, "admission", admissionFilter) &&
+        matchService(c, "allied", alliedFilter) &&
+        matchService(c, "travel", travelFilter) &&
+        (counselorId === "ALL" || c.counselorId === counselorId) &&
+        (visaCategory === "ALL" || c.visaCategory === visaCategory) &&
+        (intake === "ALL" || c.intake === intake) &&
+        (paymentStatus === "ALL" ||
+          (paymentStatus === "OUTSTANDING" ? c.outstandingReceivable > 0 : c.outstandingReceivable === 0)) &&
+        (status === "ALL" || c.status === status);
+    });
+  }, [clients, crmServiceMap, search, country, clientType, coachingFilter, visaServiceFilter, admissionFilter, alliedFilter, travelFilter, counselorId, visaCategory, intake, paymentStatus, status]);
 
   const cols = useMemo<ColDef<Client>[]>(() => [
     {
@@ -262,6 +269,10 @@ export default function AccountingClientsPage() {
         <Card className="p-4">
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold mr-1">Filters</span>
+            <div className="relative min-w-[260px] flex-1 max-w-md">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search client, email, phone, service…" className="pl-8 h-9" />
+            </div>
             <Select value={country} onValueChange={setCountry}>
               <SelectTrigger className="w-[130px] h-9"><SelectValue placeholder="Country" /></SelectTrigger>
               <SelectContent className="max-h-[320px]">

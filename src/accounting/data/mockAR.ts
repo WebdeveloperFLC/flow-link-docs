@@ -45,6 +45,7 @@ export const REVENUE_CATEGORY_LABELS: Record<RevenueCategory, string> = {
 
 export interface CustomerInvoice {
   id: string;
+  clientId?: string;
   invoiceNumber: string;
   client: string;
   clientEmail: string;
