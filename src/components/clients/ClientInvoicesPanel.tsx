@@ -16,9 +16,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
-import { snapshotToReceiptData } from "@/accounting/lib/receiptHelpers";
-import AccountingReceiptTemplate from "@/accounting/components/receipts/AccountingReceiptTemplate";
-import { createRoot } from "react-dom/client";
+import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -126,6 +124,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [receiptFor, setReceiptFor] = useState<Invoice | null>(null);
   const [reminderFor, setReminderFor] = useState<Invoice | null>(null);
   const [snapshotFor, setSnapshotFor] = useState<Invoice | null>(null);
+  const [receiptsDrawerOpen, setReceiptsDrawerOpen] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -219,7 +218,15 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
               <>
                 {rows.length} invoice{rows.length === 1 ? "" : "s"} · Outstanding {money(outstanding, currency)}
                 <span className="ml-2">· Payments {paymentCount}</span>
-                <span className="ml-2">· Receipts {receiptCount}</span>
+                <button
+                  type="button"
+                  className="ml-2 underline-offset-2 hover:underline text-primary disabled:text-muted-foreground disabled:no-underline"
+                  disabled={receiptCount === 0}
+                  onClick={() => setReceiptsDrawerOpen(true)}
+                  title={receiptCount === 0 ? "No receipts yet" : "View all receipts"}
+                >
+                  · Receipts {receiptCount}
+                </button>
                 {pending.length > 0 && <span className="ml-2 text-amber-700">· Awaiting verification {pending.length}</span>}
               </>
             )}
@@ -307,6 +314,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
       {receiptFor && <GenerateReceiptDialog invoice={receiptFor} onClose={() => { setReceiptFor(null); load(); }} />}
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
       {snapshotFor && <InvoiceSnapshotDrawer invoice={snapshotFor} onClose={() => setSnapshotFor(null)} />}
+      {receiptsDrawerOpen && <ClientReceiptsDrawer clientId={clientId} onClose={() => setReceiptsDrawerOpen(false)} />}
     </Card>
   );
 }
@@ -1734,25 +1742,78 @@ function InvoiceSnapshotDrawer({ invoice, onClose }: { invoice: Invoice; onClose
   );
 }
 
-/** Render a stored receipt snapshot via AccountingReceiptTemplate and trigger window.print(). */
-function printReceiptSnapshot(snapshot: any) {
-  const data = snapshotToReceiptData(snapshot);
-  if (!data) { toast.error("Snapshot unavailable"); return; }
-  const existing = document.getElementById("accounting-receipt-print-root");
-  if (existing) existing.remove();
-  const mount = document.createElement("div");
-  mount.id = "accounting-receipt-print-root";
-  document.body.appendChild(mount);
-  const root = createRoot(mount);
-  root.render(<AccountingReceiptTemplate receipt={data} />);
-  const cleanup = () => {
-    try { root.unmount(); } catch {}
-    mount.remove();
-    window.removeEventListener("afterprint", cleanup);
-  };
-  window.addEventListener("afterprint", cleanup);
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    window.print();
-    setTimeout(cleanup, 2000);
-  }));
+/* ───────────────────── Client Receipts Drawer ───────────────────── */
+function ClientReceiptsDrawer({ clientId, onClose }: { clientId: string; onClose: () => void }) {
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  useEffect(() => {
+    (async () => {
+      const { data: invs } = await supabase
+        .from("client_invoices")
+        .select("id,invoice_number")
+        .eq("client_id", clientId);
+      const invMap = new Map<string, string>();
+      for (const i of (invs ?? []) as any[]) invMap.set(i.id, i.invoice_number);
+      const ids = Array.from(invMap.keys());
+      if (!ids.length) { setRows([]); setLoading(false); return; }
+      const { data } = await supabase
+        .from("client_invoice_receipts")
+        .select("id,receipt_number,generated_at,currency,amount,receipt_voided,receipt_snapshot_jsonb,invoice_id")
+        .in("invoice_id", ids)
+        .is("archived_at", null)
+        .order("generated_at", { ascending: false });
+      setRows(((data ?? []) as any[]).map((r) => ({ ...r, invoice_number: invMap.get(r.invoice_id) ?? "—" })));
+      setLoading(false);
+    })();
+  }, [clientId]);
+  const filtered = !q.trim() ? rows : rows.filter((r) =>
+    [r.receipt_number, r.invoice_number].filter(Boolean).some((v: any) => String(v).toLowerCase().includes(q.trim().toLowerCase()))
+  );
+  return (
+    <Sheet open onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="sm:max-w-2xl overflow-y-auto">
+        <SheetHeader><SheetTitle>All receipts</SheetTitle></SheetHeader>
+        <div className="mt-4 space-y-3">
+          <Input placeholder="Search by receipt # or invoice #…" value={q} onChange={(e) => setQ(e.target.value)} className="h-8 text-xs" />
+          {loading ? (
+            <div className="py-6 flex items-center justify-center text-muted-foreground text-sm"><Loader2 className="size-4 animate-spin mr-2" /> Loading…</div>
+          ) : filtered.length === 0 ? (
+            <div className="py-6 text-center text-sm text-muted-foreground">{rows.length === 0 ? "No receipts generated yet." : "No receipts match your search."}</div>
+          ) : (
+            <div className="rounded-md border overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead className="bg-muted/40 uppercase text-[10px] text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-2 py-1">Receipt #</th>
+                    <th className="text-left px-2 py-1">Invoice</th>
+                    <th className="text-left px-2 py-1">Date</th>
+                    <th className="text-right px-2 py-1">Amount</th>
+                    <th className="px-2 py-1"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((r) => (
+                    <tr key={r.id} className="border-t">
+                      <td className="px-2 py-1 font-medium">{r.receipt_number}{r.receipt_voided ? " (voided)" : ""}</td>
+                      <td className="px-2 py-1">{r.invoice_number}</td>
+                      <td className="px-2 py-1 text-muted-foreground">{r.generated_at ? new Date(r.generated_at).toLocaleDateString() : "—"}</td>
+                      <td className="px-2 py-1 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
+                      <td className="px-2 py-1 text-right">
+                        <Button size="sm" variant="ghost" disabled={!r.receipt_snapshot_jsonb} title={r.receipt_snapshot_jsonb ? "Print / Download PDF" : "Snapshot unavailable"} onClick={() => r.receipt_snapshot_jsonb && printReceiptSnapshot(r.receipt_snapshot_jsonb)}>
+                          <Download className="size-3.5" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="text-[11px] text-muted-foreground italic">Generated receipts are stored permanently. Voided receipts remain in the list for audit.</div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
 }
+

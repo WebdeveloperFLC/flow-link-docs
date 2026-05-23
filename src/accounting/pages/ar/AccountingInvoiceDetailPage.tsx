@@ -15,6 +15,8 @@ import { useArInvoices, updateArInvoice, deleteArInvoice } from "../../stores/ar
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import AccountingReceiptModal from "../../components/receipts/AccountingReceiptModal";
 import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
+import { printReceiptSnapshot } from "../../lib/printReceiptSnapshot";
+import { supabase } from "@/integrations/supabase/client";
 
 const TODAY = new Date("2024-11-01");
 
@@ -50,7 +52,20 @@ export default function AccountingInvoiceDetailPage() {
               {(inv.status === "SENT" || inv.status === "OVERDUE" || inv.status === "PARTIALLY_PAID") && <Button onClick={() => { updateArInvoice(inv.id, { status: "PAID", paidDate: new Date().toISOString().slice(0, 10), receivedAmount: inv.totalAmount, outstandingBalance: 0 }); toast.success("Marked as paid"); }}>Mark as paid</Button>}
               {(inv.status === "DRAFT" || inv.status === "SENT") && <Button variant="destructive" onClick={() => { updateArInvoice(inv.id, { status: "VOID" }); toast.success("Voided"); }}>Void</Button>}
               {(inv.status === "PAID" || inv.status === "PARTIALLY_PAID") && (
-                <Button variant="outline" onClick={() => {
+                <Button variant="outline" onClick={async () => {
+                  // Prefer the saved receipt snapshot if one was generated from the
+                  // client invoices panel — keeps the live PDF identical to the
+                  // audited copy. Falls back to a freshly built receipt.
+                  const { data } = await supabase
+                    .from("client_invoice_receipts")
+                    .select("receipt_snapshot_jsonb")
+                    .eq("invoice_id", inv.id)
+                    .is("archived_at", null)
+                    .order("generated_at", { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                  const snap = (data as any)?.receipt_snapshot_jsonb;
+                  if (snap) { printReceiptSnapshot(snap); return; }
                   const r = buildReceiptData(inv, inv.receivedAmount, inv.paidDate ?? new Date().toISOString().slice(0, 10), inv.paymentMethod ?? "Other", inv.paymentReference);
                   setSelectedReceipt(r); setReceiptModalOpen(true);
                 }}><Receipt className="size-4 mr-1.5" /> Download receipt</Button>
