@@ -988,6 +988,25 @@ const ClientDetail = () => {
             </div>
           )}
 
+          {/* Mirrored workspaces for non-applicant people on the case */}
+          {people.filter((p) => p.role !== "applicant").length > 0 && (
+            <div className="space-y-4">
+              <div className="font-semibold text-sm">People on this file</div>
+              {people
+                .filter((p) => p.role !== "applicant")
+                .map((p) => (
+                  <PersonWorkspaceCard
+                    key={p.id}
+                    client={client}
+                    person={p}
+                    canEdit={canUpload}
+                    isAdmin={isAdmin}
+                    onChanged={load}
+                  />
+                ))}
+            </div>
+          )}
+
           {secondaryLoading && binders.length === 0 && trashedDocs.length === 0 && (
             <Card className="overflow-hidden shadow-elev-sm">
               <div className="px-6 py-4 border-b">
