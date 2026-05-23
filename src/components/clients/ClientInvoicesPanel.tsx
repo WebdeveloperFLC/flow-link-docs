@@ -449,9 +449,37 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const balance = Math.max(Number(invoice.amount) - Number(invoice.amount_paid || 0), 0);
   const invCcy = (invoice.currency || "INR").toUpperCase();
 
+  type Row = {
+    key: string;
+    kind: "installment" | "line_item";
+    order: number;
+    service_id: string | null;
+    service_name: string;
+    country: string | null;
+    category: string | null;
+    service_type: string | null;
+    installment_id: string | null;
+    installment_number: number | null;
+    installment_label: string | null;
+    line_item_key: string;
+    total: number;        // line/installment total in invoice ccy
+    already_paid: number; // sum of prior allocations in invoice ccy
+    due_date: string | null;
+    selected: boolean;
+    payNow: string;       // editable amount in invoice ccy
+    payer: string;        // "", "applicant", "sponsor", "parent", "other"
+    payerName: string;    // free text when "other"
+  };
+
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loadingRows, setLoadingRows] = useState(true);
+  const [header, setHeader] = useState<{ entity: string; branch: string; counselor: string; handler: string }>({
+    entity: "", branch: "", counselor: "", handler: "",
+  });
+  const [mode, setMode] = useState<"consolidated" | "individual" | "partial" | "installment">("consolidated");
+
   const [payCcy, setPayCcy] = useState<string>(invCcy);
   const [fxRate, setFxRate] = useState<number>(1);
-  const [amount, setAmount] = useState<string>(balance.toFixed(2));
   const [method, setMethod] = useState("bank_transfer");
   const [source, setSource] = useState("manual");
   const [reference, setReference] = useState("");
@@ -460,22 +488,208 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [adminOverride, setAdminOverride] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Re-prefill FX whenever payment currency changes.
-  useEffect(() => {
-    // rate is "payment ccy → invoice ccy"
-    setFxRate(getFxRate(payCcy, invCcy));
-  }, [payCcy, invCcy]);
+  useEffect(() => { setFxRate(getFxRate(payCcy, invCcy)); }, [payCcy, invCcy]);
 
-  const amtNum = Number(amount) || 0;
-  const convertedToInvoiceCcy = amtNum * fxRate;
-  const overpay = convertedToInvoiceCcy > balance + 0.01;
+  // Build rows from installments (preferred) or invoice line_items, with allocations + service metadata.
+  useEffect(() => {
+    (async () => {
+      setLoadingRows(true);
+      const [{ data: insts }, { data: allocs }, { data: invFull }] = await Promise.all([
+        supabase.from("client_invoice_installments")
+          .select("id,installment_number,installment_label,installment_due_date,installment_amount,paid_amount,fee_category")
+          .eq("invoice_id", invoice.id).is("archived_at", null)
+          .order("installment_number", { ascending: true }),
+        supabase.from("client_invoice_payment_allocations")
+          .select("amount_allocated,line_item_key,service_id,installment_id")
+          .eq("invoice_id", invoice.id),
+        supabase.from("client_invoices")
+          .select("client_id,branch_id,firm_entity_id,due_date,line_items")
+          .eq("id", invoice.id).maybeSingle(),
+      ]);
+
+      const lineItems: any[] = Array.isArray(invFull?.line_items) ? invFull!.line_items as any[] : (Array.isArray(invoice.line_items) ? invoice.line_items : []);
+
+      // Resolve service metadata
+      const svcIds = Array.from(new Set(lineItems.map((li) => li?.service_id).filter(Boolean))) as string[];
+      const svcMap = new Map<string, { service_name: string; country_tag: string | null; sub_category: string | null; pricing_type: string | null }>();
+      if (svcIds.length) {
+        const { data: scat } = await supabase.from("service_catalogue")
+          .select("id,service_name,country_tag,sub_category,pricing_type").in("id", svcIds);
+        (scat ?? []).forEach((s: any) => svcMap.set(s.id, s));
+      }
+
+      // Header context (entity / branch / counselor / handler)
+      const [{ data: firm }, { data: branch }, { data: client }] = await Promise.all([
+        invFull?.firm_entity_id
+          ? supabase.from("firm_profile").select("firm_name").eq("id", invFull.firm_entity_id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+        invFull?.branch_id
+          ? supabase.from("branches").select("name,city,country").eq("id", invFull.branch_id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+        invFull?.client_id
+          ? supabase.from("clients").select("assigned_counselor_id,owner_id").eq("id", invFull.client_id).maybeSingle()
+          : Promise.resolve({ data: null } as any),
+      ]);
+      const userIds = [client?.assigned_counselor_id, client?.owner_id].filter(Boolean) as string[];
+      const profMap = new Map<string, string>();
+      if (userIds.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,full_name").in("id", userIds);
+        (profs ?? []).forEach((p: any) => profMap.set(p.id, p.full_name ?? ""));
+      }
+      const branchLabel = branch ? [branch.name, branch.city].filter(Boolean).join(" · ") : "";
+      setHeader({
+        entity: (firm as any)?.firm_name ?? "",
+        branch: branchLabel,
+        counselor: client?.assigned_counselor_id ? (profMap.get(client.assigned_counselor_id) || "Counselor") : "",
+        handler: client?.owner_id ? (profMap.get(client.owner_id) || "Owner") : "",
+      });
+
+      const allocList = (allocs ?? []) as any[];
+      const paidByInstallment = new Map<string, number>();
+      const paidByLineKey = new Map<string, number>();
+      const paidByServiceFallback = new Map<string, number>();
+      for (const a of allocList) {
+        const amt = Number(a.amount_allocated || 0);
+        if (a.installment_id) paidByInstallment.set(a.installment_id, (paidByInstallment.get(a.installment_id) ?? 0) + amt);
+        else if (a.line_item_key) paidByLineKey.set(a.line_item_key, (paidByLineKey.get(a.line_item_key) ?? 0) + amt);
+        else if (a.service_id) paidByServiceFallback.set(a.service_id, (paidByServiceFallback.get(a.service_id) ?? 0) + amt);
+      }
+
+      const slug = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const meta = (li: any) => {
+        const s = li?.service_id ? svcMap.get(li.service_id) : undefined;
+        return {
+          service_name: li?.service_name || s?.service_name || "Service",
+          country: s?.country_tag ?? null,
+          category: s?.sub_category ?? null,
+          service_type: s?.pricing_type ?? null,
+        };
+      };
+
+      const out: Row[] = [];
+      const instRows = (insts ?? []) as any[];
+      if (instRows.length > 0) {
+        // installments mode — one row per installment; attach first matching line item's service metadata
+        const firstLine = lineItems[0];
+        const firstMeta = firstLine ? meta(firstLine) : { service_name: "Service", country: null, category: null, service_type: null };
+        instRows.forEach((it, idx) => {
+          const total = Number(it.installment_amount || 0);
+          const paid = paidByInstallment.get(it.id) ?? Number(it.paid_amount || 0);
+          out.push({
+            key: `inst-${it.id}`,
+            kind: "installment",
+            order: idx + 1,
+            service_id: firstLine?.service_id ?? null,
+            service_name: firstMeta.service_name,
+            country: firstMeta.country,
+            category: it.fee_category ?? firstMeta.category,
+            service_type: firstMeta.service_type,
+            installment_id: it.id,
+            installment_number: it.installment_number,
+            installment_label: it.installment_label ?? `Installment ${it.installment_number}`,
+            line_item_key: firstLine?.service_id ? `svc:${firstLine.service_id}` : `idx:0`,
+            total,
+            already_paid: paid,
+            due_date: it.installment_due_date ?? invFull?.due_date ?? null,
+            selected: false,
+            payNow: Math.max(total - paid, 0).toFixed(2),
+            payer: "",
+            payerName: "",
+          });
+        });
+      } else {
+        lineItems.forEach((li, idx) => {
+          const m = meta(li);
+          const key = li?.service_id ? `svc:${li.service_id}` : `idx:${idx}:${slug(li?.service_name ?? "")}`;
+          const total = Number(li?.total ?? (Number(li?.amount ?? 0) * Number(li?.quantity ?? 1))) || 0;
+          const paid = paidByLineKey.get(key) ?? (li?.service_id ? (paidByServiceFallback.get(li.service_id) ?? 0) : 0);
+          out.push({
+            key: `li-${idx}`,
+            kind: "line_item",
+            order: idx + 1,
+            service_id: li?.service_id ?? null,
+            service_name: m.service_name,
+            country: m.country,
+            category: m.category,
+            service_type: m.service_type,
+            installment_id: null,
+            installment_number: null,
+            installment_label: null,
+            line_item_key: key,
+            total,
+            already_paid: paid,
+            due_date: invFull?.due_date ?? null,
+            selected: false,
+            payNow: Math.max(total - paid, 0).toFixed(2),
+            payer: "",
+            payerName: "",
+          });
+        });
+      }
+
+      // Default selection: select all outstanding rows
+      out.forEach((r) => { if (Math.max(r.total - r.already_paid, 0) > 0) r.selected = true; });
+      setRows(out);
+      setLoadingRows(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoice.id]);
+
+  // Mode effects on default selection / amounts
+  useEffect(() => {
+    setRows((rs) => rs.map((r, i) => {
+      const out = Math.max(r.total - r.already_paid, 0);
+      if (mode === "individual") {
+        return { ...r, selected: i === rs.findIndex((x) => Math.max(x.total - x.already_paid, 0) > 0), payNow: out.toFixed(2) };
+      }
+      if (mode === "installment") {
+        const isInst = r.kind === "installment";
+        return { ...r, selected: isInst && out > 0, payNow: out.toFixed(2) };
+      }
+      if (mode === "partial") {
+        return { ...r, payNow: out > 0 ? Math.max(0, out / 2).toFixed(2) : "0.00" };
+      }
+      // consolidated
+      return { ...r, selected: out > 0, payNow: out.toFixed(2) };
+    }));
+  }, [mode]);
+
+  const updateRow = (key: string, patch: Partial<Row>) =>
+    setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+
+  // Derived
+  const selectedRows = rows.filter((r) => r.selected);
+  const selectedOutstanding = selectedRows.reduce((s, r) => s + Math.max(r.total - r.already_paid, 0), 0);
+  const sumPayNow = selectedRows.reduce((s, r) => s + (Number(r.payNow) || 0), 0);
+  const convertedToInvoiceCcy = sumPayNow; // amounts entered in invoice ccy
+  // Payment currency input: derived amount in payCcy = invoice-ccy total / fxRate
+  const amountInPayCcy = fxRate > 0 ? sumPayNow / fxRate : sumPayNow;
+  const overpay = selectedRows.some((r) => (Number(r.payNow) || 0) > Math.max(r.total - r.already_paid, 0) + 0.01);
   const proofRequired = isProofRequired(method);
   const proofMissing = proofRequired && !proofFile && !adminOverride;
   const willBeAwaitingVerification = defaultPaymentStatus(method) === "awaiting_verification";
 
+  // Projected per-row outstanding (after applying payNow)
+  const projected = (r: Row) => {
+    const out = Math.max(r.total - r.already_paid, 0);
+    const pay = r.selected ? Math.min(Math.max(Number(r.payNow) || 0, 0), out) : 0;
+    return Math.max(out - pay, 0);
+  };
+  const remainingUnpaidServices = rows.filter((r) => projected(r) > 0).length;
+  const nextDueRow = rows
+    .filter((r) => projected(r) > 0 && r.due_date)
+    .sort((a, b) => (a.due_date! < b.due_date! ? -1 : 1))[0];
+
+  const buildLabel = (r: Row) => {
+    if (r.kind === "installment") return `${r.service_name} — ${r.installment_label ?? `Installment ${r.installment_number ?? ""}`}`.trim();
+    const tail = r.category || r.service_type;
+    return tail ? `${r.service_name} — ${tail}` : r.service_name;
+  };
+
   const save = async () => {
-    if (!amtNum || amtNum <= 0) { toast.error("Enter a positive amount"); return; }
-    if (overpay) { toast.error("Converted amount exceeds balance due"); return; }
+    if (selectedRows.length === 0) { toast.error("Select at least one service"); return; }
+    if (sumPayNow <= 0) { toast.error("Enter a positive amount"); return; }
+    if (overpay) { toast.error("A row exceeds its outstanding amount"); return; }
     if (proofMissing) { toast.error("Attach a payment proof or enable admin override"); return; }
 
     setSaving(true);
@@ -486,18 +700,40 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const clientId = invRow?.client_id as string | undefined;
       if (!clientId) throw new Error("Invoice has no client");
 
-      // Upload proof first (if any), so we can store the doc id on the payment.
       let proofDocId: string | null = null;
       if (proofFile) {
         const res = await uploadPaymentProof({ clientId, invoiceId: invoice.id, file: proofFile });
         proofDocId = res.documentId;
       }
 
-      // Compute multi-ccy amounts using the rate the user confirmed.
-      const amtInInr = convert(amtNum, payCcy, "INR");
-      const amtInCad = convert(amtNum, payCcy, "CAD");
-      const amtInUsd = convert(amtNum, payCcy, "USD");
+      const totalPayInPayCcy = amountInPayCcy;
+      const amtInInr = convert(totalPayInPayCcy, payCcy, "INR");
+      const amtInCad = convert(totalPayInPayCcy, payCcy, "CAD");
+      const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
       const status = adminOverride ? "verified" : defaultPaymentStatus(method);
+
+      const allocationMetas = selectedRows
+        .map((r) => ({
+          row: r,
+          amount: Math.min(Math.max(Number(r.payNow) || 0, 0), Math.max(r.total - r.already_paid, 0)),
+        }))
+        .filter((a) => a.amount > 0)
+        .map((a, idx) => ({
+          allocation_order: idx + 1,
+          allocation_label: buildLabel(a.row),
+          service_id: a.row.service_id,
+          service_name: a.row.service_name,
+          country: a.row.country,
+          category: a.row.category,
+          service_type: a.row.service_type,
+          installment_id: a.row.installment_id,
+          installment_number: a.row.installment_number,
+          line_item_key: a.row.line_item_key,
+          payer: a.row.payer || null,
+          payer_name: a.row.payer === "other" ? (a.row.payerName || null) : null,
+          amount_allocated: a.amount,
+          currency: invCcy,
+        }));
 
       const { data: inserted, error } = await supabase.from("client_invoice_payments").insert({
         invoice_id: invoice.id,
@@ -505,7 +741,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         paid_at: new Date().toISOString(),
         method,
         currency: payCcy,
-        amount: amtNum,
+        amount: totalPayInPayCcy,
         amount_in_inr: amtInInr,
         amount_in_cad: amtInCad,
         amount_in_usd: amtInUsd,
@@ -519,17 +755,46 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         payment_source: source,
       } as any).select("id").maybeSingle();
       if (error) throw error;
+      const paymentId = (inserted as any)?.id as string;
 
-      // Best-effort timeline events
+      // Insert per-service / per-installment allocations
+      if (paymentId && allocationMetas.length) {
+        const ratePay = sumPayNow > 0 ? totalPayInPayCcy / sumPayNow : 0; // inverse to scale per-alloc
+        const rows = allocationMetas.map((a) => {
+          const inPayCcy = a.amount_allocated * ratePay;
+          return {
+            payment_id: paymentId,
+            invoice_id: invoice.id,
+            line_item_key: a.line_item_key,
+            service_id: a.service_id,
+            installment_id: a.installment_id,
+            amount_allocated: a.amount_allocated,
+            amount_in_inr: convert(inPayCcy, payCcy, "INR"),
+            amount_in_cad: convert(inPayCcy, payCcy, "CAD"),
+            amount_in_usd: convert(inPayCcy, payCcy, "USD"),
+            allocated_by: u?.user?.id ?? null,
+          } as any;
+        });
+        const { error: allocErr } = await supabase.from("client_invoice_payment_allocations").insert(rows);
+        if (allocErr) console.warn("[allocations] insert failed", allocErr);
+      }
+
       try {
-        const paymentId = (inserted as any)?.id;
         await appendTimeline({
           clientId,
           eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
           summary: status === "awaiting_verification"
-            ? `Payment of ${payCcy} ${amtNum.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
-            : `Payment of ${payCcy} ${amtNum.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
-          metadata: { payment_id: paymentId, invoice_id: invoice.id, amount: amtNum, currency: payCcy, method, source },
+            ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})`
+            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})`,
+          metadata: {
+            payment_id: paymentId,
+            invoice_id: invoice.id,
+            amount: totalPayInPayCcy,
+            currency: payCcy,
+            method,
+            source,
+            allocations: allocationMetas,
+          },
         });
         if (proofDocId) {
           await appendTimeline({
@@ -554,36 +819,139 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
     }
   };
 
+  const projectedChip = (r: Row) => {
+    const out = Math.max(r.total - r.already_paid, 0);
+    if (!r.selected) return <span className="text-muted-foreground">—</span>;
+    const pay = Math.min(Math.max(Number(r.payNow) || 0, 0), out);
+    const after = Math.max(out - pay, 0);
+    if (after <= 0.01 && pay > 0) return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 border-emerald-500/20">Paid</Badge>;
+    if (pay > 0) return <Badge variant="outline" className="bg-amber-500/10 text-amber-700 border-amber-500/20">Partial · {money(after, invCcy)} left</Badge>;
+    return <Badge variant="outline" className="bg-muted text-muted-foreground">Remaining {money(after, invCcy)}</Badge>;
+  };
+
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Collect payment — {invoice.invoice_number}</DialogTitle></DialogHeader>
-        <div className="text-xs text-muted-foreground mb-2">
-          Invoice total: <b>{money(Number(invoice.amount), invCcy)}</b> ·
-          Balance due: <b>{money(balance, invCcy)}</b>
+
+        {/* Header chips */}
+        <div className="flex flex-wrap gap-1.5 text-[11px] mb-2">
+          {header.entity && <Badge variant="outline">Entity: {header.entity}</Badge>}
+          {header.branch && <Badge variant="outline">Branch: {header.branch}</Badge>}
+          {header.counselor && <Badge variant="outline">Counselor: {header.counselor}</Badge>}
+          {header.handler && <Badge variant="outline">Handler: {header.handler}</Badge>}
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div><Label>Payment currency</Label>
+
+        <div className="text-xs text-muted-foreground mb-2">
+          Invoice total: <b>{money(Number(invoice.amount), invCcy)}</b> · Balance due: <b>{money(balance, invCcy)}</b>
+        </div>
+
+        {/* Mode selector */}
+        <div className="grid grid-cols-4 gap-2 mb-3">
+          <div className="col-span-2">
+            <Label>Payment mode</Label>
+            <Select value={mode} onValueChange={(v) => setMode(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="consolidated">Consolidated (all services)</SelectItem>
+                <SelectItem value="individual">Individual service</SelectItem>
+                <SelectItem value="partial">Partial payment</SelectItem>
+                <SelectItem value="installment">Installment payment</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Payment currency</Label>
             <Select value={payCcy} onValueChange={setPayCcy}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{SUPPORTED_CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>FX rate ({payCcy} → {invCcy})</Label>
+          <div>
+            <Label>FX ({payCcy} → {invCcy})</Label>
             <Input type="number" step="0.0001" value={fxRate}
-              onChange={(e) => setFxRate(parseFloat(e.target.value) || 0)}
-              disabled={payCcy === invCcy} />
+              onChange={(e) => setFxRate(parseFloat(e.target.value) || 0)} disabled={payCcy === invCcy} />
           </div>
-          <div><Label>Amount ({payCcy})</Label>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-          </div>
+        </div>
+
+        {/* Services table */}
+        <div className="rounded-md border overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead className="bg-muted/40 uppercase text-muted-foreground">
+              <tr>
+                <th className="px-2 py-1.5"></th>
+                <th className="text-left px-2 py-1.5">Service</th>
+                <th className="text-left px-2 py-1.5">Due</th>
+                <th className="text-right px-2 py-1.5">Total</th>
+                <th className="text-right px-2 py-1.5">Paid</th>
+                <th className="text-right px-2 py-1.5">Outstanding</th>
+                <th className="text-right px-2 py-1.5 w-28">Pay now ({invCcy})</th>
+                <th className="text-left px-2 py-1.5">Payer</th>
+                <th className="text-left px-2 py-1.5">After</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loadingRows ? (
+                <tr><td colSpan={9} className="text-center py-4 text-muted-foreground"><Loader2 className="inline size-3 animate-spin mr-1.5"/>Loading services…</td></tr>
+              ) : rows.length === 0 ? (
+                <tr><td colSpan={9} className="text-center py-4 text-muted-foreground">No service line items on this invoice.</td></tr>
+              ) : rows.map((r) => {
+                const out = Math.max(r.total - r.already_paid, 0);
+                return (
+                  <tr key={r.key} className="border-t align-middle">
+                    <td className="px-2 py-1.5">
+                      <Checkbox checked={r.selected} disabled={out <= 0} onCheckedChange={(v) => updateRow(r.key, { selected: !!v })} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <div className="font-medium">{buildLabel(r)}</div>
+                      <div className="text-[10px] text-muted-foreground flex flex-wrap gap-1 mt-0.5">
+                        {r.country && <span>{r.country}</span>}
+                        {r.category && <span>· {r.category}</span>}
+                        {r.service_type && <span>· {r.service_type}</span>}
+                      </div>
+                    </td>
+                    <td className="px-2 py-1.5 text-muted-foreground">{r.due_date ?? "—"}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{money(r.total, invCcy)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-muted-foreground">{money(r.already_paid, invCcy)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums">{money(out, invCcy)}</td>
+                    <td className="px-2 py-1.5">
+                      <Input type="number" min={0} step="0.01" className="h-7 text-right"
+                        disabled={!r.selected || out <= 0}
+                        value={r.payNow}
+                        onChange={(e) => updateRow(r.key, { payNow: e.target.value })} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <Select value={r.payer || "applicant"} onValueChange={(v) => updateRow(r.key, { payer: v })}>
+                        <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="applicant">Applicant</SelectItem>
+                          <SelectItem value="sponsor">Sponsor</SelectItem>
+                          <SelectItem value="parent">Parent</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {r.payer === "other" && (
+                        <Input className="h-6 mt-1 text-[11px]" placeholder="Payer name"
+                          value={r.payerName} onChange={(e) => updateRow(r.key, { payerName: e.target.value })} />
+                      )}
+                    </td>
+                    <td className="px-2 py-1.5">{projectedChip(r)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Method / source / reference / notes */}
+        <div className="grid grid-cols-2 gap-3 mt-3">
           <div><Label>Method</Label>
             <Select value={method} onValueChange={setMethod}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{METHODS.map(m => <SelectItem key={m} value={m}>{m.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div className="col-span-2"><Label>Payment source</Label>
+          <div><Label>Payment source</Label>
             <Select value={source} onValueChange={setSource}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{PAYMENT_SOURCES.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
@@ -591,47 +959,54 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           </div>
           <div className="col-span-2"><Label>Reference</Label><Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Txn ID, cheque #, UPI ref…" /></div>
           <div className="col-span-2"><Label>Notes</Label><Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} /></div>
-
-          {/* Conversion / verification summary */}
-          <div className="col-span-2 rounded-md border bg-muted/30 p-3 text-xs space-y-1">
-            <div className="flex justify-between"><span>Amount received</span><b>{money(amtNum, payCcy)}</b></div>
-            {payCcy !== invCcy && (
-              <>
-                <div className="flex justify-between text-muted-foreground"><span>FX rate</span><span className="tabular-nums">{fxRate}</span></div>
-                <div className="flex justify-between"><span>Converted ({invCcy})</span><b>{money(convertedToInvoiceCcy, invCcy)}</b></div>
-              </>
-            )}
-            <div className="flex justify-between"><span>Outstanding after</span>
-              <b className={overpay ? "text-destructive" : ""}>{money(Math.max(balance - convertedToInvoiceCcy, 0), invCcy)}</b>
-            </div>
-            {willBeAwaitingVerification && !adminOverride && (
-              <div className="text-amber-700 pt-1">Will be marked <b>awaiting verification</b> — won't reduce outstanding until verified.</div>
-            )}
-          </div>
-
-          {/* Proof upload */}
-          <div className="col-span-2 grid gap-1.5">
-            <Label>
-              Payment proof{proofRequired ? " *" : " (optional)"}
-            </Label>
-            <Input
-              type="file"
-              accept="image/*,application/pdf"
-              capture="environment"
-              onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
-            />
-            {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
-            {proofRequired && (
-              <label className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                <Checkbox checked={adminOverride} onCheckedChange={(v) => setAdminOverride(!!v)} />
-                Admin override — post without proof and mark verified
-              </label>
-            )}
-          </div>
         </div>
+
+        {/* Live summary */}
+        <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-1 mt-3">
+          <div className="flex justify-between"><span>Selected services</span><b>{selectedRows.length} · Outstanding {money(selectedOutstanding, invCcy)}</b></div>
+          <div className="flex justify-between"><span>Amount to collect ({invCcy})</span><b>{money(sumPayNow, invCcy)}</b></div>
+          {payCcy !== invCcy && (
+            <>
+              <div className="flex justify-between text-muted-foreground"><span>FX rate</span><span className="tabular-nums">{fxRate}</span></div>
+              <div className="flex justify-between"><span>Charged in {payCcy}</span><b>{money(amountInPayCcy, payCcy)}</b></div>
+            </>
+          )}
+          <div className="flex justify-between"><span>Outstanding after</span>
+            <b>{money(Math.max(balance - convertedToInvoiceCcy, 0), invCcy)}</b>
+          </div>
+          <div className="flex justify-between pt-1 border-t mt-1">
+            <span>Remaining unpaid services</span>
+            <b>{remainingUnpaidServices} {remainingUnpaidServices === 1 ? "service" : "services"}</b>
+          </div>
+          {nextDueRow && (
+            <div className="flex justify-between text-muted-foreground">
+              <span>Next due</span>
+              <span>{buildLabel(nextDueRow)} — {nextDueRow.due_date}</span>
+            </div>
+          )}
+          {overpay && <div className="text-destructive">A row's amount exceeds its outstanding balance.</div>}
+          {willBeAwaitingVerification && !adminOverride && (
+            <div className="text-amber-700 pt-1">Will be marked <b>awaiting verification</b> — won't reduce outstanding until verified.</div>
+          )}
+        </div>
+
+        {/* Proof */}
+        <div className="grid gap-1.5 mt-3">
+          <Label>Payment proof{proofRequired ? " *" : " (optional)"}</Label>
+          <Input type="file" accept="image/*,application/pdf" capture="environment"
+            onChange={(e) => setProofFile(e.target.files?.[0] ?? null)} />
+          {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
+          {proofRequired && (
+            <label className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+              <Checkbox checked={adminOverride} onCheckedChange={(v) => setAdminOverride(!!v)} />
+              Admin override — post without proof and mark verified
+            </label>
+          )}
+        </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={saving || proofMissing || overpay || amtNum <= 0}>
+          <Button onClick={save} disabled={saving || proofMissing || overpay || sumPayNow <= 0 || selectedRows.length === 0}>
             {saving ? "Posting…" : willBeAwaitingVerification && !adminOverride ? "Submit for verification" : "Post payment"}
           </Button>
         </DialogFooter>
