@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
@@ -266,7 +267,26 @@ export default function AccountingARPage() {
                             <DropdownMenuItem onClick={() => openReceipt(i)}>Generate receipt</DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => { navigate("/accounting/journals"); toast.info("Fill in journal details manually"); }}>Create journal entry</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate("/accounting/clients")}>View client ledger</DropdownMenuItem>
+                          {i.clientId ? (
+                            <DropdownMenuItem onClick={() => navigate(`/accounting/clients/${i.clientId}`)}>View client ledger</DropdownMenuItem>
+                          ) : (
+                            <TooltipProvider delayDuration={150}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <DropdownMenuItem
+                                      aria-disabled
+                                      className="text-muted-foreground opacity-60 cursor-not-allowed"
+                                      onSelect={(e) => e.preventDefault()}
+                                    >
+                                      View client ledger
+                                    </DropdownMenuItem>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="left">Client not linked</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {(i.status === "DRAFT" || i.status === "SENT") && (
                             <>
                               <DropdownMenuSeparator />

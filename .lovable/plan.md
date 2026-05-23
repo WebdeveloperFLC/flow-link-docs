@@ -1,43 +1,20 @@
+# Fix "View client ledger" routing on AR page
+
 ## Problem
+In `src/accounting/pages/ar/AccountingARPage.tsx` (line 269), the row dropdown action "View client ledger" calls `navigate("/accounting/clients")`, dumping the user on the full clients list instead of the selected client's ledger.
 
-On `/clients/:id` (the client detail page) there is currently no way to view or change which services a client has signed up for — services can only be set during registration in `ClientNew`. Additionally, inside the `ServiceTabs` picker, a selected service only changes the checkbox state; the row itself doesn't visually stand out, so it's hard to scan what's already chosen.
+## Fix (frontend routing only)
+Update that single `DropdownMenuItem` to navigate to the accounting client detail page using the invoice row's `clientId` (already populated by `arInvoicesStore` from `client_id`, falling back to the local mock value).
 
-## Scope
+Behavior:
+- If `i.clientId` is present → `navigate(\`/accounting/clients/${i.clientId}\`)`. This is the existing detail route used by `AccountingClientsPage`, rendering the full ledger view (invoices, transactions, receipts, snapshot drawer, payment history).
+- If `i.clientId` is missing → render the menu item visually disabled with a tooltip "Client not linked". Per implementation note: wrap the `DropdownMenuItem` in a `<span>` and put `TooltipTrigger` on the wrapper (a fully disabled dropdown item swallows hover events). The inner item uses `aria-disabled`, muted styling, `onSelect={e => e.preventDefault()}`, and no navigate.
 
-Frontend only. No schema changes, no migrations, no edits to invoicing, accounting, or registration flow.
+## Out of scope (explicitly unchanged)
+- No changes to AR/AP/ledger tables, invoice store, receipt store, or snapshot drawer.
+- No schema, mock data, or permissions changes.
+- Other row menu items ("View details", "Record payment", "Generate receipt", "Create journal entry", Void, Delete) remain exactly as today.
+- AP bill page and invoice detail page checked — no broken "View client ledger" action there.
 
-## Changes
-
-### 1. New `ClientServicesCard` on the client detail page
-
-Add a card on `/clients/:id` that:
-
-- Loads the client's current service selections from the `clients` row: `coaching_services`, `visa_services`, `admission_services`, `allied_services`, `travel_financial_services`.
-- Shows them grouped by category as pills (service name resolved from `service_catalogue`). Empty categories say "None selected".
-- Has an **Edit services** button (gated by the same `canUpload` / owner check already used by other edit affordances on the page).
-- Edit opens a dialog containing the existing `ServiceTabs` component with the current selection prefilled.
-- **Save** writes the five service arrays back to the `clients` row (single `update().eq("id", clientId)`), refreshes the card, logs a `client_timeline` event (`services_updated` with a short diff summary), and toasts success.
-- **Cancel** discards changes.
-
-Placement: above `ClientPaymentsCard` in the left column of `ClientDetail.tsx`, so services and payments sit next to each other.
-
-### 2. Fix selected-row highlight in `ServiceTabs`
-
-In `src/components/leads/ServiceTabs.tsx`:
-
-- The row `<label>` currently only uses `hover:bg-muted/30`. When `checked` is true, apply a clearly distinct treatment using semantic tokens: subtle accent background, primary-tinted left border, and slightly bolder label. Example: `bg-primary/5 border-l-2 border-primary` when checked, transparent left border otherwise (so layout doesn't shift).
-- Keep all colors as semantic tokens (`primary`, `accent`, `muted`) — no raw hex/Tailwind palette colors.
-- No behavior change; purely visual. This improves both the existing `ClientNew` registration flow and the new edit dialog.
-
-### 3. Files touched
-
-- **New:** `src/components/clients/ClientServicesCard.tsx` — card + edit dialog wrapper around `ServiceTabs`.
-- **Edit:** `src/pages/ClientDetail.tsx` — import and render `ClientServicesCard` above `ClientPaymentsCard`; extend the local `Client` type to include the five service-array fields and include them in the select query.
-- **Edit:** `src/components/leads/ServiceTabs.tsx` — add `checked` styling to the row `<label>`.
-
-### Out of scope
-
-- Fee editing per service (registration flow remains the source of truth for fees; this card only edits which services are attached).
-- Changing `application_type` (the "Student Visa" string in the page header) — that's a separate registration field and not what this card edits.
-- Family-member service edits — only the primary client's services here.
-- Auto-creating invoices or touching `service_fees` JSON.
+## Files touched
+- `src/accounting/pages/ar/AccountingARPage.tsx` — one dropdown item updated; add `Tooltip`/`TooltipTrigger`/`TooltipContent` imports if not already present.
