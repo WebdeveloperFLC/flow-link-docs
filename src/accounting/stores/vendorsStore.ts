@@ -85,8 +85,9 @@ async function hydrateFromSupabase() {
       .select("*");
     if (error) throw error;
     if (!data) return;
+    const rows = data as any[];
     const byId = new Map(vendors.map((v) => [v.id, v]));
-    for (const row of data) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
+    for (const row of rows) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
     vendors = Array.from(byId.values());
     emit();
   } catch (e) {
