@@ -206,6 +206,15 @@ const ClientNew = () => {
         setClientId(saved.id);
         setRegNumber(saved.registration_number ?? null);
         toast.success(`Client created: ${saved.registration_number ?? saved.application_id ?? saved.id}`);
+        // Best-effort: auto-assign stage pipeline from country + first visa service
+        const firstVisa = services.visa_services?.[0] ?? null;
+        const primaryCountry = interestedCountries?.[0] ?? saved.country ?? null;
+        void autoAssignPipelineForClient({
+          clientId: saved.id,
+          country: primaryCountry,
+          interestedCountries,
+          serviceCategory: firstVisa,
+        });
       }
     } catch (e: any) {
       console.error("[client autosave]", e);
