@@ -138,6 +138,9 @@ export default function AccountingARPage() {
               <Button variant="outline" onClick={() => navigate("/accounting/ar/verification")}>
                 Verification queue
               </Button>
+              <Button variant="outline" onClick={() => navigate("/accounting/ar/receipts")}>
+                Receipts
+              </Button>
               <Button onClick={() => navigate("/accounting/ar/new")}><Plus className="size-4 mr-1" /> New invoice</Button>
             </div>
           }
