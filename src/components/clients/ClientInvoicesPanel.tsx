@@ -115,6 +115,8 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [verifiedPaidByInvoice, setVerifiedPaidByInvoice] = useState<Record<string, number>>({});
+  const [receiptedPaymentIds, setReceiptedPaymentIds] = useState<Set<string>>(new Set());
+  const [verifiedPaymentsByInvoice, setVerifiedPaymentsByInvoice] = useState<Record<string, string[]>>({});
   const [receiptCount, setReceiptCount] = useState<number>(0);
   const [paymentCount, setPaymentCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -144,7 +146,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         .order("paid_at", { ascending: false }),
       supabase
         .from("client_invoice_payments")
-        .select("invoice_id,amount,is_refund")
+        .select("id,invoice_id,amount,is_refund")
         .eq("client_id", clientId)
         .is("archived_at", null)
         .eq("payment_status", "verified"),
@@ -158,22 +160,29 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
     else setRows((data ?? []) as any);
     setPending((pend ?? []) as any[]);
     const map: Record<string, number> = {};
+    const verifiedByInv: Record<string, string[]> = {};
     for (const p of (verifiedPays ?? []) as any[]) {
       const sign = p.is_refund ? -1 : 1;
       map[p.invoice_id] = (map[p.invoice_id] ?? 0) + sign * (Number(p.amount) || 0);
+      if (!p.is_refund) {
+        (verifiedByInv[p.invoice_id] ||= []).push(p.id);
+      }
     }
     setVerifiedPaidByInvoice(map);
+    setVerifiedPaymentsByInvoice(verifiedByInv);
     setPaymentCount((allPaysRes as any)?.count ?? 0);
     const invIds = ((data ?? []) as any[]).map((i: any) => i.id);
     if (invIds.length) {
-      const { count } = await supabase
+      const { data: rcps, count } = await supabase
         .from("client_invoice_receipts")
-        .select("id", { count: "exact", head: true })
+        .select("id,payment_id", { count: "exact" })
         .in("invoice_id", invIds)
         .is("archived_at", null);
       setReceiptCount(count ?? 0);
+      setReceiptedPaymentIds(new Set(((rcps ?? []) as any[]).map(r => r.payment_id).filter(Boolean)));
     } else {
       setReceiptCount(0);
+      setReceiptedPaymentIds(new Set());
     }
     setLoading(false);
   };
