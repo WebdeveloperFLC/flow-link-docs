@@ -47,6 +47,7 @@ import { QuickActionsBar } from "@/components/clients/QuickActionsBar";
 import { ClientEmailCard } from "@/components/clients/ClientEmailCard";
 import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard";
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
+import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
@@ -984,6 +985,25 @@ const ClientDetail = () => {
                   />
                 );
               })}
+            </div>
+          )}
+
+          {/* Mirrored workspaces for non-applicant people on the case */}
+          {people.filter((p) => p.role !== "applicant").length > 0 && (
+            <div className="space-y-4">
+              <div className="font-semibold text-sm">People on this file</div>
+              {people
+                .filter((p) => p.role !== "applicant")
+                .map((p) => (
+                  <PersonWorkspaceCard
+                    key={p.id}
+                    client={client}
+                    person={p}
+                    canEdit={canUpload}
+                    isAdmin={isAdmin}
+                    onChanged={load}
+                  />
+                ))}
             </div>
           )}
 
