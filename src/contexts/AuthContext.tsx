@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export type AppRole = "admin" | "counselor" | "documentation" | "viewer" | "telecaller" | "client" | "commission_admin";
 
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       setUser(s?.user ?? null);
       if (s?.user) {
@@ -54,6 +55,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setRoles([]);
         setIsAccountingMember(false);
         setIsAccountingAdmin(false);
+        // Auto-recover from silent refresh-token failures: if we lose the
+        // session while the user is on a protected page, push them to /auth
+        // so they can sign back in instead of hitting a cryptic RLS error.
+        if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+          try {
+            const path = window.location.pathname + window.location.search;
+            const onAuthPage = window.location.pathname.startsWith("/auth");
+            const onPortalPage = window.location.pathname.startsWith("/portal");
+            if (event === "SIGNED_OUT" && !onAuthPage && !onPortalPage) {
+              toast.error("Session expired — please sign in again.");
+              window.location.replace(`/auth?redirect=${encodeURIComponent(path)}`);
+            }
+          } catch {
+            /* noop */
+          }
+        }
       }
     });
     supabase.auth.getSession().then(({ data: { session: s } }) => {
