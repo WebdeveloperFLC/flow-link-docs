@@ -1,10 +1,11 @@
-## Goal
-The "Billing Entity" dropdown in the Invoice Preview card is currently listing every row from `accounting_entities`, including branches and sub-branches (Ajwa, Anand, Bhayli, HO – Vadodara, etc.). Branches are already collected in the dedicated Branch field, so the dropdown should show only legal/billing companies.
+## Remove Section 10 — Workflow from New Client form
 
-## Change
-- In `src/lib/clientRegistration.ts → fetchAccountingEntities()`, filter the query to `type = 'COMPANY'` so only billable legal entities are returned (Future Link Consultants Pvt Ltd, Future Link System Inc, etc.). Branches and sub-branches are excluded everywhere this helper is consumed (currently only `InvoicePreviewSection`).
-- No UI structural changes, no schema changes, no impact to the Branch selector elsewhere on the form.
+The "10. Workflow" card in `src/pages/clients/ClientNew.tsx` is no longer needed because workflow templates are now scoped to a Visa & Immigration service, which is already chosen in "4. Services Confirmed".
 
-## Verification
-- Open `/clients/new`, expand the Billing Entity select: only `COMPANY` rows appear; no Ajwa / Anand / Bhayli / HO entries.
-- Branch field in Section 3 still lists branches as before.
+### Changes
+1. **`src/pages/clients/ClientNew.tsx`** — Delete the entire Section 10 card (lines ~558–572). Leave the surrounding layout and the right-hand Invoice Preview untouched.
+2. Keep the `workflow_template_id` field and `templates` state intact in state/save logic so existing client records and any auto-resolution from selected V&I service continue to work. No schema or save-logic changes.
+
+### Verification
+- Open `/clients/new` — the form ends at Section 9 (Accounting Details); no "10. Workflow" card appears.
+- Existing clients with a workflow_template_id load and save without errors.

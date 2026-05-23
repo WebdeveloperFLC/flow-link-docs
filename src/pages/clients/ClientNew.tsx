@@ -555,21 +555,6 @@ const ClientNew = () => {
             </div>
           </Card>
 
-          {/* SECTION 10 — Workflow */}
-          <Card className="p-4 sm:p-6 space-y-4">
-            <h3 className="font-semibold">10. Workflow</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Workflow Template</Label>
-                <Select value={f.workflow_template_id ?? ""} onValueChange={(v) => { setField("workflow_template_id", v); setTimeout(autosave, 0); }}>
-                  <SelectTrigger><SelectValue placeholder={templates.length ? "Choose a template" : "No templates"} /></SelectTrigger>
-                  <SelectContent>
-                    {templates.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* RIGHT COLUMN — Invoice preview */}
