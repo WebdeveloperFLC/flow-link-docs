@@ -53,7 +53,9 @@ export class AuthExpiredError extends Error {
  * The callback should perform a single Supabase call and return its result
  * (so the second attempt can re-run it cleanly).
  */
-export async function runWithAuthRetry<T>(fn: () => Promise<{ data: T; error: any }>): Promise<T> {
+export async function runWithAuthRetry<T>(
+  fn: () => PromiseLike<{ data: T; error: any }>,
+): Promise<T> {
   let res = await fn();
   if (res.error && isAuthOrRlsError(res.error)) {
     const refreshed = await ensureFreshSession();
