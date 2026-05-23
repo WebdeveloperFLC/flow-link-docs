@@ -252,7 +252,9 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
             </thead>
             <tbody>
               {rows.map((r) => {
-                const balance = Math.max(Number(r.amount) - Number(r.amount_paid || 0), 0);
+                const totals = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
+                const balance = totals.outstanding;
+                const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked = !!r.external_request_sent_today
                   || (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
                 return (
@@ -262,12 +264,12 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       {r.invoice_locked_for_edit && <Lock className="inline size-3 ml-1 text-muted-foreground" />}
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant="outline" className={STATUS_STYLE[r.status] ?? ""}>{r.status.replace(/_/g, " ")}</Badge>
+                      <Badge variant="outline" className={STATUS_STYLE[totals.displayStatus] ?? "bg-muted text-muted-foreground"}>{totals.displayStatus.replace(/_/g, " ")}</Badge>
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums">{money(Number(r.amount), r.currency)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{money(Number(r.amount_paid || 0), r.currency)}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{money(totals.paid, r.currency)}</td>
                     <td className={`px-3 py-2 text-right tabular-nums font-medium ${balance > 0 ? "" : "text-muted-foreground"}`}>{money(balance, r.currency)}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{r.due_date ?? "—"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{formatDue(r.due_date)}</td>
                     <td className="px-3 py-2 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                       <Button size="sm" variant="ghost" onClick={() => setSnapshotFor(r)} title="View snapshot">
                         <Eye className="size-3.5" />
@@ -275,10 +277,10 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       <Button size="sm" variant="outline" className="ml-1" disabled={remLocked || balance <= 0} title={remLocked ? "An external reminder was already sent for this invoice today." : undefined} onClick={() => setReminderFor(r)}>
                         <Bell className="size-3.5 mr-1" /> Remind
                       </Button>
-                      <Button size="sm" variant="default" className="ml-1" disabled={balance <= 0 || !isAccounts} title={!isAccounts ? "Only accounts users can post payments." : undefined} onClick={() => setCollectFor(r)}>
+                      <Button size="sm" variant="default" className="ml-1" disabled={collectDisabled} title={!isAccounts ? "Only accounts users can post payments." : (TERMINAL_STATUSES.has(r.status) ? `Invoice is ${r.status}` : (balance <= 0 ? "Nothing outstanding" : undefined))} onClick={() => setCollectFor(r)}>
                         <DollarSign className="size-3.5 mr-1" /> Collect
                       </Button>
-                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || Number(r.amount_paid || 0) <= 0} onClick={() => setReceiptFor(r)}>
+                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || totals.paid <= 0} onClick={() => setReceiptFor(r)}>
                         <FileCheck2 className="size-3.5 mr-1" /> Receipt
                       </Button>
                     </td>
