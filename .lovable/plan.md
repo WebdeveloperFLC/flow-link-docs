@@ -1,55 +1,41 @@
-## Redesign: Vibrant Semantic theme
+# Fix two reported issues
 
-Apply the selected direction app-wide so every page (Dashboard, Clients, Accounting, Leads, etc.) inherits the new look — not just the dashboard.
+## Issue 1 — Settle Abroad submissions show "—" for Client/Email, no direct email to client
 
-### Locked design tokens
+**Root cause.** `SessionsTab` (in `src/pages/admin/AssessmentAdmin.tsx`) loads sessions with embedded joins:
+```
+select(..., lead:assessment_leads(...), client:clients(...))
+```
+The `clients` table has per-row RLS (`can_view_client`) that only allows the owner, an admin, or someone with explicit access. Most assessment-sessions are tied to clients created by other users / by the public portal, so the embedded `client` comes back `null` and the row renders `—`.
 
-- **Typography:** Sora (headings, 600/700), Manrope (body, 400/500/600). Loaded from Google Fonts in `index.html`.
-- **Surfaces:** page `#F8FAFC`, card white, border `slate-200`, soft shadow.
-- **Sidebar:** `#0F172A` dark, grouped sections with uppercase labels ("Menu", "Management"), active item = blue tint + white text.
-- **Semantic accents** (4px left bar on cards + tinted icon chips):
-  - Blue → Clients / Partners
-  - Violet → Documents
-  - Emerald → Binders / Success
-  - Rose → Pending review / Course queue / Danger
-  - Amber → Institutions / Warning
-  - Purple → AI / Insights
-- **Radius:** `rounded-xl` cards, `rounded-lg` buttons/chips.
+**Fix.**
+1. Add a `SECURITY DEFINER` RPC `list_assessment_sessions_admin()` that returns the columns SessionsTab needs (session id/status/goal/country/answers/output/pdf_path/submitted_at/created_at + denormalised `client_name`, `client_email`, `client_phone`, `lead_name`, `lead_email`, `lead_phone`), restricted to authenticated users who can already access the page (`has_role(auth.uid(),'admin') OR has_role(auth.uid(),'counselor') OR has_role(auth.uid(),'telecaller') OR has_role(auth.uid(),'documentation')`).
+2. Rewrite `SessionsTab.load()` to call the RPC instead of selecting from `assessment_sessions` with embedded joins.
+3. Add a "Send email to client" action in the row's action group: a mailto link prefilled with the client/lead email and a subject like `Your Settle Abroad assessment`. Shown only when an email exists.
 
-### Changes
+## Issue 2 — "Save failed" on Counselor notes after converting lead → client
 
-1. **Design system foundation**
-   - `index.css`: import Sora + Manrope; add HSL semantic tokens for `clients`, `documents`, `binders`, `review`, `institutions`, `ai`, plus their `-soft` (bg-50) and `-foreground` pairs; set `--font-display: Sora`, `--font-sans: Manrope`.
-   - `tailwind.config.ts`: register `fontFamily.display` / `fontFamily.sans`; expose the semantic colors as Tailwind utilities (`bg-clients-soft`, `text-documents`, etc.).
+**Diagnosis steps.** The current `autosave` swallows the underlying error and shows the generic "Save failed". First step is to surface the real Postgres error in the toast (already `console.error`'d, but we will also include `error.message` / `error.details` in the toast). Then fix the most likely cause: when the form is loaded via `?lead_id=…` on a lead that was already converted, `upsertClientRegistration` tries to INSERT a brand-new client, but the `clients_source_lead_id` unique relationship / accounting-sync trigger fires and rejects the duplicate. Even when the row is found, the page is in "new" mode so every blur tries to INSERT.
 
-2. **Sidebar (`AppSidebar`)**
-   - Regroup nav into labeled sections: **Menu** (Dashboard, Leads, Cold Pool, Clients, Messages), **Operations** (Telecaller, Course finder, Workflows, Forms library, Letter templates), **Insights** (Activity, AI Help), **Admin** (Team access, Team & roles). Group labels = `text-[10px] font-bold uppercase tracking-wider text-slate-500`.
-   - Active item gets `bg-blue-600/10 text-white`; hover `bg-slate-800`.
-   - Keep `collapsible="icon"` behavior; trigger stays in header.
+**Fix.**
+1. In `src/pages/clients/ClientNew.tsx` `useEffect` for `leadIdParam`:
+   - After fetching the lead, check `leads.converted_to_client_id`. If set, set `clientId`/`editId` to that id and call `fetchClient` instead of treating it as a brand-new insert. This re-enters edit mode and prevents duplicate-insert attempts.
+2. Make `autosave` show the actual error: `toast.error(e?.message ?? e?.details ?? "Save failed")` so the next failure is diagnosable.
+3. Serialise autosaves (guard with the existing `saving` flag) so the rapid "unlock → autosave → blur → autosave" sequence cannot race two INSERTs.
+4. Verify the update path: clients RLS update policy uses `can_edit_client`, which requires `owner_id = auth.uid()` (set by `set_client_owner_defaults` trigger). If the converted client was created by a different user, current user (non-admin) would still be unable to update. We handle that by surfacing the real error so the user sees "Permission denied" instead of "Save failed", and by linking the client list to use the admin route when applicable. No RLS change unless the surfaced error confirms a permission gap.
 
-3. **Dashboard page**
-   - Header: Sora h1 + Manrope subtitle, right-aligned action buttons (Export / + New Client).
-   - KPI grid: 4-col responsive cards with absolute 4px left accent bar + tinted icon chip, value in Sora.
-   - "Recent clients" card: refined empty state with circular icon, Sora heading, primary CTA button.
+## Issue 3 — Background errors flooding logs: `permission denied for function has_role`
 
-4. **Reusable primitives**
-   - `StatCard` component (`title`, `value`, `icon`, `tone`) consuming the semantic tokens — used by Dashboard and any other KPI screens (Accounting, Clients overview).
-   - `EmptyState` component (`icon`, `title`, `description`, `action`) so all empty cards match the new style.
+Recent migration only granted `EXECUTE` on `public.has_role(uuid, app_role)` to `authenticated`. Any anonymous request (public assessment page, portal pre-login, etc.) that touches a table whose policy calls `has_role` now errors out before evaluating. Grant `EXECUTE` to `anon` as well — the function still only returns `true` if the row exists in `user_roles`, so this is safe.
 
-5. **Global polish**
-   - Page background → `bg-background` token resolving to `#F8FAFC`.
-   - Headings across pages switch to `font-display`; body inherits Manrope.
-   - Existing pages don't need rewriting — they pick up fonts, surface, and sidebar automatically; only KPI/empty patterns get migrated to the new primitives over time.
+## Files changed
 
-### Out of scope
+- New migration: RPC `list_assessment_sessions_admin`, `GRANT EXECUTE ... TO anon, authenticated` on `has_role`.
+- `src/pages/admin/AssessmentAdmin.tsx` — replace `SessionsTab.load()` query, add Email action.
+- `src/pages/clients/ClientNew.tsx` — short-circuit to edit mode when lead already converted; better error toast; race guard.
 
-- No business logic, route, or data model changes.
-- No icon-set swap (keep current lucide icons).
-- No mobile-only redesign beyond what the sidebar already provides.
+## Out of scope
 
-### Files touched
-
-- `index.html`, `src/index.css`, `tailwind.config.ts`
-- `src/components/AppSidebar.tsx` (or equivalent)
-- `src/pages/Dashboard.tsx` (or equivalent)
-- New: `src/components/ui/stat-card.tsx`, `src/components/ui/empty-state.tsx`
+- Visual redesign of SessionsTab table.
+- Changes to RLS on `clients` (only surfaced; not relaxed).
+- Reworking lead-conversion flow itself.
