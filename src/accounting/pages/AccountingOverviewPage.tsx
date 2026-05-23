@@ -21,7 +21,8 @@ import DarkModeToggle from "../components/shared/DarkModeToggle";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { isOnboardingDismissed } from "../stores/onboardingStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatCompact } from "../lib/format";
 import {
   AccountingEntityProvider, useAccountingEntity,
@@ -198,6 +199,8 @@ function OverviewInner() {
         </div>
 
         {/* TREND */}
+        <PaymentsBySourceCard />
+
         <Card className="p-5 shadow-elev-sm">
           <div className="font-semibold mb-4">Revenue vs expenses — last 12 months</div>
           <ResponsiveContainer width="100%" height={240}>
