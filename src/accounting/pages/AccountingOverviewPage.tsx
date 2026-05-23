@@ -386,3 +386,52 @@ export default function AccountingOverviewPage() {
     </AccountingEntityProvider>
   );
 }
+function PaymentsBySourceCard() {
+  const [rows, setRows] = useState<{ source: string; count: number; total: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("client_invoice_payments")
+        .select("payment_source,amount,amount_in_inr,is_refund,payment_status")
+        .eq("payment_status", "verified")
+        .is("archived_at", null)
+        .limit(2000);
+      const agg = new Map<string, { count: number; total: number }>();
+      (data ?? []).forEach((p: any) => {
+        if (p.is_refund) return;
+        const src = (p.payment_source ?? "manual").replace(/_/g, " ");
+        const amt = Number(p.amount_in_inr ?? p.amount ?? 0);
+        const cur = agg.get(src) ?? { count: 0, total: 0 };
+        agg.set(src, { count: cur.count + 1, total: cur.total + amt });
+      });
+      setRows([...agg.entries()].map(([source, v]) => ({ source, ...v })).sort((a, b) => b.total - a.total));
+      setLoading(false);
+    })();
+  }, []);
+  return (
+    <Card className="p-5 shadow-elev-sm">
+      <div className="font-semibold mb-3">Payments by source (verified, INR)</div>
+      {loading ? (
+        <div className="text-sm text-muted-foreground">Loading…</div>
+      ) : rows.length === 0 ? (
+        <div className="text-sm text-muted-foreground">No verified payments yet.</div>
+      ) : (
+        <table className="w-full text-sm">
+          <thead className="text-xs uppercase text-muted-foreground">
+            <tr><th className="text-left py-1">Source</th><th className="text-right py-1">Count</th><th className="text-right py-1">Total</th></tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.source} className="border-t">
+                <td className="py-1.5 capitalize">{r.source}</td>
+                <td className="py-1.5 text-right tabular-nums">{r.count}</td>
+                <td className="py-1.5 text-right tabular-nums">{formatCurrency(r.total, "INR")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </Card>
+  );
+}
