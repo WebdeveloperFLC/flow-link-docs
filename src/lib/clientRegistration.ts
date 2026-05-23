@@ -351,13 +351,11 @@ export async function createDraftInvoice(args: {
     : { data: [] as Array<{ id: string; service_code: string }> };
   const serviceIdByCode = new Map((services ?? []).map((s) => [s.service_code, s.id]));
 
-  let subtotal = 0, taxTotal = 0, grandTotal = 0;
+  let grandTotal = 0;
   const computed = args.lines.map((l) => {
     const base = l.is_complimentary ? 0 : Math.max(0, l.unit_price * l.quantity - l.discount_amount);
     const gst = base * (l.gst_rate / 100);
     const total = base + gst;
-    subtotal += base;
-    taxTotal += gst;
     grandTotal += total;
     return {
       service_id: l.service_code ? serviceIdByCode.get(l.service_code) ?? null : null,
