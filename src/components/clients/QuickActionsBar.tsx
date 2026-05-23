@@ -58,8 +58,8 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mr-1">Quick actions</div>
       <CallClientButton clientId={clientId} />
       {!isTelecaller && phone && (
-        <Button asChild size="sm" variant="outline">
-          <a href={`https://wa.me/${cleanPhone}`} target="_blank" rel="noreferrer"><MessageCircle className="size-3.5 mr-1" /> WhatsApp</a>
+        <Button size="sm" variant="outline" onClick={() => import("@/lib/whatsappShare").then(m => m.openWhatsApp(cleanPhone, ""))}>
+          <MessageCircle className="size-3.5 mr-1" /> WhatsApp
         </Button>
       )}
       {!isTelecaller && email && (
