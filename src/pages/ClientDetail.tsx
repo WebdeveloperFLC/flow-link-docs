@@ -48,6 +48,7 @@ import { ClientEmailCard } from "@/components/clients/ClientEmailCard";
 import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard";
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
+import { ClientStageCard } from "@/components/clients/ClientStageCard";
 
 interface Client {
   id: string; full_name: string; application_id: string; country: string;
