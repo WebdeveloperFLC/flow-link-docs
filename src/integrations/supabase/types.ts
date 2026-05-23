@@ -8949,6 +8949,7 @@ export type Database = {
           last_call_at: string | null
           role: Database["public"]["Enums"]["telephony_role"]
           sbc_password: string | null
+          sbc_password_set: boolean | null
           sbc_user_id: string | null
           telecmi_agent_id: string | null
           updated_at: string
@@ -8963,6 +8964,7 @@ export type Database = {
           last_call_at?: string | null
           role?: Database["public"]["Enums"]["telephony_role"]
           sbc_password?: string | null
+          sbc_password_set?: boolean | null
           sbc_user_id?: string | null
           telecmi_agent_id?: string | null
           updated_at?: string
@@ -8977,6 +8979,7 @@ export type Database = {
           last_call_at?: string | null
           role?: Database["public"]["Enums"]["telephony_role"]
           sbc_password?: string | null
+          sbc_password_set?: boolean | null
           sbc_user_id?: string | null
           telecmi_agent_id?: string | null
           updated_at?: string

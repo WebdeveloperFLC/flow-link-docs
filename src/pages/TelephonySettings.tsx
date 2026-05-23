@@ -44,7 +44,7 @@ const TelephonySettings = () => {
     setLoading(true);
     const { data: agents, error } = await supabase
       .from("telephony_agents")
-      .select("id, user_id, role, telecmi_agent_id, sbc_user_id, sbc_password, is_available, is_on_break")
+      .select("id, user_id, role, telecmi_agent_id, sbc_password_set, is_available, is_on_break")
       .order("created_at", { ascending: true });
     if (error) {
       toast.error(error.message);
@@ -67,8 +67,8 @@ const TelephonySettings = () => {
       user_id: a.user_id,
       role: a.role,
       telecmi_agent_id: a.telecmi_agent_id,
-      sbc_user_id: a.sbc_user_id ?? null,
-      sbc_password_set: !!a.sbc_password,
+      sbc_user_id: null,
+      sbc_password_set: !!a.sbc_password_set,
       is_available: a.is_available,
       is_on_break: a.is_on_break,
       profile: profiles[a.user_id] ?? null,
