@@ -4113,11 +4113,15 @@ export type Database = {
           payer_type: string | null
           payment_proof_file_id: string | null
           payment_proof_status: string | null
+          payment_source: string | null
+          payment_status: string | null
           posted_by: string | null
           reference: string | null
           refund_request_id: string | null
           split_group_id: string | null
           updated_at: string
+          verification_notes: string | null
+          verification_rejected_reason: string | null
           verified_at: string | null
           verified_by: string | null
         }
@@ -4146,11 +4150,15 @@ export type Database = {
           payer_type?: string | null
           payment_proof_file_id?: string | null
           payment_proof_status?: string | null
+          payment_source?: string | null
+          payment_status?: string | null
           posted_by?: string | null
           reference?: string | null
           refund_request_id?: string | null
           split_group_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
+          verification_rejected_reason?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
@@ -4179,11 +4187,15 @@ export type Database = {
           payer_type?: string | null
           payment_proof_file_id?: string | null
           payment_proof_status?: string | null
+          payment_source?: string | null
+          payment_status?: string | null
           posted_by?: string | null
           reference?: string | null
           refund_request_id?: string | null
           split_group_id?: string | null
           updated_at?: string
+          verification_notes?: string | null
+          verification_rejected_reason?: string | null
           verified_at?: string | null
           verified_by?: string | null
         }
