@@ -18,6 +18,10 @@ import {
   type FamilyMember,
 } from "@/lib/clientRegistration";
 import { fetchServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
+import { EducationExperienceFields } from "./EducationExperienceFields";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
+import { useState as useReactState } from "react";
 
 interface Props {
   primaryClientId: string | null;
@@ -228,9 +232,78 @@ export const FamilyMembersSection = ({ primaryClientId, primaryLeadId, onChange 
                 rows={2}
               />
             </div>
+
+            <FamilyEduExpPanel
+              member={m}
+              onLocalChange={(p) => emit(members.map((x) => (x.id === m.id ? { ...x, ...p } : x)))}
+              onCommit={(p) => patch(m.id, p)}
+            />
           </Card>
         ))}
       </div>
     </Card>
   );
 };
+
+interface PanelProps {
+  member: FamilyMember;
+  onLocalChange: (p: Partial<FamilyMember>) => void;
+  onCommit: (p: Partial<FamilyMember>) => void;
+}
+
+const FamilyEduExpPanel = ({ member, onLocalChange, onCommit }: PanelProps) => {
+  const [open, setOpen] = useReactState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="pt-2 border-t">
+      <CollapsibleTrigger asChild>
+        <Button type="button" variant="ghost" size="sm" className="w-full justify-between">
+          <span>Education, Tests &amp; Experience</span>
+          <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+        </Button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="pt-3">
+        <EducationExperienceFields
+          compact
+          value={{
+            education_history: (member.education_history ?? []) as never,
+            english_test: member.english_test ?? null,
+            english_overall: member.english_overall ?? null,
+            english_test_date: member.english_test_date ?? null,
+            english_test_expiry: member.english_test_expiry ?? null,
+            english_sections: (member.english_sections ?? {}) as Record<string, string>,
+            other_tests: (member.other_tests ?? []) as never,
+            work_experience: (member.work_experience ?? []) as never,
+          }}
+          onChange={(p) => onLocalChange(p as Partial<FamilyMember>)}
+          onCommit={() => {
+            // Persist only the education/test/experience subset, mirroring the
+            // primary client's field-for-field round-trip contract.
+            onCommit({
+              education_history: member.education_history,
+              english_test: member.english_test,
+              english_overall: member.english_overall,
+              english_test_date: member.english_test_date,
+              english_test_expiry: member.english_test_expiry,
+              english_sections: member.english_sections,
+              other_tests: member.other_tests,
+              work_experience: member.work_experience,
+              // Mirror first education row into legacy scalars.
+              ...mirrorEducationScalars(member.education_history),
+            });
+          }}
+        />
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};
+
+function mirrorEducationScalars(eh?: FamilyMember["education_history"]): Partial<FamilyMember> {
+  const e0 = eh && eh.length > 0 ? eh[0] : null;
+  if (!e0) return {};
+  return {
+    last_education: e0.level ?? null,
+    institution_name: e0.institution ?? null,
+    year_of_passing: e0.year ?? null,
+    percentage_cgpa: e0.percentage_cgpa ?? null,
+  };
+}
