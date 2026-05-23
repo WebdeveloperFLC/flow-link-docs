@@ -116,6 +116,9 @@ function computeInvoiceTotals(invoice: Invoice, verifiedPaidForInvoice: number) 
 export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
   const [pending, setPending] = useState<any[]>([]);
+  const [verifiedPaidByInvoice, setVerifiedPaidByInvoice] = useState<Record<string, number>>({});
+  const [receiptCount, setReceiptCount] = useState<number>(0);
+  const [paymentCount, setPaymentCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -126,7 +129,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const [{ data, error }, { data: pend }] = await Promise.all([
+    const [{ data, error }, { data: pend }, { data: verifiedPays }, { data: allPays }, { data: receipts }] = await Promise.all([
       supabase
         .from("client_invoices")
         .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
@@ -140,10 +143,34 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         .is("archived_at", null)
         .in("payment_status", ["awaiting_verification", "rejected"])
         .order("paid_at", { ascending: false }),
+      supabase
+        .from("client_invoice_payments")
+        .select("invoice_id,amount,is_refund")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .eq("payment_status", "verified"),
+      supabase
+        .from("client_invoice_payments")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .is("archived_at", null),
+      supabase
+        .from("client_invoice_receipts")
+        .select("id", { count: "exact", head: true })
+        .eq("client_id", clientId)
+        .is("archived_at", null),
     ]);
     if (error) { console.warn("[invoices] load failed", error); setRows([]); }
     else setRows((data ?? []) as any);
     setPending((pend ?? []) as any[]);
+    const map: Record<string, number> = {};
+    for (const p of (verifiedPays ?? []) as any[]) {
+      const sign = p.is_refund ? -1 : 1;
+      map[p.invoice_id] = (map[p.invoice_id] ?? 0) + sign * (Number(p.amount) || 0);
+    }
+    setVerifiedPaidByInvoice(map);
+    setPaymentCount(((allPays as any)?.length ?? (allPays as any)?.count) ?? 0);
+    setReceiptCount(((receipts as any)?.length ?? (receipts as any)?.count) ?? 0);
     setLoading(false);
   };
 
@@ -169,7 +196,10 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId]);
 
-  const outstanding = rows.reduce((s, r) => s + Math.max(Number(r.amount) - Number(r.amount_paid || 0), 0), 0);
+  const outstanding = rows.reduce((s, r) => {
+    const { outstanding } = computeInvoiceTotals(r, verifiedPaidByInvoice[r.id] ?? 0);
+    return s + outstanding;
+  }, 0);
   const currency = rows[0]?.currency ?? "INR";
 
   return (
@@ -180,7 +210,14 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
             <Receipt className="size-4 text-primary" /> Client invoices & payments
           </div>
           <div className="text-xs text-muted-foreground mt-0.5">
-            {loading ? "Loading…" : `${rows.length} invoice${rows.length === 1 ? "" : "s"} · Outstanding ${money(outstanding, currency)}`}
+            {loading ? "Loading…" : (
+              <>
+                {rows.length} invoice{rows.length === 1 ? "" : "s"} · Outstanding {money(outstanding, currency)}
+                <span className="ml-2">· Payments {paymentCount}</span>
+                <span className="ml-2">· Receipts {receiptCount}</span>
+                {pending.length > 0 && <span className="ml-2 text-amber-700">· Awaiting verification {pending.length}</span>}
+              </>
+            )}
           </div>
         </div>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
