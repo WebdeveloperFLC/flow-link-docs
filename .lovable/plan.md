@@ -1,83 +1,43 @@
-## Goal
+## Problem
 
-Extend Phase 1–3 work into the rest of the accounting surface. **No rebuilds, no schema changes.** All new behavior reuses existing tables: `client_invoices`, `client_invoice_payments`, `client_invoice_receipts`, `client_timeline`. Delivered in 2 small phases.
+On `/clients/:id` (the client detail page) there is currently no way to view or change which services a client has signed up for — services can only be set during registration in `ClientNew`. Additionally, inside the `ServiceTabs` picker, a selected service only changes the checkbox state; the row itself doesn't visually stand out, so it's hard to scan what's already chosen.
 
----
+## Scope
 
-## PHASE 4 — Live DB on accounting pages + receipt reprint + timeline
+Frontend only. No schema changes, no migrations, no edits to invoicing, accounting, or registration flow.
 
-### 4.1 Wire accounting client detail page to live DB
+## Changes
 
-`src/accounting/pages/clients/AccountingClientDetailPage.tsx` currently reads `mockAR` for Transactions / Invoices / Receipts tabs. Switch to live data, keeping the AG-Grid layout and column defs intact.
+### 1. New `ClientServicesCard` on the client detail page
 
-- Add a `useLiveClientLedger(clientId)` hook (new file `src/accounting/hooks/useLiveClientLedger.ts`) that fetches:
-  - `client_invoices` for this client (real + linked CRM id)
-  - `client_invoice_payments` for this client
-  - `client_invoice_receipts` joined to those invoices
-- Build `invs`, `recs`, `txns`, `totals`, `aging` from those rows (same shape currently produced from mock).
-- Each AG-Grid row gets `onRowClicked` → opens the same **InvoiceSnapshotDrawer** already built in `ClientInvoicesPanel`. Extract that drawer into a shared module: `src/components/clients/InvoiceSnapshotDrawer.tsx`, then re-export from the panel.
-- Mock fallback retained only when no live rows exist (so demo clients still look populated).
+Add a card on `/clients/:id` that:
 
-### 4.2 Receipt reprint from snapshot
+- Loads the client's current service selections from the `clients` row: `coaching_services`, `visa_services`, `admission_services`, `allied_services`, `travel_financial_services`.
+- Shows them grouped by category as pills (service name resolved from `service_catalogue`). Empty categories say "None selected".
+- Has an **Edit services** button (gated by the same `canUpload` / owner check already used by other edit affordances on the page).
+- Edit opens a dialog containing the existing `ServiceTabs` component with the current selection prefilled.
+- **Save** writes the five service arrays back to the `clients` row (single `update().eq("id", clientId)`), refreshes the card, logs a `client_timeline` event (`services_updated` with a short diff summary), and toasts success.
+- **Cancel** discards changes.
 
-In `InvoiceSnapshotDrawer`, each receipt row gets a **Download PDF** button.
+Placement: above `ClientPaymentsCard` in the left column of `ClientDetail.tsx`, so services and payments sit next to each other.
 
-- Click → render `AccountingReceiptTemplate` into a hidden div from `receipt_snapshot_jsonb`, then `window.print()` (same pattern `AccountingReceiptModal.printReceipt` already uses).
-- New mapper `snapshotToReceiptData(snapshot)` in `src/accounting/lib/receiptHelpers.ts` converts the stored snapshot into the existing `ReceiptData` interface — no template changes required.
-- Legacy receipts without a snapshot show "Snapshot unavailable" (button disabled with tooltip).
+### 2. Fix selected-row highlight in `ServiceTabs`
 
-### 4.3 Timeline events
+In `src/components/leads/ServiceTabs.tsx`:
 
-Add `appendTimeline(...)` calls (function already exists in `src/lib/timeline.ts`) at these write-points in `ClientInvoicesPanel.tsx`:
+- The row `<label>` currently only uses `hover:bg-muted/30`. When `checked` is true, apply a clearly distinct treatment using semantic tokens: subtle accent background, primary-tinted left border, and slightly bolder label. Example: `bg-primary/5 border-l-2 border-primary` when checked, transparent left border otherwise (so layout doesn't shift).
+- Keep all colors as semantic tokens (`primary`, `accent`, `muted`) — no raw hex/Tailwind palette colors.
+- No behavior change; purely visual. This improves both the existing `ClientNew` registration flow and the new edit dialog.
 
-- After `client_invoice_payments` insert → `payment_submitted` (or `payment_awaiting_verification` when status is awaiting).
-- After proof upload → `payment_proof_uploaded`.
-- After verify update → `payment_verified`.
-- After reject update → `payment_rejected` (with reason in metadata).
-- After receipt insert → `receipt_generated` (receipt # in metadata).
+### 3. Files touched
 
-All summaries plain-English. Metadata holds payment_id / receipt_number / amount / currency. Failures are non-blocking (wrapped in try/catch and toasted lightly so a timeline write never fails the user action).
+- **New:** `src/components/clients/ClientServicesCard.tsx` — card + edit dialog wrapper around `ServiceTabs`.
+- **Edit:** `src/pages/ClientDetail.tsx` — import and render `ClientServicesCard` above `ClientPaymentsCard`; extend the local `Client` type to include the five service-array fields and include them in the select query.
+- **Edit:** `src/components/leads/ServiceTabs.tsx` — add `checked` styling to the row `<label>`.
 
----
+### Out of scope
 
-## PHASE 5 — Global verification queue + payment-source analytics
-
-### 5.1 Global Verification Queue page
-
-New route + page:
-
-- Route: `/accounting/ar/verification` registered in `src/App.tsx` (same role gate as other accounting AR pages).
-- Page: `src/accounting/pages/ar/AccountingVerificationQueuePage.tsx`.
-- Lists every `client_invoice_payments` row where `payment_status = 'awaiting_verification'` across all clients, joined to invoice + client name. Filter chips: Method, Source, Date range. Same Verify / Reject / View proof actions as the per-client queue (reuse the action helpers — pull `verify`/`reject` out of `PendingVerificationQueue` into `src/accounting/lib/paymentVerification.ts`).
-- Realtime subscription on `client_invoice_payments` so newly submitted items appear without refresh.
-- Nav entry added to the AR sidebar section.
-
-### 5.2 Payment source analytics tile
-
-On `src/accounting/pages/AccountingOverviewPage.tsx`, add a small **Payments by source** card:
-
-- Single query: `client_invoice_payments` where `payment_status='verified'`, grouped client-side by `payment_source`, summed by `amount_in_inr` (fallback to `amount`).
-- Renders a compact table: source · count · total. Optional sparkline omitted to keep scope tight.
-- Honors the existing entity scope hook (`useEntityScope`) if present so multi-firm setups stay filtered.
-
----
-
-## Guardrails
-
-- No schema changes. No DB migrations.
-- No edits to invoice numbering, allocation, refund, reconciliation, snapshot-jsonb shape, RLS.
-- Mock data path preserved as fallback for demo clients on the accounting detail page.
-- All new write paths gated by `useAccountingAccess` / `isAccounts` checks.
-- Timeline writes are best-effort; never block UX.
-
-## Files touched
-
-- New: `src/accounting/hooks/useLiveClientLedger.ts`, `src/components/clients/InvoiceSnapshotDrawer.tsx`, `src/accounting/lib/paymentVerification.ts`, `src/accounting/pages/ar/AccountingVerificationQueuePage.tsx`.
-- Edited: `src/accounting/pages/clients/AccountingClientDetailPage.tsx`, `src/components/clients/ClientInvoicesPanel.tsx` (timeline writes + drawer extraction + shared helpers), `src/accounting/lib/receiptHelpers.ts` (snapshot→ReceiptData mapper), `src/accounting/pages/AccountingOverviewPage.tsx`, `src/App.tsx` (route), accounting sidebar nav file.
-
-## Out of scope
-
-- Email/PDF delivery of receipts (still print-based).
-- Reminder system changes.
-- Portal-side payment changes.
-- Power BI / ERP export shape.
+- Fee editing per service (registration flow remains the source of truth for fees; this card only edits which services are attached).
+- Changing `application_type` (the "Student Visa" string in the page header) — that's a separate registration field and not what this card edits.
+- Family-member service edits — only the primary client's services here.
+- Auto-creating invoices or touching `service_fees` JSON.
