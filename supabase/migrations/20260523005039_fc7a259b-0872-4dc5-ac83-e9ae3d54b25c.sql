@@ -1,0 +1,1 @@
+ALTER VIEW public.client_invoice_aging SET (security_invoker = true);
