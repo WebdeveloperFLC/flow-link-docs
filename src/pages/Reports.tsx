@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download, Phone, PhoneOff, Flame, Users as UsersIcon } from "lucide-react";
+import { Download, Phone, PhoneOff, Flame, Users as UsersIcon, Workflow } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 
 type CallDaily = { day: string; answered: number; unanswered: number; total_calls: number; avg_duration: number };
@@ -14,6 +15,10 @@ type Telecaller = { user_id: string; name: string | null; calls: number; talk_se
 type Counselor = { user_id: string; name: string | null; handoffs_accepted: number; tasks_done: number; enrollments: number };
 type Campaign = { campaign_id: string; name: string; leads: number; hot: number; warm: number; cold: number; callbacks_pending: number; converted: number };
 type Country = { country: string | null; intake: string | null; leads: number };
+type StageDist = {
+  pipeline_id: string; pipeline_name: string; country: string; service_category: string;
+  stage_id: string; stage_key: string; stage_label: string; sort_order: number; client_count: number;
+};
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--secondary))", "hsl(var(--accent))", "hsl(var(--muted-foreground))"];
 const TEMP_COLORS: Record<string, string> = { hot: "#ef4444", warm: "#f59e0b", cold: "#3b82f6" };
@@ -40,19 +45,22 @@ export default function Reports() {
   const [cns, setCns] = useState<Counselor[]>([]);
   const [camps, setCamps] = useState<Campaign[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
+  const [stageDist, setStageDist] = useState<StageDist[]>([]);
+  const [selectedPipeline, setSelectedPipeline] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       setLoading(true);
       const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString().slice(0, 10);
-      const [c, f, t, cn, cp, co] = await Promise.all([
+      const [c, f, t, cn, cp, co, sd] = await Promise.all([
         (supabase as any).from("vw_call_stats_daily").select("*").gte("day", since).order("day"),
         (supabase as any).from("vw_lead_funnel").select("*"),
         (supabase as any).from("vw_telecaller_productivity").select("*").order("calls", { ascending: false }).limit(50),
         (supabase as any).from("vw_counselor_productivity").select("*").order("enrollments", { ascending: false }).limit(50),
         (supabase as any).from("vw_campaign_performance").select("*").order("leads", { ascending: false }).limit(50),
         (supabase as any).from("vw_country_intake_trends").select("*").order("leads", { ascending: false }).limit(20),
+        (supabase as any).from("vw_stage_distribution").select("*").order("pipeline_name").order("sort_order"),
       ]);
       setCalls((c.data as any) || []);
       setFunnel((f.data as any) || []);
@@ -60,6 +68,9 @@ export default function Reports() {
       setCns((cn.data as any) || []);
       setCamps((cp.data as any) || []);
       setCountries((co.data as any) || []);
+      const rows = (sd.data as StageDist[]) || [];
+      setStageDist(rows);
+      if (!selectedPipeline && rows.length) setSelectedPipeline(rows[0].pipeline_id);
       setLoading(false);
     })();
   }, []);
