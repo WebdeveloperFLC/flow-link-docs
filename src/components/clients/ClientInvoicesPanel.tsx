@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle } from "lucide-react";
+import { Receipt, Plus, Bell, DollarSign, FileCheck2, Loader2, Lock, AlertTriangle, ShieldCheck, ShieldX, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { getFxRate, SUPPORTED_CURRENCIES, convert } from "@/accounting/lib/fx";
 import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/accounting/lib/paymentProof";
@@ -65,6 +65,7 @@ function money(amt: number, cur: string) {
 
 export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
+  const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAccounts, setIsAccounts] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
@@ -74,14 +75,24 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("client_invoices")
-      .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
-      .eq("client_id", clientId)
-      .is("archived_at", null)
-      .order("created_at", { ascending: false });
+    const [{ data, error }, { data: pend }] = await Promise.all([
+      supabase
+        .from("client_invoices")
+        .select("id,invoice_number,status,currency,amount,amount_paid,due_date,branch_id,firm_entity_id,external_request_sent_today,invoice_reminder_locked_until,invoice_locked_for_edit,line_items,created_at")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("client_invoice_payments")
+        .select("id,invoice_id,amount,currency,method,paid_at,reference,payment_status,payment_source,payment_proof_file_id,verification_rejected_reason")
+        .eq("client_id", clientId)
+        .is("archived_at", null)
+        .in("payment_status", ["awaiting_verification", "rejected"])
+        .order("paid_at", { ascending: false }),
+    ]);
     if (error) { console.warn("[invoices] load failed", error); setRows([]); }
     else setRows((data ?? []) as any);
+    setPending((pend ?? []) as any[]);
     setLoading(false);
   };
 
@@ -183,11 +194,156 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         </div>
       )}
 
+      {/* Awaiting verification queue */}
+      {!loading && pending.length > 0 && (
+        <PendingVerificationQueue
+          payments={pending}
+          invoices={rows}
+          isAccounts={isAccounts}
+          onChange={load}
+        />
+      )}
+
       {createOpen && <CreateInvoiceDialog clientId={clientId} onClose={() => { setCreateOpen(false); load(); }} />}
       {collectFor && <CollectPaymentDialog invoice={collectFor} onClose={() => { setCollectFor(null); load(); }} />}
       {receiptFor && <GenerateReceiptDialog invoice={receiptFor} onClose={() => { setReceiptFor(null); load(); }} />}
       {reminderFor && <SendReminderDialog invoice={reminderFor} clientId={clientId} onClose={() => { setReminderFor(null); load(); }} />}
     </Card>
+  );
+}
+
+/* ───────────────────── Pending Verification Queue ───────────────────── */
+function PendingVerificationQueue({
+  payments, invoices, isAccounts, onChange,
+}: {
+  payments: any[]; invoices: Invoice[]; isAccounts: boolean; onChange: () => void;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [rejectFor, setRejectFor] = useState<any | null>(null);
+
+  const verify = async (p: any) => {
+    setBusyId(p.id);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_invoice_payments")
+      .update({
+        payment_status: "verified",
+        verified_by: u?.user?.id ?? null,
+        verified_at: new Date().toISOString(),
+      } as any)
+      .eq("id", p.id);
+    setBusyId(null);
+    if (error) toast.error(error.message);
+    else { toast.success("Payment verified"); onChange(); }
+  };
+
+  const openProof = async (p: any) => {
+    if (!p.payment_proof_file_id) { toast.info("No proof attached"); return; }
+    const { data, error } = await supabase
+      .from("client_documents")
+      .select("file_path, storage_path, file_url, name")
+      .eq("id", p.payment_proof_file_id)
+      .maybeSingle();
+    if (error || !data) { toast.error("Proof not found"); return; }
+    const path = (data as any).storage_path || (data as any).file_path;
+    if ((data as any).file_url) { window.open((data as any).file_url, "_blank", "noopener,noreferrer"); return; }
+    if (!path) { toast.info("No file path on proof"); return; }
+    const { data: signed } = await supabase.storage.from("client-documents").createSignedUrl(path, 300);
+    if (signed?.signedUrl) window.open(signed.signedUrl, "_blank", "noopener,noreferrer");
+    else toast.error("Could not open proof");
+  };
+
+  return (
+    <div className="mt-4 rounded-md border border-amber-500/30 bg-amber-500/5">
+      <div className="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-400 flex items-center gap-2">
+        <Clock className="size-3.5" /> Awaiting verification ({payments.length})
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="text-left px-3 py-2">Invoice</th>
+              <th className="text-left px-3 py-2">Submitted</th>
+              <th className="text-left px-3 py-2">Method · Source</th>
+              <th className="text-right px-3 py-2">Amount</th>
+              <th className="text-left px-3 py-2">Status</th>
+              <th className="px-3 py-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.map((p) => {
+              const inv = invoices.find(i => i.id === p.invoice_id);
+              const rejected = p.payment_status === "rejected";
+              return (
+                <tr key={p.id} className="border-t align-middle">
+                  <td className="px-3 py-2 font-medium">{inv?.invoice_number ?? "—"}</td>
+                  <td className="px-3 py-2 text-muted-foreground">{new Date(p.paid_at).toLocaleString()}</td>
+                  <td className="px-3 py-2">{p.method?.replace(/_/g, " ")} · <span className="text-muted-foreground">{(p.payment_source || "—").replace(/_/g, " ")}</span></td>
+                  <td className="px-3 py-2 text-right tabular-nums">{money(Number(p.amount), p.currency)}</td>
+                  <td className="px-3 py-2">
+                    <Badge variant="outline" className={rejected ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-amber-500/10 text-amber-700 border-amber-500/20"}>
+                      {rejected ? "rejected" : "awaiting verification"}
+                    </Badge>
+                    {rejected && p.verification_rejected_reason && (
+                      <div className="text-[11px] text-destructive mt-0.5">{p.verification_rejected_reason}</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-right whitespace-nowrap">
+                    {p.payment_proof_file_id && (
+                      <Button size="sm" variant="ghost" onClick={() => openProof(p)}>View proof</Button>
+                    )}
+                    {isAccounts && !rejected && (
+                      <>
+                        <Button size="sm" variant="outline" className="ml-1" disabled={busyId === p.id} onClick={() => verify(p)}>
+                          <ShieldCheck className="size-3.5 mr-1" /> Verify
+                        </Button>
+                        <Button size="sm" variant="ghost" className="ml-1 text-destructive" onClick={() => setRejectFor(p)}>
+                          <ShieldX className="size-3.5 mr-1" /> Reject
+                        </Button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {rejectFor && <RejectPaymentDialog payment={rejectFor} onClose={(changed) => { setRejectFor(null); if (changed) onChange(); }} />}
+    </div>
+  );
+}
+
+function RejectPaymentDialog({ payment, onClose }: { payment: any; onClose: (changed: boolean) => void }) {
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    if (!reason.trim()) { toast.error("Enter a reason"); return; }
+    setSaving(true);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("client_invoice_payments")
+      .update({
+        payment_status: "rejected",
+        verification_rejected_reason: reason,
+        verified_by: u?.user?.id ?? null,
+        verified_at: new Date().toISOString(),
+      } as any)
+      .eq("id", payment.id);
+    setSaving(false);
+    if (error) toast.error(error.message);
+    else { toast.success("Payment rejected"); onClose(true); }
+  };
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose(false)}>
+      <DialogContent className="sm:max-w-md max-w-[95vw]">
+        <DialogHeader><DialogTitle>Reject payment</DialogTitle></DialogHeader>
+        <Label>Reason</Label>
+        <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="Why is this payment being rejected?" />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onClose(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={save} disabled={saving}>{saving ? "Rejecting…" : "Reject"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
