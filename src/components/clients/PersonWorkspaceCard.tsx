@@ -101,15 +101,19 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
         .order("uploaded_at", { ascending: false }),
       supabase
         .from("binders")
-        .select("id,file_name,storage_path,generated_at,metadata")
+        .select("id,file_name,storage_path,generated_at,scope,included_items")
         .eq("client_id", client.id)
+        .eq("scope", "person")
         .order("generated_at", { ascending: false }),
       listTimeline(client.id, 200).catch(() => [] as TimelineRow[]),
     ]);
     setDocs((d ?? []) as PersonDoc[]);
     setBinders(
-      ((b ?? []) as { id: string; file_name: string; storage_path: string; generated_at: string; metadata: Record<string, unknown> | null }[])
-        .filter((r) => (r.metadata as { person_id?: string } | null)?.person_id === person.id)
+      ((b ?? []) as { id: string; file_name: string; storage_path: string; generated_at: string; included_items: unknown }[])
+        .filter((r) => {
+          const ii = r.included_items as { person_id?: string } | null;
+          return ii?.person_id === person.id;
+        })
         .map((r) => ({ id: r.id, file_name: r.file_name, storage_path: r.storage_path, generated_at: r.generated_at })),
     );
     setTimeline(
