@@ -75,6 +75,7 @@ export function snapshotToReceiptData(snapshot: any): ReceiptData | null {
     companyAddress: firm.address ?? footer.address ?? "",
     companyEmail: firm.email ?? footer.support_email ?? "",
     companyPhone: firm.phone ?? footer.support_phone ?? "",
+    companyLogo: firm.logo_url ?? undefined,
     clientName: client.name ?? "",
     clientEmail: client.email ?? "",
     clientPhone: client.phone ?? "",
