@@ -115,6 +115,8 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
   const [rows, setRows] = useState<Invoice[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [verifiedPaidByInvoice, setVerifiedPaidByInvoice] = useState<Record<string, number>>({});
+  const [receiptedPaymentIds, setReceiptedPaymentIds] = useState<Set<string>>(new Set());
+  const [verifiedPaymentsByInvoice, setVerifiedPaymentsByInvoice] = useState<Record<string, string[]>>({});
   const [receiptCount, setReceiptCount] = useState<number>(0);
   const [paymentCount, setPaymentCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
@@ -144,7 +146,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
         .order("paid_at", { ascending: false }),
       supabase
         .from("client_invoice_payments")
-        .select("invoice_id,amount,is_refund")
+        .select("id,invoice_id,amount,is_refund")
         .eq("client_id", clientId)
         .is("archived_at", null)
         .eq("payment_status", "verified"),
@@ -158,22 +160,29 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
     else setRows((data ?? []) as any);
     setPending((pend ?? []) as any[]);
     const map: Record<string, number> = {};
+    const verifiedByInv: Record<string, string[]> = {};
     for (const p of (verifiedPays ?? []) as any[]) {
       const sign = p.is_refund ? -1 : 1;
       map[p.invoice_id] = (map[p.invoice_id] ?? 0) + sign * (Number(p.amount) || 0);
+      if (!p.is_refund) {
+        (verifiedByInv[p.invoice_id] ||= []).push(p.id);
+      }
     }
     setVerifiedPaidByInvoice(map);
+    setVerifiedPaymentsByInvoice(verifiedByInv);
     setPaymentCount((allPaysRes as any)?.count ?? 0);
     const invIds = ((data ?? []) as any[]).map((i: any) => i.id);
     if (invIds.length) {
-      const { count } = await supabase
+      const { data: rcps, count } = await supabase
         .from("client_invoice_receipts")
-        .select("id", { count: "exact", head: true })
+        .select("id,payment_id", { count: "exact" })
         .in("invoice_id", invIds)
         .is("archived_at", null);
       setReceiptCount(count ?? 0);
+      setReceiptedPaymentIds(new Set(((rcps ?? []) as any[]).map(r => r.payment_id).filter(Boolean)));
     } else {
       setReceiptCount(0);
+      setReceiptedPaymentIds(new Set());
     }
     setLoading(false);
   };
@@ -264,6 +273,17 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                 const collectDisabled = !isAccounts || balance <= 0 || TERMINAL_STATUSES.has(r.status);
                 const remLocked = !!r.external_request_sent_today
                   || (!!r.invoice_reminder_locked_until && new Date(r.invoice_reminder_locked_until) > new Date());
+                const verifiedIds = verifiedPaymentsByInvoice[r.id] ?? [];
+                const unreceiptedVerified = verifiedIds.filter(id => !receiptedPaymentIds.has(id)).length;
+                const allVerifiedReceipted = verifiedIds.length > 0 && unreceiptedVerified === 0;
+                const receiptDisabled = !isAccounts || totals.paid <= 0 || allVerifiedReceipted;
+                const receiptTitle = !isAccounts
+                  ? "Only accounts users can generate receipts."
+                  : totals.paid <= 0
+                  ? "No verified payments yet"
+                  : allVerifiedReceipted
+                  ? "All verified payments already have receipts"
+                  : undefined;
                 return (
                   <tr key={r.id} className="border-t hover:bg-muted/30 align-middle cursor-pointer" onClick={() => setSnapshotFor(r)}>
                     <td className="px-3 py-2 font-medium">
@@ -287,7 +307,7 @@ export function ClientInvoicesPanel({ clientId }: { clientId: string }) {
                       <Button size="sm" variant="default" className="ml-1" disabled={collectDisabled} title={!isAccounts ? "Only accounts users can post payments." : (TERMINAL_STATUSES.has(r.status) ? `Invoice is ${r.status}` : (balance <= 0 ? "Nothing outstanding" : undefined))} onClick={() => setCollectFor(r)}>
                         <DollarSign className="size-3.5 mr-1" /> Collect
                       </Button>
-                      <Button size="sm" variant="ghost" className="ml-1" disabled={!isAccounts || totals.paid <= 0} onClick={() => setReceiptFor(r)}>
+                      <Button size="sm" variant="ghost" className="ml-1" disabled={receiptDisabled} title={receiptTitle} onClick={() => setReceiptFor(r)}>
                         <FileCheck2 className="size-3.5 mr-1" /> Receipt
                       </Button>
                     </td>
@@ -1294,15 +1314,20 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
 
   useEffect(() => {
     (async () => {
-      const [p, f] = await Promise.all([
+      const [p, f, existing] = await Promise.all([
         supabase.from("client_invoice_payments")
           .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by")
           .eq("invoice_id", invoice.id).is("archived_at", null)
           .eq("payment_status", "verified")
           .order("paid_at", { ascending: false }),
         supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
+        supabase.from("client_invoice_receipts")
+          .select("payment_id")
+          .eq("invoice_id", invoice.id)
+          .is("archived_at", null),
       ]);
-      const list = (p.data ?? []).filter((x: any) => !x.is_refund);
+      const receiptedIds = new Set(((existing.data ?? []) as any[]).map(r => r.payment_id).filter(Boolean));
+      const list = (p.data ?? []).filter((x: any) => !x.is_refund && !receiptedIds.has(x.id));
       setPayments(list);
       if (list[0]) setPaymentId(list[0].id);
       setEntities((f.data ?? []) as any);
@@ -1330,6 +1355,18 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     const firmRow: any = firmRes.data ?? {};
     const branchRow: any = branchRes.data ?? {};
     const allocRows: any[] = (allocRes as any)?.data ?? [];
+
+    // Resolve firm logo (signed URL from private `branding` bucket).
+    let firmLogoUrl: string | null = null;
+    if (firmId) {
+      const { data: logoRow } = await supabase.from("firm_profile").select("logo_path").eq("id", firmId).maybeSingle();
+      const logoPath = (logoRow as any)?.logo_path;
+      if (logoPath) {
+        // Signed URL valid for ~1 year so saved snapshot remains printable for a while.
+        const { data: signed } = await supabase.storage.from("branding").createSignedUrl(logoPath, 60 * 60 * 24 * 365);
+        if (signed?.signedUrl) firmLogoUrl = signed.signedUrl;
+      }
+    }
 
     // Resolve labels + service/installment metadata for allocation snapshot
     const allocInstIds = Array.from(new Set(allocRows.map((a) => a.installment_id).filter(Boolean)));
@@ -1404,7 +1441,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       receipt_number: num,
       entity_code: entityCode,
       branch_code: branchCode,
-      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null },
+      firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null, logo_url: firmLogoUrl },
       branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
       client: { id: invRow.client_id ?? null, name: clientRow.full_name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
       invoice: {
@@ -1456,7 +1493,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       receipt_snapshot_taken_at: new Date().toISOString(),
     } as any);
     setSaving(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      const msg = /duplicate key|uq_cir_payment_active/i.test(error.message)
+        ? "A receipt already exists for this payment."
+        : error.message;
+      toast.error(msg);
+      return;
+    }
     try {
       if (invRow.client_id) {
         await appendTimeline({

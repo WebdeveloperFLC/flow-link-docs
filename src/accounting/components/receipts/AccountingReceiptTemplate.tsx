@@ -63,7 +63,7 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
           <div style={{ flex: 1 }}>
             <img
-              src={flcLogo}
+              src={r.companyLogo ?? flcLogo}
               alt="Future Link Consultants"
               style={{ height: 56, width: "auto", maxWidth: 240, objectFit: "contain", display: "block", marginBottom: 12 }}
             />
