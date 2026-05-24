@@ -639,7 +639,6 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
-  const [adminOverride, setAdminOverride] = useState(false);
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmNote, setConfirmNote] = useState("");
@@ -836,7 +835,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const amountInPayCcy = fxRate > 0 ? sumPayNow / fxRate : sumPayNow;
   const overpay = selectedRows.some((r) => (Number(r.payNow) || 0) > Math.max(r.total - r.already_paid, 0) + 0.01);
   const proofRequired = isProofRequired(method);
-  const proofMissing = proofRequired && !proofFile && !adminOverride;
+  const proofMissing = proofRequired && !proofFile;
   const willBeAwaitingVerification = defaultPaymentStatus(method) === "awaiting_verification";
 
   // Projected per-row outstanding (after applying payNow)
@@ -861,7 +860,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
     if (selectedRows.length === 0) { toast.error("Select at least one service"); return; }
     if (sumPayNow <= 0) { toast.error("Enter a positive amount"); return; }
     if (overpay) { toast.error("A row exceeds its outstanding amount"); return; }
-    if (proofMissing) { toast.error("Attach a payment proof or enable admin override"); return; }
+    if (proofMissing) { toast.error("Attach a payment proof to continue."); return; }
     setConfirmNote("");
     setConfirmOpen(true);
   };
@@ -891,7 +890,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
       // Permission-aware: non-accounts users may NEVER post a verified payment.
       // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
-      const baseStatus = adminOverride ? "verified" : defaultPaymentStatus(method);
+      const baseStatus = defaultPaymentStatus(method);
       const status = (forceAwaiting || !isAccountsUser) ? "awaiting_verification" : baseStatus;
 
       const noteForTimeline = confirmNote.trim();
