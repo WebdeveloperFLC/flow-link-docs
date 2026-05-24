@@ -1213,7 +1213,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             </div>
           )}
           {overpay && <div className="text-destructive">A row's amount exceeds its outstanding balance.</div>}
-          {willBeAwaitingVerification && !adminOverride && (
+          {willBeAwaitingVerification && (
             <div className="text-amber-700 pt-1">Will be marked <b>awaiting verification</b> — won't reduce outstanding until verified.</div>
           )}
         </div>
@@ -1225,17 +1225,16 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             onChange={(e) => setProofFile(e.target.files?.[0] ?? null)} />
           {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
           {proofRequired && (
-            <label className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-              <Checkbox checked={adminOverride} onCheckedChange={(v) => setAdminOverride(!!v)} />
-              Admin override — post without proof and mark verified
-            </label>
+            <div className="text-xs text-muted-foreground mt-1">
+              Required for all non-cash payment methods.
+            </div>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button onClick={requestSave} disabled={saving || proofMissing || overpay || sumPayNow <= 0 || selectedRows.length === 0}>
-            {saving ? "Posting…" : (willBeAwaitingVerification && !adminOverride) || !isAccountsUser ? "Submit for verification" : "Post payment"}
+            {saving ? "Posting…" : willBeAwaitingVerification || !isAccountsUser ? "Submit for verification" : "Post payment"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1245,7 +1244,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         <AlertDialogContent className="sm:max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? "Submit payment for verification?" : "Confirm payment received?"}
+              {(!isAccountsUser || willBeAwaitingVerification) ? "Submit payment for verification?" : "Confirm payment received?"}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-2 text-sm">
@@ -1271,7 +1270,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                   <Label className="text-xs">Note (optional)</Label>
                   <Textarea rows={2} value={confirmNote} onChange={(e) => setConfirmNote(e.target.value)} placeholder="e.g. Cash received at branch, Bank transfer confirmed…" />
                 </div>
-                {(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? (
+                {(!isAccountsUser || willBeAwaitingVerification) ? (
                   <div className="text-amber-700 text-xs">
                     This payment will be marked <b>awaiting verification</b>. It will NOT reduce outstanding until an accounts user verifies it.
                   </div>
@@ -1285,16 +1284,16 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
-            {isAccountsUser && !(willBeAwaitingVerification && !adminOverride) && (
+            {isAccountsUser && !willBeAwaitingVerification && (
               <Button variant="outline" disabled={saving} onClick={() => save(true)}>
                 Submit for verification instead
               </Button>
             )}
             <AlertDialogAction
               disabled={saving}
-              onClick={(e) => { e.preventDefault(); void save(!isAccountsUser || (willBeAwaitingVerification && !adminOverride)); }}
+              onClick={(e) => { e.preventDefault(); void save(!isAccountsUser || willBeAwaitingVerification); }}
             >
-              {saving ? "Posting…" : ((!isAccountsUser || (willBeAwaitingVerification && !adminOverride)) ? "Submit for verification" : "Confirm payment received")}
+              {saving ? "Posting…" : ((!isAccountsUser || willBeAwaitingVerification) ? "Submit for verification" : "Confirm payment received")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
