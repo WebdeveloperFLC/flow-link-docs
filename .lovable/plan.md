@@ -1,22 +1,18 @@
-## Fix duplicate receipts + show entity logo on receipts
+## Goal
 
-### 1. Prevent duplicate receipts per payment
-- **Migration**: add partial unique index on `client_invoice_receipts (payment_id) WHERE archived_at IS NULL` as a backend guard.
-- **`ClientInvoicesPanel.tsx`**: in `load()`, fetch existing receipts grouped by invoice. Compute `allVerifiedReceipted` = (count of verified payments) === (count of receipted verified payments). Disable the **Receipt** button (next to Remind / $ Collect) when true, with tooltip "All verified payments already have receipts".
-- **`GenerateReceiptDialog`**: filter out payments that already have a receipt from the selectable list; catch unique-violation errors with a friendly toast.
+In the Record Payment dialog (`ClientInvoicesPanel.tsx`), make the proof attachment strictly mandatory for every non-cash payment method (bank transfer, wire, UPI, cheque, card, e-transfer). Remove the admin override that currently allows posting without proof.
 
-### 2. Show entity/firm logo on receipts
-- **`GenerateReceiptDialog.save()`**: fetch `logo_path` from `firm_profile` for the selected entity, build a signed URL from the `branding` bucket, store it in the receipt snapshot under `firm.logo_url`.
-- **`receiptHelpers.ts → snapshotToReceiptData()`**: populate new `companyLogo` from `snapshot.firm?.logo_url`.
-- **`AccountingReceiptTemplate.tsx`**: render `r.companyLogo ?? flcLogo` so uploaded entity logo wins, with the bundled FLC asset as fallback.
+## Changes (single file: `src/components/clients/ClientInvoicesPanel.tsx`)
 
-### Out of scope
-- Per-branch logos (only `firm_profile` carries a logo today).
-- No `firm_profile` schema or upload UI changes — those already exist.
+1. Remove the `adminOverride` state, its checkbox UI, and all references in the proof block.
+2. Recompute `proofMissing` as simply `proofRequired && !proofFile` (no override branch).
+3. Remove the override branch from `willBeAwaitingVerification` / save flow — non-cash payments always go through proof upload and `awaiting_verification` status as today.
+4. Update the proof label to clearly mark required (`Payment proof *` with a small helper line: "Required for all non-cash payment methods.").
+5. Update the Post button's disabled logic and label to drop override-dependent branches.
+6. Toast message on missing proof: "Attach a payment proof to continue."
 
-### Files touched
-- `supabase/migrations/<new>.sql` (unique index)
-- `src/components/clients/ClientInvoicesPanel.tsx`
-- `src/accounting/components/receipts/GenerateReceiptDialog.tsx` (filter + logo fetch)
-- `src/accounting/lib/receiptHelpers.ts`
-- `src/accounting/components/receipts/AccountingReceiptTemplate.tsx`
+## Out of scope
+
+- Receipt generation dialog — unchanged.
+- Cash mode — proof remains optional.
+- No DB or RLS changes.
