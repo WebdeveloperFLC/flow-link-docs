@@ -1034,6 +1034,34 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
         }
       } catch {}
 
+      // Fire-and-forget automated payment notification email.
+      // Centralized dispatcher handles recipient routing (client + assigned
+      // counselor + accounting BCC) regardless of the caller's module access.
+      try {
+        supabase.functions.invoke("notifications-dispatch", {
+          body: {
+            event_type: "payment_received",
+            payload: {
+              client_id: clientId,
+              invoice: {
+                id: invoice.id,
+                invoice_number: invoice.invoice_number,
+                outstanding: Math.max(Number(invoice.amount || 0) - (Number(invoice.amount_paid || 0) + totalPayInPayCcy), 0),
+              },
+              payment: {
+                id: paymentId,
+                amount: totalPayInPayCcy,
+                currency: payCcy,
+                method,
+                reference: reference || null,
+                paid_at: new Date().toISOString(),
+                status,
+              },
+            },
+          },
+        }).catch(() => { /* email dispatch is best-effort */ });
+      } catch { /* never block payment flow on email */ }
+
       toast.success(
         status === "awaiting_verification"
           ? "Payment submitted — awaiting verification"
