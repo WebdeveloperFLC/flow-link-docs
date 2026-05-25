@@ -8065,6 +8065,30 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          accounting_inbox_email: string | null
+          bcc_accounting_inbox: boolean
+          cc_assigned_counselor: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          accounting_inbox_email?: string | null
+          bcc_accounting_inbox?: boolean
+          cc_assigned_counselor?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          accounting_inbox_email?: string | null
+          bcc_accounting_inbox?: boolean
+          cc_assigned_counselor?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       offer_audience_targets: {
         Row: {
           client_id: string | null
