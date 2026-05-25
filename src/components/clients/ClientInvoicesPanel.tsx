@@ -1274,8 +1274,6 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
     <AlertDialog open={confirmOpen} onOpenChange={(o) => !saving && setConfirmOpen(o)}>
       <AlertDialogContent
         className="z-[70] w-[95vw] sm:max-w-[600px] max-h-[88vh] overflow-y-auto p-6 gap-4"
-        onPointerDownOutside={(e) => saving && e.preventDefault()}
-        onEscapeKeyDown={(e) => saving && e.preventDefault()}
       >
         <AlertDialogHeader>
             <AlertDialogTitle>
