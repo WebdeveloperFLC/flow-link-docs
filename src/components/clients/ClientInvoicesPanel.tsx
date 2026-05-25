@@ -1536,6 +1536,25 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         });
       }
     } catch {}
+
+    // Automated receipt email — routed centrally so it works for any
+    // employee role, even without accounting access.
+    try {
+      supabase.functions.invoke("notifications-dispatch", {
+        body: {
+          event_type: "receipt_generated",
+          payload: {
+            client_id: invRow.client_id ?? null,
+            firm: { name: firmRow?.firm_name ?? null, address: firmRow?.firm_address ?? null, email: firmRow?.firm_email ?? null, phone: firmRow?.firm_phone ?? null, logo_url: firmLogoUrl },
+            client: { name: clientRow?.full_name ?? null, email: clientRow?.email ?? null },
+            receipt: { receipt_number: num, generated_at: new Date().toISOString() },
+            invoice: { id: invoice.id, invoice_number: invRow.invoice_number, outstanding: Math.max(Number(invRow.amount || 0) - Number(invRow.amount_paid || 0), 0) },
+            payment: { id: paymentId, amount: Number(pay.amount), currency: pay.currency, method: pay.method, reference: pay.reference ?? null, paid_at: pay.paid_at },
+          },
+        },
+      }).catch(() => { /* best-effort */ });
+    } catch { /* never block receipt save on email */ }
+
     toast.success(`Receipt ${num} generated`);
     onClose();
   };
