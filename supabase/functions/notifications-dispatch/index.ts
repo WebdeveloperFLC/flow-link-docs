@@ -196,12 +196,12 @@ Deno.serve(async (req) => {
           receipt_generated: `Receipt emailed to ${primary ?? "—"}`,
           payment_received: `Payment confirmation emailed to ${primary ?? "—"}`,
         };
-        await admin.from("client_timeline_events").insert({
+        await admin.from("client_timeline").insert({
           client_id: clientId,
           event_type: `notification.${eventType}`,
+          actor_id: u.user.id,
           summary: summaryByEvent[eventType] ?? `Notification: ${eventType}`,
-          metadata: { recipients, results: sendResults, payload_keys: Object.keys(payload ?? {}) } as any,
-          created_by: u.user.id,
+          metadata: { recipients, results: sendResults.map(r => ({ to: r.to, ok: r.ok })) } as any,
         } as any);
       } catch (_) { /* timeline insert is best-effort */ }
     }
