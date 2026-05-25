@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ShieldCheck, ShieldAlert, Loader2, Send, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { invokeError } from "@/lib/invokeError";
+import { NotificationRoutingCard } from "@/components/settings/NotificationRoutingCard";
 
 const PRESETS: Record<string, { host: string; port: number; encryption: "ssl"|"tls"|"none" }> = {
   hostinger: { host: "smtp.hostinger.com", port: 465, encryption: "ssl" },
@@ -251,6 +252,8 @@ const EmailSmtpSettings = () => {
           <div>Workflow notifications · Client status updates · Counselor / documentation / telecaller alerts · Campaign notifications · Admin reports · Portal notifications.</div>
           <div className="pt-2"><strong className="text-foreground">Auth emails (login OTP, password reset, email verification, invite verification)</strong> continue to use the managed authentication pipeline and are not affected by this configuration.</div>
         </Card>
+
+        <NotificationRoutingCard />
       </div>
     </AppLayout>
   );
