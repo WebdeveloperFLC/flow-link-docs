@@ -1086,6 +1086,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   };
 
   return (
+    <>
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-4xl max-w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Collect payment — {invoice.invoice_number}</DialogTitle></DialogHeader>
@@ -1266,16 +1267,24 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           </Button>
         </DialogFooter>
       </DialogContent>
+    </Dialog>
 
-      {/* Confirmation modal — prevents accidental verification. */}
-      <AlertDialog open={confirmOpen} onOpenChange={(o) => !saving && setConfirmOpen(o)}>
-        <AlertDialogContent className="sm:max-w-lg">
-          <AlertDialogHeader>
+    {/* Confirmation modal — rendered as a sibling so it sits above the parent Dialog
+        with its own overlay, focus trap and z-index. */}
+    <AlertDialog open={confirmOpen} onOpenChange={(o) => !saving && setConfirmOpen(o)}>
+      <AlertDialogContent
+        className="z-[70] w-[95vw] sm:max-w-[600px] max-h-[88vh] overflow-y-auto p-6 gap-4"
+      >
+        <AlertDialogHeader>
             <AlertDialogTitle>
               {(!isAccountsUser || willBeAwaitingVerification) ? "Submit payment for verification?" : "Confirm payment received?"}
             </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-2 text-sm">
+          <AlertDialogDescription className="sr-only">
+            Review the payment details below before confirming.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="space-y-4 text-sm">
                 <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-1">
                   <div><b>Invoice:</b> {invoice.invoice_number}</div>
                   <div><b>Outstanding before:</b> {money(balance, invCcy)}</div>
@@ -1294,7 +1303,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                     </ul>
                   </div>
                 </div>
-                <div>
+          <div className="space-y-1.5">
                   <Label className="text-xs">Note (optional)</Label>
                   <Textarea rows={2} value={confirmNote} onChange={(e) => setConfirmNote(e.target.value)} placeholder="e.g. Cash received at branch, Bank transfer confirmed…" />
                 </div>
@@ -1307,10 +1316,9 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
                     This payment will be posted as <b>verified</b> immediately and will reduce outstanding.
                   </div>
                 )}
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
+        </div>
+
+        <AlertDialogFooter className="pt-2">
             <AlertDialogCancel disabled={saving}>Cancel</AlertDialogCancel>
             {isAccountsUser && !willBeAwaitingVerification && (
               <Button variant="outline" disabled={saving} onClick={() => save(true)}>
@@ -1326,7 +1334,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Dialog>
+    </>
   );
 }
 
