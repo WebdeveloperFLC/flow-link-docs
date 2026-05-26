@@ -643,6 +643,10 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmNote, setConfirmNote] = useState("");
   const [isAccountsUser, setIsAccountsUser] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  // Admin override: post a payment without proof and mark it verified immediately.
+  // Restores the legacy "trusted admin" flow that bypasses the verification queue.
+  const [adminOverride, setAdminOverride] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -654,6 +658,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       ]);
       const adm = (roles ?? []).some((r: any) => r.role === "admin");
       setIsAccountsUser(!!au || adm);
+      setIsAdmin(adm);
     })();
   }, []);
 
@@ -835,8 +840,11 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
   const amountInPayCcy = fxRate > 0 ? sumPayNow / fxRate : sumPayNow;
   const overpay = selectedRows.some((r) => (Number(r.payNow) || 0) > Math.max(r.total - r.already_paid, 0) + 0.01);
   const proofRequired = isProofRequired(method);
-  const proofMissing = proofRequired && !proofFile;
-  const willBeAwaitingVerification = defaultPaymentStatus(method) === "awaiting_verification";
+  // Admin override removes the proof requirement entirely.
+  const proofMissing = proofRequired && !proofFile && !adminOverride;
+  // With admin override on, the payment is pinned to "verified" — never awaiting.
+  const willBeAwaitingVerification =
+    !adminOverride && defaultPaymentStatus(method) === "awaiting_verification";
 
   // Projected per-row outstanding (after applying payNow)
   const projected = (r: Row) => {
@@ -890,8 +898,24 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       const amtInUsd = convert(totalPayInPayCcy, payCcy, "USD");
       // Permission-aware: non-accounts users may NEVER post a verified payment.
       // forceAwaiting (from "Submit for verification" button) also pins to awaiting_verification.
+      // Admin override (admins only) pins the payment to "verified" and skips the queue.
       const baseStatus = defaultPaymentStatus(method);
-      const status = (forceAwaiting || !isAccountsUser) ? "awaiting_verification" : baseStatus;
+      const overrideActive = isAdmin && adminOverride;
+      const status = overrideActive
+        ? "verified"
+        : (forceAwaiting || !isAccountsUser) ? "awaiting_verification" : baseStatus;
+      // Breadcrumbs: admin override decision → payment status resolution → routing.
+      console.info("[payment] admin_override_decision", {
+        isAdmin,
+        adminOverride,
+        overrideActive,
+        method,
+        baseStatus,
+        forceAwaiting,
+        isAccountsUser,
+        resolvedStatus: status,
+        proofAttached: !!proofFile,
+      });
 
       const noteForTimeline = confirmNote.trim();
       const allocationMetas = selectedRows
@@ -938,6 +962,12 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       } as any).select("id").maybeSingle();
       if (error) throw error;
       const paymentId = (inserted as any)?.id as string;
+      console.info("[payment] verification_routing", {
+        paymentId,
+        status,
+        overrideActive,
+        routedTo: status === "verified" ? "verified_immediately" : "awaiting_verification_queue",
+      });
 
       // Insert per-service / per-installment allocations
       if (paymentId && allocationMetas.length) {
@@ -1012,7 +1042,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           eventType: status === "awaiting_verification" ? "payment_awaiting_verification" : "payment_submitted",
           summary: status === "awaiting_verification"
             ? `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} submitted for verification (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`
-            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})${noteForTimeline ? ` — ${noteForTimeline}` : ""}`,
+            : `Payment of ${payCcy} ${totalPayInPayCcy.toFixed(2)} posted (${method.replace(/_/g, " ")})${overrideActive ? " — admin override (posted without proof, marked verified)" : ""}${noteForTimeline ? ` — ${noteForTimeline}` : ""}`,
           metadata: {
             payment_id: paymentId,
             invoice_id: invoice.id,
@@ -1022,6 +1052,8 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
             source,
             note: noteForTimeline || null,
             allocations: allocationMetas,
+            admin_override: overrideActive,
+            posted_without_proof: overrideActive && !proofDocId,
           },
         });
         if (proofDocId) {
@@ -1249,14 +1281,35 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
 
         {/* Proof */}
         <div className="grid gap-1.5 mt-3">
-          <Label>Payment proof{proofRequired ? " *" : " (optional)"}</Label>
+          <Label>
+            Payment proof
+            {proofRequired && !adminOverride ? " *" : adminOverride ? " (waived by admin override)" : " (optional)"}
+          </Label>
           <Input type="file" accept="image/*,application/pdf" capture="environment"
+            disabled={adminOverride}
             onChange={(e) => setProofFile(e.target.files?.[0] ?? null)} />
           {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
-          {proofRequired && (
+          {proofRequired && !adminOverride && (
             <div className="text-xs text-muted-foreground mt-1">
               Required for all non-cash payment methods.
             </div>
+          )}
+          {isAdmin && (
+            <label className="mt-2 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 p-2 text-xs cursor-pointer">
+              <Checkbox
+                checked={adminOverride}
+                onCheckedChange={(v) => {
+                  const next = !!v;
+                  setAdminOverride(next);
+                  if (next) setProofFile(null);
+                }}
+                className="mt-0.5"
+              />
+              <span>
+                <b>Admin override</b> — post without proof and mark <b>verified</b> immediately.
+                Skips the verification queue. Action is recorded on the audit trail.
+              </span>
+            </label>
           )}
         </div>
 
