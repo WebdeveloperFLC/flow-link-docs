@@ -1098,6 +1098,36 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           .catch((e) => console.warn("[payment] notif_dispatch_error", e));
       } catch (e) { console.warn("[payment] notif_dispatch_throw", e); /* never block payment flow on email */ }
 
+      // Fire-and-forget in-app notification (counselor / owner). Safe — never blocks.
+      try {
+        const { data: cli } = await supabase
+          .from("clients")
+          .select("owner_id, assigned_counselor_id, full_name")
+          .eq("id", clientId)
+          .maybeSingle();
+        const recipients = [
+          (cli as any)?.assigned_counselor_id ?? null,
+          (cli as any)?.owner_id ?? null,
+        ];
+        const verified = status === "verified";
+        notifyUsers({
+          userIds: recipients,
+          category: verified ? "payment_verified" : "payment_received",
+          severity: verified ? "success" : "info",
+          title: verified
+            ? `Payment verified: ${payCcy} ${totalPayInPayCcy.toFixed(2)}`
+            : `Payment recorded — awaiting verification (${payCcy} ${totalPayInPayCcy.toFixed(2)})`,
+          body: `${(cli as any)?.full_name ?? "Client"} • Invoice ${invoice.invoice_number} • via ${method}`,
+          link: `/clients/${clientId}`,
+          entityType: "invoice_payment",
+          entityId: paymentId,
+          dedupeKey: `payment:${paymentId}:${status}`,
+          metadata: { invoice_id: invoice.id, amount: totalPayInPayCcy, currency: payCcy, method },
+        });
+      } catch (e) {
+        console.warn("[payment] inapp_notif_throw", e);
+      }
+
       toast.success(
         status === "awaiting_verification"
           ? "Payment submitted — awaiting verification"
