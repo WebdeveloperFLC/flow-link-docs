@@ -199,14 +199,14 @@ export function NotificationCenter() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-sidebar-foreground hover:bg-sidebar-accent hover:text-white"
+          className="relative h-10 w-10 rounded-full text-foreground hover:bg-accent hover:text-accent-foreground border border-border/60 bg-background/80 backdrop-blur shadow-sm"
           aria-label={`Notifications (${unreadCount} unread)`}
         >
-          <Bell className="size-4" />
+          <Bell className="size-[18px]" />
           {unreadCount > 0 && (
             <Badge
               variant="destructive"
-              className="absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px] leading-none flex items-center justify-center rounded-full animate-in zoom-in-50"
+              className="absolute -top-1 -right-1 h-[18px] min-w-[18px] px-1 text-[10px] font-semibold leading-none flex items-center justify-center rounded-full ring-2 ring-background animate-in zoom-in-50"
             >
               {unreadCount > 99 ? "99+" : unreadCount}
             </Badge>
@@ -217,7 +217,7 @@ export function NotificationCenter() {
         align="end"
         side="bottom"
         sideOffset={8}
-        className="w-[380px] p-0 z-[60]"
+        className="w-[min(380px,calc(100vw-1rem))] p-0 z-[100] shadow-xl border-border"
       >
         <div className="flex items-center justify-between px-4 py-2.5 border-b">
           <div className="font-semibold text-sm">Notifications</div>
