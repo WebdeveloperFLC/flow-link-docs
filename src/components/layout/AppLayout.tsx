@@ -7,6 +7,7 @@ import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 import { useCan } from "@/accounting/hooks/usePermission";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -242,6 +243,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                 </div>
               </div>
               <HandoffBell />
+              <NotificationCenter />
             </div>
           )}
           {iconsOnly ? (
