@@ -27,6 +27,8 @@ export interface ReceiptData {
   intakeMonth?: string;
   counselorName: string;
   coCounselorName?: string;
+  /** Actual user who marked/verified the payment. Falls back to counselor when unknown. */
+  receivedByName?: string;
   // Payment details
   invoiceTotal: number;
   amountPaid: number;
@@ -64,6 +66,32 @@ export function snapshotToReceiptData(snapshot: any): ReceiptData | null {
   const firm = snapshot.firm ?? {};
   const branch = snapshot.branch ?? {};
   const footer = snapshot.footer ?? {};
+  // Counselor: assigned counselor → owner → posted-by → generated-by → "System".
+  const counselorName =
+    client.assigned_counselor_name ||
+    client.owner_name ||
+    pay.posted_by_name ||
+    snapshot.generated_by_name ||
+    snapshot.posted_by_name ||
+    "System";
+  // Received by: payment verifier → snapshot generator → posted-by → counselor → "System".
+  const receivedByName =
+    pay.verified_by_name ||
+    snapshot.generated_by_name ||
+    pay.posted_by_name ||
+    counselorName ||
+    "System";
+  if (typeof console !== "undefined") {
+    console.info("[receipt] snapshot→template mapping", {
+      receipt: snapshot.receipt_number,
+      counselorName,
+      receivedByName,
+      hasAssignedCounselor: !!client.assigned_counselor_name,
+      hasOwner: !!client.owner_name,
+      hasVerifiedBy: !!pay.verified_by_name,
+      hasGeneratedBy: !!snapshot.generated_by_name,
+    });
+  }
   return {
     receiptNumber: snapshot.receipt_number ?? "",
     receiptDate: snapshot.generated_at ?? new Date().toISOString(),
@@ -82,7 +110,8 @@ export function snapshotToReceiptData(snapshot: any): ReceiptData | null {
     serviceType: Array.isArray(inv.line_items) && inv.line_items[0]
       ? (inv.line_items[0].service_name ?? inv.line_items[0].description ?? "Service")
       : "Service",
-    counselorName: snapshot.posted_by_name ?? "—",
+    counselorName,
+    receivedByName,
     invoiceTotal: Number(inv.amount ?? 0),
     amountPaid: Number(pay.amount ?? 0),
     outstandingBalance: Number(inv.outstanding ?? Math.max((inv.amount ?? 0) - (inv.amount_paid ?? 0), 0)),
@@ -322,6 +351,7 @@ export function buildReceiptData(
     intakeMonth: invoice.intakeMonth,
     counselorName: invoice.counselor,
     coCounselorName: invoice.coCounselor,
+    receivedByName: invoice.counselor,
     invoiceTotal: invoice.totalAmount,
     amountPaid,
     outstandingBalance: Math.max(0, invoice.totalAmount - invoice.receivedAmount),

@@ -108,7 +108,7 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
             <Row label="Payment method" value={r.paymentMethod} />
             <Row label="Reference" value={r.paymentReference} />
             <Row label="Bank account" value={r.bankAccountNickname} />
-            <Row label="Received by" value={r.counselorName} />
+            <Row label="Received by" value={r.receivedByName || r.counselorName || "System"} />
           </div>
         </div>
 
@@ -125,7 +125,7 @@ export default function AccountingReceiptTemplate({ receipt: r }: { receipt: Rec
           <div>
             <Row label="Program" value={r.programName} />
             <Row label="Intake" value={r.intakeMonth} />
-            <Row label="Counselor" value={r.counselorName} />
+            <Row label="Counselor" value={r.counselorName || "System"} />
             <Row label="Co-counselor" value={r.coCounselorName} />
           </div>
         </div>
