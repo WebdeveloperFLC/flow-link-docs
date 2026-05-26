@@ -8116,6 +8116,93 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_delivery_log: {
+        Row: {
+          category: string
+          channel: string
+          created_at: string
+          error: string | null
+          id: string
+          metadata: Json
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          channel: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          metadata?: Json
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          channel?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          metadata?: Json
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notification_digest_log: {
+        Row: {
+          id: string
+          period: string
+          sent_at: string
+          summary: Json
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          period: string
+          sent_at?: string
+          summary?: Json
+          user_id: string
+        }
+        Update: {
+          id?: string
+          period?: string
+          sent_at?: string
+          summary?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_reminder_state: {
+        Row: {
+          entity_id: string
+          entity_type: string
+          escalation_level: number
+          kind: string
+          last_sent_at: string
+          metadata: Json
+          next_eligible_at: string | null
+        }
+        Insert: {
+          entity_id: string
+          entity_type: string
+          escalation_level?: number
+          kind: string
+          last_sent_at?: string
+          metadata?: Json
+          next_eligible_at?: string | null
+        }
+        Update: {
+          entity_id?: string
+          entity_type?: string
+          escalation_level?: number
+          kind?: string
+          last_sent_at?: string
+          metadata?: Json
+          next_eligible_at?: string | null
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           accounting_inbox_email: string | null
@@ -8137,6 +8224,42 @@ export type Database = {
           cc_assigned_counselor?: boolean
           id?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_sla_tracking: {
+        Row: {
+          breached_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json
+          resolved_at: string | null
+          sla_kind: string
+          sla_minutes: number
+          started_at: string
+        }
+        Insert: {
+          breached_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json
+          resolved_at?: string | null
+          sla_kind: string
+          sla_minutes: number
+          started_at?: string
+        }
+        Update: {
+          breached_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          resolved_at?: string | null
+          sla_kind?: string
+          sla_minutes?: number
+          started_at?: string
         }
         Relationships: []
       }
