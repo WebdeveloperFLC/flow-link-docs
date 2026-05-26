@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import flcLogo from "@/assets/flc-logo.png";
 import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { Topbar } from "@/components/layout/Topbar";
 import { useAccountingAccess } from "@/accounting/hooks/useAccountingAccess";
 import { useCan } from "@/accounting/hooks/usePermission";
 import { useModulePermission } from "@/hooks/useModulePermission";
@@ -242,7 +243,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                   {ROLE_LABELS[primaryRole]}
                 </div>
               </div>
-              <HandoffBell />
+              {/* HandoffBell now lives in the enterprise <Topbar /> (top-right) */}
             </div>
           )}
           {iconsOnly ? (
@@ -274,10 +275,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
       </aside>
 
       <main key={typeof window !== "undefined" ? window.location.pathname : "main"} className="flex-1 overflow-auto page-transition">{children}</main>
-      {/* Global enterprise notification bell — always visible, top-right */}
-      <div className="fixed top-3 right-3 z-50">
-        <NotificationCenter />
-      </div>
+      {/* Global enterprise topbar — always visible, top-right */}
+      <Topbar />
       <ThemeCustomizer />
       <AiHelpDrawer />
     </div>
