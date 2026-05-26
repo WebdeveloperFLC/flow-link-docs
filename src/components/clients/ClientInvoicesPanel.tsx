@@ -16,7 +16,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
-import { notifyUsers } from "@/lib/appNotifications";
+import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
 import {
@@ -519,9 +519,12 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     if (lineItems.length === 0) { toast.error("Pick at least one service"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
+    const invoiceId = crypto.randomUUID();
+    const invoiceNumber = `TEMP-${crypto.randomUUID()}`;
     const { error } = await supabase.from("client_invoices").insert({
+      id: invoiceId,
       client_id: clientId,
-      invoice_number: `TEMP-${crypto.randomUUID()}`,
+      invoice_number: invoiceNumber,
       amount: total,
       currency,
       status: "draft",
@@ -539,6 +542,32 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    try {
+      const { data: cli } = await supabase
+        .from("clients")
+        .select("owner_id, assigned_counselor_id, full_name")
+        .eq("id", clientId)
+        .maybeSingle();
+      const recipients = resolveCounselorNotificationUserIds(cli as any, {
+        event: "invoice_created",
+        clientId,
+        invoiceId,
+      });
+      notifyUsers({
+        userIds: recipients,
+        category: "invoice_created",
+        severity: "info",
+        title: `Invoice created: ${invoiceNumber}`,
+        body: `${(cli as any)?.full_name ?? "Client"} • ${currency} ${total.toFixed(2)}`,
+        link: `/clients/${clientId}`,
+        entityType: "client_invoice",
+        entityId: invoiceId,
+        dedupeKey: `invoice:${invoiceId}:created`,
+        metadata: { client_id: clientId, amount: total, currency },
+      });
+    } catch (e) {
+      console.warn("[invoice] inapp_notif_throw", e);
+    }
     toast.success("Draft invoice created");
     onClose();
   };
@@ -1105,10 +1134,12 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           .select("owner_id, assigned_counselor_id, full_name")
           .eq("id", clientId)
           .maybeSingle();
-        const recipients = [
-          (cli as any)?.assigned_counselor_id ?? null,
-          (cli as any)?.owner_id ?? null,
-        ];
+        const recipients = resolveCounselorNotificationUserIds(cli as any, {
+          event: status === "verified" ? "payment_verified" : "payment_received",
+          clientId,
+          paymentId,
+          invoiceId: invoice.id,
+        });
         const verified = status === "verified";
         notifyUsers({
           userIds: recipients,
@@ -1708,11 +1739,15 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
           .select("owner_id, assigned_counselor_id, full_name")
           .eq("id", invRow.client_id)
           .maybeSingle();
+        const recipients = resolveCounselorNotificationUserIds(cli as any, {
+          event: "receipt_generated",
+          clientId: invRow.client_id,
+          paymentId,
+          invoiceId: invoice.id,
+          receiptNumber: num,
+        });
         notifyUsers({
-          userIds: [
-            (cli as any)?.assigned_counselor_id ?? null,
-            (cli as any)?.owner_id ?? null,
-          ],
+          userIds: recipients,
           category: "receipt_generated",
           severity: "success",
           title: `Receipt ${num} generated`,
