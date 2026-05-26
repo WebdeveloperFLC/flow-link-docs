@@ -243,7 +243,6 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                 </div>
               </div>
               <HandoffBell />
-              <NotificationCenter />
             </div>
           )}
           {iconsOnly ? (
@@ -275,6 +274,10 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
       </aside>
 
       <main key={typeof window !== "undefined" ? window.location.pathname : "main"} className="flex-1 overflow-auto page-transition">{children}</main>
+      {/* Global enterprise notification bell — always visible, top-right */}
+      <div className="fixed top-3 right-3 z-50">
+        <NotificationCenter />
+      </div>
       <ThemeCustomizer />
       <AiHelpDrawer />
     </div>
