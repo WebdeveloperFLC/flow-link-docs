@@ -16,6 +16,7 @@ interface AuthCtx {
   canUpload: boolean;
   canCreateClient: boolean;
   isAdmin: boolean;
+  canDeleteDocs: boolean;
   isClient: boolean;
   isCommissionAdmin: boolean;
   isAccountingAdmin: boolean;
@@ -98,6 +99,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signOut: async () => { await supabase.auth.signOut(); },
     hasRole,
     isAdmin: roles.includes("admin") || roles.includes("administrator"),
+    // Per-document delete (trash icon) visibility. Mirrors Admin's existing
+    // delete flow but also exposes it to Edit-tier roles: Counselor and
+    // Documentation. Section management (rename/delete section, permanent
+    // delete from trash) intentionally remains Admin-only via isAdmin.
+    canDeleteDocs: hasRole(["admin", "administrator", "counselor", "documentation"]),
     isClient: roles.includes("client") && !roles.some((r) => ["admin","administrator","counselor","documentation","telecaller","viewer","commission_admin","manager"].includes(r)),
     canEdit: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
     canUpload: hasRole(["admin", "administrator", "counselor", "documentation", "telecaller", "commission_admin", "manager"]),
@@ -130,6 +136,7 @@ export const useAuth = () => {
       canUpload: false,
       canCreateClient: false,
       isAdmin: false,
+      canDeleteDocs: false,
       isClient: false,
       isCommissionAdmin: false,
       isAccountingAdmin: false,

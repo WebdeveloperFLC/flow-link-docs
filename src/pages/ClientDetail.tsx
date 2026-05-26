@@ -76,7 +76,7 @@ interface BinderRow {
 
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { canUpload, isAdmin, user } = useAuth();
+  const { canUpload, isAdmin, canDeleteDocs, user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -975,6 +975,7 @@ const ClientDetail = () => {
                     documents={sectionDocs}
                     canEdit={canUpload}
                     isAdmin={isAdmin}
+                    canDelete={canDeleteDocs}
                     onChanged={load}
                     pendingChecklist={pendingChecklist}
                     linkableDocs={linkableDocs}

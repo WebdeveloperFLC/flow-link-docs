@@ -108,6 +108,7 @@ interface Props {
   documents: SectionDoc[];
   canEdit: boolean;
   isAdmin: boolean;
+  canDelete?: boolean;
   onChanged: () => void;
   pendingChecklist?: PendingChecklistItem[];
   linkableDocs?: LinkableDoc[];
@@ -115,7 +116,10 @@ interface Props {
   onRemoveChecklistItem?: (itemId: string, itemName: string, mandatory: boolean, isExtra: boolean) => void | Promise<void>;
 }
 
-export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, onChanged, pendingChecklist = [], linkableDocs = [], onLinkDocToChecklist, onRemoveChecklistItem }: Props) => {
+export const SectionBuilderCard = ({ clientId, section, allSections, documents, canEdit, isAdmin, canDelete, onChanged, pendingChecklist = [], linkableDocs = [], onLinkDocToChecklist, onRemoveChecklistItem }: Props) => {
+  // Per-row trash icon falls back to isAdmin when caller didn't pass canDelete,
+  // preserving previous behaviour for any unmigrated call sites.
+  const rowCanDelete = canDelete ?? isAdmin;
   const [orderMode, setOrderModeState] = useState<"auto" | "manual">("auto");
   const [items, setItems] = useState<SectionDoc[]>([]);
   const [combining, setCombining] = useState(false);
@@ -677,6 +681,7 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
                   manual={orderMode === "manual"}
                   canEdit={canEdit}
                   isAdmin={isAdmin}
+                  canDelete={rowCanDelete}
                   sections={allSections.filter((s) => s.id !== section.id)}
                   mergeMode={mergeMode}
                   onStartMerge={() => setMergeMode({ anchorId: d.id, selected: new Set() })}
@@ -795,9 +800,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
 };
 
 function SortableRow({
-  doc, index, manual, canEdit, isAdmin, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
+  doc, index, manual, canEdit, isAdmin, canDelete, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
 }: {
-  doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean;
+  doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean; canDelete?: boolean;
   sections: CaseSection[];
   mergeMode: { anchorId: string; selected: Set<string> } | null;
   onStartMerge: () => void;
@@ -878,7 +883,7 @@ function SortableRow({
           </SelectContent>
         </Select>
       )}
-      {isAdmin && (
+      {(canDelete ?? isAdmin) && (
         <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={onDelete}><Trash2 className="size-3.5" /></Button>
       )}
     </div>
