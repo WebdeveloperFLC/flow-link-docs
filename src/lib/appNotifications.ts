@@ -48,7 +48,7 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       entity_type: input.entityType ?? null,
       entity_id: input.entityId ?? null,
       dedupe_key: input.dedupeKey ? `${uid}:${input.dedupeKey}` : null,
-      metadata: input.metadata ?? {},
+      metadata: (input.metadata ?? {}) as any,
     }));
     console.info("[notif] notification_created", {
       category: input.category,
