@@ -74,6 +74,7 @@ Deno.serve(async (req) => {
     const payload: any = body?.payload ?? {};
     const clientId: string | null = payload?.client_id ?? null;
     if (!eventType) return json({ error: "event_type required" }, 400);
+    console.info("[notif] event_fired", { eventType, clientId, by: u.user.id });
 
     // ── Settings ───────────────────────────────────────────────────────────
     const { data: settings } = await admin
@@ -81,6 +82,7 @@ Deno.serve(async (req) => {
     const accountingInbox: string | null = settings?.accounting_inbox_email ?? null;
     const bccAccounting: boolean = settings?.bcc_accounting_inbox !== false;
     const ccCounselor: boolean = settings?.cc_assigned_counselor !== false;
+    console.info("[notif] settings", { accountingInbox: !!accountingInbox, bccAccounting, ccCounselor });
 
     // ── Resolve client + counselor email ───────────────────────────────────
     let clientRow: any = null;
@@ -97,6 +99,11 @@ Deno.serve(async (req) => {
         counselorEmail = (prof as any)?.email ?? null;
       }
     }
+    console.info("[notif] recipients_resolved", {
+      hasClient: !!clientRow?.email,
+      hasCounselor: !!counselorEmail,
+      hasAccounting: !!(bccAccounting && accountingInbox),
+    });
 
     // ── Build subject + body per event ─────────────────────────────────────
     let subject = "Notification";
@@ -177,6 +184,7 @@ Deno.serve(async (req) => {
     const sendResults: any[] = [];
     for (const to of recipients) {
       try {
+        console.info("[notif] smtp_send_attempt", { to, category, subject });
         const r = await fetch(`${url}/functions/v1/smtp-send`, {
           method: "POST",
           headers: { Authorization: auth, "Content-Type": "application/json" },
@@ -184,8 +192,10 @@ Deno.serve(async (req) => {
         });
         const j = await r.json().catch(() => ({}));
         sendResults.push({ to, ok: r.ok, ...j });
+        console.info("[notif] smtp_send_result", { to, ok: r.ok, status: r.status, log_id: (j as any)?.log_id });
       } catch (e) {
         sendResults.push({ to, ok: false, error: String(e) });
+        console.error("[notif] smtp_send_exception", { to, error: String(e) });
       }
     }
 
