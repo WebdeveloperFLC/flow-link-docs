@@ -800,9 +800,9 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
 };
 
 function SortableRow({
-  doc, index, manual, canEdit, isAdmin, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
+  doc, index, manual, canEdit, isAdmin, canDelete, sections, mergeMode, onStartMerge, onToggleMergePick, onRenameTitle, onView, onDownload, onDelete, onMove,
 }: {
-  doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean;
+  doc: SectionDoc; index: number; manual: boolean; canEdit: boolean; isAdmin: boolean; canDelete?: boolean;
   sections: CaseSection[];
   mergeMode: { anchorId: string; selected: Set<string> } | null;
   onStartMerge: () => void;
@@ -883,7 +883,7 @@ function SortableRow({
           </SelectContent>
         </Select>
       )}
-      {isAdmin && (
+      {(canDelete ?? isAdmin) && (
         <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={onDelete}><Trash2 className="size-3.5" /></Button>
       )}
     </div>
