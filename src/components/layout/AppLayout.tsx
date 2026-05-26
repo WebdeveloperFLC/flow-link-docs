@@ -243,7 +243,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
                   {ROLE_LABELS[primaryRole]}
                 </div>
               </div>
-              <HandoffBell />
+              {/* HandoffBell now lives in the enterprise <Topbar /> (top-right) */}
             </div>
           )}
           {iconsOnly ? (
