@@ -1070,6 +1070,7 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
       // Centralized dispatcher handles recipient routing (client + assigned
       // counselor + accounting BCC) regardless of the caller's module access.
       try {
+        console.info("[payment] notif_dispatch", { event: "payment_received", clientId, paymentId, status });
         supabase.functions.invoke("notifications-dispatch", {
           body: {
             event_type: "payment_received",
@@ -1091,8 +1092,10 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
               },
             },
           },
-        }).catch(() => { /* email dispatch is best-effort */ });
-      } catch { /* never block payment flow on email */ }
+        })
+          .then((r) => console.info("[payment] notif_dispatch_result", r))
+          .catch((e) => console.warn("[payment] notif_dispatch_error", e));
+      } catch (e) { console.warn("[payment] notif_dispatch_throw", e); /* never block payment flow on email */ }
 
       toast.success(
         status === "awaiting_verification"
@@ -1601,6 +1604,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     // Automated receipt email — routed centrally so it works for any
     // employee role, even without accounting access.
     try {
+      console.info("[receipt] notif_dispatch", { event: "receipt_generated", clientId: invRow.client_id, num });
       supabase.functions.invoke("notifications-dispatch", {
         body: {
           event_type: "receipt_generated",
@@ -1613,8 +1617,10 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
             payment: { id: paymentId, amount: Number(pay.amount), currency: pay.currency, method: pay.method, reference: pay.reference ?? null, paid_at: pay.paid_at },
           },
         },
-      }).catch(() => { /* best-effort */ });
-    } catch { /* never block receipt save on email */ }
+      })
+        .then((r) => console.info("[receipt] notif_dispatch_result", r))
+        .catch((e) => console.warn("[receipt] notif_dispatch_error", e));
+    } catch (e) { console.warn("[receipt] notif_dispatch_throw", e); /* never block receipt save on email */ }
 
     toast.success(`Receipt ${num} generated`);
     onClose();
