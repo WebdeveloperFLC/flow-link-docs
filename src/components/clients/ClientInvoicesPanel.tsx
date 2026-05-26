@@ -1554,17 +1554,61 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     if (numErr) { setSaving(false); toast.error(numErr.message); return; }
 
     // Build immutable snapshot
-    const clientRes = invRow.client_id ? await supabase.from("clients").select("full_name,email,phone").eq("id", invRow.client_id).maybeSingle() : { data: null } as any;
+    const clientRes = invRow.client_id
+      ? await supabase.from("clients").select("full_name,email,phone,assigned_counselor_id,owner_id").eq("id", invRow.client_id).maybeSingle()
+      : { data: null } as any;
     const clientRow: any = clientRes.data ?? {};
+
+    // Resolve display names for counselor / owner / payment verifier / poster / current user.
+    const userIdsForNames = Array.from(new Set([
+      clientRow.assigned_counselor_id,
+      clientRow.owner_id,
+      pay.verified_by,
+      pay.posted_by,
+      u?.user?.id,
+    ].filter(Boolean))) as string[];
+    const nameMap = new Map<string, string>();
+    if (userIdsForNames.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id,full_name")
+        .in("id", userIdsForNames);
+      ((profs ?? []) as any[]).forEach((p) => nameMap.set(p.id, p.full_name || ""));
+    }
+    const nameOf = (id?: string | null) => (id ? (nameMap.get(id) || null) : null);
+    const assignedCounselorName = nameOf(clientRow.assigned_counselor_id);
+    const ownerName = nameOf(clientRow.owner_id);
+    const verifiedByName = nameOf(pay.verified_by);
+    const postedByName = nameOf(pay.posted_by);
+    const generatedByName = nameOf(u?.user?.id);
+    console.info("[receipt] resolve actors", {
+      invoice_id: invoice.id,
+      assignedCounselorName,
+      ownerName,
+      verifiedByName,
+      postedByName,
+      generatedByName,
+    });
+
     const snapshot = {
       generated_at: new Date().toISOString(),
       generated_by: u?.user?.id ?? null,
+      generated_by_name: generatedByName,
       receipt_number: num,
       entity_code: entityCode,
       branch_code: branchCode,
       firm: { id: firmRow.id ?? null, name: firmRow.firm_name ?? null, address: firmRow.firm_address ?? null, email: firmRow.firm_email ?? null, phone: firmRow.firm_phone ?? null, logo_url: firmLogoUrl },
       branch: { id: branchRow.id ?? null, name: branchRow.name ?? null, city: branchRow.city ?? null, country: branchRow.country ?? null },
-      client: { id: invRow.client_id ?? null, name: clientRow.full_name ?? null, email: clientRow.email ?? null, phone: clientRow.phone ?? null },
+      client: {
+        id: invRow.client_id ?? null,
+        name: clientRow.full_name ?? null,
+        email: clientRow.email ?? null,
+        phone: clientRow.phone ?? null,
+        assigned_counselor_id: clientRow.assigned_counselor_id ?? null,
+        assigned_counselor_name: assignedCounselorName,
+        owner_id: clientRow.owner_id ?? null,
+        owner_name: ownerName,
+      },
       invoice: {
         id: invoice.id,
         invoice_number: invRow.invoice_number,
@@ -1590,6 +1634,9 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         reference: pay.reference ?? null,
         paid_at: pay.paid_at,
         posted_by: pay.posted_by ?? null,
+        posted_by_name: postedByName,
+        verified_by: pay.verified_by ?? null,
+        verified_by_name: verifiedByName,
         allocations: allocationsSnapshot,
       },
       footer: {
