@@ -34,6 +34,8 @@ import TelephonySettings from "./pages/TelephonySettings";
 import TelephonyIntegrationSettings from "./pages/TelephonyIntegrationSettings";
 import EmailSmtpSettings from "./pages/EmailSmtpSettings";
 import EmailLogs from "./pages/EmailLogs";
+import NotificationPreferences from "./pages/NotificationPreferences";
+import NotificationMonitoring from "./pages/admin/NotificationMonitoring";
 import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
@@ -277,6 +279,8 @@ const App = () => (
             <Route path="/settings/telephony-integration" element={<ProtectedRoute><TelephonyIntegrationSettings /></ProtectedRoute>} />
             <Route path="/settings/email-smtp" element={<ProtectedRoute><EmailSmtpSettings /></ProtectedRoute>} />
             <Route path="/settings/email-logs" element={<ProtectedRoute><EmailLogs /></ProtectedRoute>} />
+            <Route path="/settings/notifications" element={<ProtectedRoute><NotificationPreferences /></ProtectedRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedRoute><NotificationMonitoring /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </CallProvider>
