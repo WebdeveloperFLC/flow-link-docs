@@ -1437,7 +1437,7 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     (async () => {
       const [p, f, existing] = await Promise.all([
         supabase.from("client_invoice_payments")
-          .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by")
+          .select("id,amount,currency,method,paid_at,reference,is_refund,payment_status,fx_rate,amount_in_inr,amount_in_cad,amount_in_usd,payment_source,posted_by,verified_by")
           .eq("invoice_id", invoice.id).is("archived_at", null)
           .eq("payment_status", "verified")
           .order("paid_at", { ascending: false }),
