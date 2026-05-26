@@ -16,6 +16,9 @@ import {
   AlertTriangle,
   Inbox,
   Info,
+  BellRing,
+  BellOff,
+  Megaphone,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -29,6 +32,16 @@ import {
   playNotificationChime,
   shouldPlaySoundFor,
 } from "@/lib/appNotifications";
+import {
+  isPushSupported,
+  getPushPermission,
+  isPushEnabled,
+  setPushEnabled,
+  requestPushPermission,
+  maybeShowBrowserPush,
+  wasPromptedBefore,
+} from "@/lib/browserPush";
+import { AdminBroadcastDialog } from "./AdminBroadcastDialog";
 
 interface AppNotification {
   id: string;
@@ -72,7 +85,7 @@ function metaFor(cat: string) {
 }
 
 export function NotificationCenter() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -82,20 +95,56 @@ export function NotificationCenter() {
       return true;
     }
   });
+  const [pushOn, setPushOn] = useState<boolean>(() => isPushEnabled());
+  const [pushPerm, setPushPerm] = useState<NotificationPermission | "unsupported">(() => getPushPermission());
   const seenIds = useRef<Set<string>>(new Set());
   const [scrolled, setScrolled] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const lastFetchAt = useRef<string>(new Date(0).toISOString());
 
   const unreadCount = useMemo(
     () => items.filter((n) => !n.is_read).length,
     [items]
   );
 
-  // Initial load
+  // Group consecutive same-category items into visual clusters while keeping
+  // every row addressable (full audit trail preserved).
+  const groupedItems = useMemo(() => {
+    const groups: { key: string; category: string; rows: AppNotification[] }[] = [];
+    for (const n of items) {
+      const last = groups[groups.length - 1];
+      if (last && last.category === n.category && last.rows.length < 8) {
+        const lastTime = new Date(last.rows[last.rows.length - 1].created_at).getTime();
+        const thisTime = new Date(n.created_at).getTime();
+        // Only group if within 30 minutes of the previous one
+        if (Math.abs(lastTime - thisTime) < 30 * 60 * 1000) {
+          last.rows.push(n);
+          continue;
+        }
+      }
+      groups.push({ key: n.id, category: n.category, rows: [n] });
+    }
+    return groups;
+  }, [items]);
+
+  // Per-category unread analytics (lightweight)
+  const unreadByCategory = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const n of items) if (!n.is_read) m[n.category] = (m[n.category] ?? 0) + 1;
+    return m;
+  }, [items]);
+  const totalReadRate = useMemo(() => {
+    if (items.length === 0) return null;
+    const read = items.filter((n) => n.is_read).length;
+    return Math.round((read / items.length) * 100);
+  }, [items]);
+
+  // Initial + on-demand reload (used by visibility/online recovery)
+  const reload = useRef<() => Promise<void>>(async () => {});
   useEffect(() => {
     if (!user) return;
     let alive = true;
-    (async () => {
+    reload.current = async () => {
       const { data, error } = await supabase
         .from("app_notifications")
         .select("*")
@@ -109,10 +158,33 @@ export function NotificationCenter() {
       }
       const rows = (data ?? []) as AppNotification[];
       rows.forEach((r) => seenIds.current.add(r.id));
+      if (rows[0]) lastFetchAt.current = rows[0].created_at;
       setItems(rows);
-    })();
+      console.info("[notif] feed_loaded", { count: rows.length });
+    };
+    reload.current();
+    return () => { alive = false; };
+  }, [user]);
+
+  // Reliability: refetch on tab visibility / network online so we never miss
+  // notifications produced while a realtime channel was disconnected.
+  useEffect(() => {
+    if (!user) return;
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        console.info("[notif] visibility_refresh");
+        reload.current?.();
+      }
+    };
+    const onOnline = () => {
+      console.info("[notif] online_refresh");
+      reload.current?.();
+    };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("online", onOnline);
     return () => {
-      alive = false;
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("online", onOnline);
     };
   }, [user]);
 
@@ -160,7 +232,8 @@ export function NotificationCenter() {
               : undefined,
           });
           // Sound
-          if (soundEnabled && shouldPlaySoundFor(row.category)) {
+          const metaPlaySound = (row as any)?.metadata?.play_sound === true;
+          if (soundEnabled && (shouldPlaySoundFor(row.category) || metaPlaySound)) {
             playNotificationChime(row.id);
           } else if (!soundEnabled) {
             console.info("[notif] sound_skipped", { reason: "muted" });
@@ -170,6 +243,15 @@ export function NotificationCenter() {
               category: row.category,
             });
           }
+          // Browser push (only when tab unfocused; safe no-op otherwise)
+          maybeShowBrowserPush({
+            id: row.id,
+            title: row.title,
+            body: row.body,
+            link: row.link,
+            category: row.category,
+            severity: row.severity,
+          });
         }
       )
       .on(
@@ -189,6 +271,8 @@ export function NotificationCenter() {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") {
           console.info("[notif] reconnect_attempt", { status: "subscribed", channel: `app_notifications:${user.id}` });
+          // After a fresh subscription, pull anything we might have missed
+          reload.current?.();
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
           console.warn("[notif] reconnect_attempt", { status, channel: `app_notifications:${user.id}` });
         }
@@ -198,6 +282,32 @@ export function NotificationCenter() {
       supabase.removeChannel(channel);
     };
   }, [user, soundEnabled]);
+
+  const togglePush = async () => {
+    if (!isPushSupported()) {
+      toast.error("Browser notifications are not supported here");
+      return;
+    }
+    if (Notification.permission === "denied") {
+      toast.error("Permission blocked. Enable notifications in your browser settings.");
+      return;
+    }
+    if (Notification.permission !== "granted") {
+      const r = await requestPushPermission();
+      setPushPerm(r);
+      if (r === "granted") {
+        setPushOn(true);
+        toast.success("Browser notifications enabled");
+      } else {
+        toast.message("Browser notifications not enabled");
+      }
+      return;
+    }
+    const next = !pushOn;
+    setPushOn(next);
+    setPushEnabled(next);
+    toast.success(next ? "Browser notifications on" : "Browser notifications off");
+  };
 
   const toggleSound = () => {
     const next = !soundEnabled;
@@ -278,6 +388,27 @@ export function NotificationCenter() {
             )}
           </div>
           <div className="flex items-center gap-1">
+            {isPushSupported() && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={togglePush}
+                title={
+                  pushPerm === "denied"
+                    ? "Browser notifications blocked"
+                    : pushOn && pushPerm === "granted"
+                    ? "Disable browser notifications"
+                    : "Enable browser notifications"
+                }
+              >
+                {pushOn && pushPerm === "granted" ? (
+                  <BellRing className="size-3.5 text-primary" />
+                ) : (
+                  <BellOff className="size-3.5" />
+                )}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -287,6 +418,15 @@ export function NotificationCenter() {
             >
               {soundEnabled ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5" />}
             </Button>
+            {isAdmin && (
+              <AdminBroadcastDialog
+                trigger={
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="Send broadcast (admin)">
+                    <Megaphone className="size-3.5" />
+                  </Button>
+                }
+              />
+            )}
             {unreadCount > 0 && (
               <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={markAllRead}>
                 <CheckCheck className="size-3.5" /> Mark all read
@@ -309,7 +449,17 @@ export function NotificationCenter() {
             </div>
           ) : (
             <ul className="divide-y">
-              {items.map((n) => {
+              {groupedItems.flatMap((g) => {
+                const header =
+                  g.rows.length > 1 ? (
+                    <li key={`${g.key}-header`} className="px-4 py-1.5 bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground font-medium flex items-center justify-between">
+                      <span>
+                        {g.rows.length} {metaFor(g.category).label.toLowerCase()} {g.rows.length === 1 ? "update" : "updates"}
+                      </span>
+                      <span>grouped</span>
+                    </li>
+                  ) : null;
+                const rows = g.rows.map((n) => {
                 const meta = metaFor(n.category);
                 const Icon = meta.icon;
                 const body = (
@@ -392,10 +542,26 @@ export function NotificationCenter() {
                     )}
                   </li>
                 );
+                });
+                return header ? [header, ...rows] : rows;
               })}
             </ul>
           )}
         </div>
+        {items.length > 0 && (
+          <div className="border-t bg-muted/30 px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {Object.entries(unreadByCategory).slice(0, 3).map(([cat, n]) => (
+                <span key={cat} className="inline-flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-primary" />
+                  {n} {metaFor(cat).label.toLowerCase()}
+                </span>
+              ))}
+              {Object.keys(unreadByCategory).length === 0 && <span>All read</span>}
+            </div>
+            {totalReadRate !== null && <span>{totalReadRate}% read</span>}
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );
