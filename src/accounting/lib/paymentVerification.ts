@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { appendTimeline } from "@/lib/timeline";
+import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 
 /** Mark a payment as verified. Caller should refresh after. */
 export async function verifyPayment(
@@ -26,6 +27,32 @@ export async function verifyPayment(
       metadata: { payment_id: payment.id, amount: payment.amount, currency: payment.currency, note: note?.trim() || null },
     });
   } catch {}
+  try {
+    const { data: cli } = await supabase
+      .from("clients")
+      .select("owner_id, assigned_counselor_id, full_name")
+      .eq("id", payment.client_id)
+      .maybeSingle();
+    const recipients = resolveCounselorNotificationUserIds(cli as any, {
+      event: "payment_verified",
+      clientId: payment.client_id,
+      paymentId: payment.id,
+    });
+    notifyUsers({
+      userIds: recipients,
+      category: "payment_verified",
+      severity: "success",
+      title: `Payment verified: ${payment.currency} ${Number(payment.amount).toFixed(2)}`,
+      body: `${(cli as any)?.full_name ?? "Client"}${note?.trim() ? ` • ${note.trim()}` : ""}`,
+      link: `/clients/${payment.client_id}`,
+      entityType: "invoice_payment",
+      entityId: payment.id,
+      dedupeKey: `payment:${payment.id}:verified`,
+      metadata: { amount: payment.amount, currency: payment.currency, verified_by: u?.user?.id ?? null },
+    });
+  } catch (e) {
+    console.warn("[payment] inapp_verified_notif_throw", e);
+  }
   return true;
 }
 
