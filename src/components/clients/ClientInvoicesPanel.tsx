@@ -16,6 +16,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
+import { notifyUsers } from "@/lib/appNotifications";
 import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
 import {
@@ -1097,6 +1098,36 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
           .catch((e) => console.warn("[payment] notif_dispatch_error", e));
       } catch (e) { console.warn("[payment] notif_dispatch_throw", e); /* never block payment flow on email */ }
 
+      // Fire-and-forget in-app notification (counselor / owner). Safe — never blocks.
+      try {
+        const { data: cli } = await supabase
+          .from("clients")
+          .select("owner_id, assigned_counselor_id, full_name")
+          .eq("id", clientId)
+          .maybeSingle();
+        const recipients = [
+          (cli as any)?.assigned_counselor_id ?? null,
+          (cli as any)?.owner_id ?? null,
+        ];
+        const verified = status === "verified";
+        notifyUsers({
+          userIds: recipients,
+          category: verified ? "payment_verified" : "payment_received",
+          severity: verified ? "success" : "info",
+          title: verified
+            ? `Payment verified: ${payCcy} ${totalPayInPayCcy.toFixed(2)}`
+            : `Payment recorded — awaiting verification (${payCcy} ${totalPayInPayCcy.toFixed(2)})`,
+          body: `${(cli as any)?.full_name ?? "Client"} • Invoice ${invoice.invoice_number} • via ${method}`,
+          link: `/clients/${clientId}`,
+          entityType: "invoice_payment",
+          entityId: paymentId,
+          dedupeKey: `payment:${paymentId}:${status}`,
+          metadata: { invoice_id: invoice.id, amount: totalPayInPayCcy, currency: payCcy, method },
+        });
+      } catch (e) {
+        console.warn("[payment] inapp_notif_throw", e);
+      }
+
       toast.success(
         status === "awaiting_verification"
           ? "Payment submitted — awaiting verification"
@@ -1621,6 +1652,34 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         .then((r) => console.info("[receipt] notif_dispatch_result", r))
         .catch((e) => console.warn("[receipt] notif_dispatch_error", e));
     } catch (e) { console.warn("[receipt] notif_dispatch_throw", e); /* never block receipt save on email */ }
+
+    // Fire-and-forget in-app notification for counselor/owner
+    try {
+      if (invRow.client_id) {
+        const { data: cli } = await supabase
+          .from("clients")
+          .select("owner_id, assigned_counselor_id, full_name")
+          .eq("id", invRow.client_id)
+          .maybeSingle();
+        notifyUsers({
+          userIds: [
+            (cli as any)?.assigned_counselor_id ?? null,
+            (cli as any)?.owner_id ?? null,
+          ],
+          category: "receipt_generated",
+          severity: "success",
+          title: `Receipt ${num} generated`,
+          body: `${(cli as any)?.full_name ?? "Client"} • ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
+          link: `/clients/${invRow.client_id}`,
+          entityType: "invoice_receipt",
+          entityId: invoice.id,
+          dedupeKey: `receipt:${num}`,
+          metadata: { receipt_number: num, invoice_id: invoice.id, payment_id: paymentId },
+        });
+      }
+    } catch (e) {
+      console.warn("[receipt] inapp_notif_throw", e);
+    }
 
     toast.success(`Receipt ${num} generated`);
     onClose();
