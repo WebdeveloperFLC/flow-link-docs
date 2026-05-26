@@ -1,0 +1,32 @@
+erDiagram
+    CLIENTS ||--o{ CLIENT_PROFILE : "1:1"
+    CLIENTS ||--o{ CLIENT_DOCUMENTS : "has"
+    CLIENTS ||--o{ CLIENT_INVOICES : "has"
+    CLIENTS ||--o{ CLIENT_TIMELINE : "has"
+    CLIENTS ||--o{ CLIENT_TASKS : "has"
+    CLIENTS ||--o{ CLIENT_ACCESS : "shared via"
+    CLIENTS ||--o{ CLIENT_NOTIFICATIONS : "has"
+    CLIENTS ||--|| ACCOUNTING_CLIENTS : "synced via trigger"
+    CLIENTS ||--o{ CALL_QUEUE_ITEMS : "queued"
+    CLIENTS ||--o{ CLIENT_PORTAL_LINKS : "portal"
+
+    CLIENT_INVOICES ||--o{ CLIENT_INVOICE_INSTALLMENTS : "schedule"
+    CLIENT_INVOICES ||--o{ CLIENT_INVOICE_PAYMENTS : "receives"
+    CLIENT_INVOICES ||--o{ CLIENT_INVOICE_RECEIPTS : "generates"
+    CLIENT_INVOICES ||--o{ CLIENT_INVOICE_SNAPSHOTS : "history"
+    CLIENT_INVOICES ||--o{ CLIENT_INVOICE_REMINDERS : "reminders"
+    CLIENT_INVOICE_PAYMENTS ||--o{ CLIENT_INVOICE_PAYMENT_ALLOCATIONS : "split"
+
+    AUTH_USERS ||--o{ USER_ROLES : "app roles"
+    AUTH_USERS ||--o{ USER_MODULE_PERMISSIONS : "module perms"
+    AUTH_USERS ||--o{ ACCOUNTING_USERS : "accounting role"
+    ACCOUNTING_USERS ||--o{ ACCOUNTING_USER_MODULE_PERMISSIONS : "module matrix"
+    AUTH_USERS ||--o{ PROFILES : "profile"
+    AUTH_USERS ||--o{ CLIENT_PORTAL_LINKS : "portal binding"
+
+    ACCOUNTING_ENTITIES ||--o{ ACCOUNTING_BANK_ACCOUNTS : "owns"
+    ACCOUNTING_ENTITIES ||--o{ CLIENT_INVOICE_RECEIPTS : "branding"
+    BRANCHES ||--o{ CLIENT_INVOICE_RECEIPTS : "branding"
+    FIRM_PROFILE ||--o{ CLIENT_INVOICE_RECEIPTS : "fallback branding"
+
+    NOTIFICATION_SETTINGS ||--o{ APP_EMAIL_LOGS : "routes"

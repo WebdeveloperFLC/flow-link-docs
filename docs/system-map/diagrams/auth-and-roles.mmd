@@ -1,0 +1,22 @@
+flowchart TD
+    SIGNIN[User signs in via Supabase Auth] --> CTX[AuthContext.loadRoles]
+    CTX --> Q1[SELECT user_roles WHERE user_id=uid]
+    CTX --> Q2[SELECT accounting_users WHERE auth_user_id=uid AND status=ACTIVE]
+    Q1 --> STATE[roles[], isAdmin, canEdit, canUpload, isClient, isCommissionAdmin]
+    Q2 --> STATE2[isAccountingMember, isAccountingAdmin]
+    STATE --> ROUTE[ProtectedRoute / PortalProtectedRoute]
+    STATE2 --> ACCT[Accounting layout gates]
+
+    subgraph RLS
+      H1[has_role uid, role]
+      H2[is_accounting_user uid]
+      H3[is_accounting_admin uid]
+      H4[user_client_permission uid, cid]
+      H5[user_has_module uid, module, level]
+      H6[is_commission_admin uid]
+    end
+    ROUTE -.uses.-> H1
+    ROUTE -.uses.-> H4
+    ACCT -.uses.-> H2
+    ACCT -.uses.-> H3
+    ACCT -.uses.-> H5

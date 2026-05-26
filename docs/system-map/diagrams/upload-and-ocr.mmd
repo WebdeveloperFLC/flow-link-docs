@@ -1,0 +1,11 @@
+flowchart TD
+    U[User selects file] --> P[Storage signed upload to client-documents bucket]
+    P --> R[INSERT client_documents row<br/>RLS: can_upload_client]
+    R --> Q[Enqueue client_document_extraction_queue]
+    Q --> CL[classify-document edge fn]
+    CL --> EX[extract-document-data edge fn]
+    EX --> ROW[INSERT client_document_extractions]
+    ROW --> VF[Optional verify-document]
+    VF --> DV[INSERT document_verifications]
+    R --> FP[document_fingerprints duplicate check]
+    R --> TL[client_timeline event_type=file]
