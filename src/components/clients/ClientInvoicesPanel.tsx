@@ -16,6 +16,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
+import { notifyUsers } from "@/lib/appNotifications";
 import { printReceiptSnapshot } from "@/accounting/lib/printReceiptSnapshot";
 import { Download } from "lucide-react";
 import {
