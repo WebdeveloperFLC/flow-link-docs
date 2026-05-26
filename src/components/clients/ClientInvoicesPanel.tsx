@@ -1653,6 +1653,34 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
         .catch((e) => console.warn("[receipt] notif_dispatch_error", e));
     } catch (e) { console.warn("[receipt] notif_dispatch_throw", e); /* never block receipt save on email */ }
 
+    // Fire-and-forget in-app notification for counselor/owner
+    try {
+      if (invRow.client_id) {
+        const { data: cli } = await supabase
+          .from("clients")
+          .select("owner_id, assigned_counselor_id, full_name")
+          .eq("id", invRow.client_id)
+          .maybeSingle();
+        notifyUsers({
+          userIds: [
+            (cli as any)?.assigned_counselor_id ?? null,
+            (cli as any)?.owner_id ?? null,
+          ],
+          category: "receipt_generated",
+          severity: "success",
+          title: `Receipt ${num} generated`,
+          body: `${(cli as any)?.full_name ?? "Client"} • ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
+          link: `/clients/${invRow.client_id}`,
+          entityType: "invoice_receipt",
+          entityId: invoice.id,
+          dedupeKey: `receipt:${num}`,
+          metadata: { receipt_number: num, invoice_id: invoice.id, payment_id: paymentId },
+        });
+      }
+    } catch (e) {
+      console.warn("[receipt] inapp_notif_throw", e);
+    }
+
     toast.success(`Receipt ${num} generated`);
     onClose();
   };
