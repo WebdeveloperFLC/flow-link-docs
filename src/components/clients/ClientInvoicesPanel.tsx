@@ -1281,14 +1281,35 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
 
         {/* Proof */}
         <div className="grid gap-1.5 mt-3">
-          <Label>Payment proof{proofRequired ? " *" : " (optional)"}</Label>
+          <Label>
+            Payment proof
+            {proofRequired && !adminOverride ? " *" : adminOverride ? " (waived by admin override)" : " (optional)"}
+          </Label>
           <Input type="file" accept="image/*,application/pdf" capture="environment"
+            disabled={adminOverride}
             onChange={(e) => setProofFile(e.target.files?.[0] ?? null)} />
           {proofFile && <div className="text-xs text-muted-foreground">Selected: {proofFile.name}</div>}
-          {proofRequired && (
+          {proofRequired && !adminOverride && (
             <div className="text-xs text-muted-foreground mt-1">
               Required for all non-cash payment methods.
             </div>
+          )}
+          {isAdmin && (
+            <label className="mt-2 flex items-start gap-2 rounded-md border border-dashed bg-muted/30 p-2 text-xs cursor-pointer">
+              <Checkbox
+                checked={adminOverride}
+                onCheckedChange={(v) => {
+                  const next = !!v;
+                  setAdminOverride(next);
+                  if (next) setProofFile(null);
+                }}
+                className="mt-0.5"
+              />
+              <span>
+                <b>Admin override</b> — post without proof and mark <b>verified</b> immediately.
+                Skips the verification queue. Action is recorded on the audit trail.
+              </span>
+            </label>
           )}
         </div>
 
