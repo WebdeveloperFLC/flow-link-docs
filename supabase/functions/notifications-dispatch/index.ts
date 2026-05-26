@@ -87,21 +87,46 @@ Deno.serve(async (req) => {
     // ── Resolve client + counselor email ───────────────────────────────────
     let clientRow: any = null;
     let counselorEmail: string | null = null;
+    let counselorSource: string | null = null;
+    let counselorId: string | null = null;
     if (clientId) {
       const { data: cli } = await admin
         .from("clients")
-        .select("id,full_name,email,email_alternate,phone,assigned_counselor_id")
+        .select("id,full_name,email,email_alternate,phone,assigned_counselor_id,owner_id")
         .eq("id", clientId).maybeSingle();
       clientRow = cli;
-      if (ccCounselor && cli?.assigned_counselor_id) {
-        const { data: prof } = await admin
-          .from("profiles").select("email").eq("id", cli.assigned_counselor_id).maybeSingle();
-        counselorEmail = (prof as any)?.email ?? null;
+      if (ccCounselor) {
+        // Counselor can be stored on either `assigned_counselor_id` (newer)
+        // or `owner_id` (legacy / actual production data). Try both so
+        // CRM-created clients still CC their assigned staff member.
+        counselorId = (cli?.assigned_counselor_id as string | null) ?? (cli?.owner_id as string | null) ?? null;
+        counselorSource = cli?.assigned_counselor_id ? "assigned_counselor_id" : (cli?.owner_id ? "owner_id" : null);
+        console.info("[notif] counselor_lookup", { clientId, counselorId, counselorSource });
+        if (counselorId) {
+          const { data: prof, error: profErr } = await admin
+            .from("profiles").select("id,email,full_name").eq("id", counselorId).maybeSingle();
+          counselorEmail = (prof as any)?.email ?? null;
+          console.info("[notif] counselor_resolved", {
+            counselorId,
+            hasProfile: !!prof,
+            hasEmail: !!counselorEmail,
+            error: profErr?.message ?? null,
+          });
+          if (!counselorEmail) {
+            console.warn("[notif] counselor_skipped", {
+              reason: prof ? "profile_has_no_email" : "profile_not_found",
+              counselorId,
+            });
+          }
+        } else {
+          console.warn("[notif] counselor_skipped", { reason: "no_counselor_assigned_on_client", clientId });
+        }
       }
     }
     console.info("[notif] recipients_resolved", {
       hasClient: !!clientRow?.email,
       hasCounselor: !!counselorEmail,
+      counselorSource,
       hasAccounting: !!(bccAccounting && accountingInbox),
     });
 
