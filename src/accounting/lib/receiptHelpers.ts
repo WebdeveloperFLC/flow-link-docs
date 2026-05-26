@@ -351,6 +351,7 @@ export function buildReceiptData(
     intakeMonth: invoice.intakeMonth,
     counselorName: invoice.counselor,
     coCounselorName: invoice.coCounselor,
+    receivedByName: invoice.counselor,
     invoiceTotal: invoice.totalAmount,
     amountPaid,
     outstandingBalance: Math.max(0, invoice.totalAmount - invoice.receivedAmount),
