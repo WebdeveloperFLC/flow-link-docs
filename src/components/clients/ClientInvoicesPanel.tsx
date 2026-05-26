@@ -519,9 +519,12 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     if (lineItems.length === 0) { toast.error("Pick at least one service"); return; }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    const { data: insertedInvoice, error } = await supabase.from("client_invoices").insert({
+    const invoiceId = crypto.randomUUID();
+    const invoiceNumber = `TEMP-${crypto.randomUUID()}`;
+    const { error } = await supabase.from("client_invoices").insert({
+      id: invoiceId,
       client_id: clientId,
-      invoice_number: `TEMP-${crypto.randomUUID()}`,
+      invoice_number: invoiceNumber,
       amount: total,
       currency,
       status: "draft",
@@ -536,7 +539,7 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       fx_rate_to_inr: 1, fx_rate_to_cad: 1, fx_rate_to_usd: 1,
       fx_provider: "manual", fx_manual_override: true,
       subtotal_in_inr: total, subtotal_in_cad: total, subtotal_in_usd: total,
-    } as any).select("id,invoice_number").maybeSingle();
+    } as any);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     try {
@@ -548,18 +551,18 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       const recipients = resolveCounselorNotificationUserIds(cli as any, {
         event: "invoice_created",
         clientId,
-        invoiceId: (insertedInvoice as any)?.id ?? null,
+        invoiceId,
       });
       notifyUsers({
         userIds: recipients,
         category: "invoice_created",
         severity: "info",
-        title: `Invoice created: ${(insertedInvoice as any)?.invoice_number ?? "Draft invoice"}`,
+        title: `Invoice created: ${invoiceNumber}`,
         body: `${(cli as any)?.full_name ?? "Client"} • ${currency} ${total.toFixed(2)}`,
         link: `/clients/${clientId}`,
         entityType: "client_invoice",
-        entityId: (insertedInvoice as any)?.id ?? null,
-        dedupeKey: (insertedInvoice as any)?.id ? `invoice:${(insertedInvoice as any).id}:created` : null,
+        entityId: invoiceId,
+        dedupeKey: `invoice:${invoiceId}:created`,
         metadata: { client_id: clientId, amount: total, currency },
       });
     } catch (e) {
