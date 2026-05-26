@@ -27,6 +27,8 @@ export interface ReceiptData {
   intakeMonth?: string;
   counselorName: string;
   coCounselorName?: string;
+  /** Actual user who marked/verified the payment. Falls back to counselor when unknown. */
+  receivedByName?: string;
   // Payment details
   invoiceTotal: number;
   amountPaid: number;
