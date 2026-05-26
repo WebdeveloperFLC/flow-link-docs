@@ -19,6 +19,7 @@ import {
   BellRing,
   BellOff,
   Megaphone,
+  FileText,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,7 @@ function timeAgo(iso: string) {
 }
 
 const CATEGORY_META: Record<string, { icon: React.ComponentType<{ className?: string }>; label: string; tone: string }> = {
+  invoice_created: { icon: FileText, label: "Invoice", tone: "text-blue-600 bg-blue-500/10" },
   payment_received: { icon: Wallet, label: "Payment", tone: "text-emerald-600 bg-emerald-500/10" },
   payment_verified: { icon: ShieldCheck, label: "Verified", tone: "text-emerald-600 bg-emerald-500/10" },
   receipt_generated: { icon: Receipt, label: "Receipt", tone: "text-sky-600 bg-sky-500/10" },
@@ -154,6 +156,7 @@ export function NotificationCenter() {
       if (!alive) return;
       if (error) {
         console.warn("[notif] load_error", error.message);
+        console.warn("[notif-debug] filtered_out_reason", { reason: "feed_load_error", error: error.message, userId: user.id });
         return;
       }
       const rows = (data ?? []) as AppNotification[];
@@ -203,7 +206,19 @@ export function NotificationCenter() {
         },
         (payload) => {
           const row = payload.new as AppNotification;
+          console.info("[notif-debug] realtime_received", {
+            event: "INSERT",
+            id: row?.id ?? null,
+            user_id: row?.user_id ?? null,
+            category: row?.category ?? null,
+            subscribed_user_id: user.id,
+          });
           if (!row || seenIds.current.has(row.id)) {
+            console.info("[notif-debug] filtered_out_reason", {
+              reason: !row ? "empty_realtime_payload" : "duplicate_seen_id",
+              id: row?.id ?? null,
+              category: row?.category ?? null,
+            });
             console.info("[notif] duplicate_notification_blocked", { id: row?.id });
             return;
           }
