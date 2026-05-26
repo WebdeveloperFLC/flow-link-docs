@@ -1,0 +1,14 @@
+flowchart LR
+    EVT[Event in UI<br/>payment_received or receipt_generated] --> DISP[notifications-dispatch edge fn]
+    DISP --> RES1[Lookup client.email]
+    DISP --> RES2[Lookup counselor profile.email]
+    DISP --> RES3[Lookup notification_settings.accounting_inbox_email]
+    DISP --> LOGO[Resolve logo: accounting_entities -> firm_profile]
+    RES1 --> BUILD[Build HTML template]
+    RES2 --> BUILD
+    RES3 --> BUILD
+    LOGO --> BUILD
+    BUILD --> SMTP[smtp-send edge fn]
+    SMTP --> LOG1[INSERT app_email_logs]
+    SMTP --> TL[INSERT client_timeline<br/>event_type=notification.*]
+    SMTP --> OUT[Email delivered via firm SMTP]

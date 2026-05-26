@@ -1,0 +1,31 @@
+flowchart TD
+    A[User clicks Create Invoice] --> B[INSERT client_invoices]
+    B --> B1[fn_assign_invoice_number trigger]
+    B1 --> C[Status: DRAFT]
+    C --> D[User clicks Send]
+    D --> D1[UPDATE status=sent]
+    D1 --> D2[fn_take_invoice_snapshot v1]
+    D2 --> E[Outstanding invoice visible]
+
+    E --> F[User clicks Record Payment]
+    F --> F1[Parent Dialog opens]
+    F1 --> F2[Confirm AlertDialog sibling z-70]
+    F2 --> G[INSERT client_invoice_payments]
+    G --> G1[fn_log_invoice_payment_timeline]
+    G --> G2[fn_recompute_invoice_totals]
+    G2 --> G3{Fully paid?}
+    G3 -- Yes --> H1[status=paid, paid_at=now, snapshot v2]
+    G3 -- No --> H2[status=partially_paid]
+
+    H1 --> I[User clicks Generate Receipt]
+    H2 --> I
+    I --> I1[INSERT client_invoice_receipts]
+    I1 --> I2[generate_receipt_number]
+    I1 --> I3[fn_take_receipt_snapshot]
+    I1 --> I4[fn_log_invoice_receipt_timeline]
+    I4 --> J[Frontend invokes notifications-dispatch]
+    J --> J1[Resolve client/counselor/accounting inbox]
+    J1 --> J2[Render HTML with entity logo]
+    J2 --> J3[smtp-send]
+    J3 --> J4[INSERT app_email_logs]
+    J3 --> J5[INSERT client_timeline notification.receipt_generated]
