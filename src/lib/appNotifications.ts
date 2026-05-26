@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type NotificationCategory =
+  | "invoice_created"
   | "payment_received"
   | "payment_verified"
   | "receipt_generated"
@@ -28,16 +29,47 @@ export interface NotifyInput {
   metadata?: Record<string, unknown>;
 }
 
+export function resolveCounselorNotificationUserIds(
+  client: { assigned_counselor_id?: string | null; owner_id?: string | null } | null | undefined,
+  context?: Record<string, unknown>,
+): string[] {
+  const resolved = client?.assigned_counselor_id ?? client?.owner_id ?? null;
+  const source = client?.assigned_counselor_id ? "assigned_counselor_id" : client?.owner_id ? "owner_id" : null;
+  console.info("[notif-debug] resolved_user_ids", {
+    ...context,
+    assigned_counselor_id: client?.assigned_counselor_id ?? null,
+    owner_id: client?.owner_id ?? null,
+    resolved_user_ids: resolved ? [resolved] : [],
+    source,
+  });
+  return resolved ? [resolved] : [];
+}
+
 /**
  * Fire-and-forget per-user in-app notification insert.
  * Never throws — notification failures must not block business flows.
  */
 export async function notifyUsers(input: NotifyInput): Promise<void> {
   try {
+    console.info("[notif-debug] producer_called", {
+      category: input.category,
+      entityType: input.entityType ?? null,
+      entityId: input.entityId ?? null,
+      rawUserIds: input.userIds ?? [],
+      dedupeKey: input.dedupeKey ?? null,
+    });
     const uniq = Array.from(
       new Set((input.userIds ?? []).filter((u): u is string => !!u))
     );
-    if (uniq.length === 0) return;
+    if (uniq.length === 0) {
+      console.warn("[notif-debug] filtered_out_reason", {
+        category: input.category,
+        reason: "no_recipient_user_ids",
+        entityType: input.entityType ?? null,
+        entityId: input.entityId ?? null,
+      });
+      return;
+    }
     const rows = uniq.map((uid) => ({
       user_id: uid,
       category: input.category,
@@ -55,16 +87,56 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       recipients: uniq.length,
       dedupe: !!input.dedupeKey,
     });
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("app_notifications")
-      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true })
+      .select("id,user_id,category,entity_type,entity_id,dedupe_key,created_at");
     if (error) {
       // Unique-violation on dedupe is expected & safe → log only
       console.info("[notif] duplicate_notification_blocked_or_error", error.message);
+      console.warn("[notif-debug] filtered_out_reason", {
+        category: input.category,
+        reason: "insert_error",
+        error: error.message,
+        userIds: uniq,
+      });
+    } else {
+      console.info("[notif-debug] app_notification_inserted", {
+        category: input.category,
+        requestedUserIds: uniq,
+        insertedCount: data?.length ?? 0,
+        rows: data ?? [],
+      });
     }
   } catch (e) {
     console.warn("[notif] notify_throw", e);
   }
+}
+
+async function notifTest() {
+  const { data } = await supabase.auth.getUser();
+  const uid = data?.user?.id;
+  if (!uid) {
+    console.warn("[notif-debug] filtered_out_reason", { reason: "manual_test_no_logged_in_user" });
+    return { ok: false, reason: "no_logged_in_user" };
+  }
+  await notifyUsers({
+    userIds: [uid],
+    category: "info",
+    severity: "info",
+    title: "Realtime notification test",
+    body: "Manual test inserted for the current user.",
+    link: "/dashboard",
+    entityType: "notification_test",
+    entityId: null,
+    dedupeKey: `manual-test:${Date.now()}`,
+    metadata: { manual_test: true },
+  });
+  return { ok: true, user_id: uid };
+}
+
+if (typeof window !== "undefined") {
+  (window as any).__notifTest = notifTest;
 }
 
 /* ─────────────  Sound  ───────────── */
