@@ -87,10 +87,9 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       recipients: uniq.length,
       dedupe: !!input.dedupeKey,
     });
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("app_notifications")
-      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true })
-      .select("id,user_id,category,entity_type,entity_id,dedupe_key,created_at");
+      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
     if (error) {
       // Unique-violation on dedupe is expected & safe → log only
       console.info("[notif] duplicate_notification_blocked_or_error", error.message);
@@ -104,8 +103,14 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       console.info("[notif-debug] app_notification_inserted", {
         category: input.category,
         requestedUserIds: uniq,
-        insertedCount: data?.length ?? 0,
-        rows: data ?? [],
+        insertedCount: rows.length,
+        rows: rows.map((r) => ({
+          user_id: r.user_id,
+          category: r.category,
+          entity_type: r.entity_type,
+          entity_id: r.entity_id,
+          dedupe_key: r.dedupe_key,
+        })),
       });
     }
   } catch (e) {
