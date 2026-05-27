@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { processToPdf } from "@/lib/processFile";
-import { buildPersonDocumentName, sanitizeName } from "@/lib/constants";
+import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
+import { markChecklistItemReady } from "@/lib/checklist";
 import { generateBinder } from "@/lib/binder";
 import { openClientDocument } from "@/lib/documentPreview";
 import { listTimeline, type TimelineRow } from "@/lib/timeline";
@@ -179,7 +180,24 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
-        const baseName = buildPersonDocumentName("Other", ROLE_SHORT[person.role], person.full_name, 1, "pdf").replace(/\.pdf$/, "");
+        // Preserve original filename identity (no more generic
+        // "Other_Document" titles). Bump _v{n} only on collisions within the
+        // same client to avoid silent overwrites.
+        const { data: existingDocs } = await supabase
+          .from("client_documents")
+          .select("file_name")
+          .eq("client_id", client.id);
+        const stem = sanitizeOriginalStem(file.name);
+        const collisions = (existingDocs ?? []).filter((d) => {
+          const s = sanitizeOriginalStem(d.file_name ?? "");
+          return s === stem || s.startsWith(`${stem}_v`);
+        }).length;
+        const version = collisions + 1;
+        const baseName = buildPreservedDocumentName(file.name, version);
+        console.debug("[doc-debug] upload_received", file.name, "person", person.full_name);
+        console.debug("[doc-debug] original_filename", file.name);
+        console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", version);
+        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions });
         const processed = await processToPdf(file, baseName);
         const path = `${client.id}/${person.id}/${sanitizeName("Other")}/${Date.now()}_${processed.name}`;
         const { error: upErr } = await supabase.storage
@@ -206,6 +224,21 @@ export const PersonWorkspaceCard = ({ client, person, canEdit, isAdmin, onChange
           .select()
           .single();
         if (insErr) throw insErr;
+        // Try to auto-link to a checklist row using the ORIGINAL filename as
+        // the matching hint. Without this, every co-applicant upload landed
+        // in "Other uploads" even when it clearly matched (e.g. Passport.pdf).
+        try {
+          const matched = await markChecklistItemReady(
+            ins.id,
+            client.id,
+            "Other",
+            null,
+            stem.replace(/[_-]+/g, " "),
+          );
+          console.debug("[doc-debug] checklist_match", matched ?? null);
+          if (matched) console.debug("[doc-debug] mapped_to_checklist", matched);
+          else console.debug("[doc-debug] fallback_other_uploads", { file: processed.name });
+        } catch { /* best effort */ }
         await logActivity("document.uploaded", "document", ins.id, {
           client_id: client.id, person_id: person.id, person_name: person.full_name, person_role: person.role,
         });
