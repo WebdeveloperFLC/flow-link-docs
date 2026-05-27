@@ -1736,10 +1736,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
       if (invRow.client_id) {
         const { data: cli } = await supabase
           .from("clients")
-          .select("owner_id, assigned_counselor_id, full_name")
+          .select("full_name")
           .eq("id", invRow.client_id)
           .maybeSingle();
-        const recipients = resolveCounselorNotificationUserIds(cli as any, {
+        // Notify EVERY stakeholder (counselor + owner + creator + every
+        // user/team shared via client_access). Never silently drop if one
+        // lookup is missing — partial recipients still get the bell.
+        const recipients = await resolveAllClientStakeholderUserIds(invRow.client_id, {
           event: "receipt_generated",
           clientId: invRow.client_id,
           paymentId,
@@ -1750,13 +1753,13 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
           userIds: recipients,
           category: "receipt_generated",
           severity: "success",
-          title: `Receipt ${num} generated`,
-          body: `${(cli as any)?.full_name ?? "Client"} • ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
+          title: "Receipt generated",
+          body: `Receipt generated for invoice ${invRow.invoice_number} — ${(cli as any)?.full_name ?? "Client"} • ${pay.currency} ${Number(pay.amount).toFixed(2)}`,
           link: `/clients/${invRow.client_id}`,
           entityType: "invoice_receipt",
           entityId: invoice.id,
           dedupeKey: `receipt:${num}`,
-          metadata: { receipt_number: num, invoice_id: invoice.id, payment_id: paymentId },
+          metadata: { receipt_number: num, invoice_id: invoice.id, invoice_number: invRow.invoice_number, payment_id: paymentId },
         });
       }
     } catch (e) {
