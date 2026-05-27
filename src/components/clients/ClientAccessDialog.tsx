@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Trash2, Plus, Info } from "lucide-react";
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
+import { notifyUsers } from "@/lib/appNotifications";
 
 type Perm = "view" | "edit" | "upload" | "full";
 const PERM_OPTIONS: { value: Perm; label: string; help: string }[] = [
@@ -64,6 +65,37 @@ export function ClientAccessDialog({
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_granted", "client", clientId, { user_id: newUserId, permission: newUserPerm });
+    // In-app bell notification for the newly-granted user.
+    // Skipped on plain permission upgrades (existing row) to avoid spam.
+    if (!existing) {
+      try {
+        const { data: au } = await supabase.auth.getUser();
+        const actorId = au?.user?.id ?? null;
+        let actorName = "A team member";
+        if (actorId) {
+          const { data: p } = await supabase.from("profiles").select("full_name,email").eq("id", actorId).maybeSingle();
+          actorName = (p as any)?.full_name ?? (p as any)?.email ?? actorName;
+        }
+        console.info("[notif-debug] producer_called", {
+          category: "client_access_granted",
+          clientId, targetUserId: newUserId, permission: newUserPerm, actorId,
+        });
+        await notifyUsers({
+          userIds: [newUserId],
+          category: "client_access_granted",
+          severity: "info",
+          title: "Client access granted",
+          body: `${actorName} granted you access to ${clientName}`,
+          link: `/clients/${clientId}`,
+          entityType: "client",
+          entityId: clientId,
+          dedupeKey: `access-granted:${newUserId}:${clientId}`,
+          metadata: { permission: newUserPerm, actor_id: actorId, actor_name: actorName, client_name: clientName },
+        });
+      } catch (e) {
+        console.warn("[notif-debug] filtered_out_reason", { reason: "access_grant_notify_throw", error: (e as any)?.message });
+      }
+    }
     toast.success("Access granted");
     setNewUserId(""); setNewUserPerm("view");
     load();
@@ -84,6 +116,39 @@ export function ClientAccessDialog({
     setBusy(false);
     if (error) { toast.error(error.message); return; }
     await logActivity("client.access_granted", "client", clientId, { team_id: newTeamId, permission: newTeamPerm });
+    if (!existing) {
+      try {
+        const { data: au } = await supabase.auth.getUser();
+        const actorId = au?.user?.id ?? null;
+        let actorName = "A team member";
+        if (actorId) {
+          const { data: p } = await supabase.from("profiles").select("full_name,email").eq("id", actorId).maybeSingle();
+          actorName = (p as any)?.full_name ?? (p as any)?.email ?? actorName;
+        }
+        const { data: members } = await supabase.from("team_members").select("user_id").eq("team_id", newTeamId);
+        const targets = (members ?? []).map((m: any) => m.user_id).filter(Boolean);
+        console.info("[notif-debug] producer_called", {
+          category: "client_access_granted",
+          clientId, teamId: newTeamId, members: targets, actorId,
+        });
+        if (targets.length) {
+          await notifyUsers({
+            userIds: targets,
+            category: "client_access_granted",
+            severity: "info",
+            title: "Client access granted",
+            body: `${actorName} granted your team access to ${clientName}`,
+            link: `/clients/${clientId}`,
+            entityType: "client",
+            entityId: clientId,
+            dedupeKey: `access-granted-team:${newTeamId}:${clientId}`,
+            metadata: { permission: newTeamPerm, team_id: newTeamId, actor_id: actorId, actor_name: actorName, client_name: clientName },
+          });
+        }
+      } catch (e) {
+        console.warn("[notif-debug] filtered_out_reason", { reason: "team_access_grant_notify_throw", error: (e as any)?.message });
+      }
+    }
     toast.success("Team access granted");
     setNewTeamId(""); setNewTeamPerm("view");
     load();

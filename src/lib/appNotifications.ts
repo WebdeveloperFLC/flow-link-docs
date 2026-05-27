@@ -12,6 +12,7 @@ export type NotificationCategory =
   | "lead_converted"
   | "urgent_review_required"
   | "portal_message"
+  | "client_access_granted"
   | "info";
 
 export type NotificationSeverity = "info" | "success" | "warning" | "critical";
@@ -43,6 +44,81 @@ export function resolveCounselorNotificationUserIds(
     source,
   });
   return resolved ? [resolved] : [];
+}
+
+/**
+ * Resolve EVERY stakeholder for a client: assigned counselor + owner +
+ * every user explicitly shared via client_access (including team members
+ * resolved through team_members). Returns a deduped list. Never throws —
+ * partial resolution still returns whatever it found.
+ *
+ * Used by enterprise notification flows (receipts, invoices, access grants)
+ * where every interested party must get a bell notification even if one
+ * lookup fails.
+ */
+export async function resolveAllClientStakeholderUserIds(
+  clientId: string | null | undefined,
+  context?: Record<string, unknown>,
+): Promise<string[]> {
+  const ids = new Set<string>();
+  const sources: Record<string, string[]> = {
+    assigned_counselor: [],
+    owner: [],
+    created_by: [],
+    client_access_user: [],
+    client_access_team_member: [],
+  };
+  if (!clientId) {
+    console.warn("[notif-debug] filtered_out_reason", {
+      ...context,
+      reason: "no_client_id_for_stakeholder_resolution",
+    });
+    return [];
+  }
+  try {
+    const { data: cli } = await supabase
+      .from("clients")
+      .select("assigned_counselor_id, owner_id, created_by")
+      .eq("id", clientId)
+      .maybeSingle();
+    if (cli?.assigned_counselor_id) { ids.add(cli.assigned_counselor_id); sources.assigned_counselor.push(cli.assigned_counselor_id); }
+    if (cli?.owner_id) { ids.add(cli.owner_id); sources.owner.push(cli.owner_id); }
+    if ((cli as any)?.created_by) { ids.add((cli as any).created_by); sources.created_by.push((cli as any).created_by); }
+
+    const { data: shares } = await supabase
+      .from("client_access")
+      .select("user_id, team_id")
+      .eq("client_id", clientId)
+      .is("revoked_at", null);
+    const teamIds: string[] = [];
+    (shares ?? []).forEach((s: any) => {
+      if (s.user_id) { ids.add(s.user_id); sources.client_access_user.push(s.user_id); }
+      if (s.team_id) teamIds.push(s.team_id);
+    });
+    if (teamIds.length) {
+      const { data: tm } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .in("team_id", teamIds);
+      (tm ?? []).forEach((r: any) => {
+        if (r.user_id) { ids.add(r.user_id); sources.client_access_team_member.push(r.user_id); }
+      });
+    }
+  } catch (e) {
+    console.warn("[notif-debug] filtered_out_reason", {
+      ...context,
+      reason: "stakeholder_resolution_partial_error",
+      error: (e as any)?.message,
+    });
+  }
+  const list = Array.from(ids);
+  console.info("[notif-debug] resolved_user_ids", {
+    ...context,
+    clientId,
+    resolved_user_ids: list,
+    sources,
+  });
+  return list;
 }
 
 /**
