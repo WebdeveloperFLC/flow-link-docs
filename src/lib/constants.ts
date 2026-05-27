@@ -63,6 +63,35 @@ export function sanitizeName(name: string) {
   return name.replace(/[^a-zA-Z0-9]/g, "");
 }
 
+/**
+ * Sanitize a filename stem while PRESERVING the user's original identity.
+ * Keeps letters, digits, dot, hyphen, underscore. Spaces → underscore.
+ * Strips any path separators or unsafe characters. Caps length so the final
+ * storage path stays well under the 1024-char limit. Never returns "".
+ */
+export function sanitizeOriginalStem(name: string): string {
+  const noExt = name.replace(/\.[^.]+$/, "");
+  const cleaned = noExt
+    .replace(/[\\/]+/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "")
+    .replace(/^[._-]+/, "")
+    .replace(/[._-]+$/, "")
+    .slice(0, 80);
+  return cleaned || "document";
+}
+
+/**
+ * Preserve the original uploaded filename as the document's identity.
+ * Appends `_v{n}` only when this is not the first version of the same slot,
+ * so multiple uploads of the same name never collide silently.
+ * Returns the basename WITHOUT extension (callers add `.pdf`).
+ */
+export function buildPreservedDocumentName(originalName: string, version: number): string {
+  const stem = sanitizeOriginalStem(originalName);
+  return version > 1 ? `${stem}_v${version}` : stem;
+}
+
 /** Today's date in YYYY-MM-DD using the user's local timezone. */
 function todayPrefix(): string {
   const d = new Date();
