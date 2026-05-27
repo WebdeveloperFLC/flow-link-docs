@@ -35,7 +35,7 @@ import { markChecklistItemReady } from "@/lib/checklist";
 import { useMasterLabels } from "@/lib/masters";
 import { openClientDocument } from "@/lib/documentPreview";
 import { processToPdf } from "@/lib/processFile";
-import { buildDocumentName, sanitizeName } from "@/lib/constants";
+import { buildPreservedDocumentName, sanitizeName, sanitizeOriginalStem } from "@/lib/constants";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls, imageFileToJpegDataUrl } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
 
@@ -309,7 +309,23 @@ export const SectionBuilderCard = ({ clientId, section, allSections, documents, 
         // - the resulting filename uses the structured naming convention so
         //   files are consistent across upload surfaces
         const effectiveType = docType === "Other" ? (customType || "Other") : docType;
-        const baseName = buildDocumentName(effectiveType, "Document", 1, "pdf").replace(/\.pdf$/, "");
+        // Preserve original filename identity. Bump _v{n} when the same
+        // original name already exists for this client.
+        const { data: priorDocs } = await supabase
+          .from("client_documents")
+          .select("file_name")
+          .eq("client_id", clientId);
+        const stem = sanitizeOriginalStem(f.name);
+        const collisions = (priorDocs ?? []).filter((d) => {
+          const s = sanitizeOriginalStem(d.file_name ?? "");
+          return s === stem || s.startsWith(`${stem}_v`);
+        }).length;
+        const baseName = buildPreservedDocumentName(f.name, collisions + 1);
+        console.debug("[doc-debug] upload_received", f.name, "section", section.key);
+        console.debug("[doc-debug] original_filename", f.name);
+        console.debug("[doc-debug] classified_type", effectiveType);
+        console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", collisions + 1);
+        if (collisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem, collisions });
         let processed: File;
         try {
           processed = await processToPdf(f, baseName);

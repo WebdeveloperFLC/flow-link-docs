@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle2, AlertTriangle, Sparkles, Wand2, UserX, ArrowRightLeft, Users, Combine, Scissors, Trash2, Upload, Eye } from "lucide-react";
-import { sanitizeName, buildPersonDocumentName, buildDocumentName } from "@/lib/constants";
+import { sanitizeName, buildPreservedDocumentName, sanitizeOriginalStem } from "@/lib/constants";
 import { useMasterLabels } from "@/lib/masters";
 import { processToPdf } from "@/lib/processFile";
 import { classifyDocument, displayTitleFor } from "@/lib/classifyDocument";
@@ -279,10 +279,13 @@ export const SmartUploadZone = ({
       const isShared = ownerId === SHARED_ID;
       const ownerPerson = !isShared ? personById(ownerId ?? undefined) : undefined;
 
-      // Get next version (scoped to this person + type, or shared + type)
+      // Get next version (scoped to this person + type, or shared + type).
+      // We also look at file_name collisions for the SAME original stem so
+      // re-uploading "Passport.pdf" twice yields Passport.pdf and
+      // Passport_v2.pdf instead of silently overwriting display identity.
       const { data: existing } = await supabase
         .from("client_documents")
-        .select("version,document_type,custom_type,person_id,is_shared")
+        .select("version,document_type,custom_type,person_id,is_shared,file_name")
         .eq("client_id", targetClient.id);
       const sameSlot = (existing ?? []).filter((d) => {
         const sameType = (d.document_type === "Other" ? d.custom_type : d.document_type) === effectiveType;
@@ -290,15 +293,31 @@ export const SmartUploadZone = ({
         if (isShared) return d.is_shared === true;
         return d.person_id === (ownerPerson?.id ?? null);
       });
-      const nextVersion = (sameSlot.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
+      const slotVersion = (sameSlot.reduce((m, d) => Math.max(m, d.version), 0) || 0) + 1;
+      // Original-name collisions across the WHOLE case (not just same slot) —
+      // guarantees uniqueness when users upload differently-named docs that
+      // happen to land in different slots, and avoids overwrites for the
+      // same name in the same slot.
+      const originalStem = sanitizeOriginalStem(item.file.name);
+      const nameCollisions = (existing ?? []).filter((d) => {
+        const stem = sanitizeOriginalStem(d.file_name ?? "");
+        return stem === originalStem || stem.startsWith(`${originalStem}_v`);
+      }).length;
+      const nameVersion = nameCollisions + 1;
+      const nextVersion = Math.max(slotVersion, nameVersion);
 
       patch(idx, { status: "processing" });
 
-      const baseName = ownerPerson
-        ? buildPersonDocumentName(effectiveType, ROLE_SHORT[ownerPerson.role], ownerPerson.full_name, nextVersion, "pdf").replace(/\.pdf$/, "")
-        : isShared
-        ? buildPersonDocumentName(effectiveType, "Shared", "", nextVersion, "pdf").replace(/\.pdf$/, "")
-        : buildDocumentName(effectiveType, targetClient.full_name, nextVersion, "pdf").replace(/\.pdf$/, "");
+      // Preserve the original uploaded filename as the document's primary
+      // identity. We no longer overwrite it with generic section/template
+      // names like "VisaForms_Document" — multiple distinct files were
+      // collapsing into the same title.
+      const baseName = buildPreservedDocumentName(item.file.name, nextVersion);
+      console.debug("[doc-debug] upload_received", { original: item.file.name });
+      console.debug("[doc-debug] original_filename", item.file.name);
+      console.debug("[doc-debug] classified_type", effectiveType, "owner", ownerPerson?.full_name ?? (isShared ? "shared" : "unassigned"));
+      console.debug("[doc-debug] generated_title", `${baseName}.pdf`, "version", nextVersion);
+      if (nameCollisions > 0) console.debug("[doc-debug] duplicate_name_detected", { stem: originalStem, collisions: nameCollisions });
 
       const processed = await processToPdf(item.file, baseName);
 
@@ -349,13 +368,16 @@ export const SmartUploadZone = ({
       // Align custom_type to a matching checklist item name so the
       // client-detail render-time checklist flips to "ready".
       try {
-        await markChecklistItemReady(
+        const matched = await markChecklistItemReady(
           ins.id,
           targetClient.id,
           type,
           type === "Other" ? customType?.trim() ?? null : null,
           item.customType ?? null,
         );
+        console.debug("[doc-debug] checklist_match", matched ?? null);
+        if (matched) console.debug("[doc-debug] mapped_to_checklist", matched);
+        else console.debug("[doc-debug] fallback_other_uploads", { file: processed.name, type: effectiveType });
       } catch { /* best effort */ }
       patch(idx, { status: "done" });
 
