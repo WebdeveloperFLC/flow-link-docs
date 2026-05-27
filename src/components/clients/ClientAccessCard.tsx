@@ -106,8 +106,19 @@ export function ClientAccessCard({
     teamMemberMap.forEach((arr) => arr.forEach((id) => ids.add(id)));
     const profMap = new Map<string, Profile>();
     if (ids.size) {
-      const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", Array.from(ids));
-      ((profs ?? []) as Profile[]).forEach((p) => profMap.set(p.id, p));
+      // Hydrate profiles via the SECURITY DEFINER staff resolver so EVERY
+      // viewer with client access (not just admins) sees full names/emails.
+      // Falls back to direct profiles query for any ids the resolver doesn't
+      // return (e.g. self-readable profile, non-staff edge cases).
+      const { data: staff } = await supabase.rpc("list_assignable_staff");
+      ((staff ?? []) as any[]).forEach((p) => {
+        if (ids.has(p.id)) profMap.set(p.id, { id: p.id, full_name: p.full_name, email: p.email });
+      });
+      const missing = Array.from(ids).filter((id) => !profMap.has(id));
+      if (missing.length) {
+        const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", missing);
+        ((profs ?? []) as Profile[]).forEach((p) => profMap.set(p.id, p));
+      }
     }
 
     setOwnerProfile(effectiveOwnerId ? profMap.get(effectiveOwnerId) ?? null : null);
