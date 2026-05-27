@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -76,6 +76,7 @@ interface BinderRow {
 
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { canUpload, isAdmin, canDeleteDocs, user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
@@ -104,8 +105,8 @@ const ClientDetail = () => {
   // (client + template + active documents + sections). Runs in parallel.
   const loadCritical = useCallback(async () => {
     if (!id) return;
-    const [{ data: c }, sectionsData, { data: activeDocs }] = await Promise.all([
-      supabase.from("clients").select("*").eq("id", id).single(),
+    const [{ data: c, error: cErr }, sectionsData, { data: activeDocs }] = await Promise.all([
+      supabase.from("clients").select("*").eq("id", id).maybeSingle(),
       loadSections(true),
       supabase
         .from("client_documents")
@@ -114,6 +115,19 @@ const ClientDetail = () => {
         .is("deleted_at", null)
         .order("uploaded_at", { ascending: false }),
     ]);
+    // [access-debug] Backend RLS is the source of truth. If the row is not
+    // returned, the current user lacks owner / assignment / share access.
+    // eslint-disable-next-line no-console
+    console.log("[access-debug] client-detail", {
+      user: user?.id, clientId: id, isAdmin,
+      accessSource: c ? "rls-allowed" : "rls-denied",
+      error: cErr?.message,
+    });
+    if (!c) {
+      toast.error("You don't have access to this client.");
+      navigate("/clients", { replace: true });
+      return;
+    }
     setClient(c as unknown as Client | null);
     setSections(sectionsData);
     setDocs((activeDocs ?? []) as Doc[]);
@@ -127,7 +141,7 @@ const ClientDetail = () => {
     } else {
       setTemplate(null);
     }
-  }, [id]);
+  }, [id, user?.id, isAdmin, navigate]);
 
   // Secondary fetch — below-the-fold cards (binders, trash, profile names).
   // Runs after the critical paint. Splitting into a separate query also lets
