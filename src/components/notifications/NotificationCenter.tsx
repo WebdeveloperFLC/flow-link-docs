@@ -80,6 +80,7 @@ const CATEGORY_META: Record<string, { icon: React.ComponentType<{ className?: st
   portal_message: { icon: MessageSquare, label: "Message", tone: "text-blue-600 bg-blue-500/10" },
   lead_converted: { icon: UserPlus, label: "Lead", tone: "text-fuchsia-600 bg-fuchsia-500/10" },
   urgent_review_required: { icon: AlertTriangle, label: "Urgent", tone: "text-amber-600 bg-amber-500/10" },
+  client_access_granted: { icon: UserPlus, label: "Access", tone: "text-violet-600 bg-violet-500/10" },
   info: { icon: Info, label: "Info", tone: "text-muted-foreground bg-muted" },
 };
 function metaFor(cat: string) {
