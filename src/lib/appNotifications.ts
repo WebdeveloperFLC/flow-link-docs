@@ -163,32 +163,56 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       recipients: uniq.length,
       dedupe: !!input.dedupeKey,
     });
-    const { error } = await supabase
-      .from("app_notifications")
-      .upsert(rows, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
-    if (error) {
-      // Unique-violation on dedupe is expected & safe → log only
-      console.info("[notif] duplicate_notification_blocked_or_error", error.message);
-      console.warn("[notif-debug] filtered_out_reason", {
+    // Use plain INSERT (not UPSERT). The dedupe unique index is PARTIAL
+    // (WHERE dedupe_key IS NOT NULL) so PostgREST cannot infer the
+    // ON CONFLICT target and upsert silently fails. We insert per-row and
+    // treat unique-violations (23505) as a benign "already-delivered".
+    console.info("[notif-debug] access_grant_insert", {
+      category: input.category,
+      rows: rows.length,
+      userIds: uniq,
+    });
+    let inserted = 0;
+    for (const row of rows) {
+      const { error } = await supabase.from("app_notifications").insert(row);
+      if (error) {
+        if ((error as any).code === "23505") {
+          console.info("[notif] duplicate_notification_blocked", {
+            category: input.category,
+            user_id: row.user_id,
+            dedupe_key: row.dedupe_key,
+          });
+          continue;
+        }
+        console.warn("[notif-debug] access_grant_insert_error", {
+          category: input.category,
+          reason: "insert_error",
+          error: error.message,
+          code: (error as any).code,
+          user_id: row.user_id,
+        });
+        continue;
+      }
+      inserted += 1;
+      console.info("[notif-debug] access_grant_insert_success", {
         category: input.category,
-        reason: "insert_error",
-        error: error.message,
-        userIds: uniq,
-      });
-    } else {
-      console.info("[notif-debug] app_notification_inserted", {
-        category: input.category,
-        requestedUserIds: uniq,
-        insertedCount: rows.length,
-        rows: rows.map((r) => ({
-          user_id: r.user_id,
-          category: r.category,
-          entity_type: r.entity_type,
-          entity_id: r.entity_id,
-          dedupe_key: r.dedupe_key,
-        })),
+        user_id: row.user_id,
+        entity_type: row.entity_type,
+        entity_id: row.entity_id,
       });
     }
+    console.info("[notif-debug] app_notification_inserted", {
+        category: input.category,
+        requestedUserIds: uniq,
+      insertedCount: inserted,
+      rows: rows.map((r) => ({
+        user_id: r.user_id,
+        category: r.category,
+        entity_type: r.entity_type,
+        entity_id: r.entity_id,
+        dedupe_key: r.dedupe_key,
+      })),
+    });
   } catch (e) {
     console.warn("[notif] notify_throw", e);
   }
