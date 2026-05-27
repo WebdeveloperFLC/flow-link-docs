@@ -39,12 +39,14 @@ export function ClientAccessDialog({
     const [{ data: ua }, { data: ta }, { data: profs }, { data: tms }] = await Promise.all([
       supabase.from("client_access").select("id,user_id,permission,profiles:profiles!client_access_user_id_fkey(full_name,email)").eq("client_id", clientId).not("user_id", "is", null),
       supabase.from("client_access").select("id,team_id,permission,teams:teams!client_access_team_id_fkey(name)").eq("client_id", clientId).not("team_id", "is", null),
-      supabase.from("profiles").select("id,full_name,email,status").eq("status", "active").order("full_name"),
-      supabase.from("teams").select("id,name").order("name"),
+      // Use SECURITY DEFINER RPCs so the picker shows all assignable staff/teams
+      // regardless of the caller's client-scoped visibility. Client RLS is untouched.
+      supabase.rpc("list_assignable_staff"),
+      supabase.rpc("list_assignable_teams"),
     ]);
     setUsers((ua ?? []).map((r: any) => ({ id: r.id, user_id: r.user_id, permission: r.permission, profile: r.profiles })));
     setTeams((ta ?? []).map((r: any) => ({ id: r.id, team_id: r.team_id, permission: r.permission, team: r.teams })));
-    setAllProfiles((profs ?? []) as Profile[]);
+    setAllProfiles(((profs ?? []) as any[]).map((p) => ({ id: p.id, full_name: p.full_name, email: p.email, status: "active" })));
     setAllTeams((tms ?? []) as Team[]);
   };
 

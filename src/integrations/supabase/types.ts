@@ -13051,6 +13051,21 @@ export type Database = {
           submitted_at: string
         }[]
       }
+      list_assignable_staff: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
+      list_assignable_teams: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string
