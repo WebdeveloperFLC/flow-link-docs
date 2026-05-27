@@ -212,10 +212,33 @@ export function ClientAccessDialog({
               {users.length === 0 && <div className="px-3 py-6 text-center text-sm text-muted-foreground">No individual user access</div>}
               {users.map((u) => (
                 <div key={u.id} className="flex items-center gap-2 px-3 py-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm truncate">{u.profile?.full_name ?? u.profile?.email ?? u.user_id}</div>
-                    <div className="text-xs text-muted-foreground truncate">{u.profile?.email}</div>
-                  </div>
+                  {(() => {
+                    // Hydrate display name/email/avatar from the RPC-loaded
+                    // staff list when the embedded profile join is hidden by
+                    // RLS (non-admin viewers cannot embed other profiles).
+                    const hydrated = allProfiles.find((p) => p.id === u.user_id);
+                    const fullName = u.profile?.full_name ?? hydrated?.full_name ?? null;
+                    const email = u.profile?.email ?? hydrated?.email ?? null;
+                    const display = fullName ?? email ?? "Unknown user";
+                    const initials = (fullName ?? email ?? "?")
+                      .split(/\s+/)
+                      .map((s) => s[0])
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase();
+                    return (
+                      <>
+                        <div className="size-7 rounded-full bg-muted text-[11px] font-medium flex items-center justify-center text-muted-foreground shrink-0">
+                          {initials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm truncate">{display}</div>
+                          {email && <div className="text-xs text-muted-foreground truncate">{email}</div>}
+                        </div>
+                      </>
+                    );
+                  })()}
                   <Select value={u.permission} onValueChange={(v) => updatePerm(u.id, v as Perm, "user", u.user_id)}>
                     <SelectTrigger className="w-32 h-8"><SelectValue /></SelectTrigger>
                     <SelectContent>{PERM_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
