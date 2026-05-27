@@ -78,7 +78,6 @@ const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { canUpload, isAdmin, canDeleteDocs, user } = useAuth();
-  const [accessDenied, setAccessDenied] = useState(false);
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
   const [docs, setDocs] = useState<Doc[]>([]);
@@ -125,7 +124,6 @@ const ClientDetail = () => {
       error: cErr?.message,
     });
     if (!c) {
-      setAccessDenied(true);
       toast.error("You don't have access to this client.");
       navigate("/clients", { replace: true });
       return;
