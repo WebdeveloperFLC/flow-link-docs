@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type TimelineEventType = "call" | "remark" | "handoff" | "chat" | "note" | "task" | "file" | "recording";
 
-// Event types that are internal staff-only and must not be visible to portal clients.
 const STAFF_ONLY_EVENT_TYPES = new Set([
   "remark",
   "handoff",
@@ -20,7 +19,7 @@ export interface TimelineRow {
   actor_id: string | null;
   summary: string | null;
   metadata: Record<string, unknown>;
-  is_staff_only: boolean;
+  is_staff_only?: boolean;
   created_at: string;
 }
 
@@ -40,7 +39,6 @@ export async function appendTimeline(opts: {
   eventType: TimelineEventType | string;
   summary?: string;
   metadata?: Record<string, unknown>;
-  /** Override auto-detection of staff_only flag. Default: auto from event type. */
   isStaffOnly?: boolean;
 }) {
   const { data: u } = await supabase.auth.getUser();
@@ -53,7 +51,7 @@ export async function appendTimeline(opts: {
     summary: opts.summary ?? null,
     metadata: (opts.metadata ?? {}) as never,
     is_staff_only: isStaffOnly,
-  });
+  } as never);
 }
 
 export function subscribeTimeline(clientId: string, onEvent: (row: TimelineRow) => void) {
