@@ -18,7 +18,7 @@ import {
   MailCheck,
   Gift,
 } from "lucide-react";
-import { listPathways, countryNameFor, type Pathway } from "@/lib/settleAbroad";
+import { listPathways, countryNameFor, flagFor, dialCodeFor, type Pathway } from "@/lib/settleAbroad";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -56,7 +56,10 @@ export default function AssessmentGoal() {
   const [middle, setMiddle] = useState("");
   const [last, setLast] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState(() => {
+    const d = dialCodeFor(sessionStorage.getItem("flc_country") ?? "CA");
+    return d ? `${d} ` : "";
+  });
 
   // Promo info read from the landing page
   const promoCode = sessionStorage.getItem("flc_promo_code");
@@ -184,10 +187,16 @@ export default function AssessmentGoal() {
 
         {step === "register" && (
           <div className="max-w-xl mx-auto w-full">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">
-              Step 3 of 4 · {countryFullName}
+            <div className="flex items-center gap-3">
+              <span className="text-4xl leading-none">{flagFor(countryCode)}</span>
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[hsl(220_14%_28%)]">
+                  Step 3 of 4
+                </div>
+                <div className="font-semibold text-[hsl(220_18%_11%)]">{countryFullName}</div>
+              </div>
             </div>
-            <h1 className="flc-display text-5xl mt-2">Almost there.</h1>
+            <h1 className="flc-display text-5xl mt-3">Almost there.</h1>
             <p className="text-[hsl(220_14%_28%)] mt-3">
               Tell us who you are so we can save your <span className="font-medium">{chosen?.label}</span> assessment
               and send your results. We'll email you a quick verification link to begin.
@@ -227,7 +236,12 @@ export default function AssessmentGoal() {
                 <Field label="Last name *" value={last} onChange={setLast} />
               </div>
               <Field label="Email *" type="email" value={email} onChange={setEmail} placeholder="you@example.com" />
-              <Field label="Phone *" value={phone} onChange={setPhone} placeholder="+91…" />
+              <Field
+                label="Phone *"
+                value={phone}
+                onChange={setPhone}
+                placeholder={`${dialCodeFor(countryCode) || "+"} 00000 00000`}
+              />
 
               <button onClick={register} disabled={busy} className="flc-cta w-full justify-center">
                 {busy ? (
