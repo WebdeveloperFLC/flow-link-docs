@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
 export interface PresenceState {
-  online: string[];           // user ids currently online
+  online: string[];
   lastSeen: Record<string, number>;
   activeSubscribers: number;
 }
@@ -13,7 +13,9 @@ let channel: ReturnType<typeof supabase.channel> | null = null;
 const listeners = new Set<(s: PresenceState) => void>();
 let state: PresenceState = { online: [], lastSeen: {}, activeSubscribers: 0 };
 
-function emit() { for (const l of listeners) l(state); }
+function emit() {
+  for (const l of listeners) l(state);
+}
 
 async function ensure(userId: string) {
   if (channel) return;
@@ -36,6 +38,16 @@ async function ensure(userId: string) {
     });
 }
 
+/** Tear down the global presence channel — call on sign-out. */
+export async function destroyPresence() {
+  if (channel) {
+    await supabase.removeChannel(channel);
+    channel = null;
+  }
+  listeners.clear();
+  state = { online: [], lastSeen: {}, activeSubscribers: 0 };
+}
+
 export function usePresence(userId?: string | null): PresenceState {
   const [s, setS] = useState(state);
   useEffect(() => {
@@ -43,13 +55,21 @@ export function usePresence(userId?: string | null): PresenceState {
     void ensure(userId);
     const fn = (next: PresenceState) => setS(next);
     listeners.add(fn);
-    return () => { listeners.delete(fn); };
+    return () => {
+      listeners.delete(fn);
+      // If no more listeners, tear down the channel to avoid orphaned subscriptions.
+      if (listeners.size === 0) {
+        void destroyPresence();
+      }
+    };
   }, [userId]);
   return s;
 }
 
 /** Read-only snapshot for admin monitoring page. */
-export function getPresenceSnapshot(): PresenceState { return state; }
+export function getPresenceSnapshot(): PresenceState {
+  return state;
+}
 
 /** Typing-safe placeholder for future per-conversation typing indicators. */
 export interface TypingApi {
