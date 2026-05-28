@@ -34,6 +34,7 @@ import { useNavigate } from "react-router-dom";
 import { downloadAssessmentPdf, openAssessmentPdf } from "@/lib/assessmentPdf";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import { publicUrl } from "@/lib/publicUrl";
 
 const GOAL_LABELS: Record<string, string> = {
   permanent_residence: "PR",
@@ -45,7 +46,7 @@ const GOAL_LABELS: Record<string, string> = {
   unsure: "Eligibility",
 };
 
-const PUBLIC_ASSESSMENT_URL = `${window.location.origin}/assessment`;
+const PUBLIC_ASSESSMENT_URL = publicUrl("/assessment");
 
 export default function AssessmentAdmin() {
   const [startOpen, setStartOpen] = useState(false);
@@ -292,7 +293,7 @@ function InvitationsTab() {
     if (!t) return rows;
     return rows.filter((r) => `${r.first_name ?? ""} ${r.last_name ?? ""} ${r.email}`.toLowerCase().includes(t));
   }, [rows, q]);
-  const linkFor = (token: string) => `${window.location.origin}/assessment/invite/${token}`;
+  const linkFor = (token: string) => publicUrl(`/assessment/invite/${token}`);
   const copy = (token: string) => {
     navigator.clipboard.writeText(linkFor(token));
     toast.success("Invite link copied");
