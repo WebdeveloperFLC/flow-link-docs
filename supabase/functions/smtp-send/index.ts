@@ -34,13 +34,19 @@ Deno.serve(async (req) => {
     if (retryLogId) {
       // retry path — admins only
       const { data: roleRow } = await admin
-        .from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle();
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", u.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
       if (!roleRow) return j({ error: "Forbidden" }, 403);
-      const { data: log } = await admin
-        .from("app_email_logs").select("*").eq("id", retryLogId).maybeSingle();
+      const { data: log } = await admin.from("app_email_logs").select("*").eq("id", retryLogId).maybeSingle();
       if (!log) return j({ error: "Log not found" }, 404);
-      recipient = log.recipient; subject = log.subject; html = log.body_html ?? undefined;
-      text = log.body_text ?? undefined; category = log.category ?? undefined;
+      recipient = log.recipient;
+      subject = log.subject;
+      html = log.body_html ?? undefined;
+      text = log.body_text ?? undefined;
+      category = log.category ?? undefined;
     } else {
       recipient = String(body.to ?? "");
       subject = String(body.subject ?? "");
@@ -52,30 +58,76 @@ Deno.serve(async (req) => {
       if (!html && !text) return j({ error: "Body required" }, 400);
     }
 
-    const { data: cfg } = await admin
-      .from("smtp_settings").select("*").eq("singleton", true).maybeSingle();
+    // Resolve SMTP config: prefer per-entity settings when entity_id is provided,
+    // fall back to the global smtp_settings singleton.
+    const entityId = body?.entity_id ? String(body.entity_id) : null;
+    let cfg: any = null;
+    if (entityId) {
+      const { data: entityCfg } = await admin
+        .from("entity_smtp_settings")
+        .select("*")
+        .eq("entity_id", entityId)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (entityCfg?.host && entityCfg?.username && entityCfg?.password) {
+        cfg = entityCfg;
+        console.info("[smtp] using entity smtp", { entityId, provider: cfg.provider });
+      }
+    }
+    if (!cfg) {
+      const { data: globalCfg } = await admin.from("smtp_settings").select("*").eq("singleton", true).maybeSingle();
+      cfg = globalCfg;
+      console.info("[smtp] using global smtp", { provider: cfg?.provider });
+    }
     if (!cfg || !cfg.is_active || !cfg.host || !cfg.username || !cfg.password) {
       // log failure
-      const insert = retryLogId ? null : await admin.from("app_email_logs").insert({
-        recipient, subject, body_html: html, body_text: text, category,
-        status: "failed", attempts: 1, error_message: "SMTP not configured or inactive",
-        triggered_by: u.user.id,
-      }).select("id").single();
+      const insert = retryLogId
+        ? null
+        : await admin
+            .from("app_email_logs")
+            .insert({
+              recipient,
+              subject,
+              body_html: html,
+              body_text: text,
+              category,
+              status: "failed",
+              attempts: 1,
+              error_message: "SMTP not configured or inactive",
+              triggered_by: u.user.id,
+            })
+            .select("id")
+            .single();
       if (retryLogId) {
-        await admin.from("app_email_logs").update({
-          status: "failed", attempts: ((/** @type any */ ({})).attempts ?? 0) + 1,
-          error_message: "SMTP not configured or inactive",
-        }).eq("id", retryLogId);
+        await admin
+          .from("app_email_logs")
+          .update({
+            status: "failed",
+            attempts: (/** @type any */ {}.attempts ?? 0) + 1,
+            error_message: "SMTP not configured or inactive",
+          })
+          .eq("id", retryLogId);
       }
       return j({ error: "SMTP not configured" }, 400);
     }
 
     let logId = retryLogId;
     if (!logId) {
-      const { data: ins } = await admin.from("app_email_logs").insert({
-        recipient, subject, body_html: html, body_text: text, category,
-        status: "pending", attempts: 0, provider: cfg.provider, triggered_by: u.user.id,
-      }).select("id").single();
+      const { data: ins } = await admin
+        .from("app_email_logs")
+        .insert({
+          recipient,
+          subject,
+          body_html: html,
+          body_text: text,
+          category,
+          status: "pending",
+          attempts: 0,
+          provider: cfg.provider,
+          triggered_by: u.user.id,
+        })
+        .select("id")
+        .single();
       logId = ins?.id;
     }
 
@@ -83,27 +135,43 @@ Deno.serve(async (req) => {
       const { SMTPClient } = await import("https://deno.land/x/denomailer@1.6.0/mod.ts");
       const client = new SMTPClient({
         connection: {
-          hostname: cfg.host, port: cfg.port, tls: cfg.encryption === "ssl",
+          hostname: cfg.host,
+          port: cfg.port,
+          tls: cfg.encryption === "ssl",
           auth: { username: cfg.username, password: cfg.password },
         },
       });
       await client.send({
         from: cfg.sender_name ? `${cfg.sender_name} <${cfg.sender_email}>` : cfg.sender_email,
-        to: recipient, replyTo: cfg.reply_to ?? undefined,
-        subject, content: text ?? subject, html: html ?? undefined,
+        to: recipient,
+        replyTo: cfg.reply_to ?? undefined,
+        subject,
+        content: text ?? subject,
+        html: html ?? undefined,
       });
       await client.close();
-      await admin.from("app_email_logs").update({
-        status: "sent", sent_at: new Date().toISOString(),
-        attempts: (await getAttempts(admin, logId)) + 1, error_message: null, provider: cfg.provider,
-      }).eq("id", logId);
+      await admin
+        .from("app_email_logs")
+        .update({
+          status: "sent",
+          sent_at: new Date().toISOString(),
+          attempts: (await getAttempts(admin, logId)) + 1,
+          error_message: null,
+          provider: cfg.provider,
+        })
+        .eq("id", logId);
       return j({ ok: true, log_id: logId });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      await admin.from("app_email_logs").update({
-        status: "failed", error_message: msg,
-        attempts: (await getAttempts(admin, logId)) + 1, provider: cfg.provider,
-      }).eq("id", logId);
+      await admin
+        .from("app_email_logs")
+        .update({
+          status: "failed",
+          error_message: msg,
+          attempts: (await getAttempts(admin, logId)) + 1,
+          provider: cfg.provider,
+        })
+        .eq("id", logId);
       return j({ error: msg, log_id: logId }, 502);
     }
   } catch (e) {
