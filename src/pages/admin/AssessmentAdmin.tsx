@@ -91,7 +91,6 @@ export default function AssessmentAdmin() {
           </Button>
         </Card>
         <StartAssessmentDialog open={startOpen} onOpenChange={setStartOpen} />
-
         <StatsRow />
         <PublicLinkCard />
         <Tabs defaultValue="submissions">
@@ -138,14 +137,7 @@ function StatCard({ icon: Icon, label, value, tone = "primary" }: any) {
 }
 
 function StatsRow() {
-  const [stats, setStats] = useState<{ invites: number; inProgress: number; submitted: number; avgCrs: number | null }>(
-    {
-      invites: 0,
-      inProgress: 0,
-      submitted: 0,
-      avgCrs: null,
-    },
-  );
+  const [stats, setStats] = useState({ invites: 0, inProgress: 0, submitted: 0, avgCrs: null as number | null });
   const load = async () => {
     const [inv, sess] = await Promise.all([
       supabase.from("assessment_invitations").select("id, status", { count: "exact", head: false }),
@@ -305,32 +297,6 @@ function InvitationsTab() {
     navigator.clipboard.writeText(linkFor(token));
     toast.success("Invite link copied");
   };
-  const [converting, setConverting] = useState<string | null>(null);
-  const convertToClient = async (r: any) => {
-    if (
-      !confirm(
-        "Convert this assessment lead to a full CRM client?\n\nA new client profile will be created with their name, email, and assessment data prefilled.",
-      )
-    )
-      return;
-    setConverting(r.id);
-    try {
-      const { data, error } = await supabase.rpc("convert_assessment_to_client", { _session_id: r.id });
-      if (error) throw error;
-      const result = data as any;
-      if (result.created) {
-        toast.success("Client created successfully");
-        nav(`/clients/${result.client_id}`);
-      } else {
-        toast.info("Already converted — opening client profile");
-        nav(`/clients/${result.client_id}`);
-      }
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Conversion failed");
-    } finally {
-      setConverting(null);
-    }
-  };
 
   if (loading) return <Loader2 className="animate-spin" />;
   return (
@@ -409,6 +375,8 @@ function SessionsTab() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [converting, setConverting] = useState<string | null>(null);
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase.rpc("list_assessment_sessions_admin", { _limit: 200 });
@@ -443,6 +411,7 @@ function SessionsTab() {
   useEffect(() => {
     load();
   }, []);
+
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     return rows.filter((r) => {
@@ -453,11 +422,7 @@ function SessionsTab() {
       return hay.includes(t);
     });
   }, [rows, q, statusFilter]);
-  const downloadServer = async (id: string) => {
-    const { data, error } = await supabase.functions.invoke("assessment-pdf-download", { body: { sessionId: id } });
-    if (error || (data as any)?.error) return toast.error((await invokeError(error, data)) ?? "Download failed");
-    window.open((data as any).url, "_blank");
-  };
+
   const pdfInput = async (r: any) => {
     const sCountry = r.country ?? "Canada";
     const sGoal = r.goal ?? "permanent_residence";
@@ -466,7 +431,7 @@ function SessionsTab() {
       .select("id, code, section, label, q_type, country, goal")
       .eq("is_active", true)
       .order("order_index");
-    const filtered = ((qs.data ?? []) as any[]).filter((q) => {
+    const filteredQs = ((qs.data ?? []) as any[]).filter((q) => {
       if (q.country !== sCountry) return false;
       if (sCountry !== "Germany") return true;
       return q.goal === sGoal || q.goal === "de_chancenkarte";
@@ -480,7 +445,7 @@ function SessionsTab() {
       goal: r.goal,
       country: sCountry,
       answers: r.answers ?? {},
-      questions: filtered,
+      questions: filteredQs,
       crs: r.output?.crs,
     };
   };
@@ -500,18 +465,15 @@ function SessionsTab() {
   };
   const resend = async (id: string) => {
     const tId = toast.loading("Sending report email…");
-    console.log("[assessment] resend → session", id);
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
     const errMsg =
       error || (data as any)?.error
         ? ((await invokeError(error, data)) ?? (data as any)?.error ?? "Resend failed")
         : null;
     if (errMsg) {
-      console.error("[assessment] resend failed:", errMsg, data);
       toast.error(`Email failed: ${errMsg}`, { id: tId });
       return;
     }
-    console.log("[assessment] resend ok:", data);
     toast.success(`Report emailed to ${(data as any)?.recipient ?? "client"}`, { id: tId });
   };
   const deleteSession = async (id: string) => {
@@ -526,6 +488,32 @@ function SessionsTab() {
     setRows((r) => r.filter((x) => x.id !== id));
     toast.success("Assessment record deleted");
   };
+  const convertToClient = async (r: any) => {
+    if (
+      !confirm(
+        "Convert this assessment lead to a full CRM client?\n\nA new client profile will be created with their name, email, and assessment data prefilled.",
+      )
+    )
+      return;
+    setConverting(r.id);
+    try {
+      const { data, error } = await supabase.rpc("convert_assessment_to_client", { _session_id: r.id });
+      if (error) throw error;
+      const result = data as any;
+      if (result.created) {
+        toast.success("Client created successfully");
+        nav(`/clients/${result.client_id}`);
+      } else {
+        toast.info("Already converted — opening client profile");
+        nav(`/clients/${result.client_id}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Conversion failed");
+    } finally {
+      setConverting(null);
+    }
+  };
+
   if (loading) return <Loader2 className="animate-spin" />;
   return (
     <Card className="p-0 overflow-hidden">
