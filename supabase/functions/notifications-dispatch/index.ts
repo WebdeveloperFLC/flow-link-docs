@@ -20,14 +20,28 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const money = (n: number, c = "INR") => {
-  try { return new Intl.NumberFormat("en-IN", { style: "currency", currency: c }).format(Number(n || 0)); }
-  catch { return `${c} ${Number(n || 0).toFixed(2)}`; }
+  try {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: c }).format(Number(n || 0));
+  } catch {
+    return `${c} ${Number(n || 0).toFixed(2)}`;
+  }
 };
 
 const esc = (s: unknown) =>
-  String(s ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]!));
+  String(s ?? "").replace(
+    /[&<>"']/g,
+    (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!,
+  );
 
-function shellHtml(opts: { logoUrl?: string | null; firmName?: string | null; title: string; bodyHtml: string; supportEmail?: string | null; supportPhone?: string | null; address?: string | null }) {
+function shellHtml(opts: {
+  logoUrl?: string | null;
+  firmName?: string | null;
+  title: string;
+  bodyHtml: string;
+  supportEmail?: string | null;
+  supportPhone?: string | null;
+  address?: string | null;
+}) {
   const { logoUrl, firmName, title, bodyHtml, supportEmail, supportPhone, address } = opts;
   return `<!doctype html><html><body style="margin:0;padding:0;background:#f5f6f8;font-family:Arial,Helvetica,sans-serif;color:#1a1a1a;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f6f8;padding:24px 0;"><tr><td align="center">
@@ -42,7 +56,7 @@ function shellHtml(opts: { logoUrl?: string | null; firmName?: string | null; ti
         <tr><td style="padding:16px 24px;border-top:1px solid #e5e7eb;background:#fafafa;font-size:12px;color:#6b7280;">
           ${firmName ? `<div style="font-weight:600;color:#374151;">${esc(firmName)}</div>` : ""}
           ${address ? `<div style="white-space:pre-line;">${esc(address)}</div>` : ""}
-          ${supportEmail ? `<div>Support: <a href="mailto:${esc(supportEmail)}" style="color:#2563eb;">${esc(supportEmail)}</a>${supportPhone ? ` · ${esc(supportPhone)}` : ""}</div>` : (supportPhone ? `<div>Support: ${esc(supportPhone)}</div>` : "")}
+          ${supportEmail ? `<div>Support: <a href="mailto:${esc(supportEmail)}" style="color:#2563eb;">${esc(supportEmail)}</a>${supportPhone ? ` · ${esc(supportPhone)}` : ""}</div>` : supportPhone ? `<div>Support: ${esc(supportPhone)}</div>` : ""}
           <div style="margin-top:8px;color:#9ca3af;">This is an automated notification — please do not reply directly.</div>
         </td></tr>
       </table>
@@ -77,8 +91,7 @@ Deno.serve(async (req) => {
     console.info("[notif] event_fired", { eventType, clientId, by: u.user.id });
 
     // ── Settings ───────────────────────────────────────────────────────────
-    const { data: settings } = await admin
-      .from("notification_settings").select("*").eq("id", true).maybeSingle();
+    const { data: settings } = await admin.from("notification_settings").select("*").eq("id", true).maybeSingle();
     const accountingInbox: string | null = settings?.accounting_inbox_email ?? null;
     const bccAccounting: boolean = settings?.bcc_accounting_inbox !== false;
     const ccCounselor: boolean = settings?.cc_assigned_counselor !== false;
@@ -93,18 +106,19 @@ Deno.serve(async (req) => {
       const { data: cli } = await admin
         .from("clients")
         .select("id,full_name,email,email_alternate,phone,assigned_counselor_id,owner_id")
-        .eq("id", clientId).maybeSingle();
+        .eq("id", clientId)
+        .maybeSingle();
       clientRow = cli;
       if (ccCounselor) {
-        // Counselor can be stored on either `assigned_counselor_id` (newer)
-        // or `owner_id` (legacy / actual production data). Try both so
-        // CRM-created clients still CC their assigned staff member.
         counselorId = (cli?.assigned_counselor_id as string | null) ?? (cli?.owner_id as string | null) ?? null;
-        counselorSource = cli?.assigned_counselor_id ? "assigned_counselor_id" : (cli?.owner_id ? "owner_id" : null);
+        counselorSource = cli?.assigned_counselor_id ? "assigned_counselor_id" : cli?.owner_id ? "owner_id" : null;
         console.info("[notif] counselor_lookup", { clientId, counselorId, counselorSource });
         if (counselorId) {
           const { data: prof, error: profErr } = await admin
-            .from("profiles").select("id,email,full_name").eq("id", counselorId).maybeSingle();
+            .from("profiles")
+            .select("id,email,full_name")
+            .eq("id", counselorId)
+            .maybeSingle();
           counselorEmail = (prof as any)?.email ?? null;
           console.info("[notif] counselor_resolved", {
             counselorId,
@@ -156,7 +170,12 @@ Deno.serve(async (req) => {
           ${row("Receipt Date", new Date(r.generated_at ?? Date.now()).toLocaleDateString())}
           ${row("Invoice Number", inv.invoice_number ?? "—")}
           ${row("Payment Date", new Date(pay.paid_at ?? Date.now()).toLocaleDateString())}
-          ${row("Payment Method", String(pay.method ?? "").replace(/_/g, " ").toUpperCase())}
+          ${row(
+            "Payment Method",
+            String(pay.method ?? "")
+              .replace(/_/g, " ")
+              .toUpperCase(),
+          )}
           ${pay.reference ? row("Reference", String(pay.reference)) : ""}
           ${row("Amount Paid", money(pay.amount, pay.currency))}
           ${inv.outstanding != null ? row("Outstanding", money(inv.outstanding, pay.currency)) : ""}
@@ -173,7 +192,12 @@ Deno.serve(async (req) => {
         <table cellpadding="0" cellspacing="0" width="100%" style="border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin:8px 0 16px;">
           ${row("Invoice Number", inv.invoice_number ?? "—")}
           ${row("Payment Date", new Date(pay.paid_at ?? Date.now()).toLocaleDateString())}
-          ${row("Payment Method", String(pay.method ?? "").replace(/_/g, " ").toUpperCase())}
+          ${row(
+            "Payment Method",
+            String(pay.method ?? "")
+              .replace(/_/g, " ")
+              .toUpperCase(),
+          )}
           ${pay.reference ? row("Reference", String(pay.reference)) : ""}
           ${row("Amount", money(pay.amount, pay.currency))}
           ${inv.outstanding != null ? row("Outstanding", money(inv.outstanding, pay.currency)) : ""}
@@ -183,28 +207,83 @@ Deno.serve(async (req) => {
       return json({ error: `Unsupported event_type: ${eventType}` }, 400);
     }
 
-    const html = shellHtml({ logoUrl, firmName, title, bodyHtml, supportEmail: firmEmail, supportPhone: firmPhone, address: firmAddress });
+    const html = shellHtml({
+      logoUrl,
+      firmName,
+      title,
+      bodyHtml,
+      supportEmail: firmEmail,
+      supportPhone: firmPhone,
+      address: firmAddress,
+    });
+
+    // ── Suppression check ─────────────────────────────────────────────────
+    const allCandidates = [
+      clientRow?.email ?? payload?.client?.email ?? null,
+      counselorEmail,
+      bccAccounting && accountingInbox ? accountingInbox : null,
+    ].filter(Boolean) as string[];
+
+    let suppressedSet = new Set<string>();
+    if (allCandidates.length > 0) {
+      const { data: suppressed } = await admin
+        .from("suppressed_emails")
+        .select("email")
+        .in(
+          "email",
+          allCandidates.map((e) => e.toLowerCase()),
+        );
+      for (const row of suppressed ?? []) suppressedSet.add(row.email.toLowerCase());
+
+      const { data: unsubs } = await admin
+        .from("email_unsubscribe_tokens")
+        .select("email")
+        .in(
+          "email",
+          allCandidates.map((e) => e.toLowerCase()),
+        )
+        .not("used_at", "is", null);
+      for (const row of unsubs ?? []) suppressedSet.add(row.email.toLowerCase());
+    }
+
+    const isSuppressed = (email: string | null) => (email ? suppressedSet.has(email.toLowerCase()) : false);
+
+    if (suppressedSet.size > 0) {
+      console.warn("[notif] suppressed_emails_found", { count: suppressedSet.size, eventType, clientId });
+    }
 
     // ── Recipients ─────────────────────────────────────────────────────────
     const primary = clientRow?.email ?? payload?.client?.email ?? null;
     if (!primary) {
-      // Nothing to send to client — still try internal notification if configured.
       if (!accountingInbox) return json({ ok: false, skipped: true, reason: "no_recipient" });
     }
 
-    const ccList = [counselorEmail].filter(Boolean) as string[];
-    const bccList = (bccAccounting && accountingInbox) ? [accountingInbox] : [];
+    const ccList = [counselorEmail].filter((e): e is string => !!e && !isSuppressed(e));
+    const bccList = bccAccounting && accountingInbox && !isSuppressed(accountingInbox) ? [accountingInbox] : [];
 
-    // ── Send via smtp-send (one row per primary recipient) ─────────────────
-    // smtp-send doesn't support cc/bcc fields directly, so we fan out as
-    // separate sends to each address; metadata.category keeps them grouped
-    // in app_email_logs for auditing.
+    if (primary && isSuppressed(primary)) {
+      console.warn("[notif] primary_suppressed_skipped", { eventType, clientId });
+      if (clientId) {
+        try {
+          await admin.from("client_timeline").insert({
+            client_id: clientId,
+            event_type: `notification.${eventType}`,
+            actor_id: u.user.id,
+            summary: `Email suppressed — ${primary} is unsubscribed or bounced`,
+            metadata: { suppressed: true, email: primary } as any,
+          } as any);
+        } catch (_) {
+          /* best-effort */
+        }
+      }
+      if (ccList.length === 0 && bccList.length === 0) {
+        return json({ ok: false, skipped: true, reason: "primary_suppressed" });
+      }
+    }
+
+    // ── Send via smtp-send ─────────────────────────────────────────────────
     const category = `notif:${eventType}`;
-    const recipients = [
-      ...(primary ? [primary] : []),
-      ...ccList,
-      ...bccList,
-    ];
+    const recipients = [...(primary && !isSuppressed(primary) ? [primary] : []), ...ccList, ...bccList];
 
     const sendResults: any[] = [];
     for (const to of recipients) {
@@ -236,12 +315,14 @@ Deno.serve(async (req) => {
           event_type: `notification.${eventType}`,
           actor_id: u.user.id,
           summary: summaryByEvent[eventType] ?? `Notification: ${eventType}`,
-          metadata: { recipients, results: sendResults.map(r => ({ to: r.to, ok: r.ok })) } as any,
+          metadata: { recipients, results: sendResults.map((r) => ({ to: r.to, ok: r.ok })) } as any,
         } as any);
-      } catch (_) { /* timeline insert is best-effort */ }
+      } catch (_) {
+        /* timeline insert is best-effort */
+      }
     }
 
-    const anyOk = sendResults.some(r => r.ok);
+    const anyOk = sendResults.some((r) => r.ok);
     return json({ ok: anyOk, recipients, results: sendResults });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unknown" }, 500);
