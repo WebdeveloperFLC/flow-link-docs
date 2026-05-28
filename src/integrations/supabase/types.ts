@@ -715,6 +715,78 @@ export type Database = {
           },
         ]
       }
+      accounting_documents: {
+        Row: {
+          approval_status: string
+          created_at: string
+          created_by: string | null
+          doc_type: string
+          entity: string | null
+          extracted: Json | null
+          file_size_kb: number
+          file_type: string
+          filename: string
+          id: string
+          line_items: Json | null
+          linked_client: string | null
+          linked_journal_id: string | null
+          linked_vendor: string | null
+          ocr_error: string | null
+          ocr_status: string
+          storage_path: string | null
+          tags: string[]
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          entity?: string | null
+          extracted?: Json | null
+          file_size_kb?: number
+          file_type?: string
+          filename: string
+          id?: string
+          line_items?: Json | null
+          linked_client?: string | null
+          linked_journal_id?: string | null
+          linked_vendor?: string | null
+          ocr_error?: string | null
+          ocr_status?: string
+          storage_path?: string | null
+          tags?: string[]
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          approval_status?: string
+          created_at?: string
+          created_by?: string | null
+          doc_type?: string
+          entity?: string | null
+          extracted?: Json | null
+          file_size_kb?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          line_items?: Json | null
+          linked_client?: string | null
+          linked_journal_id?: string | null
+          linked_vendor?: string | null
+          ocr_error?: string | null
+          ocr_status?: string
+          storage_path?: string | null
+          tags?: string[]
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       accounting_entities: {
         Row: {
           country: string | null
@@ -2156,10 +2228,16 @@ export type Database = {
           email_verified_at: string | null
           first_name: string
           id: string
+          intended_country: string | null
+          intended_goal: string | null
           invitation_id: string | null
           last_name: string
           middle_name: string | null
           phone: string
+          promo_code: string | null
+          promo_expired_at_registration: boolean | null
+          promo_expires_at: string | null
+          promo_first_opened_at: string | null
           referral_code_used: string | null
           source: Database["public"]["Enums"]["assessment_lead_source"]
           updated_at: string
@@ -2172,10 +2250,16 @@ export type Database = {
           email_verified_at?: string | null
           first_name: string
           id?: string
+          intended_country?: string | null
+          intended_goal?: string | null
           invitation_id?: string | null
           last_name: string
           middle_name?: string | null
           phone: string
+          promo_code?: string | null
+          promo_expired_at_registration?: boolean | null
+          promo_expires_at?: string | null
+          promo_first_opened_at?: string | null
           referral_code_used?: string | null
           source: Database["public"]["Enums"]["assessment_lead_source"]
           updated_at?: string
@@ -2188,10 +2272,16 @@ export type Database = {
           email_verified_at?: string | null
           first_name?: string
           id?: string
+          intended_country?: string | null
+          intended_goal?: string | null
           invitation_id?: string | null
           last_name?: string
           middle_name?: string | null
           phone?: string
+          promo_code?: string | null
+          promo_expired_at_registration?: boolean | null
+          promo_expires_at?: string | null
+          promo_first_opened_at?: string | null
           referral_code_used?: string | null
           source?: Database["public"]["Enums"]["assessment_lead_source"]
           updated_at?: string
@@ -13125,7 +13215,11 @@ export type Database = {
         | "administrator"
         | "manager"
       assessment_invite_status: "pending" | "registered" | "expired" | "revoked"
-      assessment_lead_source: "invite" | "referral" | "existing_client"
+      assessment_lead_source:
+        | "invite"
+        | "referral"
+        | "existing_client"
+        | "public"
       assessment_session_status:
         | "draft"
         | "in_progress"
@@ -13343,7 +13437,12 @@ export const Constants = {
         "manager",
       ],
       assessment_invite_status: ["pending", "registered", "expired", "revoked"],
-      assessment_lead_source: ["invite", "referral", "existing_client"],
+      assessment_lead_source: [
+        "invite",
+        "referral",
+        "existing_client",
+        "public",
+      ],
       assessment_session_status: [
         "draft",
         "in_progress",
