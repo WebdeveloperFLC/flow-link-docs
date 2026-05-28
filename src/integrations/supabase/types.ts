@@ -5858,6 +5858,7 @@ export type Database = {
           created_at: string
           event_type: string
           id: string
+          is_staff_only: boolean
           metadata: Json
           summary: string | null
         }
@@ -5867,6 +5868,7 @@ export type Database = {
           created_at?: string
           event_type: string
           id?: string
+          is_staff_only?: boolean
           metadata?: Json
           summary?: string | null
         }
@@ -5876,6 +5878,7 @@ export type Database = {
           created_at?: string
           event_type?: string
           id?: string
+          is_staff_only?: boolean
           metadata?: Json
           summary?: string | null
         }
@@ -12768,6 +12771,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      convert_assessment_to_client: {
+        Args: { _session_id: string }
+        Returns: Json
+      }
       create_client: {
         Args: {
           _application_type: string
@@ -13036,6 +13043,7 @@ export type Database = {
         Returns: {
           answers: Json
           client_email: string
+          client_id: string
           client_name: string
           client_phone: string
           country: string
@@ -13043,6 +13051,7 @@ export type Database = {
           goal: string
           id: string
           lead_email: string
+          lead_id: string
           lead_name: string
           lead_phone: string
           output: Json
