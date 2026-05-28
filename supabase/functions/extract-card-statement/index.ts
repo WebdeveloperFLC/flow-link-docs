@@ -1,7 +1,8 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -48,7 +49,10 @@ Rules:
 - Use YYYY-MM-DD dates; infer year from statement period if abbreviated.`;
 
 function stripFences(s: string): string {
-  return s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  return s
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
 }
 
 function safeParse(text: string): any | null {
@@ -59,7 +63,11 @@ function safeParse(text: string): any | null {
   } catch {
     const m = cleaned.match(/\{[\s\S]*\}/);
     if (m) {
-      try { return JSON.parse(m[0]); } catch { return null; }
+      try {
+        return JSON.parse(m[0]);
+      } catch {
+        return null;
+      }
     }
     return null;
   }
@@ -70,15 +78,15 @@ async function callGemini(
   base64Jpeg: string,
   context: { cardHolderName?: string; cardLast4?: string; currency?: string },
 ): Promise<{ ok: boolean; raw: string; status: number }> {
-  const dataUrl = base64Jpeg.startsWith("data:")
-    ? base64Jpeg
-    : `data:image/jpeg;base64,${base64Jpeg}`;
+  const dataUrl = base64Jpeg.startsWith("data:") ? base64Jpeg : `data:image/jpeg;base64,${base64Jpeg}`;
 
   const ctxLines = [
     context.cardHolderName ? `Card holder: ${context.cardHolderName}` : null,
     context.cardLast4 ? `Card last 4: ${context.cardLast4}` : null,
     context.currency ? `Currency: ${context.currency}` : null,
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
@@ -140,12 +148,43 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    // ── Authentication gate ──────────────────────────────────────────────
+    // This endpoint calls a paid AI gateway, so it must never be callable
+    // by unauthenticated users (prevents API credit drain).
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ success: false, transactions: [], meta: {}, pageCount: 0, errors: ["Not authenticated"] }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const supaUrl = Deno.env.get("SUPABASE_URL")!;
+    const supaAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const userClient = createClient(supaUrl, supaAnon, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userErr } = await userClient.auth.getUser();
+    if (userErr || !userData?.user) {
+      return new Response(
+        JSON.stringify({ success: false, transactions: [], meta: {}, pageCount: 0, errors: ["Not authenticated"] }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
-      return new Response(JSON.stringify({ success: false, transactions: [], meta: {}, pageCount: 0, errors: ["LOVABLE_API_KEY not configured"] }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          transactions: [],
+          meta: {},
+          pageCount: 0,
+          errors: ["LOVABLE_API_KEY not configured"],
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const body = await req.json();
@@ -155,10 +194,13 @@ Deno.serve(async (req) => {
     const currency: string | undefined = body?.currency;
 
     if (!pages.length) {
-      return new Response(JSON.stringify({ success: false, transactions: [], meta: {}, pageCount: 0, errors: ["No pages provided"] }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ success: false, transactions: [], meta: {}, pageCount: 0, errors: ["No pages provided"] }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const allTx: ExtractedTransaction[] = [];
@@ -193,8 +235,12 @@ Deno.serve(async (req) => {
       mergedMeta = {
         statementFrom: mergedMeta.statementFrom ?? meta.statementFrom,
         statementTo: mergedMeta.statementTo ?? meta.statementTo,
-        openingBalance: mergedMeta.openingBalance ?? (Number.isFinite(Number(meta.openingBalance)) ? Number(meta.openingBalance) : undefined),
-        closingBalance: mergedMeta.closingBalance ?? (Number.isFinite(Number(meta.closingBalance)) ? Number(meta.closingBalance) : undefined),
+        openingBalance:
+          mergedMeta.openingBalance ??
+          (Number.isFinite(Number(meta.openingBalance)) ? Number(meta.openingBalance) : undefined),
+        closingBalance:
+          mergedMeta.closingBalance ??
+          (Number.isFinite(Number(meta.closingBalance)) ? Number(meta.closingBalance) : undefined),
         cardLast4: mergedMeta.cardLast4 ?? meta.cardLast4,
         cardHolderName: mergedMeta.cardHolderName ?? meta.cardHolderName,
         currency: mergedMeta.currency ?? meta.currency,
@@ -206,27 +252,33 @@ Deno.serve(async (req) => {
 
     const transactions = dedupe(allTx).sort((a, b) => a.date.localeCompare(b.date));
 
-    return new Response(JSON.stringify({
-      success: transactions.length > 0,
-      transactions,
-      meta: mergedMeta,
-      pageCount: pages.length,
-      errors: errors.length ? errors : undefined,
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: transactions.length > 0,
+        transactions,
+        meta: mergedMeta,
+        pageCount: pages.length,
+        errors: errors.length ? errors : undefined,
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (e) {
     console.error("extract-card-statement error:", e);
-    return new Response(JSON.stringify({
-      success: false,
-      transactions: [],
-      meta: {},
-      pageCount: 0,
-      errors: [e instanceof Error ? e.message : "Unknown error"],
-    }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: false,
+        transactions: [],
+        meta: {},
+        pageCount: 0,
+        errors: [e instanceof Error ? e.message : "Unknown error"],
+      }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   }
 });
