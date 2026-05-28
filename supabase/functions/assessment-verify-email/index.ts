@@ -32,7 +32,9 @@ Deno.serve(async (req) => {
 
     const { data: lead } = await admin
       .from("assessment_leads")
-      .select("id, email, first_name, last_name, middle_name, auth_user_id, invitation_id")
+      .select(
+        "id, email, first_name, last_name, middle_name, auth_user_id, invitation_id, intended_country, intended_goal",
+      )
       .eq("id", rec.lead_id)
       .maybeSingle();
     if (!lead) return json({ error: "Lead missing" }, 404);
@@ -41,6 +43,9 @@ Deno.serve(async (req) => {
     // gets the correct values rather than the hardcoded Canada / permanent_residence fallback.
     let sessionCountry = "Canada";
     let sessionGoal = "permanent_residence";
+    // Public self-start: the candidate chose these before registering.
+    if (lead.intended_country) sessionCountry = lead.intended_country;
+    if (lead.intended_goal) sessionGoal = lead.intended_goal;
     if (lead.invitation_id) {
       const { data: inv } = await admin
         .from("assessment_invitations")
