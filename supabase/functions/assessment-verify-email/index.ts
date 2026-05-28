@@ -21,16 +21,48 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const { data: rec } = await admin.from("assessment_email_verifications")
-      .select("id, lead_id, email, expires_at, consumed_at").eq("token", token).maybeSingle();
+    const { data: rec } = await admin
+      .from("assessment_email_verifications")
+      .select("id, lead_id, email, expires_at, consumed_at")
+      .eq("token", token)
+      .maybeSingle();
     if (!rec) return json({ error: "Invalid token" }, 404);
     if (rec.consumed_at) return json({ error: "Token already used" }, 410);
     if (new Date(rec.expires_at) < new Date()) return json({ error: "Token expired" }, 410);
 
-    const { data: lead } = await admin.from("assessment_leads")
+    const { data: lead } = await admin
+      .from("assessment_leads")
       .select("id, email, first_name, last_name, middle_name, auth_user_id, invitation_id")
-      .eq("id", rec.lead_id).maybeSingle();
+      .eq("id", rec.lead_id)
+      .maybeSingle();
     if (!lead) return json({ error: "Lead missing" }, 404);
+
+    // Resolve country + goal from the invitation if present, so the session
+    // gets the correct values rather than the hardcoded Canada / permanent_residence fallback.
+    let sessionCountry = "Canada";
+    let sessionGoal = "permanent_residence";
+    if (lead.invitation_id) {
+      const { data: inv } = await admin
+        .from("assessment_invitations")
+        .select("client_id")
+        .eq("id", lead.invitation_id)
+        .maybeSingle();
+      if (inv?.client_id) {
+        // Try to find the most recent draft session created for this client by staff
+        const { data: staffSes } = await admin
+          .from("assessment_sessions")
+          .select("country, goal")
+          .eq("client_id", inv.client_id)
+          .neq("status", "archived")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (staffSes) {
+          sessionCountry = staffSes.country || sessionCountry;
+          sessionGoal = staffSes.goal || sessionGoal;
+        }
+      }
+    }
 
     // Ensure an auth user exists for this email
     let authUserId: string | null = lead.auth_user_id;
@@ -51,29 +83,52 @@ Deno.serve(async (req) => {
         if (createErr || !created.user) return json({ error: createErr?.message ?? "Could not create user" }, 500);
         authUserId = created.user.id;
       }
-      await admin.from("assessment_leads").update({ auth_user_id: authUserId, email_verified_at: new Date().toISOString() }).eq("id", lead.id);
+      await admin
+        .from("assessment_leads")
+        .update({ auth_user_id: authUserId, email_verified_at: new Date().toISOString() })
+        .eq("id", lead.id);
     } else {
       await admin.from("assessment_leads").update({ email_verified_at: new Date().toISOString() }).eq("id", lead.id);
     }
 
     // Mark invitation as registered (if any)
     if (lead.invitation_id) {
-      await admin.from("assessment_invitations").update({
-        status: "registered", redeemed_at: new Date().toISOString(), redeemed_lead_id: lead.id,
-      }).eq("id", lead.invitation_id);
+      await admin
+        .from("assessment_invitations")
+        .update({
+          status: "registered",
+          redeemed_at: new Date().toISOString(),
+          redeemed_lead_id: lead.id,
+        })
+        .eq("id", lead.invitation_id);
     }
 
     // Consume verification token
-    await admin.from("assessment_email_verifications").update({ consumed_at: new Date().toISOString() }).eq("id", rec.id);
+    await admin
+      .from("assessment_email_verifications")
+      .update({ consumed_at: new Date().toISOString() })
+      .eq("id", rec.id);
 
     // Ensure a session exists
-    let { data: session } = await admin.from("assessment_sessions")
-      .select("id, status").eq("lead_id", lead.id).neq("status","archived")
-      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    let { data: session } = await admin
+      .from("assessment_sessions")
+      .select("id, status")
+      .eq("lead_id", lead.id)
+      .neq("status", "archived")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (!session) {
-      const { data: ins } = await admin.from("assessment_sessions").insert({
-        lead_id: lead.id, country: "Canada", goal: "permanent_residence", status: "draft",
-      }).select("id, status").single();
+      const { data: ins } = await admin
+        .from("assessment_sessions")
+        .insert({
+          lead_id: lead.id,
+          country: sessionCountry,
+          goal: sessionGoal,
+          status: "draft",
+        })
+        .select("id, status")
+        .single();
       session = ins!;
     }
 
