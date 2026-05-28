@@ -10,8 +10,23 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Loader2, Mail, Download, Send, Copy, Search, ExternalLink,
-  Users, FileCheck2, ClipboardList, TrendingUp, Link2, RefreshCw, Play, PlayCircle, Trash2,
+  Loader2,
+  Mail,
+  Download,
+  Send,
+  Copy,
+  Search,
+  ExternalLink,
+  Users,
+  FileCheck2,
+  ClipboardList,
+  TrendingUp,
+  Link2,
+  RefreshCw,
+  Play,
+  PlayCircle,
+  Trash2,
+  UserPlus,
 } from "lucide-react";
 import { StartAssessmentDialog } from "@/components/assessment/StartAssessmentDialog";
 import { invokeError } from "@/lib/invokeError";
@@ -87,11 +102,21 @@ export default function AssessmentAdmin() {
             <TabsTrigger value="questions">Questions</TabsTrigger>
             <TabsTrigger value="programs">Programs</TabsTrigger>
           </TabsList>
-          <TabsContent value="submissions" className="pt-4"><SessionsTab /></TabsContent>
-          <TabsContent value="invitations" className="pt-4"><InvitationsTab /></TabsContent>
-          <TabsContent value="invite" className="pt-4"><InviteTab /></TabsContent>
-          <TabsContent value="questions" className="pt-4"><QuestionsTab /></TabsContent>
-          <TabsContent value="programs" className="pt-4"><ProgramsTab /></TabsContent>
+          <TabsContent value="submissions" className="pt-4">
+            <SessionsTab />
+          </TabsContent>
+          <TabsContent value="invitations" className="pt-4">
+            <InvitationsTab />
+          </TabsContent>
+          <TabsContent value="invite" className="pt-4">
+            <InviteTab />
+          </TabsContent>
+          <TabsContent value="questions" className="pt-4">
+            <QuestionsTab />
+          </TabsContent>
+          <TabsContent value="programs" className="pt-4">
+            <ProgramsTab />
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
@@ -113,9 +138,14 @@ function StatCard({ icon: Icon, label, value, tone = "primary" }: any) {
 }
 
 function StatsRow() {
-  const [stats, setStats] = useState<{ invites: number; inProgress: number; submitted: number; avgCrs: number | null }>({
-    invites: 0, inProgress: 0, submitted: 0, avgCrs: null,
-  });
+  const [stats, setStats] = useState<{ invites: number; inProgress: number; submitted: number; avgCrs: number | null }>(
+    {
+      invites: 0,
+      inProgress: 0,
+      submitted: 0,
+      avgCrs: null,
+    },
+  );
   const load = async () => {
     const [inv, sess] = await Promise.all([
       supabase.from("assessment_invitations").select("id, status", { count: "exact", head: false }),
@@ -129,7 +159,9 @@ function StatsRow() {
     const avgCrs = crsScores.length ? Math.round(crsScores.reduce((a, b) => a + b, 0) / crsScores.length) : null;
     setStats({ invites, inProgress, submitted, avgCrs });
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <StatCard icon={Mail} label="Pending invites" value={stats.invites} />
@@ -148,26 +180,44 @@ function PublicLinkCard() {
       </div>
       <div className="flex-1 min-w-[220px]">
         <div className="text-xs font-semibold">Public assessment link</div>
-        <div className="text-xs text-muted-foreground">Share this with leads who have a referral code. They register, verify email, and start the questionnaire.</div>
+        <div className="text-xs text-muted-foreground">
+          Share this with leads who have a referral code. They register, verify email, and start the questionnaire.
+        </div>
       </div>
       <code className="text-xs bg-muted rounded-md px-2 py-1 truncate max-w-[340px]">{PUBLIC_ASSESSMENT_URL}</code>
-      <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(PUBLIC_ASSESSMENT_URL); toast.success("Public link copied"); }}>
-        <Copy className="size-3.5 mr-1.5" />Copy
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          navigator.clipboard.writeText(PUBLIC_ASSESSMENT_URL);
+          toast.success("Public link copied");
+        }}
+      >
+        <Copy className="size-3.5 mr-1.5" />
+        Copy
       </Button>
       <Button size="sm" variant="outline" asChild>
-        <a href={PUBLIC_ASSESSMENT_URL} target="_blank" rel="noreferrer"><ExternalLink className="size-3.5 mr-1.5" />Open</a>
+        <a href={PUBLIC_ASSESSMENT_URL} target="_blank" rel="noreferrer">
+          <ExternalLink className="size-3.5 mr-1.5" />
+          Open
+        </a>
       </Button>
     </Card>
   );
 }
 
 function InviteTab() {
-  const [first, setFirst] = useState(""); const [mid, setMid] = useState(""); const [last, setLast] = useState("");
-  const [email, setEmail] = useState(""); const [phone, setPhone] = useState("");
-  const [busy, setBusy] = useState(false); const [link, setLink] = useState<string | null>(null);
+  const [first, setFirst] = useState("");
+  const [mid, setMid] = useState("");
+  const [last, setLast] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [link, setLink] = useState<string | null>(null);
   const send = async () => {
     if (!first || !last || !email) return toast.error("First, last and email are required");
-    setBusy(true); setLink(null);
+    setBusy(true);
+    setLink(null);
     const { data, error } = await supabase.functions.invoke("assessment-invite-create", {
       body: { firstName: first, middleName: mid, lastName: last, email, phone },
     });
@@ -178,15 +228,32 @@ function InviteTab() {
   };
   return (
     <Card className="p-5 space-y-3 max-w-2xl">
-      <div className="text-sm text-muted-foreground">Send a personal invitation. Lead receives an email with a one-click link to register and verify.</div>
+      <div className="text-sm text-muted-foreground">
+        Send a personal invitation. Lead receives an email with a one-click link to register and verify.
+      </div>
       <div className="grid grid-cols-3 gap-2">
-        <div className="space-y-1.5"><Label>First *</Label><Input value={first} onChange={(e) => setFirst(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label>Middle</Label><Input value={mid} onChange={(e) => setMid(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label>Last *</Label><Input value={last} onChange={(e) => setLast(e.target.value)} /></div>
+        <div className="space-y-1.5">
+          <Label>First *</Label>
+          <Input value={first} onChange={(e) => setFirst(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Middle</Label>
+          <Input value={mid} onChange={(e) => setMid(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Last *</Label>
+          <Input value={last} onChange={(e) => setLast(e.target.value)} />
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1.5"><Label>Email *</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-        <div className="space-y-1.5"><Label>Phone</Label><Input value={phone} onChange={(e) => setPhone(e.target.value)} /></div>
+        <div className="space-y-1.5">
+          <Label>Email *</Label>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Phone</Label>
+          <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+        </div>
       </div>
       <Button onClick={send} disabled={busy}>
         {busy ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <Send className="size-4 mr-1.5" />}
@@ -195,7 +262,14 @@ function InviteTab() {
       {link && (
         <div className="text-xs flex items-center gap-2 p-2 bg-muted rounded-md">
           <span className="truncate flex-1">{link}</span>
-          <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(link); toast.success("Copied"); }}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              navigator.clipboard.writeText(link);
+              toast.success("Copied");
+            }}
+          >
             <Copy className="size-3.5" />
           </Button>
         </div>
@@ -210,52 +284,117 @@ function InvitationsTab() {
   const [q, setQ] = useState("");
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("assessment_invitations")
+    const { data } = await supabase
+      .from("assessment_invitations")
       .select("id, first_name, last_name, email, phone, status, token, expires_at, redeemed_at, created_at")
-      .order("created_at", { ascending: false }).limit(200);
-    setRows(data ?? []); setLoading(false);
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setRows(data ?? []);
+    setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return rows;
     return rows.filter((r) => `${r.first_name ?? ""} ${r.last_name ?? ""} ${r.email}`.toLowerCase().includes(t));
   }, [rows, q]);
   const linkFor = (token: string) => `${window.location.origin}/assessment/invite/${token}`;
-  const copy = (token: string) => { navigator.clipboard.writeText(linkFor(token)); toast.success("Invite link copied"); };
+  const copy = (token: string) => {
+    navigator.clipboard.writeText(linkFor(token));
+    toast.success("Invite link copied");
+  };
+  const [converting, setConverting] = useState<string | null>(null);
+  const convertToClient = async (r: any) => {
+    if (
+      !confirm(
+        "Convert this assessment lead to a full CRM client?\n\nA new client profile will be created with their name, email, and assessment data prefilled.",
+      )
+    )
+      return;
+    setConverting(r.id);
+    try {
+      const { data, error } = await supabase.rpc("convert_assessment_to_client", { _session_id: r.id });
+      if (error) throw error;
+      const result = data as any;
+      if (result.created) {
+        toast.success("Client created successfully");
+        nav(`/clients/${result.client_id}`);
+      } else {
+        toast.info("Already converted — opening client profile");
+        nav(`/clients/${result.client_id}`);
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Conversion failed");
+    } finally {
+      setConverting(null);
+    }
+  };
+
   if (loading) return <Loader2 className="animate-spin" />;
   return (
     <Card className="p-0 overflow-hidden">
       <div className="p-3 flex items-center gap-2 border-b">
         <Search className="size-4 text-muted-foreground" />
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or email" className="h-8 max-w-xs" />
-        <div className="ml-auto"><Button size="sm" variant="outline" onClick={load}><RefreshCw className="size-3.5 mr-1.5" />Refresh</Button></div>
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search name or email"
+          className="h-8 max-w-xs"
+        />
+        <div className="ml-auto">
+          <Button size="sm" variant="outline" onClick={load}>
+            <RefreshCw className="size-3.5 mr-1.5" />
+            Refresh
+          </Button>
+        </div>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-muted/50"><tr>
-          <th className="text-left p-2 px-3">Name</th><th className="text-left p-2">Email</th>
-          <th className="text-left p-2">Status</th><th className="text-left p-2">Expires</th>
-          <th className="text-left p-2">Created</th><th></th>
-        </tr></thead>
+        <thead className="bg-muted/50">
+          <tr>
+            <th className="text-left p-2 px-3">Name</th>
+            <th className="text-left p-2">Email</th>
+            <th className="text-left p-2">Status</th>
+            <th className="text-left p-2">Expires</th>
+            <th className="text-left p-2">Created</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {filtered.map((r) => (
             <tr key={r.id} className="border-t">
               <td className="p-2 px-3">{[r.first_name, r.last_name].filter(Boolean).join(" ") || "—"}</td>
               <td className="p-2">{r.email}</td>
-              <td className="p-2"><Badge variant={r.status === "registered" ? "default" : r.status === "expired" || r.status === "revoked" ? "secondary" : "outline"}>{r.status}</Badge></td>
+              <td className="p-2">
+                <Badge
+                  variant={
+                    r.status === "registered"
+                      ? "default"
+                      : r.status === "expired" || r.status === "revoked"
+                        ? "secondary"
+                        : "outline"
+                  }
+                >
+                  {r.status}
+                </Badge>
+              </td>
               <td className="p-2 text-xs">{new Date(r.expires_at).toLocaleDateString()}</td>
               <td className="p-2 text-xs">{new Date(r.created_at).toLocaleDateString()}</td>
               <td className="p-2 text-right">
                 <Button size="sm" variant="outline" onClick={() => copy(r.token)}>
-                  <Copy className="size-3.5 mr-1.5" />Copy link
+                  <Copy className="size-3.5 mr-1.5" />
+                  Copy link
                 </Button>
               </td>
             </tr>
           ))}
           {filtered.length === 0 && (
-            <tr><td colSpan={6} className="p-8 text-center text-muted-foreground text-sm">
-              No invitations yet. Use the <b>Send invite</b> tab to create one.
-            </td></tr>
+            <tr>
+              <td colSpan={6} className="p-8 text-center text-muted-foreground text-sm">
+                No invitations yet. Use the <b>Send invite</b> tab to create one.
+              </td>
+            </tr>
           )}
         </tbody>
       </table>
@@ -278,19 +417,32 @@ function SessionsTab() {
       toast.error(error.message ?? "Failed to load submissions");
     }
     const mapped = (data ?? []).map((r: any) => ({
-      id: r.id, status: r.status, goal: r.goal, country: r.country,
-      answers: r.answers, output: r.output, pdf_path: r.pdf_path,
-      submitted_at: r.submitted_at, created_at: r.created_at,
-      client: r.client_name || r.client_email || r.client_phone
-        ? { full_name: r.client_name, email: r.client_email, phone: r.client_phone }
-        : null,
-      lead: r.lead_name || r.lead_email || r.lead_phone
-        ? { full_name: r.lead_name, email: r.lead_email, phone: r.lead_phone }
-        : null,
+      id: r.id,
+      status: r.status,
+      goal: r.goal,
+      country: r.country,
+      answers: r.answers,
+      output: r.output,
+      pdf_path: r.pdf_path,
+      submitted_at: r.submitted_at,
+      created_at: r.created_at,
+      client_id: r.client_id ?? null,
+      lead_id: r.lead_id ?? null,
+      client:
+        r.client_name || r.client_email || r.client_phone
+          ? { full_name: r.client_name, email: r.client_email, phone: r.client_phone }
+          : null,
+      lead:
+        r.lead_name || r.lead_email || r.lead_phone
+          ? { full_name: r.lead_name, email: r.lead_email, phone: r.lead_phone }
+          : null,
     }));
-    setRows(mapped); setLoading(false);
+    setRows(mapped);
+    setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
     return rows.filter((r) => {
@@ -333,20 +485,27 @@ function SessionsTab() {
     };
   };
   const downloadClient = async (r: any) => {
-    try { await downloadAssessmentPdf(await pdfInput(r)); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "PDF failed"); }
+    try {
+      await downloadAssessmentPdf(await pdfInput(r));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "PDF failed");
+    }
   };
   const viewClient = async (r: any) => {
-    try { await openAssessmentPdf(await pdfInput(r)); }
-    catch (e) { toast.error(e instanceof Error ? e.message : "PDF failed"); }
+    try {
+      await openAssessmentPdf(await pdfInput(r));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "PDF failed");
+    }
   };
   const resend = async (id: string) => {
     const tId = toast.loading("Sending report email…");
     console.log("[assessment] resend → session", id);
     const { data, error } = await supabase.functions.invoke("assessment-resend-report", { body: { sessionId: id } });
-    const errMsg = (error || (data as any)?.error)
-      ? (await invokeError(error, data)) ?? (data as any)?.error ?? "Resend failed"
-      : null;
+    const errMsg =
+      error || (data as any)?.error
+        ? ((await invokeError(error, data)) ?? (data as any)?.error ?? "Resend failed")
+        : null;
     if (errMsg) {
       console.error("[assessment] resend failed:", errMsg, data);
       toast.error(`Email failed: ${errMsg}`, { id: tId });
@@ -356,7 +515,12 @@ function SessionsTab() {
     toast.success(`Report emailed to ${(data as any)?.recipient ?? "client"}`, { id: tId });
   };
   const deleteSession = async (id: string) => {
-    if (!confirm("Delete this assessment record?\n\nThe client profile and history are preserved — only this assessment session will be removed.")) return;
+    if (
+      !confirm(
+        "Delete this assessment record?\n\nThe client profile and history are preserved — only this assessment session will be removed.",
+      )
+    )
+      return;
     const { error } = await supabase.from("assessment_sessions").delete().eq("id", id);
     if (error) return toast.error(error.message);
     setRows((r) => r.filter((x) => x.id !== id));
@@ -368,21 +532,36 @@ function SessionsTab() {
       <div className="p-3 flex items-center gap-2 border-b flex-wrap">
         <Search className="size-4 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search client" className="h-8 max-w-xs" />
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-8 rounded-md border bg-background px-2 text-xs">
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="h-8 rounded-md border bg-background px-2 text-xs"
+        >
           <option value="all">All statuses</option>
           <option value="draft">Draft</option>
           <option value="in_progress">In progress</option>
           <option value="submitted">Submitted</option>
           <option value="counselor_reviewed">Counselor reviewed</option>
         </select>
-        <div className="ml-auto"><Button size="sm" variant="outline" onClick={load}><RefreshCw className="size-3.5 mr-1.5" />Refresh</Button></div>
+        <div className="ml-auto">
+          <Button size="sm" variant="outline" onClick={load}>
+            <RefreshCw className="size-3.5 mr-1.5" />
+            Refresh
+          </Button>
+        </div>
       </div>
       <table className="w-full text-sm">
-        <thead className="bg-muted/50"><tr>
-          <th className="text-left p-2 px-3">Client</th><th className="text-left p-2">Email</th>
-          <th className="text-left p-2">Goal</th><th className="text-left p-2">Status</th>
-          <th className="text-left p-2">CRS</th><th className="text-left p-2">Updated</th><th></th>
-        </tr></thead>
+        <thead className="bg-muted/50">
+          <tr>
+            <th className="text-left p-2 px-3">Client</th>
+            <th className="text-left p-2">Email</th>
+            <th className="text-left p-2">Goal</th>
+            <th className="text-left p-2">Status</th>
+            <th className="text-left p-2">CRS</th>
+            <th className="text-left p-2">Updated</th>
+            <th></th>
+          </tr>
+        </thead>
         <tbody>
           {filtered.map((r) => {
             const p = r.client ?? r.lead ?? {};
@@ -392,55 +571,97 @@ function SessionsTab() {
             const hasPdf = !!r.pdf_path;
             const hasEmail = !!p.email;
             return (
-            <tr key={r.id} className="border-t">
-              <td className="p-2 px-3">{name}</td>
-              <td className="p-2">{p.email ?? "—"}</td>
-              <td className="p-2 text-xs">{GOAL_LABELS[r.goal] ?? "—"}</td>
-              <td className="p-2"><Badge variant={r.status === "submitted" ? "default" : "outline"}>{r.status}</Badge></td>
-              <td className="p-2 text-xs font-mono">{r.output?.crs?.total ?? "—"}</td>
-              <td className="p-2 text-xs">{new Date(r.submitted_at ?? r.created_at).toLocaleString()}</td>
-              <td className="p-2 text-right">
-                <div className="inline-flex gap-1">
-                  {isOpen && (
-                    <>
-                      <Button size="sm" variant="default" onClick={() => nav(`/assessment/run/${r.id}`)} title="Open / Resume">
-                        <PlayCircle className="size-3.5 mr-1" />Resume
+              <tr key={r.id} className="border-t">
+                <td className="p-2 px-3">{name}</td>
+                <td className="p-2">{p.email ?? "—"}</td>
+                <td className="p-2 text-xs">{GOAL_LABELS[r.goal] ?? "—"}</td>
+                <td className="p-2">
+                  <Badge variant={r.status === "submitted" ? "default" : "outline"}>{r.status}</Badge>
+                </td>
+                <td className="p-2 text-xs font-mono">{r.output?.crs?.total ?? "—"}</td>
+                <td className="p-2 text-xs">{new Date(r.submitted_at ?? r.created_at).toLocaleString()}</td>
+                <td className="p-2 text-right">
+                  <div className="inline-flex gap-1">
+                    {isOpen && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => nav(`/assessment/run/${r.id}`)}
+                          title="Open / Resume"
+                        >
+                          <PlayCircle className="size-3.5 mr-1" />
+                          Resume
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF">
+                          <Download className="size-3.5" />
+                        </Button>
+                      </>
+                    )}
+                    {isDone && (
+                      <>
+                        <Button size="sm" variant="outline" onClick={() => viewClient(r)} title="View report">
+                          <ExternalLink className="size-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF">
+                          <Download className="size-3.5" />
+                        </Button>
+                        {hasPdf && hasEmail && (
+                          <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report">
+                            <Mail className="size-3.5" />
+                          </Button>
+                        )}
+                      </>
+                    )}
+                    {!r.client_id && r.lead_id && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => convertToClient(r)}
+                        disabled={converting === r.id}
+                        title="Convert to CRM client"
+                        className="text-primary border-primary/40 hover:bg-primary/5"
+                      >
+                        {converting === r.id ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : (
+                          <UserPlus className="size-3.5" />
+                        )}
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
-                    </>
-                  )}
-                  {isDone && (
-                    <>
-                      <Button size="sm" variant="outline" onClick={() => viewClient(r)} title="View report"><ExternalLink className="size-3.5" /></Button>
-                      <Button size="sm" variant="outline" onClick={() => downloadClient(r)} title="Download PDF"><Download className="size-3.5" /></Button>
-                      {hasPdf && hasEmail && (
-                        <Button size="sm" variant="outline" onClick={() => resend(r.id)} title="Re-email report"><Mail className="size-3.5" /></Button>
-                      )}
-                    </>
-                  )}
-                  {isAdmin && (
-                    <Button size="sm" variant="outline" onClick={() => deleteSession(r.id)} title="Delete this assessment record (keeps client)">
-                      <Trash2 className="size-3.5 text-destructive" />
-                    </Button>
-                  )}
-                  {hasEmail && (
-                    <Button size="sm" variant="outline" asChild title={`Email ${p.email}`}>
-                      <a href={`mailto:${p.email}?subject=${encodeURIComponent("Your Settle Abroad assessment")}`}>
-                        <Mail className="size-3.5" />
-                      </a>
-                    </Button>
-                  )}
+                    )}
+                    {isAdmin && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => deleteSession(r.id)}
+                        title="Delete this assessment record (keeps client)"
+                      >
+                        <Trash2 className="size-3.5 text-destructive" />
+                      </Button>
+                    )}
+                    {hasEmail && (
+                      <Button size="sm" variant="outline" asChild title={`Email ${p.email}`}>
+                        <a href={`mailto:${p.email}?subject=${encodeURIComponent("Your Settle Abroad assessment")}`}>
+                          <Mail className="size-3.5" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
+                <div className="space-y-1">
+                  <div className="font-medium text-foreground">No assessments yet</div>
+                  <div>
+                    Click <b>Start new assessment</b> above to add a client and begin.
+                  </div>
                 </div>
               </td>
             </tr>
-          );})}
-          {filtered.length === 0 && (
-            <tr><td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
-              <div className="space-y-1">
-                <div className="font-medium text-foreground">No assessments yet</div>
-                <div>Click <b>Start new assessment</b> above to add a client and begin.</div>
-              </div>
-            </td></tr>
           )}
         </tbody>
       </table>
@@ -451,10 +672,16 @@ function SessionsTab() {
 function QuestionsTab() {
   const [rows, setRows] = useState<any[]>([]);
   const [q, setQ] = useState("");
-  useEffect(() => { supabase.from("assessment_questions").select("*").order("order_index").then((r) => setRows(r.data ?? [])); }, []);
+  useEffect(() => {
+    supabase
+      .from("assessment_questions")
+      .select("*")
+      .order("order_index")
+      .then((r) => setRows(r.data ?? []));
+  }, []);
   const toggle = async (id: string, val: boolean) => {
     await supabase.from("assessment_questions").update({ is_active: val }).eq("id", id);
-    setRows((r) => r.map((x) => x.id === id ? { ...x, is_active: val } : x));
+    setRows((r) => r.map((x) => (x.id === id ? { ...x, is_active: val } : x)));
   };
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -463,14 +690,18 @@ function QuestionsTab() {
   }, [rows, q]);
   const counts = useMemo(() => {
     const by: Record<string, number> = {};
-    rows.forEach((r) => { by[r.section] = (by[r.section] ?? 0) + 1; });
+    rows.forEach((r) => {
+      by[r.section] = (by[r.section] ?? 0) + 1;
+    });
     return by;
   }, [rows]);
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
         {Object.entries(counts).map(([sec, n]) => (
-          <Badge key={sec} variant="secondary" className="capitalize">{sec}: {n}</Badge>
+          <Badge key={sec} variant="secondary" className="capitalize">
+            {sec}: {n}
+          </Badge>
         ))}
         <Badge>Total: {rows.length}</Badge>
         <Badge variant="outline">Active: {rows.filter((r) => r.is_active).length}</Badge>
@@ -478,23 +709,42 @@ function QuestionsTab() {
       <Card className="p-0 overflow-hidden">
         <div className="p-3 border-b flex items-center gap-2">
           <Search className="size-4 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search questions" className="h-8 max-w-xs" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search questions"
+            className="h-8 max-w-xs"
+          />
         </div>
         <table className="w-full text-sm">
-          <thead className="bg-muted/50"><tr>
-            <th className="text-left p-2 px-3">Section</th><th className="text-left p-2">Code</th>
-            <th className="text-left p-2">Label</th><th className="text-left p-2">Type</th><th className="p-2">Active</th>
-          </tr></thead>
-          <tbody>{filtered.map((qq) => (
-            <tr key={qq.id} className="border-t">
-              <td className="p-2 px-3 text-xs capitalize">{qq.section}</td>
-              <td className="p-2 text-xs font-mono">{qq.code}</td>
-              <td className="p-2">{qq.label}</td>
-              <td className="p-2 text-xs">{qq.q_type}</td>
-              <td className="p-2 text-center"><input type="checkbox" checked={qq.is_active} onChange={(e) => toggle(qq.id, e.target.checked)} /></td>
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="text-left p-2 px-3">Section</th>
+              <th className="text-left p-2">Code</th>
+              <th className="text-left p-2">Label</th>
+              <th className="text-left p-2">Type</th>
+              <th className="p-2">Active</th>
             </tr>
-          ))}
-          {filtered.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">No questions match your search.</td></tr>}
+          </thead>
+          <tbody>
+            {filtered.map((qq) => (
+              <tr key={qq.id} className="border-t">
+                <td className="p-2 px-3 text-xs capitalize">{qq.section}</td>
+                <td className="p-2 text-xs font-mono">{qq.code}</td>
+                <td className="p-2">{qq.label}</td>
+                <td className="p-2 text-xs">{qq.q_type}</td>
+                <td className="p-2 text-center">
+                  <input type="checkbox" checked={qq.is_active} onChange={(e) => toggle(qq.id, e.target.checked)} />
+                </td>
+              </tr>
+            ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={5} className="p-6 text-center text-muted-foreground">
+                  No questions match your search.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Card>
@@ -504,24 +754,44 @@ function QuestionsTab() {
 
 function ProgramsTab() {
   const [rows, setRows] = useState<any[]>([]);
-  useEffect(() => { supabase.from("assessment_programs").select("*").order("order_index").then((r) => setRows(r.data ?? [])); }, []);
+  useEffect(() => {
+    supabase
+      .from("assessment_programs")
+      .select("*")
+      .order("order_index")
+      .then((r) => setRows(r.data ?? []));
+  }, []);
   return (
     <div className="space-y-3">
-      <div className="text-xs text-muted-foreground">Programs are the destinations that the rule engine matches a lead against. Rules are admin-editable JSON.</div>
+      <div className="text-xs text-muted-foreground">
+        Programs are the destinations that the rule engine matches a lead against. Rules are admin-editable JSON.
+      </div>
       <Card className="p-0 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-muted/50"><tr>
-            <th className="text-left p-2 px-3">Code</th><th className="text-left p-2">Label</th>
-            <th className="text-left p-2">Rules (JSON)</th>
-          </tr></thead>
-          <tbody>{rows.map((p) => (
-            <tr key={p.id} className="border-t align-top">
-              <td className="p-2 px-3 text-xs font-mono">{p.code}</td>
-              <td className="p-2">{p.label}</td>
-              <td className="p-2 text-xs font-mono text-muted-foreground max-w-xl truncate">{JSON.stringify(p.match_rules)}</td>
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="text-left p-2 px-3">Code</th>
+              <th className="text-left p-2">Label</th>
+              <th className="text-left p-2">Rules (JSON)</th>
             </tr>
-          ))}
-          {rows.length === 0 && <tr><td colSpan={3} className="p-6 text-center text-muted-foreground">No programs configured.</td></tr>}
+          </thead>
+          <tbody>
+            {rows.map((p) => (
+              <tr key={p.id} className="border-t align-top">
+                <td className="p-2 px-3 text-xs font-mono">{p.code}</td>
+                <td className="p-2">{p.label}</td>
+                <td className="p-2 text-xs font-mono text-muted-foreground max-w-xl truncate">
+                  {JSON.stringify(p.match_rules)}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && (
+              <tr>
+                <td colSpan={3} className="p-6 text-center text-muted-foreground">
+                  No programs configured.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Card>
