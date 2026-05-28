@@ -23,20 +23,16 @@ const KNOWN_TITLES: Record<string, string> = {
 const KNOWN_SYSTEM_FOR: Record<string, string> = {
   cover:
     "You are an immigration consultant drafting an Applicant's Letter of Explanation to IRCC. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Use the client's own voice (first person, signed by the client). Do NOT invent facts that are not present in CLIENT FACTS or DOCUMENT EXTRACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis. Always include: addressee block (To: The Visa Officer, IRCC), Subject line, numbered body sections, Conclusion, and a signature line with the applicant name(s).",
-  rcic:
-    "You are a Regulated Canadian Immigration Consultant (RCIC) drafting a submission letter to IRCC on behalf of an applicant. Mirror the structure, tone and section headings of the SAMPLE LETTER. Replace the sample's specific facts with the CLIENT FACTS. Sign as the firm's RCIC using the firm.rcic_name and firm.rcic_number from CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. Always include: Date, From block (RCIC name + R# from firm), To block (Visa Officer, IRCC), Subject, Applicant block, numbered sections, Conclusion, and 'Yours faithfully,' signature with RCIC name and R#.",
+  rcic: "You are a Regulated Canadian Immigration Consultant (RCIC) drafting a submission letter to IRCC on behalf of an applicant. Mirror the structure, tone and section headings of the SAMPLE LETTER. Replace the sample's specific facts with the CLIENT FACTS. Sign as the firm's RCIC using the firm.rcic_name and firm.rcic_number from CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. Always include: Date, From block (RCIC name + R# from firm), To block (Visa Officer, IRCC), Subject, Applicant block, numbered sections, Conclusion, and 'Yours faithfully,' signature with RCIC name and R#.",
   statdec:
     "You are drafting a Statutory Declaration in the Canadian legal format. Mirror the layout, oath language and numbered clauses of the SAMPLE. Replace specific facts with CLIENT FACTS. Do NOT invent facts; use [MISSING: <field name>] for unknowns. Output Markdown. ALWAYS preserve the legal header in the exact form 'CANADA }', 'Province of <X> }', 'City of <X> }' on separate lines, the 'I, <NAME> ... DO SOLEMNLY DECLARE THAT:' opener, numbered solemn clauses, the 'AND I make this solemn declaration ... Canada Evidence Act' closer, and the 'DECLARED BEFORE ME' / 'Commissioner of Oaths' / declarant signature footer.",
 };
 
-const GENERIC_SYSTEM = "You are drafting a formal letter for an immigration application. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Do NOT invent facts that are not present in CLIENT FACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis.";
+const GENERIC_SYSTEM =
+  "You are drafting a formal letter for an immigration application. Mirror the structure, tone and section headings of the SAMPLE LETTER provided. Replace the sample's specific facts with the CLIENT FACTS. Do NOT invent facts that are not present in CLIENT FACTS. Where a needed detail is missing, write the phrase [MISSING: <field name>] instead of guessing. Output Markdown with `#`/`##` headings, `-` bullets, and **bold** for emphasis.";
 
 function escXml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
 /** Build a single <w:p> for a paragraph, supporting **bold** runs and a heading style. */
@@ -88,17 +84,35 @@ function markdownToParagraphs(md: string): string[] {
   const paras: string[] = [];
   for (const raw of lines) {
     const line = raw.trimEnd();
-    if (line.trim() === "") { paras.push(buildParagraph("")); continue; }
+    if (line.trim() === "") {
+      paras.push(buildParagraph(""));
+      continue;
+    }
     const h1 = line.match(/^#\s+(.*)$/);
-    if (h1) { paras.push(buildParagraph(h1[1], { heading: 1, bold: true })); continue; }
+    if (h1) {
+      paras.push(buildParagraph(h1[1], { heading: 1, bold: true }));
+      continue;
+    }
     const h2 = line.match(/^##\s+(.*)$/);
-    if (h2) { paras.push(buildParagraph(h2[1], { heading: 2, bold: true })); continue; }
+    if (h2) {
+      paras.push(buildParagraph(h2[1], { heading: 2, bold: true }));
+      continue;
+    }
     const h3 = line.match(/^###\s+(.*)$/);
-    if (h3) { paras.push(buildParagraph(h3[1], { heading: 2, bold: true })); continue; }
+    if (h3) {
+      paras.push(buildParagraph(h3[1], { heading: 2, bold: true }));
+      continue;
+    }
     const bullet = line.match(/^[-*]\s+(.*)$/);
-    if (bullet) { paras.push(buildParagraph(bullet[1], { bullet: true })); continue; }
+    if (bullet) {
+      paras.push(buildParagraph(bullet[1], { bullet: true }));
+      continue;
+    }
     const num = line.match(/^\d+\.\s+(.*)$/);
-    if (num) { paras.push(buildParagraph(line, {})); continue; }
+    if (num) {
+      paras.push(buildParagraph(line, {}));
+      continue;
+    }
     paras.push(buildParagraph(line, {}));
   }
   return paras;
@@ -109,7 +123,7 @@ function buildDocx(title: string, markdown: string, logoPng?: Uint8Array): Promi
   let logoParagraph = "";
   if (logoPng && logoPng.byteLength > 0) {
     const cx = 2286000; // 2.5"
-    const cy = 685800;  // ~0.75"
+    const cy = 685800; // ~0.75"
     logoParagraph = `<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="1" name="FirmLogo"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="1" name="FirmLogo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="rId10"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p><w:p/>`;
   }
   const body = logoParagraph + paragraphs.join("");
@@ -226,6 +240,19 @@ Deno.serve(async (req) => {
     if (!kind) return json({ error: "kind required" }, 400);
     if (!clientId) return json({ error: "client_id required" }, 400);
 
+    // ── Authorization check ──────────────────────────────────────────────
+    // Verify the caller is allowed to view THIS client before fetching any
+    // of their PII with the admin key. Without this, any authenticated user
+    // could request any client's full profile by guessing the client_id.
+    const { data: canView, error: canViewErr } = await userClient.rpc("can_view_client", {
+      _uid: userData.user.id,
+      _cid: clientId,
+    });
+    if (canViewErr || canView !== true) {
+      return json({ error: "forbidden" }, 403);
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
     // Resolve a friendly title from the master list (falls back to known + capitalized code)
     const { data: kindRow } = await admin
       .from("master_items")
@@ -233,9 +260,8 @@ Deno.serve(async (req) => {
       .eq("list_key", "letter_kinds")
       .eq("code", kind)
       .maybeSingle();
-    const title = kindRow?.label
-      || KNOWN_TITLES[kind]
-      || kind.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    const title =
+      kindRow?.label || KNOWN_TITLES[kind] || kind.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     const systemPrompt = KNOWN_SYSTEM_FOR[kind] || GENERIC_SYSTEM;
 
     const { data: client } = await admin.from("clients").select("*").eq("id", clientId).maybeSingle();
@@ -245,11 +271,7 @@ Deno.serve(async (req) => {
     const clientCountry: string | null = client.country ?? null;
     const clientCategory: string | null = client.application_type ?? null;
     const fetchTpl = async (country: string | null, category: string | null) => {
-      let q = admin
-        .from("letter_templates")
-        .select("*")
-        .eq("kind", kind)
-        .eq("is_active", true);
+      let q = admin.from("letter_templates").select("*").eq("kind", kind).eq("is_active", true);
       q = country === null ? q.is("country", null) : q.eq("country", country);
       q = category === null ? q.is("category", null) : q.eq("category", category);
       const { data } = await q.order("version", { ascending: false }).limit(1).maybeSingle();
@@ -265,12 +287,18 @@ Deno.serve(async (req) => {
     ];
     for (const [c, cat] of tries) {
       tpl = await fetchTpl(c, cat);
-      if (tpl?.style_text) { tplScope = { country: c, category: cat }; break; }
+      if (tpl?.style_text) {
+        tplScope = { country: c, category: cat };
+        break;
+      }
     }
     if (!tpl?.style_text) {
-      return json({
-        error: `No ${kind} template uploaded for ${clientCountry ?? "any country"} · ${clientCategory ?? "any category"}, and no global default exists. Please upload a sample in Letter templates.`,
-      }, 400);
+      return json(
+        {
+          error: `No ${kind} template uploaded for ${clientCountry ?? "any country"} · ${clientCategory ?? "any category"}, and no global default exists. Please upload a sample in Letter templates.`,
+        },
+        400,
+      );
     }
 
     const { data: profile } = await admin.from("client_profile").select("*").eq("client_id", clientId).maybeSingle();
@@ -321,7 +349,9 @@ Deno.serve(async (req) => {
           const ab = await logoBlob.arrayBuffer();
           logoBytes = new Uint8Array(ab);
         }
-      } catch (_e) { /* logo optional */ }
+      } catch (_e) {
+        /* logo optional */
+      }
     }
 
     const docxBytes = await buildDocx(`${title} - ${client.full_name}`, md, logoBytes);
@@ -329,16 +359,18 @@ Deno.serve(async (req) => {
     // Save to client-documents bucket under letters/
     const cleanName = String(client.full_name).replace(/[^a-zA-Z0-9]/g, "");
     const safeKind = kind.replace(/[^a-zA-Z0-9]+/g, "");
-    const knownFile: Record<string, string> = { cover: "ApplicantLetter", rcic: "RCICLetter", statdec: "StatutoryDeclaration" };
+    const knownFile: Record<string, string> = {
+      cover: "ApplicantLetter",
+      rcic: "RCICLetter",
+      statdec: "StatutoryDeclaration",
+    };
     const baseName = knownFile[kind] ?? `Letter_${safeKind || "Generic"}`;
     const fileName = `${baseName}_${cleanName}_${Date.now()}.docx`;
     const path = `${clientId}/letters/${fileName}`;
-    const { error: upErr } = await admin.storage
-      .from("client-documents")
-      .upload(path, docxBytes, {
-        contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        upsert: false,
-      });
+    const { error: upErr } = await admin.storage.from("client-documents").upload(path, docxBytes, {
+      contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      upsert: false,
+    });
     if (upErr) throw upErr;
 
     // Insert into client_documents so it appears in the file list
@@ -365,7 +397,13 @@ Deno.serve(async (req) => {
       action: "letter.generated",
       entity_type: "client",
       entity_id: clientId,
-      details: { kind, file_name: fileName, document_id: docRow?.id, template_scope: tplScope, template_version: tpl.version },
+      details: {
+        kind,
+        file_name: fileName,
+        document_id: docRow?.id,
+        template_scope: tplScope,
+        template_version: tpl.version,
+      },
     });
 
     // Signed URL for immediate download
