@@ -110,6 +110,9 @@ Deno.serve(async (req) => {
         .maybeSingle();
       clientRow = cli;
       if (ccCounselor) {
+        // Counselor can be stored on either `assigned_counselor_id` (newer)
+        // or `owner_id` (legacy / actual production data). Try both so
+        // CRM-created clients still CC their assigned staff member.
         counselorId = (cli?.assigned_counselor_id as string | null) ?? (cli?.owner_id as string | null) ?? null;
         counselorSource = cli?.assigned_counselor_id ? "assigned_counselor_id" : cli?.owner_id ? "owner_id" : null;
         console.info("[notif] counselor_lookup", { clientId, counselorId, counselorSource });
@@ -218,6 +221,9 @@ Deno.serve(async (req) => {
     });
 
     // ── Suppression check ─────────────────────────────────────────────────
+    // Before sending, check if any recipient email is in suppressed_emails.
+    // Suppressed emails are those that have bounced, complained, or unsubscribed.
+    // We also check email_unsubscribe_tokens (manual unsubscribes via link).
     const allCandidates = [
       clientRow?.email ?? payload?.client?.email ?? null,
       counselorEmail,
@@ -235,6 +241,9 @@ Deno.serve(async (req) => {
         );
       for (const row of suppressed ?? []) suppressedSet.add(row.email.toLowerCase());
 
+      // Also check manual unsubscribe tokens (used_at = null means token was issued
+      // but if the handle-email-unsubscribe function marks the email as unsubscribed
+      // it writes to suppressed_emails anyway — this is an extra safety net).
       const { data: unsubs } = await admin
         .from("email_unsubscribe_tokens")
         .select("email")
@@ -249,18 +258,24 @@ Deno.serve(async (req) => {
     const isSuppressed = (email: string | null) => (email ? suppressedSet.has(email.toLowerCase()) : false);
 
     if (suppressedSet.size > 0) {
-      console.warn("[notif] suppressed_emails_found", { count: suppressedSet.size, eventType, clientId });
+      console.warn("[notif] suppressed_emails_found", {
+        count: suppressedSet.size,
+        eventType,
+        clientId,
+      });
     }
 
     // ── Recipients ─────────────────────────────────────────────────────────
     const primary = clientRow?.email ?? payload?.client?.email ?? null;
     if (!primary) {
+      // Nothing to send to client — still try internal notification if configured.
       if (!accountingInbox) return json({ ok: false, skipped: true, reason: "no_recipient" });
     }
 
     const ccList = [counselorEmail].filter((e): e is string => !!e && !isSuppressed(e));
     const bccList = bccAccounting && accountingInbox && !isSuppressed(accountingInbox) ? [accountingInbox] : [];
 
+    // Skip primary if suppressed — still log the attempt
     if (primary && isSuppressed(primary)) {
       console.warn("[notif] primary_suppressed_skipped", { eventType, clientId });
       if (clientId) {
@@ -281,7 +296,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Send via smtp-send ─────────────────────────────────────────────────
+    // ── Send via smtp-send (one row per primary recipient) ─────────────────
+    // smtp-send doesn't support cc/bcc fields directly, so we fan out as
+    // separate sends to each address; metadata.category keeps them grouped
+    // in app_email_logs for auditing.
     const category = `notif:${eventType}`;
     const recipients = [...(primary && !isSuppressed(primary) ? [primary] : []), ...ccList, ...bccList];
 
@@ -292,7 +310,7 @@ Deno.serve(async (req) => {
         const r = await fetch(`${url}/functions/v1/smtp-send`, {
           method: "POST",
           headers: { Authorization: auth, "Content-Type": "application/json" },
-          body: JSON.stringify({ to, subject, html, category }),
+          body: JSON.stringify({ to, subject, html, category, entity_id: payload?.entity_id ?? null }),
         });
         const j = await r.json().catch(() => ({}));
         sendResults.push({ to, ok: r.ok, ...j });
