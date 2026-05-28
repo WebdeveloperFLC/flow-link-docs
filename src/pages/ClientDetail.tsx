@@ -5,10 +5,29 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Download, FileText, FileCheck2, Eye, Trash2, Loader2, AlertCircle, Link2, Sparkles, FolderArchive, ShieldCheck, Plus, X, FileSearch, Unlink, ArrowRightLeft } from "lucide-react";
+import {
+  ChevronLeft,
+  Download,
+  FileText,
+  FileCheck2,
+  Eye,
+  Trash2,
+  Loader2,
+  AlertCircle,
+  Link2,
+  Sparkles,
+  FolderArchive,
+  ShieldCheck,
+  Plus,
+  X,
+  FileSearch,
+  Unlink,
+  ArrowRightLeft,
+} from "lucide-react";
 import { CallClientButton } from "@/components/clients/CallClientButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmartUploadZone } from "@/components/documents/SmartUploadZone";
+import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { generateBinder } from "@/lib/binder";
 import { logActivity } from "@/lib/activity";
@@ -28,7 +47,13 @@ import { ClientFormsCard } from "@/components/clients/ClientFormsCard";
 import { SectionBuilderCard, type SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { CustomBindersPanel } from "@/components/clients/CustomBindersPanel";
 import { AddSectionDialog } from "@/components/clients/AddSectionDialog";
-import { loadSections, inferSectionId, inferSectionIdFromList, resolveSectionIdByKey, type CaseSection } from "@/lib/sections";
+import {
+  loadSections,
+  inferSectionId,
+  inferSectionIdFromList,
+  resolveSectionIdByKey,
+  type CaseSection,
+} from "@/lib/sections";
 import { isChecklistAlias } from "@/lib/checklist";
 import type { CasePerson } from "@/lib/casePeople";
 import JSZip from "jszip";
@@ -51,8 +76,13 @@ import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
 
 interface Client {
-  id: string; full_name: string; application_id: string; country: string;
-  application_type: string; template_id: string | null; status: string;
+  id: string;
+  full_name: string;
+  application_id: string;
+  country: string;
+  application_type: string;
+  template_id: string | null;
+  status: string;
   extra_items?: ExtraItem[] | null;
   suppressed_template_items?: string[] | null;
   owner_id?: string | null;
@@ -60,9 +90,16 @@ interface Client {
 }
 
 interface Doc {
-  id: string; client_id: string; document_type: string; custom_type: string | null;
-  file_name: string; storage_path: string; mime_type: string | null;
-  size_bytes: number | null; version: number; uploaded_at: string;
+  id: string;
+  client_id: string;
+  document_type: string;
+  custom_type: string | null;
+  file_name: string;
+  storage_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  version: number;
+  uploaded_at: string;
   section_id?: string | null;
   section_order?: number;
   status?: string | null;
@@ -71,7 +108,11 @@ interface Doc {
 }
 
 interface BinderRow {
-  id: string; file_name: string; storage_path: string; generated_at: string; group_label: string | null;
+  id: string;
+  file_name: string;
+  storage_path: string;
+  generated_at: string;
+  group_label: string | null;
 }
 
 const ClientDetail = () => {
@@ -83,7 +124,9 @@ const ClientDetail = () => {
   const [docs, setDocs] = useState<Doc[]>([]);
   const [generating, setGenerating] = useState(false);
   const [generatingGroups, setGeneratingGroups] = useState(false);
-  const [shareTarget, setShareTarget] = useState<{ type: "document" | "binder"; id: string; label: string } | null>(null);
+  const [shareTarget, setShareTarget] = useState<{ type: "document" | "binder"; id: string; label: string } | null>(
+    null,
+  );
   const [optimizing, setOptimizing] = useState<string | null>(null);
   const [optimizingAll, setOptimizingAll] = useState(false);
   const [binders, setBinders] = useState<BinderRow[]>([]);
@@ -119,7 +162,9 @@ const ClientDetail = () => {
     // returned, the current user lacks owner / assignment / share access.
     // eslint-disable-next-line no-console
     console.log("[access-debug] client-detail", {
-      user: user?.id, clientId: id, isAdmin,
+      user: user?.id,
+      clientId: id,
+      isAdmin,
       accessSource: c ? "rls-allowed" : "rls-denied",
       error: cErr?.message,
     });
@@ -132,11 +177,7 @@ const ClientDetail = () => {
     setSections(sectionsData);
     setDocs((activeDocs ?? []) as Doc[]);
     if (c?.template_id) {
-      const { data: t } = await supabase
-        .from("workflow_templates")
-        .select("*")
-        .eq("id", c.template_id)
-        .single();
+      const { data: t } = await supabase.from("workflow_templates").select("*").eq("id", c.template_id).single();
       setTemplate(t as unknown as Template | null);
     } else {
       setTemplate(null);
@@ -187,10 +228,14 @@ const ClientDetail = () => {
   }, [loadCritical, loadSecondary]);
 
   // Critical paint first — secondary kicks off right after to avoid serial waterfall.
-  useEffect(() => { loadCritical(); }, [loadCritical]);
+  useEffect(() => {
+    loadCritical();
+  }, [loadCritical]);
   useEffect(() => {
     // Defer secondary by a tick so the critical render commits first.
-    const t = setTimeout(() => { loadSecondary(); }, 0);
+    const t = setTimeout(() => {
+      loadSecondary();
+    }, 0);
     return () => clearTimeout(t);
   }, [loadSecondary]);
 
@@ -212,7 +257,9 @@ const ClientDetail = () => {
       }
       if (!cancelled && n > 0) load();
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, sections]);
 
@@ -240,9 +287,7 @@ const ClientDetail = () => {
         // Find items that match by alias on the type labels (NOT the
         // filename — that caused single uploads to satisfy multiple rows).
         const aliasItems = items.filter(
-          (it) =>
-            (t1 && isChecklistAlias(t1, it.name)) ||
-            (t2 && isChecklistAlias(t2, it.name)),
+          (it) => (t1 && isChecklistAlias(t1, it.name)) || (t2 && isChecklistAlias(t2, it.name)),
         );
         // Skip if ambiguous — we'd rather leave it pending than mis-link.
         if (aliasItems.length !== 1) continue;
@@ -255,7 +300,9 @@ const ClientDetail = () => {
       }
       if (!cancelled && changed > 0) load();
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docs, template?.id, client?.id]);
 
@@ -288,10 +335,15 @@ const ClientDetail = () => {
     [client?.suppressed_template_items],
   );
   const extraItems: ExtraItem[] = useMemo(() => {
-    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    const norm = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
     const tplItemNames = new Set((template?.items ?? []).map((it) => norm(it.name)));
-    return ((client?.extra_items as ExtraItem[] | null | undefined) ?? [])
-      .filter((e) => !tplItemNames.has(norm(e.name)));
+    return ((client?.extra_items as ExtraItem[] | null | undefined) ?? []).filter(
+      (e) => !tplItemNames.has(norm(e.name)),
+    );
   }, [client?.extra_items, template?.items]);
   const visibleTemplateItems = useMemo(
     () => (template?.items ?? []).filter((it) => !suppressedIds.has(it.id)),
@@ -325,9 +377,7 @@ const ClientDetail = () => {
     if (tplGroups && tplGroups.length > 0) {
       const placed = new Set<string>();
       for (const g of [...tplGroups].sort((a, b) => a.sort_order - b.sort_order)) {
-        const items = g.item_ids
-          .map((id) => itemMap.get(id))
-          .filter((x): x is TemplateItem => !!x);
+        const items = g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x);
         items.forEach((it) => placed.add(it.id));
         if (items.length > 0) out.push({ id: g.id, label: g.label, items });
       }
@@ -379,11 +429,10 @@ const ClientDetail = () => {
     for (const d of docs) {
       const t1 = d.document_type === "Other" ? (d.custom_type ?? "") : d.document_type;
       const t2 = d.custom_type ?? "";
-      const match = checklistItems.find((it) => it.name === t1 || it.name === t2)
-        ?? checklistItems.find(
-          (it) =>
-            (t1 && isChecklistAlias(t1, it.name)) ||
-            (t2 && t2 !== t1 && isChecklistAlias(t2, it.name)),
+      const match =
+        checklistItems.find((it) => it.name === t1 || it.name === t2) ??
+        checklistItems.find(
+          (it) => (t1 && isChecklistAlias(t1, it.name)) || (t2 && t2 !== t1 && isChecklistAlias(t2, it.name)),
         );
       const sid = match ? itemSectionIdById.get(match.id) : undefined;
       if (sid) map.set(d.id, sid);
@@ -401,25 +450,32 @@ const ClientDetail = () => {
       for (const d of docs) {
         const target = docTargetSection.get(d.id);
         if (!target || target === d.section_id) continue;
-        const { error } = await supabase
-          .from("client_documents")
-          .update({ section_id: target })
-          .eq("id", d.id);
+        const { error } = await supabase.from("client_documents").update({ section_id: target }).eq("id", d.id);
         if (!error) n++;
       }
       if (!cancelled && n > 0) load();
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [docTargetSection]);
 
   const onDelete = async (d: Doc) => {
-    if (!confirm(`Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`)) return;
+    if (
+      !confirm(
+        `Move ${d.file_name} to Trash?\n\nIt will be kept for 30 days and can be restored. Admins can permanently delete it after that.`,
+      )
+    )
+      return;
     const { error } = await supabase
       .from("client_documents")
       .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as never)
       .eq("id", d.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("document.trashed", "document", d.id, { file_name: d.file_name });
     toast.success("Moved to Trash");
     load();
@@ -430,7 +486,10 @@ const ClientDetail = () => {
       .from("client_documents")
       .update({ deleted_at: null, deleted_by: null } as never)
       .eq("id", d.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("document.restored", "document", d.id, { file_name: d.file_name });
     toast.success("Restored");
     load();
@@ -440,7 +499,10 @@ const ClientDetail = () => {
     if (!confirm(`Permanently delete ${d.file_name}? This cannot be undone.`)) return;
     await supabase.storage.from("client-documents").remove([d.storage_path]);
     const { error } = await supabase.from("client_documents").delete().eq("id", d.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("document.purged", "document", d.id, { file_name: d.file_name });
     toast.success("Permanently deleted");
     load();
@@ -449,11 +511,11 @@ const ClientDetail = () => {
   /** Manually link an uploaded doc to a checklist item by writing the item's
    *  exact name into custom_type. The render-time matcher then flips Pending → Ready. */
   const linkDocToChecklist = async (docId: string, checklistName: string) => {
-    const { error } = await supabase
-      .from("client_documents")
-      .update({ custom_type: checklistName })
-      .eq("id", docId);
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase.from("client_documents").update({ custom_type: checklistName }).eq("id", docId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("document.linked_to_checklist", "document", docId, { checklist_item: checklistName });
     toast.success(`Linked to "${checklistName}"`);
     load();
@@ -462,11 +524,11 @@ const ClientDetail = () => {
   /** Unlink: clear custom_type so the doc is no longer counted under the
    *  current checklist item. Document stays uploaded — only the link is removed. */
   const unlinkDocFromChecklist = async (docId: string) => {
-    const { error } = await supabase
-      .from("client_documents")
-      .update({ custom_type: null })
-      .eq("id", docId);
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase.from("client_documents").update({ custom_type: null }).eq("id", docId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("document.unlinked_from_checklist", "document", docId);
     load();
   };
@@ -478,7 +540,10 @@ const ClientDetail = () => {
       .from("clients")
       .update({ extra_items: next as never })
       .eq("id", client.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("client.extra_item_added", "client", client.id, { type: item.name, mandatory: item.mandatory });
     toast.success(`Added "${item.name}"`);
     load();
@@ -491,7 +556,10 @@ const ClientDetail = () => {
       .from("clients")
       .update({ extra_items: next as never })
       .eq("id", client.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     load();
   };
 
@@ -505,7 +573,10 @@ const ClientDetail = () => {
       .from("clients")
       .update({ suppressed_template_items: next as never })
       .eq("id", client.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("client.template_item_suppressed", "client", client.id, { item: itemName });
     toast.success(`Removed "${itemName}" from this client`);
     load();
@@ -517,14 +588,19 @@ const ClientDetail = () => {
       .from("clients")
       .update({ suppressed_template_items: [] as never })
       .eq("id", client.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     load();
   };
 
   const onReExtract = async () => {
     if (!client) return;
     setReExtracting(true);
-    let ok = 0, errs = 0, totalWritten = 0;
+    let ok = 0,
+      errs = 0,
+      totalWritten = 0;
     try {
       // Only PDFs can be text-extracted client side. Identity passports must run first
       // so passport-authoritative fields overwrite any stale values before lower-priority docs run.
@@ -568,7 +644,11 @@ const ClientDetail = () => {
           const fields = (data?.fields ?? {}) as Record<string, string | number | null>;
           if (fields && Object.keys(fields).length > 0) {
             const { written } = await mergeExtractedFields(
-              client.id, d.id, d.file_name, fields, effectiveType,
+              client.id,
+              d.id,
+              d.file_name,
+              fields,
+              effectiveType,
               d.document_type === "Other" ? (d.custom_type ?? null) : null,
             );
             totalWritten += written.length;
@@ -578,12 +658,16 @@ const ClientDetail = () => {
             console.warn("extract-document-data returned no fields", { document_id: d.id, reason: data?.reason });
             errs++;
           }
-        } catch { errs++; }
+        } catch {
+          errs++;
+        }
       }
       if (ok > 0) {
         toast.success(`Re-extracted ${ok}/${pdfs.length} · ${totalWritten} new fields`);
       } else if (pdfs.length > 0) {
-        toast.error(`Re-extract found 0 fields across ${pdfs.length} document${pdfs.length === 1 ? "" : "s"}. Check console for details.`);
+        toast.error(
+          `Re-extract found 0 fields across ${pdfs.length} document${pdfs.length === 1 ? "" : "s"}. Check console for details.`,
+        );
       } else {
         toast.message("No PDF documents to re-extract");
       }
@@ -602,7 +686,10 @@ const ClientDetail = () => {
       });
       if (error) throw error;
       if (!data?.ok) throw new Error(data?.error || "Sync failed");
-      if (data.skipped) { toast.message(`Odoo sync skipped: ${data.skipped}`); return; }
+      if (data.skipped) {
+        toast.message(`Odoo sync skipped: ${data.skipped}`);
+        return;
+      }
       await logActivity("odoo.client_synced", "client", client.id, data);
       toast.success(`Synced to Odoo${data.lead_id ? ` · lead #${data.lead_id}` : ""}`);
     } catch (e) {
@@ -625,14 +712,18 @@ const ClientDetail = () => {
       if (cancelled) return;
       if (!settings?.enabled || !settings.auto_on_open || settings.mode === "off") return;
       // Fire and forget — non-blocking
-      supabase.functions.invoke("odoo-sync", {
-        body: { action: "sync_one", client_id: client.id },
-      }).then(({ data, error }) => {
-        if (error || !data?.ok) return;
-        if (data.pulled) toast.message("Updated from Odoo");
-      });
+      supabase.functions
+        .invoke("odoo-sync", {
+          body: { action: "sync_one", client_id: client.id },
+        })
+        .then(({ data, error }) => {
+          if (error || !data?.ok) return;
+          if (data.pulled) toast.message("Updated from Odoo");
+        });
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client?.id]);
 
   const onView = async (d: Doc) => {
@@ -646,9 +737,15 @@ const ClientDetail = () => {
 
   const onDownload = async (d: Doc) => {
     const { data, error } = await supabase.storage.from("client-documents").download(d.storage_path);
-    if (error || !data) { toast.error("Failed to download"); return; }
+    if (error || !data) {
+      toast.error("Failed to download");
+      return;
+    }
     const url = URL.createObjectURL(data);
-    const a = document.createElement("a"); a.href = url; a.download = d.file_name; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = d.file_name;
+    a.click();
     URL.revokeObjectURL(url);
     await logActivity("document.downloaded", "document", d.id);
   };
@@ -674,7 +771,10 @@ const ClientDetail = () => {
   const LARGE_BYTES = 1.5 * 1024 * 1024;
   const onOptimizeAll = async () => {
     const targets = docs.filter((d) => (d.size_bytes ?? 0) > LARGE_BYTES);
-    if (targets.length === 0) { toast.info("All documents already optimized"); return; }
+    if (targets.length === 0) {
+      toast.info("All documents already optimized");
+      return;
+    }
     setOptimizingAll(true);
     let totalSaved = 0;
     let processed = 0;
@@ -686,7 +786,9 @@ const ClientDetail = () => {
           });
           totalSaved += (data?.saved as number) ?? 0;
           processed += 1;
-        } catch { /* continue with next */ }
+        } catch {
+          /* continue with next */
+        }
       }
       toast.success(`Optimized ${processed}/${targets.length} · saved ${(totalSaved / 1024).toFixed(0)} KB total`);
       load();
@@ -697,7 +799,10 @@ const ClientDetail = () => {
 
   const onGenerateBinder = async () => {
     if (!client) return;
-    if (!template) { toast.error("Assign a workflow template first"); return; }
+    if (!template) {
+      toast.error("Assign a workflow template first");
+      return;
+    }
     setGenerating(true);
     try {
       const bytes = await generateBinder({
@@ -710,28 +815,41 @@ const ClientDetail = () => {
         documents: docs,
       });
       const cleanName = client.full_name.replace(/[^a-zA-Z0-9]/g, "");
-      const fileName = `FinalBinder_${cleanName}_${client.country.replace(/\s+/g,"")}.pdf`;
+      const fileName = `FinalBinder_${cleanName}_${client.country.replace(/\s+/g, "")}.pdf`;
       const path = `${client.id}/binders/${Date.now()}_${fileName}`;
       const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
-      const { error: upErr } = await supabase.storage.from("client-documents").upload(path, blob, { contentType: "application/pdf" });
+      const { error: upErr } = await supabase.storage
+        .from("client-documents")
+        .upload(path, blob, { contentType: "application/pdf" });
       if (upErr) throw upErr;
       await supabase.from("binders").insert({
-        client_id: client.id, file_name: fileName, storage_path: path, size_bytes: blob.size,
+        client_id: client.id,
+        file_name: fileName,
+        storage_path: path,
+        size_bytes: blob.size,
       });
       await logActivity("binder.generated", "client", client.id, { file_name: fileName });
       // trigger download
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a"); a.href = url; a.download = fileName; a.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
       URL.revokeObjectURL(url);
       toast.success("Binder generated");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to generate binder");
-    } finally { setGenerating(false); }
+    } finally {
+      setGenerating(false);
+    }
   };
 
   const onGenerateGroupedBinders = async () => {
     if (!client) return;
-    if (!template) { toast.error("Assign a workflow template first"); return; }
+    if (!template) {
+      toast.error("Assign a workflow template first");
+      return;
+    }
     setGeneratingGroups(true);
     const cleanName = client.full_name.replace(/[^a-zA-Z0-9]/g, "");
     let made = 0;
@@ -740,19 +858,20 @@ const ClientDetail = () => {
       const tplGroups = (template.groups ?? null) as TemplateGroup[] | null;
       type GroupSpec = { key: string; label: string; items: TemplateItem[] };
       const itemMap = new Map(template.items.map((it) => [it.id, it]));
-      const groupSpecs: GroupSpec[] = (tplGroups && tplGroups.length > 0)
-        ? [...tplGroups]
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((g) => ({
-              key: g.section_key,
-              label: g.label,
-              items: g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x),
-            }))
-        : BINDER_GROUPS.map((bg) => ({
-            key: bg.key,
-            label: bg.label,
-            items: template.items.filter((it) => groupForType(it.name).key === bg.key),
-          }));
+      const groupSpecs: GroupSpec[] =
+        tplGroups && tplGroups.length > 0
+          ? [...tplGroups]
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map((g) => ({
+                key: g.section_key,
+                label: g.label,
+                items: g.item_ids.map((id) => itemMap.get(id)).filter((x): x is TemplateItem => !!x),
+              }))
+          : BINDER_GROUPS.map((bg) => ({
+              key: bg.key,
+              label: bg.label,
+              items: template.items.filter((it) => groupForType(it.name).key === bg.key),
+            }));
 
       for (const group of groupSpecs) {
         const groupItems = group.items;
@@ -817,7 +936,12 @@ const ClientDetail = () => {
     }
   };
 
-  if (!client) return <AppLayout><div className="p-12 text-center text-muted-foreground">Loading…</div></AppLayout>;
+  if (!client)
+    return (
+      <AppLayout>
+        <div className="p-12 text-center text-muted-foreground">Loading…</div>
+      </AppLayout>
+    );
 
   return (
     <AppLayout>
@@ -826,7 +950,12 @@ const ClientDetail = () => {
         description={`${client.application_id} · ${client.country} · ${client.application_type}`}
         actions={
           <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm"><Link to="/clients"><ChevronLeft className="size-4" />All clients</Link></Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/clients">
+                <ChevronLeft className="size-4" />
+                All clients
+              </Link>
+            </Button>
             <CallClientButton clientId={client.id} />
             <Button onClick={() => setHandoffOpen(true)} variant="outline" size="sm">
               <ArrowRightLeft className="size-4 mr-1.5" /> Hand off
@@ -841,12 +970,29 @@ const ClientDetail = () => {
             )}
             {canUpload && (
               <>
-                <Button onClick={onGenerateGroupedBinders} disabled={generatingGroups || !template} variant="outline" size="sm">
-                  {generatingGroups ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <FolderArchive className="size-4 mr-1.5" />}
+                <Button
+                  onClick={onGenerateGroupedBinders}
+                  disabled={generatingGroups || !template}
+                  variant="outline"
+                  size="sm"
+                >
+                  {generatingGroups ? (
+                    <Loader2 className="size-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <FolderArchive className="size-4 mr-1.5" />
+                  )}
                   Grouped binders
                 </Button>
-                <Button onClick={onGenerateBinder} disabled={generating || !template} className="gradient-accent text-white">
-                  {generating ? <Loader2 className="size-4 mr-1.5 animate-spin" /> : <FileCheck2 className="size-4 mr-1.5" />}
+                <Button
+                  onClick={onGenerateBinder}
+                  disabled={generating || !template}
+                  className="gradient-accent text-white"
+                >
+                  {generating ? (
+                    <Loader2 className="size-4 mr-1.5 animate-spin" />
+                  ) : (
+                    <FileCheck2 className="size-4 mr-1.5" />
+                  )}
                   Full binder
                 </Button>
               </>
@@ -947,17 +1093,17 @@ const ClientDetail = () => {
                   .filter((it) => {
                     const ready = docByType(it.name);
                     if (ready) return false;
-                    const placed = itemSectionIdById.get(it.id)
-                      ?? inferSectionIdFromList(it.name, sections);
+                    const placed = itemSectionIdById.get(it.id) ?? inferSectionIdFromList(it.name, sections);
                     return placed === sec.id;
                   })
                   .map((it) => {
                     const attached = attachedDocByType(it.name);
-                    const status = attached?.status === "rejected"
-                      ? ("rejected" as const)
-                      : attached?.status === "needs_reissue"
-                        ? ("needs_reissue" as const)
-                        : null;
+                    const status =
+                      attached?.status === "rejected"
+                        ? ("rejected" as const)
+                        : attached?.status === "needs_reissue"
+                          ? ("needs_reissue" as const)
+                          : null;
                     return {
                       id: it.id,
                       name: it.name,
@@ -995,9 +1141,7 @@ const ClientDetail = () => {
                     linkableDocs={linkableDocs}
                     onLinkDocToChecklist={linkDocToChecklist}
                     onRemoveChecklistItem={(itemId, itemName, mandatory, isExtra) =>
-                      isExtra
-                        ? onRemoveExtraItem(itemId)
-                        : onSuppressTemplateItem(itemId, itemName, mandatory)
+                      isExtra ? onRemoveExtraItem(itemId) : onSuppressTemplateItem(itemId, itemName, mandatory)
                     }
                   />
                 );
@@ -1049,7 +1193,9 @@ const ClientDetail = () => {
               <div className="px-6 py-4 border-b flex items-center justify-between">
                 <div>
                   <div className="font-semibold">Generated binders</div>
-                  <div className="text-xs text-muted-foreground">{binders.length} binder{binders.length === 1 ? "" : "s"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {binders.length} binder{binders.length === 1 ? "" : "s"}
+                  </div>
                 </div>
                 <Button variant="outline" size="sm" onClick={onDownloadAllBinders}>
                   <Download className="size-3.5 mr-1.5" /> Download all (.zip)
@@ -1062,12 +1208,19 @@ const ClientDetail = () => {
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{b.file_name}</div>
                       <div className="text-xs text-muted-foreground">
-                        {b.group_label ? <span className="font-semibold text-secondary mr-1">{b.group_label}</span> : null}
+                        {b.group_label ? (
+                          <span className="font-semibold text-secondary mr-1">{b.group_label}</span>
+                        ) : null}
                         {new Date(b.generated_at).toLocaleString()}
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" className="size-7" title="Create share link"
-                      onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.file_name })}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-7"
+                      title="Create share link"
+                      onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.file_name })}
+                    >
                       <Link2 className="size-3.5" />
                     </Button>
                   </div>
@@ -1087,30 +1240,42 @@ const ClientDetail = () => {
                     Items are kept for 30 days. After that, an admin can permanently delete them.
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">{trashedDocs.length} item{trashedDocs.length === 1 ? "" : "s"}</div>
+                <div className="text-xs text-muted-foreground">
+                  {trashedDocs.length} item{trashedDocs.length === 1 ? "" : "s"}
+                </div>
               </div>
               <div className="divide-y">
                 {trashedDocs.map((d) => {
                   const deletedAt = d.deleted_at ? new Date(d.deleted_at) : null;
                   const expiresAt = deletedAt ? new Date(deletedAt.getTime() + 30 * 24 * 60 * 60 * 1000) : null;
                   const expired = expiresAt ? expiresAt.getTime() < Date.now() : false;
-                  const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000))) : 0;
+                  const daysLeft = expiresAt
+                    ? Math.max(0, Math.ceil((expiresAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)))
+                    : 0;
                   const byName = d.deleted_by ? (trashUserNames[d.deleted_by] ?? "Unknown") : "Unknown";
                   return (
                     <div key={d.id} className="px-6 py-3 flex items-center gap-3">
                       <FileText className="size-4 text-muted-foreground shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate line-through text-muted-foreground">{d.file_name}</div>
+                        <div className="text-sm font-medium truncate line-through text-muted-foreground">
+                          {d.file_name}
+                        </div>
                         <div className="text-xs text-muted-foreground">
                           Deleted by <span className="font-medium">{byName}</span>
                           {deletedAt ? <> · {deletedAt.toLocaleString()}</> : null}
                           {" · "}
-                          {expired
-                            ? <span className="text-destructive font-semibold">Eligible for permanent deletion</span>
-                            : <span>Auto-purges in {daysLeft} day{daysLeft === 1 ? "" : "s"}</span>}
+                          {expired ? (
+                            <span className="text-destructive font-semibold">Eligible for permanent deletion</span>
+                          ) : (
+                            <span>
+                              Auto-purges in {daysLeft} day{daysLeft === 1 ? "" : "s"}
+                            </span>
+                          )}
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => onRestore(d)}>Restore</Button>
+                      <Button size="sm" variant="outline" onClick={() => onRestore(d)}>
+                        Restore
+                      </Button>
                       {isAdmin && (
                         <Button
                           size="sm"
@@ -1144,26 +1309,33 @@ const ClientDetail = () => {
             clientId={client.id}
             clientName={client.full_name}
             sections={sections}
-            docsBySection={sections.reduce((acc, s) => {
-              acc[s.id] = docs.filter((d) => d.section_id === s.id).map((d) => ({
-                id: d.id, document_type: d.document_type, custom_type: d.custom_type,
-                file_name: d.file_name, storage_path: d.storage_path, mime_type: d.mime_type,
-                size_bytes: d.size_bytes, section_id: d.section_id ?? null,
-                section_order: d.section_order ?? 0, uploaded_at: d.uploaded_at, version: d.version,
-              }));
-              return acc;
-            }, {} as Record<string, SectionDoc[]>)}
+            docsBySection={sections.reduce(
+              (acc, s) => {
+                acc[s.id] = docs
+                  .filter((d) => d.section_id === s.id)
+                  .map((d) => ({
+                    id: d.id,
+                    document_type: d.document_type,
+                    custom_type: d.custom_type,
+                    file_name: d.file_name,
+                    storage_path: d.storage_path,
+                    mime_type: d.mime_type,
+                    size_bytes: d.size_bytes,
+                    section_id: d.section_id ?? null,
+                    section_order: d.section_order ?? 0,
+                    uploaded_at: d.uploaded_at,
+                    version: d.version,
+                  }));
+                return acc;
+              },
+              {} as Record<string, SectionDoc[]>,
+            )}
             requiredItems={checklistItems.map((it) => ({ id: it.id, name: it.name, mandatory: !!it.mandatory }))}
             canGenerate={canUpload}
             isAdmin={isAdmin}
             onGenerated={load}
           />
-          <CasePeopleCard
-            clientId={client.id}
-            canEdit={canUpload}
-            isAdmin={isAdmin}
-            onChange={setPeople}
-          />
+          <CasePeopleCard clientId={client.id} canEdit={canUpload} isAdmin={isAdmin} onChange={setPeople} />
           {canUpload ? (
             <Card className="overflow-hidden shadow-elev-sm">
               <Accordion type="single" collapsible>
@@ -1172,7 +1344,8 @@ const ClientDetail = () => {
                     <div className="text-left">
                       <div className="text-sm font-semibold">Advanced: split a multi-doc PDF</div>
                       <div className="text-[11px] text-muted-foreground">
-                        Only for binders that contain several documents in one PDF. Default uploads belong inside a section.
+                        Only for binders that contain several documents in one PDF. Default uploads belong inside a
+                        section.
                       </div>
                     </div>
                   </AccordionTrigger>
@@ -1182,7 +1355,26 @@ const ClientDetail = () => {
                         client={client}
                         templateTypes={checklistItems.map((it) => it.name)}
                         people={people}
-                        onUploaded={load}
+                        onUploaded={() => {
+                          load();
+                          try {
+                            const userIds = resolveCounselorNotificationUserIds(
+                              { assigned_counselor_id: null, owner_id: client?.owner_id ?? null },
+                              { context: "document_uploaded" },
+                            );
+                            if (userIds.length) {
+                              notifyUsers({
+                                userIds,
+                                category: "document_uploaded",
+                                title: `Document uploaded${client?.full_name ? ` for ${client.full_name}` : ""}`,
+                                link: `/clients/${client?.id}`,
+                                dedupeKey: `doc:upload:${client?.id}:${Date.now()}`,
+                              });
+                            }
+                          } catch {
+                            /* best-effort */
+                          }
+                        }}
                       />
                     </div>
                   </AccordionContent>
@@ -1209,7 +1401,10 @@ const ClientDetail = () => {
             <HandoffHistoryCard clientId={client.id} />
           </div>
           <div className="grid lg:grid-cols-2 gap-6">
-            <ClientEmailCard clientId={client.id} defaultTo={(client as Client & { email?: string | null }).email ?? null} />
+            <ClientEmailCard
+              clientId={client.id}
+              defaultTo={(client as Client & { email?: string | null }).email ?? null}
+            />
             <ClientVoiceNotesCard clientId={client.id} />
           </div>
           <ClientChatWorkspace clientId={client.id} />
@@ -1239,13 +1434,7 @@ const ClientDetail = () => {
           clientName={client.full_name}
         />
       )}
-      {client && (
-        <AddRemarkDialog
-          open={remarkOpen}
-          onOpenChange={setRemarkOpen}
-          clientId={client.id}
-        />
-      )}
+      {client && <AddRemarkDialog open={remarkOpen} onOpenChange={setRemarkOpen} clientId={client.id} />}
     </AppLayout>
   );
 };
