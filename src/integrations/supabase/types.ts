@@ -12861,6 +12861,20 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      client_convert_debug: {
+        Args: {
+          _allowed: boolean
+          _assigned_counselor_id: string
+          _cid: string
+          _condition: string
+          _created_by: string
+          _owner_id: string
+          _payload: Json
+          _phase: string
+          _policy: string
+        }
+        Returns: boolean
+      }
       convert_assessment_to_client: {
         Args: { _session_id: string }
         Returns: Json
@@ -13116,6 +13130,7 @@ export type Database = {
         Returns: boolean
       }
       is_client_admin: { Args: { _uid: string }; Returns: boolean }
+      is_client_operational_staff: { Args: { _uid: string }; Returns: boolean }
       is_client_staff_editor: { Args: { _uid: string }; Returns: boolean }
       is_client_staff_viewer: { Args: { _uid: string }; Returns: boolean }
       is_commission_admin: { Args: { _uid: string }; Returns: boolean }
