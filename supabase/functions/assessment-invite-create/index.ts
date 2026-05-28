@@ -16,7 +16,9 @@ Deno.serve(async (req) => {
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: { user } } = await userClient.auth.getUser();
+    const {
+      data: { user },
+    } = await userClient.auth.getUser();
     if (!user) return json({ error: "Not authenticated" }, 401);
 
     const { email, firstName, middleName, lastName, phone, clientId } = await req.json();
@@ -26,21 +28,36 @@ Deno.serve(async (req) => {
     // staff check via has_role
     const { data: rolesData } = await admin.from("user_roles").select("role").eq("user_id", user.id);
     const roles = (rolesData ?? []).map((r: any) => r.role);
-    if (!roles.some((r: string) => ["admin","counselor","telecaller"].includes(r))) return json({ error: "Forbidden" }, 403);
+    if (!roles.some((r: string) => ["admin", "counselor", "telecaller"].includes(r)))
+      return json({ error: "Forbidden" }, 403);
 
     const token = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
-    const { data: invite, error } = await admin.from("assessment_invitations").insert({
-      token,
-      email: String(email).trim().toLowerCase(),
-      phone: phone ?? null,
-      first_name: firstName, middle_name: middleName ?? null, last_name: lastName,
-      client_id: clientId ?? null,
-      invited_by: user.id,
-    }).select("id, token, expires_at, first_name").single();
+    const { data: invite, error } = await admin
+      .from("assessment_invitations")
+      .insert({
+        token,
+        email: String(email).trim().toLowerCase(),
+        phone: phone ?? null,
+        first_name: firstName,
+        middle_name: middleName ?? null,
+        last_name: lastName,
+        client_id: clientId ?? null,
+        invited_by: user.id,
+      })
+      .select("id, token, expires_at, first_name")
+      .single();
     if (error) return json({ error: error.message }, 500);
 
-    const origin = req.headers.get("origin") ?? "";
-    const link = `${origin}/assessment/invite/${invite.token}`;
+    // Build the invite link against the production domain. The request origin
+    // can be the gated Lovable preview URL (when staff trigger this from the
+    // editor), which would send clients to a login wall. Force the real,
+    // publicly accessible domain so emailed links always open.
+    const PRODUCTION_BASE_URL = "https://dms.futurelinkconsultants.com";
+    const reqOrigin = req.headers.get("origin") ?? "";
+    const isProdOrigin = reqOrigin.includes("dms.futurelinkconsultants.com");
+    const isLocalOrigin = reqOrigin.includes("localhost") || reqOrigin.includes("127.0.0.1");
+    const base = isProdOrigin || isLocalOrigin ? reqOrigin : PRODUCTION_BASE_URL;
+    const link = `${base}/assessment/invite/${invite.token}`;
 
     let emailed = false;
     try {
@@ -53,7 +70,9 @@ Deno.serve(async (req) => {
         },
       });
       if (!r.error) emailed = true;
-    } catch (_) { /* queued silently */ }
+    } catch (_) {
+      /* queued silently */
+    }
 
     return json({ inviteId: invite.id, link, emailed });
   } catch (e) {
