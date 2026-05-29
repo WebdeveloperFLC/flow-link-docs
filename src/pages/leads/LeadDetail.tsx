@@ -137,11 +137,6 @@ const LeadDetail = () => {
                 <Row label="Department" value={lead.department} />
                 <Row label="Source" value={lead.lead_source} />
               </div>
-              <LeadOwnerCard
-                leadId={lead.id}
-                assignedCounselorId={lead.assigned_counselor_id ?? null}
-                onChanged={() => fetchLead(lead.id).then((l) => l && setLead(l))}
-              />
             </Card>
           </>
         )}
@@ -155,6 +150,12 @@ const LeadDetail = () => {
             </div>
           </Card>
         )}
+
+        <LeadOwnerCard
+          leadId={lead.id}
+          assignedCounselorId={lead.assigned_counselor_id ?? null}
+          onChanged={() => fetchLead(lead.id).then((l) => l && setLead(l))}
+        />
 
         <Card className="p-6 space-y-2">
           <h3 className="font-semibold">Notes</h3>
