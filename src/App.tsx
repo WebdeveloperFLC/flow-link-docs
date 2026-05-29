@@ -139,6 +139,7 @@ import { CommissionsProtectedRoute } from "./institutions/components/Commissions
 import CommissionsPage from "./pages/CommissionsPage";
 import MyIncentives from "@/pages/MyIncentives";
 import IncentivesAdmin from "@/pages/IncentivesAdmin";
+import IncentivePlans from "@/pages/IncentivePlans";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import AiStudioPage from "./digital-success/ai/AiStudioPage";
 
@@ -207,6 +208,7 @@ const App = () => (
             <Route path="/commissions" element={<CommissionsProtectedRoute><CommissionsPage /></CommissionsProtectedRoute>} />
             <Route path="/incentives" element={<ProtectedRoute><MyIncentives /></ProtectedRoute>} />
             <Route path="/incentives/admin" element={<ProtectedRoute><IncentivesAdmin /></ProtectedRoute>} />
+            <Route path="/incentives/plans" element={<ProtectedRoute><IncentivePlans /></ProtectedRoute>} />
             <Route path="/digital-success" element={<ProtectedRoute><DigitalSuccessHomePage /></ProtectedRoute>} />
             <Route path="/digital-success/ai" element={<ProtectedRoute><AiStudioPage /></ProtectedRoute>} />
             <Route path="/ai-help" element={<ProtectedRoute><AiHelpPage /></ProtectedRoute>} />
