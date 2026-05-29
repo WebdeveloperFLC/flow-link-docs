@@ -14,6 +14,11 @@ const RATE_TYPES = ["flat", "per_unit", "percent", "slab"];
 const METRICS = ["count", "gross_revenue", "net_revenue", "commission_received"];
 const CURRENCIES = ["INR", "CAD", "USD", "GBP", "AUD"];
 
+type PeriodType = "monthly" | "quarterly" | "half_yearly" | "yearly";
+type SourceType = "service_revenue" | "ancillary" | "direct_visa_commission" | "b2b_admission_commission";
+type RateType = "flat" | "per_unit" | "percent" | "slab";
+type Metric = "count" | "gross_revenue" | "net_revenue" | "commission_received";
+
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 
 interface Plan {
@@ -45,9 +50,9 @@ export default function IncentivePlans() {
   const [loading, setLoading] = useState(true);
 
   // form state
-  const [newPlan, setNewPlan] = useState({ name: "", period_type: "monthly", settlement_currency: "INR", revenue_basis: "net" });
-  const [newSlab, setNewSlab] = useState({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
-  const [newTarget, setNewTarget] = useState({ counselor_id: "", period_type: "monthly", period_key: "", target_metric: "net_revenue", target_value: "0", target_currency: "INR", bonus_rate_type: "", bonus_value: "", bonus_trigger_pct: "100" });
+  const [newPlan, setNewPlan] = useState<{ name: string; period_type: PeriodType; settlement_currency: string; revenue_basis: string }>({ name: "", period_type: "monthly", settlement_currency: "INR", revenue_basis: "net" });
+  const [newSlab, setNewSlab] = useState<{ source_type: SourceType; metric: Metric; rate_type: RateType; min_threshold: string; max_threshold: string; rate_value: string; service_filter: string }>({ source_type: "service_revenue", metric: "net_revenue", rate_type: "percent", min_threshold: "0", max_threshold: "", rate_value: "5", service_filter: "" });
+  const [newTarget, setNewTarget] = useState<{ counselor_id: string; period_type: PeriodType; period_key: string; target_metric: Metric; target_value: string; target_currency: string; bonus_rate_type: "" | "flat" | "percent"; bonus_value: string; bonus_trigger_pct: string }>({ counselor_id: "", period_type: "monthly", period_key: "", target_metric: "net_revenue", target_value: "0", target_currency: "INR", bonus_rate_type: "", bonus_value: "", bonus_trigger_pct: "100" });
 
   async function loadAll() {
     setLoading(true);
@@ -162,7 +167,7 @@ export default function IncentivePlans() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Period type</label>
-                  <select className={sel} value={newPlan.period_type} onChange={(e) => setNewPlan({ ...newPlan, period_type: e.target.value })}>
+                  <select className={sel} value={newPlan.period_type} onChange={(e) => setNewPlan({ ...newPlan, period_type: e.target.value as PeriodType })}>
                     {PERIOD_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
                   </select>
                 </div>
@@ -226,19 +231,19 @@ export default function IncentivePlans() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div>
                   <label className="text-xs text-muted-foreground">Source</label>
-                  <select className={sel} value={newSlab.source_type} onChange={(e) => setNewSlab({ ...newSlab, source_type: e.target.value })}>
+                  <select className={sel} value={newSlab.source_type} onChange={(e) => setNewSlab({ ...newSlab, source_type: e.target.value as SourceType })}>
                     {SOURCE_TYPES.map((x) => <option key={x} value={x}>{x.replace(/_/g, " ")}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Metric</label>
-                  <select className={sel} value={newSlab.metric} onChange={(e) => setNewSlab({ ...newSlab, metric: e.target.value })}>
+                  <select className={sel} value={newSlab.metric} onChange={(e) => setNewSlab({ ...newSlab, metric: e.target.value as Metric })}>
                     {METRICS.map((x) => <option key={x} value={x}>{x.replace(/_/g, " ")}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Rate type</label>
-                  <select className={sel} value={newSlab.rate_type} onChange={(e) => setNewSlab({ ...newSlab, rate_type: e.target.value })}>
+                  <select className={sel} value={newSlab.rate_type} onChange={(e) => setNewSlab({ ...newSlab, rate_type: e.target.value as RateType })}>
                     {RATE_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
                   </select>
                 </div>
@@ -305,7 +310,7 @@ export default function IncentivePlans() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Period type</label>
-                  <select className={sel} value={newTarget.period_type} onChange={(e) => setNewTarget({ ...newTarget, period_type: e.target.value })}>
+                  <select className={sel} value={newTarget.period_type} onChange={(e) => setNewTarget({ ...newTarget, period_type: e.target.value as PeriodType })}>
                     {PERIOD_TYPES.map((x) => <option key={x} value={x}>{x}</option>)}
                   </select>
                 </div>
@@ -315,7 +320,7 @@ export default function IncentivePlans() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Target metric</label>
-                  <select className={sel} value={newTarget.target_metric} onChange={(e) => setNewTarget({ ...newTarget, target_metric: e.target.value })}>
+                  <select className={sel} value={newTarget.target_metric} onChange={(e) => setNewTarget({ ...newTarget, target_metric: e.target.value as Metric })}>
                     {METRICS.map((x) => <option key={x} value={x}>{x.replace(/_/g, " ")}</option>)}
                   </select>
                 </div>
@@ -331,7 +336,7 @@ export default function IncentivePlans() {
                 </div>
                 <div>
                   <label className="text-xs text-muted-foreground">Bonus type (optional)</label>
-                  <select className={sel} value={newTarget.bonus_rate_type} onChange={(e) => setNewTarget({ ...newTarget, bonus_rate_type: e.target.value })}>
+                  <select className={sel} value={newTarget.bonus_rate_type} onChange={(e) => setNewTarget({ ...newTarget, bonus_rate_type: e.target.value as "" | "flat" | "percent" })}>
                     <option value="">none</option>
                     <option value="flat">flat</option>
                     <option value="percent">percent</option>
