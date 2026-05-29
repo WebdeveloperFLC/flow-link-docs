@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { callAdminUsers } from "@/lib/adminUsers";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import type { AppRole } from "@/contexts/AuthContext";
@@ -17,6 +18,9 @@ const schema = z.object({
   phone: z.string().trim().min(5).max(40),
   roles: z.array(z.enum(["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"])).min(1, "Select at least one role"),
   password: z.string().min(8, "Password must be at least 8 characters").max(72),
+  branch_id: z.string().uuid().optional().nullable(),                 // optional: some staff serve all branches
+  department_id: z.string().uuid({ message: "Department is required" }), // compulsory
+  designation: z.string().trim().max(80).optional().nullable(),
 });
 
 const ROLE_LABEL: Record<AppRole, string> = {
@@ -31,10 +35,28 @@ const ROLE_LABEL: Record<AppRole, string> = {
   client: "Client (Portal)",
 };
 
+interface Opt { id: string; name: string; }
+
 export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean; onOpenChange: (o: boolean) => void; onCreated: () => void; }) => {
   const [busy, setBusy] = useState(false);
   const [roles, setRoles] = useState<AppRole[]>(["viewer"]);
   const [showPw, setShowPw] = useState(false);
+  const [branches, setBranches] = useState<Opt[]>([]);
+  const [departments, setDepartments] = useState<Opt[]>([]);
+  const [branchId, setBranchId] = useState<string>("");
+  const [departmentId, setDepartmentId] = useState<string>("");
+
+  useEffect(() => {
+    if (!open) return;
+    (async () => {
+      const [b, d] = await Promise.all([
+        supabase.from("branches").select("id, name").eq("is_active", true).order("display_order"),
+        supabase.from("departments").select("id, name").eq("is_active", true).order("display_order"),
+      ]);
+      setBranches((b.data ?? []) as Opt[]);
+      setDepartments((d.data ?? []) as Opt[]);
+    })();
+  }, [open]);
 
   const toggleRole = (r: AppRole, on: boolean) =>
     setRoles((prev) => (on ? Array.from(new Set([...prev, r])) : prev.filter((x) => x !== r)));
@@ -46,6 +68,9 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
       first_name: fd.get("first_name"), last_name: fd.get("last_name"),
       email: fd.get("email"), phone: fd.get("phone"), roles,
       password: fd.get("password"),
+      branch_id: branchId || null,
+      department_id: departmentId || null,
+      designation: (fd.get("designation") as string)?.trim() || null,
     });
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setBusy(true);
@@ -53,6 +78,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
       await callAdminUsers({ action: "create", ...parsed.data });
       toast.success("Account created");
       onOpenChange(false);
+      setBranchId(""); setDepartmentId("");
       onCreated();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to add user");
@@ -63,7 +89,7 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader><DialogTitle>Add new user</DialogTitle></DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4" key={open ? "o" : "c"}>
           <div className="grid grid-cols-2 gap-3">
@@ -84,6 +110,40 @@ export const AddUserDialog = ({ open, onOpenChange, onCreated }: { open: boolean
             <Label htmlFor="phone">Phone *</Label>
             <Input id="phone" name="phone" required />
           </div>
+
+          {/* Organizational fields */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="branch_id">Branch <span className="text-muted-foreground font-normal">(optional)</span></Label>
+              <select
+                id="branch_id"
+                className="w-full border rounded-md h-10 px-2 bg-background text-sm"
+                value={branchId}
+                onChange={(e) => setBranchId(e.target.value)}
+              >
+                <option value="">— all / none —</option>
+                {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="department_id">Department *</Label>
+              <select
+                id="department_id"
+                className="w-full border rounded-md h-10 px-2 bg-background text-sm"
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                required
+              >
+                <option value="">— select —</option>
+                {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="designation">Designation</Label>
+            <Input id="designation" name="designation" maxLength={80} placeholder="e.g. Senior Counselor" />
+          </div>
+
           <div className="space-y-1.5">
             <Label>Roles * <span className="text-muted-foreground font-normal">(select one or more)</span></Label>
             <div className="rounded-md border divide-y">
