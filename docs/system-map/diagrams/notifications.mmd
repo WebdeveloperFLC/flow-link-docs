@@ -1,14 +1,79 @@
-flowchart LR
-    EVT[Event in UI<br/>payment_received or receipt_generated] --> DISP[notifications-dispatch edge fn]
-    DISP --> RES1[Lookup client.email]
-    DISP --> RES2[Lookup counselor profile.email]
-    DISP --> RES3[Lookup notification_settings.accounting_inbox_email]
-    DISP --> LOGO[Resolve logo: accounting_entities -> firm_profile]
-    RES1 --> BUILD[Build HTML template]
-    RES2 --> BUILD
-    RES3 --> BUILD
-    LOGO --> BUILD
-    BUILD --> SMTP[smtp-send edge fn]
-    SMTP --> LOG1[INSERT app_email_logs]
-    SMTP --> TL[INSERT client_timeline<br/>event_type=notification.*]
-    SMTP --> OUT[Email delivered via firm SMTP]
+flowchart TD
+    %% ── Trigger sources ──────────────────────────────────────────────────
+    subgraph PRODUCERS["In-App Notification Producers (frontend)"]
+        P1["ClientInvoicesPanel\npayment_received / payment_verified\nreceipt_generated / urgent_review_required"]
+        P2["clientTasks.ts\nnew_task_assigned"]
+        P3["handoffs.ts → pushHandoff()\nclient_assigned"]
+        P4["chat.ts → sendMessage()\nsenderType='client'\nportal_message"]
+        P5["ClientAccessDialog / InviteClientCard\nclient_assigned / portal_invite_sent"]
+        P6["LeadConversionDialog\nlead_converted / document_uploaded"]
+    end
+
+    %% ── In-app bell path ─────────────────────────────────────────────────
+    subgraph INAPP["In-App Bell (app_notifications)"]
+        NOTIFY["notifyUsers()\nsrc/lib/appNotifications.ts"]
+        RESOLVERS["Resolver helpers\nresolveCounselorNotificationUserIds()\nresolveAllClientStakeholderUserIds()\nresolveAccountingVerifierUserIds()"]
+        UPSERT["UPSERT app_notifications\nonConflict: user_id,dedupe_key"]
+        RT["Supabase Realtime\nchannel: app_notifications:<uid>"]
+        NC["NotificationCenter\nTopbar bell + toast + chime"]
+    end
+
+    P1 --> NOTIFY
+    P2 --> NOTIFY
+    P3 --> NOTIFY
+    P4 --> NOTIFY
+    P5 --> NOTIFY
+    P6 --> NOTIFY
+
+    NOTIFY --> RESOLVERS
+    RESOLVERS --> UPSERT
+    UPSERT --> RT
+    RT --> NC
+
+    %% ── Email dispatch path ──────────────────────────────────────────────
+    subgraph EMAIL_DISPATCH["Email Dispatch (notifications-dispatch edge fn)"]
+        EVT["UI event fired\nreceipt_generated or payment_received"]
+        DISP["notifications-dispatch\nresolve recipients + suppression\nbuild HTML template"]
+        FLAG{"QUEUE_EMAILS\nenv flag"}
+    end
+
+    EVT --> DISP
+    DISP --> FLAG
+
+    %% ── Queue path ───────────────────────────────────────────────────────
+    subgraph QUEUE_PATH["Queue Path (QUEUE_EMAILS=true)"]
+        ENQ["enqueue_email() RPC\nnotification_emails queue"]
+        CRON["pg_cron every 1 min"]
+        WORKER["process-notification-email-queue\nworker edge fn\nTTL check → idempotency check → retry count"]
+        DLQ["notification_emails_dlq\n(TTL exceeded or max 3 retries)"]
+    end
+
+    FLAG -- "true" --> ENQ
+    ENQ --> CRON
+    CRON --> WORKER
+    WORKER -- "TTL / max retries" --> DLQ
+
+    %% ── Direct path ──────────────────────────────────────────────────────
+    subgraph DIRECT_PATH["Direct Path (QUEUE_EMAILS=false / unset)"]
+        DIRECT["direct fetch\nsmtp-send edge fn"]
+    end
+
+    FLAG -- "false / unset" --> DIRECT
+
+    %% ── SMTP send (shared) ───────────────────────────────────────────────
+    subgraph SMTP_LAYER["SMTP Layer"]
+        SMTP["smtp-send edge fn\nfirm SMTP via denomailer\nsmtp_settings / entity_smtp_settings"]
+        LOG1["INSERT / UPDATE\napp_email_logs"]
+        TL["INSERT client_timeline\nevent_type=notification.*"]
+        OUT["Email delivered\nvia firm SMTP"]
+    end
+
+    WORKER -- "ok → POST" --> SMTP
+    DIRECT --> SMTP
+    SMTP --> LOG1
+    SMTP --> TL
+    SMTP --> OUT
+
+    %% ── Rollback note ────────────────────────────────────────────────────
+    NOTE["⚡ Rollback: set QUEUE_EMAILS=false\nin notifications-dispatch secrets\n— no redeploy needed"]
+    FLAG -.-> NOTE
