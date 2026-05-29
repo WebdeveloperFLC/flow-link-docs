@@ -22,6 +22,7 @@ import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { HandleUserDataDialog, LifecycleAction } from "@/components/users/HandleUserDataDialog";
 import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog";
 import { ModuleAccessCard } from "@/components/users/ModuleAccessCard";
+import { EditUserDetailsDialog } from "@/components/users/EditUserDetailsDialog";
 
 interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
@@ -75,6 +76,7 @@ const Users = () => {
   const [lifecycle, setLifecycle] = useState<{ action: LifecycleAction; user: Profile } | null>(null);
   const [resetUser, setResetUser] = useState<Profile | null>(null);
   const [permsUser, setPermsUser] = useState<Profile | null>(null);
+  const [editUser, setEditUser] = useState<Profile | null>(null);
   const [newPw, setNewPw] = useState("");
   const [showNewPw, setShowNewPw] = useState(false);
   const [resetBusy, setResetBusy] = useState(false);
@@ -375,6 +377,7 @@ const Users = () => {
                         <DropdownMenuItem
                           onClick={() => setPermsUser(p)}
                         ><KeyRound className="size-3.5 mr-2" /> Module access</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditUser(p)}>Edit details</DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => { setResetUser(p); setNewPw(""); setShowNewPw(false); }}
                         >Reset password</DropdownMenuItem>
@@ -481,6 +484,11 @@ const Users = () => {
           onDone={load}
         />
       )}
+      <EditUserDetailsDialog
+        user={editUser}
+        onOpenChange={(o) => { if (!o) setEditUser(null); }}
+        onSaved={load}
+      />
     </AppLayout>
   );
 };
