@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.notifications-digest-tick]
 verify_jwt = false
+
+[functions.incentive-calculate-run]
+verify_jwt = true
