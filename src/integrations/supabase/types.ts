@@ -6624,6 +6624,62 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_wallets: {
+        Row: {
+          allow_negative: boolean
+          balance: number
+          branch_id: string | null
+          counselor_id: string
+          created_at: string
+          currency: string
+          id: string
+          max_amount_per_client: number | null
+          max_percent_per_client: number
+          period_key: string
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          updated_at: string
+        }
+        Insert: {
+          allow_negative?: boolean
+          balance?: number
+          branch_id?: string | null
+          counselor_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          max_amount_per_client?: number | null
+          max_percent_per_client?: number
+          period_key: string
+          rollover_cap?: number | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          updated_at?: string
+        }
+        Update: {
+          allow_negative?: boolean
+          balance?: number
+          branch_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          max_amount_per_client?: number | null
+          max_percent_per_client?: number
+          period_key?: string
+          rollover_cap?: number | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_wallets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       distribution_rule_members: {
         Row: {
           created_at: string
@@ -7697,6 +7753,571 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      fx_rates: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          notes: string | null
+          period_key: string
+          rate_to_inr: number
+          set_by: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency: string
+          id?: string
+          notes?: string | null
+          period_key: string
+          rate_to_inr: number
+          set_by?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          notes?: string | null
+          period_key?: string
+          rate_to_inr?: number
+          set_by?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      incentive_adjustments: {
+        Row: {
+          adjustment_type: string
+          amount: number
+          counselor_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          reason: string
+          run_id: string | null
+          source_payment_id: string | null
+        }
+        Insert: {
+          adjustment_type?: string
+          amount: number
+          counselor_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          reason: string
+          run_id?: string | null
+          source_payment_id?: string | null
+        }
+        Update: {
+          adjustment_type?: string
+          amount?: number
+          counselor_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          reason?: string
+          run_id?: string | null
+          source_payment_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_adjustments_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_line_items: {
+        Row: {
+          base_amount: number
+          base_currency: string
+          client_id: string | null
+          counselor_id: string
+          created_at: string
+          earned_amount: number
+          fx_rate_used: number | null
+          id: string
+          note: string | null
+          run_id: string
+          settlement_currency: string
+          slab_id: string | null
+          source_commission_id: string | null
+          source_invoice_id: string | null
+          source_payment_id: string | null
+          source_type: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Insert: {
+          base_amount?: number
+          base_currency?: string
+          client_id?: string | null
+          counselor_id: string
+          created_at?: string
+          earned_amount?: number
+          fx_rate_used?: number | null
+          id?: string
+          note?: string | null
+          run_id: string
+          settlement_currency?: string
+          slab_id?: string | null
+          source_commission_id?: string | null
+          source_invoice_id?: string | null
+          source_payment_id?: string | null
+          source_type: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Update: {
+          base_amount?: number
+          base_currency?: string
+          client_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          earned_amount?: number
+          fx_rate_used?: number | null
+          id?: string
+          note?: string | null
+          run_id?: string
+          settlement_currency?: string
+          slab_id?: string | null
+          source_commission_id?: string | null
+          source_invoice_id?: string | null
+          source_payment_id?: string | null
+          source_type?: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_line_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_line_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_line_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "incentive_line_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_line_items_slab_id_fkey"
+            columns: ["slab_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_slabs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_payouts: {
+        Row: {
+          accounting_ap_bill_id: string | null
+          approved_at: string | null
+          approved_by: string | null
+          counselor_id: string
+          created_at: string
+          gross_amount: number
+          id: string
+          net_amount: number
+          notes: string | null
+          paid_at: string | null
+          run_id: string | null
+          settlement_currency: string
+          status: Database["public"]["Enums"]["payout_status"]
+          tds_amount: number
+          tds_percent: number
+          updated_at: string
+        }
+        Insert: {
+          accounting_ap_bill_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          counselor_id: string
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          run_id?: string | null
+          settlement_currency?: string
+          status?: Database["public"]["Enums"]["payout_status"]
+          tds_amount?: number
+          tds_percent?: number
+          updated_at?: string
+        }
+        Update: {
+          accounting_ap_bill_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          counselor_id?: string
+          created_at?: string
+          gross_amount?: number
+          id?: string
+          net_amount?: number
+          notes?: string | null
+          paid_at?: string | null
+          run_id?: string | null
+          settlement_currency?: string
+          status?: Database["public"]["Enums"]["payout_status"]
+          tds_amount?: number
+          tds_percent?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_payouts_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_plans: {
+        Row: {
+          active_from: string
+          active_to: string | null
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          period_type: Database["public"]["Enums"]["incentive_period_type"]
+          revenue_basis: string
+          role_key: string | null
+          scope_type: string
+          settlement_currency: string
+          updated_at: string
+        }
+        Insert: {
+          active_from?: string
+          active_to?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          revenue_basis?: string
+          role_key?: string | null
+          scope_type?: string
+          settlement_currency?: string
+          updated_at?: string
+        }
+        Update: {
+          active_from?: string
+          active_to?: string | null
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          revenue_basis?: string
+          role_key?: string | null
+          scope_type?: string
+          settlement_currency?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_plans_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_runs: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          branch_id: string | null
+          calculated_at: string | null
+          calculated_by: string | null
+          created_at: string
+          fx_snapshot: Json
+          id: string
+          locked: boolean
+          period_key: string
+          period_type: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id: string | null
+          settlement_currency: string
+          status: Database["public"]["Enums"]["incentive_run_status"]
+          total_settlement: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          calculated_at?: string | null
+          calculated_by?: string | null
+          created_at?: string
+          fx_snapshot?: Json
+          id?: string
+          locked?: boolean
+          period_key: string
+          period_type: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id?: string | null
+          settlement_currency?: string
+          status?: Database["public"]["Enums"]["incentive_run_status"]
+          total_settlement?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          branch_id?: string | null
+          calculated_at?: string | null
+          calculated_by?: string | null
+          created_at?: string
+          fx_snapshot?: Json
+          id?: string
+          locked?: boolean
+          period_key?: string
+          period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id?: string | null
+          settlement_currency?: string
+          status?: Database["public"]["Enums"]["incentive_run_status"]
+          total_settlement?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_runs_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_runs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_schemes: {
+        Row: {
+          active_from: string
+          active_to: string
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          is_active: boolean
+          name: string
+          rate_type: Database["public"]["Enums"]["incentive_rate_type"] | null
+          rate_value: number | null
+          role_key: string | null
+          scheme_type: string
+          scope_type: string
+          service_filter: string | null
+          source_type:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Insert: {
+          active_from: string
+          active_to: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          rate_type?: Database["public"]["Enums"]["incentive_rate_type"] | null
+          rate_value?: number | null
+          role_key?: string | null
+          scheme_type: string
+          scope_type?: string
+          service_filter?: string | null
+          source_type?:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Update: {
+          active_from?: string
+          active_to?: string
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          rate_type?: Database["public"]["Enums"]["incentive_rate_type"] | null
+          rate_value?: number | null
+          role_key?: string | null
+          scheme_type?: string
+          scope_type?: string
+          service_filter?: string | null
+          source_type?:
+            | Database["public"]["Enums"]["incentive_source_type"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_schemes_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_slabs: {
+        Row: {
+          created_at: string
+          id: string
+          max_threshold: number | null
+          metric: string
+          min_threshold: number
+          plan_id: string
+          rate_type: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value: number
+          service_filter: string | null
+          sort_order: number
+          source_type: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_threshold?: number | null
+          metric: string
+          min_threshold?: number
+          plan_id: string
+          rate_type: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value?: number
+          service_filter?: string | null
+          sort_order?: number
+          source_type: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_threshold?: number | null
+          metric?: string
+          min_threshold?: number
+          plan_id?: string
+          rate_type?: Database["public"]["Enums"]["incentive_rate_type"]
+          rate_value?: number
+          service_filter?: string | null
+          sort_order?: number
+          source_type?: Database["public"]["Enums"]["incentive_source_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_slabs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentive_targets: {
+        Row: {
+          bonus_rate_type:
+            | Database["public"]["Enums"]["incentive_rate_type"]
+            | null
+          bonus_trigger_pct: number | null
+          bonus_value: number | null
+          branch_id: string | null
+          counselor_id: string
+          created_at: string
+          id: string
+          period_key: string
+          period_type: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id: string | null
+          target_currency: string
+          target_metric: string
+          target_value: number
+        }
+        Insert: {
+          bonus_rate_type?:
+            | Database["public"]["Enums"]["incentive_rate_type"]
+            | null
+          bonus_trigger_pct?: number | null
+          bonus_value?: number | null
+          branch_id?: string | null
+          counselor_id: string
+          created_at?: string
+          id?: string
+          period_key: string
+          period_type: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id?: string | null
+          target_currency?: string
+          target_metric?: string
+          target_value?: number
+        }
+        Update: {
+          bonus_rate_type?:
+            | Database["public"]["Enums"]["incentive_rate_type"]
+            | null
+          bonus_trigger_pct?: number | null
+          bonus_value?: number | null
+          branch_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          period_key?: string
+          period_type?: Database["public"]["Enums"]["incentive_period_type"]
+          plan_id?: string | null
+          target_currency?: string
+          target_metric?: string
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incentive_targets_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incentive_targets_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       integration_settings: {
         Row: {
@@ -12557,6 +13178,297 @@ export type Database = {
           },
         ]
       }
+      wallet_allocations: {
+        Row: {
+          amount: number
+          applied_at: string | null
+          approved_by: string | null
+          client_id: string | null
+          client_offer_id: string | null
+          counselor_id: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          exceeded_cap: boolean
+          id: string
+          invoice_id: string | null
+          lead_id: string | null
+          offer_id: string | null
+          percent: number | null
+          reversal_reason: string | null
+          reversed_at: string | null
+          status: Database["public"]["Enums"]["wallet_alloc_status"]
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          applied_at?: string | null
+          approved_by?: string | null
+          client_id?: string | null
+          client_offer_id?: string | null
+          counselor_id: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          exceeded_cap?: boolean
+          id?: string
+          invoice_id?: string | null
+          lead_id?: string | null
+          offer_id?: string | null
+          percent?: number | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          status?: Database["public"]["Enums"]["wallet_alloc_status"]
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          applied_at?: string | null
+          approved_by?: string | null
+          client_id?: string | null
+          client_offer_id?: string | null
+          counselor_id?: string
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          exceeded_cap?: boolean
+          id?: string
+          invoice_id?: string | null
+          lead_id?: string | null
+          offer_id?: string | null
+          percent?: number | null
+          reversal_reason?: string | null
+          reversed_at?: string | null
+          status?: Database["public"]["Enums"]["wallet_alloc_status"]
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_allocations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_client_offer_id_fkey"
+            columns: ["client_offer_id"]
+            isOneToOne: false
+            referencedRelation: "client_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoice_aging"
+            referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "client_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_allocations_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_ledger: {
+        Row: {
+          amount: number
+          balance_after: number | null
+          created_at: string
+          currency: string
+          entry_type: string
+          id: string
+          note: string | null
+          ref_allocation_id: string | null
+          ref_topup_id: string | null
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          balance_after?: number | null
+          created_at?: string
+          currency?: string
+          entry_type: string
+          id?: string
+          note?: string | null
+          ref_allocation_id?: string | null
+          ref_topup_id?: string | null
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number | null
+          created_at?: string
+          currency?: string
+          entry_type?: string
+          id?: string
+          note?: string | null
+          ref_allocation_id?: string | null
+          ref_topup_id?: string | null
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_ledger_ref_allocation_id_fkey"
+            columns: ["ref_allocation_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_allocations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_ledger_ref_topup_id_fkey"
+            columns: ["ref_topup_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_topups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_ledger_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_topup_rules: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          max_achievement_pct: number | null
+          min_achievement_pct: number
+          role_key: string | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_type: string
+          topup_amount: number
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          role_key?: string | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_type?: string
+          topup_amount?: number
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          role_key?: string | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_type?: string
+          topup_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_topup_rules_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wallet_topups: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          reason: string | null
+          rollover_cap: number | null
+          rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scheme_id: string | null
+          topup_type: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          reason?: string | null
+          rollover_cap?: number | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scheme_id?: string | null
+          topup_type?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          reason?: string | null
+          rollover_cap?: number | null
+          rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scheme_id?: string | null
+          topup_type?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_topups_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "incentive_schemes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_topups_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_templates: {
         Row: {
           category: string
@@ -13264,6 +14176,19 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      fn_convert: {
+        Args: {
+          _amount: number
+          _from: string
+          _period_key: string
+          _to: string
+        }
+        Returns: number
+      }
+      fn_fx_rate: {
+        Args: { _ccy: string; _period_key: string }
+        Returns: number
+      }
       generate_client_registration_number: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { p_branch_code: string; p_entity_code: string }
@@ -13538,6 +14463,21 @@ export type Database = {
       dsh_source_type: "upload" | "link"
       dsh_status: "active" | "archived"
       dsh_upload_source: "upload" | "onedrive" | "google_drive" | "external_url"
+      incentive_period_type: "monthly" | "quarterly" | "half_yearly" | "yearly"
+      incentive_rate_type: "flat" | "per_unit" | "percent" | "slab"
+      incentive_run_status:
+        | "draft"
+        | "calculated"
+        | "submitted"
+        | "approved"
+        | "paid"
+        | "void"
+      incentive_source_type:
+        | "service_revenue"
+        | "ancillary"
+        | "direct_visa_commission"
+        | "b2b_admission_commission"
+      payout_status: "pending" | "approved" | "processed" | "paid" | "cancelled"
       person_role:
         | "applicant"
         | "co_applicant"
@@ -13551,6 +14491,8 @@ export type Database = {
         | "documentation"
         | "viewer"
         | "client"
+      wallet_alloc_status: "reserved" | "applied" | "reversed"
+      wallet_rollover_policy: "expire" | "partial" | "full"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -13768,6 +14710,23 @@ export const Constants = {
       dsh_source_type: ["upload", "link"],
       dsh_status: ["active", "archived"],
       dsh_upload_source: ["upload", "onedrive", "google_drive", "external_url"],
+      incentive_period_type: ["monthly", "quarterly", "half_yearly", "yearly"],
+      incentive_rate_type: ["flat", "per_unit", "percent", "slab"],
+      incentive_run_status: [
+        "draft",
+        "calculated",
+        "submitted",
+        "approved",
+        "paid",
+        "void",
+      ],
+      incentive_source_type: [
+        "service_revenue",
+        "ancillary",
+        "direct_visa_commission",
+        "b2b_admission_commission",
+      ],
+      payout_status: ["pending", "approved", "processed", "paid", "cancelled"],
       person_role: [
         "applicant",
         "co_applicant",
@@ -13783,6 +14742,8 @@ export const Constants = {
         "viewer",
         "client",
       ],
+      wallet_alloc_status: ["reserved", "applied", "reversed"],
+      wallet_rollover_policy: ["expire", "partial", "full"],
     },
   },
 } as const
