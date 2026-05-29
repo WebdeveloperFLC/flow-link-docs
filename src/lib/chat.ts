@@ -54,6 +54,7 @@ export async function sendMessage(opts: {
   parentId?: string | null;
   mentionUserIds?: string[];
   attachments?: Array<{ storage_path: string; file_name: string; mime_type?: string | null; size_bytes?: number | null }>;
+  senderType?: "staff" | "client";
 }) {
   const text = opts.message.trim();
   if (!text && !(opts.attachments && opts.attachments.length)) return;
@@ -65,7 +66,7 @@ export async function sendMessage(opts: {
     client_id: opts.clientId ?? null,
     channel_id: opts.channelId ?? null,
     sender_id: sender,
-    sender_type: "staff",
+    sender_type: opts.senderType ?? "staff",
     message: text || "(attachment)",
   }).select().single();
   if (error) throw error;
