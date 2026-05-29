@@ -13270,6 +13270,10 @@ export type Database = {
         Returns: string
       }
       generate_lead_number: { Args: { p_type: string }; Returns: string }
+      generate_offer_tracking_code: {
+        Args: { _counselor_id: string; _offer_id: string }
+        Returns: string
+      }
       generate_receipt_number: {
         Args: { p_branch_code: string; p_entity_code: string }
         Returns: string
@@ -13368,6 +13372,18 @@ export type Database = {
           id: string
           name: string
         }[]
+      }
+      log_offer_event: {
+        Args: {
+          _channel?: string
+          _client_id?: string
+          _counselor_id?: string
+          _event_type?: string
+          _offer_id: string
+          _revenue_amount?: number
+          _tracking_code?: string
+        }
+        Returns: string
       }
       move_to_dlq: {
         Args: {
