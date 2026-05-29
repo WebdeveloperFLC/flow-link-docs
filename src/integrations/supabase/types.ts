@@ -5442,26 +5442,32 @@ export type Database = {
       }
       client_offers: {
         Row: {
+          attached_by: string | null
           client_id: string
           created_at: string
           id: string
           offer_id: string
+          source: string
           status: string
           used_at: string | null
         }
         Insert: {
+          attached_by?: string | null
           client_id: string
           created_at?: string
           id?: string
           offer_id: string
+          source?: string
           status?: string
           used_at?: string | null
         }
         Update: {
+          attached_by?: string | null
           client_id?: string
           created_at?: string
           id?: string
           offer_id?: string
+          source?: string
           status?: string
           used_at?: string | null
         }
@@ -8413,6 +8419,71 @@ export type Database = {
           },
         ]
       }
+      offer_events: {
+        Row: {
+          channel: string | null
+          client_id: string | null
+          counselor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          offer_id: string
+          revenue_amount: number
+          tracking_code: string | null
+        }
+        Insert: {
+          channel?: string | null
+          client_id?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          offer_id: string
+          revenue_amount?: number
+          tracking_code?: string | null
+        }
+        Update: {
+          channel?: string | null
+          client_id?: string | null
+          counselor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          offer_id?: string
+          revenue_amount?: number
+          tracking_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "offer_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "offer_events_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offer_group_members: {
         Row: {
           added_at: string
@@ -8484,19 +8555,117 @@ export type Database = {
         }
         Relationships: []
       }
+      offer_templates: {
+        Row: {
+          applicable_services: string[]
+          channels: string[]
+          created_at: string
+          created_by: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          name: string
+          target_countries: string[]
+          trigger_condition: Json | null
+          trigger_event: string | null
+          trigger_type: string
+          updated_at: string
+          validity_days_after: number
+          validity_days_before: number
+        }
+        Insert: {
+          applicable_services?: string[]
+          channels?: string[]
+          created_at?: string
+          created_by?: string | null
+          discount_type: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          name: string
+          target_countries?: string[]
+          trigger_condition?: Json | null
+          trigger_event?: string | null
+          trigger_type: string
+          updated_at?: string
+          validity_days_after?: number
+          validity_days_before?: number
+        }
+        Update: {
+          applicable_services?: string[]
+          channels?: string[]
+          created_at?: string
+          created_by?: string | null
+          discount_type?: string
+          discount_value?: number
+          id?: string
+          is_active?: boolean
+          max_discount_amount?: number | null
+          name?: string
+          target_countries?: string[]
+          trigger_condition?: Json | null
+          trigger_event?: string | null
+          trigger_type?: string
+          updated_at?: string
+          validity_days_after?: number
+          validity_days_before?: number
+        }
+        Relationships: []
+      }
+      offer_tracking_codes: {
+        Row: {
+          code: string
+          counselor_id: string
+          created_at: string
+          id: string
+          offer_id: string
+        }
+        Insert: {
+          code: string
+          counselor_id: string
+          created_at?: string
+          id?: string
+          offer_id: string
+        }
+        Update: {
+          code?: string
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          offer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_tracking_codes_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           applicable_services: string[] | null
           audience: string
           created_at: string
           created_by: string | null
+          currency: string
           description: string | null
           discount_type: string
           discount_value: number
           id: string
           is_active: boolean
           max_discount_amount: number | null
+          max_redemptions: number | null
+          per_client_limit: number
           promo_code: string | null
+          redemption_count: number
+          target_countries: string[]
+          template_id: string | null
           terms_conditions: string | null
           title: string
           updated_at: string
@@ -8508,13 +8677,19 @@ export type Database = {
           audience?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           description?: string | null
           discount_type: string
           discount_value?: number
           id?: string
           is_active?: boolean
           max_discount_amount?: number | null
+          max_redemptions?: number | null
+          per_client_limit?: number
           promo_code?: string | null
+          redemption_count?: number
+          target_countries?: string[]
+          template_id?: string | null
           terms_conditions?: string | null
           title: string
           updated_at?: string
@@ -8526,20 +8701,34 @@ export type Database = {
           audience?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           description?: string | null
           discount_type?: string
           discount_value?: number
           id?: string
           is_active?: boolean
           max_discount_amount?: number | null
+          max_redemptions?: number | null
+          per_client_limit?: number
           promo_code?: string | null
+          redemption_count?: number
+          target_countries?: string[]
+          template_id?: string | null
           terms_conditions?: string | null
           title?: string
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "offers_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "offer_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       owner_profile_directors: {
         Row: {
