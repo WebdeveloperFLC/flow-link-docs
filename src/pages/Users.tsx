@@ -324,6 +324,15 @@ const Users = () => {
                       {isMe && <span className="text-[10px] text-muted-foreground shrink-0">(you)</span>}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">{p.email}</div>
+                    {(p.department_id || p.branch_id || p.designation) && (
+                      <div className="text-xs text-muted-foreground/80 truncate">
+                        {[
+                          p.department_id ? deptNames[p.department_id] : null,
+                          p.branch_id ? branchNames[p.branch_id] : "All branches",
+                          p.designation || null,
+                        ].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
                   </div>
                   <div>{statusBadge(status)}</div>
                   <div className="min-w-0 flex flex-wrap gap-1">
