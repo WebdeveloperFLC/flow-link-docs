@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { notifyUsers } from "@/lib/appNotifications";
 import type { AppRole } from "@/contexts/AuthContext";
 
 export type HandoffDirection = "tc_to_co" | "co_to_tc" | "tc_to_tc" | "co_to_co";
@@ -50,17 +51,34 @@ export async function pushHandoff(opts: {
   const direction = deriveDirection(opts.fromRole, opts.toRole);
   if (!direction) throw new Error("Handoffs only between counselors and telecallers");
 
-  const { data, error } = await supabase.from("lead_handoffs").insert({
-    client_id: opts.clientId,
-    from_user: fromUser,
-    to_user: opts.toUserId,
-    from_role: opts.fromRole,
-    to_role: opts.toRole,
-    direction,
-    note: opts.note?.trim() || null,
-    task_label: opts.taskLabel?.trim() || null,
-  }).select().single();
+  const { data, error } = await supabase
+    .from("lead_handoffs")
+    .insert({
+      client_id: opts.clientId,
+      from_user: fromUser,
+      to_user: opts.toUserId,
+      from_role: opts.fromRole,
+      to_role: opts.toRole,
+      direction,
+      note: opts.note?.trim() || null,
+      task_label: opts.taskLabel?.trim() || null,
+    })
+    .select()
+    .single();
   if (error) throw error;
+
+  // Notify the recipient (best-effort — must not block)
+  notifyUsers({
+    userIds: [opts.toUserId],
+    category: "client_assigned",
+    severity: "info",
+    title: `Lead handed off to you${opts.clientName ? `: ${opts.clientName}` : ""}`,
+    body: opts.taskLabel ? `Task: ${opts.taskLabel}${opts.note ? ` — ${opts.note}` : ""}` : (opts.note ?? undefined),
+    link: `/clients/${opts.clientId}`,
+    entityType: "lead_handoff",
+    entityId: data.id,
+    dedupeKey: `handoff:${data.id}`,
+  });
 
   // Append timeline event (best-effort)
   await supabase.from("client_timeline").insert({
