@@ -124,6 +124,37 @@ export async function sendMessage(opts: {
       metadata: { excerpt: text.slice(0, 120), channelType: opts.channelType } as never,
     });
   }
+
+  // Portal-originated message → notify the assigned counselor & client stakeholders
+  // so they get a NotificationCenter bell + chime. Best-effort, never blocks.
+  // Staff-sent messages in the same channel do NOT trigger this (avoids self-notify
+  // and noise for outgoing messages).
+  if (opts.senderType === "client" && opts.channelType === "staff_client" && opts.clientId) {
+    try {
+      const recipients = await resolveAllClientStakeholderUserIds(opts.clientId, {
+        context: "portal_message",
+        message_id: data.id,
+      });
+      // Exclude the sender just in case a staff user happens to share an auth id
+      const userIds = recipients.filter((uid) => uid !== sender);
+      if (userIds.length) {
+        notifyUsers({
+          userIds,
+          category: "portal_message",
+          severity: "info",
+          title: "New message from client",
+          body: text.slice(0, 140) || "(attachment)",
+          link: `/clients/${opts.clientId}`,
+          entityType: "chat_message",
+          entityId: data.id,
+          dedupeKey: `portal_msg:${data.id}`,
+        });
+      }
+    } catch (e) {
+      console.warn("[chat] portal_message_notify_throw", e);
+    }
+  }
+
   return data as ChatMessage;
 }
 
