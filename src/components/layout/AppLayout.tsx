@@ -51,6 +51,7 @@ import {
   Snowflake,
   Flame,
   Megaphone,
+  Calculator,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,8 @@ const nav: NavItem[] = [
   { to: "/team-access", icon: Share2, label: "Team access" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
+  { to: "/incentives", icon: Wallet, label: "My Incentives" },
+  { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
   {
     to: "/assessment-admin",
     icon: ClipboardCheck,

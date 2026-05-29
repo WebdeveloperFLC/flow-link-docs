@@ -15,6 +15,8 @@ export const CRM_MODULES: ModuleDef[] = [
   { key: "telephony", label: "Telephony / Calls", description: "Call queue, dialer, call history." },
   { key: "institutions", label: "Institutions", description: "Partner institutions (commissions/claims managed separately)." },
   { key: "commissions", label: "Commissions & Claims", description: "Partner commissions, claims, agreements, invoicing." },
+  { key: "incentives", label: "Incentives", description: "Counselor incentive runs, targets, payouts." },
+  { key: "discount_wallet", label: "Discount Wallet", description: "Per-counselor monthly discount budget." },
   { key: "assessments", label: "Assessments", description: "Assessment sessions and PDFs." },
   { key: "reports", label: "Reports & Analytics", description: "Dashboards and reports (UI-gated)." },
   { key: "letter_templates", label: "Letter Templates", description: "Manage letter templates." },
@@ -45,6 +47,7 @@ export const ROLE_DEFAULTS: Record<RoleKey, PermissionMap> = {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: VIEW,
     institutions: VIEW, commissions: NONE, assessments: EDIT,
     reports: VIEW, letter_templates: EDIT, settings: NONE,
+    incentives: VIEW, discount_wallet: VIEW,
   },
   documentation: {
     clients: EDIT, documents: EDIT, tasks: EDIT, telephony: NONE,
