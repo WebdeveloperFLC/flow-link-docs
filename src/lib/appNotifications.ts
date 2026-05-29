@@ -12,6 +12,7 @@ export type NotificationCategory =
   | "lead_converted"
   | "urgent_review_required"
   | "portal_message"
+  | "handoff_received"
   | "client_access_granted"
   | "info";
 
@@ -81,9 +82,18 @@ export async function resolveAllClientStakeholderUserIds(
       .select("assigned_counselor_id, owner_id, created_by")
       .eq("id", clientId)
       .maybeSingle();
-    if (cli?.assigned_counselor_id) { ids.add(cli.assigned_counselor_id); sources.assigned_counselor.push(cli.assigned_counselor_id); }
-    if (cli?.owner_id) { ids.add(cli.owner_id); sources.owner.push(cli.owner_id); }
-    if ((cli as any)?.created_by) { ids.add((cli as any).created_by); sources.created_by.push((cli as any).created_by); }
+    if (cli?.assigned_counselor_id) {
+      ids.add(cli.assigned_counselor_id);
+      sources.assigned_counselor.push(cli.assigned_counselor_id);
+    }
+    if (cli?.owner_id) {
+      ids.add(cli.owner_id);
+      sources.owner.push(cli.owner_id);
+    }
+    if ((cli as any)?.created_by) {
+      ids.add((cli as any).created_by);
+      sources.created_by.push((cli as any).created_by);
+    }
 
     const { data: shares } = await supabase
       .from("client_access")
@@ -92,16 +102,19 @@ export async function resolveAllClientStakeholderUserIds(
       .is("revoked_at", null);
     const teamIds: string[] = [];
     (shares ?? []).forEach((s: any) => {
-      if (s.user_id) { ids.add(s.user_id); sources.client_access_user.push(s.user_id); }
+      if (s.user_id) {
+        ids.add(s.user_id);
+        sources.client_access_user.push(s.user_id);
+      }
       if (s.team_id) teamIds.push(s.team_id);
     });
     if (teamIds.length) {
-      const { data: tm } = await supabase
-        .from("team_members")
-        .select("user_id")
-        .in("team_id", teamIds);
+      const { data: tm } = await supabase.from("team_members").select("user_id").in("team_id", teamIds);
       (tm ?? []).forEach((r: any) => {
-        if (r.user_id) { ids.add(r.user_id); sources.client_access_team_member.push(r.user_id); }
+        if (r.user_id) {
+          ids.add(r.user_id);
+          sources.client_access_team_member.push(r.user_id);
+        }
       });
     }
   } catch (e) {
@@ -134,9 +147,7 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       rawUserIds: input.userIds ?? [],
       dedupeKey: input.dedupeKey ?? null,
     });
-    const uniq = Array.from(
-      new Set((input.userIds ?? []).filter((u): u is string => !!u))
-    );
+    const uniq = Array.from(new Set((input.userIds ?? []).filter((u): u is string => !!u)));
     if (uniq.length === 0) {
       console.warn("[notif-debug] filtered_out_reason", {
         category: input.category,
@@ -202,8 +213,8 @@ export async function notifyUsers(input: NotifyInput): Promise<void> {
       });
     }
     console.info("[notif-debug] app_notification_inserted", {
-        category: input.category,
-        requestedUserIds: uniq,
+      category: input.category,
+      requestedUserIds: uniq,
       insertedCount: inserted,
       rows: rows.map((r) => ({
         user_id: r.user_id,
@@ -252,6 +263,7 @@ const SOUND_CATEGORIES: ReadonlySet<NotificationCategory> = new Set([
   "client_assigned",
   "portal_message",
   "urgent_review_required",
+  "handoff_received",
 ]);
 
 let lastSoundAt = 0;
@@ -283,8 +295,7 @@ export function playNotificationChime(notifId?: string) {
     }
     lastSoundAt = now;
 
-    const Ctx =
-      (window as any).AudioContext || (window as any).webkitAudioContext;
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
     if (!Ctx) return;
     if (!audioCtx) audioCtx = new Ctx();
     if (!audioCtx) return;
