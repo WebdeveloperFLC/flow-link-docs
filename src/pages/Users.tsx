@@ -24,7 +24,7 @@ import { UserPermissionsDialog } from "@/components/users/UserPermissionsDialog"
 import { ModuleAccessCard } from "@/components/users/ModuleAccessCard";
 import { EditUserDetailsDialog } from "@/components/users/EditUserDetailsDialog";
 
-interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; }
+interface Profile { id: string; email: string | null; full_name: string | null; status?: string | null; branch_id?: string | null; department_id?: string | null; designation?: string | null; }
 interface RoleRow { user_id: string; role: AppRole; }
 
 const ALL_ROLES: AppRole[] = ["admin", "commission_admin", "counselor", "documentation", "telecaller", "viewer"];
@@ -71,6 +71,8 @@ const Users = () => {
   const { isAdmin, user, loading } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [roles, setRoles] = useState<RoleRow[]>([]);
+  const [branchNames, setBranchNames] = useState<Record<string, string>>({});
+  const [deptNames, setDeptNames] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [lifecycle, setLifecycle] = useState<{ action: LifecycleAction; user: Profile } | null>(null);
@@ -85,12 +87,20 @@ const Users = () => {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
 
   const load = async () => {
-    const [{ data: p }, { data: r }] = await Promise.all([
-      supabase.from("profiles").select("id,email,full_name,status").order("email"),
+    const [{ data: p }, { data: r }, { data: br }, { data: dp }] = await Promise.all([
+      supabase.from("profiles").select("id,email,full_name,status,branch_id,department_id,designation").order("email"),
       supabase.from("user_roles").select("user_id,role"),
+      supabase.from("branches").select("id,name"),
+      supabase.from("departments").select("id,name"),
     ]);
     setProfiles((p ?? []) as Profile[]);
     setRoles((r ?? []) as RoleRow[]);
+    const bMap: Record<string, string> = {};
+    for (const b of (br ?? []) as any[]) bMap[b.id] = b.name;
+    setBranchNames(bMap);
+    const dMap: Record<string, string> = {};
+    for (const d of (dp ?? []) as any[]) dMap[d.id] = d.name;
+    setDeptNames(dMap);
   };
   useEffect(() => { load(); }, []);
 
@@ -314,6 +324,15 @@ const Users = () => {
                       {isMe && <span className="text-[10px] text-muted-foreground shrink-0">(you)</span>}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">{p.email}</div>
+                    {(p.department_id || p.branch_id || p.designation) && (
+                      <div className="text-xs text-muted-foreground/80 truncate">
+                        {[
+                          p.department_id ? deptNames[p.department_id] : null,
+                          p.branch_id ? branchNames[p.branch_id] : "All branches",
+                          p.designation || null,
+                        ].filter(Boolean).join(" · ")}
+                      </div>
+                    )}
                   </div>
                   <div>{statusBadge(status)}</div>
                   <div className="min-w-0 flex flex-wrap gap-1">
