@@ -135,6 +135,32 @@ export async function resolveAllClientStakeholderUserIds(
 }
 
 /**
+ * Resolve auth_user_ids for all ACTIVE accounting users.
+ * Used to notify the accounting team of items needing verification.
+ * Never throws — returns whatever it finds.
+ */
+export async function resolveAccountingVerifierUserIds(context?: Record<string, unknown>): Promise<string[]> {
+  try {
+    const { data } = await supabase
+      .from("accounting_users" as never)
+      .select("auth_user_id")
+      .eq("status", "ACTIVE" as never);
+    const ids = ((data ?? []) as any[]).map((r) => r.auth_user_id).filter(Boolean) as string[];
+    console.info("[notif-debug] resolved_accounting_verifiers", {
+      ...context,
+      count: ids.length,
+    });
+    return ids;
+  } catch (e) {
+    console.warn("[notif-debug] resolve_accounting_verifiers_error", {
+      ...context,
+      error: (e as any)?.message,
+    });
+    return [];
+  }
+}
+
+/**
  * Fire-and-forget per-user in-app notification insert.
  * Never throws — notification failures must not block business flows.
  */
