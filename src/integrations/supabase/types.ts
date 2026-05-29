@@ -9714,8 +9714,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          branch_id: string | null
           created_at: string
           deleted_at: string | null
+          department_id: string | null
+          designation: string | null
           email: string | null
           first_name: string | null
           full_name: string | null
@@ -9726,8 +9729,11 @@ export type Database = {
           suspended_at: string | null
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
+          designation?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
@@ -9738,8 +9744,11 @@ export type Database = {
           suspended_at?: string | null
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           deleted_at?: string | null
+          department_id?: string | null
+          designation?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string | null
@@ -9749,7 +9758,22 @@ export type Database = {
           status?: string
           suspended_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provincial_noc_targets: {
         Row: {

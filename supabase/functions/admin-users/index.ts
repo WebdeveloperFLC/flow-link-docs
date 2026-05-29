@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
     const action = body.action as string;
 
     if (action === "create") {
-      const { first_name, last_name, email, phone, password } = body as Record<string, string>;
+      const { first_name, last_name, email, phone, password, branch_id, department_id, designation } = body as Record<string, string>;
       const rolesIn: string[] = Array.isArray((body as any).roles) && (body as any).roles.length
         ? (body as any).roles
         : (body as any).role ? [(body as any).role] : [];
@@ -113,6 +113,9 @@ Deno.serve(async (req) => {
         email,
         full_name: fullName,
         first_name, last_name, phone,
+        branch_id: branch_id || null,
+        department_id: department_id || null,
+        designation: designation || null,
         status: "active",
       });
       await svc.from("user_roles").delete().eq("user_id", newId);
@@ -130,6 +133,9 @@ Deno.serve(async (req) => {
       if (last_name !== undefined) patch.last_name = last_name;
       if ((first_name ?? last_name) !== undefined) patch.full_name = `${first_name ?? ""} ${last_name ?? ""}`.trim();
       if (phone !== undefined) patch.phone = phone;
+      if ((body as any).branch_id !== undefined) patch.branch_id = (body as any).branch_id || null;
+      if ((body as any).department_id !== undefined) patch.department_id = (body as any).department_id || null;
+      if ((body as any).designation !== undefined) patch.designation = (body as any).designation || null;
       if (Object.keys(patch).length) await svc.from("profiles").update(patch).eq("id", user_id);
       const nextRoles = rolesIn ?? (role ? [role] : undefined);
       if (nextRoles) {
