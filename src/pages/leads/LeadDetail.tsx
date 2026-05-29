@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fetchLead, fetchServiceCodeMap, type Lead } from "@/lib/leads";
+import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
 // badges shown inline via PageHeader description string
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -136,6 +137,11 @@ const LeadDetail = () => {
                 <Row label="Department" value={lead.department} />
                 <Row label="Source" value={lead.lead_source} />
               </div>
+              <LeadOwnerCard
+                leadId={lead.id}
+                assignedCounselorId={lead.assigned_counselor_id ?? null}
+                onChanged={() => fetchLead(lead.id).then((l) => l && setLead(l))}
+              />
             </Card>
           </>
         )}
