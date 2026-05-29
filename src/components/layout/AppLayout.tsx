@@ -52,6 +52,7 @@ import {
   Flame,
   Megaphone,
   Calculator,
+  Settings2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,7 @@ const nav: NavItem[] = [
   { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
   { to: "/incentives", icon: Wallet, label: "My Incentives" },
   { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
+  { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
   {
     to: "/assessment-admin",
     icon: ClipboardCheck,
