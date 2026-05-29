@@ -131,7 +131,7 @@ All buckets are **private** — clients access via signed URLs generated server-
 
 ## Key migrations (2026-05-29)
 
-| Migration file                                | What it adds                                                                                                                                    |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `20260529120000_notification_email_queue.sql` | Creates `notification_emails` and `notification_emails_dlq` pgmq queues; registers `process-notification-email-queue` pg_cron job (every 1 min) |
-| `20260528024339_4a6a0662-*.sql`               | `staff insert notifications` RLS policy on `app_notifications`; converts `vw_client_current_stage` and `vw_portal_stages` to `security_invoker` |
+| Migration file                                            | What it adds                                                                                                                                    |
+| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `20260529080110_ae5f875d-eb84-4340-8b9b-eef399716507.sql` | Creates `notification_emails` and `notification_emails_dlq` pgmq queues; registers `process-notification-email-queue` pg_cron job (every 1 min) |
+| `20260528024339_4a6a0662-*.sql`                           | `staff insert notifications` RLS policy on `app_notifications`; converts `vw_client_current_stage` and `vw_portal_stages` to `security_invoker` |
