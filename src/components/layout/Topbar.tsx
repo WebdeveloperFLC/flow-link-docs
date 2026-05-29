@@ -1,8 +1,9 @@
 // Finalized enterprise topbar slot. Sticky, responsive, clean z-index layering.
-// Hosts: notification bell, handoff bell, future global search & quick actions slots.
+// Hosts: notification bell, future global search & quick actions slots.
+// HandoffBell retired 2026-05-29 — handoffs now emit via app_notifications (handoff_received)
+// and surface in NotificationCenter like all other events.
 import { ReactNode } from "react";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
-import { HandoffBell } from "@/components/notifications/HandoffBell";
 import { cn } from "@/lib/utils";
 
 export interface TopbarProps {
@@ -26,7 +27,6 @@ export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps)
     >
       {searchSlot ? <div className="hidden md:block">{searchSlot}</div> : null}
       {quickActionsSlot ? <div className="hidden sm:block">{quickActionsSlot}</div> : null}
-      <HandoffBell />
       <NotificationCenter />
     </div>
   );
