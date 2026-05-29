@@ -13378,6 +13378,39 @@ export type Database = {
         }
         Returns: number
       }
+      offers_eligible_for_client: {
+        Args: { _client_id: string; _service_codes?: string[] }
+        Returns: {
+          applicable_services: string[] | null
+          audience: string
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          id: string
+          is_active: boolean
+          max_discount_amount: number | null
+          max_redemptions: number | null
+          per_client_limit: number
+          promo_code: string | null
+          redemption_count: number
+          target_countries: string[]
+          template_id: string | null
+          terms_conditions: string | null
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_to: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "offers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
