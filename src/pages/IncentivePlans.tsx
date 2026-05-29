@@ -74,10 +74,10 @@ export default function IncentivePlans() {
 
   async function createPlan() {
     if (!newPlan.name.trim()) { toast({ title: "Plan name required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("incentive_plans").insert({
+    const { error } = await supabase.from("incentive_plans").insert([{
       name: newPlan.name.trim(), period_type: newPlan.period_type,
       settlement_currency: newPlan.settlement_currency, revenue_basis: newPlan.revenue_basis,
-    });
+    }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Plan created" });
     setNewPlan({ name: "", period_type: "monthly", settlement_currency: "INR", revenue_basis: "net" });
@@ -92,14 +92,14 @@ export default function IncentivePlans() {
 
   async function addSlab() {
     if (!activePlan) { toast({ title: "Select a plan first", variant: "destructive" }); return; }
-    const { error } = await supabase.from("incentive_slabs").insert({
+    const { error } = await supabase.from("incentive_slabs").insert([{
       plan_id: activePlan, source_type: newSlab.source_type, metric: newSlab.metric,
       rate_type: newSlab.rate_type, min_threshold: Number(newSlab.min_threshold) || 0,
       max_threshold: newSlab.max_threshold.trim() === "" ? null : Number(newSlab.max_threshold),
       rate_value: Number(newSlab.rate_value) || 0,
       service_filter: newSlab.service_filter.trim() || null,
       sort_order: slabs.filter((s) => s.plan_id === activePlan).length,
-    });
+    }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Slab added" });
     await loadAll();
@@ -114,7 +114,7 @@ export default function IncentivePlans() {
   async function addTarget() {
     if (!newTarget.counselor_id) { toast({ title: "Pick a counselor", variant: "destructive" }); return; }
     if (!newTarget.period_key.trim()) { toast({ title: "Period key required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("incentive_targets").insert({
+    const { error } = await supabase.from("incentive_targets").insert([{
       plan_id: activePlan || null, counselor_id: newTarget.counselor_id,
       period_type: newTarget.period_type, period_key: newTarget.period_key.trim(),
       target_metric: newTarget.target_metric, target_value: Number(newTarget.target_value) || 0,
@@ -122,7 +122,7 @@ export default function IncentivePlans() {
       bonus_rate_type: newTarget.bonus_rate_type || null,
       bonus_value: newTarget.bonus_value.trim() === "" ? null : Number(newTarget.bonus_value),
       bonus_trigger_pct: Number(newTarget.bonus_trigger_pct) || 100,
-    });
+    }]);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Target set" });
     await loadAll();
