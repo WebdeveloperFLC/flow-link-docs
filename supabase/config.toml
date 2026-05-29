@@ -57,6 +57,9 @@ verify_jwt = false
 [functions.assessment-session-create]
 verify_jwt = true
 
+[functions.process-notification-email-queue]
+verify_jwt = false
+
 [functions.notifications-reminders-tick]
 verify_jwt = false
 
