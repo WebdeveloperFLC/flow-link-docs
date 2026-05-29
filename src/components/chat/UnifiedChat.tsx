@@ -49,11 +49,6 @@ interface Props {
   title?: string;
   className?: string;
   enableEnhanced?: boolean;
-  /**
-   * Who is sending — defaults to "staff". Portal-facing screens (PortalChat)
-   * must pass "client" so messages are stored with the correct sender_type
-   * and staff get a `portal_message` NotificationCenter bell.
-   */
   senderType?: "staff" | "client";
 }
 
