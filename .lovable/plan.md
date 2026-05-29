@@ -1,18 +1,19 @@
-## Run Offers Phase 1 Step 2 — Eligibility RPC migration
+## Run Offers Phase 1 Step 3 — Redemption Tracking & Code Generator
 
-Apply the provided SQL verbatim via `supabase--migration`. The tool auto-generates the timestamped filename (e.g. `supabase/migrations/<timestamp>_<slug>.sql`); I'll report it back after the run.
+Apply the provided SQL verbatim via `supabase--migration`. The tool auto-generates the timestamped filename; I'll report it back after the run.
 
 ### What the migration does
-- Creates (or replaces) one SECURITY DEFINER SQL function: `public.offers_eligible_for_client(_client_id uuid, _service_codes text[] DEFAULT NULL)` returning `SETOF public.offers`.
-- Grants `EXECUTE` on that function to `authenticated`.
-- Adds a `COMMENT` on the function.
+- Creates `public.generate_offer_tracking_code(uuid, uuid)` — SECURITY DEFINER, idempotent per (offer, counselor), staff-gated. GRANT EXECUTE to `authenticated`.
+- Creates `public.fn_increment_redemption_count()` + trigger `trg_client_offers_redemption` on `public.client_offers` (AFTER INSERT OR UPDATE OF status) to maintain `offers.redemption_count`.
+- Creates `public.log_offer_event(...)` — SECURITY DEFINER append helper for `offer_events`, gated to staff or portal user for the client. GRANT EXECUTE to `authenticated`.
 
 ### Guarantees
-- No table, column, policy, trigger, or other function is created or altered.
-- Idempotent via `CREATE OR REPLACE FUNCTION` and re-issuable `GRANT` / `COMMENT`.
-- SQL is applied exactly as supplied — no reordering, edits, or additions.
+- No table, column, policy, or unrelated function is created or altered.
+- No change to `client_invoices` or any financial logic.
+- Idempotent: `CREATE OR REPLACE` on functions; trigger dropped + recreated.
+- SQL applied exactly as supplied — no reordering, edits, or additions.
 
 ### After applying
-- Report the generated migration filename.
-- Confirm success (and surface any linter warnings, though none are expected to be caused by this change).
+- Report the generated migration filename and confirm success.
+- Surface any new linter warnings caused by this migration (none expected).
 - No code changes, no follow-up migrations.
