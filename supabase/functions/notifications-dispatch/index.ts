@@ -296,28 +296,90 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Send via smtp-send (one row per primary recipient) ─────────────────
+    // ── Send: queue path (QUEUE_EMAILS=true) or direct path (fallback) ─────
     // smtp-send doesn't support cc/bcc fields directly, so we fan out as
     // separate sends to each address; metadata.category keeps them grouped
     // in app_email_logs for auditing.
-    const category = `notif:${eventType}`;
-    const recipients = [...(primary && !isSuppressed(primary) ? [primary] : []), ...ccList, ...bccList];
+    //
+    // Queue path (QUEUE_EMAILS=true):
+    //   Enqueues into notification_emails pgmq queue.
+    //   process-notification-email-queue worker drains → smtp-send.
+    //   Provides async delivery, retry (up to 3), and DLQ.
+    //
+    // Direct path (QUEUE_EMAILS=false or unset):
+    //   Calls smtp-send synchronously. Existing behaviour — no retry.
+    //   Instant rollback: set QUEUE_EMAILS=false in edge function secrets.
+    const queueEmails = Deno.env.get("QUEUE_EMAILS") === "true";
+    const category    = `notif:${eventType}`;
+    const recipients  = [...(primary && !isSuppressed(primary) ? [primary] : []), ...ccList, ...bccList];
 
     const sendResults: any[] = [];
     for (const to of recipients) {
-      try {
-        console.info("[notif] smtp_send_attempt", { to, category, subject });
-        const r = await fetch(`${url}/functions/v1/smtp-send`, {
-          method: "POST",
-          headers: { Authorization: auth, "Content-Type": "application/json" },
-          body: JSON.stringify({ to, subject, html, category, entity_id: payload?.entity_id ?? null }),
+      const messageId = `notif:${eventType}:${clientId ?? "none"}:${to}:${Date.now()}`;
+
+      if (queueEmails) {
+        // ── Queue path ────────────────────────────────────────────────────
+        console.info("[notification-email-debug] enqueue_start", {
+          to,
+          event_type: eventType,
+          message_id: messageId,
+          client_id:  clientId,
         });
-        const j = await r.json().catch(() => ({}));
-        sendResults.push({ to, ok: r.ok, ...j });
-        console.info("[notif] smtp_send_result", { to, ok: r.ok, status: r.status, log_id: (j as any)?.log_id });
-      } catch (e) {
-        sendResults.push({ to, ok: false, error: String(e) });
-        console.error("[notif] smtp_send_exception", { to, error: String(e) });
+        const { error: enqErr } = await admin.rpc("enqueue_email", {
+          queue_name: "notification_emails",
+          payload: {
+            // smtp-send fields (passed through unchanged by worker)
+            to,
+            subject,
+            html,
+            category,
+            entity_id:     payload?.entity_id ?? null,
+            // Queue metadata (used by worker for dedup, TTL, retry, timeline)
+            message_id:    messageId,
+            label:         `notif:${eventType}`,
+            queued_at:     new Date().toISOString(),
+            client_id:     clientId,
+            actor_user_id: u.user.id,
+            event_type:    eventType,
+          },
+        });
+        if (enqErr) {
+          console.error("[notification-email-debug] enqueue_error", {
+            to,
+            event_type: eventType,
+            message_id: messageId,
+            error:      enqErr.message,
+          });
+          sendResults.push({ to, ok: false, queued: false, error: enqErr.message });
+        } else {
+          console.info("[notification-email-debug] enqueue_success", {
+            to,
+            event_type: eventType,
+            message_id: messageId,
+          });
+          sendResults.push({ to, ok: true, queued: true, message_id: messageId });
+        }
+      } else {
+        // ── Direct path (fallback / QUEUE_EMAILS not set or false) ────────
+        console.info("[notification-email-debug] fallback_direct_send", {
+          to,
+          event_type: eventType,
+          reason:     "QUEUE_EMAILS_not_true",
+        });
+        try {
+          console.info("[notif] smtp_send_attempt", { to, category, subject });
+          const r = await fetch(`${url}/functions/v1/smtp-send`, {
+            method: "POST",
+            headers: { Authorization: auth, "Content-Type": "application/json" },
+            body: JSON.stringify({ to, subject, html, category, entity_id: payload?.entity_id ?? null }),
+          });
+          const j = await r.json().catch(() => ({}));
+          sendResults.push({ to, ok: r.ok, ...j });
+          console.info("[notif] smtp_send_result", { to, ok: r.ok, status: r.status, log_id: (j as any)?.log_id });
+        } catch (e) {
+          sendResults.push({ to, ok: false, error: String(e) });
+          console.error("[notif] smtp_send_exception", { to, error: String(e) });
+        }
       }
     }
 
