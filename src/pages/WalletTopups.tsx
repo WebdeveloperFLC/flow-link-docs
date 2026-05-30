@@ -44,6 +44,7 @@ const fmt = (n: number, ccy: string) =>
 
 interface WalletRow {
   id: string;
+  name: string | null;
   counselor_id: string;
   period_key: string;
   currency: string;
@@ -80,6 +81,7 @@ export default function WalletTopups() {
 
   const [cw, setCw] = useState({
     counselor_id: "",
+    name: "",
     currency: "INR",
     max_percent: "10",
     max_amount: "",
@@ -108,7 +110,7 @@ export default function WalletTopups() {
       (supabase as any)
         .from("discount_wallets")
         .select(
-          "id, counselor_id, period_key, currency, balance, max_percent_per_client, max_amount_per_client, rollover_policy, budget_kind, valid_from, valid_to, scope_country_tag, scope_master_key, scope_sub_category, scope_service_code",
+          "id, name, counselor_id, period_key, currency, balance, max_percent_per_client, max_amount_per_client, rollover_policy, budget_kind, valid_from, valid_to, scope_country_tag, scope_master_key, scope_sub_category, scope_service_code",
         )
         .eq("period_key", period)
         .order("created_at", { ascending: false }),
@@ -179,7 +181,9 @@ export default function WalletTopups() {
       const isMtm = cw.budget_kind === "month_to_month";
       const payload: any = {
         counselor_id: cw.counselor_id,
-        period_key: period,
+        // advance offers: file under the month of valid_from; month-to-month uses the page period
+        period_key: isMtm ? period : (cw.valid_from && cw.valid_from.slice(0, 7)) || period,
+        name: cw.name.trim() || (isMtm ? `${period} budget` : null),
         currency: cw.currency,
         balance: 0,
         max_percent_per_client: Number(cw.max_percent) || 0,
@@ -200,6 +204,7 @@ export default function WalletTopups() {
       setCw({
         ...cw,
         counselor_id: "",
+        name: "",
         scope_country: "",
         scope_category: "",
         scope_sub: "",
@@ -322,6 +327,23 @@ export default function WalletTopups() {
                 <option value="festive">Festive offer</option>
                 <option value="scoped">Scoped offer</option>
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-xs text-muted-foreground">
+                Offer name {cw.budget_kind !== "month_to_month" ? "" : "(optional)"}
+              </label>
+              <Input
+                className="mt-1"
+                value={cw.name}
+                onChange={(e) => setCw({ ...cw, name: e.target.value })}
+                placeholder={
+                  cw.budget_kind === "festive"
+                    ? "e.g. Diwali Offer"
+                    : cw.budget_kind === "scoped"
+                      ? "e.g. Canada coaching budget"
+                      : "auto if blank"
+                }
+              />
             </div>
             <div>
               <label className="text-xs text-muted-foreground">Currency</label>
@@ -490,7 +512,7 @@ export default function WalletTopups() {
                 <option value="">Select…</option>
                 {wallets.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {nameOf(w.counselor_id)} · {fmt(w.balance, w.currency)}
+                    {nameOf(w.counselor_id)} · {w.name ?? w.budget_kind} · {fmt(w.balance, w.currency)}
                   </option>
                 ))}
               </select>
@@ -555,6 +577,7 @@ export default function WalletTopups() {
                 <thead className="text-left text-muted-foreground border-b">
                   <tr>
                     <th className="py-2 pr-4">Counselor</th>
+                    <th className="py-2 pr-4">Name</th>
                     <th className="py-2 pr-4">Kind</th>
                     <th className="py-2 pr-4">Scope</th>
                     <th className="py-2 pr-4 text-right">Balance</th>
@@ -577,6 +600,7 @@ export default function WalletTopups() {
                     return (
                       <tr key={w.id} className="border-b last:border-0">
                         <td className="py-2 pr-4">{nameOf(w.counselor_id)}</td>
+                        <td className="py-2 pr-4">{w.name ?? "—"}</td>
                         <td className="py-2 pr-4 capitalize">{w.budget_kind.replace(/_/g, "-")}</td>
                         <td className="py-2 pr-4 text-muted-foreground">{scope || "—"}</td>
                         <td className="py-2 pr-4 text-right">{fmt(w.balance, w.currency)}</td>
