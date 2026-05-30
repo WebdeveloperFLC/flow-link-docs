@@ -54,6 +54,7 @@ import {
   Calculator,
   Settings2,
   Gift,
+  CalendarClock,
 } from "lucide-react";
 import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -112,6 +113,7 @@ const incentivesNav: NavItem[] = [
 const walletNav: NavItem[] = [
   { to: "/incentives/give-discount", icon: Gift, label: "Give Discount" },
   { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet Top-ups", adminOnly: true },
+  { to: "/incentives/period-close", icon: CalendarClock, label: "Period Close", adminOnly: true },
 ];
 
 const offersNav: NavItem[] = [{ to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true }];
