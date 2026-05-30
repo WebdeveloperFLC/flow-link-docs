@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.incentive-calculate-run]
 verify_jwt = false
+
+[functions.offers-lifecycle-tick]
+verify_jwt = false
