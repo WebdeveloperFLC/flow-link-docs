@@ -89,18 +89,6 @@ export function ClientOffersPanel({ clientId }: { clientId: string }) {
       setEligible(
         ((elig ?? []) as OfferRow[]).filter((o) => !attachedIds.has(o.id))
       );
-
-      try {
-        await supabase.rpc("log_offer_event", {
-          _offer_id: null,
-          _client_id: clientId,
-          _counselor_id: user?.id ?? null,
-          _event_type: "viewed",
-          _channel: "staff_panel",
-        });
-      } catch {
-        /* analytics must never block the panel */
-      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to load offers");
     } finally {
