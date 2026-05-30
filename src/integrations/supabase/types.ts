@@ -5045,10 +5045,12 @@ export type Database = {
           amount_paid_in_cad: number | null
           amount_paid_in_inr: number | null
           amount_paid_in_usd: number | null
+          applied_offer_id: string | null
           archived_at: string | null
           archived_by: string | null
           assigned_accounts_user_id: string | null
           assigned_counselor_id: string | null
+          attributed_counselor_id: string | null
           balance_due_in_cad: number | null
           balance_due_in_inr: number | null
           balance_due_in_usd: number | null
@@ -5104,6 +5106,7 @@ export type Database = {
           invoice_viewed_at: string | null
           invoice_year: number | null
           line_items: Json
+          offer_discount_amount: number
           paid_at: string | null
           payment_allocations: Json | null
           payment_posted_by: string | null
@@ -5120,6 +5123,7 @@ export type Database = {
           subtotal_in_cad: number | null
           subtotal_in_inr: number | null
           subtotal_in_usd: number | null
+          tracking_code: string | null
           updated_at: string
         }
         Insert: {
@@ -5128,10 +5132,12 @@ export type Database = {
           amount_paid_in_cad?: number | null
           amount_paid_in_inr?: number | null
           amount_paid_in_usd?: number | null
+          applied_offer_id?: string | null
           archived_at?: string | null
           archived_by?: string | null
           assigned_accounts_user_id?: string | null
           assigned_counselor_id?: string | null
+          attributed_counselor_id?: string | null
           balance_due_in_cad?: number | null
           balance_due_in_inr?: number | null
           balance_due_in_usd?: number | null
@@ -5187,6 +5193,7 @@ export type Database = {
           invoice_viewed_at?: string | null
           invoice_year?: number | null
           line_items?: Json
+          offer_discount_amount?: number
           paid_at?: string | null
           payment_allocations?: Json | null
           payment_posted_by?: string | null
@@ -5203,6 +5210,7 @@ export type Database = {
           subtotal_in_cad?: number | null
           subtotal_in_inr?: number | null
           subtotal_in_usd?: number | null
+          tracking_code?: string | null
           updated_at?: string
         }
         Update: {
@@ -5211,10 +5219,12 @@ export type Database = {
           amount_paid_in_cad?: number | null
           amount_paid_in_inr?: number | null
           amount_paid_in_usd?: number | null
+          applied_offer_id?: string | null
           archived_at?: string | null
           archived_by?: string | null
           assigned_accounts_user_id?: string | null
           assigned_counselor_id?: string | null
+          attributed_counselor_id?: string | null
           balance_due_in_cad?: number | null
           balance_due_in_inr?: number | null
           balance_due_in_usd?: number | null
@@ -5270,6 +5280,7 @@ export type Database = {
           invoice_viewed_at?: string | null
           invoice_year?: number | null
           line_items?: Json
+          offer_discount_amount?: number
           paid_at?: string | null
           payment_allocations?: Json | null
           payment_posted_by?: string | null
@@ -5286,9 +5297,17 @@ export type Database = {
           subtotal_in_cad?: number | null
           subtotal_in_inr?: number | null
           subtotal_in_usd?: number | null
+          tracking_code?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "client_invoices_applied_offer_fkey"
+            columns: ["applied_offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "client_invoices_branch_id_fkey"
             columns: ["branch_id"]
