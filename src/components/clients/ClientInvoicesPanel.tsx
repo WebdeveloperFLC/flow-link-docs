@@ -703,6 +703,18 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
   const [dueDate, setDueDate] = useState<string>("");
   const [saving, setSaving] = useState(false);
 
+  // Phase 2: offers applicable to this client (eligible via RPC).
+  type EligibleOffer = {
+    id: string;
+    title: string;
+    discount_type: string;
+    discount_value: number;
+    max_discount_amount: number | null;
+    promo_code: string | null;
+  };
+  const [offers, setOffers] = useState<EligibleOffer[]>([]);
+  const [selectedOfferId, setSelectedOfferId] = useState<string>("none");
+
   useEffect(() => {
     (async () => {
       const [s, b, f] = await Promise.all([
@@ -720,6 +732,30 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       setEntities((f.data ?? []) as any);
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.rpc("offers_eligible_for_client", {
+          _client_id: clientId,
+        });
+        if (error) throw error;
+        setOffers(
+          ((data ?? []) as any[]).map((o) => ({
+            id: o.id,
+            title: o.title,
+            discount_type: o.discount_type,
+            discount_value: Number(o.discount_value) || 0,
+            max_discount_amount: o.max_discount_amount == null ? null : Number(o.max_discount_amount),
+            promo_code: o.promo_code ?? null,
+          })),
+        );
+      } catch {
+        // Offers are optional; never block invoice creation if this fails.
+        setOffers([]);
+      }
+    })();
+  }, [clientId]);
 
   const lineItems = useMemo(
     () =>
@@ -745,6 +781,23 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
 
   const total = lineItems.reduce((s, l) => s + l.total, 0);
 
+  // Phase 2: compute the offer discount against the subtotal (invoice currency).
+  const selectedOffer = offers.find((o) => o.id === selectedOfferId) || null;
+  const discount = useMemo(() => {
+    if (!selectedOffer || total <= 0) return 0;
+    let d =
+      selectedOffer.discount_type === "percentage"
+        ? (total * selectedOffer.discount_value) / 100
+        : selectedOffer.discount_value;
+    if (selectedOffer.max_discount_amount != null) {
+      d = Math.min(d, selectedOffer.max_discount_amount);
+    }
+    // Never discount below zero or above the subtotal.
+    return Math.max(0, Math.min(d, total));
+  }, [selectedOffer, total]);
+
+  const netTotal = Math.max(0, total - discount);
+
   const save = async () => {
     if (lineItems.length === 0) {
       toast.error("Pick at least one service");
@@ -754,14 +807,27 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     const { data: u } = await supabase.auth.getUser();
     const invoiceId = crypto.randomUUID();
     const invoiceNumber = `TEMP-${crypto.randomUUID()}`;
+
+    // Phase 2: distribute the discount proportionally across line items so the
+    // sum of line totals matches the reduced invoice amount. 'amount' below is
+    // the NET (reduced) total — the single source of truth fn_recompute_invoice_totals reads.
+    const discountedLineItems =
+      discount > 0 && total > 0
+        ? lineItems.map((l) => {
+            const share = (l.total / total) * discount;
+            const lineNet = Math.max(0, l.total - share);
+            return { ...l, discount: Number(share.toFixed(2)), total: Number(lineNet.toFixed(2)) };
+          })
+        : lineItems;
+
     const { error } = await supabase.from("client_invoices").insert({
       id: invoiceId,
       client_id: clientId,
       invoice_number: invoiceNumber,
-      amount: total,
+      amount: netTotal,
       currency,
       status: "draft",
-      line_items: lineItems,
+      line_items: discountedLineItems,
       due_date: dueDate || null,
       branch_id: branchId ?? null,
       firm_entity_id: firmId ?? null,
@@ -778,9 +844,14 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       fx_rate_to_usd: 1,
       fx_provider: "manual",
       fx_manual_override: true,
-      subtotal_in_inr: total,
-      subtotal_in_cad: total,
-      subtotal_in_usd: total,
+      subtotal_in_inr: netTotal,
+      subtotal_in_cad: netTotal,
+      subtotal_in_usd: netTotal,
+      // Phase 2 attribution (record-keeping; does not drive totals)
+      applied_offer_id: selectedOffer ? selectedOffer.id : null,
+      offer_discount_amount: discount > 0 ? Number(discount.toFixed(2)) : 0,
+      attributed_counselor_id: selectedOffer ? (u?.user?.id ?? null) : null,
+      tracking_code: null,
     } as any);
     setSaving(false);
     if (error) {
@@ -803,12 +874,12 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
         category: "invoice_created",
         severity: "info",
         title: `Invoice created: ${invoiceNumber}`,
-        body: `${(cli as any)?.full_name ?? "Client"} • ${currency} ${total.toFixed(2)}`,
+        body: `${(cli as any)?.full_name ?? "Client"} • ${currency} ${netTotal.toFixed(2)}`,
         link: `/clients/${clientId}`,
         entityType: "client_invoice",
         entityId: invoiceId,
         dedupeKey: `invoice:${invoiceId}:created`,
-        metadata: { client_id: clientId, amount: total, currency },
+        metadata: { client_id: clientId, amount: netTotal, currency },
       });
     } catch (e) {
       console.warn("[invoice] inapp_notif_throw", e);
@@ -910,12 +981,39 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
             </tbody>
           </table>
         </div>
-        <div className="text-right font-medium mt-2">Total: {money(total, currency)}</div>
+
+        {/* Phase 2: optional offer/discount at draft creation */}
+        <div className="mt-3">
+          <Label>Apply offer (optional)</Label>
+          <Select value={selectedOfferId} onValueChange={setSelectedOfferId}>
+            <SelectTrigger>
+              <SelectValue placeholder="No offer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No offer</SelectItem>
+              {offers.map((o) => (
+                <SelectItem key={o.id} value={o.id}>
+                  {o.title}
+                  {o.discount_type === "percentage"
+                    ? ` — ${o.discount_value}% off`
+                    : ` — ${currency} ${o.discount_value} off`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="mt-2 text-right text-sm space-y-0.5">
+          <div className="text-muted-foreground">Subtotal: {money(total, currency)}</div>
+          {discount > 0 && <div className="text-primary">Offer discount: −{money(discount, currency)}</div>}
+          <div className="font-medium">Total: {money(netTotal, currency)}</div>
+        </div>
+
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={saving || total <= 0}>
+          <Button onClick={save} disabled={saving || netTotal <= 0}>
             {saving ? "Saving…" : "Create draft"}
           </Button>
         </DialogFooter>
