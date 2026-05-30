@@ -105,7 +105,7 @@ export default function WalletTopups() {
     setLoading(true);
     const [pr, w, sc, ws] = await Promise.all([
       supabase.from("profiles").select("id, full_name, email").order("full_name"),
-      supabase
+      (supabase as any)
         .from("discount_wallets")
         .select(
           "id, counselor_id, period_key, currency, balance, max_percent_per_client, max_amount_per_client, rollover_policy, budget_kind, valid_from, valid_to, scope_country_tag, scope_master_key, scope_sub_category, scope_service_code",
@@ -116,7 +116,7 @@ export default function WalletTopups() {
         .from("service_catalogue")
         .select("master_key, sub_category, service_name, service_code, country_tag")
         .eq("is_active", true),
-      supabase.from("wallet_settings").select("grace_unit, grace_days").eq("id", 1).maybeSingle(),
+      (supabase as any).from("wallet_settings").select("grace_unit, grace_days").eq("id", 1).maybeSingle(),
     ]);
     setProfiles(((pr.data ?? []) as any[]).map((p) => ({ id: p.id, name: p.full_name ?? p.email ?? p.id })));
     setWallets((w.data ?? []) as WalletRow[]);
@@ -153,7 +153,7 @@ export default function WalletTopups() {
   }, [services, cw.scope_category, cw.scope_country, cw.scope_sub]);
 
   async function saveGrace() {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("wallet_settings")
       .update({ grace_unit: graceUnit, grace_days: Number(graceDays) || 30, updated_at: new Date().toISOString() })
       .eq("id", 1);
@@ -194,7 +194,7 @@ export default function WalletTopups() {
         scope_sub_category: cw.budget_kind === "scoped" ? cw.scope_sub || null : null,
         scope_service_code: cw.budget_kind === "scoped" ? cw.scope_service || null : null,
       };
-      const { error } = await supabase.from("discount_wallets").insert([payload]);
+      const { error } = await (supabase as any).from("discount_wallets").insert([payload]);
       if (error) throw error;
       toast({ title: "Wallet created", description: `${nameOf(cw.counselor_id)} · ${period}` });
       setCw({
