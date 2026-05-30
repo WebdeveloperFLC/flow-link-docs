@@ -141,6 +141,7 @@ import MyIncentives from "@/pages/MyIncentives";
 import IncentivesAdmin from "@/pages/IncentivesAdmin";
 import GiveDiscount from "@/pages/GiveDiscount";
 import WalletTopups from "@/pages/WalletTopups";
+import PeriodClose from "@/pages/PeriodClose";
 import IncentivePlans from "@/pages/IncentivePlans";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
 import AiStudioPage from "./digital-success/ai/AiStudioPage";
@@ -213,6 +214,7 @@ const App = () => (
             <Route path="/incentives/plans" element={<ProtectedRoute><IncentivePlans /></ProtectedRoute>} />
             <Route path="/incentives/give-discount" element={<ProtectedRoute><GiveDiscount /></ProtectedRoute>} />
             <Route path="/incentives/wallet-topups" element={<ProtectedRoute><WalletTopups /></ProtectedRoute>} />
+            <Route path="/incentives/period-close" element={<ProtectedRoute><PeriodClose /></ProtectedRoute>} />
             <Route path="/digital-success" element={<ProtectedRoute><DigitalSuccessHomePage /></ProtectedRoute>} />
             <Route path="/digital-success/ai" element={<ProtectedRoute><AiStudioPage /></ProtectedRoute>} />
             <Route path="/ai-help" element={<ProtectedRoute><AiHelpPage /></ProtectedRoute>} />
