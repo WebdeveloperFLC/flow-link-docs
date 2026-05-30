@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -55,6 +55,7 @@ import {
   Settings2,
   Gift,
 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
@@ -81,8 +82,9 @@ type NavItem = {
   acctAdminOnly?: boolean;
 };
 
-const nav: NavItem[] = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true },
+const dashboardItem: NavItem = { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true };
+
+const crmNav: NavItem[] = [
   { to: "/leads", icon: Flame, label: "Leads" },
   { to: "/leads/cold", icon: Snowflake, label: "Cold Pool" },
   { to: "/leads/new", icon: UserPlus, label: "+ New Lead" },
@@ -92,24 +94,34 @@ const nav: NavItem[] = [
   { to: "/telecaller", icon: Headphones, label: "Telecaller", roles: ["telecaller", "admin", "counselor"] },
   { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
   { to: "/templates", icon: Workflow, label: "Workflows" },
-  { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
-  { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
   { to: "/activity", icon: ScrollText, label: "Activity" },
-  { to: "/ai-help", icon: Sparkles, label: "AI Help" },
-  { to: "/team-access", icon: Share2, label: "Team access" },
-  { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
-  { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
-  { to: "/incentives", icon: Wallet, label: "My Incentives" },
-  { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
-  { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
-  { to: "/incentives/give-discount", icon: Gift, label: "Give Discount" },
-  { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet Top-ups", adminOnly: true },
   {
     to: "/assessment-admin",
     icon: ClipboardCheck,
     label: "Settle Abroad",
     roles: ["admin", "counselor", "telecaller", "documentation"],
   },
+];
+
+const incentivesNav: NavItem[] = [
+  { to: "/incentives", icon: Wallet, label: "My Incentives" },
+  { to: "/incentives/admin", icon: Calculator, label: "Incentives Admin", adminOnly: true },
+  { to: "/incentives/plans", icon: Settings2, label: "Incentive Plans", adminOnly: true },
+];
+
+const walletNav: NavItem[] = [
+  { to: "/incentives/give-discount", icon: Gift, label: "Give Discount" },
+  { to: "/incentives/wallet-topups", icon: Wallet, label: "Wallet Top-ups", adminOnly: true },
+];
+
+const offersNav: NavItem[] = [{ to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true }];
+
+const adminNav: NavItem[] = [
+  { to: "/ai-help", icon: Sparkles, label: "AI Help" },
+  { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
+  { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
+  { to: "/team-access", icon: Share2, label: "Team access" },
+  { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/masters", icon: Database, label: "Masters", adminOnly: true },
   { to: "/settings", icon: SettingsIcon, label: "Settings", adminOnly: true },
   { to: "/settings/telephony", icon: Phone, label: "Phone connect" },
@@ -181,10 +193,15 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { canView: canViewDsh } = useModulePermission("digital_success_hub");
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
+  const location = useLocation();
   const sidebarMode = theme.sidebarMode;
   const iconsOnly = sidebarMode === "icons-only";
   const isHidden = sidebarMode === "hidden";
   const sidebarBg = theme.sidebarStyle === "gradient" ? theme.sidebarGradient : undefined;
+
+  // which collapsible sections are open (multiple allowed). null = not yet initialised.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const toggleSection = (key: string) => setOpenSections((s) => ({ ...s, [key]: !s[key] }));
 
   const navItemClass = (isActive: boolean) =>
     cn(
@@ -208,6 +225,34 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <TooltipTrigger asChild>{link}</TooltipTrigger>
         <TooltipContent side="right">{item.label}</TooltipContent>
       </Tooltip>
+    );
+  };
+
+  // A collapsible section: header toggles open/close; auto-opens if it holds the active route.
+  const renderSection = (key: string, title: string, items: NavItem[]) => {
+    if (items.length === 0) return null;
+    const hasActive = items.some(
+      (i) => location.pathname === i.to || (!i.end && location.pathname.startsWith(i.to + "/")),
+    );
+    // open if user toggled it, or (not yet touched and it contains the active route)
+    const isOpen = openSections[key] ?? hasActive;
+
+    // icons-only mode: no headers, just show all items (tooltips identify them)
+    if (iconsOnly) return <>{items.map(renderNavLink)}</>;
+
+    return (
+      <div>
+        <div className="border-t border-sidebar-border my-2" />
+        <button
+          type="button"
+          onClick={() => toggleSection(key)}
+          className="w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2 hover:text-white transition-colors"
+        >
+          <span>{title}</span>
+          <ChevronDown className={cn("size-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
+        </button>
+        {isOpen && <div className="space-y-1">{items.map(renderNavLink)}</div>}
+      </div>
     );
   };
 
@@ -260,62 +305,58 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-            {nav
-              .filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)))
-              .map(renderNavLink)}
+            {/* Dashboard pinned at top */}
+            {renderNavLink(dashboardItem)}
 
-            {!accountingAccessLoading && hasAccountingAccess && (
-              <>
-                <div className="border-t border-sidebar-border my-2" />
-                {!iconsOnly && (
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-                    Accounting
-                  </div>
-                )}
-                {accountingNav
-                  .filter((i) => {
-                    if (i.acctAdminOnly && !isAcctAdmin) return false;
-                    if (!i.section) return true;
-                    return canAcct(i.section, "view");
-                  })
-                  .map(renderNavLink)}
-              </>
+            {renderSection(
+              "crm",
+              "CRM",
+              crmNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
 
-            {(isAdmin || canViewInstitutions) && (
-              <>
-                <div className="border-t border-sidebar-border my-2" />
-                {!iconsOnly && (
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-                    Institutions
-                  </div>
-                )}
-                {institutionsNav.map(renderNavLink)}
-              </>
+            {renderSection(
+              "incentives",
+              "Incentives",
+              incentivesNav.filter(
+                (i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never)),
+              ),
             )}
 
-            {(isAdmin || isCommissionAdmin || canViewCommissions) && (
-              <>
-                <div className="border-t border-sidebar-border my-2" />
-                {!iconsOnly && (
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-                    Commissions
-                  </div>
-                )}
-                {commissionsNav.map(renderNavLink)}
-              </>
+            {renderSection(
+              "wallet",
+              "Wallet",
+              walletNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
 
-            {(isAdmin || canViewDsh) && (
-              <>
-                <div className="border-t border-sidebar-border my-2" />
-                {!iconsOnly && (
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2">
-                    Marketing
-                  </div>
-                )}
-                {digitalSuccessNav.map(renderNavLink)}
-              </>
+            {renderSection(
+              "offers",
+              "Offers & Discounts",
+              offersNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
+            )}
+
+            {(isAdmin || canViewDsh) && renderSection("digital", "Digital", digitalSuccessNav)}
+
+            {(isAdmin || canViewInstitutions) && renderSection("institution", "Institution", institutionsNav)}
+
+            {(isAdmin || isCommissionAdmin || canViewCommissions) &&
+              renderSection("commissions", "Commissions", commissionsNav)}
+
+            {!accountingAccessLoading &&
+              hasAccountingAccess &&
+              renderSection(
+                "accounts",
+                "Accounts",
+                accountingNav.filter((i) => {
+                  if (i.acctAdminOnly && !isAcctAdmin) return false;
+                  if (!i.section) return true;
+                  return canAcct(i.section, "view");
+                }),
+              )}
+
+            {renderSection(
+              "admin",
+              "Admin & Setup",
+              adminNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
           </nav>
 
