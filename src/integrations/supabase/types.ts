@@ -14090,6 +14090,16 @@ export type Database = {
         Args: { _session_id: string }
         Returns: Json
       }
+      counselor_offer_stats: {
+        Args: { _date_from?: string; _date_to?: string }
+        Returns: {
+          attributed_revenue: number
+          counselor_id: string
+          counselor_name: string
+          redemptions: number
+          total_discount: number
+        }[]
+      }
       create_client: {
         Args: {
           _application_type: string
@@ -14449,6 +14459,20 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      offer_roi_stats: {
+        Args: { _date_from?: string; _date_to?: string }
+        Returns: {
+          claims: number
+          influenced_revenue: number
+          is_active: boolean
+          offer_id: string
+          redemption_rate: number
+          redemptions: number
+          title: string
+          total_discount: number
+          views: number
+        }[]
       }
       offers_eligible_for_client: {
         Args: { _client_id: string; _service_codes?: string[] }
