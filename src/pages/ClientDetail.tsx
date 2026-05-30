@@ -39,6 +39,7 @@ import { AddDocTypeDialog, type ExtraItem } from "@/components/clients/AddDocTyp
 import { ClientProfileCard } from "@/components/clients/ClientProfileCard";
 import { ClientPaymentsCard } from "@/components/clients/ClientPaymentsCard";
 import { ClientServicesCard } from "@/components/clients/ClientServicesCard";
+import { ClientOffersPanel } from "@/components/clients/ClientOffersPanel";
 import { LetterCard } from "@/components/letters/LetterCard";
 import { extractFirstPageText, renderPdfPagesToJpegDataUrls } from "@/lib/extractFirstPageText";
 import { mergeExtractedFields } from "@/lib/extractedFields";
@@ -1016,6 +1017,8 @@ const ClientDetail = () => {
           />
 
           <ClientServicesCard clientId={client.id} canEdit={canUpload} />
+
+          <ClientOffersPanel clientId={client.id} />
 
           <ClientPaymentsCard clientId={client.id} />
 
