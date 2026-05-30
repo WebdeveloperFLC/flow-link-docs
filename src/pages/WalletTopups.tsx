@@ -202,6 +202,7 @@ export default function WalletTopups() {
                     <th className="py-2 pr-4">Counselor</th>
                     <th className="py-2 pr-4 text-right">Balance</th>
                     <th className="py-2 pr-4 text-right">Max %/client</th>
+                    <th className="py-2 pr-4 text-right">Max amount/client</th>
                     <th className="py-2 pr-4">Rollover</th>
                   </tr>
                 </thead>
@@ -211,6 +212,7 @@ export default function WalletTopups() {
                       <td className="py-2 pr-4">{nameOf(w.counselor_id)}</td>
                       <td className="py-2 pr-4 text-right">{fmt(w.balance, w.currency)}</td>
                       <td className="py-2 pr-4 text-right">{w.max_percent_per_client}%</td>
+                      <td className="py-2 pr-4 text-right">{w.max_amount_per_client != null ? fmt(w.max_amount_per_client, w.currency) : "—"}</td>
                       <td className="py-2 pr-4 capitalize">{w.rollover_policy}</td>
                     </tr>
                   ))}
