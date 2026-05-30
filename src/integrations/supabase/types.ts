@@ -6629,46 +6629,82 @@ export type Database = {
           allow_negative: boolean
           balance: number
           branch_id: string | null
+          budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet: string | null
+          carry_to_period: string | null
+          close_outcome: string | null
+          closed_at: string | null
           counselor_id: string
           created_at: string
           currency: string
           id: string
           max_amount_per_client: number | null
           max_percent_per_client: number
+          name: string | null
           period_key: string
           rollover_cap: number | null
           rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag: string | null
+          scope_master_key: string | null
+          scope_service_code: string | null
+          scope_sub_category: string | null
           updated_at: string
+          valid_from: string | null
+          valid_to: string | null
         }
         Insert: {
           allow_negative?: boolean
           balance?: number
           branch_id?: string | null
+          budget_kind?: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet?: string | null
+          carry_to_period?: string | null
+          close_outcome?: string | null
+          closed_at?: string | null
           counselor_id: string
           created_at?: string
           currency?: string
           id?: string
           max_amount_per_client?: number | null
           max_percent_per_client?: number
+          name?: string | null
           period_key: string
           rollover_cap?: number | null
           rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag?: string | null
+          scope_master_key?: string | null
+          scope_service_code?: string | null
+          scope_sub_category?: string | null
           updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Update: {
           allow_negative?: boolean
           balance?: number
           branch_id?: string | null
+          budget_kind?: Database["public"]["Enums"]["wallet_budget_kind"]
+          carried_to_wallet?: string | null
+          carry_to_period?: string | null
+          close_outcome?: string | null
+          closed_at?: string | null
           counselor_id?: string
           created_at?: string
           currency?: string
           id?: string
           max_amount_per_client?: number | null
           max_percent_per_client?: number
+          name?: string | null
           period_key?: string
           rollover_cap?: number | null
           rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
+          scope_country_tag?: string | null
+          scope_master_key?: string | null
+          scope_service_code?: string | null
+          scope_sub_category?: string | null
           updated_at?: string
+          valid_from?: string | null
+          valid_to?: string | null
         }
         Relationships: [
           {
@@ -6676,6 +6712,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discount_wallets_carried_to_wallet_fkey"
+            columns: ["carried_to_wallet"]
+            isOneToOne: false
+            referencedRelation: "discount_wallets"
             referencedColumns: ["id"]
           },
         ]
@@ -13206,6 +13249,7 @@ export type Database = {
         Row: {
           amount: number
           applied_at: string | null
+          applies_service_code: string | null
           approved_by: string | null
           client_id: string | null
           client_offer_id: string | null
@@ -13227,6 +13271,7 @@ export type Database = {
         Insert: {
           amount: number
           applied_at?: string | null
+          applies_service_code?: string | null
           approved_by?: string | null
           client_id?: string | null
           client_offer_id?: string | null
@@ -13248,6 +13293,7 @@ export type Database = {
         Update: {
           amount?: number
           applied_at?: string | null
+          applies_service_code?: string | null
           approved_by?: string | null
           client_id?: string | null
           client_offer_id?: string | null
@@ -13385,6 +13431,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wallet_settings: {
+        Row: {
+          grace_days: number
+          grace_unit: string
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          grace_days?: number
+          grace_unit?: string
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          grace_days?: number
+          grace_unit?: string
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       wallet_topup_rules: {
         Row: {
@@ -14200,6 +14267,8 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      fn_close_due_wallets: { Args: never; Returns: number }
+      fn_close_wallet: { Args: { _wallet_id: string }; Returns: string }
       fn_convert: {
         Args: {
           _amount: number
@@ -14212,6 +14281,25 @@ export type Database = {
       fn_fx_rate: {
         Args: { _ccy: string; _period_key: string }
         Returns: number
+      }
+      fn_get_or_create_wallet: {
+        Args: {
+          _branch: string
+          _counselor: string
+          _currency: string
+          _max_amt: number
+          _max_pct: number
+          _period: string
+        }
+        Returns: string
+      }
+      fn_next_period_key: {
+        Args: { _period_key: string; _valid_to: string }
+        Returns: string
+      }
+      fn_reinstate_wallet: {
+        Args: { _to_period?: string; _wallet_id: string }
+        Returns: string
       }
       generate_client_registration_number: { Args: never; Returns: string }
       generate_invoice_number: {
@@ -14516,6 +14604,7 @@ export type Database = {
         | "viewer"
         | "client"
       wallet_alloc_status: "reserved" | "applied" | "reversed"
+      wallet_budget_kind: "month_to_month" | "festive" | "scoped"
       wallet_rollover_policy: "expire" | "partial" | "full"
     }
     CompositeTypes: {
@@ -14767,6 +14856,7 @@ export const Constants = {
         "client",
       ],
       wallet_alloc_status: ["reserved", "applied", "reversed"],
+      wallet_budget_kind: ["month_to_month", "festive", "scoped"],
       wallet_rollover_policy: ["expire", "partial", "full"],
     },
   },
