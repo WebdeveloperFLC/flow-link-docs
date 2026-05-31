@@ -2763,6 +2763,8 @@ export type Database = {
       }
       calendar_events: {
         Row: {
+          appointment_type: string | null
+          cancellation_reason: string | null
           created_at: string
           end_time: string
           event_date: string
@@ -2770,6 +2772,7 @@ export type Database = {
           event_title: string | null
           host_timezone: string
           id: string
+          internal_notes: string | null
           meeting_type_id: string
           notes: string | null
           purpose: string | null
@@ -2780,6 +2783,8 @@ export type Database = {
           visitor_timezone: string
         }
         Insert: {
+          appointment_type?: string | null
+          cancellation_reason?: string | null
           created_at?: string
           end_time: string
           event_date: string
@@ -2787,6 +2792,7 @@ export type Database = {
           event_title?: string | null
           host_timezone: string
           id?: string
+          internal_notes?: string | null
           meeting_type_id: string
           notes?: string | null
           purpose?: string | null
@@ -2797,6 +2803,8 @@ export type Database = {
           visitor_timezone: string
         }
         Update: {
+          appointment_type?: string | null
+          cancellation_reason?: string | null
           created_at?: string
           end_time?: string
           event_date?: string
@@ -2804,6 +2812,7 @@ export type Database = {
           event_title?: string | null
           host_timezone?: string
           id?: string
+          internal_notes?: string | null
           meeting_type_id?: string
           notes?: string | null
           purpose?: string | null
@@ -2819,6 +2828,38 @@ export type Database = {
             columns: ["meeting_type_id"]
             isOneToOne: false
             referencedRelation: "calendar_meeting_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_internal_notes: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          event_id: string
+          id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          event_id: string
+          id?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_internal_notes_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
             referencedColumns: ["id"]
           },
         ]
@@ -14470,6 +14511,8 @@ export type Database = {
       calendar_event_transition: {
         Args: { _action: string; _event_id: string }
         Returns: {
+          appointment_type: string | null
+          cancellation_reason: string | null
           created_at: string
           end_time: string
           event_date: string
@@ -14477,6 +14520,7 @@ export type Database = {
           event_title: string | null
           host_timezone: string
           id: string
+          internal_notes: string | null
           meeting_type_id: string
           notes: string | null
           purpose: string | null
@@ -15026,6 +15070,7 @@ export type Database = {
         | "completed"
         | "cancelled"
         | "declined"
+        | "no_show"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -15274,6 +15319,7 @@ export const Constants = {
         "completed",
         "cancelled",
         "declined",
+        "no_show",
       ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
