@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProfileSettingsCard } from "../components/ProfileSettingsCard";
+import { BookingLinkCard } from "../components/BookingLinkCard";
 import { BookingPreferencesCard } from "../components/BookingPreferencesCard";
 import { WorkingHoursEditor } from "../components/WorkingHoursEditor";
 import { BreaksEditor } from "../components/BreaksEditor";
@@ -21,7 +22,10 @@ export default function CalendarSettings() {
             <TabsTrigger value="blocked">Blocked dates</TabsTrigger>
             <TabsTrigger value="prefs">Preferences</TabsTrigger>
           </TabsList>
-          <TabsContent value="profile" className="mt-4"><ProfileSettingsCard /></TabsContent>
+          <TabsContent value="profile" className="mt-4 space-y-4">
+            <ProfileSettingsCard />
+            <BookingLinkCard />
+          </TabsContent>
           <TabsContent value="availability" className="mt-4 space-y-4">
             <WorkingHoursEditor />
             <BreaksEditor />
