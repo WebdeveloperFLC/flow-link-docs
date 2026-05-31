@@ -2645,6 +2645,367 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_availability: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calendar_event_audit: {
+        Row: {
+          actor_id: string | null
+          actor_kind: string
+          at: string
+          event_id: string
+          from_status:
+            | Database["public"]["Enums"]["calendar_event_status"]
+            | null
+          id: string
+          to_status: Database["public"]["Enums"]["calendar_event_status"]
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_kind?: string
+          at?: string
+          event_id: string
+          from_status?:
+            | Database["public"]["Enums"]["calendar_event_status"]
+            | null
+          id?: string
+          to_status: Database["public"]["Enums"]["calendar_event_status"]
+        }
+        Update: {
+          actor_id?: string | null
+          actor_kind?: string
+          at?: string
+          event_id?: string
+          from_status?:
+            | Database["public"]["Enums"]["calendar_event_status"]
+            | null
+          id?: string
+          to_status?: Database["public"]["Enums"]["calendar_event_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_audit_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          created_at: string
+          end_time: string
+          event_date: string
+          event_reference: string | null
+          event_title: string | null
+          host_timezone: string
+          id: string
+          meeting_type_id: string
+          notes: string | null
+          purpose: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["calendar_event_status"]
+          updated_at: string
+          user_id: string
+          visitor_timezone: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          event_date: string
+          event_reference?: string | null
+          event_title?: string | null
+          host_timezone: string
+          id?: string
+          meeting_type_id: string
+          notes?: string | null
+          purpose?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["calendar_event_status"]
+          updated_at?: string
+          user_id: string
+          visitor_timezone: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          event_date?: string
+          event_reference?: string | null
+          event_title?: string | null
+          host_timezone?: string
+          id?: string
+          meeting_type_id?: string
+          notes?: string | null
+          purpose?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["calendar_event_status"]
+          updated_at?: string
+          user_id?: string
+          visitor_timezone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_meeting_type_id_fkey"
+            columns: ["meeting_type_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_meeting_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_meeting_types: {
+        Row: {
+          buffer_minutes: number
+          color_code: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          meeting_name: string
+          slot_duration_minutes: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          buffer_minutes?: number
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          meeting_name: string
+          slot_duration_minutes: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          buffer_minutes?: number
+          color_code?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          meeting_name?: string
+          slot_duration_minutes?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calendar_notifications: {
+        Row: {
+          delivery_status: string
+          event_id: string
+          id: string
+          notification_type: string
+          recipient_email: string
+          sent_at: string | null
+        }
+        Insert: {
+          delivery_status?: string
+          event_id: string
+          id?: string
+          notification_type: string
+          recipient_email: string
+          sent_at?: string | null
+        }
+        Update: {
+          delivery_status?: string
+          event_id?: string
+          id?: string
+          notification_type?: string
+          recipient_email?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_notifications_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_participants: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          designation: string | null
+          email: string
+          event_id: string
+          full_name: string
+          id: string
+          mobile_number: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          designation?: string | null
+          email: string
+          event_id: string
+          full_name: string
+          id?: string
+          mobile_number: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          designation?: string | null
+          email?: string
+          event_id?: string
+          full_name?: string
+          id?: string
+          mobile_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_profiles: {
+        Row: {
+          booking_slug: string
+          company_logo: string | null
+          company_name: string | null
+          created_at: string
+          designation: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          profile_photo: string | null
+          short_bio: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_slug: string
+          company_logo?: string | null
+          company_name?: string | null
+          created_at?: string
+          designation?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          profile_photo?: string | null
+          short_bio?: string | null
+          timezone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_slug?: string
+          company_logo?: string | null
+          company_name?: string | null
+          created_at?: string
+          designation?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          profile_photo?: string | null
+          short_bio?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      calendar_tokens: {
+        Row: {
+          created_at: string
+          event_id: string
+          expires_at: string
+          id: string
+          purpose: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          expires_at: string
+          id?: string
+          purpose?: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_tokens_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_unavailable_dates: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          unavailable_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          unavailable_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          unavailable_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       call_campaigns: {
         Row: {
           active_from: string | null
@@ -14035,6 +14396,52 @@ export type Database = {
         Args: { _lead_id: string; _uid: string }
         Returns: boolean
       }
+      calendar_available_slots: {
+        Args: { _date: string; _meeting_type_id: string; _slug: string }
+        Returns: string[]
+      }
+      calendar_create_booking: {
+        Args: {
+          _date: string
+          _meeting_type_id: string
+          _notes: string
+          _purpose: string
+          _slug: string
+          _start_time: string
+          _visitor: Json
+          _visitor_timezone: string
+        }
+        Returns: Json
+      }
+      calendar_event_transition: {
+        Args: { _action: string; _event_id: string }
+        Returns: {
+          created_at: string
+          end_time: string
+          event_date: string
+          event_reference: string | null
+          event_title: string | null
+          host_timezone: string
+          id: string
+          meeting_type_id: string
+          notes: string | null
+          purpose: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["calendar_event_status"]
+          updated_at: string
+          user_id: string
+          visitor_timezone: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "calendar_events"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      calendar_generate_slug: { Args: { _base: string }; Returns: string }
+      calendar_resolve_profile: { Args: { _slug: string }; Returns: Json }
+      calendar_validate_token: { Args: { _token: string }; Returns: string }
       can_edit_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -14559,6 +14966,12 @@ export type Database = {
         | "submitted"
         | "counselor_reviewed"
         | "archived"
+      calendar_event_status:
+        | "pending"
+        | "scheduled"
+        | "completed"
+        | "cancelled"
+        | "declined"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -14800,6 +15213,13 @@ export const Constants = {
         "submitted",
         "counselor_reviewed",
         "archived",
+      ],
+      calendar_event_status: [
+        "pending",
+        "scheduled",
+        "completed",
+        "cancelled",
+        "declined",
       ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
