@@ -33,6 +33,9 @@ verify_jwt = false
 [functions.handle-email-suppression]
 verify_jwt = false
 
+[functions.calendar-visitor-action]
+verify_jwt = false
+
 [functions.assessment-register]
 verify_jwt = false
 
