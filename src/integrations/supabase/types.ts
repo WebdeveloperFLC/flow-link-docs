@@ -2678,6 +2678,45 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_breaks: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          name: string | null
+          repeat_weekly: boolean
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          repeat_weekly?: boolean
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          name?: string | null
+          repeat_weekly?: boolean
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       calendar_event_audit: {
         Row: {
           actor_id: string | null
@@ -2901,6 +2940,9 @@ export type Database = {
       }
       calendar_profiles: {
         Row: {
+          allow_cancellation: boolean
+          allow_reschedule: boolean
+          auto_confirm: boolean
           booking_slug: string
           company_logo: string | null
           company_name: string | null
@@ -2909,13 +2951,18 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
+          location: string | null
           profile_photo: string | null
+          require_approval: boolean
           short_bio: string | null
           timezone: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          allow_cancellation?: boolean
+          allow_reschedule?: boolean
+          auto_confirm?: boolean
           booking_slug: string
           company_logo?: string | null
           company_name?: string | null
@@ -2924,13 +2971,18 @@ export type Database = {
           full_name: string
           id?: string
           is_active?: boolean
+          location?: string | null
           profile_photo?: string | null
+          require_approval?: boolean
           short_bio?: string | null
           timezone: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          allow_cancellation?: boolean
+          allow_reschedule?: boolean
+          auto_confirm?: boolean
           booking_slug?: string
           company_logo?: string | null
           company_name?: string | null
@@ -2939,7 +2991,9 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
+          location?: string | null
           profile_photo?: string | null
+          require_approval?: boolean
           short_bio?: string | null
           timezone?: string
           updated_at?: string
