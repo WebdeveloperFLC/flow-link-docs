@@ -62,7 +62,8 @@ export type CalendarEventStatus =
   | "scheduled"
   | "completed"
   | "cancelled"
-  | "declined";
+  | "declined"
+  | "no_show";
 
 export type CalendarEvent = {
   id: string;
@@ -80,6 +81,63 @@ export type CalendarEvent = {
   status: CalendarEventStatus;
   created_at: string;
   updated_at: string;
+};
+
+export type CalendarEventWithRelations = CalendarEvent & {
+  appointment_type?: string | null;
+  cancellation_reason?: string | null;
+  internal_notes?: string | null;
+  calendar_participants?: Array<{
+    id: string;
+    full_name: string;
+    email: string;
+    mobile_number: string;
+    company_name: string | null;
+    designation: string | null;
+  }>;
+  calendar_meeting_types?: {
+    meeting_name: string;
+    color_code: string | null;
+    slot_duration_minutes: number;
+  } | null;
+};
+
+export type CalendarInternalNote = {
+  id: string;
+  event_id: string;
+  author_id: string;
+  body: string;
+  created_at: string;
+};
+
+export type CalendarEventAuditRow = {
+  id: string;
+  event_id: string;
+  from_status: CalendarEventStatus | null;
+  to_status: CalendarEventStatus;
+  actor_id: string | null;
+  actor_kind: string;
+  at: string;
+};
+
+export const APPOINTMENT_TYPES = [
+  "Consultation",
+  "Student Visa Counselling",
+  "Visitor Visa Counselling",
+  "Spouse Visa Counselling",
+  "Follow-Up Meeting",
+  "Coaching Session",
+  "Internal Meeting",
+  "Custom",
+] as const;
+
+export const STATUS_LABEL: Record<CalendarEventStatus, string> = {
+  pending: "Pending",
+  scheduled: "Confirmed",
+  completed: "Completed",
+  cancelled: "Cancelled",
+  declined: "Declined",
+  no_show: "No Show",
 };
 
 export const WEEKDAYS = [
