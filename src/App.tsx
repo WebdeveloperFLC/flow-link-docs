@@ -181,6 +181,14 @@ const App = () => (
                   <Route path="/a/:token" element={<VisitorActionPage />} />
                   <Route path="/questionnaire/:token" element={<Questionnaire />} />
                   <Route path="/course-finder" element={<CourseFinder />} />
+                  <Route
+                    path="/service-library"
+                    element={
+                      <ProtectedRoute>
+                        <ServiceLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/portal/auth" element={<PortalAuth />} />
                   <Route path="/portal/invite" element={<PortalInviteRedeem />} />
                   <Route path="/assessment" element={<AssessmentLanding />} />
