@@ -45,6 +45,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import CalendarDashboard from "./calendar/pages/CalendarDashboard";
 import CalendarSettings from "./calendar/pages/CalendarSettings";
+import AppointmentDetailPage from "./calendar/pages/AppointmentDetailPage";
 import DigitalSuccessHomePage from "./digital-success/pages/DigitalSuccessHomePage";
 import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
 import PortalAuth from "./pages/portal/PortalAuth";
@@ -1167,6 +1168,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <CalendarSettings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/appointments/:id"
+                    element={
+                      <ProtectedRoute>
+                        <AppointmentDetailPage />
                       </ProtectedRoute>
                     }
                   />
