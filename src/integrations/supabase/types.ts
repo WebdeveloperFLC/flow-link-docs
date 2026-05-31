@@ -2717,6 +2717,51 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_company_branding: {
+        Row: {
+          booking_page_intro: string | null
+          company_logo_url: string | null
+          company_name: string | null
+          footer_text: string | null
+          id: string
+          primary_color: string | null
+          privacy_url: string | null
+          secondary_color: string | null
+          singleton: boolean
+          terms_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          booking_page_intro?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          footer_text?: string | null
+          id?: string
+          primary_color?: string | null
+          privacy_url?: string | null
+          secondary_color?: string | null
+          singleton?: boolean
+          terms_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          booking_page_intro?: string | null
+          company_logo_url?: string | null
+          company_name?: string | null
+          footer_text?: string | null
+          id?: string
+          primary_color?: string | null
+          privacy_url?: string | null
+          secondary_color?: string | null
+          singleton?: boolean
+          terms_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       calendar_event_audit: {
         Row: {
           actor_id: string | null
@@ -2754,6 +2799,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "calendar_event_audit_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_event_crm_links: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          event_id: string
+          id: string
+          is_primary: boolean
+          linked_automatically: boolean
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          event_id: string
+          id?: string
+          is_primary?: boolean
+          linked_automatically?: boolean
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          event_id?: string
+          id?: string
+          is_primary?: boolean
+          linked_automatically?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_crm_links_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "calendar_events"
@@ -2866,42 +2949,74 @@ export type Database = {
       }
       calendar_meeting_types: {
         Row: {
+          assignment_strategy: string
+          booking_window_days: number
           buffer_minutes: number
+          category: string | null
           color_code: string | null
           created_at: string
           description: string | null
           id: string
           is_active: boolean
           meeting_name: string
+          requires_approval: boolean
+          reservation_ttl_minutes: number
+          round_robin_enabled: boolean
           slot_duration_minutes: number
+          slug: string
+          team_id: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          assignment_strategy?: string
+          booking_window_days?: number
           buffer_minutes?: number
+          category?: string | null
           color_code?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
           meeting_name: string
+          requires_approval?: boolean
+          reservation_ttl_minutes?: number
+          round_robin_enabled?: boolean
           slot_duration_minutes: number
+          slug: string
+          team_id?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          assignment_strategy?: string
+          booking_window_days?: number
           buffer_minutes?: number
+          category?: string | null
           color_code?: string | null
           created_at?: string
           description?: string | null
           id?: string
           is_active?: boolean
           meeting_name?: string
+          requires_approval?: boolean
+          reservation_ttl_minutes?: number
+          round_robin_enabled?: boolean
           slot_duration_minutes?: number
+          slug?: string
+          team_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "calendar_meeting_types_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       calendar_notifications: {
         Row: {
@@ -3041,6 +3156,73 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      calendar_slot_reservations: {
+        Row: {
+          created_at: string
+          event_id: string
+          expires_at: string
+          released: boolean
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          expires_at: string
+          released?: boolean
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          expires_at?: string
+          released?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_slot_reservations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_slug_history: {
+        Row: {
+          changed_at: string
+          id: string
+          meeting_type_id: string | null
+          new_slug: string
+          old_slug: string
+          scope: string
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          id?: string
+          meeting_type_id?: string | null
+          new_slug: string
+          old_slug: string
+          scope: string
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          id?: string
+          meeting_type_id?: string | null
+          new_slug?: string
+          old_slug?: string
+          scope?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_slug_history_meeting_type_id_fkey"
+            columns: ["meeting_type_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_meeting_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       calendar_tokens: {
         Row: {
@@ -14294,6 +14476,36 @@ export type Database = {
         }
         Relationships: []
       }
+      v_calendar_activity_feed: {
+        Row: {
+          actor_id: string | null
+          actor_kind: string | null
+          appointment_type: string | null
+          at: string | null
+          event_date: string | null
+          event_id: string | null
+          event_reference: string | null
+          event_title: string | null
+          from_status:
+            | Database["public"]["Enums"]["calendar_event_status"]
+            | null
+          host_user_id: string | null
+          id: string | null
+          start_time: string | null
+          to_status: Database["public"]["Enums"]["calendar_event_status"] | null
+          visitor_email: string | null
+          visitor_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_event_audit_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_clients_masked: {
         Row: {
           application_id: string | null
@@ -14834,6 +15046,16 @@ export type Database = {
       fn_reinstate_wallet: {
         Args: { _to_period?: string; _wallet_id: string }
         Returns: string
+      }
+      fn_release_expired_reservations: { Args: never; Returns: number }
+      fn_suggest_meeting_slug: {
+        Args: { _base: string; _user: string }
+        Returns: string
+      }
+      fn_suggest_profile_slug: { Args: { _base: string }; Returns: string }
+      fn_user_manages_user: {
+        Args: { _manager: string; _target: string }
+        Returns: boolean
       }
       generate_client_registration_number: { Args: never; Returns: string }
       generate_invoice_number: {

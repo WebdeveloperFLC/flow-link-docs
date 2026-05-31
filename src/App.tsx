@@ -46,6 +46,13 @@ import NotFound from "./pages/NotFound";
 import CalendarDashboard from "./calendar/pages/CalendarDashboard";
 import CalendarSettings from "./calendar/pages/CalendarSettings";
 import AppointmentDetailPage from "./calendar/pages/AppointmentDetailPage";
+import MeetingTypesPage from "./calendar/pages/MeetingTypesPage";
+import AppointmentApprovalsPage from "./calendar/pages/AppointmentApprovalsPage";
+import AnalyticsDashboardPage from "./calendar/pages/AnalyticsDashboardPage";
+import ReportsPage from "./calendar/pages/ReportsPage";
+import ActivityFeedPage from "./calendar/pages/ActivityFeedPage";
+import CompanyBrandingPage from "./calendar/pages/CompanyBrandingPage";
+import PublicBookingPage from "./calendar/pages/PublicBookingPage";
 import DigitalSuccessHomePage from "./digital-success/pages/DigitalSuccessHomePage";
 import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
 import PortalAuth from "./pages/portal/PortalAuth";
@@ -167,6 +174,8 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/share/:token" element={<SharedView />} />
+                  <Route path="/book/:slug" element={<PublicBookingPage />} />
+                  <Route path="/book/:slug/:meetingSlug" element={<PublicBookingPage />} />
                   <Route path="/questionnaire/:token" element={<Questionnaire />} />
                   <Route path="/course-finder" element={<CourseFinder />} />
                   <Route path="/portal/auth" element={<PortalAuth />} />
@@ -1179,6 +1188,12 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/calendar/meeting-types" element={<ProtectedRoute><MeetingTypesPage /></ProtectedRoute>} />
+                  <Route path="/calendar/approvals" element={<ProtectedRoute><AppointmentApprovalsPage /></ProtectedRoute>} />
+                  <Route path="/calendar/analytics" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
+                  <Route path="/calendar/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+                  <Route path="/calendar/activity" element={<ProtectedRoute><ActivityFeedPage /></ProtectedRoute>} />
+                  <Route path="/calendar/branding" element={<ProtectedRoute><CompanyBrandingPage /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </CallProvider>

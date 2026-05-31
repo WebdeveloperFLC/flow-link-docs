@@ -1,121 +1,155 @@
-# Calendar View & Appointment Management
+# Phase 5 — CRM Integration, Approval Workflow, Analytics & RBAC
 
-Build the internal calendar + appointment management UI on top of the existing `calendar_events`, `calendar_participants`, `calendar_event_audit`, and `calendar_meeting_types` tables. Add image upload for profile photo + company logo.
+Builds on existing Calendar Foundation (`calendar_events`, `calendar_meeting_types`, `calendar_profiles`, `calendar_participants`, `calendar_internal_notes`, `calendar_event_audit`, `calendar_notifications`, `calendar_tokens`). Status enum already has all six required values. CRM tables in scope today: `leads` and `teams` / `team_members`. Other CRM entities (contacts/students/companies/opportunities) are referenced as generic links for forward-compat.
 
-## 1. Database / storage (additive only)
+---
 
-Migration:
-- Create public storage bucket **`calendar-branding`** with RLS:
-  - Public SELECT
-  - Authenticated INSERT/UPDATE/DELETE limited to objects under `{auth.uid()}/...`
-- Add nullable columns to `calendar_events`:
-  - `appointment_type text` (Consultation / Student Visa / Visitor Visa / Spouse Visa / Follow-Up / Coaching / Internal / Custom — free text, validated client-side)
-  - `cancellation_reason text`
-  - `internal_notes text` (host-only; already gated by RLS on the row)
-- Add `no_show` value to `calendar_event_status` enum and extend `fn_calendar_events_status_guard` transitions: `scheduled → no_show`, terminal.
-- New table `calendar_internal_notes` (id, event_id FK, author_id, body, created_at) with owner/admin RLS — used for the multi-note thread on the details page. (Single `internal_notes` column kept as fallback summary.)
-- Extend `fn_calendar_events_validate` triggers already cover working hours, overlaps, unavailable dates, breaks — reused as-is for create/reschedule/drag-drop.
+## 1. Database (additive migrations only)
 
-No changes to existing triggers' logic beyond the enum addition + new optional columns.
+### 1a. Meeting Types extension
+Add to `calendar_meeting_types`:
+- `slug citext` (unique per user_id) — pattern `^[a-z0-9]+(-[a-z0-9]+)*$`
+- `booking_window_days int default 30`
+- `requires_approval boolean default false`
+- `category text` (Consultation, Counselling, Demo, Interview, Vendor, Internal, Follow-Up, Custom)
+- `reservation_ttl_minutes int default 10`
+- Backfill slug from `meeting_name`.
 
-## 2. Data hooks (`src/calendar/hooks/`)
+### 1b. Booking slug history (legacy redirect)
+New table `calendar_slug_history`:
+- `user_id`, `old_slug citext`, `new_slug citext`, `changed_at`
+- Trigger on `calendar_profiles` UPDATE captures slug changes.
+- Trigger on `calendar_meeting_types` UPDATE captures meeting slug changes (with `meeting_type_id`).
 
-Extend `useCalendarData.ts` (or add `useAppointments.ts`):
-- `useAppointmentsRange(from, to, filters)` — fetch events + joined participants in a date range; admin sees all, user sees own.
-- `useAppointment(id)` — single event with participants, audit trail, internal notes.
-- Mutations: `createAppointment`, `updateAppointment`, `rescheduleAppointment`, `cancelAppointment(reason)`, `markCompleted`, `markNoShow`, `addInternalNote`, `uploadBrandingImage(file, kind)`.
-- All mutations rely on existing triggers for conflict/availability validation; surface trigger errors as toasts.
+### 1c. CRM linking
+New table `calendar_event_crm_links`:
+- `event_id`, `entity_type` (lead|contact|student|opportunity|company|employee), `entity_id uuid`, `is_primary boolean`, `linked_automatically boolean`
+- Unique (event_id, entity_type, entity_id).
 
-## 3. Pages & routes
+### 1d. Slot reservation
+New table `calendar_slot_reservations`:
+- `event_id` (1:1), `expires_at timestamptz`, `released boolean default false`
+- Function `fn_release_expired_reservations()` invoked on each booking write + scheduled via `pg_cron` every minute, sets matching `pending` events to `declined` with reason "Reservation expired".
 
-- `/calendar` → upgraded **CalendarDashboard** (replaces current minimal version):
-  - 5 stat cards: Today / Upcoming / Pending / Completed / Cancelled
-  - View switcher: Day | Week | Month | Agenda (defaults to Agenda on viewport < 768px)
-  - Toolbar: prev/next/today, date jump, search box, filter popover (status, type, date range, assigned user [admin only]), "+ New Appointment" button
-- `/calendar/appointments/:id` → **AppointmentDetailPage**
-- `/calendar/settings` → existing (unchanged except profile photo + company logo upload).
+### 1e. Branding (company-wide)
+New table `calendar_company_branding` (single row, admin-managed):
+- `company_name`, `company_logo_url`, `primary_color`, `secondary_color`, `footer_text`, `terms_url`, `privacy_url`, `booking_page_intro`.
+- New storage bucket `calendar-company-branding` (public).
 
-Register routes in `src/App.tsx` under `ProtectedRoute`.
+### 1f. Round-robin scaffolding (architecture only)
+Add to `calendar_meeting_types`:
+- `team_id uuid references teams(id)`
+- `round_robin_enabled boolean default false`
+- `assignment_strategy text default 'fixed'` (fixed|round_robin)
+No automation in this phase.
 
-## 4. Calendar views (`src/calendar/components/views/`)
+### 1g. Activity feed view
+View `v_calendar_activity_feed` joining `calendar_event_audit` + `calendar_events` + primary participant for filterable feed.
 
-- `DayView.tsx` — 24-hour vertical grid, 30-min rows, event blocks positioned by start/duration, click → details, drag → reschedule, resize handle → duration change.
-- `WeekView.tsx` — 7 columns Mon–Sun, same grid mechanics.
-- `MonthView.tsx` — month grid with per-day count badge + first 2 events; click day → Day view.
-- `AgendaView.tsx` — chronological list grouped by day, mobile-first card layout.
+### 1h. RLS / permissions
+- All new tables: owner + admin policies via existing `has_role`.
+- Manager role: new SECURITY DEFINER helper `fn_user_in_manager_team(_user uuid)` returning team ids; new policies on `calendar_events`, `calendar_meeting_types`, `calendar_profiles` allowing `SELECT` when target `user_id` belongs to a team the caller manages.
+- Public visitor portal access goes through edge functions using `calendar_tokens` (no client-side reads of `calendar_events` by anon).
 
-Drag-and-drop via lightweight pointer events (no extra dep): on drop, call `rescheduleAppointment`; trigger validates and rolls back via toast on conflict.
+### 1i. Reference number
+Already exists (`event_reference`, format `APT-YYYYMMDD-000000`). Confirm trigger; surface in UI everywhere.
 
-Shared `AppointmentCard` component shows subject, client name, time, duration, status pill.
+---
 
-## 5. Create / Edit appointment dialog
+## 2. Edge Functions (new)
 
-`ManualAppointmentDialog.tsx` (react-hook-form + zod):
-- Subject, appointment_type (select with the 8 categories + Custom freeform), meeting_type_id (drives duration), date, start_time
-- Participant: full_name, email, mobile, optional company, notes
-- Submit → insert `calendar_events` + `calendar_participants`; triggers validate availability/conflicts.
-- Edit mode reuses the same form (PATCH event + first participant).
+All under `supabase/functions/`, CORS enabled, JWT-validated except public booking ones.
 
-`RescheduleDialog.tsx` — date + time pickers showing available slots from `calendar_available_slots` RPC for the selected meeting type.
+- `book-appointment` — public. Validates slot, creates `calendar_events` (status=`pending`), participant, slot reservation, runs CRM auto-match (email/mobile → `leads`; otherwise inserts new lead), inserts CRM link, emits notifications + audit, returns `secure_token`.
+- `visitor-portal` — public. Token-authenticated read/reschedule/cancel. Path: `/appointment/{token}`.
+- `approve-appointment` / `decline-appointment` — host/admin only. Transitions status, releases reservation, sends notification.
+- `release-expired-reservations` — invoked by pg_cron http hook OR uses DB function only (preferred: DB function on schedule, no edge needed).
+- `export-report` — generates CSV/Excel/PDF given report type + filters; admin or manager scoped.
 
-`CancelDialog.tsx` — required reason textarea → status='cancelled' + cancellation_reason.
+---
 
-## 6. Appointment Details Page
+## 3. Frontend modules (`src/calendar/`)
 
-Tabs / sections:
-- **Header**: reference, status pill, action buttons (Edit, Reschedule, Cancel, Mark Completed, Mark No Show — disabled per status state machine)
-- **Client Information** card (from participants)
-- **Appointment Information** card
-- **Internal Notes** thread (add note, list with author + timestamp; host-only)
-- **Activity Timeline** from `calendar_event_audit` + derived events (created/updated)
-- **Reminders** panel from `calendar_notifications` (Scheduled / Sent / Failed)
+### Pages
+- `MeetingTypesPage.tsx` (`/calendar/meeting-types`) — CRUD list with slug, duration, category, approval toggle, color, active toggle, per-type booking URL with copy button.
+- `MeetingTypeEditor.tsx` — full settings form per type.
+- `VisitorPortalPage.tsx` (`/appointment/:token`, public, no auth) — view / reschedule / cancel.
+- `PublicBookingPage.tsx` (`/book/:slug` and `/book/:slug/:meetingSlug`, public) — branded landing, slot picker, booking form (with visitor notes), success screen showing reference + portal link. Handles legacy slug redirects via `calendar_slug_history`.
+- `AppointmentApprovalsPage.tsx` (`/calendar/approvals`) — pending queue, bulk approve/decline.
+- `AnalyticsDashboardPage.tsx` (`/calendar/analytics`) — metric cards, charts (Recharts), filters; admin sees org-wide, standard user sees self only, manager sees team scope.
+- `ReportsPage.tsx` (`/calendar/reports`) — pick report type + filters, export CSV/XLSX/PDF.
+- `CompanyBrandingPage.tsx` (`/calendar/branding`, admin-only) — branding form + logo upload.
+- `ActivityFeedPage.tsx` (`/calendar/activity`) — searchable/filterable feed.
 
-## 7. Search & filters
+### Components
+- `MeetingTypeCard.tsx`, `MeetingTypeBookingLinkRow.tsx`
+- `SlugInput.tsx` — live validation, conflict suggestions (server RPC `fn_suggest_slug`).
+- `ApprovalDialog.tsx`, `DeclineDialog.tsx`
+- `CrmLinksPanel.tsx` — shown on `AppointmentDetailPage`; search/attach lead/contact, primary toggle, auto-match badge.
+- `VisitorNotesSection.tsx` + reuse existing `InternalNotes`.
+- `ActivityFeedItem.tsx`
+- `AnalyticsMetricCard.tsx`, `BookingFunnelChart.tsx`, `MeetingTypeMixChart.tsx`, `UserPerformanceTable.tsx`
+- `ReportExportDialog.tsx`
+- `BrandingForm.tsx`, `BrandedBookingLayout.tsx` (used by public pages)
 
-Implemented client-side over the fetched range:
-- Search: client name, email, mobile, subject (case-insensitive)
-- Filters: status multi-select, appointment_type, date range, assigned user (admin only — adds `user_id` predicate to query)
+### Hooks (`src/calendar/hooks/`)
+- `useMeetingTypes.ts` (extends existing editor; CRUD + slug check)
+- `useApprovals.ts`
+- `useCrmLinks.ts` (search leads, attach/detach)
+- `useAnalytics.ts` (range + scope-aware queries)
+- `useBranding.ts`
+- `useActivityFeed.ts`
+- `useVisitorPortal.ts` (token-based, calls edge function)
+- `usePublicBooking.ts` (slot listing + book + slug resolve)
 
-## 8. Profile photo + company logo upload
+### Lib
+- `slugUtils.ts` — client validation, suggestion fallback
+- `reportingApi.ts` — wraps `export-report`
+- `permissions.ts` — `useCurrentRole()` (admin / manager / user), `canManageOthers()`, etc.
 
-In `ProfileSettingsCard.tsx`:
-- Two `<ImageUploader>` controls (new shared component `src/calendar/components/ImageUploader.tsx`) for `profile_photo` and `company_logo`.
-- Upload to `calendar-branding/{user_id}/profile-{ts}.{ext}` and `…/logo-{ts}.{ext}`, store public URL in `calendar_profiles.profile_photo` / `company_logo`.
-- Validate: max 2 MB, image/* only, square crop preview, replace removes previous file.
-- Public booking page (future phase) will render both; for now also surface them in `BookingLinkCard` preview so the host sees how it appears.
+### Routing
+Register all new routes in `src/App.tsx`. `/book/*` and `/appointment/*` are public; everything under `/calendar/*` stays `ProtectedRoute`. Admin-only routes wrapped with an `AdminRoute` guard.
 
-## 9. Permissions
+### Sidebar
+Extend `AppLayout` calendar nav with: Meeting Types, Approvals, Analytics, Reports, Activity, Branding (admin), in addition to existing Dashboard and Settings.
 
-- Standard user: queries filtered by `user_id = auth.uid()` via existing RLS.
-- Admin (`has_role(auth.uid(),'admin')`): existing RLS already allows all rows; UI exposes "Assigned user" filter + ability to open any event.
-- No reassignment of `user_id` in this phase (would require trigger relaxation) — call out as out-of-scope.
+---
 
-## 10. Responsiveness
+## 4. Permissions matrix (enforced in RLS + UI)
 
-- View switcher auto-selects Agenda on `<768px`.
-- Day/Week grids horizontally scrollable on tablet.
-- Detail page stacks single-column on mobile.
+- **Admin**: full CRUD across all calendar tables, branding, analytics, reports.
+- **Manager**: SELECT on team members' events/meeting types/profiles; approve/decline events of team members; team-scoped analytics & reports.
+- **Standard user**: only own data; approve/decline only own events.
+- **Visitor (anon, token)**: view/reschedule/cancel via edge functions only.
 
-## Out of scope
+---
 
-- Public booking page UI
-- Email / WhatsApp reminders dispatch
-- CRM lead linkage automation
-- Cross-user reassignment
-- Recurring appointments
+## 5. Acceptance criteria
 
-## Acceptance
+- Create multiple meeting types per user with unique per-user slug; each generates `/book/{userSlug}/{meetingSlug}` and works publicly.
+- Changing a user or meeting slug keeps old URLs working via `calendar_slug_history` lookup + 301-style client redirect.
+- Submitting a booking on an approval-required type: status=`pending`, slot reserved, CRM link created (matched lead or new lead), reference returned, visitor portal URL emailed.
+- Pending reservation auto-released after `reservation_ttl_minutes` (default 10).
+- Approval queue shows pending items scoped to role; confirm/decline updates status, audit, notifications.
+- Visitor portal at `/appointment/{token}` allows view/reschedule/cancel without login.
+- Appointment detail shows CRM links, visitor notes, internal notes, full timeline, reference number, activity feed entries.
+- Analytics dashboard: standard user sees personal numbers only; admin sees org-wide; manager sees team scope.
+- Reports export to CSV/XLSX/PDF respecting scope.
+- Admin can edit company branding; branding renders on all public booking and portal pages.
+- All new tables have GRANTs + RLS; visitor flows go through edge functions only.
 
-1. `/calendar` shows 5 stat cards and 4 working views with real data.
-2. Creating, editing, rescheduling, cancelling, completing, marking no-show all work and are blocked by triggers on conflicts.
-3. Drag/resize updates persist or roll back with a clear toast.
-4. Search + filters narrow the visible events instantly.
-5. Detail page shows audit trail + internal notes thread + reminder status.
-6. Profile photo and company logo upload + persist + render in the settings preview.
-7. Mobile viewport defaults to Agenda view; all pages usable at 375px width.
+---
+
+## 6. Out of scope (deferred)
+
+- Round-robin assignment logic (only schema added).
+- New CRM entity tables (contacts/students/opportunities/companies) — `calendar_event_crm_links.entity_type` is open-ended so they plug in later.
+- WhatsApp / email template editor changes (uses existing notifications pipeline).
+- Realtime updates on analytics dashboards.
 
 ## Technical notes
 
-- New deps: none required (drag-drop hand-rolled; date math via existing `date-fns`).
-- All new files under `src/calendar/`; no changes to other modules.
-- Storage bucket is the only structural change beyond additive columns + one new table.
+- No new npm deps (Recharts already present; for XLSX use existing `xlsx` if present, else add). PDF export via `jspdf` + `jspdf-autotable` (add if not present).
+- Slug suggestions: PL/pgSQL function appends `-2`, `-3`, … until free.
+- Slot conflict detection reuses existing `fn_calendar_events_validate` trigger.
+- Public pages use anon Supabase client + edge functions; no RLS bypass.

@@ -28,6 +28,14 @@ export type MeetingType = {
   buffer_minutes: number;
   color_code: string | null;
   is_active: boolean;
+  slug: string;
+  booking_window_days: number;
+  requires_approval: boolean;
+  category: string | null;
+  reservation_ttl_minutes: number;
+  team_id: string | null;
+  round_robin_enabled: boolean;
+  assignment_strategy: "fixed" | "round_robin";
 };
 
 export type Availability = {
@@ -130,6 +138,48 @@ export const APPOINTMENT_TYPES = [
   "Internal Meeting",
   "Custom",
 ] as const;
+
+export const MEETING_CATEGORIES = [
+  "Consultation",
+  "Counselling",
+  "Product Demo",
+  "Interview",
+  "Vendor Meeting",
+  "Internal Meeting",
+  "Follow-Up",
+  "Custom",
+] as const;
+
+export type CrmEntityType =
+  | "lead"
+  | "contact"
+  | "student"
+  | "opportunity"
+  | "company"
+  | "employee";
+
+export type CalendarEventCrmLink = {
+  id: string;
+  event_id: string;
+  entity_type: CrmEntityType;
+  entity_id: string;
+  is_primary: boolean;
+  linked_automatically: boolean;
+  created_at: string;
+};
+
+export type CompanyBranding = {
+  id: string;
+  company_name: string | null;
+  company_logo_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  footer_text: string | null;
+  terms_url: string | null;
+  privacy_url: string | null;
+  booking_page_intro: string | null;
+  updated_at: string;
+};
 
 export const STATUS_LABEL: Record<CalendarEventStatus, string> = {
   pending: "Pending",
