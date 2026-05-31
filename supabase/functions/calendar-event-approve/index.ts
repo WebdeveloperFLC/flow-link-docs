@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     const visitor = ev.calendar_participants?.[0];
     const mt = ev.calendar_meeting_types;
     if (visitor?.email) {
-      const { data: profile } = await admin.from("calendar_profiles").select("display_name").eq("user_id", ev.user_id).maybeSingle();
+      const { data: profile } = await admin.from("calendar_profiles").select("full_name").eq("user_id", ev.user_id).maybeSingle();
       await admin.functions.invoke("send-transactional-email", {
         body: {
           templateName: "appointment-approved",
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
           idempotencyKey: `appt-approved-${event_id}`,
           templateData: {
             requesterName: visitor.full_name,
-            hostName: profile?.display_name ?? "Your host",
+            hostName: profile?.full_name ?? "Your host",
             meetingTitle: mt?.meeting_name ?? ev.event_title ?? "Meeting",
             whenLabel: whenLabel(ev.event_date, ev.start_time, ev.visitor_timezone),
             durationMin: mt?.duration_min,
