@@ -186,12 +186,11 @@ const digitalSuccessNav: NavItem[] = [
 
 const calendarNav: NavItem[] = [
   { to: "/calendar", icon: CalendarClock, label: "Calendar", end: true },
-  { to: "/calendar/meeting-types", icon: Tag, label: "Meeting Types" },
+  { to: "/calendar/settings", icon: SettingsIcon, label: "Availability & Settings" },
   { to: "/calendar/approvals", icon: ClipboardCheck, label: "Approvals" },
   { to: "/calendar/analytics", icon: BarChart2, label: "Analytics" },
   { to: "/calendar/reports", icon: FileStack, label: "Reports" },
   { to: "/calendar/activity", icon: ScrollText, label: "Activity" },
-  { to: "/calendar/settings", icon: SettingsIcon, label: "Availability & Settings" },
 ];
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
