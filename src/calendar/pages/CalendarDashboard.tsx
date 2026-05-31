@@ -118,11 +118,11 @@ export default function CalendarDashboard() {
         {profile && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <StatCard label="Today" value={stats.today} icon={Calendar} />
-              <StatCard label="Upcoming" value={stats.upcoming} icon={Clock} />
-              <StatCard label="Pending" value={stats.pending} icon={AlertCircle} />
-              <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} />
-              <StatCard label="Cancelled" value={stats.cancelled} icon={XCircle} />
+              <StatCard label="Today" value={stats.today} icon={Calendar} tone="default" />
+              <StatCard label="Upcoming" value={stats.upcoming} icon={Clock} tone="success" />
+              <StatCard label="Pending" value={stats.pending} icon={AlertCircle} tone="warning" />
+              <StatCard label="Completed" value={stats.completed} icon={CheckCircle2} tone="success" />
+              <StatCard label="Cancelled" value={stats.cancelled} icon={XCircle} tone="danger" />
             </div>
 
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
