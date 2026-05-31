@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -107,22 +109,26 @@ export default function PublicBookingPage() {
 function HeaderCard({ profile }: { profile: Profile }) {
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center gap-4">
-        {profile.profile_photo && (
-          <img src={profile.profile_photo} alt="" className="h-16 w-16 rounded-full object-cover border" />
+      <CardContent className="flex flex-col items-center text-center gap-4 pt-8 pb-6">
+        {profile.company_logo && (
+          <img src={profile.company_logo} alt={profile.company_name ?? ""} className="h-12 w-auto max-h-12 object-contain" />
         )}
-        <div className="flex-1 min-w-0">
-          <CardTitle>{profile.full_name}</CardTitle>
-          {profile.designation && <p className="text-sm text-muted-foreground">{profile.designation}</p>}
-          {profile.company_name && (
-            <div className="flex items-center gap-2 mt-1">
-              {profile.company_logo && <img src={profile.company_logo} alt="" className="h-5 w-auto max-w-[80px] object-contain" />}
-              <span className="text-xs text-muted-foreground">{profile.company_name}</span>
-            </div>
-          )}
+        {profile.company_name && (
+          <div className="text-xs uppercase tracking-wide text-muted-foreground -mt-2">{profile.company_name}</div>
+        )}
+        {profile.profile_photo ? (
+          <img src={profile.profile_photo} alt={profile.full_name} className="h-32 w-32 rounded-md object-cover border" />
+        ) : (
+          <div className="h-32 w-32 rounded-md bg-muted border" />
+        )}
+        <div>
+          <CardTitle className="text-xl">{profile.full_name}</CardTitle>
+          {profile.designation && <p className="text-sm text-muted-foreground mt-1">{profile.designation}</p>}
         </div>
-      </CardHeader>
-      {profile.short_bio && <CardContent className="text-sm text-muted-foreground">{profile.short_bio}</CardContent>}
+        {profile.short_bio && (
+          <p className="text-sm text-muted-foreground max-w-xl whitespace-pre-line">{profile.short_bio}</p>
+        )}
+      </CardContent>
     </Card>
   );
 }
@@ -162,6 +168,35 @@ function BookingFlow({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState<any>(null);
+  const browserTz = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC", []);
+  const [visitorTz, setVisitorTz] = useState<string>(browserTz);
+  const hostTz = profile.timezone || "UTC";
+  const tzOptions = useMemo<string[]>(() => {
+    const sv = (Intl as any).supportedValuesOf?.("timeZone") as string[] | undefined;
+    const base = sv && sv.length ? sv : [
+      "UTC","Asia/Kolkata","America/New_York","America/Los_Angeles","America/Chicago",
+      "Europe/London","Europe/Paris","Europe/Berlin","Asia/Dubai","Asia/Singapore",
+      "Asia/Tokyo","Asia/Hong_Kong","Australia/Sydney","Pacific/Auckland",
+    ];
+    return Array.from(new Set([browserTz, hostTz, ...base]));
+  }, [browserTz, hostTz]);
+
+  const formatSlot = (hhmm: string, d: Date) => {
+    try {
+      // Interpret HH:mm on the selected date in the host timezone, then render in visitor TZ.
+      const isoLocal = `${format(d, "yyyy-MM-dd")}T${hhmm.length === 5 ? hhmm + ":00" : hhmm}`;
+      // Treat isoLocal as wall-time in hostTz: build a Date by converting from host wall-time.
+      // formatInTimeZone expects a real Date; we construct one by parsing the ISO as if it were UTC,
+      // then offsetting by the host TZ's offset for that instant.
+      const asIfUtc = new Date(isoLocal + "Z");
+      const hostZoned = toZonedTime(asIfUtc, hostTz);
+      const offsetMs = asIfUtc.getTime() - hostZoned.getTime();
+      const actual = new Date(asIfUtc.getTime() + offsetMs);
+      return formatInTimeZone(actual, visitorTz, "HH:mm");
+    } catch {
+      return hhmm;
+    }
+  };
 
   const windowDays = meetingType.booking_window_days ?? 30;
   const minDate = new Date(); minDate.setHours(0,0,0,0);
@@ -183,7 +218,7 @@ function BookingFlow({
   }, [date, meetingType.id, slug]);
 
   if (confirmation) {
-    return <ConfirmationCard confirmation={confirmation} meetingType={meetingType} onReset={() => { setConfirmation(null); setDate(undefined); setSelectedSlot(null); }} />;
+    return <ConfirmationCard confirmation={confirmation} meetingType={meetingType} visitorTz={visitorTz} onReset={() => { setConfirmation(null); setDate(undefined); setSelectedSlot(null); }} />;
   }
 
   return (
@@ -216,9 +251,23 @@ function BookingFlow({
           />
         </div>
         <div className="space-y-3">
-          <Label className="text-xs text-muted-foreground">
-            {date ? `Available times — ${format(date, "EEE, MMM d")}` : "Pick a date to see times"}
-          </Label>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <Label className="text-xs text-muted-foreground">
+              {date ? `Available times — ${format(date, "EEE, MMM d")}` : "Pick a date to see times"}
+            </Label>
+            <div className="min-w-[200px]">
+              <Label className="text-xs text-muted-foreground">Times shown in</Label>
+              <Select value={visitorTz} onValueChange={setVisitorTz}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {tzOptions.map((tz) => (
+                    <SelectItem key={tz} value={tz} className="text-xs">{tz}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-[11px] text-muted-foreground">Host timezone: {hostTz}</p>
           {!date ? (
             <div className="text-sm text-muted-foreground p-6 text-center border rounded-md">Select a date on the left.</div>
           ) : loadingSlots ? (
@@ -231,13 +280,16 @@ function BookingFlow({
               meetingType={meetingType}
               date={date}
               startTime={selectedSlot}
+              visitorTz={visitorTz}
+              hostTz={hostTz}
+              displayTime={formatSlot(selectedSlot, date)}
               onCancel={() => setSelectedSlot(null)}
               onBooked={setConfirmation}
             />
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-[360px] overflow-y-auto">
               {slots.map((s) => (
-                <Button key={s} variant="outline" size="sm" onClick={() => setSelectedSlot(s)}>{s}</Button>
+                <Button key={s} variant="outline" size="sm" onClick={() => setSelectedSlot(s)}>{formatSlot(s, date)}</Button>
               ))}
             </div>
           )}
@@ -248,9 +300,10 @@ function BookingFlow({
 }
 
 function VisitorForm({
-  slug, meetingType, date, startTime, onCancel, onBooked,
+  slug, meetingType, date, startTime, visitorTz, hostTz, displayTime, onCancel, onBooked,
 }: {
   slug: string; meetingType: MeetingType; date: Date; startTime: string;
+  visitorTz: string; hostTz: string; displayTime: string;
   onCancel: () => void; onBooked: (c: any) => void;
 }) {
   const [form, setForm] = useState({ full_name: "", email: "", mobile_number: "", company_name: "", designation: "", purpose: "", notes: "" });
@@ -262,7 +315,6 @@ function VisitorForm({
     if (!form.mobile_number.trim()) return toast.error("Mobile number is required");
     setBusy(true);
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const data = await callFn({
         action: "create_booking",
         slug,
@@ -276,11 +328,11 @@ function VisitorForm({
           company_name: form.company_name.trim() || undefined,
           designation: form.designation.trim() || undefined,
         },
-        visitor_timezone: tz,
+        visitor_timezone: visitorTz,
         purpose: form.purpose.trim() || undefined,
         notes: form.notes.trim() || undefined,
       });
-      onBooked({ ...data, date, start_time: startTime });
+      onBooked({ ...data, date, start_time: startTime, display_time: displayTime, visitor_tz: visitorTz });
     } catch (e: any) {
       toast.error(e.message || "Booking failed");
     } finally { setBusy(false); }
@@ -289,7 +341,8 @@ function VisitorForm({
   return (
     <div className="space-y-3 border rounded-md p-4">
       <div className="text-sm font-medium">
-        {format(date, "EEE, MMM d")} · {startTime}
+        {format(date, "EEE, MMM d")} · {displayTime} <span className="text-xs text-muted-foreground">({visitorTz})</span>
+        <div className="text-[11px] text-muted-foreground font-normal">Host: {startTime} {hostTz}</div>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         <div><Label>Full name *</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} /></div>
@@ -308,7 +361,7 @@ function VisitorForm({
   );
 }
 
-function ConfirmationCard({ confirmation, meetingType, onReset }: { confirmation: any; meetingType: MeetingType; onReset: () => void }) {
+function ConfirmationCard({ confirmation, meetingType, visitorTz, onReset }: { confirmation: any; meetingType: MeetingType; visitorTz: string; onReset: () => void }) {
   const status = confirmation.status ?? (meetingType.requires_approval ? "pending" : "confirmed");
   return (
     <Card>
@@ -318,7 +371,7 @@ function ConfirmationCard({ confirmation, meetingType, onReset }: { confirmation
           {status === "pending" ? "Request submitted" : "Booking confirmed"}
         </div>
         <p className="text-sm text-muted-foreground">
-          {format(confirmation.date, "EEEE, MMMM d, yyyy")} at {confirmation.start_time}
+          {format(confirmation.date, "EEEE, MMMM d, yyyy")} at {confirmation.display_time ?? confirmation.start_time} ({visitorTz})
         </p>
         {status === "pending" && (
           <p className="text-xs text-muted-foreground max-w-md mx-auto">

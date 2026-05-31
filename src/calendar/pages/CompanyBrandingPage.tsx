@@ -55,10 +55,6 @@ export default function CompanyBrandingPage() {
                 <Input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && onLogo(e.target.files[0])} />
               </div>
             </div>
-            <div>
-              <Label>Booking page intro</Label>
-              <Textarea rows={3} value={form.booking_page_intro ?? ""} onChange={(e) => setForm({ ...form, booking_page_intro: e.target.value })} />
-            </div>
             <div className="flex justify-end"><Button onClick={save}>Save</Button></div>
           </CardContent>
         </Card>

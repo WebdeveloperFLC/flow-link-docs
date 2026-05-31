@@ -191,7 +191,6 @@ const calendarNav: NavItem[] = [
   { to: "/calendar/analytics", icon: BarChart2, label: "Analytics" },
   { to: "/calendar/reports", icon: FileStack, label: "Reports" },
   { to: "/calendar/activity", icon: ScrollText, label: "Activity" },
-  { to: "/calendar/branding", icon: Sparkles, label: "Branding", adminOnly: true },
   { to: "/calendar/settings", icon: SettingsIcon, label: "Availability & Settings" },
 ];
 
