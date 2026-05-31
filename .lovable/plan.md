@@ -1,117 +1,94 @@
 
-# Calendar Module — Backend Architecture
+# Calendar Management & Availability Configuration
 
-Backend-only build. No UI. Existing CRM (`auth.users`, `profiles`, RLS helpers like `has_role`) is reused — nothing existing is modified. Delivered as a single Supabase migration plus one edge function for the public booking endpoint.
+Frontend + integration on top of the Calendar Foundation already in the DB. No backend schema changes — uses the existing tables (`calendar_profiles`, `calendar_meeting_types`, `calendar_availability`, `calendar_unavailable_dates`, `calendar_events`) and RPCs (`calendar_generate_slug`, `calendar_event_transition`, etc.). One small additive migration adds optional preference columns that the UI needs but were not part of Phase 1.
 
-## Scope confirmation
+## Additive migration (minimal)
 
-- Adds 8 new tables in `public` schema, all prefixed `calendar_`.
-- Adds 1 enum (`calendar_event_status`), several RPC helpers, triggers, indexes, RLS policies, GRANTs.
-- Adds 1 edge function `calendar-public-booking` for unauthenticated visitor booking via slug + token.
-- No existing table, function, trigger, policy, RPC, or edge function is altered.
-- Frontend = none in this phase (per request).
+Add nullable / defaulted columns only — no behavior change:
 
-## Tables
+- `calendar_profiles`: `location text`, `auto_confirm boolean default false`, `require_approval boolean default true`, `allow_reschedule boolean default true`, `allow_cancellation boolean default true`.
+- New table `calendar_breaks(id, user_id, day_of_week smallint, start_time time, end_time time, name text, is_active bool, repeat_weekly bool default true, timestamps)` with the same owner-only RLS pattern as `calendar_availability`. Extends `fn_calendar_events_validate` with an extra check that the slot does not overlap an active break (additive — pre-existing events still pass because column defaults are safe).
 
-All have `id uuid pk default gen_random_uuid()`, `created_at`, `updated_at` (where listed). Every table: GRANT to `authenticated` + `service_role`; `anon` only where public booking needs read.
+That's the only DB change. Everything else is UI + existing RPCs.
 
-| Table | Purpose | Notable columns / constraints |
-|---|---|---|
-| `calendar_profiles` | 1:1 with CRM user | `user_id uuid unique → auth.users`, `booking_slug citext unique`, `timezone text not null`, `is_active bool default true`, photo/bio/company fields |
-| `calendar_meeting_types` | Per-user meeting templates | `user_id`, `meeting_name`, `slot_duration_minutes int check >0`, `buffer_minutes int check >=0`, `color_code text`, `is_active` |
-| `calendar_availability` | Recurring weekly slots | `user_id`, `day_of_week smallint check 0..6`, `start_time time`, `end_time time`, check `start_time < end_time`, `is_active` |
-| `calendar_unavailable_dates` | Holidays/leave | `user_id`, `unavailable_date date`, `reason text`, unique(user_id, unavailable_date) |
-| `calendar_events` | Bookings | `event_reference text unique`, `user_id`, `meeting_type_id`, `event_date date`, `start_time time`, `end_time time`, `host_timezone`, `visitor_timezone`, `status calendar_event_status default 'pending'`, `purpose`, `notes` |
-| `calendar_participants` | Visitor info | `event_id`, `full_name`, `email`, `mobile_number`, optional company/designation |
-| `calendar_tokens` | Visitor secure links | `event_id`, `token text unique` (random 32-byte base64url), `expires_at timestamptz`, `purpose text` (reschedule/cancel/view) |
-| `calendar_notifications` | Notification log | `event_id`, `notification_type text`, `recipient_email`, `delivery_status`, `sent_at` |
-
-Enum: `calendar_event_status` = `pending | scheduled | completed | cancelled | declined`.
-
-## Indexes
-
-`calendar_profiles(booking_slug)`, `(user_id)`; `calendar_meeting_types(user_id, is_active)`; `calendar_availability(user_id, day_of_week)`; `calendar_unavailable_dates(user_id, unavailable_date)`; `calendar_events(user_id, event_date)`, `(meeting_type_id)`, `(status)`, `(event_date, start_time)`; `calendar_participants(event_id, email)`; `calendar_tokens(token)`, `(event_id)`; `calendar_notifications(event_id, sent_at)`.
-
-## Triggers
-
-- `touch_updated_at` on all tables that have `updated_at` (reuses existing function).
-- `trg_calendar_events_assign_reference` BEFORE INSERT → generates `CAL-YYYYMMDD-NNNN` via sequence `calendar_event_ref_seq` reset per day.
-- `trg_calendar_events_validate` BEFORE INSERT/UPDATE → enforces: date not in past, ≤ 60 days ahead, duration matches meeting_type, slot inside availability, not on unavailable date, no overlap with another non-cancelled/non-declined event for same user.
-- `trg_calendar_events_status_guard` BEFORE UPDATE → validates status transitions (pending→scheduled/declined, scheduled→completed/cancelled; terminal states immutable). Writes audit row.
-- `trg_calendar_events_audit` AFTER INSERT/UPDATE → `client_timeline`-style row in new `calendar_event_audit` table (small, internal).
-
-## RPCs (SECURITY DEFINER, search_path=public)
-
-- `calendar_generate_slug(_base text) → text` — slugifies, checks uniqueness, appends `-1/-2/...` until free.
-- `calendar_resolve_profile(_slug text) → jsonb` — public read; returns profile + active meeting types (no PII beyond profile).
-- `calendar_available_slots(_slug text, _meeting_type_id uuid, _date date) → setof time` — computes free slots from availability − unavailable dates − existing events + buffer.
-- `calendar_create_booking(_slug, _meeting_type_id, _date, _start_time, _visitor jsonb, _visitor_timezone, _purpose, _notes) → jsonb` — creates pending event + participant + access token. Callable by `anon` (rate-limited in edge fn).
-- `calendar_event_transition(_event_id uuid, _action text) → calendar_events` — host-only; wraps confirm/decline/cancel/complete.
-- `calendar_validate_token(_token text) → uuid` — returns event_id if valid + non-expired.
-
-## RLS
-
-- `calendar_profiles`: owner full CRUD. `anon` SELECT only via RPC `calendar_resolve_profile` (no direct table grant to anon).
-- `calendar_meeting_types`, `calendar_availability`, `calendar_unavailable_dates`: owner-only CRUD (`user_id = auth.uid()`); admins read all via `has_role`.
-- `calendar_events`: owner full; `anon` cannot select; visitor access only through token-validated RPC.
-- `calendar_participants`, `calendar_tokens`, `calendar_notifications`: select/insert via owner or service_role; no anon grants.
-- All policies use `auth.uid()` direct or existing `has_role` helper — no recursion.
-
-## Edge function `calendar-public-booking`
-
-`verify_jwt = false`. Endpoints (single function, action in body):
-- `resolve_profile(slug)`
-- `available_slots(slug, meeting_type_id, date)`
-- `create_booking(...)`
-- `manage_event(token, action)` for visitor reschedule/cancel
-
-Uses anon Supabase client → calls SECURITY DEFINER RPCs. Validates input with Zod. Simple in-memory IP rate limit (best-effort) + future hook for Upstash.
-
-Authenticated host-side operations use existing supabase-js client from the CRM frontend directly against tables / `calendar_event_transition` RPC — no second edge function needed.
-
-## Status workflow (server-enforced)
+## File layout
 
 ```text
-pending  ──confirm──▶ scheduled ──complete──▶ completed
-   │                      │
-   ├──decline─▶ declined  └──cancel─▶ cancelled
+src/calendar/
+  lib/
+    calendarApi.ts          // typed wrappers around supabase queries + RPCs
+    calendarTypes.ts        // shared TS types
+    slug.ts                 // client-side slug preview helper
+  hooks/
+    useCalendarProfile.ts
+    useMeetingTypes.ts
+    useAvailability.ts
+    useBreaks.ts
+    useUnavailableDates.ts
+    useCalendarEvents.ts    // upcoming + stats
+  components/
+    CalendarStatsCards.tsx
+    QuickActions.tsx
+    ProfileSettingsCard.tsx
+    BookingPreferencesCard.tsx
+    BookingLinkCard.tsx     // copy / open / regenerate slug
+    WorkingHoursEditor.tsx  // 7-day grid, multiple blocks per day
+    BreaksEditor.tsx
+    MeetingTypesEditor.tsx  // duration + buffer per type
+    UnavailableDatesEditor.tsx
+    AvailabilityPreview.tsx // 7-day visual: avail / breaks / blocked / bookings
+    UpcomingMeetingsTable.tsx
+    ManualBookingDialog.tsx // host-created booking
+  pages/
+    CalendarDashboard.tsx   // route: /calendar
+    CalendarSettings.tsx    // route: /calendar/settings (tabs: Profile · Availability · Meeting Types · Blocked Dates · Preferences)
 ```
 
-Enforced in `calendar_event_transition` RPC + trigger guard. Terminal states (`completed`, `cancelled`, `declined`) cannot transition further.
+Routes registered in `src/App.tsx` behind the existing auth wrapper. Sidebar entry added in `src/components/layout/AppLayout.tsx` (new `calendarNav` section, icon `CalendarDays`, label "Calendar"). Visible to any signed-in user.
 
-## Validation summary (server-side)
+## Dashboard (`/calendar`)
 
-Date ≥ today, date ≤ today+60d, duration == meeting_type.slot_duration, slot ∈ availability for that weekday, not in unavailable_dates, no overlapping non-terminal event for host, email + mobile + timezone required on participant insert (NOT NULL + format check).
+- 4 stat cards: Total Bookings (all-time), Upcoming Meetings (status in pending/scheduled, date≥today), Pending Requests (status='pending'), Cancelled Meetings (status='cancelled', last 30 days). One supabase query with `count: 'exact', head: true` per card via `useCalendarEvents`.
+- Quick actions row: Edit Availability (→ settings tab), Create Manual Booking (opens `ManualBookingDialog`), Copy Booking Link (toast), View Schedule (scrolls to upcoming table).
+- Booking link card with copy / open / regenerate.
+- Upcoming meetings table (next 20) with inline Confirm / Decline / Cancel / Complete buttons calling `calendar_event_transition` RPC.
 
-## Security
+## Settings (`/calendar/settings`)
 
-- All public access funneled through edge function or SECURITY DEFINER RPCs — direct table grants to `anon` are limited to none.
-- Tokens: 32-byte random via `gen_random_bytes(32)` base64url, stored as-is (single-use class), `expires_at` = event end + 24h.
-- Audit table `calendar_event_audit(event_id, from_status, to_status, actor_id, actor_kind, at)` populated by trigger.
-- Rate limiting: edge function enforces per-IP burst + slug-level booking cap per hour.
-- Slug input sanitized in `calendar_generate_slug` (regex `[^a-z0-9-]` stripped, collapsed hyphens).
+Tabs:
 
-## Migration / file layout
+1. **Profile** — name, designation, department, photo (storage bucket `branding` reused), slug, timezone (full IANA list), location, description. Slug field shows live availability via `calendar_generate_slug` debounced.
+2. **Availability** — `WorkingHoursEditor` (toggle each weekday on/off, add multiple start/end blocks; client + server validate start<end and non-overlap) + `BreaksEditor` (per-day blocks). Saves via `calendar_availability` / `calendar_breaks` upserts.
+3. **Meeting Types** — list + add/edit. Duration select (15/30/45/60/90/120 min). Buffer before/after dropdowns (0/5/10/15/30). Color, active toggle. Note: existing `calendar_meeting_types` has only `buffer_minutes`; "before"/"after" stored as before+after sum in `buffer_minutes` (we'll keep a single buffer field in v1 to avoid a schema change — surfaced as "Buffer between meetings"). Confirms with user before locking that design.
+4. **Blocked Dates** — `UnavailableDatesEditor` with date picker + reason. Partial-day blocking is deferred (current schema is full-day); UI marks the toggle as coming soon.
+5. **Preferences** — Booking enabled (maps to `is_active`), auto-confirm, require approval, allow reschedule, allow cancellation (new columns).
 
-```text
-supabase/migrations/<ts>_calendar_module.sql   -- single migration (schema + grants + RLS + RPCs + triggers + audit)
-supabase/functions/calendar-public-booking/
-  index.ts                                     -- Deno edge fn (Zod-validated, CORS, action router)
-supabase/config.toml                           -- add [functions.calendar-public-booking] verify_jwt = false
-docs/system-map/flows/calendar.md              -- new flow doc (tables, RPCs, status diagram)
-```
+## Availability Preview
 
-Updates to `docs/system-map/03-backend-map.md` and `04-database-map.md` to list the new tables/edge function/cron-free design (no cron needed in this phase).
+Right-rail/below-form component that renders the upcoming 7 days, drawing:
+- green bars for availability windows minus breaks,
+- striped bars for breaks,
+- red strikethrough for blocked dates,
+- solid blue dots for existing non-cancelled events.
+Pure client-side compose from the loaded data; no extra API calls.
 
-## Out of scope (deferred, but schema-ready)
+## Validation
 
-Google/Outlook sync, team calendars, round-robin, group meetings, video integrations, reminder cron — all fit on top of these tables without schema changes. A future migration would add `calendar_external_accounts`, `calendar_event_external_links`, and a reminders cron job.
+Client (Zod + react-hook-form) and server (existing triggers) both enforce: end>start, no overlapping blocks per day, slug pattern, unique slug (server), buffer applied at slot generation (already in `calendar_available_slots`). Manual booking flow re-uses `calendar_events` insert path so triggers enforce duration / availability / overlap.
+
+## Permissions
+
+All UI components query with the authenticated client; RLS already restricts each user to their own rows. Admin role gets read access only — admin write UI is out of scope here.
 
 ## Acceptance
 
-After approval and implementation:
-1. Migration applies cleanly; linter shows no new errors on new tables (all RLS enabled, all GRANTs present).
-2. `calendar_generate_slug('Yashika Sheth')` returns `yashika-sheth` (and `-1`, `-2` on collision).
-3. Inserting a `calendar_events` row outside availability or on an unavailable date raises.
-4. `calendar_event_transition` rejects invalid transitions.
-5. Edge function `calendar-public-booking` deploys and responds to `resolve_profile` for an active slug without auth.
+1. Migration applies; new columns and `calendar_breaks` show up; no linter regressions.
+2. A signed-in user can open `/calendar`, see four stat cards, copy their booking link, and confirm/decline a pending event.
+3. `/calendar/settings` allows full CRUD on profile, working hours, breaks, meeting types, blocked dates, preferences with toast feedback and Zod validation.
+4. Slot generator respects breaks (verified by booking a slot inside a break being rejected by the validate trigger after we extend it).
+5. Desktop and mobile layouts: 4-card grid collapses to 1 column under `md`, tabs become a select on mobile.
+
+## Out of scope
+
+Public booking page (next phase), Google/Outlook sync, team calendars, partial-day blocking, separate before/after buffer columns, video integrations, reminders cron.
