@@ -138,8 +138,9 @@ export function ProfileSettingsCard() {
             <p className="text-xs text-muted-foreground mt-1">Lowercase letters, numbers, hyphens only.</p>
           </div>
           <div className="md:col-span-2">
-            <Label>Description</Label>
+            <Label>Booking page intro</Label>
             <Textarea value={form.short_bio} onChange={(e) => setForm({ ...form, short_bio: e.target.value })} rows={3} />
+            <p className="text-xs text-muted-foreground mt-1">Shown on your public booking page.</p>
           </div>
         </div>
         <div className="flex justify-end">
