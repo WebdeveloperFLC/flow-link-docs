@@ -53,6 +53,7 @@ import ReportsPage from "./calendar/pages/ReportsPage";
 import ActivityFeedPage from "./calendar/pages/ActivityFeedPage";
 import CompanyBrandingPage from "./calendar/pages/CompanyBrandingPage";
 import PublicBookingPage from "./calendar/pages/PublicBookingPage";
+import VisitorActionPage from "./calendar/pages/VisitorActionPage";
 import DigitalSuccessHomePage from "./digital-success/pages/DigitalSuccessHomePage";
 import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
 import PortalAuth from "./pages/portal/PortalAuth";
