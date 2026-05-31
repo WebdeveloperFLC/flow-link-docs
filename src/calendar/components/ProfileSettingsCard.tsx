@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useCalendarProfile, useUpsertProfile } from "../hooks/useCalendarData";
 import { COMMON_TIMEZONES } from "../lib/calendarTypes";
 import { generateSlug, slugify } from "../lib/calendarApi";
+import { ImageUploader } from "./ImageUploader";
 
 export function ProfileSettingsCard() {
   const { data: profile, isLoading } = useCalendarProfile();
@@ -18,6 +19,7 @@ export function ProfileSettingsCard() {
     designation: "",
     company_name: "",
     profile_photo: "",
+    company_logo: "",
     short_bio: "",
     booking_slug: "",
     timezone: "UTC",
@@ -31,6 +33,7 @@ export function ProfileSettingsCard() {
         designation: profile.designation ?? "",
         company_name: profile.company_name ?? "",
         profile_photo: profile.profile_photo ?? "",
+        company_logo: profile.company_logo ?? "",
         short_bio: profile.short_bio ?? "",
         booking_slug: profile.booking_slug ?? "",
         timezone: profile.timezone ?? "UTC",
@@ -61,6 +64,7 @@ export function ProfileSettingsCard() {
         designation: form.designation || null,
         company_name: form.company_name || null,
         profile_photo: form.profile_photo || null,
+        company_logo: form.company_logo || null,
         short_bio: form.short_bio || null,
         booking_slug: slug,
         timezone: form.timezone,
@@ -79,6 +83,21 @@ export function ProfileSettingsCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ImageUploader
+            value={form.profile_photo || null}
+            onChange={(url) => setForm({ ...form, profile_photo: url ?? "" })}
+            kind="profile"
+            label="Profile photo"
+          />
+          <ImageUploader
+            value={form.company_logo || null}
+            onChange={(url) => setForm({ ...form, company_logo: url ?? "" })}
+            kind="logo"
+            label="Company logo"
+            aspect="wide"
+          />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label>Display name *</Label>
             <Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
@@ -94,10 +113,6 @@ export function ProfileSettingsCard() {
           <div>
             <Label>Location</Label>
             <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-          </div>
-          <div>
-            <Label>Profile image URL</Label>
-            <Input value={form.profile_photo} onChange={(e) => setForm({ ...form, profile_photo: e.target.value })} />
           </div>
           <div>
             <Label>Timezone *</Label>
