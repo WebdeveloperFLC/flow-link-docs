@@ -321,6 +321,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               crmNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
 
+            {renderSection("calendar", "Calendar", calendarNav)}
+
             {renderSection(
               "incentives",
               "Incentives",
