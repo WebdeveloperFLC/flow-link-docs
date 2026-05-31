@@ -177,6 +177,7 @@ const App = () => (
                   <Route path="/share/:token" element={<SharedView />} />
                   <Route path="/book/:slug" element={<PublicBookingPage />} />
                   <Route path="/book/:slug/:meetingSlug" element={<PublicBookingPage />} />
+                  <Route path="/a/:token" element={<VisitorActionPage />} />
                   <Route path="/questionnaire/:token" element={<Questionnaire />} />
                   <Route path="/course-finder" element={<CourseFinder />} />
                   <Route path="/portal/auth" element={<PortalAuth />} />
