@@ -10,10 +10,12 @@ import { useCalendarProfile, useUpsertProfile } from "../hooks/useCalendarData";
 import { COMMON_TIMEZONES } from "../lib/calendarTypes";
 import { generateSlug, slugify } from "../lib/calendarApi";
 import { ImageUploader } from "./ImageUploader";
+import { Pencil } from "lucide-react";
 
 export function ProfileSettingsCard() {
   const { data: profile, isLoading } = useCalendarProfile();
   const upsert = useUpsertProfile();
+  const [mode, setMode] = useState<"view" | "edit">("view");
   const [form, setForm] = useState({
     full_name: "",
     designation: "",
@@ -39,8 +41,10 @@ export function ProfileSettingsCard() {
         timezone: profile.timezone ?? "UTC",
         location: profile.location ?? "",
       });
+      setMode("view");
     } else if (!isLoading) {
       setForm((f) => ({ ...f, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC" }));
+      setMode("edit");
     }
   }, [profile, isLoading]);
 
@@ -71,15 +75,88 @@ export function ProfileSettingsCard() {
         location: form.location || null,
       } as any);
       toast.success("Profile saved");
+      setMode("view");
     } catch (e: any) {
       toast.error(e.message || "Save failed");
     }
   };
 
+  const cancelEdit = () => {
+    if (profile) {
+      setForm({
+        full_name: profile.full_name ?? "",
+        designation: profile.designation ?? "",
+        company_name: profile.company_name ?? "",
+        profile_photo: profile.profile_photo ?? "",
+        company_logo: profile.company_logo ?? "",
+        short_bio: profile.short_bio ?? "",
+        booking_slug: profile.booking_slug ?? "",
+        timezone: profile.timezone ?? "UTC",
+        location: profile.location ?? "",
+      });
+    }
+    setMode("view");
+  };
+
+  if (mode === "view" && profile) {
+    return (
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-base">Booking profile</CardTitle>
+          <Button size="sm" variant="outline" onClick={() => setMode("edit")}>
+            <Pencil className="size-3.5 mr-1.5" /> Edit
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="flex flex-col items-center text-center space-y-3 pb-2 border-b">
+            {form.company_logo && (
+              <img src={form.company_logo} alt="Company logo" className="h-12 object-contain" />
+            )}
+            {form.company_name && (
+              <div className="text-sm font-medium text-muted-foreground">{form.company_name}</div>
+            )}
+            {form.profile_photo ? (
+              <img
+                src={form.profile_photo}
+                alt={form.full_name}
+                className="h-32 w-32 rounded-md object-cover border"
+              />
+            ) : (
+              <div className="h-32 w-32 rounded-md bg-muted border" />
+            )}
+            <div>
+              <div className="text-lg font-semibold">{form.full_name || "—"}</div>
+              {form.designation && (
+                <div className="text-sm text-muted-foreground">{form.designation}</div>
+              )}
+            </div>
+            {form.short_bio && (
+              <p className="text-sm text-muted-foreground max-w-md whitespace-pre-wrap">{form.short_bio}</p>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Location</div>
+              <div>{form.location || "—"}</div>
+            </div>
+            <div>
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Timezone</div>
+              <div>{form.timezone}</div>
+            </div>
+            <div className="md:col-span-2">
+              <div className="text-xs uppercase tracking-wide text-muted-foreground">Booking slug</div>
+              <code className="text-xs bg-muted px-2 py-1 rounded">{form.booking_slug || "—"}</code>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Booking profile</CardTitle>
+        <CardTitle className="text-base">{profile ? "Edit booking profile" : "Booking profile"}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -143,7 +220,10 @@ export function ProfileSettingsCard() {
             <p className="text-xs text-muted-foreground mt-1">Shown on your public booking page.</p>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-2">
+          {profile && (
+            <Button variant="outline" onClick={cancelEdit} disabled={upsert.isPending}>Cancel</Button>
+          )}
           <Button onClick={onSave} disabled={upsert.isPending}>Save profile</Button>
         </div>
       </CardContent>
