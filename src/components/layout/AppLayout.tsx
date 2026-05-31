@@ -94,6 +94,14 @@ const crmNav: NavItem[] = [
   { to: "/messages", icon: MessageSquare, label: "Messages" },
   { to: "/telecaller", icon: Headphones, label: "Telecaller", roles: ["telecaller", "admin", "counselor"] },
   { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
+
+  {
+    to: "/service-library",
+    icon: ListChecks,
+    label: "Checklist & Fee Library",
+    roles: ["admin", "counselor", "documentation", "telecaller"],
+  },
+
   { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/activity", icon: ScrollText, label: "Activity" },
   {
