@@ -1154,6 +1154,22 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <ProtectedRoute>
+                        <CalendarDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/settings"
+                    element={
+                      <ProtectedRoute>
+                        <CalendarSettings />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </CallProvider>
