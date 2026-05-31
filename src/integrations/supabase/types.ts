@@ -14926,6 +14926,10 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      can_manage_service_library: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       can_upload_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
