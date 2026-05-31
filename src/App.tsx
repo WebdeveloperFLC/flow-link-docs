@@ -40,6 +40,7 @@ import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
+import ServiceLibrary from "./pages/ServiceLibrary";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
@@ -1190,12 +1191,54 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/calendar/meeting-types" element={<ProtectedRoute><MeetingTypesPage /></ProtectedRoute>} />
-                  <Route path="/calendar/approvals" element={<ProtectedRoute><AppointmentApprovalsPage /></ProtectedRoute>} />
-                  <Route path="/calendar/analytics" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
-                  <Route path="/calendar/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
-                  <Route path="/calendar/activity" element={<ProtectedRoute><ActivityFeedPage /></ProtectedRoute>} />
-                  <Route path="/calendar/branding" element={<ProtectedRoute><CompanyBrandingPage /></ProtectedRoute>} />
+                  <Route
+                    path="/calendar/meeting-types"
+                    element={
+                      <ProtectedRoute>
+                        <MeetingTypesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/approvals"
+                    element={
+                      <ProtectedRoute>
+                        <AppointmentApprovalsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <AnalyticsDashboardPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/reports"
+                    element={
+                      <ProtectedRoute>
+                        <ReportsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/activity"
+                    element={
+                      <ProtectedRoute>
+                        <ActivityFeedPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/branding"
+                    element={
+                      <ProtectedRoute>
+                        <CompanyBrandingPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </CallProvider>
