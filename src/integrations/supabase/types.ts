@@ -2772,6 +2772,7 @@ export type Database = {
             | Database["public"]["Enums"]["calendar_event_status"]
             | null
           id: string
+          note: string | null
           to_status: Database["public"]["Enums"]["calendar_event_status"]
         }
         Insert: {
@@ -2783,6 +2784,7 @@ export type Database = {
             | Database["public"]["Enums"]["calendar_event_status"]
             | null
           id?: string
+          note?: string | null
           to_status: Database["public"]["Enums"]["calendar_event_status"]
         }
         Update: {
@@ -2794,6 +2796,7 @@ export type Database = {
             | Database["public"]["Enums"]["calendar_event_status"]
             | null
           id?: string
+          note?: string | null
           to_status?: Database["public"]["Enums"]["calendar_event_status"]
         }
         Relationships: [
@@ -2853,12 +2856,19 @@ export type Database = {
           event_date: string
           event_reference: string | null
           event_title: string | null
+          host_remarks: string | null
           host_timezone: string
           id: string
           internal_notes: string | null
+          meeting_link: string | null
           meeting_type_id: string
           notes: string | null
           purpose: string | null
+          requester_response_at: string | null
+          reschedule_proposed_date: string | null
+          reschedule_proposed_end: string | null
+          reschedule_proposed_start: string | null
+          reschedule_reason: string | null
           start_time: string
           status: Database["public"]["Enums"]["calendar_event_status"]
           updated_at: string
@@ -2873,12 +2883,19 @@ export type Database = {
           event_date: string
           event_reference?: string | null
           event_title?: string | null
+          host_remarks?: string | null
           host_timezone: string
           id?: string
           internal_notes?: string | null
+          meeting_link?: string | null
           meeting_type_id: string
           notes?: string | null
           purpose?: string | null
+          requester_response_at?: string | null
+          reschedule_proposed_date?: string | null
+          reschedule_proposed_end?: string | null
+          reschedule_proposed_start?: string | null
+          reschedule_reason?: string | null
           start_time: string
           status?: Database["public"]["Enums"]["calendar_event_status"]
           updated_at?: string
@@ -2893,12 +2910,19 @@ export type Database = {
           event_date?: string
           event_reference?: string | null
           event_title?: string | null
+          host_remarks?: string | null
           host_timezone?: string
           id?: string
           internal_notes?: string | null
+          meeting_link?: string | null
           meeting_type_id?: string
           notes?: string | null
           purpose?: string | null
+          requester_response_at?: string | null
+          reschedule_proposed_date?: string | null
+          reschedule_proposed_end?: string | null
+          reschedule_proposed_start?: string | null
+          reschedule_reason?: string | null
           start_time?: string
           status?: Database["public"]["Enums"]["calendar_event_status"]
           updated_at?: string
@@ -3232,6 +3256,7 @@ export type Database = {
           id: string
           purpose: string
           token: string
+          used_at: string | null
         }
         Insert: {
           created_at?: string
@@ -3240,6 +3265,7 @@ export type Database = {
           id?: string
           purpose?: string
           token: string
+          used_at?: string | null
         }
         Update: {
           created_at?: string
@@ -3248,6 +3274,7 @@ export type Database = {
           id?: string
           purpose?: string
           token?: string
+          used_at?: string | null
         }
         Relationships: [
           {
@@ -14730,12 +14757,19 @@ export type Database = {
           event_date: string
           event_reference: string | null
           event_title: string | null
+          host_remarks: string | null
           host_timezone: string
           id: string
           internal_notes: string | null
+          meeting_link: string | null
           meeting_type_id: string
           notes: string | null
           purpose: string | null
+          requester_response_at: string | null
+          reschedule_proposed_date: string | null
+          reschedule_proposed_end: string | null
+          reschedule_proposed_start: string | null
+          reschedule_reason: string | null
           start_time: string
           status: Database["public"]["Enums"]["calendar_event_status"]
           updated_at: string
@@ -15293,6 +15327,11 @@ export type Database = {
         | "cancelled"
         | "declined"
         | "no_show"
+        | "awaiting_requester"
+        | "confirmed"
+        | "declined_by_requester"
+        | "reschedule_requested"
+        | "rescheduled_awaiting"
       call_direction: "outbound" | "inbound"
       call_queue_status:
         | "queued"
@@ -15542,6 +15581,11 @@ export const Constants = {
         "cancelled",
         "declined",
         "no_show",
+        "awaiting_requester",
+        "confirmed",
+        "declined_by_requester",
+        "reschedule_requested",
+        "rescheduled_awaiting",
       ],
       call_direction: ["outbound", "inbound"],
       call_queue_status: [
