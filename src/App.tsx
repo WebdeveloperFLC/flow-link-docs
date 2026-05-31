@@ -43,6 +43,8 @@ import Messages from "./pages/Messages";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
+import CalendarDashboard from "./calendar/pages/CalendarDashboard";
+import CalendarSettings from "./calendar/pages/CalendarSettings";
 import DigitalSuccessHomePage from "./digital-success/pages/DigitalSuccessHomePage";
 import { PortalProtectedRoute } from "@/components/portal/PortalProtectedRoute";
 import PortalAuth from "./pages/portal/PortalAuth";
@@ -1149,6 +1151,22 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <NotificationMonitoring />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar"
+                    element={
+                      <ProtectedRoute>
+                        <CalendarDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/calendar/settings"
+                    element={
+                      <ProtectedRoute>
+                        <CalendarSettings />
                       </ProtectedRoute>
                     }
                   />

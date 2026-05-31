@@ -184,6 +184,11 @@ const digitalSuccessNav: NavItem[] = [
   { to: "/digital-success", icon: Megaphone, label: "Digital Success Hub", end: true },
 ];
 
+const calendarNav: NavItem[] = [
+  { to: "/calendar", icon: CalendarClock, label: "Calendar", end: true },
+  { to: "/calendar/settings", icon: SettingsIcon, label: "Availability & Settings" },
+];
+
 export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { user, roles, signOut, isAdmin, hasRole, isCommissionAdmin } = useAuth();
   const navigate = useNavigate();
@@ -315,6 +320,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
               "CRM",
               crmNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
             )}
+
+            {renderSection("calendar", "Calendar", calendarNav)}
 
             {renderSection(
               "incentives",
