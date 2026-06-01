@@ -24,7 +24,6 @@ interface Tab {
 const TABS: Tab[] = [
   { key: "coaching_services", label: "Coaching", masterKey: "coaching_services" },
   { key: "visa_services", label: "Visa & Immigration", masterKey: "visa_immigration" },
-  { key: "admission_services", label: "Admission", masterKey: "admission_services" },
   { key: "allied_services", label: "Allied", masterKey: "allied_services" },
   { key: "travel_services", label: "Travel & Financial", masterKey: "travel_financial" },
 ];
@@ -34,11 +33,13 @@ export const ServiceTabs = ({
   onChange,
   visaLocked,
   onCommit,
+  interestedCountries,
 }: {
   value: ServiceSelection;
   onChange: (v: ServiceSelection) => void;
   visaLocked: boolean;
   onCommit?: (key: keyof ServiceSelection, list: string[]) => void;
+  interestedCountries: string[];
 }) => {
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
@@ -59,8 +60,14 @@ export const ServiceTabs = ({
   const visaCountries = useMemo(() => {
     const set = new Set<string>();
     (byKey["visa_immigration"] ?? []).forEach((s) => { if (s.country_tag) set.add(s.country_tag); });
-    return Array.from(set).sort();
-  }, [byKey]);
+    return Array.from(set).filter((c) => interestedCountries.includes(c)).sort();
+  }, [byKey, interestedCountries]);
+
+  useEffect(() => {
+    if (visaCountry !== "ALL" && !visaCountries.includes(visaCountry)) {
+      setVisaCountry("ALL");
+    }
+  }, [visaCountries, visaCountry]);
 
   const toggle = (key: keyof ServiceSelection, code: string) => {
     const cur = value[key] ?? [];
@@ -89,14 +96,22 @@ export const ServiceTabs = ({
       {TABS.map((t) => {
         const list = byKey[t.masterKey] ?? [];
         const isVisa = t.key === "visa_services";
-        const filtered = isVisa && visaCountry !== "ALL"
-          ? list.filter((s) => s.country_tag === visaCountry)
+        const filtered = isVisa
+          ? (visaCountry !== "ALL"
+              ? list.filter((s) => s.country_tag === visaCountry)
+              : list.filter((s) => !s.country_tag || interestedCountries.includes(s.country_tag)))
           : list;
         const locked = isVisa && visaLocked;
+        const noCountriesPicked = isVisa && interestedCountries.length === 0;
 
         return (
           <TabsContent key={t.key} value={t.key} className="space-y-3">
-            {isVisa && visaCountries.length > 0 && (
+            {isVisa && noCountriesPicked && (
+              <div className="p-4 text-sm text-muted-foreground border rounded-md bg-muted/30 text-center">
+                Select countries of interest under Geography to see visa services.
+              </div>
+            )}
+            {isVisa && !noCountriesPicked && visaCountries.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
