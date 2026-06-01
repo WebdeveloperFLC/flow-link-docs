@@ -332,6 +332,7 @@ const LeadNew = () => {
                 value={services}
                 onChange={(v) => { setServices(v); setTimeout(autosave, 0); }}
                 visaLocked={visaLocked}
+                interestedCountries={interestedCountries}
               />
               <div className="border-t pt-4 space-y-3">
                 <label className="flex items-start gap-3 cursor-pointer">
