@@ -31,19 +31,16 @@ const CATEGORY_LABEL: Record<string, string> = {
 export default function ServiceLibrary() {
   const [params, setParams] = useSearchParams();
   const [country, setCountry] = useState(params.get("country") ?? "");
-  const [category, setCategory] = useState(params.get("category") ?? "");
   const [service, setService] = useState(params.get("service") ?? "");
   const [subService, setSubService] = useState(params.get("sub") ?? "");
-  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const p = new URLSearchParams();
     if (country) p.set("country", country);
-    if (category) p.set("category", category);
     if (service) p.set("service", service);
     if (subService) p.set("sub", subService);
     setParams(p, { replace: true });
-  }, [country, category, service, subService, setParams]);
+  }, [country, service, subService, setParams]);
 
   const masters = useQuery({
     queryKey: ["sl-public-masters"],
@@ -58,43 +55,36 @@ export default function ServiceLibrary() {
     },
   });
 
-  const list = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return (masters.data ?? []).filter((m) => {
-      const countries = m.service_library_countries.map((c) => c.country).filter((c) => ALLOWED_COUNTRY_SET.has(c));
-      if (country && !countries.includes(country)) return false;
-      if (category && m.service_category !== category) return false;
-      if (service && m.service !== service) return false;
-      if (subService && m.sub_service !== subService) return false;
-      if (!q) return true;
-      return [m.service, m.sub_service, m.checklist_text ?? ""].join(" ").toLowerCase().includes(q);
-    });
-  }, [masters.data, country, category, service, subService, search]);
-
   const facets = useMemo(() => {
     const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort();
     const all = masters.data ?? [];
     const countries = uniq(all.flatMap((m) => m.service_library_countries.map((c) => c.country)))
       .filter((c) => ALLOWED_COUNTRY_SET.has(c));
-    const filtered = all.filter((m) => !country || m.service_library_countries.some((c) => c.country === country));
-    return {
-      countries,
-      categories: uniq(filtered.map((m) => m.service_category)),
-      services: uniq(filtered.filter((m) => !category || m.service_category === category).map((m) => m.service)),
-      subs: uniq(
-        filtered
-          .filter((m) => (!category || m.service_category === category) && (!service || m.service === service))
-          .map((m) => m.sub_service),
-      ),
-    };
-  }, [masters.data, country, category, service]);
+    const inCountry = country
+      ? all.filter((m) => m.service_library_countries.some((c) => c.country === country))
+      : [];
+    const services = uniq(inCountry.map((m) => m.service));
+    const subs = uniq(
+      inCountry.filter((m) => !service || m.service === service).map((m) => m.sub_service),
+    );
+    return { countries, services, subs };
+  }, [masters.data, country, service]);
 
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = useMemo(() => list.find((m) => m.id === selectedId) ?? list[0] ?? null, [list, selectedId]);
+  const selected = useMemo(() => {
+    if (!country || !service || !subService) return null;
+    return (masters.data ?? []).find(
+      (m) =>
+        m.service === service &&
+        m.sub_service === subService &&
+        m.service_library_countries.some((c) => c.country === country),
+    ) ?? null;
+  }, [masters.data, country, service, subService]);
+
+  const ready = !!selected;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="mx-auto max-w-7xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
             <ListChecks className="h-4 w-4" /> Service Library
@@ -103,55 +93,50 @@ export default function ServiceLibrary() {
           <p className="text-sm text-muted-foreground">Pick country → service → sub-service. Share checklist, files and costs in one click.</p>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-12">
-          <aside className="space-y-3 xl:col-span-4">
-            <Panel title="Filters" icon={<Filter className="h-4 w-4" />}>
-              <Field label="Search">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input className="pl-9" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
-                </div>
-              </Field>
-              <FilterSelect label="Country" value={country}
-                onChange={(v) => { setCountry(v); setCategory(""); setService(""); setSubService(""); }}
-                options={facets.countries} />
-              <FilterSelect label="Category" value={category}
-                onChange={(v) => { setCategory(v); setService(""); setSubService(""); }}
-                options={facets.categories} labelOf={(k) => CATEGORY_LABEL[k] ?? k} />
-              <FilterSelect label="Service" value={service}
-                onChange={(v) => { setService(v); setSubService(""); }} options={facets.services} />
-              <FilterSelect label="Sub-service" value={subService} onChange={setSubService} options={facets.subs} />
-            </Panel>
+        <Panel title="Select to view a record" icon={<Filter className="h-4 w-4" />}>
+          {masters.isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+            </div>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-3">
+              <FilterSelect
+                label="Country"
+                value={country}
+                onChange={(v) => { setCountry(v); setService(""); setSubService(""); }}
+                options={facets.countries}
+                placeholder="Select country"
+              />
+              <FilterSelect
+                label="Service"
+                value={service}
+                onChange={(v) => { setService(v); setSubService(""); }}
+                options={facets.services}
+                disabled={!country}
+                placeholder={country ? "Select service" : "Select country first"}
+                hidden={!country}
+              />
+              <FilterSelect
+                label="Sub-service"
+                value={subService}
+                onChange={setSubService}
+                options={facets.subs}
+                disabled={!service}
+                placeholder={service ? "Select sub-service" : "Select service first"}
+                hidden={!service}
+              />
+            </div>
+          )}
+          {!ready && !masters.isLoading && (
+            <div className="mt-4 rounded-lg border border-dashed bg-slate-50 px-4 py-6 text-center text-sm text-muted-foreground">
+              Please select Country, Service and Sub Service to view details.
+            </div>
+          )}
+        </Panel>
 
-            <Panel title={`Records (${list.length})`} icon={<ListChecks className="h-4 w-4" />}>
-              <div className="space-y-1 max-h-[420px] overflow-auto">
-                {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                {!masters.isLoading && list.length === 0 && (
-                  <div className="p-2 text-sm text-muted-foreground">No matching records.</div>
-                )}
-                {list.map((m) => (
-                  <button key={m.id} onClick={() => setSelectedId(m.id)}
-                    className={`block w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      selected?.id === m.id ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"
-                    }`}>
-                    <div className="font-medium">{m.service} · {m.sub_service}</div>
-                    <div className="text-xs text-muted-foreground">{CATEGORY_LABEL[m.service_category] ?? m.service_category}</div>
-                  </button>
-                ))}
-              </div>
-            </Panel>
-          </aside>
-
-          <section className="xl:col-span-8">
-            {selected ? (
-              <RecordDetail master={selected} country={country || null} />
-            ) : (
-              <Panel title="No record selected" icon={<FileText className="h-4 w-4" />}>
-                <div className="text-sm text-muted-foreground">Pick a record on the left.</div>
-              </Panel>
-            )}
-          </section>
-        </div>
+        {ready && selected && (
+          <RecordDetail master={selected} country={country || null} />
+        )}
       </div>
     </div>
   );
