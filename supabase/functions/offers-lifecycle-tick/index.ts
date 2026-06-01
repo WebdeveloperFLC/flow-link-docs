@@ -112,11 +112,7 @@ Deno.serve(async (req) => {
         const dedupeCode = `BDAY-${year}-${tpl.id.slice(0, 8)}-${c.id.slice(0, 8)}`.toUpperCase();
 
         // Skip if an offer with this code already exists (idempotent)
-        const { data: existing } = await admin
-          .from("offers")
-          .select("id")
-          .eq("promo_code", dedupeCode)
-          .maybeSingle();
+        const { data: existing } = await admin.from("offers").select("id").eq("promo_code", dedupeCode).maybeSingle();
         if (existing) continue;
 
         // Validity window: today .. birthday + days_after
@@ -172,20 +168,33 @@ Deno.serve(async (req) => {
             _event_type: "delivered",
             _channel: "auto_birthday",
           });
-        } catch (_) { /* best-effort */ }
+        } catch (_) {
+          /* best-effort */
+        }
 
-        // 6. In-app notification (best-effort)
+        // 6. In-app notification (best-effort).
+        // app_notifications.user_id references auth.users(id), NOT clients(id).
+        // Resolve the portal user(s) linked to this client via client_portal_links
+        // and notify each. If the client has no portal user, skip silently.
         try {
-          await admin.from("app_notifications").insert({
-            user_id: c.id, // portal users are keyed by client; resolver below if needed
-            category: "offer_published",
-            severity: "info",
-            title: "🎂 A birthday offer for you",
-            body: offer.title,
-            link: "/portal/offers",
-            dedupe_key: `bday_offer:${offer.id}`,
-          });
-        } catch (_) { /* best-effort */ }
+          const { data: links } = await admin.from("client_portal_links").select("user_id").eq("client_id", c.id);
+          const portalUserIds = ((links ?? []) as { user_id: string }[]).map((l) => l.user_id).filter(Boolean);
+          if (portalUserIds.length > 0) {
+            await admin.from("app_notifications").insert(
+              portalUserIds.map((uid) => ({
+                user_id: uid,
+                category: "offer_published",
+                severity: "info",
+                title: "🎂 A birthday offer for you",
+                body: offer.title,
+                link: "/portal/offers",
+                dedupe_key: `bday_offer:${offer.id}:${uid}`,
+              })),
+            );
+          }
+        } catch (_) {
+          /* best-effort */
+        }
 
         // 7. Email (best-effort) — only when queue path is enabled
         if (QUEUE_EMAILS && c.email) {
@@ -200,7 +209,9 @@ Deno.serve(async (req) => {
                 client_id: c.id,
               },
             });
-          } catch (_) { /* best-effort */ }
+          } catch (_) {
+            /* best-effort */
+          }
         }
 
         generated++;
@@ -208,15 +219,14 @@ Deno.serve(async (req) => {
     }
 
     console.log(`${DEBUG} done generated=${generated} skipped_no_dob=${skippedNoDob} errors=${errors.length}`);
-    return new Response(
-      JSON.stringify({ ok: true, generated, skipped_no_dob: skippedNoDob, errors }),
-      { headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ ok: true, generated, skipped_no_dob: skippedNoDob, errors }), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (e) {
     console.error(`${DEBUG} fatal`, e);
-    return new Response(
-      JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e), generated }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ ok: false, error: e instanceof Error ? e.message : String(e), generated }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });
