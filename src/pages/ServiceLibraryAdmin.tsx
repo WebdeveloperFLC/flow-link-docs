@@ -148,28 +148,41 @@ export default function ServiceLibraryAdmin() {
       const catalogue = await fetchAllServiceCatalogue();
 
       // 1) Purge rows for any country NOT in the allow-list (and their child rows).
-      const { data: disallowed, error: dErr } = await supabase
+      // Fetch all rows and filter client-side to avoid URL-length issues with .not("country","in",...).
+      const { data: allRows, error: allErr } = await supabase
         .from("service_library")
-        .select("id, country")
-        .not("country", "in", `(${ALLOWED_SERVICE_LIBRARY_COUNTRIES.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")})`);
-      if (dErr) throw dErr;
-      const disallowedIds = (disallowed ?? []).map((r) => r.id as string);
+        .select("id, country");
+      if (allErr) throw allErr;
+      const disallowedIds = (allRows ?? [])
+        .filter((r) => !ALLOWED_COUNTRY_SET.has(r.country as string))
+        .map((r) => r.id as string);
       let deleted = 0;
+      const CHUNK = 80;
+      const chunked = <T,>(arr: T[]): T[][] => {
+        const out: T[][] = [];
+        for (let i = 0; i < arr.length; i += CHUNK) out.push(arr.slice(i, i + CHUNK));
+        return out;
+      };
       if (disallowedIds.length) {
-        // remove storage files for affected rows (best-effort)
-        const { data: atts } = await supabase
-          .from("service_library_attachments")
-          .select("file_path")
-          .in("library_id", disallowedIds);
-        const paths = (atts ?? []).map((a) => a.file_path as string).filter(Boolean);
-        if (paths.length) {
-          await supabase.storage.from("service-library-files").remove(paths);
+        // Collect storage paths in batches, then remove files (best-effort).
+        const paths: string[] = [];
+        for (const ids of chunked(disallowedIds)) {
+          const { data: atts } = await supabase
+            .from("service_library_attachments")
+            .select("file_path")
+            .in("library_id", ids);
+          for (const a of atts ?? []) if (a.file_path) paths.push(a.file_path as string);
         }
-        await supabase.from("service_library_attachments").delete().in("library_id", disallowedIds);
-        await supabase.from("service_library_fee_items").delete().in("library_id", disallowedIds);
-        const { error: delErr } = await supabase.from("service_library").delete().in("id", disallowedIds);
-        if (delErr) throw delErr;
-        deleted = disallowedIds.length;
+        for (const p of chunked(paths)) {
+          if (p.length) await supabase.storage.from("service-library-files").remove(p);
+        }
+        for (const ids of chunked(disallowedIds)) {
+          await supabase.from("service_library_attachments").delete().in("library_id", ids);
+          await supabase.from("service_library_fee_items").delete().in("library_id", ids);
+          const { error: delErr } = await supabase.from("service_library").delete().in("id", ids);
+          if (delErr) throw delErr;
+          deleted += ids.length;
+        }
       }
 
       // 2) Build existing keys from the remaining (allow-listed) rows.
