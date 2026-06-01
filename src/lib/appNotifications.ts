@@ -14,6 +14,7 @@ export type NotificationCategory =
   | "portal_message"
   | "handoff_received"
   | "client_access_granted"
+  | "offer_published"
   | "info";
 
 export type NotificationSeverity = "info" | "success" | "warning" | "critical";
