@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import {
   Filter, Search, Download, Loader2, Copy, MessageCircle, Mail, Link as LinkIcon,
-  Sparkles, ClipboardCheck, Coins, FileText, ChevronRight, BookOpen, ListChecks, History,
+  Sparkles, ClipboardCheck, Coins, FileText, ChevronRight, ChevronDown, BookOpen, ListChecks, History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   resolveForCountry, scopeByCountry, htmlToPlain, htmlToWhatsApp, htmlToEmail,
@@ -20,19 +23,25 @@ import {
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
+const FLAT_CATEGORY_ORDER: { key: string; label: string }[] = [
+  { key: "coaching_services", label: "Coaching" },
+  { key: "allied_services", label: "Allied" },
+  { key: "travel_financial", label: "Travel & Financial" },
+];
+
 export default function ServiceLibrary() {
   const [params, setParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(params.get("id"));
   const [country, setCountry] = useState(params.get("country") ?? "");
-  const [service, setService] = useState(params.get("service") ?? "");
-  const [subService, setSubService] = useState(params.get("sub") ?? "");
+  const [countryFilter, setCountryFilter] = useState<string>(params.get("country") || "ALL");
+  const [treeSearch, setTreeSearch] = useState("");
 
   useEffect(() => {
     const p = new URLSearchParams();
-    if (country) p.set("country", country);
-    if (service) p.set("service", service);
-    if (subService) p.set("sub", subService);
+    if (selectedId) p.set("id", selectedId);
+    if (countryFilter && countryFilter !== "ALL") p.set("country", countryFilter);
     setParams(p, { replace: true });
-  }, [country, service, subService, setParams]);
+  }, [selectedId, countryFilter, setParams]);
 
   const masters = useQuery({
     queryKey: ["sl-public-masters"],
@@ -47,89 +56,212 @@ export default function ServiceLibrary() {
     },
   });
 
-  const facets = useMemo(() => {
-    const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort();
-    const all = masters.data ?? [];
-    const countries = uniq(all.flatMap((m) => m.service_library_countries.map((c) => c.country)))
-      .filter((c) => ALLOWED_COUNTRY_SET.has(c));
-    const inCountry = country
-      ? all.filter((m) => m.service_library_countries.some((c) => c.country === country))
-      : [];
-    const services = uniq(inCountry.map((m) => m.service));
-    const subs = uniq(
-      inCountry.filter((m) => !service || m.service === service).map((m) => m.sub_service),
-    );
-    return { countries, services, subs };
-  }, [masters.data, country, service]);
+  const { flatGroups, visaByCountry, visaForCountry, availableCountries } = useMemo(() => {
+    const q = treeSearch.trim().toLowerCase();
+    const matches = (m: Master) =>
+      !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
+    const flat: Record<string, Record<string, Master[]>> = {};
+    const visa: Record<string, Record<string, Master[]>> = {};
+    const countrySet = new Set<string>();
+    for (const m of masters.data ?? []) {
+      if (m.service_category === "admission_services") continue;
+      if (m.service_category === "visa_immigration") {
+        const countries = (m.service_library_countries ?? [])
+          .map((c) => c.country)
+          .filter((c) => ALLOWED_COUNTRY_SET.has(c));
+        countries.forEach((c) => countrySet.add(c));
+        if (!matches(m)) continue;
+        if (countryFilter !== "ALL" && !countries.includes(countryFilter)) continue;
+        const buckets = countries.length ? countries : ["Unassigned"];
+        for (const c of buckets) {
+          if (countryFilter !== "ALL" && c !== countryFilter) continue;
+          visa[c] ??= {};
+          visa[c][m.service] ??= [];
+          visa[c][m.service].push(m);
+        }
+        continue;
+      }
+      if (!matches(m)) continue;
+      const catDef = FLAT_CATEGORY_ORDER.find((c) => c.key === m.service_category);
+      if (!catDef) continue;
+      flat[catDef.label] ??= {};
+      flat[catDef.label][m.service] ??= [];
+      flat[catDef.label][m.service].push(m);
+    }
+    const flatSorted: Record<string, Record<string, Master[]>> = {};
+    for (const { label } of FLAT_CATEGORY_ORDER) {
+      if (!flat[label]) continue;
+      const svcKeys = Object.keys(flat[label]).sort((a, b) => a.localeCompare(b));
+      flatSorted[label] = {};
+      for (const s of svcKeys) {
+        flatSorted[label][s] = [...flat[label][s]].sort((a, b) =>
+          a.sub_service.localeCompare(b.sub_service),
+        );
+      }
+    }
+    const visaSorted: Record<string, Record<string, Master[]>> = {};
+    const countryKeys = Object.keys(visa).sort((a, b) => {
+      if (a === "Unassigned") return 1;
+      if (b === "Unassigned") return -1;
+      return a.localeCompare(b);
+    });
+    for (const c of countryKeys) {
+      const svcKeys = Object.keys(visa[c]).sort((a, b) => a.localeCompare(b));
+      visaSorted[c] = {};
+      for (const s of svcKeys) {
+        visaSorted[c][s] = [...visa[c][s]].sort((a, b) =>
+          a.sub_service.localeCompare(b.sub_service),
+        );
+      }
+    }
+    const visaSingle: Record<string, Master[]> =
+      countryFilter !== "ALL" ? visaSorted[countryFilter] ?? {} : {};
+    return {
+      flatGroups: flatSorted,
+      visaByCountry: visaSorted,
+      visaForCountry: visaSingle,
+      availableCountries: Array.from(countrySet).sort((a, b) => a.localeCompare(b)),
+    };
+  }, [masters.data, treeSearch, countryFilter]);
 
-  const selected = useMemo(() => {
-    if (!country || !service || !subService) return null;
-    return (masters.data ?? []).find(
-      (m) =>
-        m.service === service &&
-        m.sub_service === subService &&
-        m.service_library_countries.some((c) => c.country === country),
-    ) ?? null;
-  }, [masters.data, country, service, subService]);
+  const selected = useMemo(
+    () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
+    [masters.data, selectedId],
+  );
 
-  const ready = !!selected;
+  // Country passed to detail panel (for country-scoped overrides/fees).
+  const detailCountry = selected?.service_category === "visa_immigration"
+    ? (countryFilter !== "ALL" ? countryFilter
+        : (selected.service_library_countries.find((c) => ALLOWED_COUNTRY_SET.has(c.country))?.country ?? null))
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-6">
-      <div className="mx-auto max-w-5xl space-y-4">
+      <div className="mx-auto max-w-[1400px] space-y-4">
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
             <ListChecks className="h-4 w-4" /> Service Library
           </div>
-          <h1 className="mt-2 text-2xl font-semibold">Country-wise reference for counselors</h1>
-          <p className="text-sm text-muted-foreground">Pick country → service → sub-service. Share checklist, files and costs in one click.</p>
+          <h1 className="mt-2 text-2xl font-semibold">Reference for counselors</h1>
+          <p className="text-sm text-muted-foreground">
+            Coaching, Allied, and Travel &amp; Financial are listed flat. Use the country filter to view Visa &amp; Immigration services for one country at a time.
+          </p>
         </div>
 
-        <Panel title="Select to view a record" icon={<Filter className="h-4 w-4" />}>
-          {masters.isLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-            </div>
-          ) : (
-            <div className="grid gap-3 md:grid-cols-3">
-              <FilterSelect
-                label="Country"
-                value={country}
-                onChange={(v) => { setCountry(v); setService(""); setSubService(""); }}
-                options={facets.countries}
-                placeholder="Select country"
-              />
-              <FilterSelect
-                label="Service"
-                value={service}
-                onChange={(v) => { setService(v); setSubService(""); }}
-                options={facets.services}
-                disabled={!country}
-                placeholder={country ? "Select service" : "Select country first"}
-                hidden={!country}
-              />
-              <FilterSelect
-                label="Sub-service"
-                value={subService}
-                onChange={setSubService}
-                options={facets.subs}
-                disabled={!service}
-                placeholder={service ? "Select sub-service" : "Select service first"}
-                hidden={!service}
+        <div className="grid gap-4 lg:grid-cols-12">
+          <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
+            <div className="mb-2 px-1 space-y-2">
+              <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); }}>
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Filter by country…" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="ALL">All countries</SelectItem>
+                  {availableCountries.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                value={treeSearch}
+                onChange={(e) => setTreeSearch(e.target.value)}
+                placeholder="Search service or sub-service…"
+                className="h-8 text-sm"
               />
             </div>
-          )}
-          {!ready && !masters.isLoading && (
-            <div className="mt-4 rounded-lg border border-dashed bg-slate-50 px-4 py-6 text-center text-sm text-muted-foreground">
-              Please select Country, Service and Sub Service to view details.
-            </div>
-          )}
-        </Panel>
+            {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {!masters.isLoading &&
+              Object.keys(flatGroups).length === 0 &&
+              Object.keys(visaByCountry).length === 0 &&
+              Object.keys(visaForCountry).length === 0 && (
+                <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
+              )}
+            {Object.entries(flatGroups).map(([catLabel, services]) => (
+              <Tree key={catLabel} label={catLabel}>
+                {Object.entries(services).map(([svc, items]) => (
+                  <Tree key={svc} label={svc}>
+                    {items.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedId(m.id)}
+                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
+                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
+                        }`}
+                      >
+                        {m.sub_service}
+                      </button>
+                    ))}
+                  </Tree>
+                ))}
+              </Tree>
+            ))}
+            {countryFilter !== "ALL" && Object.keys(visaForCountry).length > 0 && (
+              <Tree label={`Visa & Immigration — ${countryFilter}`} defaultOpen>
+                {Object.entries(visaForCountry).map(([svc, items]) => (
+                  <Tree key={svc} label={svc}>
+                    {items.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedId(m.id)}
+                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
+                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
+                        }`}
+                      >
+                        {m.sub_service}
+                      </button>
+                    ))}
+                  </Tree>
+                ))}
+              </Tree>
+            )}
+            {countryFilter === "ALL" && Object.keys(visaByCountry).length > 0 && (
+              <Tree label="Visa & Immigration">
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  Pick a country above to view services.
+                </div>
+                {Object.entries(visaByCountry).map(([c, services]) => (
+                  <button
+                    key={c}
+                    onClick={() => setCountryFilter(c)}
+                    className="block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100"
+                  >
+                    {c}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      ({Object.values(services).reduce((n, arr) => n + arr.length, 0)})
+                    </span>
+                  </button>
+                ))}
+              </Tree>
+            )}
+          </aside>
 
-        {ready && selected && (
-          <RecordDetail master={selected} country={country || null} />
-        )}
+          <section className="lg:col-span-8">
+            {selected ? (
+              <RecordDetail master={selected} country={detailCountry} />
+            ) : (
+              <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground shadow-sm">
+                Select a record on the left.
+              </div>
+            )}
+          </section>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Tree({ label, defaultOpen, children }: { label: string; defaultOpen?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  return (
+    <div className="mb-1">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-sm font-medium hover:bg-slate-100"
+      >
+        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        {label}
+      </button>
+      {open && <div className="pl-4 border-l ml-2.5">{children}</div>}
     </div>
   );
 }
