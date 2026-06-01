@@ -16,13 +16,7 @@ import { toast } from "sonner";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ENTITY_DATA, PL_DATA, MONTHLY_DATA } from "../../data/mockReports";
 import { MOCK_INVOICES } from "../../data/mockAR";
@@ -206,19 +200,19 @@ interface Message {
   timestamp: Date;
 }
 
-const TODAY = new Date("2024-11-01");
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0); // always today
 const DAY = 86400000;
 
 function buildContext(selectedEntity: string): string {
-  const filterEntity = (e?: string) =>
-    selectedEntity === "All entities" || e === selectedEntity;
+  const filterEntity = (e?: string) => selectedEntity === "All entities" || e === selectedEntity;
 
   const entities = ENTITY_DATA.filter((e) => filterEntity(e.entity));
   const invoices = MOCK_INVOICES.filter((i) => filterEntity(i.entity));
   const bills = MOCK_BILLS.filter((b) => filterEntity(b.entity));
   const taxes = MOCK_TAX_PERIODS.filter((t) => filterEntity(t.entity));
   const flags = MOCK_FRAUD_FLAGS.filter(
-    (f) => filterEntity(f.entity) && (f.status === "OPEN" || f.status === "UNDER_REVIEW")
+    (f) => filterEntity(f.entity) && (f.status === "OPEN" || f.status === "UNDER_REVIEW"),
   );
   const notices = MOCK_NOTICES.filter((n: any) => filterEntity(n.entity));
 
@@ -328,10 +322,7 @@ function buildContext(selectedEntity: string): string {
 }
 
 function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function renderMarkdown(text: string): string {
@@ -345,7 +336,7 @@ function renderMarkdown(text: string): string {
   // Currency highlight
   out = out.replace(
     /(CA\$|US\$|A\$|₹|AED|£|€)\s?([\d,]+(?:\.\d+)?[KMB]?)/g,
-    '<span class="text-primary font-medium">$1$2</span>'
+    '<span class="text-primary font-medium">$1$2</span>',
   );
   // Bullet lines → <li>
   out = out.replace(/^[-•]\s+(.+)$/gm, '<li class="ml-5 list-disc">$1</li>');
@@ -377,14 +368,7 @@ interface SidebarBodyProps {
   setSelectedEntity: (v: string) => void;
 }
 
-function SidebarBody({
-  history,
-  onNew,
-  onQuick,
-  onLoadHistory,
-  selectedEntity,
-  setSelectedEntity,
-}: SidebarBodyProps) {
+function SidebarBody({ history, onNew, onQuick, onLoadHistory, selectedEntity, setSelectedEntity }: SidebarBodyProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 space-y-3">
@@ -448,9 +432,7 @@ function SidebarBody({
 
 export default function AccountingAIPage() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationHistory, setConversationHistory] = useState<
-    Array<{ role: string; content: string }>
-  >([]);
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string; content: string }>>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState<string>("All entities");
@@ -460,8 +442,7 @@ export default function AccountingAIPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const scrollToBottom = () =>
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
   useEffect(() => {
     scrollToBottom();
@@ -521,10 +502,7 @@ export default function AccountingAIPage() {
       if (data?.error) throw new Error(data.error);
       const assistantMsg: string = data?.text ?? "";
 
-      setMessages((prev) => [
-        ...prev,
-        { id: uid(), role: "assistant", content: assistantMsg, timestamp: new Date() },
-      ]);
+      setMessages((prev) => [...prev, { id: uid(), role: "assistant", content: assistantMsg, timestamp: new Date() }]);
       setConversationHistory((prev) => [
         ...prev,
         { role: "user", content: userMsg },
@@ -617,8 +595,8 @@ export default function AccountingAIPage() {
                 <Sparkles className="size-10 text-primary mb-4" />
                 <h2 className="text-lg font-medium">Ask me anything about your finances</h2>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto mt-2">
-                  I have access to your journals, invoices, bills, tax filings, fraud alerts, and
-                  reports across all entities.
+                  I have access to your journals, invoices, bills, tax filings, fraud alerts, and reports across all
+                  entities.
                 </p>
                 <div className="grid grid-cols-2 gap-3 mt-6 max-w-lg w-full">
                   {FEATURED.map((f) => {
@@ -645,9 +623,7 @@ export default function AccountingAIPage() {
                   <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-4 py-3 max-w-[75%] text-sm whitespace-pre-wrap break-words">
                     {m.content}
                   </div>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    {formatTime(m.timestamp)}
-                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">{formatTime(m.timestamp)}</span>
                 </div>
               ) : (
                 <div key={m.id} className="flex flex-col items-start max-w-full">
@@ -684,7 +660,7 @@ export default function AccountingAIPage() {
                     </button>
                   </div>
                 </div>
-              )
+              ),
             )}
 
             {isLoading && (
