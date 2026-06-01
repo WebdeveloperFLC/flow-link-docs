@@ -168,6 +168,36 @@ export async function copyToClipboard(text: string) {
   }
 }
 
+/** Copy rich HTML to the clipboard so email clients paste formatted text. */
+export async function copyHtmlToClipboard(html: string) {
+  const safeHtml = (html ?? "").trim();
+  const plain = htmlToPlain(safeHtml);
+  try {
+    if (
+      typeof window !== "undefined" &&
+      typeof (window as any).ClipboardItem !== "undefined" &&
+      navigator.clipboard &&
+      typeof navigator.clipboard.write === "function"
+    ) {
+      const item = new (window as any).ClipboardItem({
+        "text/html": new Blob([safeHtml], { type: "text/html" }),
+        "text/plain": new Blob([plain], { type: "text/plain" }),
+      });
+      await navigator.clipboard.write([item]);
+      return true;
+    }
+    await navigator.clipboard.writeText(plain);
+    return true;
+  } catch {
+    try {
+      await navigator.clipboard.writeText(plain);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}
+
 /** Resolver for use by counselor view and future Lead/Client Detail pages. */
 export async function getServiceLibraryForCombo(args: {
   category: string;
