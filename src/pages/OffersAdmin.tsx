@@ -58,6 +58,10 @@ export default function OffersAdmin() {
               <Users className="size-4 mr-1" />
               Groups
             </TabsTrigger>
+            <TabsTrigger value="codes">
+              <Ticket className="size-4 mr-1" />
+              Tracking codes
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="offers" className="pt-4">
             <OffersTab />
