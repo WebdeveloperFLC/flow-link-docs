@@ -485,7 +485,11 @@ function EditDialog({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
-  const countries = useMasterLabels("countries");
+  const masterCountries = useMasterLabels("countries");
+  const countries = useMemo(
+    () => masterCountries.filter((c) => ALLOWED_COUNTRY_SET.has(c)),
+    [masterCountries],
+  );
 
   useEffect(() => {
     fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
