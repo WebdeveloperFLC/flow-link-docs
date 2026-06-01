@@ -124,7 +124,10 @@ const walletNav: NavItem[] = [
   { to: "/incentives/period-close", icon: CalendarClock, label: "Period Close", adminOnly: true },
 ];
 
-const offersNav: NavItem[] = [{ to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true }];
+const offersNav: NavItem[] = [
+  { to: "/offers-admin", icon: Tag, label: "Offers & discounts", adminOnly: true },
+  { to: "/offers-analytics", icon: BarChart2, label: "Offer analytics", adminOnly: true },
+];
 
 const adminNav: NavItem[] = [
   { to: "/ai-help", icon: Sparkles, label: "AI Help" },
