@@ -98,8 +98,8 @@ const crmNav: NavItem[] = [
   {
     to: "/service-library",
     icon: ListChecks,
-    label: "Checklist & Fee Library",
-    roles: ["admin", "counselor", "documentation", "telecaller"],
+    label: "Service Library",
+    roles: ["admin", "administrator", "counselor", "documentation", "telecaller"],
   },
 
   { to: "/templates", icon: Workflow, label: "Workflows" },
