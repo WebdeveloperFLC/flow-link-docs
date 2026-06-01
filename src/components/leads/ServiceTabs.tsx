@@ -58,10 +58,10 @@ export const ServiceTabs = ({
   }, [catalogue]);
 
   const visaCountries = useMemo(() => {
+    if (interestedCountries) return [...interestedCountries].sort();
     const set = new Set<string>();
     (byKey["visa_immigration"] ?? []).forEach((s) => { if (s.country_tag) set.add(s.country_tag); });
-    const all = Array.from(set).sort();
-    return interestedCountries ? all.filter((c) => interestedCountries.includes(c)) : all;
+    return Array.from(set).sort();
   }, [byKey, interestedCountries]);
 
   useEffect(() => {
