@@ -72,6 +72,9 @@ export default function OffersAdmin() {
           <TabsContent value="codes" className="pt-4">
             <OfferTrackingCodes />
           </TabsContent>
+          <TabsContent value="codes" className="pt-4">
+            <OfferTrackingCodes />
+          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>
