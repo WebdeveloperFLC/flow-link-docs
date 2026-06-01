@@ -252,6 +252,8 @@ function OfferDialog({
       valid_to: form.valid_to || null,
       is_active: form.is_active ?? true,
       audience: form.audience ?? "global",
+      target_countries: Array.from(selCountries),
+      applicable_services: Array.from(selServices),
     };
     let offerId = offer?.id;
     if (offer) {
