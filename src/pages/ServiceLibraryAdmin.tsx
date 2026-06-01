@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMasterLabels } from "@/lib/masters";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
+import { REGIONS } from "@/lib/regions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,6 +54,16 @@ const CATEGORY_OPTIONS: { key: string; label: string }[] = [
 ];
 const CATEGORY_LABEL_BY_KEY = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.key, c.label]));
 const CATEGORY_KEY_BY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.label, c.key]));
+
+/**
+ * Service Library is restricted to this fixed allow-list of countries.
+ * Sourced from the REGIONS list (Europe, North America, Oceania, Middle East, Asia).
+ * Any country outside this list is purged during sync and hidden from admin pickers.
+ */
+export const ALLOWED_SERVICE_LIBRARY_COUNTRIES: string[] = [
+  ...new Set(REGIONS.flatMap((r) => r.countries)),
+].sort();
+const ALLOWED_COUNTRY_SET = new Set(ALLOWED_SERVICE_LIBRARY_COUNTRIES);
 
 type FeeItem = {
   id?: string;
