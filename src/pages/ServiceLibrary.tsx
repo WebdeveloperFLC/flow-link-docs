@@ -4,6 +4,9 @@ import { FileText, FileUp, Filter, ListChecks, ChevronRight, Search, Loader2, Do
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
+import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "./ServiceLibraryAdmin";
+
+const ALLOWED_COUNTRY_SET = new Set(ALLOWED_SERVICE_LIBRARY_COUNTRIES);
 
 type FeeItem = { id: string; fee_label: string; amount: string | null; currency: string | null; notes: string | null };
 type Attachment = {
@@ -53,6 +56,7 @@ export default function ServiceLibrary() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
+      if (!ALLOWED_COUNTRY_SET.has(r.country)) return false;
       if (country && r.country !== country) return false;
       if (serviceCategory && r.service_category !== serviceCategory) return false;
       if (service && r.service !== service) return false;

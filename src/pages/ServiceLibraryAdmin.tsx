@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMasterLabels } from "@/lib/masters";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
+import { REGIONS } from "@/lib/regions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,6 +54,16 @@ const CATEGORY_OPTIONS: { key: string; label: string }[] = [
 ];
 const CATEGORY_LABEL_BY_KEY = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.key, c.label]));
 const CATEGORY_KEY_BY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.label, c.key]));
+
+/**
+ * Service Library is restricted to this fixed allow-list of countries.
+ * Sourced from the REGIONS list (Europe, North America, Oceania, Middle East, Asia).
+ * Any country outside this list is purged during sync and hidden from admin pickers.
+ */
+export const ALLOWED_SERVICE_LIBRARY_COUNTRIES: string[] = [
+  ...new Set(REGIONS.flatMap((r) => r.countries)),
+].sort();
+const ALLOWED_COUNTRY_SET = new Set(ALLOWED_SERVICE_LIBRARY_COUNTRIES);
 
 type FeeItem = {
   id?: string;
@@ -135,6 +146,33 @@ export default function ServiceLibraryAdmin() {
     setSyncing(true);
     try {
       const catalogue = await fetchAllServiceCatalogue();
+
+      // 1) Purge rows for any country NOT in the allow-list (and their child rows).
+      const { data: disallowed, error: dErr } = await supabase
+        .from("service_library")
+        .select("id, country")
+        .not("country", "in", `(${ALLOWED_SERVICE_LIBRARY_COUNTRIES.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")})`);
+      if (dErr) throw dErr;
+      const disallowedIds = (disallowed ?? []).map((r) => r.id as string);
+      let deleted = 0;
+      if (disallowedIds.length) {
+        // remove storage files for affected rows (best-effort)
+        const { data: atts } = await supabase
+          .from("service_library_attachments")
+          .select("file_path")
+          .in("library_id", disallowedIds);
+        const paths = (atts ?? []).map((a) => a.file_path as string).filter(Boolean);
+        if (paths.length) {
+          await supabase.storage.from("service-library-files").remove(paths);
+        }
+        await supabase.from("service_library_attachments").delete().in("library_id", disallowedIds);
+        await supabase.from("service_library_fee_items").delete().in("library_id", disallowedIds);
+        const { error: delErr } = await supabase.from("service_library").delete().in("id", disallowedIds);
+        if (delErr) throw delErr;
+        deleted = disallowedIds.length;
+      }
+
+      // 2) Build existing keys from the remaining (allow-listed) rows.
       const { data: existingRows, error: exErr } = await supabase
         .from("service_library")
         .select("country, service_category, service, sub_service");
@@ -145,9 +183,10 @@ export default function ServiceLibraryAdmin() {
         ),
       );
 
-      // Use master countries (lead form source of truth) as fallback for
+      // Use master countries intersected with the allow-list as fallback for
       // catalogue items without a country_tag.
-      const targetCountries = masterCountries.length ? masterCountries : ["All Countries"];
+      const targetCountries = (masterCountries.length ? masterCountries : ALLOWED_SERVICE_LIBRARY_COUNTRIES)
+        .filter((c) => ALLOWED_COUNTRY_SET.has(c));
       const toInsert: {
         country: string;
         service_category: string;
@@ -160,8 +199,11 @@ export default function ServiceLibraryAdmin() {
         const categoryLabel = CATEGORY_LABEL_BY_KEY[item.master_key];
         if (!categoryLabel) continue; // skip catalogue keys not in lead form's 5 categories
         const subService = (item.sub_category ?? "").trim() || "General";
+        // If the catalogue item is tagged to a country outside the allow-list, skip it.
+        if (item.country_tag && !ALLOWED_COUNTRY_SET.has(item.country_tag)) continue;
         const itemCountries = item.country_tag ? [item.country_tag] : targetCountries;
         for (const c of itemCountries) {
+          if (!ALLOWED_COUNTRY_SET.has(c)) continue;
           const key = `${c}|${categoryLabel}|${item.service_name}|${subService}`;
           if (existingKeys.has(key) || seen.has(key)) continue;
           seen.add(key);
@@ -175,7 +217,13 @@ export default function ServiceLibraryAdmin() {
       }
 
       if (toInsert.length === 0) {
-        toast({ title: "Already in sync", description: "No new entries to create." });
+        toast({
+          title: deleted ? "Sync complete" : "Already in sync",
+          description: deleted
+            ? `Removed ${deleted} disallowed-country entr${deleted === 1 ? "y" : "ies"}. No new entries to create.`
+            : "No new entries to create.",
+        });
+        if (deleted) refresh();
         return;
       }
 
@@ -190,9 +238,9 @@ export default function ServiceLibraryAdmin() {
       }
       toast({
         title: "Sync complete",
-        description: `Created ${created} new Service Library entr${created === 1 ? "y" : "ies"} from the lead form catalogue.`,
+        description: `Removed ${deleted} disallowed entr${deleted === 1 ? "y" : "ies"} and created ${created} new entr${created === 1 ? "y" : "ies"} from the lead form catalogue.`,
       });
-      console.info(`[service-library] sync created ${created} new entries`);
+      console.info(`[service-library] sync deleted ${deleted}, created ${created}`);
       refresh();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Sync failed";
@@ -437,7 +485,11 @@ function EditDialog({
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
-  const countries = useMasterLabels("countries");
+  const masterCountries = useMasterLabels("countries");
+  const countries = useMemo(
+    () => masterCountries.filter((c) => ALLOWED_COUNTRY_SET.has(c)),
+    [masterCountries],
+  );
 
   useEffect(() => {
     fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
