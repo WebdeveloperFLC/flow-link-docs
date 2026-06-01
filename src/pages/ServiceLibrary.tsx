@@ -278,7 +278,14 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
             ].map(([label, val]) => (
               <div key={label as string} className="rounded-lg bg-amber-50/60 border border-amber-200 p-3">
                 <div className="text-xs font-semibold uppercase text-amber-700">{label}</div>
-                <div className="mt-1 text-sm whitespace-pre-wrap">{(val as string) || "—"}</div>
+                {val ? (
+                  <div
+                    className="mt-1 text-sm prose prose-sm max-w-none prose-p:my-1"
+                    dangerouslySetInnerHTML={{ __html: val as string }}
+                  />
+                ) : (
+                  <div className="mt-1 text-sm">—</div>
+                )}
               </div>
             ))}
           </div>
