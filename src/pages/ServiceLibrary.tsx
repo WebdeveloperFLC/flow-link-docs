@@ -484,13 +484,20 @@ function Panel({ title, icon, children, action, accent }: { title: string; icon:
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return <div className="mb-3"><div className="mb-1 text-sm font-medium text-slate-700">{label}</div>{children}</div>;
 }
-function FilterSelect({ label, value, onChange, options, labelOf }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[]; labelOf?: (v: string) => string;
+function FilterSelect({ label, value, onChange, options, labelOf, placeholder, disabled, hidden }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[];
+  labelOf?: (v: string) => string; placeholder?: string; disabled?: boolean; hidden?: boolean;
 }) {
+  if (hidden) return null;
   return (
     <Field label={label}>
-      <select className="w-full rounded-lg border bg-white px-3 py-2 text-sm" value={value} onChange={(e) => onChange(e.target.value)}>
-        <option value="">All</option>
+      <select
+        className="w-full rounded-lg border bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">{placeholder ?? "All"}</option>
         {options.map((o) => <option key={o} value={o}>{labelOf ? labelOf(o) : o}</option>)}
       </select>
     </Field>
