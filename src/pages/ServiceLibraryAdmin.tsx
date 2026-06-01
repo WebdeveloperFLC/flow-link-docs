@@ -1,451 +1,199 @@
-import { useMemo, useState, useEffect, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-  Upload,
-  Download,
-  X,
-  Save,
-  ShieldAlert,
-  ListChecks,
-  Search,
-  RefreshCw,
+  Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
+  ListChecks, ChevronRight, ChevronDown, Globe, FileText, FileUp, Settings2,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMasterLabels } from "@/lib/masters";
-import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
-import { REGIONS } from "@/lib/regions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import {
+  ALLOWED_SERVICE_LIBRARY_COUNTRIES, type Master, type Override,
+  type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem,
+} from "@/lib/serviceLibrary";
 
-/**
- * Service categories MUST match the lead form (see src/components/leads/ServiceTabs.tsx).
- * Country / Service / Sub-Service are sourced from master_items + service_catalogue —
- * no separate hierarchy is maintained inside Service Library.
- */
-const CATEGORY_OPTIONS: { key: string; label: string }[] = [
+export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
+
+const CATEGORY_OPTIONS = [
   { key: "coaching_services", label: "Coaching" },
   { key: "visa_immigration", label: "Visa & Immigration" },
   { key: "admission_services", label: "Admission" },
   { key: "allied_services", label: "Allied" },
   { key: "travel_financial", label: "Travel & Financial" },
 ];
-const CATEGORY_LABEL_BY_KEY = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.key, c.label]));
-const CATEGORY_KEY_BY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.label, c.key]));
 
-/**
- * Service Library is restricted to this fixed allow-list of countries.
- * Sourced from the REGIONS list (Europe, North America, Oceania, Middle East, Asia).
- * Any country outside this list is purged during sync and hidden from admin pickers.
- */
-export const ALLOWED_SERVICE_LIBRARY_COUNTRIES: string[] = [
-  ...new Set(REGIONS.flatMap((r) => r.countries)),
-].sort();
-const ALLOWED_COUNTRY_SET = new Set(ALLOWED_SERVICE_LIBRARY_COUNTRIES);
-
-type FeeItem = {
-  id?: string;
-  fee_label: string;
-  amount: string | null;
-  currency: string | null;
-  notes: string | null;
-};
-type Attachment = {
-  id: string;
-  file_name: string;
-  file_path: string;
-  label: string | null;
-  mime_type: string | null;
-};
-type LibraryRow = {
-  id: string;
-  country: string;
-  service_category: string;
-  service: string;
-  sub_service: string;
-  checklist_text: string | null;
-  process_flow: string[] | null;
-  is_active: boolean;
-  display_order: number;
-  service_library_fee_items: FeeItem[];
-  service_library_attachments: Attachment[];
-};
-
-const emptyForm = (): Omit<LibraryRow, "id" | "service_library_fee_items" | "service_library_attachments"> => ({
-  country: "",
-  service_category: "",
-  service: "",
-  sub_service: "",
-  checklist_text: "",
-  process_flow: [],
-  is_active: true,
-  display_order: 0,
-});
+const DEFAULT_SUBMISSION_ITEMS = [
+  { item_key: "documents_verified", item_label: "Documents verified" },
+  { item_key: "checklist_completed", item_label: "Checklist completed" },
+  { item_key: "fees_collected", item_label: "Fees collected" },
+  { item_key: "client_approval_received", item_label: "Client approval received" },
+  { item_key: "quality_review_completed", item_label: "Quality review completed" },
+  { item_key: "submission_approved", item_label: "Submission approved" },
+];
 
 export default function ServiceLibraryAdmin() {
   const { hasRole, isAdmin } = useAuth();
   const canManage = isAdmin || hasRole(["administrator", "documentation"]);
   const qc = useQueryClient();
-  const masterCountries = useMasterLabels("countries");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showNew, setShowNew] = useState(false);
+  const [bannerHidden, setBannerHidden] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [country, setCountry] = useState("");
-  const [serviceCategory, setServiceCategory] = useState("");
-  const [service, setService] = useState("");
-  const [subService, setSubService] = useState("");
-
-  const [editing, setEditing] = useState<LibraryRow | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [syncing, setSyncing] = useState(false);
-
-  const { data: rows = [], isLoading } = useQuery<LibraryRow[]>({
-    queryKey: ["service-library-admin"],
+  const masters = useQuery({
+    queryKey: ["sl-masters"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_library")
-        .select("*, service_library_fee_items(*), service_library_attachments(*)")
-        .order("country")
-        .order("display_order");
+        .select("*")
+        .order("service_category").order("service").order("sub_service");
       if (error) throw error;
-      return (data ?? []) as unknown as LibraryRow[];
+      return (data ?? []) as unknown as Master[];
     },
   });
 
-  const refresh = () => qc.invalidateQueries({ queryKey: ["service-library-admin"] });
+  const log = useQuery({
+    queryKey: ["sl-mig-log"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_migration_log")
+        .select("*").order("ran_at", { ascending: false }).limit(1).maybeSingle();
+      return data;
+    },
+  });
 
-  /**
-   * Backfill Service Library from the lead form catalogue.
-   * Inserts every (country, category, service, sub-service) combination
-   * that exists in service_catalogue but not yet in service_library.
-   * Existing rows (and their checklist / fees / process flow / attachments)
-   * are left untouched — we only INSERT missing combos.
-   */
-  const syncFromCatalogue = async () => {
-    setSyncing(true);
-    try {
-      const catalogue = await fetchAllServiceCatalogue();
-
-      // 1) Purge rows for any country NOT in the allow-list (and their child rows).
-      // Fetch all rows and filter client-side to avoid URL-length issues with .not("country","in",...).
-      const { data: allRows, error: allErr } = await supabase
-        .from("service_library")
-        .select("id, country");
-      if (allErr) throw allErr;
-      const disallowedIds = (allRows ?? [])
-        .filter((r) => !ALLOWED_COUNTRY_SET.has(r.country as string))
-        .map((r) => r.id as string);
-      let deleted = 0;
-      const CHUNK = 80;
-      const chunked = <T,>(arr: T[]): T[][] => {
-        const out: T[][] = [];
-        for (let i = 0; i < arr.length; i += CHUNK) out.push(arr.slice(i, i + CHUNK));
-        return out;
-      };
-      if (disallowedIds.length) {
-        // Collect storage paths in batches, then remove files (best-effort).
-        const paths: string[] = [];
-        for (const ids of chunked(disallowedIds)) {
-          const { data: atts } = await supabase
-            .from("service_library_attachments")
-            .select("file_path")
-            .in("library_id", ids);
-          for (const a of atts ?? []) if (a.file_path) paths.push(a.file_path as string);
-        }
-        for (const p of chunked(paths)) {
-          if (p.length) await supabase.storage.from("service-library-files").remove(p);
-        }
-        for (const ids of chunked(disallowedIds)) {
-          await supabase.from("service_library_attachments").delete().in("library_id", ids);
-          await supabase.from("service_library_fee_items").delete().in("library_id", ids);
-          const { error: delErr } = await supabase.from("service_library").delete().in("id", ids);
-          if (delErr) throw delErr;
-          deleted += ids.length;
-        }
-      }
-
-      // 2) Build existing keys from the remaining (allow-listed) rows.
-      const { data: existingRows, error: exErr } = await supabase
-        .from("service_library")
-        .select("country, service_category, service, sub_service");
-      if (exErr) throw exErr;
-      const existingKeys = new Set(
-        (existingRows ?? []).map(
-          (r) => `${r.country}|${r.service_category}|${r.service}|${r.sub_service}`,
-        ),
-      );
-
-      // Use master countries intersected with the allow-list as fallback for
-      // catalogue items without a country_tag.
-      const targetCountries = (masterCountries.length ? masterCountries : ALLOWED_SERVICE_LIBRARY_COUNTRIES)
-        .filter((c) => ALLOWED_COUNTRY_SET.has(c));
-      const toInsert: {
-        country: string;
-        service_category: string;
-        service: string;
-        sub_service: string;
-      }[] = [];
-      const seen = new Set<string>();
-
-      for (const item of catalogue) {
-        const categoryLabel = CATEGORY_LABEL_BY_KEY[item.master_key];
-        if (!categoryLabel) continue; // skip catalogue keys not in lead form's 5 categories
-        const subService = (item.sub_category ?? "").trim() || "General";
-        // If the catalogue item is tagged to a country outside the allow-list, skip it.
-        if (item.country_tag && !ALLOWED_COUNTRY_SET.has(item.country_tag)) continue;
-        const itemCountries = item.country_tag ? [item.country_tag] : targetCountries;
-        for (const c of itemCountries) {
-          if (!ALLOWED_COUNTRY_SET.has(c)) continue;
-          const key = `${c}|${categoryLabel}|${item.service_name}|${subService}`;
-          if (existingKeys.has(key) || seen.has(key)) continue;
-          seen.add(key);
-          toInsert.push({
-            country: c,
-            service_category: categoryLabel,
-            service: item.service_name,
-            sub_service: subService,
-          });
-        }
-      }
-
-      if (toInsert.length === 0) {
-        toast({
-          title: deleted ? "Sync complete" : "Already in sync",
-          description: deleted
-            ? `Removed ${deleted} disallowed-country entr${deleted === 1 ? "y" : "ies"}. No new entries to create.`
-            : "No new entries to create.",
-        });
-        if (deleted) refresh();
-        return;
-      }
-
-      // Insert in batches to stay well under any payload limits.
-      const BATCH = 200;
-      let created = 0;
-      for (let i = 0; i < toInsert.length; i += BATCH) {
-        const slice = toInsert.slice(i, i + BATCH);
-        const { error } = await supabase.from("service_library").insert(slice);
-        if (error) throw error;
-        created += slice.length;
-      }
-      toast({
-        title: "Sync complete",
-        description: `Removed ${deleted} disallowed entr${deleted === 1 ? "y" : "ies"} and created ${created} new entr${created === 1 ? "y" : "ies"} from the lead form catalogue.`,
-      });
-      console.info(`[service-library] sync deleted ${deleted}, created ${created}`);
-      refresh();
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Sync failed";
-      toast({ title: "Sync failed", description: msg, variant: "destructive" });
-    } finally {
-      setSyncing(false);
+  // group masters by category > service
+  const tree = useMemo(() => {
+    const out: Record<string, Record<string, Master[]>> = {};
+    for (const m of masters.data ?? []) {
+      const cat = m.service_category;
+      const svc = m.service;
+      out[cat] ??= {};
+      out[cat][svc] ??= [];
+      out[cat][svc].push(m);
     }
-  };
+    return out;
+  }, [masters.data]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (country && r.country !== country) return false;
-      if (serviceCategory && r.service_category !== serviceCategory) return false;
-      if (service && r.service !== service) return false;
-      if (subService && r.sub_service !== subService) return false;
-      if (!q) return true;
-      return [r.country, r.service_category, r.service, r.sub_service, r.checklist_text ?? ""]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
-    });
-  }, [rows, country, serviceCategory, service, subService, search]);
-
-  const uniq = (arr: string[]) => [...new Set(arr.filter(Boolean))].sort();
-  const countries = uniq(rows.map((r) => r.country));
-  const categories = uniq(
-    rows.filter((r) => !country || r.country === country).map((r) => r.service_category),
+  const selected = useMemo(
+    () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
+    [masters.data, selectedId],
   );
-  const services = uniq(
-    rows
-      .filter((r) => (!country || r.country === country) && (!serviceCategory || r.service_category === serviceCategory))
-      .map((r) => r.service),
-  );
-  const subServices = uniq(
-    rows
-      .filter(
-        (r) =>
-          (!country || r.country === country) &&
-          (!serviceCategory || r.service_category === serviceCategory) &&
-          (!service || r.service === service),
-      )
-      .map((r) => r.sub_service),
-  );
-
-  const handleDelete = async (row: LibraryRow) => {
-    if (!confirm(`Delete ${row.country} · ${row.service}? Files and fees will be removed.`)) return;
-    // remove storage files first
-    if (row.service_library_attachments.length) {
-      await supabase.storage.from("service-library-files").remove(row.service_library_attachments.map((a) => a.file_path));
-    }
-    const { error } = await supabase.from("service_library").delete().eq("id", row.id);
-    if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Deleted" });
-    refresh();
-  };
 
   if (!canManage) {
     return (
-      <div className="p-6">
-        <div className="mx-auto max-w-xl rounded-3xl border border-amber-200 bg-amber-50 p-6 text-center">
-          <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-amber-600" />
-          <h2 className="text-lg font-semibold">View-only access</h2>
-          <p className="mt-1 text-sm text-amber-800">
-            Only Admins and the Documentation team can manage the Service Library.
-          </p>
+      <div className="min-h-screen p-6 grid place-items-center">
+        <div className="max-w-md rounded-2xl border bg-card p-6 text-center">
+          <ShieldAlert className="mx-auto h-8 w-8 text-amber-500" />
+          <h2 className="mt-2 text-lg font-semibold">No access</h2>
+          <p className="text-sm text-muted-foreground">Admin or Documentation role required.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-3 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-              <ListChecks className="h-4 w-4" /> Service Library Admin
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="mx-auto max-w-[1400px] space-y-4">
+        {log.data && !bannerHidden && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Migration summary: merged <b>{log.data.duplicates_merged}</b> duplicate rows →{" "}
+              <b>{log.data.masters_remaining}</b> master records,{" "}
+              <b>{log.data.country_mappings_created}</b> country mappings,{" "}
+              <b>{log.data.overrides_created}</b> overrides created.
             </div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">Manage Service Library</h1>
-            <p className="mt-1 text-sm text-slate-600">
-              Add countries, services, sub-services, checklists, fees, process flow and files.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={syncFromCatalogue} disabled={syncing}>
-              {syncing ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              Sync from lead form
+            <Button size="sm" variant="ghost" onClick={() => setBannerHidden(true)}>
+              <X className="h-4 w-4" />
             </Button>
-            <Button
-              onClick={() => {
-                setEditing(null);
-                setShowForm(true);
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add entry
+          </div>
+        )}
+
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                <ListChecks className="h-4 w-4" /> Service Library Admin
+              </div>
+              <h1 className="mt-1 text-2xl font-semibold">Canonical service records</h1>
+              <p className="text-sm text-muted-foreground">
+                One record per Category → Service → Sub-service. Assign countries, add overrides where needed.
+              </p>
+            </div>
+            <Button onClick={() => setShowNew(true)}>
+              <Plus className="h-4 w-4 mr-1" /> New record
             </Button>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-3 md:grid-cols-5">
-            <div className="relative md:col-span-2">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                className="pl-9"
-                placeholder="Search…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+        <div className="grid gap-4 lg:grid-cols-12">
+          <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
+            {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {!masters.isLoading && Object.keys(tree).length === 0 && (
+              <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
+            )}
+            {Object.entries(tree).map(([cat, services]) => (
+              <Tree key={cat} label={CATEGORY_OPTIONS.find((c) => c.key === cat)?.label ?? cat} defaultOpen>
+                {Object.entries(services).map(([svc, items]) => (
+                  <Tree key={svc} label={svc}>
+                    {items.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedId(m.id)}
+                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
+                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
+                        }`}
+                      >
+                        {m.sub_service}
+                      </button>
+                    ))}
+                  </Tree>
+                ))}
+              </Tree>
+            ))}
+          </aside>
+
+          <section className="lg:col-span-8">
+            {selected ? (
+              <MasterDetail
+                key={selected.id}
+                master={selected}
+                onChanged={() => qc.invalidateQueries({ queryKey: ["sl-masters"] })}
+                onDeleted={() => {
+                  setSelectedId(null);
+                  qc.invalidateQueries({ queryKey: ["sl-masters"] });
+                }}
               />
-            </div>
-            <FilterSelect value={country} onChange={(v) => { setCountry(v); setServiceCategory(""); setService(""); setSubService(""); }} options={countries} placeholder="All countries" />
-            <FilterSelect value={serviceCategory} onChange={(v) => { setServiceCategory(v); setService(""); setSubService(""); }} options={categories} placeholder="All categories" />
-            <FilterSelect value={service} onChange={(v) => { setService(v); setSubService(""); }} options={services} placeholder="All services" />
-          </div>
-          <div className="mt-3 grid gap-3 md:grid-cols-5">
-            <FilterSelect value={subService} onChange={setSubService} options={subServices} placeholder="All sub-services" />
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Country</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Sub-service</TableHead>
-                <TableHead>Fees</TableHead>
-                <TableHead>Files</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-sm text-slate-500">
-                    <Loader2 className="mx-auto h-4 w-4 animate-spin" />
-                  </TableCell>
-                </TableRow>
-              )}
-              {!isLoading && filtered.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-sm text-slate-500">
-                    No entries.
-                  </TableCell>
-                </TableRow>
-              )}
-              {filtered.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell>{r.country}</TableCell>
-                  <TableCell>{r.service_category}</TableCell>
-                  <TableCell>{r.service}</TableCell>
-                  <TableCell>{r.sub_service}</TableCell>
-                  <TableCell>{r.service_library_fee_items.length}</TableCell>
-                  <TableCell>{r.service_library_attachments.length}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditing(r);
-                        setShowForm(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(r)}>
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+            ) : (
+              <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground shadow-sm">
+                Select a record on the left.
+              </div>
+            )}
+          </section>
         </div>
       </div>
 
-      {showForm && (
-        <EditDialog
-          row={editing}
-          onClose={() => setShowForm(false)}
-          onSaved={() => {
-            setShowForm(false);
-            refresh();
+      {showNew && (
+        <NewMasterDialog
+          onClose={() => setShowNew(false)}
+          onCreated={(id) => {
+            setShowNew(false);
+            setSelectedId(id);
+            qc.invalidateQueries({ queryKey: ["sl-masters"] });
           }}
         />
       )}
@@ -453,487 +201,88 @@ export default function ServiceLibraryAdmin() {
   );
 }
 
-function FilterSelect({
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-}) {
+function Tree({ label, defaultOpen, children }: { label: string; defaultOpen?: boolean; children: ReactNode }) {
+  const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <select
-      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
+    <div className="mb-1">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-sm font-medium hover:bg-slate-100"
+      >
+        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        {label}
+      </button>
+      {open && <div className="pl-4 border-l ml-2.5">{children}</div>}
+    </div>
   );
 }
 
-function EditDialog({
-  row,
-  onClose,
-  onSaved,
-}: {
-  row: LibraryRow | null;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [form, setForm] = useState(() => (row ? { ...row } : { ...emptyForm() }));
-  const [fees, setFees] = useState<FeeItem[]>(row?.service_library_fee_items ?? []);
-  const [attachments, setAttachments] = useState<Attachment[]>(row?.service_library_attachments ?? []);
-  const [processFlow, setProcessFlow] = useState<string[]>(
-    Array.isArray(row?.process_flow) ? (row!.process_flow as string[]) : [],
-  );
+function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
+  const [category, setCategory] = useState("");
+  const [service, setService] = useState("");
+  const [subService, setSubService] = useState("");
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
-  const masterCountries = useMasterLabels("countries");
-  const countries = useMemo(
-    () => masterCountries.filter((c) => ALLOWED_COUNTRY_SET.has(c)),
-    [masterCountries],
-  );
-
-  useEffect(() => {
-    fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
-  }, []);
-
-  useEffect(() => {
-    if (row) {
-      setForm({ ...row });
-      setFees(row.service_library_fee_items);
-      setAttachments(row.service_library_attachments);
-      setProcessFlow(Array.isArray(row.process_flow) ? (row.process_flow as string[]) : []);
-    }
-  }, [row]);
-
-  const categoryKey = CATEGORY_KEY_BY_LABEL[form.service_category] ?? "";
-  const catalogueForCategory = useMemo(
-    () => catalogue.filter((c) => c.master_key === categoryKey),
-    [catalogue, categoryKey],
-  );
-  // Services are filtered by selected country when the catalogue item is country-tagged.
-  // Items without a country_tag are global and show for every country.
-  const servicesForSelection = useMemo(() => {
-    if (!form.country) return catalogueForCategory;
-    return catalogueForCategory.filter((c) => !c.country_tag || c.country_tag === form.country);
-  }, [catalogueForCategory, form.country]);
-  const serviceOptions = useMemo(
-    () => [...new Set(servicesForSelection.map((s) => s.service_name))].sort(),
-    [servicesForSelection],
-  );
-  const subServiceOptions = useMemo(
-    () =>
-      [
-        ...new Set(
-          servicesForSelection
-            .filter((s) => s.service_name === form.service)
-            .map((s) => s.sub_category || "")
-            .filter(Boolean),
-        ),
-      ].sort(),
-    [servicesForSelection, form.service],
-  );
 
   const save = async () => {
-    if (!form.country || !form.service_category || !form.service || !form.sub_service) {
-      toast({ title: "Fill country, category, service, sub-service", variant: "destructive" });
-      return;
-    }
-    // Validate against catalogue / masters — prevents duplicate master data.
-    if (!countries.includes(form.country)) {
-      toast({
-        title: "Unknown country",
-        description: "Pick a country from the master list (Masters → Countries).",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (!CATEGORY_KEY_BY_LABEL[form.service_category]) {
-      toast({ title: "Pick a service category from the lead form list", variant: "destructive" });
-      return;
-    }
-    const matchesCatalogue = catalogueForCategory.some(
-      (c) =>
-        c.service_name === form.service &&
-        (!c.country_tag || c.country_tag === form.country) &&
-        (c.sub_category ?? "") === form.sub_service,
-    );
-    if (!matchesCatalogue) {
-      toast({
-        title: "Service / sub-service not in catalogue",
-        description: "Add it to the service catalogue first so the lead form and Service Library stay in sync.",
-        variant: "destructive",
-      });
+    if (!category || !service.trim() || !subService.trim()) {
+      toast({ title: "Fill all fields", variant: "destructive" });
       return;
     }
     setSaving(true);
-    try {
-      // Duplicate guard: same (country, category, service, sub-service) cannot exist twice.
-      const { data: existing, error: dupErr } = await supabase
-        .from("service_library")
-        .select("id")
-        .eq("country", form.country.trim())
-        .eq("service_category", form.service_category.trim())
-        .eq("service", form.service.trim())
-        .eq("sub_service", form.sub_service.trim());
-      if (dupErr) throw dupErr;
-      const clash = (existing ?? []).find((e) => e.id !== row?.id);
-      if (clash) {
-        toast({
-          title: "Entry already exists",
-          description: "An entry for this country + service + sub-service already exists.",
-          variant: "destructive",
-        });
-        setSaving(false);
-        return;
-      }
-
-      const payload = {
-        country: form.country.trim(),
-        service_category: form.service_category.trim(),
-        service: form.service.trim(),
-        sub_service: form.sub_service.trim(),
-        checklist_text: form.checklist_text || null,
-        process_flow: processFlow,
-        is_active: form.is_active,
-        display_order: form.display_order ?? 0,
-      };
-
-      let libraryId = row?.id;
-      if (row) {
-        const { error } = await supabase.from("service_library").update(payload).eq("id", row.id);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from("service_library")
-          .insert(payload)
-          .select("id")
-          .single();
-        if (error) throw error;
-        libraryId = data.id;
-      }
-
-      // Replace fee items: delete then insert
-      if (libraryId) {
-        await supabase.from("service_library_fee_items").delete().eq("library_id", libraryId);
-        const cleanFees = fees
-          .filter((f) => f.fee_label.trim())
-          .map((f, i) => ({
-            library_id: libraryId!,
-            fee_label: f.fee_label.trim(),
-            amount: f.amount || null,
-            currency: f.currency || null,
-            notes: f.notes || null,
-            display_order: i,
-          }));
-        if (cleanFees.length) {
-          const { error } = await supabase.from("service_library_fee_items").insert(cleanFees);
-          if (error) throw error;
-        }
-      }
-      toast({ title: row ? "Updated" : "Created" });
-      onSaved();
-    } catch (e) {
-      toast({ title: "Save failed", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleUpload = async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
-    if (!row?.id) {
-      toast({
-        title: "Save the entry first",
-        description: "Create the entry before uploading files.",
-        variant: "destructive",
-      });
-      return;
-    }
-    setUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        const path = `${row.id}/${Date.now()}-${file.name}`;
-        const { error: upErr } = await supabase.storage
-          .from("service-library-files")
-          .upload(path, file, { contentType: file.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data, error: dbErr } = await supabase
-          .from("service_library_attachments")
-          .insert({
-            library_id: row.id,
-            file_name: file.name,
-            file_path: path,
-            mime_type: file.type,
-            label: file.name,
-          })
-          .select("*")
-          .single();
-        if (dbErr) throw dbErr;
-        setAttachments((prev) => [...prev, data as Attachment]);
-      }
-      toast({ title: "Files uploaded" });
-    } catch (e) {
-      toast({ title: "Upload failed", description: (e as Error).message, variant: "destructive" });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeAttachment = async (a: Attachment) => {
-    if (!confirm(`Remove ${a.file_name}?`)) return;
-    await supabase.storage.from("service-library-files").remove([a.file_path]);
-    const { error } = await supabase.from("service_library_attachments").delete().eq("id", a.id);
+    const { data, error } = await supabase
+      .from("service_library")
+      .insert({ service_category: category, service: service.trim(), sub_service: subService.trim() })
+      .select("id")
+      .single();
+    setSaving(false);
     if (error) {
-      toast({ title: "Remove failed", description: error.message, variant: "destructive" });
+      toast({ title: "Failed", description: error.message, variant: "destructive" });
       return;
     }
-    setAttachments((prev) => prev.filter((x) => x.id !== a.id));
-  };
-
-  const downloadAttachment = async (a: Attachment) => {
-    const { data, error } = await supabase.storage
-      .from("service-library-files")
-      .createSignedUrl(a.file_path, 600);
-    if (error) {
-      toast({ title: "Download failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noopener");
+    // seed default submission checklist items
+    await supabase.from("service_library_submission_checklist").insert(
+      DEFAULT_SUBMISSION_ITEMS.map((x, i) => ({
+        library_id: data!.id,
+        item_key: x.item_key,
+        item_label: x.item_label,
+        is_mandatory: true,
+        sort_order: i + 1,
+      })),
+    );
+    onCreated(data!.id);
   };
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>{row ? "Edit entry" : "Add entry"}</DialogTitle>
+          <DialogTitle>New service record</DialogTitle>
         </DialogHeader>
-
-        <div className="grid gap-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            <Section label="Country">
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.country}
-                onChange={(e) =>
-                  setForm({ ...form, country: e.target.value, service: "", sub_service: "" })
-                }
-              >
-                <option value="">Select country…</option>
-                {countries.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </Section>
-            <Section label="Service Category">
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={CATEGORY_KEY_BY_LABEL[form.service_category] ?? ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    service_category: CATEGORY_LABEL_BY_KEY[e.target.value] ?? "",
-                    service: "",
-                    sub_service: "",
-                  })
-                }
-              >
-                <option value="">Select category…</option>
+        <div className="space-y-3">
+          <div>
+            <Label>Service Category</Label>
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger><SelectValue placeholder="Choose category" /></SelectTrigger>
+              <SelectContent>
                 {CATEGORY_OPTIONS.map((c) => (
-                  <option key={c.key} value={c.key}>
-                    {c.label}
-                  </option>
+                  <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>
                 ))}
-              </select>
-            </Section>
-            <Section label="Service">
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.service}
-                onChange={(e) => setForm({ ...form, service: e.target.value, sub_service: "" })}
-                disabled={!categoryKey}
-              >
-                <option value="">{categoryKey ? "Select service…" : "Pick category first"}</option>
-                {serviceOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </Section>
-            <Section label="Sub-service">
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.sub_service}
-                onChange={(e) => setForm({ ...form, sub_service: e.target.value })}
-                disabled={!form.service}
-              >
-                <option value="">{form.service ? "Select sub-service…" : "Pick service first"}</option>
-                {subServiceOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </Section>
+              </SelectContent>
+            </Select>
           </div>
-          <p className="-mt-2 text-xs text-slate-500">
-            Country, category, service and sub-service come from the lead form catalogue. To add new options, update the
-            service catalogue / Masters — not here.
-          </p>
-
-          <Section label="Checklist text">
-            <Textarea
-              rows={5}
-              value={form.checklist_text ?? ""}
-              onChange={(e) => setForm({ ...form, checklist_text: e.target.value })}
-            />
-          </Section>
-
-          <Section label="Process flow (one step per line)">
-            <Textarea
-              rows={4}
-              value={processFlow.join("\n")}
-              onChange={(e) => setProcessFlow(e.target.value.split("\n").map((s) => s.trim()).filter(Boolean))}
-            />
-          </Section>
-
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <Label>Fee structure</Label>
-              <Button
-                size="sm"
-                variant="outline"
-                type="button"
-                onClick={() =>
-                  setFees([...fees, { fee_label: "", amount: "", currency: "", notes: "" }])
-                }
-              >
-                <Plus className="mr-1 h-3 w-3" /> Add fee
-              </Button>
-            </div>
-            <div className="space-y-2">
-              {fees.map((f, i) => (
-                <div key={i} className="grid gap-2 md:grid-cols-12">
-                  <Input
-                    className="md:col-span-4"
-                    placeholder="Label"
-                    value={f.fee_label}
-                    onChange={(e) => {
-                      const next = [...fees];
-                      next[i] = { ...next[i], fee_label: e.target.value };
-                      setFees(next);
-                    }}
-                  />
-                  <Input
-                    className="md:col-span-2"
-                    placeholder="Currency"
-                    value={f.currency ?? ""}
-                    onChange={(e) => {
-                      const next = [...fees];
-                      next[i] = { ...next[i], currency: e.target.value };
-                      setFees(next);
-                    }}
-                  />
-                  <Input
-                    className="md:col-span-2"
-                    placeholder="Amount"
-                    value={f.amount ?? ""}
-                    onChange={(e) => {
-                      const next = [...fees];
-                      next[i] = { ...next[i], amount: e.target.value };
-                      setFees(next);
-                    }}
-                  />
-                  <Input
-                    className="md:col-span-3"
-                    placeholder="Notes"
-                    value={f.notes ?? ""}
-                    onChange={(e) => {
-                      const next = [...fees];
-                      next[i] = { ...next[i], notes: e.target.value };
-                      setFees(next);
-                    }}
-                  />
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    type="button"
-                    onClick={() => setFees(fees.filter((_, j) => j !== i))}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+            <Label>Service</Label>
+            <Input value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. Student Visa" />
           </div>
-
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <Label>Attachments (PDF/DOCX/XLSX)</Label>
-              {row?.id ? (
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50">
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-                  <span>Upload</span>
-                  <input
-                    type="file"
-                    multiple
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    className="hidden"
-                    onChange={(e) => handleUpload(e.target.files)}
-                  />
-                </label>
-              ) : (
-                <span className="text-xs text-slate-500">Save entry to enable uploads</span>
-              )}
-            </div>
-            <div className="space-y-2">
-              {attachments.length === 0 && (
-                <div className="rounded-md border border-dashed p-3 text-sm text-slate-500">No files yet.</div>
-              )}
-              {attachments.map((a) => (
-                <div
-                  key={a.id}
-                  className="flex items-center justify-between rounded-md border bg-white px-3 py-2 text-sm"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium">{a.file_name}</div>
-                    <div className="truncate text-xs text-slate-500">{a.mime_type}</div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button size="sm" variant="ghost" type="button" onClick={() => downloadAttachment(a)}>
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" type="button" onClick={() => removeAttachment(a)}>
-                      <Trash2 className="h-4 w-4 text-red-600" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Label>Sub-service</Label>
+            <Input value={subService} onChange={(e) => setSubService(e.target.value)} placeholder="e.g. University application" />
           </div>
         </div>
-
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button onClick={save} disabled={saving}>
-            {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Save
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -941,11 +290,722 @@ function EditDialog({
   );
 }
 
-function Section({ label, children }: { label: string; children: ReactNode }) {
+function MasterDetail({
+  master, onChanged, onDeleted,
+}: { master: Master; onChanged: () => void; onDeleted: () => void }) {
+  return (
+    <div className="rounded-2xl border bg-white shadow-sm">
+      <header className="flex items-center justify-between gap-2 border-b p-4">
+        <div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            {CATEGORY_OPTIONS.find((c) => c.key === master.service_category)?.label ?? master.service_category}
+          </div>
+          <h2 className="text-lg font-semibold">{master.service} · {master.sub_service}</h2>
+        </div>
+        <Button
+          variant="ghost" size="sm"
+          onClick={async () => {
+            if (!confirm("Delete this record and all its data?")) return;
+            const { error } = await supabase.from("service_library").delete().eq("id", master.id);
+            if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+            toast({ title: "Deleted" });
+            onDeleted();
+          }}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </header>
+
+      <Tabs defaultValue="overview" className="p-4">
+        <TabsList className="flex flex-wrap h-auto">
+          <TabsTrigger value="overview"><Settings2 className="h-3.5 w-3.5 mr-1" />Overview</TabsTrigger>
+          <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
+          <TabsTrigger value="countries"><Globe className="h-3.5 w-3.5 mr-1" />Countries</TabsTrigger>
+          <TabsTrigger value="checklist"><ClipboardCheck className="h-3.5 w-3.5 mr-1" />Checklist</TabsTrigger>
+          <TabsTrigger value="submission"><ListChecks className="h-3.5 w-3.5 mr-1" />Submission</TabsTrigger>
+          <TabsTrigger value="fees"><Coins className="h-3.5 w-3.5 mr-1" />Fees</TabsTrigger>
+          <TabsTrigger value="cost"><FileText className="h-3.5 w-3.5 mr-1" />Cost Summary</TabsTrigger>
+          <TabsTrigger value="process"><ChevronRight className="h-3.5 w-3.5 mr-1" />Process Flow</TabsTrigger>
+          <TabsTrigger value="sop"><BookOpen className="h-3.5 w-3.5 mr-1" />Internal SOP</TabsTrigger>
+          <TabsTrigger value="overrides"><Globe className="h-3.5 w-3.5 mr-1" />Overrides</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview"><OverviewTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="quickguide"><QuickGuideTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="countries"><CountriesTab master={master} /></TabsContent>
+        <TabsContent value="checklist"><ChecklistTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="submission"><SubmissionTab master={master} /></TabsContent>
+        <TabsContent value="fees"><FeesTab master={master} /></TabsContent>
+        <TabsContent value="cost"><CostSummaryTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="process"><ProcessFlowTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="sop"><InternalSopTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="overrides"><OverridesTab master={master} /></TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function OverviewTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const [order, setOrder] = useState(master.display_order);
+  const [active, setActive] = useState(master.is_active);
+  const save = async () => {
+    const { error } = await supabase
+      .from("service_library")
+      .update({ display_order: order, is_active: active })
+      .eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+  return (
+    <div className="space-y-3 max-w-md">
+      <div>
+        <Label>Display order</Label>
+        <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} />
+      </div>
+      <div className="flex items-center justify-between rounded-lg border p-3">
+        <div>
+          <div className="font-medium">Active</div>
+          <div className="text-xs text-muted-foreground">Inactive records are hidden from counselor view.</div>
+        </div>
+        <Switch checked={active} onCheckedChange={setActive} />
+      </div>
+      <Button onClick={save}>Save</Button>
+    </div>
+  );
+}
+
+function QuickGuideTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const [v, setV] = useState({
+    quick_guide_what_to_do: master.quick_guide_what_to_do ?? "",
+    quick_guide_common_mistakes: master.quick_guide_common_mistakes ?? "",
+    quick_guide_escalation_rules: master.quick_guide_escalation_rules ?? "",
+    quick_guide_important_reminders: master.quick_guide_important_reminders ?? "",
+  });
+  const save = async () => {
+    const { error } = await supabase.from("service_library").update(v).eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      {[
+        ["quick_guide_what_to_do", "What to do"],
+        ["quick_guide_common_mistakes", "Common mistakes"],
+        ["quick_guide_escalation_rules", "Escalation rules"],
+        ["quick_guide_important_reminders", "Important reminders"],
+      ].map(([key, label]) => (
+        <div key={key}>
+          <Label>{label}</Label>
+          <Textarea
+            rows={5}
+            value={(v as Record<string, string>)[key]}
+            onChange={(e) => setV({ ...v, [key]: e.target.value })}
+          />
+        </div>
+      ))}
+      <div className="md:col-span-2">
+        <Button onClick={save}>Save Quick Guide</Button>
+      </div>
+    </div>
+  );
+}
+
+function CountriesTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const { data: rows = [], isLoading } = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_countries")
+        .select("*").eq("library_id", master.id);
+      return (data ?? []) as { id: string; country: string }[];
+    },
+  });
+  const assigned = new Set(rows.map((r) => r.country));
+
+  const toggle = async (country: string) => {
+    if (assigned.has(country)) {
+      await supabase.from("service_library_countries").delete()
+        .eq("library_id", master.id).eq("country", country);
+    } else {
+      const { error } = await supabase.from("service_library_countries")
+        .insert({ library_id: master.id, country });
+      if (error) toast({ title: "Failed", description: error.message, variant: "destructive" });
+    }
+    qc.invalidateQueries({ queryKey: ["sl-countries", master.id] });
+  };
+
   return (
     <div>
-      <Label className="mb-1 block">{label}</Label>
-      {children}
+      <p className="mb-3 text-sm text-muted-foreground">
+        Select the countries this record applies to. Only the approved {ALLOWED_SERVICE_LIBRARY_COUNTRIES.length}-country allow-list is shown.
+      </p>
+      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+        <div className="flex flex-wrap gap-2">
+          {ALLOWED_SERVICE_LIBRARY_COUNTRIES.map((c) => (
+            <button
+              key={c}
+              onClick={() => toggle(c)}
+              className={`rounded-full border px-3 py-1 text-xs ${
+                assigned.has(c)
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChecklistTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const qc = useQueryClient();
+  const [text, setText] = useState(master.checklist_text ?? "");
+  const [uploading, setUploading] = useState(false);
+  const [uploadCountry, setUploadCountry] = useState<string>("");
+  const [showHistory, setShowHistory] = useState<string | null>(null);
+
+  const files = useQuery({
+    queryKey: ["sl-cfiles", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_checklist_files").select("*")
+        .eq("library_id", master.id)
+        .order("file_name").order("version", { ascending: false });
+      return (data ?? []) as unknown as ChecklistFile[];
+    },
+  });
+  const assigned = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_countries").select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
+    },
+  });
+
+  const grouped = useMemo(() => {
+    const out: Record<string, ChecklistFile[]> = {};
+    for (const f of files.data ?? []) {
+      const key = `${f.country ?? "ALL"}::${f.file_name}`;
+      (out[key] ??= []).push(f);
+    }
+    return out;
+  }, [files.data]);
+
+  const saveText = async () => {
+    const { error } = await supabase.from("service_library").update({ checklist_text: text }).eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+
+  const upload = async (file: File) => {
+    setUploading(true);
+    const country = uploadCountry || null;
+    // determine version: max version for (library, country, file_name) + 1
+    const matching = (files.data ?? []).filter(
+      (f) => f.file_name === file.name && (f.country ?? null) === country,
+    );
+    const nextVersion = matching.length ? Math.max(...matching.map((m) => m.version)) + 1 : 1;
+    const path = `checklist/${master.id}/${nextVersion}-${Date.now()}-${file.name}`;
+    const up = await supabase.storage.from("service-library-files").upload(path, file);
+    if (up.error) {
+      setUploading(false);
+      return toast({ title: "Upload failed", description: up.error.message, variant: "destructive" });
+    }
+    // flip previous to is_current=false
+    if (matching.length) {
+      await supabase.from("service_library_checklist_files")
+        .update({ is_current: false })
+        .in("id", matching.map((m) => m.id));
+    }
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("service_library_checklist_files").insert({
+      library_id: master.id, country,
+      file_name: file.name, file_path: path, mime_type: file.type, size_bytes: file.size,
+      version: nextVersion, is_current: true, uploaded_by: u.user?.id ?? null,
+    });
+    setUploading(false);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Uploaded" });
+    qc.invalidateQueries({ queryKey: ["sl-cfiles", master.id] });
+  };
+
+  const remove = async (f: ChecklistFile) => {
+    if (!confirm(`Delete ${f.file_name} v${f.version}?`)) return;
+    await supabase.storage.from("service-library-files").remove([f.file_path]);
+    await supabase.from("service_library_checklist_files").delete().eq("id", f.id);
+    qc.invalidateQueries({ queryKey: ["sl-cfiles", master.id] });
+  };
+
+  const download = async (f: ChecklistFile) => {
+    const { data } = await supabase.storage.from("service-library-files").createSignedUrl(f.file_path, 600);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Checklist text (default)</Label>
+        <Textarea rows={8} value={text} onChange={(e) => setText(e.target.value)} />
+        <div className="mt-2">
+          <Button onClick={saveText}>Save checklist text</Button>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h3 className="font-medium">Checklist files</h3>
+          <div className="flex items-center gap-2">
+            <Select value={uploadCountry || "__all"} onValueChange={(v) => setUploadCountry(v === "__all" ? "" : v)}>
+              <SelectTrigger className="w-44 h-9"><SelectValue placeholder="Scope" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">All countries</SelectItem>
+                {(assigned.data ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <label className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50 cursor-pointer">
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+              Upload
+              <input type="file" hidden accept=".pdf,.doc,.docx,.xls,.xlsx"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }}
+              />
+            </label>
+          </div>
+        </div>
+
+        {files.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {!files.isLoading && (files.data ?? []).length === 0 && (
+          <div className="text-sm text-muted-foreground">No files yet.</div>
+        )}
+        <div className="space-y-2">
+          {Object.entries(grouped).map(([key, versions]) => {
+            const current = versions.find((v) => v.is_current) ?? versions[0];
+            const history = versions.filter((v) => v.id !== current.id);
+            return (
+              <div key={key} className="rounded-lg border p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{current.file_name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      v{current.version} · {current.country ?? "All countries"} · uploaded {new Date(current.uploaded_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => download(current)}><Download className="h-4 w-4" /></Button>
+                    {history.length > 0 && (
+                      <Button size="sm" variant="ghost" onClick={() => setShowHistory(showHistory === key ? null : key)}>
+                        <History className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => remove(current)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </div>
+                </div>
+                {showHistory === key && history.length > 0 && (
+                  <div className="mt-2 space-y-1 border-t pt-2">
+                    {history.map((h) => (
+                      <div key={h.id} className="flex items-center justify-between text-xs">
+                        <span>v{h.version} · {new Date(h.uploaded_at).toLocaleDateString()}</span>
+                        <div className="flex gap-1">
+                          <Button size="sm" variant="ghost" onClick={() => download(h)}><Download className="h-3.5 w-3.5" /></Button>
+                          <Button size="sm" variant="ghost" onClick={() => remove(h)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubmissionTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const items = useQuery({
+    queryKey: ["sl-sub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_submission_checklist")
+        .select("*").eq("library_id", master.id).order("sort_order");
+      return (data ?? []) as unknown as SubmissionItem[];
+    },
+  });
+  const assigned = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_countries").select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
+    },
+  });
+
+  const update = async (id: string, patch: Partial<SubmissionItem>) => {
+    await supabase.from("service_library_submission_checklist").update(patch).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-sub", master.id] });
+  };
+  const remove = async (id: string) => {
+    if (!confirm("Remove this item?")) return;
+    await supabase.from("service_library_submission_checklist").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-sub", master.id] });
+  };
+  const add = async () => {
+    const lbl = prompt("Item label");
+    if (!lbl) return;
+    const key = lbl.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "") + "_" + Date.now();
+    const nextOrder = ((items.data ?? []).reduce((m, x) => Math.max(m, x.sort_order), 0) || 0) + 1;
+    await supabase.from("service_library_submission_checklist").insert({
+      library_id: master.id, item_key: key, item_label: lbl, is_mandatory: true, sort_order: nextOrder,
+    });
+    qc.invalidateQueries({ queryKey: ["sl-sub", master.id] });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Items counselors must check before submission.</p>
+        <Button size="sm" onClick={add}><Plus className="h-3.5 w-3.5 mr-1" />Add item</Button>
+      </div>
+      <div className="space-y-2">
+        {(items.data ?? []).map((it) => (
+          <div key={it.id} className="rounded-lg border p-3 grid gap-2 md:grid-cols-[1fr_180px_120px_120px_40px] md:items-center">
+            <Input
+              value={it.item_label}
+              onChange={(e) => update(it.id, { item_label: e.target.value })}
+              onBlur={(e) => update(it.id, { item_label: e.target.value })}
+            />
+            <Select value={it.country ?? "__all"} onValueChange={(v) => update(it.id, { country: v === "__all" ? null : v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">All countries</SelectItem>
+                {(assigned.data ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={it.is_mandatory} onCheckedChange={(v) => update(it.id, { is_mandatory: v })} />
+              Mandatory
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={it.is_active} onCheckedChange={(v) => update(it.id, { is_active: v })} />
+              Active
+            </label>
+            <Button size="sm" variant="ghost" onClick={() => remove(it.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FeesTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const items = useQuery({
+    queryKey: ["sl-fees", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_fee_items")
+        .select("*").eq("library_id", master.id).order("display_order");
+      return (data ?? []) as unknown as FeeItem[];
+    },
+  });
+  const assigned = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_countries").select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
+    },
+  });
+
+  const update = async (id: string, patch: Partial<FeeItem>) => {
+    await supabase.from("service_library_fee_items").update(patch).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-fees", master.id] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from("service_library_fee_items").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-fees", master.id] });
+  };
+  const add = async () => {
+    const nextOrder = ((items.data ?? []).reduce((m, x) => Math.max(m, x.display_order), 0) || 0) + 1;
+    await supabase.from("service_library_fee_items").insert({
+      library_id: master.id, fee_label: "New fee", amount: "0", currency: "INR", display_order: nextOrder,
+    });
+    qc.invalidateQueries({ queryKey: ["sl-fees", master.id] });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">Per-row country scope: leave as "All" or pick a specific country.</p>
+        <Button size="sm" onClick={add}><Plus className="h-3.5 w-3.5 mr-1" />Add fee</Button>
+      </div>
+      <div className="space-y-2">
+        {(items.data ?? []).map((it) => (
+          <div key={it.id} className="grid grid-cols-12 gap-2 rounded-lg border p-2">
+            <Input className="col-span-4" defaultValue={it.fee_label} onBlur={(e) => update(it.id, { fee_label: e.target.value })} />
+            <Input className="col-span-2" defaultValue={it.amount ?? ""} onBlur={(e) => update(it.id, { amount: e.target.value })} />
+            <Input className="col-span-1" defaultValue={it.currency ?? ""} onBlur={(e) => update(it.id, { currency: e.target.value })} />
+            <Input className="col-span-2" defaultValue={it.notes ?? ""} placeholder="Notes" onBlur={(e) => update(it.id, { notes: e.target.value })} />
+            <Select value={it.country ?? "__all"} onValueChange={(v) => update(it.id, { country: v === "__all" ? null : v })}>
+              <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">All</SelectItem>
+                {(assigned.data ?? []).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="ghost" className="col-span-1" onClick={() => remove(it.id)}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CostSummaryTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const [v, setV] = useState(master.cost_summary_html ?? "");
+  const save = async () => {
+    const { error } = await supabase.from("service_library").update({ cost_summary_html: v }).eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Complete cost breakdown shown on the counselor view. Supports basic HTML (paragraphs, lists, bold).
+      </p>
+      <Textarea rows={14} value={v} onChange={(e) => setV(e.target.value)} placeholder="Government fees, Future Link fees, third-party costs, notes, total estimated cost…" />
+      <Button onClick={save}>Save Cost Summary</Button>
+    </div>
+  );
+}
+
+function ProcessFlowTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const initial = Array.isArray(master.process_flow) ? (master.process_flow as string[]) : [];
+  const [steps, setSteps] = useState<string[]>(initial);
+  const save = async () => {
+    const cleaned = steps.map((s) => s.trim()).filter(Boolean);
+    const { error } = await supabase.from("service_library").update({ process_flow: cleaned }).eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+  return (
+    <div className="space-y-2">
+      {steps.map((s, i) => (
+        <div key={i} className="flex gap-2">
+          <Input value={s} onChange={(e) => { const c = [...steps]; c[i] = e.target.value; setSteps(c); }} />
+          <Button variant="ghost" size="sm" onClick={() => setSteps(steps.filter((_, j) => j !== i))}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Button size="sm" variant="outline" onClick={() => setSteps([...steps, ""])}>
+          <Plus className="h-4 w-4 mr-1" /> Add step
+        </Button>
+        <Button size="sm" onClick={save}>Save</Button>
+      </div>
+    </div>
+  );
+}
+
+function InternalSopTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+  const qc = useQueryClient();
+  const [html, setHtml] = useState(master.internal_sop_html ?? "");
+  const tasks = useQuery({
+    queryKey: ["sl-sop", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_sop_tasks")
+        .select("*").eq("library_id", master.id).order("sort_order");
+      return (data ?? []) as unknown as SopTask[];
+    },
+  });
+
+  const saveHtml = async () => {
+    const { error } = await supabase.from("service_library").update({ internal_sop_html: html }).eq("id", master.id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onChanged();
+  };
+  const addTask = async () => {
+    const t = prompt("Task text");
+    if (!t) return;
+    const order = ((tasks.data ?? []).reduce((m, x) => Math.max(m, x.sort_order), 0) || 0) + 1;
+    await supabase.from("service_library_sop_tasks").insert({ library_id: master.id, task_text: t, sort_order: order });
+    qc.invalidateQueries({ queryKey: ["sl-sop", master.id] });
+  };
+  const update = async (id: string, patch: Partial<SopTask>) => {
+    await supabase.from("service_library_sop_tasks").update(patch).eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-sop", master.id] });
+  };
+  const remove = async (id: string) => {
+    await supabase.from("service_library_sop_tasks").delete().eq("id", id);
+    qc.invalidateQueries({ queryKey: ["sl-sop", master.id] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <Label>Internal SOP (counselor-only)</Label>
+        <Textarea rows={10} value={html} onChange={(e) => setHtml(e.target.value)} />
+        <div className="mt-2"><Button onClick={saveHtml}>Save SOP</Button></div>
+      </div>
+      <div className="rounded-2xl border p-4">
+        <div className="mb-2 flex items-center justify-between">
+          <h3 className="font-medium">SOP tasks (counselors check off per lead)</h3>
+          <Button size="sm" onClick={addTask}><Plus className="h-3.5 w-3.5 mr-1" />Add task</Button>
+        </div>
+        <div className="space-y-2">
+          {(tasks.data ?? []).map((t) => (
+            <div key={t.id} className="flex items-center gap-2">
+              <Input defaultValue={t.task_text} onBlur={(e) => update(t.id, { task_text: e.target.value })} />
+              <Switch checked={t.is_active} onCheckedChange={(v) => update(t.id, { is_active: v })} />
+              <Button size="sm" variant="ghost" onClick={() => remove(t.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function OverridesTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const [openCountry, setOpenCountry] = useState<string | null>(null);
+
+  const assigned = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_countries").select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
+    },
+  });
+  const overrides = useQuery({
+    queryKey: ["sl-overrides", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_overrides").select("*").eq("library_id", master.id);
+      return (data ?? []) as unknown as Override[];
+    },
+  });
+
+  const byCountry = useMemo(() => {
+    const m: Record<string, Override> = {};
+    for (const o of overrides.data ?? []) m[o.country] = o;
+    return m;
+  }, [overrides.data]);
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">
+        Override any text field for a specific country. Leave blank to inherit from the master.
+      </p>
+      {(assigned.data ?? []).length === 0 && (
+        <div className="text-sm text-muted-foreground">Assign countries first in the Countries tab.</div>
+      )}
+      {(assigned.data ?? []).map((c) => (
+        <div key={c} className="rounded-lg border">
+          <button
+            className="flex w-full items-center justify-between p-3 text-left"
+            onClick={() => setOpenCountry(openCountry === c ? null : c)}
+          >
+            <span className="font-medium">{c}</span>
+            <div className="flex items-center gap-2">
+              {byCountry[c] && <Badge variant="secondary">Override active</Badge>}
+              {openCountry === c ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </div>
+          </button>
+          {openCountry === c && (
+            <OverrideForm
+              libraryId={master.id}
+              country={c}
+              existing={byCountry[c] ?? null}
+              onSaved={() => qc.invalidateQueries({ queryKey: ["sl-overrides", master.id] })}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OverrideForm({
+  libraryId, country, existing, onSaved,
+}: { libraryId: string; country: string; existing: Override | null; onSaved: () => void }) {
+  const [v, setV] = useState({
+    quick_guide_what_to_do: existing?.quick_guide_what_to_do ?? "",
+    quick_guide_common_mistakes: existing?.quick_guide_common_mistakes ?? "",
+    quick_guide_escalation_rules: existing?.quick_guide_escalation_rules ?? "",
+    quick_guide_important_reminders: existing?.quick_guide_important_reminders ?? "",
+    checklist_text: existing?.checklist_text ?? "",
+    cost_summary_html: existing?.cost_summary_html ?? "",
+    internal_sop_html: existing?.internal_sop_html ?? "",
+    process_flow_text: Array.isArray(existing?.process_flow)
+      ? (existing!.process_flow as string[]).join("\n") : "",
+  });
+
+  const save = async () => {
+    const payload = {
+      library_id: libraryId,
+      country,
+      quick_guide_what_to_do: v.quick_guide_what_to_do || null,
+      quick_guide_common_mistakes: v.quick_guide_common_mistakes || null,
+      quick_guide_escalation_rules: v.quick_guide_escalation_rules || null,
+      quick_guide_important_reminders: v.quick_guide_important_reminders || null,
+      checklist_text: v.checklist_text || null,
+      cost_summary_html: v.cost_summary_html || null,
+      internal_sop_html: v.internal_sop_html || null,
+      process_flow: v.process_flow_text
+        ? v.process_flow_text.split("\n").map((s) => s.trim()).filter(Boolean)
+        : null,
+    };
+    const { error } = await supabase
+      .from("service_library_overrides")
+      .upsert(payload, { onConflict: "library_id,country" });
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Saved" });
+    onSaved();
+  };
+  const clear = async () => {
+    if (!existing) return;
+    if (!confirm(`Remove override for ${country}?`)) return;
+    await supabase.from("service_library_overrides").delete().eq("id", existing.id);
+    onSaved();
+  };
+
+  return (
+    <div className="space-y-3 border-t p-4 bg-slate-50">
+      {[
+        ["quick_guide_what_to_do", "Quick Guide · What to do"],
+        ["quick_guide_common_mistakes", "Quick Guide · Common mistakes"],
+        ["quick_guide_escalation_rules", "Quick Guide · Escalation rules"],
+        ["quick_guide_important_reminders", "Quick Guide · Important reminders"],
+        ["checklist_text", "Checklist text"],
+        ["cost_summary_html", "Cost Summary"],
+        ["internal_sop_html", "Internal SOP"],
+        ["process_flow_text", "Process Flow (one step per line)"],
+      ].map(([k, label]) => (
+        <div key={k}>
+          <Label className="text-xs">{label}</Label>
+          <Textarea rows={3}
+            value={(v as Record<string, string>)[k]}
+            onChange={(e) => setV({ ...v, [k]: e.target.value })}
+          />
+        </div>
+      ))}
+      <div className="flex gap-2">
+        <Button size="sm" onClick={save}>Save override</Button>
+        {existing && <Button size="sm" variant="ghost" onClick={clear}>Remove override</Button>}
+      </div>
     </div>
   );
 }

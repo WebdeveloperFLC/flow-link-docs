@@ -1,330 +1,513 @@
-import { useMemo, useState } from "react";
-import type { ReactNode } from "react";
-import { FileText, FileUp, Filter, ListChecks, ChevronRight, Search, Loader2, Download } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
+import {
+  Filter, Search, Download, Loader2, Copy, MessageCircle, Mail, Link as LinkIcon,
+  Sparkles, ClipboardCheck, Coins, FileText, ChevronRight, BookOpen, ListChecks, History,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
-import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "./ServiceLibraryAdmin";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
+import {
+  ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
+  resolveForCountry, scopeByCountry, htmlToPlain, htmlToWhatsApp, htmlToEmail,
+  feeItemsToTsv, copyToClipboard, buildShareableLink,
+  type Master, type Override, type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem, type Attachment,
+} from "@/lib/serviceLibrary";
 
-const ALLOWED_COUNTRY_SET = new Set(ALLOWED_SERVICE_LIBRARY_COUNTRIES);
+export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
-type FeeItem = { id: string; fee_label: string; amount: string | null; currency: string | null; notes: string | null };
-type Attachment = {
-  id: string;
-  file_name: string;
-  file_path: string;
-  label: string | null;
-  mime_type: string | null;
+const CATEGORY_LABEL: Record<string, string> = {
+  coaching_services: "Coaching",
+  visa_immigration: "Visa & Immigration",
+  admission_services: "Admission",
+  allied_services: "Allied",
+  travel_financial: "Travel & Financial",
 };
-type LibraryRow = {
-  id: string;
-  country: string;
-  service_category: string;
-  service: string;
-  sub_service: string;
-  checklist_text: string | null;
-  process_flow: unknown;
-  service_library_fee_items: FeeItem[];
-  service_library_attachments: Attachment[];
-};
-
-function uniq(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))].sort();
-}
 
 export default function ServiceLibrary() {
-  const [country, setCountry] = useState<string>("");
-  const [serviceCategory, setServiceCategory] = useState<string>("");
-  const [service, setService] = useState<string>("");
-  const [subService, setSubService] = useState<string>("");
+  const [params, setParams] = useSearchParams();
+  const [country, setCountry] = useState(params.get("country") ?? "");
+  const [category, setCategory] = useState(params.get("category") ?? "");
+  const [service, setService] = useState(params.get("service") ?? "");
+  const [subService, setSubService] = useState(params.get("sub") ?? "");
   const [search, setSearch] = useState("");
 
-  const { data: rows = [], isLoading } = useQuery<LibraryRow[]>({
-    queryKey: ["service-library"],
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (country) p.set("country", country);
+    if (category) p.set("category", category);
+    if (service) p.set("service", service);
+    if (subService) p.set("sub", subService);
+    setParams(p, { replace: true });
+  }, [country, category, service, subService, setParams]);
+
+  const masters = useQuery({
+    queryKey: ["sl-public-masters"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_library")
-        .select("*, service_library_fee_items(*), service_library_attachments(*)")
+        .select("*, service_library_countries(country)")
         .eq("is_active", true)
-        .order("country")
         .order("display_order");
       if (error) throw error;
-      return (data ?? []) as unknown as LibraryRow[];
+      return (data ?? []) as unknown as (Master & { service_library_countries: { country: string }[] })[];
     },
   });
 
-  const filtered = useMemo(() => {
+  const list = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return rows.filter((r) => {
-      if (!ALLOWED_COUNTRY_SET.has(r.country)) return false;
-      if (country && r.country !== country) return false;
-      if (serviceCategory && r.service_category !== serviceCategory) return false;
-      if (service && r.service !== service) return false;
-      if (subService && r.sub_service !== subService) return false;
+    return (masters.data ?? []).filter((m) => {
+      const countries = m.service_library_countries.map((c) => c.country).filter((c) => ALLOWED_COUNTRY_SET.has(c));
+      if (country && !countries.includes(country)) return false;
+      if (category && m.service_category !== category) return false;
+      if (service && m.service !== service) return false;
+      if (subService && m.sub_service !== subService) return false;
       if (!q) return true;
-      return [r.country, r.service_category, r.service, r.sub_service, r.checklist_text ?? ""]
-        .join(" ")
-        .toLowerCase()
-        .includes(q);
+      return [m.service, m.sub_service, m.checklist_text ?? ""].join(" ").toLowerCase().includes(q);
     });
-  }, [rows, country, serviceCategory, service, subService, search]);
+  }, [masters.data, country, category, service, subService, search]);
 
-  const countries = useMemo(() => uniq(rows.map((r) => r.country)), [rows]);
-  const categories = useMemo(
-    () => uniq(rows.filter((r) => !country || r.country === country).map((r) => r.service_category)),
-    [rows, country],
-  );
-  const services = useMemo(
-    () =>
-      uniq(
-        rows
-          .filter((r) => (!country || r.country === country) && (!serviceCategory || r.service_category === serviceCategory))
-          .map((r) => r.service),
+  const facets = useMemo(() => {
+    const uniq = (xs: string[]) => [...new Set(xs.filter(Boolean))].sort();
+    const all = masters.data ?? [];
+    const countries = uniq(all.flatMap((m) => m.service_library_countries.map((c) => c.country)))
+      .filter((c) => ALLOWED_COUNTRY_SET.has(c));
+    const filtered = all.filter((m) => !country || m.service_library_countries.some((c) => c.country === country));
+    return {
+      countries,
+      categories: uniq(filtered.map((m) => m.service_category)),
+      services: uniq(filtered.filter((m) => !category || m.service_category === category).map((m) => m.service)),
+      subs: uniq(
+        filtered
+          .filter((m) => (!category || m.service_category === category) && (!service || m.service === service))
+          .map((m) => m.sub_service),
       ),
-    [rows, country, serviceCategory],
-  );
-  const subServices = useMemo(
-    () =>
-      uniq(
-        rows
-          .filter(
-            (r) =>
-              (!country || r.country === country) &&
-              (!serviceCategory || r.service_category === serviceCategory) &&
-              (!service || r.service === service),
-          )
-          .map((r) => r.sub_service),
-      ),
-    [rows, country, serviceCategory, service],
-  );
+    };
+  }, [masters.data, country, category, service]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = useMemo(
-    () => filtered.find((r) => r.id === selectedId) ?? filtered[0] ?? null,
-    [filtered, selectedId],
-  );
-
-  const processFlow: string[] = Array.isArray(selected?.process_flow) ? (selected!.process_flow as string[]) : [];
+  const selected = useMemo(() => list.find((m) => m.id === selectedId) ?? list[0] ?? null, [list, selectedId]);
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+      <div className="mx-auto max-w-7xl space-y-4">
+        <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-            <ListChecks className="h-4 w-4" />
-            Service Library
+            <ListChecks className="h-4 w-4" /> Service Library
           </div>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight">Country-wise checklist and fee reference</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            Filter by country, category, service or sub-service. Click an entry to view its checklist, fees, process flow and files.
-          </p>
+          <h1 className="mt-2 text-2xl font-semibold">Country-wise reference for counselors</h1>
+          <p className="text-sm text-muted-foreground">Pick country → service → sub-service. Share checklist, files and costs in one click.</p>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-12">
-          <div className="space-y-4 xl:col-span-4">
-            <Panel title="Search & filters" icon={<Filter className="h-4 w-4" />}>
+        <div className="grid gap-4 xl:grid-cols-12">
+          <aside className="space-y-3 xl:col-span-4">
+            <Panel title="Filters" icon={<Filter className="h-4 w-4" />}>
               <Field label="Search">
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    className="pl-9"
-                    placeholder="Search checklist, service…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
+                  <Input className="pl-9" placeholder="Search…" value={search} onChange={(e) => setSearch(e.target.value)} />
                 </div>
               </Field>
-              <FilterSelect label="Country" value={country} onChange={(v) => { setCountry(v); setServiceCategory(""); setService(""); setSubService(""); }} options={countries} />
-              <FilterSelect label="Service Category" value={serviceCategory} onChange={(v) => { setServiceCategory(v); setService(""); setSubService(""); }} options={categories} />
-              <FilterSelect label="Service" value={service} onChange={(v) => { setService(v); setSubService(""); }} options={services} />
-              <FilterSelect label="Sub-service" value={subService} onChange={setSubService} options={subServices} />
+              <FilterSelect label="Country" value={country}
+                onChange={(v) => { setCountry(v); setCategory(""); setService(""); setSubService(""); }}
+                options={facets.countries} />
+              <FilterSelect label="Category" value={category}
+                onChange={(v) => { setCategory(v); setService(""); setSubService(""); }}
+                options={facets.categories} labelOf={(k) => CATEGORY_LABEL[k] ?? k} />
+              <FilterSelect label="Service" value={service}
+                onChange={(v) => { setService(v); setSubService(""); }} options={facets.services} />
+              <FilterSelect label="Sub-service" value={subService} onChange={setSubService} options={facets.subs} />
             </Panel>
 
-            <Panel title={`Entries (${filtered.length})`} icon={<ListChecks className="h-4 w-4" />}>
+            <Panel title={`Records (${list.length})`} icon={<ListChecks className="h-4 w-4" />}>
               <div className="space-y-1 max-h-[420px] overflow-auto">
-                {isLoading && (
-                  <div className="flex items-center gap-2 p-3 text-sm text-slate-500">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Loading…
-                  </div>
+                {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {!masters.isLoading && list.length === 0 && (
+                  <div className="p-2 text-sm text-muted-foreground">No matching records.</div>
                 )}
-                {!isLoading && filtered.length === 0 && (
-                  <div className="p-3 text-sm text-slate-500">No matching entries.</div>
-                )}
-                {filtered.map((r) => {
-                  const active = selected?.id === r.id;
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setSelectedId(r.id)}
-                      className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
-                        active ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"
-                      }`}
-                    >
-                      <div className="font-medium">
-                        {r.country} · {r.service}
-                      </div>
-                      <div className="text-xs text-slate-500">
-                        {r.service_category} · {r.sub_service}
-                      </div>
-                    </button>
-                  );
-                })}
+                {list.map((m) => (
+                  <button key={m.id} onClick={() => setSelectedId(m.id)}
+                    className={`block w-full rounded-lg border px-3 py-2 text-left text-sm transition ${
+                      selected?.id === m.id ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"
+                    }`}>
+                    <div className="font-medium">{m.service} · {m.sub_service}</div>
+                    <div className="text-xs text-muted-foreground">{CATEGORY_LABEL[m.service_category] ?? m.service_category}</div>
+                  </button>
+                ))}
               </div>
             </Panel>
-          </div>
+          </aside>
 
-          <div className="space-y-6 xl:col-span-8">
+          <section className="xl:col-span-8">
             {selected ? (
-              <>
-                <div className="grid gap-6 lg:grid-cols-2">
-                  <Panel title="Checklist" icon={<FileText className="h-4 w-4" />}>
-                    <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
-                      {selected.checklist_text || "No checklist text yet."}
-                    </div>
-                  </Panel>
-
-                  <Panel title="Fee structure" icon={<ListChecks className="h-4 w-4" />}>
-                    {selected.service_library_fee_items.length === 0 ? (
-                      <div className="text-sm text-slate-500">No fee items.</div>
-                    ) : (
-                      <div className="space-y-3">
-                        {selected.service_library_fee_items.map((fee) => (
-                          <div
-                            key={fee.id}
-                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
-                          >
-                            <span className="text-slate-600">{fee.fee_label}</span>
-                            <span className="font-medium text-slate-900">
-                              {[fee.currency, fee.amount].filter(Boolean).join(" ") || fee.notes || "—"}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </Panel>
-                </div>
-
-                <Panel title="Process flow" icon={<ChevronRight className="h-4 w-4" />}>
-                  {processFlow.length === 0 ? (
-                    <div className="text-sm text-slate-500">No process flow defined.</div>
-                  ) : (
-                    <div className="flex flex-wrap items-center gap-3">
-                      {processFlow.map((step, index) => (
-                        <div key={`${step}-${index}`} className="flex items-center gap-3">
-                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium">
-                            {index + 1}. {step}
-                          </div>
-                          {index < processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </Panel>
-
-                <Panel title="Available files" icon={<FileUp className="h-4 w-4" />}>
-                  {selected.service_library_attachments.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
-                      No files attached.
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {selected.service_library_attachments.map((a) => (
-                        <AttachmentLink key={a.id} attachment={a} />
-                      ))}
-                    </div>
-                  )}
-                </Panel>
-              </>
+              <RecordDetail master={selected} country={country || null} />
             ) : (
-              <Panel title="No entry selected" icon={<FileText className="h-4 w-4" />}>
-                <div className="text-sm text-slate-500">
-                  {isLoading ? "Loading entries…" : "Select an entry from the list to view details."}
-                </div>
+              <Panel title="No record selected" icon={<FileText className="h-4 w-4" />}>
+                <div className="text-sm text-muted-foreground">Pick a record on the left.</div>
               </Panel>
             )}
-          </div>
+          </section>
         </div>
       </div>
     </div>
   );
 }
 
-function AttachmentLink({ attachment }: { attachment: Attachment }) {
+function RecordDetail({ master, country }: { master: Master; country: string | null }) {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+
+  const override = useQuery({
+    queryKey: ["sl-ov", master.id, country],
+    enabled: !!country,
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_overrides").select("*")
+        .eq("library_id", master.id).eq("country", country!).maybeSingle();
+      return data as Override | null;
+    },
+  });
+  const fees = useQuery({
+    queryKey: ["sl-fees-pub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_fee_items")
+        .select("*").eq("library_id", master.id).order("display_order");
+      return (data ?? []) as unknown as FeeItem[];
+    },
+  });
+  const attachments = useQuery({
+    queryKey: ["sl-att-pub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_attachments").select("*").eq("library_id", master.id);
+      return (data ?? []) as unknown as Attachment[];
+    },
+  });
+  const files = useQuery({
+    queryKey: ["sl-cfiles-pub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_checklist_files")
+        .select("*").eq("library_id", master.id).order("version", { ascending: false });
+      return (data ?? []) as unknown as ChecklistFile[];
+    },
+  });
+  const sop = useQuery({
+    queryKey: ["sl-sop-pub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_sop_tasks")
+        .select("*").eq("library_id", master.id).eq("is_active", true).order("sort_order");
+      return (data ?? []) as unknown as SopTask[];
+    },
+  });
+  const submission = useQuery({
+    queryKey: ["sl-sub-pub", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_submission_checklist")
+        .select("*").eq("library_id", master.id).eq("is_active", true).order("sort_order");
+      return (data ?? []) as unknown as SubmissionItem[];
+    },
+  });
+  const myCompletions = useQuery({
+    queryKey: ["sl-sub-mine", master.id, user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_submission_completions")
+        .select("item_id").eq("user_id", user!.id);
+      return new Set(((data ?? []) as { item_id: string }[]).map((r) => r.item_id));
+    },
+  });
+  const mySopDone = useQuery({
+    queryKey: ["sl-sop-mine", master.id, user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_sop_completions")
+        .select("task_id").eq("user_id", user!.id);
+      return new Set(((data ?? []) as { task_id: string }[]).map((r) => r.task_id));
+    },
+  });
+
+  const resolved = resolveForCountry(master, override.data ?? null);
+  const feeRows = scopeByCountry(fees.data ?? [], country);
+  const attRows = scopeByCountry(attachments.data ?? [], country);
+  const fileRows = scopeByCountry((files.data ?? []).filter((f) => f.is_current), country);
+  const sopRows = scopeByCountry(sop.data ?? [], country);
+  const subRows = scopeByCountry(submission.data ?? [], country);
+
+  const processFlow: string[] = Array.isArray(resolved.process_flow) ? (resolved.process_flow as string[]) : [];
+
+  const toggleSub = async (itemId: string) => {
+    if (!user?.id) return;
+    if (myCompletions.data?.has(itemId)) {
+      await supabase.from("service_library_submission_completions")
+        .delete().eq("item_id", itemId).eq("user_id", user.id);
+    } else {
+      await supabase.from("service_library_submission_completions")
+        .insert({ item_id: itemId, user_id: user.id });
+    }
+    qc.invalidateQueries({ queryKey: ["sl-sub-mine", master.id, user.id] });
+  };
+  const toggleSop = async (taskId: string) => {
+    if (!user?.id) return;
+    if (mySopDone.data?.has(taskId)) {
+      await supabase.from("service_library_sop_completions")
+        .delete().eq("task_id", taskId).eq("user_id", user.id);
+    } else {
+      await supabase.from("service_library_sop_completions")
+        .insert({ task_id: taskId, user_id: user.id });
+    }
+    qc.invalidateQueries({ queryKey: ["sl-sop-mine", master.id, user.id] });
+  };
+
+  const shareLink = buildShareableLink({
+    category: master.service_category, service: master.service, subService: master.sub_service, country,
+  });
+
+  const qg = resolved;
+  const hasQG = !!(qg.quick_guide_what_to_do || qg.quick_guide_common_mistakes || qg.quick_guide_escalation_rules || qg.quick_guide_important_reminders);
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border bg-white p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              {CATEGORY_LABEL[master.service_category] ?? master.service_category}
+              {country && <> · <span className="text-primary">{country}</span></>}
+            </div>
+            <h2 className="text-xl font-semibold">{master.service} · {master.sub_service}</h2>
+          </div>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" onClick={async () => {
+              const ok = await copyToClipboard(shareLink);
+              toast({ title: ok ? "Link copied" : "Copy failed" });
+            }}><LinkIcon className="h-4 w-4 mr-1" />Copy link</Button>
+            <Button size="sm" variant="outline" onClick={() => {
+              const text = encodeURIComponent(`${master.service} · ${master.sub_service}\n${shareLink}`);
+              window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
+            }}><MessageCircle className="h-4 w-4 mr-1" />WhatsApp</Button>
+          </div>
+        </div>
+      </div>
+
+      {hasQG && (
+        <Panel title="Counselor Quick Guide" icon={<Sparkles className="h-4 w-4 text-amber-500" />} accent>
+          <div className="grid gap-3 md:grid-cols-2">
+            {[
+              ["What to do", qg.quick_guide_what_to_do],
+              ["Common mistakes", qg.quick_guide_common_mistakes],
+              ["Escalation rules", qg.quick_guide_escalation_rules],
+              ["Important reminders", qg.quick_guide_important_reminders],
+            ].map(([label, val]) => (
+              <div key={label as string} className="rounded-lg bg-amber-50/60 border border-amber-200 p-3">
+                <div className="text-xs font-semibold uppercase text-amber-700">{label}</div>
+                <div className="mt-1 text-sm whitespace-pre-wrap">{(val as string) || "—"}</div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      )}
+
+      {subRows.length > 0 && (
+        <Panel title="Mandatory Submission Checklist" icon={<ClipboardCheck className="h-4 w-4" />}>
+          <div className="space-y-2">
+            {subRows.map((item) => {
+              const done = myCompletions.data?.has(item.id) ?? false;
+              return (
+                <label key={item.id} className="flex items-center gap-3 rounded-lg border p-2 cursor-pointer hover:bg-slate-50">
+                  <input type="checkbox" checked={done} onChange={() => toggleSub(item.id)} />
+                  <span className="text-sm">{item.item_label}</span>
+                  {item.is_mandatory && <Badge variant="outline" className="text-xs">Required</Badge>}
+                </label>
+              );
+            })}
+            <div className="text-xs text-muted-foreground">
+              {Array.from(myCompletions.data ?? []).filter((id) => subRows.some((s) => s.id === id)).length} / {subRows.length} done
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2 space-y-4">
+          <Panel title="Checklist" icon={<FileText className="h-4 w-4" />}
+            action={
+              <Button size="sm" variant="ghost" onClick={async () => {
+                const ok = await copyToClipboard(resolved.checklist_text ?? "");
+                toast({ title: ok ? "Copied" : "Copy failed" });
+              }}><Copy className="h-4 w-4" /></Button>
+            }>
+            <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+              {resolved.checklist_text || "No checklist text yet."}
+            </div>
+          </Panel>
+
+          <Panel title="Fees" icon={<Coins className="h-4 w-4" />}
+            action={
+              <Button size="sm" variant="ghost" onClick={async () => {
+                const ok = await copyToClipboard(feeItemsToTsv(feeRows));
+                toast({ title: ok ? "Table copied" : "Copy failed" });
+              }}><Copy className="h-4 w-4" /></Button>
+            }>
+            {feeRows.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No fee items.</div>
+            ) : (
+              <div className="space-y-2">
+                {feeRows.map((f) => (
+                  <div key={f.id} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm">
+                    <span className="text-slate-600">{f.fee_label}{f.country && <Badge variant="outline" className="ml-2 text-xs">{f.country}</Badge>}</span>
+                    <span className="font-medium">{[f.currency, f.amount].filter(Boolean).join(" ") || f.notes || "—"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Panel>
+
+          <Panel title="Complete Cost Summary" icon={<Coins className="h-4 w-4 text-emerald-600" />}>
+            {resolved.cost_summary_html ? (
+              <>
+                <div className="prose prose-sm max-w-none rounded-lg bg-slate-50 p-3 text-sm"
+                  dangerouslySetInnerHTML={{ __html: resolved.cost_summary_html }} />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    const ok = await copyToClipboard(htmlToPlain(resolved.cost_summary_html));
+                    toast({ title: ok ? "Copied" : "Copy failed" });
+                  }}><Copy className="h-4 w-4 mr-1" />Copy Cost Summary</Button>
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    const ok = await copyToClipboard(htmlToWhatsApp(resolved.cost_summary_html));
+                    toast({ title: ok ? "WhatsApp version copied" : "Copy failed" });
+                  }}><MessageCircle className="h-4 w-4 mr-1" />Copy WhatsApp Version</Button>
+                  <Button size="sm" variant="outline" onClick={async () => {
+                    const ok = await copyToClipboard(htmlToEmail(resolved.cost_summary_html));
+                    toast({ title: ok ? "Email version copied" : "Copy failed" });
+                  }}><Mail className="h-4 w-4 mr-1" />Copy Email Version</Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-sm text-muted-foreground">No cost summary yet.</div>
+            )}
+          </Panel>
+
+          {processFlow.length > 0 && (
+            <Panel title="Client Process Flow" icon={<ChevronRight className="h-4 w-4" />}>
+              <div className="flex flex-wrap items-center gap-2">
+                {processFlow.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="rounded-lg border bg-white px-3 py-1.5 text-sm">{i + 1}. {s}</div>
+                    {i < processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          )}
+
+          {(resolved.internal_sop_html || sopRows.length > 0) && (
+            <Panel title="Internal SOP" icon={<BookOpen className="h-4 w-4" />}>
+              {resolved.internal_sop_html && (
+                <div className="prose prose-sm max-w-none mb-3"
+                  dangerouslySetInnerHTML={{ __html: resolved.internal_sop_html }} />
+              )}
+              {sopRows.length > 0 && (
+                <div className="space-y-1">
+                  {sopRows.map((t) => {
+                    const done = mySopDone.data?.has(t.id) ?? false;
+                    return (
+                      <label key={t.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                        <input type="checkbox" checked={done} onChange={() => toggleSop(t.id)} />
+                        <span className={done ? "line-through text-muted-foreground" : ""}>{t.task_text}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </Panel>
+          )}
+        </div>
+
+        <aside className="space-y-4">
+          <Panel title="Checklist files" icon={<FileText className="h-4 w-4" />}>
+            {fileRows.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No files.</div>
+            ) : (
+              <div className="space-y-2">
+                {fileRows.map((f) => <FileLink key={f.id} f={f} />)}
+              </div>
+            )}
+          </Panel>
+          {attRows.length > 0 && (
+            <Panel title="Other attachments" icon={<FileText className="h-4 w-4" />}>
+              <div className="space-y-2">
+                {attRows.map((a) => <AttachLink key={a.id} a={a} />)}
+              </div>
+            </Panel>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function FileLink({ f }: { f: ChecklistFile }) {
   const [loading, setLoading] = useState(false);
   const open = async () => {
     setLoading(true);
-    try {
-      const { data, error } = await supabase.storage
-        .from("service-library-files")
-        .createSignedUrl(attachment.file_path, 60 * 10);
-      if (error) throw error;
-      window.open(data.signedUrl, "_blank", "noopener");
-    } finally {
-      setLoading(false);
-    }
+    const { data } = await supabase.storage.from("service-library-files").createSignedUrl(f.file_path, 600);
+    setLoading(false);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
   };
   return (
-    <button
-      type="button"
-      onClick={open}
-      className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm hover:bg-slate-50"
-    >
-      <div className="min-w-0">
-        <div className="truncate font-medium text-slate-800">{attachment.label || attachment.file_name}</div>
-        <div className="truncate text-xs text-slate-500">{attachment.file_name}</div>
+    <button onClick={open} className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+      <div className="min-w-0 text-left">
+        <div className="truncate font-medium">{f.file_name}</div>
+        <div className="text-xs text-muted-foreground">v{f.version} · {new Date(f.uploaded_at).toLocaleDateString()}</div>
       </div>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-slate-500" />}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+    </button>
+  );
+}
+function AttachLink({ a }: { a: Attachment }) {
+  const [loading, setLoading] = useState(false);
+  const open = async () => {
+    setLoading(true);
+    const { data } = await supabase.storage.from("service-library-files").createSignedUrl(a.file_path, 600);
+    setLoading(false);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
+  };
+  return (
+    <button onClick={open} className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+      <div className="min-w-0 text-left">
+        <div className="truncate font-medium">{a.label || a.file_name}</div>
+        <div className="truncate text-xs text-muted-foreground">{a.file_name}</div>
+      </div>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
     </button>
   );
 }
 
-function FilterSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-}) {
+function Panel({ title, icon, children, action, accent }: { title: string; icon: ReactNode; children: ReactNode; action?: ReactNode; accent?: boolean }) {
   return (
-    <Field label={label}>
-      <select
-        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm bg-white"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        <option value="">All</option>
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
-    </Field>
-  );
-}
-
-function Panel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
-        {icon}
-        {title}
+    <div className={`rounded-2xl border p-4 shadow-sm ${accent ? "bg-amber-50/30 border-amber-200" : "bg-white"}`}>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
+        {action}
       </div>
       {children}
     </div>
   );
 }
-
 function Field({ label, children }: { label: string; children: ReactNode }) {
+  return <div className="mb-3"><div className="mb-1 text-sm font-medium text-slate-700">{label}</div>{children}</div>;
+}
+function FilterSelect({ label, value, onChange, options, labelOf }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; labelOf?: (v: string) => string;
+}) {
   return (
-    <div className="mb-4">
-      <div className="mb-2 text-sm font-medium text-slate-700">{label}</div>
-      {children}
-    </div>
+    <Field label={label}>
+      <select className="w-full rounded-lg border bg-white px-3 py-2 text-sm" value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">All</option>
+        {options.map((o) => <option key={o} value={o}>{labelOf ? labelOf(o) : o}</option>)}
+      </select>
+    </Field>
   );
 }
