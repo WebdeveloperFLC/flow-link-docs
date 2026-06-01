@@ -349,6 +349,54 @@ function OfferDialog({
             <Switch checked={form.is_active ?? true} onCheckedChange={(v) => setForm({ ...form, is_active: v })} />
             <Label>Active</Label>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label>Target countries (optional)</Label>
+              <div className="text-xs text-muted-foreground mb-1">Empty = all countries.</div>
+              <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-1">
+                {countryOptions.length === 0 && (
+                  <div className="text-xs text-muted-foreground">No countries in master list.</div>
+                )}
+                {countryOptions.map((c) => (
+                  <label key={c} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selCountries.has(c)}
+                      onChange={(e) => {
+                        const s = new Set(selCountries);
+                        e.target.checked ? s.add(c) : s.delete(c);
+                        setSelCountries(s);
+                      }}
+                    />
+                    {c}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <Label>Applicable services (optional)</Label>
+              <div className="text-xs text-muted-foreground mb-1">Empty = all services.</div>
+              <div className="max-h-40 overflow-y-auto border rounded p-2 space-y-1">
+                {serviceOptions.length === 0 && (
+                  <div className="text-xs text-muted-foreground">No active services.</div>
+                )}
+                {serviceOptions.map((s) => (
+                  <label key={s.id} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selServices.has(s.id)}
+                      onChange={(e) => {
+                        const next = new Set(selServices);
+                        e.target.checked ? next.add(s.id) : next.delete(s.id);
+                        setSelServices(next);
+                      }}
+                    />
+                    {s.service_name}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
           <div>
             <Label>Audience</Label>
             <Select value={form.audience} onValueChange={(v) => setForm({ ...form, audience: v as Offer["audience"] })}>
@@ -357,7 +405,7 @@ function OfferDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="global">All clients (global)</SelectItem>
-                <SelectItem value="group">Specific groups</SelectItem>
+                <SelectItem value="group">Specific groups (legacy)</SelectItem>
                 <SelectItem value="individual">Specific clients</SelectItem>
               </SelectContent>
             </Select>
