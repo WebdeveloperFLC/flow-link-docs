@@ -10924,13 +10924,18 @@ export type Database = {
       service_library: {
         Row: {
           checklist_text: string | null
-          country: string
+          cost_summary_html: string | null
           created_at: string
           created_by: string | null
           display_order: number
           id: string
+          internal_sop_html: string | null
           is_active: boolean
           process_flow: Json | null
+          quick_guide_common_mistakes: string | null
+          quick_guide_escalation_rules: string | null
+          quick_guide_important_reminders: string | null
+          quick_guide_what_to_do: string | null
           service: string
           service_category: string
           sub_service: string
@@ -10939,13 +10944,18 @@ export type Database = {
         }
         Insert: {
           checklist_text?: string | null
-          country: string
+          cost_summary_html?: string | null
           created_at?: string
           created_by?: string | null
           display_order?: number
           id?: string
+          internal_sop_html?: string | null
           is_active?: boolean
           process_flow?: Json | null
+          quick_guide_common_mistakes?: string | null
+          quick_guide_escalation_rules?: string | null
+          quick_guide_important_reminders?: string | null
+          quick_guide_what_to_do?: string | null
           service: string
           service_category: string
           sub_service: string
@@ -10954,13 +10964,18 @@ export type Database = {
         }
         Update: {
           checklist_text?: string | null
-          country?: string
+          cost_summary_html?: string | null
           created_at?: string
           created_by?: string | null
           display_order?: number
           id?: string
+          internal_sop_html?: string | null
           is_active?: boolean
           process_flow?: Json | null
+          quick_guide_common_mistakes?: string | null
+          quick_guide_escalation_rules?: string | null
+          quick_guide_important_reminders?: string | null
+          quick_guide_what_to_do?: string | null
           service?: string
           service_category?: string
           sub_service?: string
@@ -10971,6 +10986,7 @@ export type Database = {
       }
       service_library_attachments: {
         Row: {
+          country: string | null
           created_at: string
           display_order: number
           file_name: string
@@ -10982,6 +10998,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          country?: string | null
           created_at?: string
           display_order?: number
           file_name: string
@@ -10993,6 +11010,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          country?: string | null
           created_at?: string
           display_order?: number
           file_name?: string
@@ -11013,9 +11031,98 @@ export type Database = {
           },
         ]
       }
+      service_library_checklist_files: {
+        Row: {
+          country: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          id: string
+          is_current: boolean
+          library_id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          id?: string
+          is_current?: boolean
+          library_id: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          id?: string
+          is_current?: boolean
+          library_id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_checklist_files_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_countries: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          library_id: string
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          library_id: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          library_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_countries_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_library_fee_items: {
         Row: {
           amount: string | null
+          country: string | null
           created_at: string
           currency: string | null
           display_order: number
@@ -11027,6 +11134,7 @@ export type Database = {
         }
         Insert: {
           amount?: string | null
+          country?: string | null
           created_at?: string
           currency?: string | null
           display_order?: number
@@ -11038,6 +11146,7 @@ export type Database = {
         }
         Update: {
           amount?: string | null
+          country?: string | null
           created_at?: string
           currency?: string | null
           display_order?: number
@@ -11053,6 +11162,253 @@ export type Database = {
             columns: ["library_id"]
             isOneToOne: false
             referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_migration_log: {
+        Row: {
+          country_mappings_created: number
+          duplicates_merged: number
+          id: string
+          masters_remaining: number
+          overrides_created: number
+          ran_at: string
+        }
+        Insert: {
+          country_mappings_created?: number
+          duplicates_merged?: number
+          id?: string
+          masters_remaining?: number
+          overrides_created?: number
+          ran_at?: string
+        }
+        Update: {
+          country_mappings_created?: number
+          duplicates_merged?: number
+          id?: string
+          masters_remaining?: number
+          overrides_created?: number
+          ran_at?: string
+        }
+        Relationships: []
+      }
+      service_library_overrides: {
+        Row: {
+          checklist_text: string | null
+          cost_summary_html: string | null
+          country: string
+          created_at: string
+          id: string
+          internal_sop_html: string | null
+          library_id: string
+          process_flow: Json | null
+          quick_guide_common_mistakes: string | null
+          quick_guide_escalation_rules: string | null
+          quick_guide_important_reminders: string | null
+          quick_guide_what_to_do: string | null
+          updated_at: string
+        }
+        Insert: {
+          checklist_text?: string | null
+          cost_summary_html?: string | null
+          country: string
+          created_at?: string
+          id?: string
+          internal_sop_html?: string | null
+          library_id: string
+          process_flow?: Json | null
+          quick_guide_common_mistakes?: string | null
+          quick_guide_escalation_rules?: string | null
+          quick_guide_important_reminders?: string | null
+          quick_guide_what_to_do?: string | null
+          updated_at?: string
+        }
+        Update: {
+          checklist_text?: string | null
+          cost_summary_html?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          internal_sop_html?: string | null
+          library_id?: string
+          process_flow?: Json | null
+          quick_guide_common_mistakes?: string | null
+          quick_guide_escalation_rules?: string | null
+          quick_guide_important_reminders?: string | null
+          quick_guide_what_to_do?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_overrides_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_sop_completions: {
+        Row: {
+          client_id: string | null
+          completed_at: string
+          created_at: string
+          id: string
+          lead_id: string | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_sop_completions_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "service_library_sop_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_sop_tasks: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          library_id: string
+          sort_order: number
+          task_text: string
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          library_id: string
+          sort_order?: number
+          task_text: string
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          library_id?: string
+          sort_order?: number
+          task_text?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_sop_tasks_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_submission_checklist: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          item_key: string
+          item_label: string
+          library_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          item_key: string
+          item_label: string
+          library_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          item_key?: string
+          item_label?: string
+          library_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_submission_checklist_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_submission_completions: {
+        Row: {
+          client_id: string | null
+          completed_at: string
+          created_at: string
+          id: string
+          item_id: string
+          lead_id: string | null
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          item_id: string
+          lead_id?: string | null
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          completed_at?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          lead_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_submission_completions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "service_library_submission_checklist"
             referencedColumns: ["id"]
           },
         ]
