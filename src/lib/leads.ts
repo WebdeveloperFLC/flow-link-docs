@@ -104,14 +104,63 @@ export async function markLeadConverted(id: string): Promise<Lead> {
 }
 
 export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
+  // Source of truth: service_library + service_library_countries.
+  // The Lead Form's Services Required panel now reflects the same records
+  // managed in Service Library Admin.
   const { data, error } = await supabase
-    .from("service_catalogue")
-    .select("*")
+    .from("service_library")
+    .select("id, service_category, service, sub_service, display_order, is_active, service_library_countries(country)")
     .eq("is_active", true)
-    .order("master_key", { ascending: true })
-    .order("display_order", { ascending: true });
+    .order("service_category", { ascending: true })
+    .order("display_order", { ascending: true })
+    .order("service", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as unknown as ServiceCatalogueItem[];
+  type Row = {
+    id: string;
+    service_category: string;
+    service: string;
+    sub_service: string;
+    display_order: number;
+    is_active: boolean;
+    service_library_countries: { country: string }[] | null;
+  };
+  const rows = (data ?? []) as unknown as Row[];
+  const items: ServiceCatalogueItem[] = [];
+  for (const r of rows) {
+    const countries = (r.service_library_countries ?? []).map((c) => c.country);
+    if (r.service_category === "visa_immigration") {
+      // Emit one row per country so the per-country filter in ServiceTabs works.
+      const list = countries.length > 0 ? countries : [null];
+      for (const c of list) {
+        items.push({
+          id: c ? `${r.id}::${c}` : r.id,
+          master_key: r.service_category,
+          service_name: r.service,
+          sub_category: r.sub_service,
+          service_code: c ? `${r.id}::${c}` : r.id,
+          pricing_type: "ON_REQUEST",
+          country_tag: c,
+          is_active: r.is_active,
+          is_bundled: false,
+          display_order: r.display_order ?? 0,
+        });
+      }
+    } else {
+      items.push({
+        id: r.id,
+        master_key: r.service_category,
+        service_name: r.service,
+        sub_category: r.sub_service,
+        service_code: r.id,
+        pricing_type: "ON_REQUEST",
+        country_tag: null,
+        is_active: r.is_active,
+        is_bundled: false,
+        display_order: r.display_order ?? 0,
+      });
+    }
+  }
+  return items;
 }
 
 export interface ServiceCatalogueItem {
