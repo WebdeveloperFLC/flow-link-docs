@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowDownCircle, AlertCircle, Calendar, CheckCircle2, MoreHorizontal, Plus, Search, Landmark, FileText, Download } from "lucide-react";
+import {
+  ArrowDownCircle,
+  AlertCircle,
+  Calendar,
+  CheckCircle2,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Landmark,
+  FileText,
+  Download,
+} from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,8 +20,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
@@ -38,7 +64,10 @@ export default function AccountingAPPage() {
   const navigate = useNavigate();
   const bills = useApBills();
   const [loading, setLoading] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 400); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 400);
+    return () => clearTimeout(t);
+  }, []);
 
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"all" | "pending" | "overdue" | "paid">("all");
@@ -82,16 +111,21 @@ export default function AccountingAPPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  useEffect(() => { setPage(1); }, [tab, entityFilter, branchFilter, currencyFilter, categoryFilter, statusFilter, dateFrom, dateTo, search]);
+  useEffect(() => {
+    setPage(1);
+  }, [tab, entityFilter, branchFilter, currencyFilter, categoryFilter, statusFilter, dateFrom, dateTo, search]);
 
   // KPIs (CAD baseline; mixed currency listed as raw sum per spec — using CAD label)
-  const sumByStatus = (pred: (b: VendorBill) => boolean) =>
-    bills.filter(pred).reduce((s, b) => s + b.totalAmount, 0);
+  const sumByStatus = (pred: (b: VendorBill) => boolean) => bills.filter(pred).reduce((s, b) => s + b.totalAmount, 0);
   const outstandingAP = sumByStatus((b) => !["PAID", "VOID"].includes(b.status));
   const overdueAmt = sumByStatus((b) => b.status === "OVERDUE");
   const overdueCount = bills.filter((b) => b.status === "OVERDUE").length;
-  const dueThisWeek = sumByStatus((b) => b.status === "APPROVED" && daysFromToday(b.dueDate) >= 0 && daysFromToday(b.dueDate) <= 7);
-  const paidThisMonth = sumByStatus((b) => b.status === "PAID" && (b.paymentDate?.startsWith("2024-10") || b.paymentDate?.startsWith("2024-11")));
+  const dueThisWeek = sumByStatus(
+    (b) => b.status === "APPROVED" && daysFromToday(b.dueDate) >= 0 && daysFromToday(b.dueDate) <= 7,
+  );
+  const paidThisMonth = sumByStatus(
+    (b) => b.status === "PAID" && (b.paymentDate?.startsWith("2024-10") || b.paymentDate?.startsWith("2024-11")),
+  );
 
   const counts = {
     pending: bills.filter((b) => ["PENDING_REVIEW", "APPROVED"].includes(b.status)).length,
@@ -105,13 +139,44 @@ export default function AccountingAPPage() {
 
   function exportCSV() {
     const rows = [
-      ["Bill #", "Vendor", "Category", "Entity", "Branch", "Description", "Bill Date", "Due Date", "Currency", "Subtotal", "Tax", "Total", "Status"],
-      ...filtered.map((b) => [b.billNumber, b.vendor, EXPENSE_CATEGORY_LABELS[b.vendorCategory], b.entity, b.branch, b.description, b.billDate, b.dueDate, b.currency, b.subtotal, b.taxAmount, b.totalAmount, b.status]),
+      [
+        "Bill #",
+        "Vendor",
+        "Category",
+        "Entity",
+        "Branch",
+        "Description",
+        "Bill Date",
+        "Due Date",
+        "Currency",
+        "Subtotal",
+        "Tax",
+        "Total",
+        "Status",
+      ],
+      ...filtered.map((b) => [
+        b.billNumber,
+        b.vendor,
+        EXPENSE_CATEGORY_LABELS[b.vendorCategory],
+        b.entity,
+        b.branch,
+        b.description,
+        b.billDate,
+        b.dueDate,
+        b.currency,
+        b.subtotal,
+        b.taxAmount,
+        b.totalAmount,
+        b.status,
+      ]),
     ];
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = `ap-bills-${new Date().toISOString().slice(0, 10)}.csv`; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ap-bills-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
     URL.revokeObjectURL(url);
     toast.success("CSV exported");
   }
@@ -122,12 +187,22 @@ export default function AccountingAPPage() {
         <AccountingPageHeader
           title="AP — Vendor bills"
           subtitle="Accounts payable · Future Link Flow"
-          actions={<Button onClick={() => navigate("/accounting/ap/new")}><Plus className="size-4 mr-1" /> Record bill</Button>}
+          actions={
+            <Button onClick={() => navigate("/accounting/ap/new")}>
+              <Plus className="size-4 mr-1" /> Record bill
+            </Button>
+          }
         />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <AccountingKPICard label="Outstanding AP" value={outstandingAP} icon={ArrowDownCircle} />
-          <AccountingKPICard label="Overdue" value={overdueAmt} delta={`${overdueCount} bills overdue`} deltaDirection="down" icon={AlertCircle} />
+          <AccountingKPICard
+            label="Overdue"
+            value={overdueAmt}
+            delta={`${overdueCount} bills overdue`}
+            deltaDirection="down"
+            icon={AlertCircle}
+          />
           <AccountingKPICard label="Due this week" value={dueThisWeek} icon={Calendar} />
           <AccountingKPICard label="Paid this month" value={paidThisMonth} deltaDirection="up" icon={CheckCircle2} />
         </div>
@@ -144,38 +219,77 @@ export default function AccountingAPPage() {
         <div className="flex flex-wrap gap-3 mb-4 items-end">
           <div className="relative w-64">
             <Search className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search vendor, bill #, description…" className="pl-8 h-9" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search vendor, bill #, description…"
+              className="pl-8 h-9"
+            />
           </div>
           <SelectFilter label="Entity" value={entityFilter} onChange={setEntityFilter} options={entities} />
           <SelectFilter label="Branch" value={branchFilter} onChange={setBranchFilter} options={branches} />
-          <SelectFilter label="Currency" value={currencyFilter} onChange={setCurrencyFilter} options={currencies} width="w-[110px]" />
+          <SelectFilter
+            label="Currency"
+            value={currencyFilter}
+            onChange={setCurrencyFilter}
+            options={currencies}
+            width="w-[110px]"
+          />
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Category" /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[180px]">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All categories</SelectItem>
-              {Object.entries(EXPENSE_CATEGORY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+              {Object.entries(EXPENSE_CATEGORY_LABELS).map(([k, v]) => (
+                <SelectItem key={k} value={k}>
+                  {v}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <SelectFilter label="Status" value={statusFilter} onChange={setStatusFilter}
-            options={["DRAFT", "PENDING_REVIEW", "APPROVED", "PAID", "OVERDUE", "VOID"]} width="w-[140px]" />
+          <SelectFilter
+            label="Status"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={["DRAFT", "PENDING_REVIEW", "APPROVED", "PAID", "OVERDUE", "VOID"]}
+            width="w-[140px]"
+          />
           <div className="flex flex-col gap-1">
             <Label className="text-[11px] text-muted-foreground">Due from</Label>
-            <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-9 w-[140px]" />
+            <Input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 w-[140px]"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Label className="text-[11px] text-muted-foreground">Due to</Label>
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-9 w-[140px]" />
           </div>
-          <Button variant="ghost" onClick={exportCSV} className="ml-auto"><Download className="size-4 mr-1" /> Export CSV</Button>
+          <Button variant="ghost" onClick={exportCSV} className="ml-auto">
+            <Download className="size-4 mr-1" /> Export CSV
+          </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground mb-2">Showing {paged.length} of {filtered.length} bills</div>
+        <div className="text-xs text-muted-foreground mb-2">
+          Showing {paged.length} of {filtered.length} bills
+        </div>
 
         {loading ? (
           <AccountingTableSkeleton rows={6} cols={9} />
         ) : filtered.length === 0 ? (
-          <AccountingEmptyState icon={FileText} title="No bills found" description="Try adjusting your filters or record your first vendor bill."
-            action={<Button size="sm" onClick={() => navigate("/accounting/ap/new")}><Plus className="size-4 mr-1" /> Record bill</Button>} />
+          <AccountingEmptyState
+            icon={FileText}
+            title="No bills found"
+            description="Try adjusting your filters or record your first vendor bill."
+            action={
+              <Button size="sm" onClick={() => navigate("/accounting/ap/new")}>
+                <Plus className="size-4 mr-1" /> Record bill
+              </Button>
+            }
+          />
         ) : (
           <div className="rounded-lg border border-border overflow-hidden">
             <table className="w-full text-sm">
@@ -195,21 +309,41 @@ export default function AccountingAPPage() {
               </thead>
               <tbody>
                 {paged.map((b) => (
-                  <tr key={b.id} className="border-t border-border hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(`/accounting/ap/${b.id}`)}>
+                  <tr
+                    key={b.id}
+                    className="border-t border-border hover:bg-muted/50 cursor-pointer"
+                    onClick={() => navigate(`/accounting/ap/${b.id}`)}
+                  >
                     <td className="px-3 py-3 font-mono text-xs">
-                      <Link to={`/accounting/ap/${b.id}`} className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>{b.billNumber}</Link>
+                      <Link
+                        to={`/accounting/ap/${b.id}`}
+                        className="text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {b.billNumber}
+                      </Link>
                     </td>
                     <td className="px-3 py-3">
                       <div className="font-medium text-sm">{b.vendor}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5 inline-block bg-muted px-1.5 py-0.5 rounded">{EXPENSE_CATEGORY_LABELS[b.vendorCategory]}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">{b.entity} · {b.branch}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5 inline-block bg-muted px-1.5 py-0.5 rounded">
+                        {EXPENSE_CATEGORY_LABELS[b.vendorCategory]}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">
+                        {b.entity}
+                        {b.branch && b.branch !== b.entity ? ` · ${b.branch}` : ""}
+                      </div>
                     </td>
-                    <td className="px-3 py-3 max-w-[280px] truncate" title={b.description}>{b.description}</td>
+                    <td className="px-3 py-3 max-w-[280px] truncate" title={b.description}>
+                      {b.description}
+                    </td>
                     <td className="px-3 py-3 tabular-nums text-xs">{b.billDate}</td>
                     <td className="px-3 py-3 text-xs">
-                      <div className={cn("tabular-nums", b.status === "OVERDUE" && "text-destructive font-medium")}>{b.dueDate}</div>
-                      {b.status === "OVERDUE" && b.daysOverdue && <div className="text-[10px] text-destructive">{b.daysOverdue} days overdue</div>}
+                      <div className={cn("tabular-nums", b.status === "OVERDUE" && "text-destructive font-medium")}>
+                        {b.dueDate}
+                      </div>
+                      {b.status === "OVERDUE" && b.daysOverdue && (
+                        <div className="text-[10px] text-destructive">{b.daysOverdue} days overdue</div>
+                      )}
                     </td>
                     <td className="px-3 py-3 text-right tabular-nums">
                       <div className="font-medium">{fmtMoney(b.totalAmount, b.currency)}</div>
@@ -218,17 +352,35 @@ export default function AccountingAPPage() {
                     <td className="px-3 py-3 text-center text-xs">{b.currency}</td>
                     <td className="px-3 py-3">
                       <div className="flex flex-col gap-0.5">
-                        {b.linkedBankAccountId && <span className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 w-fit"><Landmark className="size-2.5" /> Bank</span>}
-                        {b.linkedJournalId && <span className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 w-fit">JE</span>}
-                        {!b.linkedBankAccountId && !b.linkedJournalId && <span className="text-muted-foreground text-xs">—</span>}
+                        {b.linkedBankAccountId && (
+                          <span className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 w-fit">
+                            <Landmark className="size-2.5" /> Bank
+                          </span>
+                        )}
+                        {b.linkedJournalId && (
+                          <span className="text-[10px] inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 w-fit">
+                            JE
+                          </span>
+                        )}
+                        {!b.linkedBankAccountId && !b.linkedJournalId && (
+                          <span className="text-muted-foreground text-xs">—</span>
+                        )}
                       </div>
                     </td>
-                    <td className="px-3 py-3"><AccountingStatusBadge status={b.status} /></td>
+                    <td className="px-3 py-3">
+                      <AccountingStatusBadge status={b.status} />
+                    </td>
                     <td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="size-7"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" className="size-7">
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/accounting/ap/${b.id}`)}>View details</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/accounting/ap/${b.id}`)}>
+                            View details
+                          </DropdownMenuItem>
                           {(b.status === "DRAFT" || b.status === "PENDING_REVIEW") && (
                             <DropdownMenuItem onClick={() => toast.info("Edit coming soon")}>Edit</DropdownMenuItem>
                           )}
@@ -239,22 +391,30 @@ export default function AccountingAPPage() {
                           {(b.status === "APPROVED" || b.status === "OVERDUE") && (
                             <DropdownMenuItem onClick={() => setPayDialog(b)}>Mark as paid</DropdownMenuItem>
                           )}
-                          <DropdownMenuItem onClick={() => navigate(
-                            b.linkedJournalId
-                              ? `/accounting/journals/${b.linkedJournalId}`
-                              : `/accounting/journals/new?fromBill=${b.id}&leg=accrual`
-                          )}>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              navigate(
+                                b.linkedJournalId
+                                  ? `/accounting/journals/${b.linkedJournalId}`
+                                  : `/accounting/journals/new?fromBill=${b.id}&leg=accrual`,
+                              )
+                            }
+                          >
                             {b.linkedJournalId ? "View journal entry" : "Create journal entry"}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => toast.info("Coming soon")}>Attach document</DropdownMenuItem>
                           {(b.status === "DRAFT" || b.status === "PENDING_REVIEW") && (
                             <>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive" onClick={() => setVoidDialog(b)}>Void</DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive" onClick={() => setVoidDialog(b)}>
+                                Void
+                              </DropdownMenuItem>
                             </>
                           )}
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteDialog(b)}>Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => setDeleteDialog(b)}>
+                            Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -267,26 +427,53 @@ export default function AccountingAPPage() {
 
         {totalPages > 1 && (
           <div className="flex justify-end items-center gap-2 mt-3">
-            <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Button>
-            <span className="text-xs text-muted-foreground">Page {page} of {totalPages}</span>
-            <Button size="sm" variant="outline" disabled={page === totalPages} onClick={() => setPage(page + 1)}>Next</Button>
+            <Button size="sm" variant="outline" disabled={page === 1} onClick={() => setPage(page - 1)}>
+              Previous
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <Button size="sm" variant="outline" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+              Next
+            </Button>
           </div>
         )}
 
         <AgingAnalysis bills={bills} />
 
-        {payDialog && <RecordPaymentDialog bill={payDialog} onClose={() => setPayDialog(null)}
-          onConfirm={(patch) => { updateApBill(payDialog.id, { status: "PAID", ...patch }); toast.success(`${payDialog.billNumber} marked as paid`); setPayDialog(null); }} />}
+        {payDialog && (
+          <RecordPaymentDialog
+            bill={payDialog}
+            onClose={() => setPayDialog(null)}
+            onConfirm={(patch) => {
+              updateApBill(payDialog.id, { status: "PAID", ...patch });
+              toast.success(`${payDialog.billNumber} marked as paid`);
+              setPayDialog(null);
+            }}
+          />
+        )}
 
         <AlertDialog open={!!voidDialog} onOpenChange={(o) => !o && setVoidDialog(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Void this bill?</AlertDialogTitle>
-              <AlertDialogDescription>{voidDialog && `${voidDialog.billNumber} — ${voidDialog.vendor}. This cannot be undone.`}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {voidDialog && `${voidDialog.billNumber} — ${voidDialog.vendor}. This cannot be undone.`}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { if (voidDialog) { updateApBill(voidDialog.id, { status: "VOID" }); toast.success("Bill voided"); setVoidDialog(null); } }}>Void bill</AlertDialogAction>
+              <AlertDialogAction
+                onClick={() => {
+                  if (voidDialog) {
+                    updateApBill(voidDialog.id, { status: "VOID" });
+                    toast.success("Bill voided");
+                    setVoidDialog(null);
+                  }
+                }}
+              >
+                Void bill
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -295,11 +482,24 @@ export default function AccountingAPPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this bill?</AlertDialogTitle>
-              <AlertDialogDescription>{deleteDialog && `${deleteDialog.billNumber} — ${deleteDialog.vendor}. This permanently removes the record.`}</AlertDialogDescription>
+              <AlertDialogDescription>
+                {deleteDialog &&
+                  `${deleteDialog.billNumber} — ${deleteDialog.vendor}. This permanently removes the record.`}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => { if (deleteDialog) { deleteApBill(deleteDialog.id); toast.success("Bill deleted"); setDeleteDialog(null); } }}>Delete</AlertDialogAction>
+              <AlertDialogAction
+                onClick={() => {
+                  if (deleteDialog) {
+                    deleteApBill(deleteDialog.id);
+                    toast.success("Bill deleted");
+                    setDeleteDialog(null);
+                  }
+                }}
+              >
+                Delete
+              </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -308,13 +508,31 @@ export default function AccountingAPPage() {
   );
 }
 
-function SelectFilter({ label, value, onChange, options, width }: { label: string; value: string; onChange: (v: string) => void; options: string[]; width?: string }) {
+function SelectFilter({
+  label,
+  value,
+  onChange,
+  options,
+  width,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  width?: string;
+}) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className={cn("h-9", width ?? "w-[160px]")}><SelectValue placeholder={label} /></SelectTrigger>
+      <SelectTrigger className={cn("h-9", width ?? "w-[160px]")}>
+        <SelectValue placeholder={label} />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>All {label.toLowerCase()}</SelectItem>
-        {options.map((o) => <SelectItem key={o} value={o}>{o.replace(/_/g, " ")}</SelectItem>)}
+        {options.map((o) => (
+          <SelectItem key={o} value={o}>
+            {o.replace(/_/g, " ")}
+          </SelectItem>
+        ))}
         <SelectItem value="__other__">Other</SelectItem>
       </SelectContent>
     </Select>
@@ -324,14 +542,36 @@ function SelectFilter({ label, value, onChange, options, width }: { label: strin
 function AgingAnalysis({ bills }: { bills: VendorBill[] }) {
   const buckets = useMemo(() => {
     const open = bills.filter((b) => !["PAID", "VOID"].includes(b.status));
-    const init = { current: 0, b30: 0, b60: 0, b90: 0, b90plus: 0, currentN: 0, b30N: 0, b60N: 0, b90N: 0, b90plusN: 0 };
+    const init = {
+      current: 0,
+      b30: 0,
+      b60: 0,
+      b90: 0,
+      b90plus: 0,
+      currentN: 0,
+      b30N: 0,
+      b60N: 0,
+      b90N: 0,
+      b90plusN: 0,
+    };
     return open.reduce((acc, b) => {
       const d = -daysFromToday(b.dueDate);
-      if (d <= 0) { acc.current += b.totalAmount; acc.currentN++; }
-      else if (d <= 30) { acc.b30 += b.totalAmount; acc.b30N++; }
-      else if (d <= 60) { acc.b60 += b.totalAmount; acc.b60N++; }
-      else if (d <= 90) { acc.b90 += b.totalAmount; acc.b90N++; }
-      else { acc.b90plus += b.totalAmount; acc.b90plusN++; }
+      if (d <= 0) {
+        acc.current += b.totalAmount;
+        acc.currentN++;
+      } else if (d <= 30) {
+        acc.b30 += b.totalAmount;
+        acc.b30N++;
+      } else if (d <= 60) {
+        acc.b60 += b.totalAmount;
+        acc.b60N++;
+      } else if (d <= 90) {
+        acc.b90 += b.totalAmount;
+        acc.b90N++;
+      } else {
+        acc.b90plus += b.totalAmount;
+        acc.b90plusN++;
+      }
       return acc;
     }, init);
   }, [bills]);
@@ -345,7 +585,9 @@ function AgingAnalysis({ bills }: { bills: VendorBill[] }) {
   ];
   return (
     <Card className="mt-6">
-      <CardHeader><CardTitle className="text-base">Payables aging analysis</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle className="text-base">Payables aging analysis</CardTitle>
+      </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {items.map((it) => (
@@ -364,7 +606,15 @@ function AgingAnalysis({ bills }: { bills: VendorBill[] }) {
   );
 }
 
-function RecordPaymentDialog({ bill, onClose, onConfirm }: { bill: VendorBill; onClose: () => void; onConfirm: (patch: Partial<VendorBill>) => void }) {
+function RecordPaymentDialog({
+  bill,
+  onClose,
+  onConfirm,
+}: {
+  bill: VendorBill;
+  onClose: () => void;
+  onConfirm: (patch: Partial<VendorBill>) => void;
+}) {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10));
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("Bank Transfer");
@@ -375,23 +625,57 @@ function RecordPaymentDialog({ bill, onClose, onConfirm }: { bill: VendorBill; o
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Mark {bill.billNumber} as paid</AlertDialogTitle>
-          <AlertDialogDescription>{bill.vendor} — {fmtMoney(bill.totalAmount, bill.currency)}</AlertDialogDescription>
+          <AlertDialogDescription>
+            {bill.vendor} — {fmtMoney(bill.totalAmount, bill.currency)}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="grid gap-3 py-2">
-          <div className="grid gap-1.5"><Label>Payment reference</Label><Input value={paymentReference} onChange={(e) => setPaymentReference(e.target.value)} placeholder="Optional reference" /></div>
-          <div className="grid gap-1.5"><Label>Payment date</Label><Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} /></div>
-          <div className="grid gap-1.5"><Label>Payment method</Label><FreeCombobox value={paymentMethod} onChange={setPaymentMethod} options={PAYMENT_METHODS} /></div>
+          <div className="grid gap-1.5">
+            <Label>Payment reference</Label>
+            <Input
+              value={paymentReference}
+              onChange={(e) => setPaymentReference(e.target.value)}
+              placeholder="Optional reference"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Payment date</Label>
+            <Input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} />
+          </div>
+          <div className="grid gap-1.5">
+            <Label>Payment method</Label>
+            <FreeCombobox value={paymentMethod} onChange={setPaymentMethod} options={PAYMENT_METHODS} />
+          </div>
           <div className="grid gap-1.5">
             <Label>Bank account used</Label>
             <Select value={bankId} onValueChange={setBankId}>
-              <SelectTrigger><SelectValue placeholder={banks.length ? "Select bank" : `No ${bill.currency} bank accounts`} /></SelectTrigger>
-              <SelectContent>{banks.map((b) => <SelectItem key={b.id} value={b.id}>{b.nickname} · ••••{b.accountNumber.slice(-4)}</SelectItem>)}</SelectContent>
+              <SelectTrigger>
+                <SelectValue placeholder={banks.length ? "Select bank" : `No ${bill.currency} bank accounts`} />
+              </SelectTrigger>
+              <SelectContent>
+                {banks.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.nickname} · ••••{b.accountNumber.slice(-4)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => onConfirm({ paymentDate, paymentReference, paymentMethod: paymentMethod.toUpperCase().replace(/ /g, "_") as VendorBill["paymentMethod"], linkedBankAccountId: bankId || bill.linkedBankAccountId })}>Confirm payment</AlertDialogAction>
+          <AlertDialogAction
+            onClick={() =>
+              onConfirm({
+                paymentDate,
+                paymentReference,
+                paymentMethod: paymentMethod.toUpperCase().replace(/ /g, "_") as VendorBill["paymentMethod"],
+                linkedBankAccountId: bankId || bill.linkedBankAccountId,
+              })
+            }
+          >
+            Confirm payment
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
