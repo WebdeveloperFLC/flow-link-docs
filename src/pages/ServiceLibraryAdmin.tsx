@@ -419,11 +419,11 @@ function CountriesTab({ master }: { master: Master }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("service_library_countries")
-        .select("*").eq("library_id", master.id);
-      return (data ?? []) as { id: string; country: string }[];
+        .select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
     },
   });
-  const assigned = new Set(rows.map((r) => r.country));
+  const assigned = new Set(rows);
 
   const toggle = async (country: string) => {
     if (assigned.has(country)) {
