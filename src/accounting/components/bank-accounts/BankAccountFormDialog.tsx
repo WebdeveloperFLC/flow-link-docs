@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,9 +74,7 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   const topEntities = entities.filter((e) => !e.parentId);
   const branches = entities.filter((e) => e.parentId === entityId);
   const ownersList = useOwners();
-  const signatoryOptions = ownersList.filter(
-    (o) => o.isActive && o.category === "PERSONAL",
-  );
+  const signatoryOptions = ownersList.filter((o) => o.isActive && o.category === "PERSONAL");
 
   useEffect(() => {
     if (!open) return;
@@ -101,17 +106,40 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setActive(initial.status === "ACTIVE");
       setSignatoryIds(initial.authorisedSignatoryIds ?? []);
     } else {
-      setCountry("CA"); setEntityId(""); setBranchId(NONE);
-      setCoaAccountId(""); setCurrency("CAD");
-      setBankName(""); setNickname(""); setHolderName(""); setAccountNumber("");
-      setIban(""); setSwift(""); setIfsc(""); setRoutingNumber(""); setTransitNumber("");
-      setBranchCode(""); setBranchName(""); setBranchAddress("");
-      setRmName(""); setRmEmail(""); setRmPhone("");
-      setIsDefaultPayment(false); setIsDefaultPayroll(false); setIsDefaultTax(false);
-      setReconciliationEnabled(true); setActive(true);
+      setCountry("CA");
+      setEntityId("");
+      setBranchId(NONE);
+      setCoaAccountId("");
+      setCurrency("CAD");
+      setBankName("");
+      setNickname("");
+      setHolderName("");
+      setAccountNumber("");
+      setIban("");
+      setSwift("");
+      setIfsc("");
+      setRoutingNumber("");
+      setTransitNumber("");
+      setBranchCode("");
+      setBranchName("");
+      setBranchAddress("");
+      setRmName("");
+      setRmEmail("");
+      setRmPhone("");
+      setIsDefaultPayment(false);
+      setIsDefaultPayroll(false);
+      setIsDefaultTax(false);
+      setReconciliationEnabled(true);
+      setActive(true);
       setSignatoryIds([]);
     }
-  }, [open, initial]);
+  }, [open, initial?.id]);
+  // We deliberately depend on `initial?.id` rather than the whole `initial`
+  // object. The bank store re-hydrates from Supabase on focus/refresh, which
+  // produces a new object reference even when the underlying record is
+  // unchanged. Depending on the object would re-fire this effect and overwrite
+  // the user's in-progress edits. The id is the stable identity we actually
+  // care about (changes only when the user opens a different bank account).
 
   // When ledger changes, sync currency from the linked COA ledger
   useEffect(() => {
@@ -121,7 +149,9 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   }, [coaAccountId, ledgers, currency]);
 
   // Reset branch when entity changes
-  useEffect(() => { setBranchId(NONE); }, [entityId]);
+  useEffect(() => {
+    setBranchId(NONE);
+  }, [entityId]);
 
   // Sync currency to the selected entity's base currency (unless editing)
   useEffect(() => {
@@ -144,12 +174,17 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
 
   const submit = () => {
     const input: BankAccountInput = {
-      country, entityId, branchId: branchId === NONE ? null : branchId,
+      country,
+      entityId,
+      branchId: branchId === NONE ? null : branchId,
       ownerProfileId: initial?.ownerProfileId ?? "",
-      coaAccountId, currency,
+      coaAccountId,
+      currency,
       authorisedSignatoryIds: signatoryIds,
-      bankName: bankName.trim(), nickname: nickname.trim(),
-      holderName: holderName.trim(), accountNumber: accountNumber.trim(),
+      bankName: bankName.trim(),
+      nickname: nickname.trim(),
+      holderName: holderName.trim(),
+      accountNumber: accountNumber.trim(),
       iban: iban.trim() || undefined,
       swift: swift.trim() || undefined,
       ifsc: ifsc.trim() || undefined,
@@ -161,12 +196,17 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       rmName: rmName.trim() || undefined,
       rmEmail: rmEmail.trim() || undefined,
       rmPhone: rmPhone.trim() || undefined,
-      isDefaultPayment, isDefaultPayroll, isDefaultTax,
+      isDefaultPayment,
+      isDefaultPayroll,
+      isDefaultTax,
       reconciliationEnabled,
       status: active ? "ACTIVE" : "INACTIVE",
     };
     const result = initial ? updateBankAccount(initial.id, input) : addBankAccount(input);
-    if (result.ok === false) { toast.error(result.error.message); return; }
+    if (result.ok === false) {
+      toast.error(result.error.message);
+      return;
+    }
     toast.success(initial ? `${input.nickname} updated` : `${input.nickname} added`);
     onOpenChange(false);
   };
@@ -183,16 +223,25 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
 
         <div className="grid gap-5 py-2 max-h-[68vh] overflow-y-auto pr-1">
           {/* Section 1 — Entity & linking */}
-          <Section title="Entity & linking" subtitle="Where this account lives in the org and which ledger it posts to.">
+          <Section
+            title="Entity & linking"
+            subtitle="Where this account lives in the org and which ledger it posts to."
+          >
             <div className="grid grid-cols-2 gap-3">
               <Field label="Country">
                 <DynamicSelect listKey="countries" value={country} onValueChange={setCountry} addLabel="country" />
               </Field>
               <Field label="Entity / company" hint="The company that owns this account on the books.">
                 <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger><SelectValue placeholder="Select entity" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select entity" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {topEntities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                    {topEntities.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
@@ -205,10 +254,20 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
                 }
               >
                 <Select value={branchId} onValueChange={setBranchId} disabled={!entityId || branches.length === 0}>
-                  <SelectTrigger><SelectValue placeholder={branches.length ? "Select sub-entity" : "No sub-entities — add in Settings → Entities"} /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        branches.length ? "Select sub-entity" : "No sub-entities — add in Settings → Entities"
+                      }
+                    />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None —</SelectItem>
-                    {branches.map((b) => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                    {branches.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
@@ -229,13 +288,11 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           {/* Section 2 — Bank details */}
           <Section title="Bank details">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Bank name"><Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HDFC Bank" /></Field>
+              <Field label="Bank name">
+                <Input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="HDFC Bank" />
+              </Field>
               <Field label="Nickname">
-                <Input
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder="HDFC Operating"
-                />
+                <Input value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="HDFC Operating" />
               </Field>
               <Field
                 label="Account holder name"
@@ -243,15 +300,37 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
               >
                 <Input value={holderName} onChange={(e) => setHolderName(e.target.value)} />
               </Field>
-              <Field label="Account number"><Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} /></Field>
-              <Field label="IBAN"><Input value={iban} onChange={(e) => setIban(e.target.value.toUpperCase())} placeholder="GB29 NWBK..." /></Field>
-              <Field label="SWIFT / BIC"><Input value={swift} onChange={(e) => setSwift(e.target.value.toUpperCase())} placeholder="HDFCINBB" /></Field>
-              <Field label="IFSC code"><Input value={ifsc} onChange={(e) => setIfsc(e.target.value.toUpperCase())} placeholder="HDFC0000123" /></Field>
-              <Field label="Routing number"><Input value={routingNumber} onChange={(e) => setRoutingNumber(e.target.value)} /></Field>
-              <Field label="Transit number"><Input value={transitNumber} onChange={(e) => setTransitNumber(e.target.value)} /></Field>
-              <Field label="Branch code"><Input value={branchCode} onChange={(e) => setBranchCode(e.target.value)} /></Field>
-              <Field label="Bank branch name"><Input value={branchName} onChange={(e) => setBranchName(e.target.value)} /></Field>
-              <Field label="Bank branch address"><Input value={branchAddress} onChange={(e) => setBranchAddress(e.target.value)} /></Field>
+              <Field label="Account number">
+                <Input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} />
+              </Field>
+              <Field label="IBAN">
+                <Input
+                  value={iban}
+                  onChange={(e) => setIban(e.target.value.toUpperCase())}
+                  placeholder="GB29 NWBK..."
+                />
+              </Field>
+              <Field label="SWIFT / BIC">
+                <Input value={swift} onChange={(e) => setSwift(e.target.value.toUpperCase())} placeholder="HDFCINBB" />
+              </Field>
+              <Field label="IFSC code">
+                <Input value={ifsc} onChange={(e) => setIfsc(e.target.value.toUpperCase())} placeholder="HDFC0000123" />
+              </Field>
+              <Field label="Routing number">
+                <Input value={routingNumber} onChange={(e) => setRoutingNumber(e.target.value)} />
+              </Field>
+              <Field label="Transit number">
+                <Input value={transitNumber} onChange={(e) => setTransitNumber(e.target.value)} />
+              </Field>
+              <Field label="Branch code">
+                <Input value={branchCode} onChange={(e) => setBranchCode(e.target.value)} />
+              </Field>
+              <Field label="Bank branch name">
+                <Input value={branchName} onChange={(e) => setBranchName(e.target.value)} />
+              </Field>
+              <Field label="Bank branch address">
+                <Input value={branchAddress} onChange={(e) => setBranchAddress(e.target.value)} />
+              </Field>
             </div>
             <div className="mt-3">
               <Field
@@ -272,29 +351,69 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
           {/* Section 3 — Contact */}
           <Section title="Relationship manager">
             <div className="grid grid-cols-3 gap-3">
-              <Field label="Contact name"><Input value={rmName} onChange={(e) => setRmName(e.target.value)} /></Field>
-              <Field label="Email"><Input value={rmEmail} onChange={(e) => setRmEmail(e.target.value)} placeholder="rm@bank.com" /></Field>
-              <Field label="Phone"><Input value={rmPhone} onChange={(e) => setRmPhone(e.target.value)} /></Field>
+              <Field label="Contact name">
+                <Input value={rmName} onChange={(e) => setRmName(e.target.value)} />
+              </Field>
+              <Field label="Email">
+                <Input value={rmEmail} onChange={(e) => setRmEmail(e.target.value)} placeholder="rm@bank.com" />
+              </Field>
+              <Field label="Phone">
+                <Input value={rmPhone} onChange={(e) => setRmPhone(e.target.value)} />
+              </Field>
             </div>
           </Section>
 
           {/* Section 4 — Settings */}
           <Section title="Account settings">
             <div className="grid grid-cols-2 gap-3">
-              <SwitchRow label="Default payment account" sub="Used as the default for outgoing payments" checked={isDefaultPayment} onChange={setIsDefaultPayment} />
-              <SwitchRow label="Default payroll account" sub="Used as the default for payroll runs" checked={isDefaultPayroll} onChange={setIsDefaultPayroll} />
-              <SwitchRow label="Default tax payment account" sub="Used as the default for tax payments" checked={isDefaultTax} onChange={setIsDefaultTax} />
-              <SwitchRow label="Reconciliation enabled" sub="Show in the reconciliation module" checked={reconciliationEnabled} onChange={setReconciliationEnabled} />
-              <SwitchRow label="Active" sub="Inactive accounts are hidden from posting flows" checked={active} onChange={setActive} />
+              <SwitchRow
+                label="Default payment account"
+                sub="Used as the default for outgoing payments"
+                checked={isDefaultPayment}
+                onChange={setIsDefaultPayment}
+              />
+              <SwitchRow
+                label="Default payroll account"
+                sub="Used as the default for payroll runs"
+                checked={isDefaultPayroll}
+                onChange={setIsDefaultPayroll}
+              />
+              <SwitchRow
+                label="Default tax payment account"
+                sub="Used as the default for tax payments"
+                checked={isDefaultTax}
+                onChange={setIsDefaultTax}
+              />
+              <SwitchRow
+                label="Reconciliation enabled"
+                sub="Show in the reconciliation module"
+                checked={reconciliationEnabled}
+                onChange={setReconciliationEnabled}
+              />
+              <SwitchRow
+                label="Active"
+                sub="Inactive accounts are hidden from posting flows"
+                checked={active}
+                onChange={setActive}
+              />
             </div>
           </Section>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={submit}
-            disabled={!entityId || !coaAccountId || !bankName.trim() || !nickname.trim() || !holderName.trim() || !accountNumber.trim()}
+            disabled={
+              !entityId ||
+              !coaAccountId ||
+              !bankName.trim() ||
+              !nickname.trim() ||
+              !holderName.trim() ||
+              !accountNumber.trim()
+            }
           >
             {initial ? "Save changes" : "Add bank account"}
           </Button>
@@ -335,7 +454,11 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 function SignatoriesMultiSelect({
-  options, value, onChange, open, onOpenChange,
+  options,
+  value,
+  onChange,
+  open,
+  onOpenChange,
 }: {
   options: OwnerProfile[];
   value: string[];
@@ -353,7 +476,11 @@ function SignatoriesMultiSelect({
         <PopoverTrigger asChild>
           <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
             <span className="text-muted-foreground">
-              {selected.length ? `${selected.length} selected` : options.length ? "Select signatories" : "No personal owner profiles available"}
+              {selected.length
+                ? `${selected.length} selected`
+                : options.length
+                  ? "Select signatories"
+                  : "No personal owner profiles available"}
             </span>
             <ChevronsUpDown className="ml-2 size-4 opacity-50" />
           </Button>
@@ -404,7 +531,17 @@ function SignatoriesMultiSelect({
   );
 }
 
-function SwitchRow({ label, sub, checked, onChange }: { label: string; sub: string; checked: boolean; onChange: (v: boolean) => void }) {
+function SwitchRow({
+  label,
+  sub,
+  checked,
+  onChange,
+}: {
+  label: string;
+  sub: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-md border border-input px-3 py-2">
       <div className="min-w-0">

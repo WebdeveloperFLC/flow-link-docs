@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,31 +40,48 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
   useEffect(() => {
     if (!open) return;
     if (initial) {
-      setName(initial.name); setType(initial.type);
+      setName(initial.name);
+      setType(initial.type);
       setParentId(initial.parentId ?? "__none__");
-      setCountry(initial.country); setCurrency(initial.currency);
+      setCountry(initial.country);
+      setCurrency(initial.currency);
       setFiscalYearStart(initial.fiscalYearStart);
       setTaxIds(initial.taxIds ?? []);
     } else {
-      setName(""); setType("COMPANY"); setParentId("__none__");
-      setCountry("CA"); setCurrency("CAD"); setFiscalYearStart("04-01");
+      setName("");
+      setType("COMPANY");
+      setParentId("__none__");
+      setCountry("CA");
+      setCurrency("CAD");
+      setFiscalYearStart("04-01");
       setTaxIds([]);
     }
-    setTIdLabel(""); setTIdValue("");
-  }, [open, initial]);
+    setTIdLabel("");
+    setTIdValue("");
+  }, [open, initial?.id]);
+  // See BankAccountFormDialog: depend on the stable id, not the whole object,
+  // to avoid wiping in-progress edits when the store re-hydrates.
 
   const addTaxId = () => {
     if (!tIdLabel.trim() || !tIdValue.trim()) return;
     setTaxIds((prev) => [...prev, { label: tIdLabel.trim(), value: tIdValue.trim() }]);
-    setTIdLabel(""); setTIdValue("");
+    setTIdLabel("");
+    setTIdValue("");
   };
 
   const submit = () => {
-    if (!name.trim()) { toast.error("Name is required"); return; }
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
     onSubmit({
-      name: name.trim(), type,
+      name: name.trim(),
+      type,
       parentId: parentId === "__none__" ? null : parentId,
-      country, currency, fiscalYearStart, taxIds,
+      country,
+      currency,
+      fiscalYearStart,
+      taxIds,
     });
     onOpenChange(false);
   };
@@ -67,7 +91,10 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader>
           <DialogTitle>{initial ? "Edit entity" : "Add entity"}</DialogTitle>
-          <DialogDescription>To create a branch or division of an existing company, set Type to BRANCH or SUB_BRANCH and pick its Parent company below.</DialogDescription>
+          <DialogDescription>
+            To create a branch or division of an existing company, set Type to BRANCH or SUB_BRANCH and pick its Parent
+            company below.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-2 max-h-[60vh] overflow-y-auto">
           <div className="grid gap-2">
@@ -78,38 +105,63 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
             <div className="grid gap-2">
               <Label>Type</Label>
               <Select value={type} onValueChange={(v) => setType(v as EntityType)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {TYPES.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, " ")}</SelectItem>)}
+                  {TYPES.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t.replace(/_/g, " ")}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
               <Label>Parent</Label>
               <Select value={parentId} onValueChange={setParentId}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">— None (top-level) —</SelectItem>
-                  {all.filter((e) => e.id !== initial?.id).map((e) =>
-                    <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                  {all
+                    .filter((e) => e.id !== initial?.id)
+                    .map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
               <Label>Country</Label>
               <Select value={country} onValueChange={setCountry}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {["CA","US","IN","GB","DE","AE","AU","SG","CZ","FR"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {["CA", "US", "IN", "GB", "DE", "AE", "AU", "SG", "CZ", "FR"].map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
               <Label>Currency</Label>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {["CAD","USD","INR","GBP","EUR","AED","AUD","SGD"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  {["CAD", "USD", "INR", "GBP", "EUR", "AED", "AUD", "SGD"].map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -125,7 +177,10 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
                 <span key={i} className="inline-flex items-center gap-1 text-[12px] px-2 py-1 rounded-md bg-muted">
                   <span className="font-medium">{t.label}:</span>
                   <span className="font-mono">{t.value}</span>
-                  <button onClick={() => setTaxIds((prev) => prev.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-destructive">
+                  <button
+                    onClick={() => setTaxIds((prev) => prev.filter((_, j) => j !== i))}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
                     <X className="size-3" />
                   </button>
                 </span>
@@ -134,14 +189,27 @@ export default function EntityFormDialog({ open, onOpenChange, initial, onSubmit
             </div>
             <div className="grid grid-cols-[140px_1fr_auto] gap-2 mt-2">
               <Input value={tIdLabel} onChange={(e) => setTIdLabel(e.target.value)} placeholder="Label (GST/PAN)" />
-              <Input value={tIdValue} onChange={(e) => setTIdValue(e.target.value)} placeholder="Value"
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTaxId(); } }} />
-              <Button type="button" variant="outline" onClick={addTaxId}><Plus className="size-4" /></Button>
+              <Input
+                value={tIdValue}
+                onChange={(e) => setTIdValue(e.target.value)}
+                placeholder="Value"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addTaxId();
+                  }
+                }}
+              />
+              <Button type="button" variant="outline" onClick={addTaxId}>
+                <Plus className="size-4" />
+              </Button>
             </div>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={submit}>{initial ? "Save changes" : "Add entity"}</Button>
         </DialogFooter>
       </DialogContent>
