@@ -22,7 +22,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import {
-  ALLOWED_SERVICE_LIBRARY_COUNTRIES, type Master, type Override,
+  ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
+  type Master, type Override,
   type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem,
 } from "@/lib/serviceLibrary";
 
@@ -52,16 +53,17 @@ export default function ServiceLibraryAdmin() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [bannerHidden, setBannerHidden] = useState(false);
+  const [treeSearch, setTreeSearch] = useState("");
 
   const masters = useQuery({
     queryKey: ["sl-masters"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("service_library")
-        .select("*")
+        .select("*, service_library_countries(country)")
         .order("service_category").order("service").order("sub_service");
       if (error) throw error;
-      return (data ?? []) as unknown as Master[];
+      return (data ?? []) as unknown as (Master & { service_library_countries: { country: string }[] })[];
     },
   });
 
@@ -75,18 +77,40 @@ export default function ServiceLibraryAdmin() {
     },
   });
 
-  // group masters by category > service
+  // group masters by country > service > sub-service
   const tree = useMemo(() => {
+    const q = treeSearch.trim().toLowerCase();
+    const matches = (m: Master) =>
+      !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
     const out: Record<string, Record<string, Master[]>> = {};
     for (const m of masters.data ?? []) {
-      const cat = m.service_category;
-      const svc = m.service;
-      out[cat] ??= {};
-      out[cat][svc] ??= [];
-      out[cat][svc].push(m);
+      if (!matches(m)) continue;
+      const countries = (m.service_library_countries ?? [])
+        .map((c) => c.country)
+        .filter((c) => ALLOWED_COUNTRY_SET.has(c));
+      const buckets = countries.length ? countries : ["Unassigned"];
+      for (const country of buckets) {
+        out[country] ??= {};
+        out[country][m.service] ??= [];
+        out[country][m.service].push(m);
+      }
     }
-    return out;
-  }, [masters.data]);
+    // sort: country asc (Unassigned last), service asc, sub-service asc
+    const sorted: Record<string, Record<string, Master[]>> = {};
+    const countryKeys = Object.keys(out).sort((a, b) => {
+      if (a === "Unassigned") return 1;
+      if (b === "Unassigned") return -1;
+      return a.localeCompare(b);
+    });
+    for (const c of countryKeys) {
+      const svcKeys = Object.keys(out[c]).sort((a, b) => a.localeCompare(b));
+      sorted[c] = {};
+      for (const s of svcKeys) {
+        sorted[c][s] = [...out[c][s]].sort((a, b) => a.sub_service.localeCompare(b.sub_service));
+      }
+    }
+    return sorted;
+  }, [masters.data, treeSearch]);
 
   const selected = useMemo(
     () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
@@ -142,12 +166,20 @@ export default function ServiceLibraryAdmin() {
 
         <div className="grid gap-4 lg:grid-cols-12">
           <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
+            <div className="mb-2 px-1">
+              <Input
+                value={treeSearch}
+                onChange={(e) => setTreeSearch(e.target.value)}
+                placeholder="Search service or sub-service…"
+                className="h-8 text-sm"
+              />
+            </div>
             {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {!masters.isLoading && Object.keys(tree).length === 0 && (
               <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
             )}
-            {Object.entries(tree).map(([cat, services]) => (
-              <Tree key={cat} label={CATEGORY_OPTIONS.find((c) => c.key === cat)?.label ?? cat} defaultOpen>
+            {Object.entries(tree).map(([country, services]) => (
+              <Tree key={country} label={country}>
                 {Object.entries(services).map(([svc, items]) => (
                   <Tree key={svc} label={svc}>
                     {items.map((m) => (
