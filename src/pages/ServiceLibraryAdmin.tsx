@@ -32,10 +32,11 @@ export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 const CATEGORY_OPTIONS = [
   { key: "coaching_services", label: "Coaching" },
   { key: "visa_immigration", label: "Visa & Immigration" },
-  { key: "admission_services", label: "Admission" },
   { key: "allied_services", label: "Allied" },
   { key: "travel_financial", label: "Travel & Financial" },
 ];
+
+const COUNTRY_BOUND_CATEGORIES = new Set(["visa_immigration"]);
 
 const DEFAULT_SUBMISSION_ITEMS = [
   { item_key: "documents_verified", item_label: "Documents verified" },
@@ -317,6 +318,7 @@ function Tree({ label, defaultOpen, children }: { label: string; defaultOpen?: b
 
 function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
   const [category, setCategory] = useState("");
+  const [country, setCountry] = useState("");
   const [service, setService] = useState("");
   const [subService, setSubService] = useState("");
   const [saving, setSaving] = useState(false);
@@ -326,16 +328,31 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
       toast({ title: "Fill all fields", variant: "destructive" });
       return;
     }
+    const needsCountry = COUNTRY_BOUND_CATEGORIES.has(category);
+    if (needsCountry && !country) {
+      toast({ title: "Pick a country", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { data, error } = await supabase
       .from("service_library")
       .insert({ service_category: category, service: service.trim(), sub_service: subService.trim() })
       .select("id")
       .single();
-    setSaving(false);
     if (error) {
+      setSaving(false);
       toast({ title: "Failed", description: error.message, variant: "destructive" });
       return;
+    }
+    if (needsCountry) {
+      const { error: cErr } = await supabase
+        .from("service_library_countries")
+        .insert({ library_id: data!.id, country });
+      if (cErr) {
+        setSaving(false);
+        toast({ title: "Country link failed", description: cErr.message, variant: "destructive" });
+        return;
+      }
     }
     // seed default submission checklist items
     await supabase.from("service_library_submission_checklist").insert(
@@ -347,6 +364,7 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
         sort_order: i + 1,
       })),
     );
+    setSaving(false);
     onCreated(data!.id);
   };
 
@@ -368,6 +386,19 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
               </SelectContent>
             </Select>
           </div>
+          {COUNTRY_BOUND_CATEGORIES.has(category) && (
+            <div>
+              <Label>Country</Label>
+              <Select value={country} onValueChange={setCountry}>
+                <SelectTrigger><SelectValue placeholder="Choose country" /></SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {ALLOWED_SERVICE_LIBRARY_COUNTRIES.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label>Service</Label>
             <Input value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. Student Visa" />
