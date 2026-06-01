@@ -77,39 +77,80 @@ export default function ServiceLibraryAdmin() {
     },
   });
 
-  // group masters by country > service > sub-service
-  const tree = useMemo(() => {
+  // Flat categories shown without country grouping (in display order).
+  const FLAT_CATEGORY_ORDER: { key: string; label: string }[] = [
+    { key: "coaching_services", label: "Coaching" },
+    { key: "allied_services", label: "Allied" },
+    { key: "travel_financial", label: "Travel & Financial" },
+  ];
+
+  // Build two trees:
+  //  - flatGroups:    categoryLabel -> service -> Master[]
+  //  - visaByCountry: country       -> service -> Master[]  (Unassigned last)
+  // Admission records are excluded entirely.
+  const { flatGroups, visaByCountry } = useMemo(() => {
     const q = treeSearch.trim().toLowerCase();
     const matches = (m: Master) =>
       !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
-    const out: Record<string, Record<string, Master[]>> = {};
+
+    const flat: Record<string, Record<string, Master[]>> = {};
+    const visa: Record<string, Record<string, Master[]>> = {};
+
     for (const m of masters.data ?? []) {
+      if (m.service_category === "admission_services") continue;
       if (!matches(m)) continue;
-      const countries = (m.service_library_countries ?? [])
-        .map((c) => c.country)
-        .filter((c) => ALLOWED_COUNTRY_SET.has(c));
-      const buckets = countries.length ? countries : ["Unassigned"];
-      for (const country of buckets) {
-        out[country] ??= {};
-        out[country][m.service] ??= [];
-        out[country][m.service].push(m);
+
+      if (m.service_category === "visa_immigration") {
+        const countries = (m.service_library_countries ?? [])
+          .map((c) => c.country)
+          .filter((c) => ALLOWED_COUNTRY_SET.has(c));
+        const buckets = countries.length ? countries : ["Unassigned"];
+        for (const country of buckets) {
+          visa[country] ??= {};
+          visa[country][m.service] ??= [];
+          visa[country][m.service].push(m);
+        }
+        continue;
+      }
+
+      const catDef = FLAT_CATEGORY_ORDER.find((c) => c.key === m.service_category);
+      if (!catDef) continue;
+      flat[catDef.label] ??= {};
+      flat[catDef.label][m.service] ??= [];
+      flat[catDef.label][m.service].push(m);
+    }
+
+    // Sort flat: category in fixed order, service asc, sub-service asc.
+    const flatSorted: Record<string, Record<string, Master[]>> = {};
+    for (const { label } of FLAT_CATEGORY_ORDER) {
+      if (!flat[label]) continue;
+      const svcKeys = Object.keys(flat[label]).sort((a, b) => a.localeCompare(b));
+      flatSorted[label] = {};
+      for (const s of svcKeys) {
+        flatSorted[label][s] = [...flat[label][s]].sort((a, b) =>
+          a.sub_service.localeCompare(b.sub_service),
+        );
       }
     }
-    // sort: country asc (Unassigned last), service asc, sub-service asc
-    const sorted: Record<string, Record<string, Master[]>> = {};
-    const countryKeys = Object.keys(out).sort((a, b) => {
+
+    // Sort visa: country asc (Unassigned last), service asc, sub-service asc.
+    const visaSorted: Record<string, Record<string, Master[]>> = {};
+    const countryKeys = Object.keys(visa).sort((a, b) => {
       if (a === "Unassigned") return 1;
       if (b === "Unassigned") return -1;
       return a.localeCompare(b);
     });
     for (const c of countryKeys) {
-      const svcKeys = Object.keys(out[c]).sort((a, b) => a.localeCompare(b));
-      sorted[c] = {};
+      const svcKeys = Object.keys(visa[c]).sort((a, b) => a.localeCompare(b));
+      visaSorted[c] = {};
       for (const s of svcKeys) {
-        sorted[c][s] = [...out[c][s]].sort((a, b) => a.sub_service.localeCompare(b.sub_service));
+        visaSorted[c][s] = [...visa[c][s]].sort((a, b) =>
+          a.sub_service.localeCompare(b.sub_service),
+        );
       }
     }
-    return sorted;
+
+    return { flatGroups: flatSorted, visaByCountry: visaSorted };
   }, [masters.data, treeSearch]);
 
   const selected = useMemo(
@@ -155,7 +196,7 @@ export default function ServiceLibraryAdmin() {
               </div>
               <h1 className="mt-1 text-2xl font-semibold">Canonical service records</h1>
               <p className="text-sm text-muted-foreground">
-                One record per Category → Service → Sub-service. Assign countries, add overrides where needed.
+                Coaching, Allied, and Travel &amp; Financial are listed flat. Visa &amp; Immigration is grouped by country.
               </p>
             </div>
             <Button onClick={() => setShowNew(true)}>
@@ -175,11 +216,13 @@ export default function ServiceLibraryAdmin() {
               />
             </div>
             {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {!masters.isLoading && Object.keys(tree).length === 0 && (
-              <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
-            )}
-            {Object.entries(tree).map(([country, services]) => (
-              <Tree key={country} label={country}>
+            {!masters.isLoading &&
+              Object.keys(flatGroups).length === 0 &&
+              Object.keys(visaByCountry).length === 0 && (
+                <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
+              )}
+            {Object.entries(flatGroups).map(([catLabel, services]) => (
+              <Tree key={catLabel} label={catLabel}>
                 {Object.entries(services).map(([svc, items]) => (
                   <Tree key={svc} label={svc}>
                     {items.map((m) => (
@@ -197,6 +240,29 @@ export default function ServiceLibraryAdmin() {
                 ))}
               </Tree>
             ))}
+            {Object.keys(visaByCountry).length > 0 && (
+              <Tree label="Visa & Immigration">
+                {Object.entries(visaByCountry).map(([country, services]) => (
+                  <Tree key={country} label={country}>
+                    {Object.entries(services).map(([svc, items]) => (
+                      <Tree key={svc} label={svc}>
+                        {items.map((m) => (
+                          <button
+                            key={m.id}
+                            onClick={() => setSelectedId(m.id)}
+                            className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
+                              selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
+                            }`}
+                          >
+                            {m.sub_service}
+                          </button>
+                        ))}
+                      </Tree>
+                    ))}
+                  </Tree>
+                ))}
+              </Tree>
+            )}
           </aside>
 
           <section className="lg:col-span-8">

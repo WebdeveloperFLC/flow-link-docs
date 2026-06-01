@@ -1,21 +1,40 @@
-# Update Services Required in lead form
+# Restructure Service Library Admin tree
 
-## Changes
+Match the lead form's Services Required pattern. Hide the Admission category from the admin tree entirely (records keep existing in the DB but are not surfaced here).
 
-**1. Remove Admission tab from `ServiceTabs`** (`src/components/leads/ServiceTabs.tsx`)
-- Drop the `admission_services` entry from the `TABS` array.
-- Keep `admission_services` in the `ServiceSelection` interface so existing lead data and the rest of the app (LeadDetail, schemas, autosave payload) keep working — selections just won't be editable here.
+## New sidebar hierarchy
 
-**2. Filter Visa & Immigration by selected interested countries** (`src/components/leads/ServiceTabs.tsx` + `src/pages/leads/LeadNew.tsx`)
-- Add an `interestedCountries: string[]` prop to `ServiceTabs`.
-- In `LeadNew.tsx`, pass the existing `interestedCountries` state into `<ServiceTabs interestedCountries={interestedCountries} ... />`.
-- In the visa tab:
-  - If `interestedCountries.length === 0`: show an empty-state message asking the user to pick countries under Geography first; hide the country chip row and list.
-  - Otherwise: restrict `visaCountries` and the displayed list to items whose `country_tag` is in `interestedCountries`. Replace the existing `All / <country>` chip row with chips for only the selected countries (default to "All selected" = union of selected countries).
-  - If the previously chosen `visaCountry` is no longer in the selected set, reset it to `"ALL"` via an effect.
-- Behaviour for other tabs (Coaching, Allied, Travel & Financial) is unchanged.
+```
+Coaching
+  └── <Service>
+        └── <Sub-service>
+Allied
+  └── <Service>
+        └── <Sub-service>
+Travel & Financial
+  └── <Service>
+        └── <Sub-service>
+Visa & Immigration
+  └── <Country>            (Unassigned bucket last)
+        └── <Service>
+              └── <Sub-service>
+```
+
+Flat categories: `coaching_services`, `allied_services`, `travel_financial`.
+Country-bound category: `visa_immigration` only.
+`admission_services` records are excluded from the tree.
+
+## Changes (single file: `src/pages/ServiceLibraryAdmin.tsx`)
+
+1. Rewrite the `tree` memo to produce:
+   - `flatGroups: { [categoryLabel]: { [service]: Master[] } }` — for Coaching, Allied, Travel & Financial (in that order).
+   - `visaByCountry: { [country]: { [service]: Master[] } }` — for `visa_immigration` only, with `Unassigned` bucket last when records have no country mapping.
+   - Skip any record whose `service_category === "admission_services"`.
+   - Search filter continues to match on service / sub-service.
+2. Sidebar render order: the three flat groups in `CATEGORY_OPTIONS` order, then a single top-level "Visa & Immigration" node containing country sub-trees. Reuse existing `<Tree>` component.
+3. Update the header subtitle to: "Coaching, Allied, and Travel & Financial are listed flat. Visa & Immigration is grouped by country."
 
 ## Out of scope
-- No schema/validation changes (`leadWarmHotSchema` still accepts `admission_services`, defaults to `[]`).
-- No DB or backend changes.
-- `LeadDetail.tsx` still renders the Admission row for historical leads — leaving that as-is since the request was specifically about the lead form's Services Required section.
+
+- No DB or query changes (existing `service_library` + `service_library_countries` join already returns everything needed; admission rows are just filtered out client-side).
+- `MasterDetail`, `NewMasterDialog`, country-assignment UI, and overrides logic remain untouched. `NewMasterDialog` keeps Admission selectable so existing flows aren't broken; we only change what the tree displays.
