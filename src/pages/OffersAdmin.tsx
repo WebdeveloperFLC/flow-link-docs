@@ -189,6 +189,11 @@ function OfferDialog({
   const [selGroups, setSelGroups] = useState<Set<string>>(new Set());
   const [selClients, setSelClients] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  // Phase 3: country + service targeting (country = master labels; service = service_catalogue.id)
+  const countryOptions = useMasterLabels("countries");
+  const [serviceOptions, setServiceOptions] = useState<{ id: string; service_name: string }[]>([]);
+  const [selCountries, setSelCountries] = useState<Set<string>>(new Set());
+  const [selServices, setSelServices] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!open) return;
