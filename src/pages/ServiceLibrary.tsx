@@ -17,7 +17,7 @@ import {
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   resolveForCountry, scopeByCountry, htmlToPlain, htmlToWhatsApp, htmlToEmail,
-  feeItemsToTsv, copyToClipboard, buildShareableLink,
+  feeItemsToTsv, copyToClipboard, copyHtmlToClipboard, buildShareableLink,
   type Master, type Override, type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem, type Attachment,
 } from "@/lib/serviceLibrary";
 
@@ -494,7 +494,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
                     toast({ title: ok ? "WhatsApp version copied" : "Copy failed" });
                   }}><MessageCircle className="h-4 w-4 mr-1" />Copy WhatsApp Version</Button>
                   <Button size="sm" variant="outline" onClick={async () => {
-                    const ok = await copyToClipboard(htmlToEmail(resolved.cost_summary_html));
+                    const ok = await copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html));
                     toast({ title: ok ? "Email version copied" : "Copy failed" });
                   }}><Mail className="h-4 w-4 mr-1" />Copy Email Version</Button>
                 </div>

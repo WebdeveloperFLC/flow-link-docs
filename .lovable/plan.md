@@ -1,40 +1,27 @@
-# Restructure Service Library Admin tree
+## Problem
 
-Match the lead form's Services Required pattern. Hide the Admission category from the admin tree entirely (records keep existing in the DB but are not surfaced here).
+The "Copy Email Version" button currently pastes raw HTML markup (e.g. `<p><strong>Government / Third-party Costs:</strong> ...</p>`) into Gmail/Outlook instead of formatted rich text. This happens because `copyToClipboard` writes only `text/plain`, and `htmlToEmail` returns the HTML string as-is — so the recipient app pastes it verbatim.
 
-## New sidebar hierarchy
+## Fix
 
-```
-Coaching
-  └── <Service>
-        └── <Sub-service>
-Allied
-  └── <Service>
-        └── <Sub-service>
-Travel & Financial
-  └── <Service>
-        └── <Sub-service>
-Visa & Immigration
-  └── <Country>            (Unassigned bucket last)
-        └── <Service>
-              └── <Sub-service>
-```
+Write the cost summary to the clipboard as **both** `text/html` and `text/plain` using the async Clipboard API's `ClipboardItem`. Email clients will then consume the `text/html` flavor and render bold/lists/paragraphs as formatted text. WhatsApp and Cost Summary buttons stay unchanged (they intentionally copy plain text).
 
-Flat categories: `coaching_services`, `allied_services`, `travel_financial`.
-Country-bound category: `visa_immigration` only.
-`admission_services` records are excluded from the tree.
+### Changes
 
-## Changes (single file: `src/pages/ServiceLibraryAdmin.tsx`)
+1. `src/lib/serviceLibrary.ts`
+   - Add a new helper `copyHtmlToClipboard(html: string)` that:
+     - Uses `navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': plainBlob })])` where the plain flavor is generated via existing `htmlToPlain`.
+     - Falls back to `navigator.clipboard.writeText(htmlToPlain(html))` if `ClipboardItem`/`clipboard.write` is unavailable, so the user still gets readable text rather than a failure.
+   - Leave `htmlToEmail`, `htmlToPlain`, `htmlToWhatsApp`, and `copyToClipboard` untouched (other callers depend on them).
 
-1. Rewrite the `tree` memo to produce:
-   - `flatGroups: { [categoryLabel]: { [service]: Master[] } }` — for Coaching, Allied, Travel & Financial (in that order).
-   - `visaByCountry: { [country]: { [service]: Master[] } }` — for `visa_immigration` only, with `Unassigned` bucket last when records have no country mapping.
-   - Skip any record whose `service_category === "admission_services"`.
-   - Search filter continues to match on service / sub-service.
-2. Sidebar render order: the three flat groups in `CATEGORY_OPTIONS` order, then a single top-level "Visa & Immigration" node containing country sub-trees. Reuse existing `<Tree>` component.
-3. Update the header subtitle to: "Coaching, Allied, and Travel & Financial are listed flat. Visa & Immigration is grouped by country."
+2. `src/pages/ServiceLibrary.tsx` (lines 496–499, Copy Email Version button only)
+   - Replace `copyToClipboard(htmlToEmail(resolved.cost_summary_html))` with `copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html))`.
+   - Import `copyHtmlToClipboard` from `@/lib/serviceLibrary`.
 
-## Out of scope
+No other buttons, panels, data, or styling change.
 
-- No DB or query changes (existing `service_library` + `service_library_countries` join already returns everything needed; admission rows are just filtered out client-side).
-- `MasterDetail`, `NewMasterDialog`, country-assignment UI, and overrides logic remain untouched. `NewMasterDialog` keeps Admission selectable so existing flows aren't broken; we only change what the tree displays.
+## Verification
+
+- Click Copy Email Version on a Canada — Study Permit record, paste into Gmail compose → bold/paragraph formatting renders, no visible `<p>`/`<strong>` tags.
+- Paste into a plain-text field (e.g. terminal) → readable plain text without HTML tags.
+- Copy Cost Summary and Copy WhatsApp Version still produce their existing plain-text output.
