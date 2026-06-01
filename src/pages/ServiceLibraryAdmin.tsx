@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMasterLabels } from "@/lib/masters";
+import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +37,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
+
+/**
+ * Service categories MUST match the lead form (see src/components/leads/ServiceTabs.tsx).
+ * Country / Service / Sub-Service are sourced from master_items + service_catalogue —
+ * no separate hierarchy is maintained inside Service Library.
+ */
+const CATEGORY_OPTIONS: { key: string; label: string }[] = [
+  { key: "coaching_services", label: "Coaching" },
+  { key: "visa_immigration", label: "Visa & Immigration" },
+  { key: "admission_services", label: "Admission" },
+  { key: "allied_services", label: "Allied" },
+  { key: "travel_financial", label: "Travel & Financial" },
+];
+const CATEGORY_LABEL_BY_KEY = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.key, c.label]));
+const CATEGORY_KEY_BY_LABEL = Object.fromEntries(CATEGORY_OPTIONS.map((c) => [c.label, c.key]));
 
 type FeeItem = {
   id?: string;
@@ -328,6 +345,12 @@ function EditDialog({
   );
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
+  const countries = useMasterLabels("countries");
+
+  useEffect(() => {
+    fetchAllServiceCatalogue().then(setCatalogue).catch(() => setCatalogue([]));
+  }, []);
 
   useEffect(() => {
     if (row) {
@@ -338,13 +361,88 @@ function EditDialog({
     }
   }, [row]);
 
+  const categoryKey = CATEGORY_KEY_BY_LABEL[form.service_category] ?? "";
+  const catalogueForCategory = useMemo(
+    () => catalogue.filter((c) => c.master_key === categoryKey),
+    [catalogue, categoryKey],
+  );
+  // Services are filtered by selected country when the catalogue item is country-tagged.
+  // Items without a country_tag are global and show for every country.
+  const servicesForSelection = useMemo(() => {
+    if (!form.country) return catalogueForCategory;
+    return catalogueForCategory.filter((c) => !c.country_tag || c.country_tag === form.country);
+  }, [catalogueForCategory, form.country]);
+  const serviceOptions = useMemo(
+    () => [...new Set(servicesForSelection.map((s) => s.service_name))].sort(),
+    [servicesForSelection],
+  );
+  const subServiceOptions = useMemo(
+    () =>
+      [
+        ...new Set(
+          servicesForSelection
+            .filter((s) => s.service_name === form.service)
+            .map((s) => s.sub_category || "")
+            .filter(Boolean),
+        ),
+      ].sort(),
+    [servicesForSelection, form.service],
+  );
+
   const save = async () => {
     if (!form.country || !form.service_category || !form.service || !form.sub_service) {
       toast({ title: "Fill country, category, service, sub-service", variant: "destructive" });
       return;
     }
+    // Validate against catalogue / masters — prevents duplicate master data.
+    if (!countries.includes(form.country)) {
+      toast({
+        title: "Unknown country",
+        description: "Pick a country from the master list (Masters → Countries).",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!CATEGORY_KEY_BY_LABEL[form.service_category]) {
+      toast({ title: "Pick a service category from the lead form list", variant: "destructive" });
+      return;
+    }
+    const matchesCatalogue = catalogueForCategory.some(
+      (c) =>
+        c.service_name === form.service &&
+        (!c.country_tag || c.country_tag === form.country) &&
+        (c.sub_category ?? "") === form.sub_service,
+    );
+    if (!matchesCatalogue) {
+      toast({
+        title: "Service / sub-service not in catalogue",
+        description: "Add it to the service catalogue first so the lead form and Service Library stay in sync.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSaving(true);
     try {
+      // Duplicate guard: same (country, category, service, sub-service) cannot exist twice.
+      const { data: existing, error: dupErr } = await supabase
+        .from("service_library")
+        .select("id")
+        .eq("country", form.country.trim())
+        .eq("service_category", form.service_category.trim())
+        .eq("service", form.service.trim())
+        .eq("sub_service", form.sub_service.trim());
+      if (dupErr) throw dupErr;
+      const clash = (existing ?? []).find((e) => e.id !== row?.id);
+      if (clash) {
+        toast({
+          title: "Entry already exists",
+          description: "An entry for this country + service + sub-service already exists.",
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
+      }
+
       const payload = {
         country: form.country.trim(),
         service_category: form.service_category.trim(),
@@ -469,24 +567,77 @@ function EditDialog({
         <div className="grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Section label="Country">
-              <Input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} />
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.country}
+                onChange={(e) =>
+                  setForm({ ...form, country: e.target.value, service: "", sub_service: "" })
+                }
+              >
+                <option value="">Select country…</option>
+                {countries.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </Section>
             <Section label="Service Category">
-              <Input
-                value={form.service_category}
-                onChange={(e) => setForm({ ...form, service_category: e.target.value })}
-              />
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={CATEGORY_KEY_BY_LABEL[form.service_category] ?? ""}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    service_category: CATEGORY_LABEL_BY_KEY[e.target.value] ?? "",
+                    service: "",
+                    sub_service: "",
+                  })
+                }
+              >
+                <option value="">Select category…</option>
+                {CATEGORY_OPTIONS.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
             </Section>
             <Section label="Service">
-              <Input value={form.service} onChange={(e) => setForm({ ...form, service: e.target.value })} />
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={form.service}
+                onChange={(e) => setForm({ ...form, service: e.target.value, sub_service: "" })}
+                disabled={!categoryKey}
+              >
+                <option value="">{categoryKey ? "Select service…" : "Pick category first"}</option>
+                {serviceOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </Section>
             <Section label="Sub-service">
-              <Input
+              <select
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={form.sub_service}
                 onChange={(e) => setForm({ ...form, sub_service: e.target.value })}
-              />
+                disabled={!form.service}
+              >
+                <option value="">{form.service ? "Select sub-service…" : "Pick service first"}</option>
+                {subServiceOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </Section>
           </div>
+          <p className="-mt-2 text-xs text-slate-500">
+            Country, category, service and sub-service come from the lead form catalogue. To add new options, update the
+            service catalogue / Masters — not here.
+          </p>
 
           <Section label="Checklist text">
             <Textarea
