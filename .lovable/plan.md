@@ -1,23 +1,21 @@
-Restructure the Service Library Admin sidebar to mirror the counselor flow: Country → Service → Sub-service. No database changes — the canonical model stays as `service_library` rows (Category/Service/Sub-service) plus `service_library_countries` mappings. Category becomes hidden metadata in admin too (still editable inside a record).
+# Update Services Required in lead form
 
-Scope: `src/pages/ServiceLibraryAdmin.tsx` only.
+## Changes
 
-What changes
-- Replace the current Category → Service → Sub-service `Tree` sidebar with a three-level Country → Service → Sub-service tree.
-- Build the tree from `masters` joined with `service_library_countries` (already fetched separately today; I'll fold the country list into the masters query via `service_library_countries(country)`).
-- Each master appears once under every country it is mapped to; the leaf is the Sub-service and clicking it selects that master (same `setSelectedId` behaviour as today).
-- Countries restricted to `ALLOWED_COUNTRY_SET`; masters with zero country mappings get grouped under an "Unassigned" bucket at the bottom so admins can still find and fix them.
-- Sort: countries alphabetical, services alphabetical, sub-services alphabetical.
-- Add a small search input above the tree (filters by service / sub-service text, case-insensitive) so admins aren't scrolling through hundreds of leaves. Optional but trivial.
-- Keep the New record button, migration banner, and the right-hand `MasterDetail` exactly as-is — Category remains an editable field inside the record form.
-- Remove the now-unused `CATEGORY_OPTIONS` label lookup from sidebar rendering (kept in the record editor only).
-- Keep the existing `Tree` helper component; just feed it the new data shape.
+**1. Remove Admission tab from `ServiceTabs`** (`src/components/leads/ServiceTabs.tsx`)
+- Drop the `admission_services` entry from the `TABS` array.
+- Keep `admission_services` in the `ServiceSelection` interface so existing lead data and the rest of the app (LeadDetail, schemas, autosave payload) keep working — selections just won't be editable here.
 
-What does not change
-- Database schema, migrations, RLS, GRANTs.
-- Counselor `ServiceLibrary.tsx`.
-- `MasterDetail`, `NewMasterDialog`, all per-tab queries.
-- Cache keys.
+**2. Filter Visa & Immigration by selected interested countries** (`src/components/leads/ServiceTabs.tsx` + `src/pages/leads/LeadNew.tsx`)
+- Add an `interestedCountries: string[]` prop to `ServiceTabs`.
+- In `LeadNew.tsx`, pass the existing `interestedCountries` state into `<ServiceTabs interestedCountries={interestedCountries} ... />`.
+- In the visa tab:
+  - If `interestedCountries.length === 0`: show an empty-state message asking the user to pick countries under Geography first; hide the country chip row and list.
+  - Otherwise: restrict `visaCountries` and the displayed list to items whose `country_tag` is in `interestedCountries`. Replace the existing `All / <country>` chip row with chips for only the selected countries (default to "All selected" = union of selected countries).
+  - If the previously chosen `visaCountry` is no longer in the selected set, reset it to `"ALL"` via an effect.
+- Behaviour for other tabs (Coaching, Allied, Travel & Financial) is unchanged.
 
-Validation
-- After edit, open `/service-library-admin`, confirm sidebar shows Country → Service → Sub-service, selecting a leaf still loads the full record editor on the right, and "Unassigned" bucket appears only if a master has no country mappings.
+## Out of scope
+- No schema/validation changes (`leadWarmHotSchema` still accepts `admission_services`, defaults to `[]`).
+- No DB or backend changes.
+- `LeadDetail.tsx` still renders the Admission row for historical leads — leaving that as-is since the request was specifically about the lead form's Services Required section.
