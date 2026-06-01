@@ -764,7 +764,13 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
       }
     })();
   }, [clientId, serviceKey]);
-
+  // Phase 3: if the selected offer is no longer eligible after a service change,
+  // clear the selection so the dropdown can't show a stale/ineligible offer.
+  useEffect(() => {
+    if (selectedOfferId !== "none" && !offers.some((o) => o.id === selectedOfferId)) {
+      setSelectedOfferId("none");
+    }
+  }, [offers, selectedOfferId]);
   const lineItems = useMemo(
     () =>
       Object.entries(picked)
