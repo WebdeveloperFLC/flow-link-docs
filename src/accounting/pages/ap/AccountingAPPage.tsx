@@ -49,7 +49,8 @@ import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStor
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { cn } from "@/lib/utils";
 
-const TODAY = new Date("2024-11-01");
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0); // always today
 const ALL = "__all__";
 const PAGE_SIZE = 15;
 
