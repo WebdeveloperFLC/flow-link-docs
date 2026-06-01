@@ -12,6 +12,7 @@ import {
   ShieldAlert,
   ListChecks,
   Search,
+  RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -96,6 +97,7 @@ export default function ServiceLibraryAdmin() {
   const { hasRole, isAdmin } = useAuth();
   const canManage = isAdmin || hasRole(["administrator", "documentation"]);
   const qc = useQueryClient();
+  const masterCountries = useMasterLabels("countries");
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
@@ -105,6 +107,7 @@ export default function ServiceLibraryAdmin() {
 
   const [editing, setEditing] = useState<LibraryRow | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const { data: rows = [], isLoading } = useQuery<LibraryRow[]>({
     queryKey: ["service-library-admin"],
@@ -120,6 +123,84 @@ export default function ServiceLibraryAdmin() {
   });
 
   const refresh = () => qc.invalidateQueries({ queryKey: ["service-library-admin"] });
+
+  /**
+   * Backfill Service Library from the lead form catalogue.
+   * Inserts every (country, category, service, sub-service) combination
+   * that exists in service_catalogue but not yet in service_library.
+   * Existing rows (and their checklist / fees / process flow / attachments)
+   * are left untouched — we only INSERT missing combos.
+   */
+  const syncFromCatalogue = async () => {
+    setSyncing(true);
+    try {
+      const catalogue = await fetchAllServiceCatalogue();
+      const { data: existingRows, error: exErr } = await supabase
+        .from("service_library")
+        .select("country, service_category, service, sub_service");
+      if (exErr) throw exErr;
+      const existingKeys = new Set(
+        (existingRows ?? []).map(
+          (r) => `${r.country}|${r.service_category}|${r.service}|${r.sub_service}`,
+        ),
+      );
+
+      // Use master countries (lead form source of truth) as fallback for
+      // catalogue items without a country_tag.
+      const targetCountries = masterCountries.length ? masterCountries : ["All Countries"];
+      const toInsert: {
+        country: string;
+        service_category: string;
+        service: string;
+        sub_service: string;
+      }[] = [];
+      const seen = new Set<string>();
+
+      for (const item of catalogue) {
+        const categoryLabel = CATEGORY_LABEL_BY_KEY[item.master_key];
+        if (!categoryLabel) continue; // skip catalogue keys not in lead form's 5 categories
+        const subService = (item.sub_category ?? "").trim() || "General";
+        const itemCountries = item.country_tag ? [item.country_tag] : targetCountries;
+        for (const c of itemCountries) {
+          const key = `${c}|${categoryLabel}|${item.service_name}|${subService}`;
+          if (existingKeys.has(key) || seen.has(key)) continue;
+          seen.add(key);
+          toInsert.push({
+            country: c,
+            service_category: categoryLabel,
+            service: item.service_name,
+            sub_service: subService,
+          });
+        }
+      }
+
+      if (toInsert.length === 0) {
+        toast({ title: "Already in sync", description: "No new entries to create." });
+        return;
+      }
+
+      // Insert in batches to stay well under any payload limits.
+      const BATCH = 200;
+      let created = 0;
+      for (let i = 0; i < toInsert.length; i += BATCH) {
+        const slice = toInsert.slice(i, i + BATCH);
+        const { error } = await supabase.from("service_library").insert(slice);
+        if (error) throw error;
+        created += slice.length;
+      }
+      toast({
+        title: "Sync complete",
+        description: `Created ${created} new Service Library entr${created === 1 ? "y" : "ies"} from the lead form catalogue.`,
+      });
+      console.info(`[service-library] sync created ${created} new entries`);
+      refresh();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Sync failed";
+      toast({ title: "Sync failed", description: msg, variant: "destructive" });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -199,14 +280,24 @@ export default function ServiceLibraryAdmin() {
               Add countries, services, sub-services, checklists, fees, process flow and files.
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setEditing(null);
-              setShowForm(true);
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add entry
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={syncFromCatalogue} disabled={syncing}>
+              {syncing ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              Sync from lead form
+            </Button>
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setShowForm(true);
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" /> Add entry
+            </Button>
+          </div>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
