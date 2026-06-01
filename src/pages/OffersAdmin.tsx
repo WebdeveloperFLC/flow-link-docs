@@ -29,6 +29,8 @@ interface Offer {
   valid_to: string | null;
   is_active: boolean;
   audience: "global" | "group" | "individual";
+  target_countries: string[] | null;
+  applicable_services: string[] | null;
 }
 interface Group {
   id: string;
