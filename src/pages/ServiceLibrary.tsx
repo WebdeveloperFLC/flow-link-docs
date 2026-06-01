@@ -20,14 +20,6 @@ import {
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
-const CATEGORY_LABEL: Record<string, string> = {
-  coaching_services: "Coaching",
-  visa_immigration: "Visa & Immigration",
-  admission_services: "Admission",
-  allied_services: "Allied",
-  travel_financial: "Travel & Financial",
-};
-
 export default function ServiceLibrary() {
   const [params, setParams] = useSearchParams();
   const [country, setCountry] = useState(params.get("country") ?? "");
@@ -258,8 +250,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              {CATEGORY_LABEL[master.service_category] ?? master.service_category}
-              {country && <> · <span className="text-primary">{country}</span></>}
+              {country && <span className="text-primary">{country}</span>}
             </div>
             <h2 className="text-xl font-semibold">{master.service} · {master.sub_service}</h2>
           </div>
