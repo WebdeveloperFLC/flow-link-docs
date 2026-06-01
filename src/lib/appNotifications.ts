@@ -291,6 +291,7 @@ const SOUND_CATEGORIES: ReadonlySet<NotificationCategory> = new Set([
   "portal_message",
   "urgent_review_required",
   "handoff_received",
+  "offer_published",
 ]);
 
 let lastSoundAt = 0;
