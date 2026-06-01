@@ -20,7 +20,11 @@ import { DepartmentsSection } from "@/components/masters/DepartmentsSection";
 import { ServiceCatalogueSection } from "@/components/masters/ServiceCatalogueSection";
 import { StagePipelinesSection } from "@/components/masters/StagePipelinesSection";
 
-interface MasterList { key: string; label: string; description: string | null; }
+interface MasterList {
+  key: string;
+  label: string;
+  description: string | null;
+}
 
 const SPECIAL_SECTIONS = [
   { key: "__branches", label: "Branches", icon: Building2 },
@@ -29,11 +33,16 @@ const SPECIAL_SECTIONS = [
   { key: "__stage_pipelines", label: "Stage pipelines", icon: Workflow },
 ] as const;
 
-type SpecialKey = typeof SPECIAL_SECTIONS[number]["key"];
+type SpecialKey = (typeof SPECIAL_SECTIONS)[number]["key"];
 const isSpecial = (k: string): k is SpecialKey => k.startsWith("__");
 
 const slugify = (s: string) =>
-  s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 60);
+  s
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
 
 const singularize = (label: string) => {
   const trimmed = label.trim();
@@ -69,27 +78,41 @@ const Masters = () => {
       .eq("list_key", key)
       .order("sort_order", { ascending: true })
       .order("label", { ascending: true });
-    setItems(((data ?? []) as MasterItem[]));
+    setItems((data ?? []) as MasterItem[]);
     setLoading(false);
   };
 
-  useEffect(() => { loadLists(); }, []);
-  useEffect(() => { if (activeKey) loadItems(activeKey); }, [activeKey]);
+  useEffect(() => {
+    loadLists();
+  }, []);
+  useEffect(() => {
+    if (activeKey) loadItems(activeKey);
+  }, [activeKey]);
 
   const activeList = lists.find((l) => l.key === activeKey);
 
   const onToggleActive = async (it: MasterItem) => {
-    const { error } = await supabase.from("master_items")
-      .update({ is_active: !it.is_active }).eq("id", it.id);
-    if (error) { toast.error(error.message); return; }
+    const { error } = await supabase.from("master_items").update({ is_active: !it.is_active }).eq("id", it.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await refreshMaster(activeKey as MasterListKey);
     loadItems(activeKey);
   };
 
   const onDelete = async (it: MasterItem) => {
-    if (!confirm(`Delete "${it.label}"? Existing records using this value will keep showing it but it won't appear in dropdowns.`)) return;
+    if (
+      !confirm(
+        `Delete "${it.label}"? Existing records using this value will keep showing it but it won't appear in dropdowns.`,
+      )
+    )
+      return;
     const { error } = await supabase.from("master_items").delete().eq("id", it.id);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     await logActivity("master.deleted", "master", it.id, { list: activeKey, label: it.label });
     await refreshMaster(activeKey as MasterListKey);
     toast.success("Deleted");
@@ -110,7 +133,11 @@ const Masters = () => {
     return (
       <AppLayout>
         <PageHeader title="Masters" description="Admin only." />
-        <div className="p-8"><Card className="p-12 text-center text-sm text-muted-foreground">Only administrators can manage master data.</Card></div>
+        <div className="p-8">
+          <Card className="p-12 text-center text-sm text-muted-foreground">
+            Only administrators can manage master data.
+          </Card>
+        </div>
       </AppLayout>
     );
   }
@@ -121,8 +148,15 @@ const Masters = () => {
         title="Masters"
         description="Centrally manage all dropdown values used across the app — countries, visa categories, document types, and more."
         actions={
-          activeList && !isSpecial(activeKey) && (
-            <Button onClick={() => { setEditing(null); setOpen(true); }} className="gradient-brand text-primary-foreground">
+          activeList &&
+          !isSpecial(activeKey) && (
+            <Button
+              onClick={() => {
+                setEditing(null);
+                setOpen(true);
+              }}
+              className="gradient-brand text-primary-foreground"
+            >
               <Plus className="size-4 mr-1.5" /> New {singularize(activeList.label).toLowerCase()}
             </Button>
           )
@@ -138,7 +172,7 @@ const Masters = () => {
                 onClick={() => setActiveKey(l.key)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
-                  activeKey === l.key ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
+                  activeKey === l.key ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50",
                 )}
               >
                 <Database className="size-3.5 text-muted-foreground" />
@@ -146,7 +180,9 @@ const Masters = () => {
               </button>
             ))}
           </div>
-          <div className="px-3 pt-4 pb-2 text-xs uppercase tracking-wider font-semibold text-muted-foreground">Org & Catalogue</div>
+          <div className="px-3 pt-4 pb-2 text-xs uppercase tracking-wider font-semibold text-muted-foreground">
+            Org & Catalogue
+          </div>
           <div className="space-y-0.5">
             {SPECIAL_SECTIONS.map((s) => {
               const Icon = s.icon;
@@ -156,7 +192,7 @@ const Masters = () => {
                   onClick={() => setActiveKey(s.key)}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center gap-2",
-                    activeKey === s.key ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50"
+                    activeKey === s.key ? "bg-accent text-accent-foreground font-medium" : "hover:bg-accent/50",
                   )}
                 >
                   <Icon className="size-3.5 text-muted-foreground" />
@@ -180,34 +216,71 @@ const Masters = () => {
             </div>
           )}
           {!isSpecial(activeKey) && (
-          <Card className="overflow-hidden shadow-elev-sm">
-            <div className="grid grid-cols-12 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
-              <div className="col-span-1">Order</div>
-              <div className="col-span-4">Label</div>
-              <div className="col-span-3">Code</div>
-              <div className="col-span-2">Active</div>
-              <div className="col-span-2 text-right">Actions</div>
-            </div>
-            <div className="divide-y">
-              {loading && <div className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</div>}
-              {!loading && items.length === 0 && <div className="px-4 py-12 text-center text-sm text-muted-foreground">No items yet.</div>}
-              {items.map((it, i) => (
-                <div key={it.id} className="grid grid-cols-12 px-4 py-2.5 items-center text-sm">
-                  <div className="col-span-1 flex gap-0.5">
-                    <Button size="icon" variant="ghost" className="size-6" disabled={i === 0} onClick={() => onMove(it, -1)}><ArrowUp className="size-3" /></Button>
-                    <Button size="icon" variant="ghost" className="size-6" disabled={i === items.length - 1} onClick={() => onMove(it, 1)}><ArrowDown className="size-3" /></Button>
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="grid grid-cols-12 px-4 py-2.5 text-xs uppercase tracking-wider text-muted-foreground font-semibold border-b bg-muted/40">
+                <div className="col-span-1">Order</div>
+                <div className="col-span-4">Label</div>
+                <div className="col-span-3">Code</div>
+                <div className="col-span-2">Active</div>
+                <div className="col-span-2 text-right">Actions</div>
+              </div>
+              <div className="divide-y">
+                {loading && <div className="px-4 py-12 text-center text-sm text-muted-foreground">Loading…</div>}
+                {!loading && items.length === 0 && (
+                  <div className="px-4 py-12 text-center text-sm text-muted-foreground">No items yet.</div>
+                )}
+                {items.map((it, i) => (
+                  <div key={it.id} className="grid grid-cols-12 px-4 py-2.5 items-center text-sm">
+                    <div className="col-span-1 flex gap-0.5">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-6"
+                        disabled={i === 0}
+                        onClick={() => onMove(it, -1)}
+                      >
+                        <ArrowUp className="size-3" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-6"
+                        disabled={i === items.length - 1}
+                        onClick={() => onMove(it, 1)}
+                      >
+                        <ArrowDown className="size-3" />
+                      </Button>
+                    </div>
+                    <div className="col-span-4 font-medium">{it.label}</div>
+                    <div className="col-span-3 font-mono text-xs text-muted-foreground">{it.code}</div>
+                    <div className="col-span-2">
+                      <Switch checked={it.is_active} onCheckedChange={() => onToggleActive(it)} />
+                    </div>
+                    <div className="col-span-2 text-right flex justify-end gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7"
+                        onClick={() => {
+                          setEditing(it);
+                          setOpen(true);
+                        }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-destructive"
+                        onClick={() => onDelete(it)}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="col-span-4 font-medium">{it.label}</div>
-                  <div className="col-span-3 font-mono text-xs text-muted-foreground">{it.code}</div>
-                  <div className="col-span-2"><Switch checked={it.is_active} onCheckedChange={() => onToggleActive(it)} /></div>
-                  <div className="col-span-2 text-right flex justify-end gap-1">
-                    <Button size="icon" variant="ghost" className="size-7" onClick={() => { setEditing(it); setOpen(true); }}><Pencil className="size-3.5" /></Button>
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive" onClick={() => onDelete(it)}><Trash2 className="size-3.5" /></Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
           )}
         </div>
       </div>
@@ -219,14 +292,23 @@ const Masters = () => {
         item={editing}
         existingCodes={items.map((i) => i.code)}
         nextSortOrder={(items[items.length - 1]?.sort_order ?? 0) + 10}
-        onSaved={() => { refreshMaster(activeKey as MasterListKey); loadItems(activeKey); }}
+        onSaved={() => {
+          refreshMaster(activeKey as MasterListKey);
+          loadItems(activeKey);
+        }}
       />
     </AppLayout>
   );
 };
 
 function ItemEditorDialog({
-  open, onOpenChange, listKey, item, existingCodes, nextSortOrder, onSaved,
+  open,
+  onOpenChange,
+  listKey,
+  item,
+  existingCodes,
+  nextSortOrder,
+  onSaved,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -249,7 +331,9 @@ function ItemEditorDialog({
       setCodeTouched(!!item);
       setMetadata(JSON.stringify(item?.metadata ?? {}, null, 2));
     }
-  }, [open, item]);
+  }, [open, item?.id]);
+  // Depend on item?.id (stable identity) instead of the whole `item` object,
+  // so background re-fetches don't overwrite the user's in-progress edits.
 
   useEffect(() => {
     if (!codeTouched && !item) setCode(slugify(label));
@@ -262,26 +346,52 @@ function ItemEditorDialog({
   }, [code, existingCodes, item]);
 
   const onSubmit = async () => {
-    if (!label.trim() || !code.trim()) { toast.error("Label and code are required"); return; }
-    if (codeConflict) { toast.error("Code already used in this list"); return; }
+    if (!label.trim() || !code.trim()) {
+      toast.error("Label and code are required");
+      return;
+    }
+    if (codeConflict) {
+      toast.error("Code already used in this list");
+      return;
+    }
     let parsedMeta: Record<string, unknown> = {};
-    try { parsedMeta = JSON.parse(metadata || "{}"); }
-    catch { toast.error("Metadata must be valid JSON"); return; }
+    try {
+      parsedMeta = JSON.parse(metadata || "{}");
+    } catch {
+      toast.error("Metadata must be valid JSON");
+      return;
+    }
     setBusy(true);
     try {
       if (item) {
-        const { error } = await supabase.from("master_items").update({
-          label: label.trim(), code: code.trim(), metadata: parsedMeta as never,
-        }).eq("id", item.id);
+        const { error } = await supabase
+          .from("master_items")
+          .update({
+            label: label.trim(),
+            code: code.trim(),
+            metadata: parsedMeta as never,
+          })
+          .eq("id", item.id);
         if (error) throw error;
         await logActivity("master.updated", "master", item.id, { list: listKey, label });
       } else {
-        const { data: { user } } = await supabase.auth.getUser();
-        const { data, error } = await supabase.from("master_items").insert([{
-          list_key: listKey, label: label.trim(), code: code.trim(),
-          metadata: parsedMeta as never, sort_order: nextSortOrder,
-          created_by: user?.id ?? null,
-        }]).select().single();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const { data, error } = await supabase
+          .from("master_items")
+          .insert([
+            {
+              list_key: listKey,
+              label: label.trim(),
+              code: code.trim(),
+              metadata: parsedMeta as never,
+              sort_order: nextSortOrder,
+              created_by: user?.id ?? null,
+            },
+          ])
+          .select()
+          .single();
         if (error) throw error;
         await logActivity("master.created", "master", data.id, { list: listKey, label });
       }
@@ -311,7 +421,10 @@ function ItemEditorDialog({
             <Label>Code *</Label>
             <Input
               value={code}
-              onChange={(e) => { setCode(e.target.value); setCodeTouched(true); }}
+              onChange={(e) => {
+                setCode(e.target.value);
+                setCodeTouched(true);
+              }}
               placeholder="e.g. south_korea"
               className={codeConflict ? "border-destructive" : ""}
             />
@@ -331,8 +444,14 @@ function ItemEditorDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={onSubmit} disabled={busy || codeConflict || !label.trim() || !code.trim()} className="gradient-brand text-primary-foreground">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={onSubmit}
+            disabled={busy || codeConflict || !label.trim() || !code.trim()}
+            className="gradient-brand text-primary-foreground"
+          >
             {busy ? "Saving…" : item ? "Save" : "Add"}
           </Button>
         </DialogFooter>
