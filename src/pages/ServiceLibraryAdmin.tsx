@@ -55,6 +55,7 @@ export default function ServiceLibraryAdmin() {
   const [showNew, setShowNew] = useState(false);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [treeSearch, setTreeSearch] = useState("");
+  const [countryFilter, setCountryFilter] = useState<string>("ALL");
 
   const masters = useQuery({
     queryKey: ["sl-masters"],
@@ -85,28 +86,34 @@ export default function ServiceLibraryAdmin() {
     { key: "travel_financial", label: "Travel & Financial" },
   ];
 
-  // Build two trees:
-  //  - flatGroups:    categoryLabel -> service -> Master[]
-  //  - visaByCountry: country       -> service -> Master[]  (Unassigned last)
-  // Admission records are excluded entirely.
-  const { flatGroups, visaByCountry } = useMemo(() => {
+  // Build:
+  //  - flatGroups:      categoryLabel -> service -> Master[]
+  //  - visaByCountry:   country       -> service -> Master[]  (used when no country filter)
+  //  - visaForCountry:  service       -> Master[]             (used when a country is picked)
+  //  - availableCountries: list of countries that have visa services (for the filter dropdown)
+  const { flatGroups, visaByCountry, visaForCountry, availableCountries } = useMemo(() => {
     const q = treeSearch.trim().toLowerCase();
     const matches = (m: Master) =>
       !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
 
     const flat: Record<string, Record<string, Master[]>> = {};
     const visa: Record<string, Record<string, Master[]>> = {};
+    const countrySet = new Set<string>();
 
     for (const m of masters.data ?? []) {
       if (m.service_category === "admission_services") continue;
-      if (!matches(m)) continue;
 
       if (m.service_category === "visa_immigration") {
         const countries = (m.service_library_countries ?? [])
           .map((c) => c.country)
           .filter((c) => ALLOWED_COUNTRY_SET.has(c));
+        countries.forEach((c) => countrySet.add(c));
+        if (!matches(m)) continue;
+        // When a country filter is active, only include rows mapped to it.
+        if (countryFilter !== "ALL" && !countries.includes(countryFilter)) continue;
         const buckets = countries.length ? countries : ["Unassigned"];
         for (const country of buckets) {
+          if (countryFilter !== "ALL" && country !== countryFilter) continue;
           visa[country] ??= {};
           visa[country][m.service] ??= [];
           visa[country][m.service].push(m);
@@ -114,6 +121,7 @@ export default function ServiceLibraryAdmin() {
         continue;
       }
 
+      if (!matches(m)) continue;
       const catDef = FLAT_CATEGORY_ORDER.find((c) => c.key === m.service_category);
       if (!catDef) continue;
       flat[catDef.label] ??= {};
@@ -151,8 +159,17 @@ export default function ServiceLibraryAdmin() {
       }
     }
 
-    return { flatGroups: flatSorted, visaByCountry: visaSorted };
-  }, [masters.data, treeSearch]);
+    // Flat per-country view (no nested country level) when a single country is picked.
+    const visaSingle: Record<string, Master[]> =
+      countryFilter !== "ALL" ? visaSorted[countryFilter] ?? {} : {};
+
+    return {
+      flatGroups: flatSorted,
+      visaByCountry: visaSorted,
+      visaForCountry: visaSingle,
+      availableCountries: Array.from(countrySet).sort((a, b) => a.localeCompare(b)),
+    };
+  }, [masters.data, treeSearch, countryFilter]);
 
   const selected = useMemo(
     () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
@@ -197,7 +214,7 @@ export default function ServiceLibraryAdmin() {
               </div>
               <h1 className="mt-1 text-2xl font-semibold">Canonical service records</h1>
               <p className="text-sm text-muted-foreground">
-                Coaching, Allied, and Travel &amp; Financial are listed flat. Visa &amp; Immigration is grouped by country.
+                Coaching, Allied, and Travel &amp; Financial are listed flat. Use the country filter to view Visa &amp; Immigration services for one country at a time.
               </p>
             </div>
             <Button onClick={() => setShowNew(true)}>
@@ -208,7 +225,18 @@ export default function ServiceLibraryAdmin() {
 
         <div className="grid gap-4 lg:grid-cols-12">
           <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
-            <div className="mb-2 px-1">
+            <div className="mb-2 px-1 space-y-2">
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Filter by country…" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  <SelectItem value="ALL">All countries</SelectItem>
+                  {availableCountries.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Input
                 value={treeSearch}
                 onChange={(e) => setTreeSearch(e.target.value)}
@@ -219,7 +247,8 @@ export default function ServiceLibraryAdmin() {
             {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             {!masters.isLoading &&
               Object.keys(flatGroups).length === 0 &&
-              Object.keys(visaByCountry).length === 0 && (
+              Object.keys(visaByCountry).length === 0 &&
+              Object.keys(visaForCountry).length === 0 && (
                 <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
               )}
             {Object.entries(flatGroups).map(([catLabel, services]) => (
@@ -241,26 +270,41 @@ export default function ServiceLibraryAdmin() {
                 ))}
               </Tree>
             ))}
-            {Object.keys(visaByCountry).length > 0 && (
-              <Tree label="Visa & Immigration">
-                {Object.entries(visaByCountry).map(([country, services]) => (
-                  <Tree key={country} label={country}>
-                    {Object.entries(services).map(([svc, items]) => (
-                      <Tree key={svc} label={svc}>
-                        {items.map((m) => (
-                          <button
-                            key={m.id}
-                            onClick={() => setSelectedId(m.id)}
-                            className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
-                              selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
-                            }`}
-                          >
-                            {m.sub_service}
-                          </button>
-                        ))}
-                      </Tree>
+            {countryFilter !== "ALL" && Object.keys(visaForCountry).length > 0 && (
+              <Tree label={`Visa & Immigration — ${countryFilter}`} defaultOpen>
+                {Object.entries(visaForCountry).map(([svc, items]) => (
+                  <Tree key={svc} label={svc}>
+                    {items.map((m) => (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedId(m.id)}
+                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
+                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
+                        }`}
+                      >
+                        {m.sub_service}
+                      </button>
                     ))}
                   </Tree>
+                ))}
+              </Tree>
+            )}
+            {countryFilter === "ALL" && Object.keys(visaByCountry).length > 0 && (
+              <Tree label="Visa & Immigration">
+                <div className="px-2 py-1 text-xs text-muted-foreground">
+                  Pick a country above to view services.
+                </div>
+                {Object.entries(visaByCountry).map(([country, services]) => (
+                  <button
+                    key={country}
+                    onClick={() => setCountryFilter(country)}
+                    className="block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100"
+                  >
+                    {country}
+                    <span className="ml-1 text-xs text-muted-foreground">
+                      ({Object.values(services).reduce((n, arr) => n + arr.length, 0)})
+                    </span>
+                  </button>
                 ))}
               </Tree>
             )}
