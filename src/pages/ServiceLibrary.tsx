@@ -17,7 +17,7 @@ import {
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   resolveForCountry, scopeByCountry, htmlToPlain, htmlToWhatsApp, htmlToEmail,
-  feeItemsToTsv, copyToClipboard, buildShareableLink,
+  feeItemsToTsv, copyToClipboard, copyHtmlToClipboard, buildShareableLink,
   type Master, type Override, type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem, type Attachment,
 } from "@/lib/serviceLibrary";
 
