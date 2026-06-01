@@ -53,7 +53,8 @@ import AccountingReceiptModal from "../../components/receipts/AccountingReceiptM
 import { buildReceiptData, type ReceiptData } from "../../lib/receiptHelpers";
 import { cn } from "@/lib/utils";
 
-const TODAY = new Date("2024-11-01");
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0); // always today
 const ALL = "__all__";
 const PAGE_SIZE = 15;
 const PAYMENT_METHODS = ["Bank Transfer", "Cheque", "Cash", "Credit Card", "UPI", "Wire Transfer", "Other"];
