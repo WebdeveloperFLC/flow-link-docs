@@ -16,6 +16,7 @@ import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Trash2, Tag, Users, Pencil, Ticket } from "lucide-react";
 import { OfferTrackingCodes } from "@/components/offers/OfferTrackingCodes";
+import { useMasterLabels } from "@/lib/masters";
 
 interface Offer {
   id: string;
