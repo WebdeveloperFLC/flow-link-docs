@@ -39,7 +39,7 @@ export const ServiceTabs = ({
   onChange: (v: ServiceSelection) => void;
   visaLocked: boolean;
   onCommit?: (key: keyof ServiceSelection, list: string[]) => void;
-  interestedCountries: string[];
+  interestedCountries?: string[];
 }) => {
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
@@ -60,7 +60,8 @@ export const ServiceTabs = ({
   const visaCountries = useMemo(() => {
     const set = new Set<string>();
     (byKey["visa_immigration"] ?? []).forEach((s) => { if (s.country_tag) set.add(s.country_tag); });
-    return Array.from(set).filter((c) => interestedCountries.includes(c)).sort();
+    const all = Array.from(set).sort();
+    return interestedCountries ? all.filter((c) => interestedCountries.includes(c)) : all;
   }, [byKey, interestedCountries]);
 
   useEffect(() => {
@@ -99,10 +100,12 @@ export const ServiceTabs = ({
         const filtered = isVisa
           ? (visaCountry !== "ALL"
               ? list.filter((s) => s.country_tag === visaCountry)
-              : list.filter((s) => !s.country_tag || interestedCountries.includes(s.country_tag)))
+              : (interestedCountries
+                  ? list.filter((s) => !s.country_tag || interestedCountries.includes(s.country_tag))
+                  : list))
           : list;
         const locked = isVisa && visaLocked;
-        const noCountriesPicked = isVisa && interestedCountries.length === 0;
+        const noCountriesPicked = isVisa && interestedCountries !== undefined && interestedCountries.length === 0;
 
         return (
           <TabsContent key={t.key} value={t.key} className="space-y-3">
