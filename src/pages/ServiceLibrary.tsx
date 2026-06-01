@@ -1,101 +1,106 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import { FileText, FileUp, Filter, ListChecks, ChevronRight } from "lucide-react";
+import { FileText, FileUp, Filter, ListChecks, ChevronRight, Search, Loader2, Download } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Input } from "@/components/ui/input";
 
-type FeeItem = {
-  label: string;
-  amount: string;
+type FeeItem = { id: string; fee_label: string; amount: string | null; currency: string | null; notes: string | null };
+type Attachment = {
+  id: string;
+  file_name: string;
+  file_path: string;
+  label: string | null;
+  mime_type: string | null;
 };
-
-type LibraryRecord = {
+type LibraryRow = {
+  id: string;
   country: string;
-  serviceCategory: string;
+  service_category: string;
   service: string;
-  subService: string;
-  checklist: string;
-  fees: FeeItem[];
-  processFlow: string[];
-  attachmentLabel: string;
+  sub_service: string;
+  checklist_text: string | null;
+  process_flow: unknown;
+  service_library_fee_items: FeeItem[];
+  service_library_attachments: Attachment[];
 };
 
-const records: LibraryRecord[] = [
-  {
-    country: "Canada",
-    serviceCategory: "Visa & Immigration Services",
-    service: "Study Permit",
-    subService: "SDS",
-    checklist:
-      "Passport, LOA, tuition receipt, GIC, IELTS, bank statements, photographs, forms, SOP, education documents.",
-    fees: [
-      { label: "Embassy fee", amount: "CAD 150" },
-      { label: "Biometrics", amount: "CAD 85" },
-      { label: "Consulting fee", amount: "CAD 1,500" },
-      { label: "Other fee", amount: "Medical / translation / courier as applicable" },
-    ],
-    processFlow: ["Profile review", "Checklist preparation", "File submission", "Biometrics", "Decision"],
-    attachmentLabel: "Canada SDS checklist PDF",
-  },
-  {
-    country: "UK",
-    serviceCategory: "Visa & Immigration Services",
-    service: "Student Visa",
-    subService: "New Application",
-    checklist: "CAS, passport, bank statements, academic docs, English test, TB test, application form.",
-    fees: [
-      { label: "Embassy fee", amount: "GBP 490" },
-      { label: "Biometrics", amount: "Included" },
-      { label: "Consulting fee", amount: "GBP 1,200" },
-      { label: "Other fee", amount: "IHS / translation / courier as applicable" },
-    ],
-    processFlow: ["Eligibility review", "Document review", "Submission", "Biometrics", "Result"],
-    attachmentLabel: "UK student visa checklist PDF",
-  },
-  {
-    country: "USA",
-    serviceCategory: "Visa & Immigration Services",
-    service: "F1 Visa",
-    subService: "Initial Filing",
-    checklist: "DS-160, I-20, SEVIS receipt, passport, financial documents, academic records, interview prep.",
-    fees: [
-      { label: "Embassy fee", amount: "USD 185" },
-      { label: "Biometrics", amount: "Included in appointment" },
-      { label: "Consulting fee", amount: "USD 1,500" },
-      { label: "Other fee", amount: "SEVIS / translation / courier as applicable" },
-    ],
-    processFlow: ["Profile review", "DS-160", "Document prep", "Interview prep", "Decision"],
-    attachmentLabel: "USA F1 checklist PDF",
-  },
-];
+function uniq(values: string[]): string[] {
+  return [...new Set(values.filter(Boolean))].sort();
+}
 
 export default function ServiceLibrary() {
-  const [country, setCountry] = useState(records[0].country);
-  const [serviceCategory, setServiceCategory] = useState(records[0].serviceCategory);
-  const [service, setService] = useState(records[0].service);
-  const [subService, setSubService] = useState(records[0].subService);
+  const [country, setCountry] = useState<string>("");
+  const [serviceCategory, setServiceCategory] = useState<string>("");
+  const [service, setService] = useState<string>("");
+  const [subService, setSubService] = useState<string>("");
+  const [search, setSearch] = useState("");
 
-  const countries = useMemo(() => [...new Set(records.map((r) => r.country))], []);
-  const serviceCategories = useMemo(
-    () => [...new Set(records.filter((r) => r.country === country).map((r) => r.serviceCategory))],
-    [country],
+  const { data: rows = [], isLoading } = useQuery<LibraryRow[]>({
+    queryKey: ["service-library"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_library")
+        .select("*, service_library_fee_items(*), service_library_attachments(*)")
+        .eq("is_active", true)
+        .order("country")
+        .order("display_order");
+      if (error) throw error;
+      return (data ?? []) as unknown as LibraryRow[];
+    },
+  });
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (country && r.country !== country) return false;
+      if (serviceCategory && r.service_category !== serviceCategory) return false;
+      if (service && r.service !== service) return false;
+      if (subService && r.sub_service !== subService) return false;
+      if (!q) return true;
+      return [r.country, r.service_category, r.service, r.sub_service, r.checklist_text ?? ""]
+        .join(" ")
+        .toLowerCase()
+        .includes(q);
+    });
+  }, [rows, country, serviceCategory, service, subService, search]);
+
+  const countries = useMemo(() => uniq(rows.map((r) => r.country)), [rows]);
+  const categories = useMemo(
+    () => uniq(rows.filter((r) => !country || r.country === country).map((r) => r.service_category)),
+    [rows, country],
   );
   const services = useMemo(
     () =>
-      [...new Set(records.filter((r) => r.country === country && r.serviceCategory === serviceCategory).map((r) => r.service))],
-    [country, serviceCategory],
+      uniq(
+        rows
+          .filter((r) => (!country || r.country === country) && (!serviceCategory || r.service_category === serviceCategory))
+          .map((r) => r.service),
+      ),
+    [rows, country, serviceCategory],
   );
   const subServices = useMemo(
     () =>
-      [...new Set(records.filter((r) => r.country === country && r.serviceCategory === serviceCategory && r.service === service).map((r) => r.subService))],
-    [country, serviceCategory, service],
+      uniq(
+        rows
+          .filter(
+            (r) =>
+              (!country || r.country === country) &&
+              (!serviceCategory || r.service_category === serviceCategory) &&
+              (!service || r.service === service),
+          )
+          .map((r) => r.sub_service),
+      ),
+    [rows, country, serviceCategory, service],
   );
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = useMemo(
-    () =>
-      records.find(
-        (r) => r.country === country && r.serviceCategory === serviceCategory && r.service === service && r.subService === subService,
-      ) ?? records[0],
-    [country, serviceCategory, service, subService],
+    () => filtered.find((r) => r.id === selectedId) ?? filtered[0] ?? null,
+    [filtered, selectedId],
   );
+
+  const processFlow: string[] = Array.isArray(selected?.process_flow) ? (selected!.process_flow as string[]) : [];
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
@@ -103,138 +108,137 @@ export default function ServiceLibrary() {
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
             <ListChecks className="h-4 w-4" />
-            Checklist & Fee Library
+            Service Library
           </div>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">Country-wise checklist and fee reference</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Counselors can filter by country, service category, service, and sub-service, then view checklist text, fee structure, process flow, and attachments.
+            Filter by country, category, service or sub-service. Click an entry to view its checklist, fees, process flow and files.
           </p>
         </div>
 
         <div className="grid gap-6 xl:grid-cols-12">
           <div className="space-y-4 xl:col-span-4">
-            <Panel title="Filters" icon={<Filter className="h-4 w-4" />}>
-              <Field label="Country">
-                <select
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-                  value={country}
-                  onChange={(e) => {
-                    const nextCountry = e.target.value;
-                    setCountry(nextCountry);
-                    const firstCategory = records.find((r) => r.country === nextCountry)?.serviceCategory ?? "";
-                    setServiceCategory(firstCategory);
-                    const firstService = records.find((r) => r.country === nextCountry && r.serviceCategory === firstCategory)?.service ?? "";
-                    setService(firstService);
-                    const firstSub = records.find(
-                      (r) => r.country === nextCountry && r.serviceCategory === firstCategory && r.service === firstService,
-                    )?.subService ?? "";
-                    setSubService(firstSub);
-                  }}
-                >
-                  {countries.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
+            <Panel title="Search & filters" icon={<Filter className="h-4 w-4" />}>
+              <Field label="Search">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Search checklist, service…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
               </Field>
-
-              <Field label="Service Category">
-                <select
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-                  value={serviceCategory}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setServiceCategory(next);
-                    const firstService = records.find((r) => r.country === country && r.serviceCategory === next)?.service ?? "";
-                    setService(firstService);
-                    const firstSub = records.find(
-                      (r) => r.country === country && r.serviceCategory === next && r.service === firstService,
-                    )?.subService ?? "";
-                    setSubService(firstSub);
-                  }}
-                >
-                  {serviceCategories.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field label="Service">
-                <select
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-                  value={service}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setService(next);
-                    const firstSub = records.find(
-                      (r) => r.country === country && r.serviceCategory === serviceCategory && r.service === next,
-                    )?.subService ?? "";
-                    setSubService(firstSub);
-                  }}
-                >
-                  {services.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-
-              <Field label="Sub-service">
-                <select
-                  className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-                  value={subService}
-                  onChange={(e) => setSubService(e.target.value)}
-                >
-                  {subServices.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
+              <FilterSelect label="Country" value={country} onChange={(v) => { setCountry(v); setServiceCategory(""); setService(""); setSubService(""); }} options={countries} />
+              <FilterSelect label="Service Category" value={serviceCategory} onChange={(v) => { setServiceCategory(v); setService(""); setSubService(""); }} options={categories} />
+              <FilterSelect label="Service" value={service} onChange={(v) => { setService(v); setSubService(""); }} options={services} />
+              <FilterSelect label="Sub-service" value={subService} onChange={setSubService} options={subServices} />
             </Panel>
 
-            <Panel title="Available file" icon={<FileUp className="h-4 w-4" />}>
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600">
-                {selected.attachmentLabel}
+            <Panel title={`Entries (${filtered.length})`} icon={<ListChecks className="h-4 w-4" />}>
+              <div className="space-y-1 max-h-[420px] overflow-auto">
+                {isLoading && (
+                  <div className="flex items-center gap-2 p-3 text-sm text-slate-500">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading…
+                  </div>
+                )}
+                {!isLoading && filtered.length === 0 && (
+                  <div className="p-3 text-sm text-slate-500">No matching entries.</div>
+                )}
+                {filtered.map((r) => {
+                  const active = selected?.id === r.id;
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setSelectedId(r.id)}
+                      className={`w-full rounded-xl border px-3 py-2 text-left text-sm transition ${
+                        active ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="font-medium">
+                        {r.country} · {r.service}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {r.service_category} · {r.sub_service}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </Panel>
           </div>
 
           <div className="space-y-6 xl:col-span-8">
-            <div className="grid gap-6 lg:grid-cols-2">
-              <Panel title="Checklist" icon={<FileText className="h-4 w-4" />}>
-                <div className="text-sm leading-6 text-slate-700">{selected.checklist}</div>
-              </Panel>
-
-              <Panel title="Fee structure" icon={<ListChecks className="h-4 w-4" />}>
-                <div className="space-y-3">
-                  {selected.fees.map((fee) => (
-                    <div key={fee.label} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
-                      <span className="text-slate-600">{fee.label}</span>
-                      <span className="font-medium text-slate-900">{fee.amount}</span>
+            {selected ? (
+              <>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <Panel title="Checklist" icon={<FileText className="h-4 w-4" />}>
+                    <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
+                      {selected.checklist_text || "No checklist text yet."}
                     </div>
-                  ))}
+                  </Panel>
+
+                  <Panel title="Fee structure" icon={<ListChecks className="h-4 w-4" />}>
+                    {selected.service_library_fee_items.length === 0 ? (
+                      <div className="text-sm text-slate-500">No fee items.</div>
+                    ) : (
+                      <div className="space-y-3">
+                        {selected.service_library_fee_items.map((fee) => (
+                          <div
+                            key={fee.id}
+                            className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm"
+                          >
+                            <span className="text-slate-600">{fee.fee_label}</span>
+                            <span className="font-medium text-slate-900">
+                              {[fee.currency, fee.amount].filter(Boolean).join(" ") || fee.notes || "—"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Panel>
+                </div>
+
+                <Panel title="Process flow" icon={<ChevronRight className="h-4 w-4" />}>
+                  {processFlow.length === 0 ? (
+                    <div className="text-sm text-slate-500">No process flow defined.</div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-3">
+                      {processFlow.map((step, index) => (
+                        <div key={`${step}-${index}`} className="flex items-center gap-3">
+                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium">
+                            {index + 1}. {step}
+                          </div>
+                          {index < processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Panel>
+
+                <Panel title="Available files" icon={<FileUp className="h-4 w-4" />}>
+                  {selected.service_library_attachments.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+                      No files attached.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {selected.service_library_attachments.map((a) => (
+                        <AttachmentLink key={a.id} attachment={a} />
+                      ))}
+                    </div>
+                  )}
+                </Panel>
+              </>
+            ) : (
+              <Panel title="No entry selected" icon={<FileText className="h-4 w-4" />}>
+                <div className="text-sm text-slate-500">
+                  {isLoading ? "Loading entries…" : "Select an entry from the list to view details."}
                 </div>
               </Panel>
-            </div>
-
-            <Panel title="Process flow" icon={<ChevronRight className="h-4 w-4" />}>
-              <div className="flex flex-wrap items-center gap-3">
-                {selected.processFlow.map((step, index) => (
-                  <div key={step} className="flex items-center gap-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium">
-                      {index + 1}. {step}
-                    </div>
-                    {index < selected.processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
-                  </div>
-                ))}
-              </div>
-            </Panel>
+            )}
           </div>
         </div>
       </div>
@@ -242,15 +246,65 @@ export default function ServiceLibrary() {
   );
 }
 
-function Panel({
-  title,
-  icon,
-  children,
+function AttachmentLink({ attachment }: { attachment: Attachment }) {
+  const [loading, setLoading] = useState(false);
+  const open = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("service-library-files")
+        .createSignedUrl(attachment.file_path, 60 * 10);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank", "noopener");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={open}
+      className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm hover:bg-slate-50"
+    >
+      <div className="min-w-0">
+        <div className="truncate font-medium text-slate-800">{attachment.label || attachment.file_name}</div>
+        <div className="truncate text-xs text-slate-500">{attachment.file_name}</div>
+      </div>
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4 text-slate-500" />}
+    </button>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
 }: {
-  title: string;
-  icon: ReactNode;
-children: ReactNode;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
 }) {
+  return (
+    <Field label={label}>
+      <select
+        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm bg-white"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        <option value="">All</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </Field>
+  );
+}
+
+function Panel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center gap-2 text-lg font-semibold">
@@ -262,7 +316,7 @@ children: ReactNode;
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="mb-4">
       <div className="mb-2 text-sm font-medium text-slate-700">{label}</div>

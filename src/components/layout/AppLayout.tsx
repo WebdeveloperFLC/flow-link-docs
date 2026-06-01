@@ -98,8 +98,8 @@ const crmNav: NavItem[] = [
   {
     to: "/service-library",
     icon: ListChecks,
-    label: "Checklist & Fee Library",
-    roles: ["admin", "counselor", "documentation", "telecaller"],
+    label: "Service Library",
+    roles: ["admin", "administrator", "counselor", "documentation", "telecaller"],
   },
 
   { to: "/templates", icon: Workflow, label: "Workflows" },
@@ -130,6 +130,12 @@ const adminNav: NavItem[] = [
   { to: "/ai-help", icon: Sparkles, label: "AI Help" },
   { to: "/forms-library", icon: FileStack, label: "Forms library", adminOnly: true },
   { to: "/letter-templates", icon: Mail, label: "Letter templates", adminOnly: true },
+  {
+    to: "/service-library-admin",
+    icon: ListChecks,
+    label: "Service Library Admin",
+    roles: ["admin", "administrator", "documentation"],
+  },
   { to: "/team-access", icon: Share2, label: "Team access" },
   { to: "/users", icon: UserCog, label: "Team & roles", adminOnly: true },
   { to: "/masters", icon: Database, label: "Masters", adminOnly: true },

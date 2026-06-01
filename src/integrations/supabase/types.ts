@@ -10921,6 +10921,142 @@ export type Database = {
         }
         Relationships: []
       }
+      service_library: {
+        Row: {
+          checklist_text: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          process_flow: Json | null
+          service: string
+          service_category: string
+          sub_service: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          checklist_text?: string | null
+          country: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          process_flow?: Json | null
+          service: string
+          service_category: string
+          sub_service: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          checklist_text?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          process_flow?: Json | null
+          service?: string
+          service_category?: string
+          sub_service?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      service_library_attachments: {
+        Row: {
+          created_at: string
+          display_order: number
+          file_name: string
+          file_path: string
+          id: string
+          label: string | null
+          library_id: string
+          mime_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          file_name: string
+          file_path: string
+          id?: string
+          label?: string | null
+          library_id: string
+          mime_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          file_name?: string
+          file_path?: string
+          id?: string
+          label?: string | null
+          library_id?: string
+          mime_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_attachments_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_fee_items: {
+        Row: {
+          amount: string | null
+          created_at: string
+          currency: string | null
+          display_order: number
+          fee_label: string
+          id: string
+          library_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: string | null
+          created_at?: string
+          currency?: string | null
+          display_order?: number
+          fee_label: string
+          id?: string
+          library_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: string | null
+          created_at?: string
+          currency?: string | null
+          display_order?: number
+          fee_label?: string
+          id?: string
+          library_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_fee_items_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_offers: {
         Row: {
           applicable_branches: string[] | null
@@ -14788,6 +14924,10 @@ export type Database = {
       calendar_validate_token: { Args: { _token: string }; Returns: string }
       can_edit_client: {
         Args: { _cid: string; _uid: string }
+        Returns: boolean
+      }
+      can_manage_service_library: {
+        Args: { _user_id: string }
         Returns: boolean
       }
       can_upload_client: {
