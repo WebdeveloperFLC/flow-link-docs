@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,7 +77,7 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setCurrency(initial.currency);
       setEntityId(initial.entityId ?? NONE);
       setTaxCode(initial.taxCode ?? "NONE");
-      setNormalBalance(initial.normalBalance ?? (groups.find((g) => g.code === initial.groupCode)?.nature ?? "DEBIT"));
+      setNormalBalance(initial.normalBalance ?? groups.find((g) => g.code === initial.groupCode)?.nature ?? "DEBIT");
       setOpeningBalance(String(initial.openingBalance));
       setStatus(initial.status);
       setIsPostable(initial.isPostable !== false);
@@ -97,22 +104,18 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setRevenueCategoriesState([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initial, forcedParentId]);
+  }, [open, initial?.id, forcedParentId]);
+  // See BankAccountFormDialog: depend on the stable id, not the whole object,
+  // to avoid wiping in-progress edits when the store re-hydrates.
 
   // Account groups + types available for selection (hide BANK type — Banks module owns those).
-  const selectableTypes = useMemo(
-    () => types.filter((t) => !HIDDEN_TYPE_CODES.has(t.code)),
-    [types],
-  );
+  const selectableTypes = useMemo(() => types.filter((t) => !HIDDEN_TYPE_CODES.has(t.code)), [types]);
 
   const typesForGroup = useMemo(
     () => selectableTypes.filter((t) => t.groupCode === groupCode),
     [selectableTypes, groupCode],
   );
-  const subTypesForType = useMemo(
-    () => subTypes.filter((s) => s.typeCode === typeCode),
-    [subTypes, typeCode],
-  );
+  const subTypesForType = useMemo(() => subTypes.filter((s) => s.typeCode === typeCode), [subTypes, typeCode]);
 
   const eligibleParents = useMemo(() => {
     const excluded = initial ? new Set([initial.id, ...getDescendantIds(initial.id)]) : new Set<string>();
@@ -148,7 +151,10 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   }, [code, accounts, initial]);
 
   const handleGroupChange = (v: string) => {
-    if (v === ADD_NEW) { setGroupDialogOpen(true); return; }
+    if (v === ADD_NEW) {
+      setGroupDialogOpen(true);
+      return;
+    }
     setGroupCode(v);
     // Reset type if no longer matches
     if (!types.some((t) => t.code === typeCode && t.groupCode === v)) {
@@ -161,13 +167,19 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   };
 
   const handleTypeChange = (v: string) => {
-    if (v === ADD_NEW) { setTypeDialogOpen(true); return; }
+    if (v === ADD_NEW) {
+      setTypeDialogOpen(true);
+      return;
+    }
     setTypeCode(v);
     setSubTypeCode(NONE);
   };
 
   const handleSubTypeChange = (v: string) => {
-    if (v === ADD_NEW) { setSubTypeDialogOpen(true); return; }
+    if (v === ADD_NEW) {
+      setSubTypeDialogOpen(true);
+      return;
+    }
     setSubTypeCode(v);
   };
 
@@ -189,7 +201,10 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       description: description.trim() || undefined,
     };
     const result = initial ? updateAccount(initial.id, input) : addAccount(input);
-    if (result.ok === false) { toast.error(result.error.message); return; }
+    if (result.ok === false) {
+      toast.error(result.error.message);
+      return;
+    }
     // Persist category links keyed by the (possibly new) account code.
     setAccountCategories(input.code, {
       expense: input.groupCode === "EXPENSE" || input.groupCode === "ASSET" ? expenseCategories : [],
@@ -202,13 +217,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
   const showExpenseCats = groupCode === "EXPENSE" || groupCode === "ASSET";
   const showRevenueCats = groupCode === "REVENUE";
   const toggleExpenseCat = (c: ExpenseCategory) =>
-    setExpenseCategoriesState((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
+    setExpenseCategoriesState((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
   const toggleRevenueCat = (c: RevenueCategory) =>
-    setRevenueCategoriesState((prev) =>
-      prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c],
-    );
+    setRevenueCategoriesState((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
 
   return (
     <>
@@ -238,12 +249,20 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Account group</Label>
                 <Select value={groupCode} onValueChange={handleGroupChange}>
-                  <SelectTrigger><SelectValue placeholder="Select group" /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select group" />
+                  </SelectTrigger>
                   <SelectContent>
-                    {groups.map((g) => <SelectItem key={g.code} value={g.code}>{g.label}</SelectItem>)}
+                    {groups.map((g) => (
+                      <SelectItem key={g.code} value={g.code}>
+                        {g.label}
+                      </SelectItem>
+                    ))}
                     <SelectSeparator />
                     <SelectItem value={ADD_NEW}>
-                      <span className="flex items-center gap-1.5 text-primary"><Plus className="size-3.5" /> Add new group</span>
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <Plus className="size-3.5" /> Add new group
+                      </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -251,15 +270,23 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Account type</Label>
                 <Select value={typeCode} onValueChange={handleTypeChange} disabled={!groupCode}>
-                  <SelectTrigger><SelectValue placeholder={groupCode ? "Select type" : "Pick group first"} /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={groupCode ? "Select type" : "Pick group first"} />
+                  </SelectTrigger>
                   <SelectContent>
                     {typesForGroup.length === 0 && (
                       <div className="px-2 py-1.5 text-[12px] text-muted-foreground">No types yet</div>
                     )}
-                    {typesForGroup.map((t) => <SelectItem key={t.code} value={t.code}>{t.label}</SelectItem>)}
+                    {typesForGroup.map((t) => (
+                      <SelectItem key={t.code} value={t.code}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
                     <SelectSeparator />
                     <SelectItem value={ADD_NEW}>
-                      <span className="flex items-center gap-1.5 text-primary"><Plus className="size-3.5" /> Add new type</span>
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <Plus className="size-3.5" /> Add new type
+                      </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -268,13 +295,21 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Sub-type</Label>
                 <Select value={subTypeCode} onValueChange={handleSubTypeChange} disabled={!typeCode}>
-                  <SelectTrigger><SelectValue placeholder={typeCode ? "Optional" : "Pick type first"} /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue placeholder={typeCode ? "Optional" : "Pick type first"} />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None —</SelectItem>
-                    {subTypesForType.map((s) => <SelectItem key={s.code} value={s.code}>{s.label}</SelectItem>)}
+                    {subTypesForType.map((s) => (
+                      <SelectItem key={s.code} value={s.code}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
                     <SelectSeparator />
                     <SelectItem value={ADD_NEW}>
-                      <span className="flex items-center gap-1.5 text-primary"><Plus className="size-3.5" /> Add new sub-type</span>
+                      <span className="flex items-center gap-1.5 text-primary">
+                        <Plus className="size-3.5" /> Add new sub-type
+                      </span>
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -283,18 +318,22 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Parent account</Label>
                 <Select value={parentId} onValueChange={setParentId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>— None (top-level) —</SelectItem>
                     {eligibleParents.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.code} · {p.name}{p.isPostable === false ? "  (Header)" : ""}
+                        {p.code} · {p.name}
+                        {p.isPostable === false ? "  (Header)" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <span className="text-[11px] text-muted-foreground">
-                  Filtered to {entityId === NONE ? "all-entity" : "this entity's"} {currency} accounts. Headers listed first.
+                  Filtered to {entityId === NONE ? "all-entity" : "this entity's"} {currency} accounts. Headers listed
+                  first.
                 </span>
               </div>
               <div className="grid gap-2">
@@ -305,10 +344,16 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Entity / branch scope</Label>
                 <Select value={entityId} onValueChange={setEntityId}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={NONE}>All entities</SelectItem>
-                    {entities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                    {entities.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -320,7 +365,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
               <div className="grid gap-2">
                 <Label>Normal balance</Label>
                 <Select value={normalBalance} onValueChange={(v) => setNormalBalance(v as "DEBIT" | "CREDIT")}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="DEBIT">Debit</SelectItem>
                     <SelectItem value="CREDIT">Credit</SelectItem>
@@ -353,14 +400,20 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
 
             <div className="grid gap-2">
               <Label>Description</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Optional notes about how this account is used." />
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                placeholder="Optional notes about how this account is used."
+              />
             </div>
 
             {(showExpenseCats || showRevenueCats) && (
               <div className="grid gap-2 rounded-md border border-input p-3">
                 <Label className="text-sm">Categories</Label>
                 <p className="text-[11px] text-muted-foreground -mt-1">
-                  Controls which {showRevenueCats ? "AR revenue categories" : "AP expense categories"} show this account in their dropdown. Leave blank to fall back to auto-matching by account name.
+                  Controls which {showRevenueCats ? "AR revenue categories" : "AP expense categories"} show this account
+                  in their dropdown. Leave blank to fall back to auto-matching by account name.
                 </p>
                 {showExpenseCats && (
                   <div className="flex flex-wrap gap-1.5 pt-1">
@@ -401,7 +454,9 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
             <Button onClick={submit} disabled={!!codeError || !code.trim() || !name.trim() || !groupCode || !typeCode}>
               {initial ? "Save changes" : "Add account"}
             </Button>
@@ -412,7 +467,10 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       <AddGroupInlineDialog
         open={groupDialogOpen}
         onOpenChange={setGroupDialogOpen}
-        onCreated={(c) => { setGroupCode(c); setTypeCode(""); }}
+        onCreated={(c) => {
+          setGroupCode(c);
+          setTypeCode("");
+        }}
       />
       <AddTypeInlineDialog
         open={typeDialogOpen}
