@@ -7,8 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
-  FileCheck2, Loader2, Plus, Download, Eye, Link2, Trash2,
-  ArrowUp, ArrowDown, X, CheckCircle2, AlertCircle, Pencil, FolderArchive,
+  FileCheck2,
+  Loader2,
+  Plus,
+  Download,
+  Eye,
+  Link2,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  X,
+  CheckCircle2,
+  AlertCircle,
+  Pencil,
+  FolderArchive,
 } from "lucide-react";
 import { combinePdfsFromStorage } from "@/lib/combinePdfs";
 import { logActivity } from "@/lib/activity";
@@ -18,7 +30,11 @@ import type { SectionDoc } from "@/components/clients/SectionBuilderCard";
 import { ShareLinkDialog } from "@/components/documents/ShareLinkDialog";
 import { toast } from "sonner";
 
-interface RequiredItem { id: string; name: string; mandatory: boolean; }
+interface RequiredItem {
+  id: string;
+  name: string;
+  mandatory: boolean;
+}
 
 interface BinderRow {
   id: string;
@@ -45,7 +61,14 @@ interface Props {
 const safeFileName = (s: string) => s.replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, "") || "Binder";
 
 export const CustomBindersPanel = ({
-  clientId, clientName, sections, docsBySection, requiredItems, canGenerate, isAdmin, onGenerated,
+  clientId,
+  clientName,
+  sections,
+  docsBySection,
+  requiredItems,
+  canGenerate,
+  isAdmin,
+  onGenerated,
 }: Props) => {
   const [binders, setBinders] = useState<BinderRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +79,7 @@ export const CustomBindersPanel = ({
   const allDocsById = useMemo(() => {
     const map = new Map<string, SectionDoc & { sectionLabel: string }>();
     for (const s of sections) {
-      for (const d of (docsBySection[s.id] ?? [])) {
+      for (const d of docsBySection[s.id] ?? []) {
         map.set(d.id, { ...d, sectionLabel: s.label });
       }
     }
@@ -74,13 +97,21 @@ export const CustomBindersPanel = ({
     setLoading(false);
   };
 
-  useEffect(() => { reload(); }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    reload();
+  }, [clientId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onDownload = async (b: BinderRow) => {
     const { data } = await supabase.storage.from("client-documents").download(b.storage_path);
-    if (!data) { toast.error("Could not download"); return; }
+    if (!data) {
+      toast.error("Could not download");
+      return;
+    }
     const url = URL.createObjectURL(data);
-    const a = document.createElement("a"); a.href = url; a.download = b.file_name; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = b.file_name;
+    a.click();
     URL.revokeObjectURL(url);
   };
 
@@ -108,7 +139,14 @@ export const CustomBindersPanel = ({
           </div>
         </div>
         {canGenerate && (
-          <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="gradient-accent text-white">
+          <Button
+            size="sm"
+            onClick={() => {
+              setEditing(null);
+              setOpen(true);
+            }}
+            className="gradient-accent text-white"
+          >
             <Plus className="size-3.5 mr-1.5" /> New binder
           </Button>
         )}
@@ -121,7 +159,8 @@ export const CustomBindersPanel = ({
           </div>
         ) : binders.length === 0 ? (
           <div className="px-5 py-8 text-center text-xs text-muted-foreground">
-            No binders yet. Click <span className="font-semibold">New binder</span> to build one from any documents across sections.
+            No binders yet. Click <span className="font-semibold">New binder</span> to build one from any documents
+            across sections.
           </div>
         ) : (
           binders.map((b) => {
@@ -150,19 +189,37 @@ export const CustomBindersPanel = ({
                   <Button size="icon" variant="ghost" className="size-7" title="Download" onClick={() => onDownload(b)}>
                     <Download className="size-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="size-7" title="Share link"
-                    onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.group_label || b.file_name })}>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7"
+                    title="Share link"
+                    onClick={() => setShareTarget({ type: "binder", id: b.id, label: b.group_label || b.file_name })}
+                  >
                     <Link2 className="size-3.5" />
                   </Button>
                   {canGenerate && (
-                    <Button size="icon" variant="ghost" className="size-7" title="Edit"
-                      onClick={() => { setEditing(b); setOpen(true); }}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-7"
+                      title="Edit"
+                      onClick={() => {
+                        setEditing(b);
+                        setOpen(true);
+                      }}
+                    >
                       <Pencil className="size-3.5" />
                     </Button>
                   )}
                   {isAdmin && (
-                    <Button size="icon" variant="ghost" className="size-7 text-destructive" title="Delete"
-                      onClick={() => onDelete(b)}>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-7 text-destructive"
+                      title="Delete"
+                      onClick={() => onDelete(b)}
+                    >
                       <Trash2 className="size-3.5" />
                     </Button>
                   )}
@@ -170,12 +227,18 @@ export const CustomBindersPanel = ({
                 {requiredItems.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 ml-7">
                     {requiredCovered.map((r) => (
-                      <span key={r.id} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-success/10 text-success font-semibold">
+                      <span
+                        key={r.id}
+                        className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-success/10 text-success font-semibold"
+                      >
                         <CheckCircle2 className="size-3" /> {r.name}
                       </span>
                     ))}
                     {requiredMissing.map((r) => (
-                      <span key={r.id} className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-secondary/10 text-secondary font-semibold">
+                      <span
+                        key={r.id}
+                        className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded bg-secondary/10 text-secondary font-semibold"
+                      >
                         <AlertCircle className="size-3" /> {r.name}
                       </span>
                     ))}
@@ -196,14 +259,13 @@ export const CustomBindersPanel = ({
         docsBySection={docsBySection}
         requiredItems={requiredItems}
         editing={editing}
-        onSaved={() => { reload(); onGenerated(); }}
+        onSaved={() => {
+          reload();
+          onGenerated();
+        }}
       />
 
-      <ShareLinkDialog
-        open={!!shareTarget}
-        onOpenChange={(o) => !o && setShareTarget(null)}
-        target={shareTarget}
-      />
+      <ShareLinkDialog open={!!shareTarget} onOpenChange={(o) => !o && setShareTarget(null)} target={shareTarget} />
     </Card>
   );
 };
@@ -223,7 +285,15 @@ interface EditorProps {
 }
 
 const BinderEditor = ({
-  open, onOpenChange, clientId, clientName, sections, docsBySection, requiredItems, editing, onSaved,
+  open,
+  onOpenChange,
+  clientId,
+  clientName,
+  sections,
+  docsBySection,
+  requiredItems,
+  editing,
+  onSaved,
 }: EditorProps) => {
   const [name, setName] = useState("");
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
@@ -232,7 +302,7 @@ const BinderEditor = ({
   const allDocsById = useMemo(() => {
     const map = new Map<string, SectionDoc & { sectionLabel: string }>();
     for (const s of sections) {
-      for (const d of (docsBySection[s.id] ?? [])) {
+      for (const d of docsBySection[s.id] ?? []) {
         map.set(d.id, { ...d, sectionLabel: s.label });
       }
     }
@@ -243,20 +313,21 @@ const BinderEditor = ({
     if (!open) return;
     if (editing) {
       setName(editing.group_label || editing.file_name.replace(/\.pdf$/i, ""));
-      const ids = (editing.included_items ?? [])
-        .map((it) => it.id)
-        .filter((id) => allDocsById.has(id));
+      const ids = (editing.included_items ?? []).map((it) => it.id).filter((id) => allDocsById.has(id));
       setOrderedIds(ids);
     } else {
       setName("");
       setOrderedIds([]);
     }
-  }, [open, editing, allDocsById]);
+  }, [open, editing?.id, allDocsById]);
+  // Depend on editing?.id (stable identity), not the whole `editing` object.
+  // The store re-hydrates produce new object references which would overwrite
+  // the user's in-progress edits. Same fix pattern as the accounting forms.
 
   const selected = new Set(orderedIds);
 
   const toggle = (id: string) => {
-    setOrderedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+    setOrderedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const move = (id: string, dir: -1 | 1) => {
@@ -287,15 +358,24 @@ const BinderEditor = ({
 
   const save = async () => {
     const trimmed = name.trim();
-    if (!trimmed) { toast.error("Name your binder"); return; }
-    if (orderedIds.length === 0) { toast.error("Pick at least one document"); return; }
+    if (!trimmed) {
+      toast.error("Name your binder");
+      return;
+    }
+    if (orderedIds.length === 0) {
+      toast.error("Pick at least one document");
+      return;
+    }
     setBusy(true);
     try {
-      const orderedDocs = orderedIds
-        .map((id) => allDocsById.get(id))
-        .filter(Boolean) as (SectionDoc & { sectionLabel: string })[];
+      const orderedDocs = orderedIds.map((id) => allDocsById.get(id)).filter(Boolean) as (SectionDoc & {
+        sectionLabel: string;
+      })[];
       const bytes = await combinePdfsFromStorage(orderedDocs.map((d) => d.storage_path));
-      if (!bytes.byteLength) { toast.error("Could not merge — no PDF pages"); return; }
+      if (!bytes.byteLength) {
+        toast.error("Could not merge — no PDF pages");
+        return;
+      }
       const fileName = `${safeFileName(trimmed)}_${safeFileName(clientName)}.pdf`;
       const path = `${clientId}/binders/${Date.now()}_${fileName}`;
       const blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
@@ -305,12 +385,17 @@ const BinderEditor = ({
       if (upErr) throw upErr;
 
       const includedItems = orderedDocs.map((d) => ({
-        id: d.id, file_name: d.file_name, section_id: d.section_id ?? null,
+        id: d.id,
+        file_name: d.file_name,
+        section_id: d.section_id ?? null,
       }));
 
       if (editing) {
         // Replace the storage object + update the row. Remove the old PDF.
-        await supabase.storage.from("client-documents").remove([editing.storage_path]).catch(() => {});
+        await supabase.storage
+          .from("client-documents")
+          .remove([editing.storage_path])
+          .catch(() => {});
         const { error: updErr } = await supabase
           .from("binders")
           .update({
@@ -322,7 +407,11 @@ const BinderEditor = ({
           } as never)
           .eq("id", editing.id);
         if (updErr) throw updErr;
-        await logActivity("binder.custom_updated", "client", clientId, { binder_id: editing.id, name: trimmed, count: orderedDocs.length });
+        await logActivity("binder.custom_updated", "client", clientId, {
+          binder_id: editing.id,
+          name: trimmed,
+          count: orderedDocs.length,
+        });
         toast.success(`Binder "${trimmed}" updated`);
       } else {
         const { error: insErr } = await supabase.from("binders").insert({
@@ -357,7 +446,9 @@ const BinderEditor = ({
 
         <div className="space-y-4 overflow-y-auto pr-1">
           <div className="space-y-1.5">
-            <Label htmlFor="binder-name" className="text-xs">Binder name</Label>
+            <Label htmlFor="binder-name" className="text-xs">
+              Binder name
+            </Label>
             <Input
               id="binder-name"
               value={name}
@@ -372,20 +463,22 @@ const BinderEditor = ({
                 Required documents
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {requiredItems.filter((r) => r.mandatory).map((r) => {
-                  const have = docTypesInSelection.has(r.name);
-                  return (
-                    <span
-                      key={r.id}
-                      className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded font-semibold ${
-                        have ? "bg-success/10 text-success" : "bg-secondary/10 text-secondary"
-                      }`}
-                    >
-                      {have ? <CheckCircle2 className="size-3" /> : <AlertCircle className="size-3" />}
-                      {r.name}
-                    </span>
-                  );
-                })}
+                {requiredItems
+                  .filter((r) => r.mandatory)
+                  .map((r) => {
+                    const have = docTypesInSelection.has(r.name);
+                    return (
+                      <span
+                        key={r.id}
+                        className={`inline-flex items-center gap-1 text-[11px] px-1.5 py-0.5 rounded font-semibold ${
+                          have ? "bg-success/10 text-success" : "bg-secondary/10 text-secondary"
+                        }`}
+                      >
+                        {have ? <CheckCircle2 className="size-3" /> : <AlertCircle className="size-3" />}
+                        {r.name}
+                      </span>
+                    );
+                  })}
                 {requiredItems.filter((r) => r.mandatory).length === 0 && (
                   <span className="text-[11px] text-muted-foreground italic">No required items in template.</span>
                 )}
@@ -459,13 +552,30 @@ const BinderEditor = ({
                             {d.sectionLabel} · {d.file_name}
                           </div>
                         </div>
-                        <Button size="icon" variant="ghost" className="size-6" onClick={() => move(id, -1)} disabled={i === 0}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          onClick={() => move(id, -1)}
+                          disabled={i === 0}
+                        >
                           <ArrowUp className="size-3" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-6" onClick={() => move(id, 1)} disabled={i === orderedIds.length - 1}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6"
+                          onClick={() => move(id, 1)}
+                          disabled={i === orderedIds.length - 1}
+                        >
                           <ArrowDown className="size-3" />
                         </Button>
-                        <Button size="icon" variant="ghost" className="size-6 text-destructive" onClick={() => remove(id)}>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-6 text-destructive"
+                          onClick={() => remove(id)}
+                        >
                           <X className="size-3" />
                         </Button>
                       </div>
@@ -478,8 +588,14 @@ const BinderEditor = ({
         </div>
 
         <DialogFooter className="mt-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>Cancel</Button>
-          <Button onClick={save} disabled={busy || !name.trim() || orderedIds.length === 0} className="gradient-accent text-white">
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
+            Cancel
+          </Button>
+          <Button
+            onClick={save}
+            disabled={busy || !name.trim() || orderedIds.length === 0}
+            className="gradient-accent text-white"
+          >
             {busy ? <Loader2 className="size-3.5 mr-1.5 animate-spin" /> : <FileCheck2 className="size-3.5 mr-1.5" />}
             {editing ? "Save changes" : "Create binder"}
           </Button>
