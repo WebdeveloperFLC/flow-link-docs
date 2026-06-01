@@ -97,6 +97,7 @@ export default function ServiceLibraryAdmin() {
   const { hasRole, isAdmin } = useAuth();
   const canManage = isAdmin || hasRole(["administrator", "documentation"]);
   const qc = useQueryClient();
+  const masterCountries = useMasterLabels("countries");
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState("");
@@ -144,8 +145,9 @@ export default function ServiceLibraryAdmin() {
         ),
       );
 
-      // Use master countries as fallback for items without a country_tag.
-      const targetCountries = countries.length ? countries : ["All Countries"];
+      // Use master countries (lead form source of truth) as fallback for
+      // catalogue items without a country_tag.
+      const targetCountries = masterCountries.length ? masterCountries : ["All Countries"];
       const toInsert: {
         country: string;
         service_category: string;
