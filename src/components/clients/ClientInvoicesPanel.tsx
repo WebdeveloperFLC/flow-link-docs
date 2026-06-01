@@ -733,11 +733,19 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
     })();
   }, []);
 
+  // Phase 3: service ids currently on the invoice (service_catalogue.id), used to
+  // filter eligible offers by applicable_services. Sorted+joined so the effect
+  // only re-queries when the SET of services changes, not on quantity edits.
+  const pickedServiceIds = Object.keys(picked);
+  const serviceKey = [...pickedServiceIds].sort().join(",");
+
   useEffect(() => {
     (async () => {
       try {
+        const ids = serviceKey ? serviceKey.split(",") : [];
         const { data, error } = await supabase.rpc("offers_eligible_for_client", {
           _client_id: clientId,
+          _service_codes: ids.length > 0 ? ids : null,
         });
         if (error) throw error;
         setOffers(
@@ -755,7 +763,7 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
         setOffers([]);
       }
     })();
-  }, [clientId]);
+  }, [clientId, serviceKey]);
 
   const lineItems = useMemo(
     () =>
