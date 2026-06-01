@@ -59,7 +59,7 @@ export default function OffersAdmin() {
             </TabsTrigger>
             <TabsTrigger value="groups">
               <Users className="size-4 mr-1" />
-              Groups
+              Groups (Legacy)
             </TabsTrigger>
             <TabsTrigger value="codes">
               <Ticket className="size-4 mr-1" />
