@@ -203,6 +203,15 @@ function OfferDialog({
       .select("*")
       .order("name")
       .then(({ data }) => setGroups((data ?? []) as Group[]));
+    supabase
+      .from("service_catalogue")
+      .select("id, service_name")
+      .eq("is_active", true)
+      .order("service_name")
+      .then(({ data }) => setServiceOptions((data ?? []) as { id: string; service_name: string }[]));
+    // Phase 3: seed country/service selections from the offer being edited
+    setSelCountries(new Set(offer?.target_countries ?? []));
+    setSelServices(new Set(offer?.applicable_services ?? []));
     if (offer) {
       supabase
         .from("offer_audience_targets")
