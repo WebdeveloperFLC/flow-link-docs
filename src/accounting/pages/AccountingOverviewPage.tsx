@@ -283,7 +283,13 @@ function DevToolsSection() {
       "accounting:card-reconciliation:v1",
       "accounting:masters:v5",
     ];
-    keys.forEach((k) => { try { localStorage.removeItem(k); } catch {} });
+    keys.forEach((k) => {
+      try {
+        localStorage.removeItem(k);
+      } catch {
+        // Ignore localStorage cleanup failures.
+      }
+    });
     toast.success("All test data cleared");
     setTimeout(() => location.reload(), 1000);
   };

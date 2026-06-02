@@ -8,7 +8,70 @@ export interface MigrationResult {
   errors: string[];
 }
 
-function readLocal<T = any>(key: string): T[] {
+type CoaItem = {
+  id?: string;
+  code?: string;
+  name?: string;
+  groupCode?: string;
+  group_code?: string;
+  typeCode?: string;
+  type_code?: string;
+  currency?: string;
+  normalBalance?: string;
+  openingBalance?: number;
+  isActive?: boolean;
+  description?: string;
+  automationTags?: string[];
+};
+
+type JournalLineItem = {
+  accountCode?: string;
+  account_code?: string;
+  accountName?: string;
+  account_name?: string;
+  description?: string;
+  debit?: number;
+  credit?: number;
+};
+
+type JournalItem = {
+  entryDate?: string;
+  entry_date?: string;
+  entity?: string;
+  currency?: string;
+  sourceType?: string;
+  source_type?: string;
+  narration?: string;
+  status?: string;
+  reference?: string;
+  lines?: JournalLineItem[];
+};
+
+type BankItem = {
+  nickname?: string;
+  accountNickname?: string;
+  bankName?: string;
+  accountHolderName?: string;
+  accountNumber?: string;
+  entity?: string;
+  country?: string;
+  currency?: string;
+  currentBalance?: number;
+  status?: string;
+};
+
+type VendorItem = {
+  name?: string;
+  category?: string;
+  email?: string;
+  phone?: string;
+  currency?: string;
+  status?: string;
+};
+
+type InsertedJournal = { id: string };
+
+function readLocal<T = unknown>(key: string): T[] {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return [];
@@ -23,18 +86,18 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
   const results: MigrationResult[] = [];
 
   // 1. COA accounts
-  const coaItems = readLocal('accounting:coa:v4').concat(readLocal('accounting:coa:v5'));
+  const coaItems = readLocal<CoaItem>('accounting:coa:v4').concat(readLocal<CoaItem>('accounting:coa:v5'));
   if (coaItems.length > 0) {
     let migrated = 0;
     let skipped = 0;
     const errors: string[] = [];
-    for (const item of coaItems as any[]) {
+    for (const item of coaItems) {
       if (!item.id?.includes('-')) {
         skipped++;
         continue;
       }
       const { error } = await supabase
-        .from('accounting_coa' as any)
+        .from('accounting_coa' as never)
         .upsert(
           {
             code: item.code,
@@ -57,11 +120,11 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
   }
 
   // 2. Journals
-  const journalItems = readLocal('accounting:journals:v2');
+  const journalItems = readLocal<JournalItem>('accounting:journals:v2');
   if (journalItems.length > 0) {
     let migrated = 0;
     const errors: string[] = [];
-    for (const j of journalItems as any[]) {
+    for (const j of journalItems) {
       const { data, error } = await supabase
         .from('accounting_journals')
         .insert({
@@ -72,17 +135,17 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
           narration: j.narration,
           status: j.status || 'DRAFT',
           reference: j.reference,
-        } as any)
+        } as never)
         .select('id')
         .single();
       if (error) {
         errors.push(`Journal: ${error.message}`);
         continue;
       }
-      const journalId = (data as any).id;
+      const journalId = (data as InsertedJournal).id;
       if (j.lines?.length > 0) {
         const { error: lineError } = await supabase.from('accounting_journal_lines').insert(
-          j.lines.map((l: any, i: number) => ({
+          j.lines.map((l: JournalLineItem, i: number) => ({
             journal_id: journalId,
             line_number: i + 1,
             account_code: l.accountCode || l.account_code,
@@ -90,7 +153,7 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
             description: l.description,
             debit: l.debit || 0,
             credit: l.credit || 0,
-          })) as any,
+          })) as never,
         );
         if (lineError) {
           errors.push(`Journal lines (${journalId}): ${lineError.message}`);
@@ -105,11 +168,11 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
   }
 
   // 3. Bank accounts
-  const bankItems = readLocal('accounting:bank-accounts:v2');
+  const bankItems = readLocal<BankItem>('accounting:bank-accounts:v2');
   if (bankItems.length > 0) {
     let migrated = 0;
     const errors: string[] = [];
-    for (const b of bankItems as any[]) {
+    for (const b of bankItems) {
       const { error } = await supabase.from('accounting_bank_accounts').upsert(
         {
           nickname: b.nickname || b.accountNickname,
@@ -121,7 +184,7 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
           currency: b.currency || 'CAD',
           current_balance: b.currentBalance || 0,
           status: b.status || 'ACTIVE',
-        } as any,
+        } as never,
         { ignoreDuplicates: true },
       );
       if (error) errors.push(`Bank: ${error.message}`);
@@ -131,11 +194,11 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
   }
 
   // 4. Vendors
-  const vendorItems = readLocal('accounting:vendors:v2');
+  const vendorItems = readLocal<VendorItem>('accounting:vendors:v2');
   if (vendorItems.length > 0) {
     let migrated = 0;
     const errors: string[] = [];
-    for (const v of vendorItems as any[]) {
+    for (const v of vendorItems) {
       const { error } = await supabase.from('accounting_vendors').insert({
         name: v.name,
         category: v.category,
@@ -143,7 +206,7 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
         phone: v.phone,
         currency: v.currency || 'INR',
         status: v.status || 'ACTIVE',
-      } as any);
+      } as never);
       if (error) errors.push(`Vendor: ${error.message}`);
       else migrated++;
     }

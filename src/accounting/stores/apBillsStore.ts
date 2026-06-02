@@ -27,7 +27,9 @@ let bills: VendorBill[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as VendorBill[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return MOCK_BILLS;
 })();
 
@@ -35,7 +37,9 @@ const listeners = new Set<() => void>();
 function emit() {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
-  } catch {}
+  } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 

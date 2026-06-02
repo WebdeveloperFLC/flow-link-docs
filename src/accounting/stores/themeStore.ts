@@ -17,7 +17,9 @@ export function getTheme(): ThemeMode {
 }
 
 export function setTheme(mode: ThemeMode) {
-  try { window.localStorage.setItem(KEY, mode); } catch {}
+  try { window.localStorage.setItem(KEY, mode); } catch {
+    // Ignore localStorage write failures.
+  }
   apply(mode);
 }
 

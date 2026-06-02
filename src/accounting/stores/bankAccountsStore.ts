@@ -15,13 +15,17 @@ let bankAccounts: BankAccount[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as BankAccount[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return SEED_BANK_ACCOUNTS;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bankAccounts)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bankAccounts)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 

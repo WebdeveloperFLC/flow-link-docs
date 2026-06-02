@@ -427,7 +427,9 @@ export default function AccountingCardReconciliationNewPage() {
     let raw: string | null = null;
     try { raw = sessionStorage.getItem('pending-card-statement'); } catch { return; }
     if (!raw) return;
-    try { sessionStorage.removeItem('pending-card-statement'); } catch {}
+    try { sessionStorage.removeItem('pending-card-statement'); } catch {
+      // Ignore sessionStorage cleanup failures.
+    }
     try {
       const payload = JSON.parse(raw) as {
         filename?: string;
@@ -446,7 +448,9 @@ export default function AccountingCardReconciliationNewPage() {
         toast.success(`Loaded ${payload.lines.length} transactions from Documents`);
         setStep(2);
       }
-    } catch {}
+    } catch {
+      // Ignore sessionStorage write failures.
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

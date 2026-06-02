@@ -16,7 +16,19 @@ let rows: OwnerDirectorLink[] = [];
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
-function fromDb(r: any): OwnerDirectorLink {
+type ErrorLike = { message?: string };
+const errMsg = (e: unknown) => ((e as ErrorLike)?.message ?? "unknown");
+
+type OwnerDirectorRow = {
+  id: string;
+  company_profile_id: string;
+  individual_profile_id: string;
+  role: string;
+  ownership_percent: number | null;
+  created_at: string;
+};
+
+function fromDb(r: OwnerDirectorRow): OwnerDirectorLink {
   return {
     id: r.id,
     companyProfileId: r.company_profile_id,
@@ -30,10 +42,10 @@ function fromDb(r: any): OwnerDirectorLink {
 async function hydrate() {
   try {
     const { data, error } = await supabase
-      .from("owner_profile_directors" as any)
+      .from("owner_profile_directors" as never)
       .select("*");
     if (error) throw error;
-    rows = (data ?? []).map(fromDb);
+    rows = ((data ?? []) as unknown as OwnerDirectorRow[]).map(fromDb);
     emit();
   } catch (e) {
     console.warn("[ownerDirectorsStore] hydrate failed", e);
@@ -56,23 +68,23 @@ export async function addDirector(input: {
 }): Promise<OwnerDirectorLink | null> {
   try {
     const { data, error } = await supabase
-      .from("owner_profile_directors" as any)
+      .from("owner_profile_directors" as never)
       .insert({
         company_profile_id: input.companyProfileId,
         individual_profile_id: input.individualProfileId,
         role: input.role,
         ownership_percent: input.ownershipPercent ?? null,
-      } as any)
+      } as never)
       .select("*")
       .single();
     if (error) throw error;
-    const created = fromDb(data);
+    const created = fromDb(data as unknown as OwnerDirectorRow);
     rows = [created, ...rows];
     emit();
     return created;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownerDirectorsStore] addDirector failed", e);
-    toast.error(`Failed to add director: ${e?.message ?? "unknown"}`);
+    toast.error(`Failed to add director: ${errMsg(e)}`);
     return null;
   }
 }
@@ -88,17 +100,17 @@ export async function updateDirector(
   emit();
   try {
     const { error } = await supabase
-      .from("owner_profile_directors" as any)
+      .from("owner_profile_directors" as never)
       .update({
         role: next.role,
         ownership_percent: next.ownershipPercent ?? null,
-      } as any)
+      } as never)
       .eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     rows = rows.map((r) => (r.id === id ? prev : r));
     emit();
-    toast.error(`Failed to update director: ${e?.message ?? "unknown"}`);
+    toast.error(`Failed to update director: ${errMsg(e)}`);
   }
 }
 
@@ -107,11 +119,11 @@ export async function removeDirector(id: string): Promise<void> {
   rows = rows.filter((r) => r.id !== id);
   emit();
   try {
-    const { error } = await supabase.from("owner_profile_directors" as any).delete().eq("id", id);
+    const { error } = await supabase.from("owner_profile_directors" as never).delete().eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     rows = prev;
     emit();
-    toast.error(`Failed to remove director: ${e?.message ?? "unknown"}`);
+    toast.error(`Failed to remove director: ${errMsg(e)}`);
   }
 }

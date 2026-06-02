@@ -77,7 +77,9 @@ function load<T>(key: string, seed: T[]): T[] {
   try {
     const raw = window.localStorage.getItem(key);
     if (raw) return JSON.parse(raw) as T[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and use defaults.
+  }
   return seed;
 }
 
@@ -89,7 +91,9 @@ let subTypes: AccountSubType[] = load(SUBTYPES_KEY, SEED_SUBTYPES);
 if (typeof window !== "undefined") {
   if (types.some((t) => HIDDEN_TYPE_CODES.has(t.code))) {
     types = types.filter((t) => !HIDDEN_TYPE_CODES.has(t.code));
-    try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {}
+    try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {
+      // Ignore localStorage write failures.
+    }
   }
 }
 
@@ -98,15 +102,21 @@ const typeListeners = new Set<() => void>();
 const subTypeListeners = new Set<() => void>();
 
 function emitGroups() {
-  try { window.localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); } catch {}
+  try { window.localStorage.setItem(GROUPS_KEY, JSON.stringify(groups)); } catch {
+    // Ignore localStorage write failures.
+  }
   groupListeners.forEach((l) => l());
 }
 function emitTypes() {
-  try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {}
+  try { window.localStorage.setItem(TYPES_KEY, JSON.stringify(types)); } catch {
+    // Ignore localStorage write failures.
+  }
   typeListeners.forEach((l) => l());
 }
 function emitSubTypes() {
-  try { window.localStorage.setItem(SUBTYPES_KEY, JSON.stringify(subTypes)); } catch {}
+  try { window.localStorage.setItem(SUBTYPES_KEY, JSON.stringify(subTypes)); } catch {
+    // Ignore localStorage write failures.
+  }
   subTypeListeners.forEach((l) => l());
 }
 

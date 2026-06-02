@@ -14,6 +14,12 @@ export interface EntityScopeRow {
   can_edit: boolean;
 }
 
+type AccountingUserScopeRow = {
+  id: string;
+  role: string | null;
+  status: string | null;
+};
+
 interface ScopeResult {
   loading: boolean;
   isUnrestricted: boolean;
@@ -49,14 +55,14 @@ export function useEntityScope(): ScopeResult {
       setFetchFailed(false);
       try {
         const { data: u, error: userErr } = await supabase
-          .from("accounting_users" as any)
+          .from("accounting_users" as never)
           .select("id, role, status")
           .eq("auth_user_id", user.id)
           .limit(1)
           .maybeSingle();
         if (userErr) throw userErr;
         if (cancelled) return;
-        const acctRow: any = u;
+        const acctRow = (u ?? null) as AccountingUserScopeRow | null;
         const r = acctRow?.role ?? null;
         setRole(r);
         if (!acctRow?.id) {
@@ -70,12 +76,12 @@ export function useEntityScope(): ScopeResult {
           return;
         }
         const { data, error: scopeErr } = await supabase
-          .from("accounting_user_entity_scope" as any)
+          .from("accounting_user_entity_scope" as never)
           .select("*")
           .eq("accounting_user_id", acctRow.id);
         if (scopeErr) throw scopeErr;
         if (cancelled) return;
-        setRows((data ?? []) as any);
+        setRows((data ?? []) as unknown as EntityScopeRow[]);
         setLoading(false);
       } catch (e) {
         if (cancelled) return;
@@ -181,6 +187,6 @@ export function useScopedEntities(): SettingsEntity[] {
   const scope = useEntityScope();
   return useMemo(
     () => (scope.isUnrestricted ? entities : scope.filterEntities(entities)),
-    [entities, scope.isUnrestricted, scope.allowedEntityIds],
+    [entities, scope],
   );
 }

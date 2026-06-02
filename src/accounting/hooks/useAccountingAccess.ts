@@ -9,6 +9,11 @@ interface AccessState {
   accountingRole: string | null;
 }
 
+type AccountingUserRow = {
+  role: string | null;
+  status: string | null;
+};
+
 export function useAccountingAccess(): AccessState {
   const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<AccessState>({
@@ -28,13 +33,13 @@ export function useAccountingAccess(): AccessState {
     (async () => {
       try {
         const { data: rows, error } = await supabase
-          .from("accounting_users" as any)
+          .from("accounting_users" as never)
           .select("role,status")
           .eq("auth_user_id", user.id)
           .limit(1);
         if (error) throw error;
         if (cancelled) return;
-        const row: any = rows?.[0];
+        const row = (rows?.[0] ?? null) as AccountingUserRow | null;
         const isActiveAccountingUser = row?.status === "ACTIVE";
         setState({
           loading: false,

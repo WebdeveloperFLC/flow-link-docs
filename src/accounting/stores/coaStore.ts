@@ -24,18 +24,24 @@ let accounts: CoaAccount[] = (() => {
       );
       return additions.length ? [...existing, ...additions] : existing;
     }
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed.
+  }
   return scrubBankAccounts(SEED_ACCOUNTS);
 })();
 
 // Persist the scrub immediately so the migration sticks.
 if (typeof window !== "undefined") {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {
+    // Ignore localStorage write failures.
+  }
 }
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 
@@ -154,7 +160,7 @@ export interface ValidationError { field: string; message: string }
 
 function validate(input: CoaAccountInput, idEditing?: string): ValidationError | null {
   if (!input.code.trim()) return { field: "code", message: "Account code is required" };
-  if (!/^[A-Za-z0-9.\-]{2,20}$/.test(input.code.trim())) {
+  if (!/^[A-Za-z0-9.-]{2,20}$/.test(input.code.trim())) {
     return { field: "code", message: "Code must be 2–20 characters: letters, digits, '.' or '-'" };
   }
   if (!input.name.trim()) return { field: "name", message: "Account name is required" };

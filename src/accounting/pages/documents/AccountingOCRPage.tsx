@@ -197,7 +197,9 @@ export default function AccountingOCRPage() {
           lines,
         }),
       );
-    } catch {}
+    } catch {
+      // Ignore storage cleanup failure.
+    }
     navigate("/accounting/card-reconciliation/new");
   };
 
