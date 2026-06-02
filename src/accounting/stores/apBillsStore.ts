@@ -27,7 +27,9 @@ let bills: VendorBill[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as VendorBill[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return MOCK_BILLS;
 })();
 
@@ -35,7 +37,9 @@ const listeners = new Set<() => void>();
 function emit() {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
-  } catch {}
+  } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 
@@ -184,15 +188,21 @@ export function updateApBill(id: string, patch: Partial<VendorBill>) {
   bills = bills.map((b) => (b.id === id ? next : b));
   emit();
 
-  // Auto-post linked journals on key status transitions.
-  if (prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId) {
-    autoPostAccrual(next);
-  }
-  if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId) {
-    autoPostPayment(next);
-  }
+  const maybeAutoPost = () => {
+    // Auto-post linked journals on key status transitions.
+    if (prev.status !== "APPROVED" && next.status === "APPROVED" && !next.linkedJournalId) {
+      autoPostAccrual(next);
+    }
+    if (prev.status !== "PAID" && next.status === "PAID" && !next.linkedPaymentJournalId) {
+      autoPostPayment(next);
+    }
+  };
 
-  if (!isUuid(id)) return;
+  // Local-only ids have no DB round-trip, so keep immediate behavior.
+  if (!isUuid(id)) {
+    maybeAutoPost();
+    return;
+  }
   void (async () => {
     try {
       const { error } = await supabase
@@ -200,6 +210,7 @@ export function updateApBill(id: string, patch: Partial<VendorBill>) {
         .update(mapToDb(next) as any)
         .eq("id", id);
       if (error) throw error;
+      maybeAutoPost();
     } catch (e: any) {
       console.warn("[apBillsStore] update failed", e);
       bills = bills.map((b) => (b.id === id ? prev : b));

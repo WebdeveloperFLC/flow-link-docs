@@ -21,15 +21,47 @@ let clients: Client[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Client[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return MOCK_CLIENTS;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(clients)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(clients)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
+
+type ErrorLike = { message?: string };
+const errMsg = (e: unknown) => ((e as ErrorLike)?.message ?? "unknown error");
+
+type ClientRow = {
+  id: string;
+  name: string | null;
+  legal_name: string | null;
+  segment: ClientSegment | null;
+  client_type: ClientType | null;
+  country: string | null;
+  tax_id: string | null;
+  payment_terms: string | null;
+  currency: Client["currency"] | null;
+  status: ClientStatus | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  account_manager: string | null;
+  counselor_id: string | null;
+  counselor_name: string | null;
+  service_package: string | null;
+  visa_category: string | null;
+  intake: string | null;
+  lead_source: string | null;
+  notes: string | null;
+  linked_crm_client_id: string | null;
+};
 
 // ─── DB mapping ─────────────────────────────────────────────────────────────
 // Local-only: outstandingReceivable, ytdRevenue, lastTxnDate, totalRefunds, totalDiscounts.
@@ -60,7 +92,7 @@ function mapToDb(c: Client): Record<string, unknown> {
   };
 }
 
-function mergeFromDb(local: Client | undefined, row: any): Client {
+function mergeFromDb(local: Client | undefined, row: ClientRow): Client {
   return {
     id: row.id,
     name: row.name ?? local?.name ?? "",
@@ -94,11 +126,11 @@ function mergeFromDb(local: Client | undefined, row: any): Client {
 
 async function hydrateFromSupabase() {
   try {
-    const { data, error } = await (supabase.from as any)("accounting_clients").select("*");
+    const { data, error } = await (supabase.from as never)("accounting_clients").select("*");
     if (error) throw error;
     if (!data) return;
     const byId = new Map(clients.map((c) => [c.id, c]));
-    for (const row of data) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
+    for (const row of (data as unknown as ClientRow[])) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
     clients = Array.from(byId.values());
     emit();
   } catch (e) {
@@ -135,14 +167,14 @@ export function addClient(
   void (async () => {
     try {
       const { data: u } = await supabase.auth.getUser();
-      const { error } = await (supabase.from as any)("accounting_clients")
+      const { error } = await (supabase.from as never)("accounting_clients")
         .insert({ ...mapToDb(created), created_by: u?.user?.id ?? null });
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[clientsStore] insert failed", e);
       clients = clients.filter((c) => c.id !== created.id);
       emit();
-      toast.error(`Failed to save client: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to save client: ${errMsg(e)}`);
     }
   })();
   return created;
@@ -157,15 +189,15 @@ export function updateClient(id: string, patch: Partial<Client>) {
   if (!isUuid(id)) return;
   void (async () => {
     try {
-      const { error } = await (supabase.from as any)("accounting_clients")
+      const { error } = await (supabase.from as never)("accounting_clients")
         .update(mapToDb(next))
         .eq("id", id);
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[clientsStore] update failed", e);
       clients = clients.map((c) => (c.id === id ? prev : c));
       emit();
-      toast.error(`Failed to update client: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to update client: ${errMsg(e)}`);
     }
   })();
 }
@@ -177,13 +209,13 @@ export function deleteClient(id: string) {
   if (!isUuid(id)) return;
   void (async () => {
     try {
-      const { error } = await (supabase.from as any)("accounting_clients").delete().eq("id", id);
+      const { error } = await (supabase.from as never)("accounting_clients").delete().eq("id", id);
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[clientsStore] delete failed", e);
       clients = prev;
       emit();
-      toast.error(`Failed to delete client: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to delete client: ${errMsg(e)}`);
     }
   })();
 }

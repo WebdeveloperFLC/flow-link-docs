@@ -11,14 +11,18 @@ export function createPersistedStore<T>(key: string, seed: T) {
     try {
       const raw = window.localStorage.getItem(key);
       if (raw) return JSON.parse(raw) as T;
-    } catch {}
+    } catch {
+      // Ignore malformed local cache and use fallback.
+    }
     return seed;
   })();
 
   const listeners = new Set<() => void>();
 
   const emit = () => {
-    try { window.localStorage.setItem(key, JSON.stringify(state)); } catch {}
+    try { window.localStorage.setItem(key, JSON.stringify(state)); } catch {
+      // Ignore localStorage write failures.
+    }
     listeners.forEach((l) => l());
   };
 

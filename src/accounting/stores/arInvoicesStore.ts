@@ -21,13 +21,17 @@ let invoices: CustomerInvoice[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as CustomerInvoice[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return MOCK_INVOICES;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 

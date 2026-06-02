@@ -212,7 +212,9 @@ export function mapToCardStatementLines(
   _currency: string,
 ): CardStatementLine[] {
   return transactions.map((t) => ({
-    id: (crypto as any).randomUUID?.() ?? `cl-${Math.random().toString(36).slice(2)}`,
+    id:
+      (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : null) ??
+      `cl-${Math.random().toString(36).slice(2)}`,
     date: t.date,
     description: t.description,
     amount: t.amount, // signed: negative = debit/expense, positive = credit/income
@@ -285,7 +287,7 @@ export function normaliseDate(s: string, opts?: { preferMDY?: boolean }): string
   if (/^\d{4}-\d{2}-\d{2}$/.test(t)) return t;
   const slash = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
   if (slash) {
-    let [, a, b, y] = slash;
+    const [, a, b, y] = slash;
     if (y.length === 2) y = (Number(y) > 50 ? "19" : "20") + y;
     const ai = parseInt(a, 10);
     const bi = parseInt(b, 10);

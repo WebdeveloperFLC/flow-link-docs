@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -28,6 +28,17 @@ import LinkedCoaAccountSelect from "./LinkedCoaAccountSelect";
 import DynamicSelect from "../shared/DynamicSelect";
 
 const NONE = "__none__";
+
+function resolveEntityId(
+  raw: string,
+  entities: { id: string; name: string }[],
+): string {
+  const v = raw.trim();
+  if (!v) return "";
+  if (entities.some((e) => e.id === v)) return v;
+  const hit = entities.find((e) => e.name.trim().toLowerCase() === v.toLowerCase());
+  return hit?.id ?? v;
+}
 
 interface Props {
   open: boolean;
@@ -75,12 +86,13 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   const branches = entities.filter((e) => e.parentId === entityId);
   const ownersList = useOwners();
   const signatoryOptions = ownersList.filter((o) => o.isActive && o.category === "PERSONAL");
+  const prevEntityForBranch = useRef<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     if (initial) {
       setCountry(initial.country);
-      setEntityId(initial.entityId);
+      setEntityId(resolveEntityId(initial.entityId, entities));
       setBranchId(initial.branchId ?? NONE);
       setCoaAccountId(initial.coaAccountId);
       setCurrency(initial.currency);
@@ -134,6 +146,16 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
       setSignatoryIds([]);
     }
   }, [open, initial?.id]);
+
+  // When entities finish loading, map legacy stored names to ids without clobbering a user pick.
+  useEffect(() => {
+    if (!open || !initial) return;
+    setEntityId((current) => {
+      if (current && entities.some((e) => e.id === current)) return current;
+      return resolveEntityId(initial.entityId, entities);
+    });
+  }, [open, initial?.id, entities]);
+
   // We deliberately depend on `initial?.id` rather than the whole `initial`
   // object. The bank store re-hydrates from Supabase on focus/refresh, which
   // produces a new object reference even when the underlying record is
@@ -148,10 +170,17 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
     if (ledger && ledger.currency !== currency) setCurrency(ledger.currency);
   }, [coaAccountId, ledgers, currency]);
 
-  // Reset branch when entity changes
+  // Reset branch when the user changes entity (not on dialog open / hydrate).
   useEffect(() => {
-    setBranchId(NONE);
-  }, [entityId]);
+    if (!open) {
+      prevEntityForBranch.current = null;
+      return;
+    }
+    if (prevEntityForBranch.current !== null && prevEntityForBranch.current !== entityId) {
+      setBranchId(NONE);
+    }
+    prevEntityForBranch.current = entityId;
+  }, [entityId, open]);
 
   // Sync currency to the selected entity's base currency (unless editing)
   useEffect(() => {
@@ -173,6 +202,10 @@ export default function BankAccountFormDialog({ open, onOpenChange, initial }: P
   }, [entityId, ledgers]);
 
   const submit = () => {
+    if (!entityId.trim()) {
+      toast.error("Please select an entity / company");
+      return;
+    }
     const input: BankAccountInput = {
       country,
       entityId,

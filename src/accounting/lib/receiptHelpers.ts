@@ -53,72 +53,147 @@ export function generateReceiptNumber(invoiceNumber: string, paymentIndex: numbe
   return `RCP-${base}-${paymentIndex}`;
 }
 
+/** Shape of `client_invoice_receipts.receipt_snapshot_jsonb` persisted at generation time. */
+export type ReceiptSnapshotJson = {
+  receipt_number?: string;
+  generated_at?: string;
+  generated_by_name?: string;
+  posted_by_name?: string;
+  entity_code?: string;
+  branch_code?: string;
+  invoice?: {
+    invoice_number?: string;
+    invoice_date?: string;
+    amount?: number;
+    subtotal?: number;
+    tax_amount?: number;
+    outstanding?: number;
+    amount_paid?: number;
+    currency?: string;
+    line_items?: Array<{ service_name?: string; description?: string }>;
+  };
+  payment?: {
+    amount?: number;
+    currency?: string;
+    paid_at?: string;
+    method?: string;
+    reference?: string;
+    posted_by_name?: string;
+    verified_by_name?: string;
+  };
+  client?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    assigned_counselor_name?: string;
+    owner_name?: string;
+  };
+  firm?: { name?: string; address?: string; email?: string; phone?: string; logo_url?: string };
+  branch?: { name?: string };
+  footer?: { legal_name?: string; address?: string; support_email?: string; support_phone?: string };
+};
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
 /**
  * Build a ReceiptData object from a stored `client_invoice_receipts.receipt_snapshot_jsonb`.
  * Allows reprinting/downloading historical receipts without re-querying live data.
  * Returns null when the snapshot is missing or malformed.
  */
-export function snapshotToReceiptData(snapshot: any): ReceiptData | null {
-  if (!snapshot || typeof snapshot !== "object") return null;
-  const inv = snapshot.invoice ?? {};
-  const pay = snapshot.payment ?? {};
-  const client = snapshot.client ?? {};
-  const firm = snapshot.firm ?? {};
-  const branch = snapshot.branch ?? {};
-  const footer = snapshot.footer ?? {};
-  // Counselor: assigned counselor → owner → posted-by → generated-by → "System".
+export function snapshotToReceiptData(snapshot: unknown): ReceiptData | null {
+  const root = asRecord(snapshot);
+  if (!root) return null;
+  const inv = asRecord(root.invoice) ?? {};
+  const pay = asRecord(root.payment) ?? {};
+  const client = asRecord(root.client) ?? {};
+  const firm = asRecord(root.firm) ?? {};
+  const branch = asRecord(root.branch) ?? {};
+  const footer = asRecord(root.footer) ?? {};
+  const lineItems = Array.isArray(inv.line_items) ? inv.line_items : [];
+  const firstLine = asRecord(lineItems[0]);
   const counselorName =
-    client.assigned_counselor_name ||
-    client.owner_name ||
-    pay.posted_by_name ||
-    snapshot.generated_by_name ||
-    snapshot.posted_by_name ||
+    (typeof client.assigned_counselor_name === "string" && client.assigned_counselor_name) ||
+    (typeof client.owner_name === "string" && client.owner_name) ||
+    (typeof pay.posted_by_name === "string" && pay.posted_by_name) ||
+    (typeof root.generated_by_name === "string" && root.generated_by_name) ||
+    (typeof root.posted_by_name === "string" && root.posted_by_name) ||
     "System";
-  // Received by: payment verifier → snapshot generator → posted-by → counselor → "System".
   const receivedByName =
-    pay.verified_by_name ||
-    snapshot.generated_by_name ||
-    pay.posted_by_name ||
+    (typeof pay.verified_by_name === "string" && pay.verified_by_name) ||
+    (typeof root.generated_by_name === "string" && root.generated_by_name) ||
+    (typeof pay.posted_by_name === "string" && pay.posted_by_name) ||
     counselorName ||
     "System";
   if (typeof console !== "undefined") {
     console.info("[receipt] snapshot→template mapping", {
-      receipt: snapshot.receipt_number,
+      receipt: root.receipt_number,
       counselorName,
       receivedByName,
       hasAssignedCounselor: !!client.assigned_counselor_name,
       hasOwner: !!client.owner_name,
       hasVerifiedBy: !!pay.verified_by_name,
-      hasGeneratedBy: !!snapshot.generated_by_name,
+      hasGeneratedBy: !!root.generated_by_name,
     });
   }
+  const invAmount = Number(inv.amount ?? 0);
+  const invPaid = Number(inv.amount_paid ?? 0);
   return {
-    receiptNumber: snapshot.receipt_number ?? "",
-    receiptDate: snapshot.generated_at ?? new Date().toISOString(),
-    invoiceNumber: inv.invoice_number ?? "",
-    invoiceDate: inv.invoice_date ?? snapshot.generated_at ?? new Date().toISOString(),
-    companyName: firm.name ?? footer.legal_name ?? "Future Link Consultants",
-    companyEntity: snapshot.entity_code ?? "",
-    companyBranch: branch.name ?? snapshot.branch_code ?? "",
-    companyAddress: firm.address ?? footer.address ?? "",
-    companyEmail: firm.email ?? footer.support_email ?? "",
-    companyPhone: firm.phone ?? footer.support_phone ?? "",
-    companyLogo: firm.logo_url ?? undefined,
-    clientName: client.name ?? "",
-    clientEmail: client.email ?? "",
-    clientPhone: client.phone ?? "",
-    serviceType: Array.isArray(inv.line_items) && inv.line_items[0]
-      ? (inv.line_items[0].service_name ?? inv.line_items[0].description ?? "Service")
+    receiptNumber: typeof root.receipt_number === "string" ? root.receipt_number : "",
+    receiptDate: typeof root.generated_at === "string" ? root.generated_at : new Date().toISOString(),
+    invoiceNumber: typeof inv.invoice_number === "string" ? inv.invoice_number : "",
+    invoiceDate:
+      typeof inv.invoice_date === "string"
+        ? inv.invoice_date
+        : typeof root.generated_at === "string"
+          ? root.generated_at
+          : new Date().toISOString(),
+    companyName:
+      (typeof firm.name === "string" ? firm.name : undefined) ??
+      (typeof footer.legal_name === "string" ? footer.legal_name : undefined) ??
+      "Future Link Consultants",
+    companyEntity: typeof root.entity_code === "string" ? root.entity_code : "",
+    companyBranch:
+      (typeof branch.name === "string" ? branch.name : undefined) ??
+      (typeof root.branch_code === "string" ? root.branch_code : undefined) ??
+      "",
+    companyAddress:
+      (typeof firm.address === "string" ? firm.address : undefined) ??
+      (typeof footer.address === "string" ? footer.address : undefined) ??
+      "",
+    companyEmail:
+      (typeof firm.email === "string" ? firm.email : undefined) ??
+      (typeof footer.support_email === "string" ? footer.support_email : undefined) ??
+      "",
+    companyPhone:
+      (typeof firm.phone === "string" ? firm.phone : undefined) ??
+      (typeof footer.support_phone === "string" ? footer.support_phone : undefined) ??
+      "",
+    companyLogo: typeof firm.logo_url === "string" ? firm.logo_url : undefined,
+    clientName: typeof client.name === "string" ? client.name : "",
+    clientEmail: typeof client.email === "string" ? client.email : "",
+    clientPhone: typeof client.phone === "string" ? client.phone : "",
+    serviceType: firstLine
+      ? String(firstLine.service_name ?? firstLine.description ?? "Service")
       : "Service",
     counselorName,
     receivedByName,
-    invoiceTotal: Number(inv.amount ?? 0),
+    invoiceTotal: invAmount,
     amountPaid: Number(pay.amount ?? 0),
-    outstandingBalance: Number(inv.outstanding ?? Math.max((inv.amount ?? 0) - (inv.amount_paid ?? 0), 0)),
-    currency: pay.currency ?? inv.currency ?? "INR",
-    paymentDate: pay.paid_at ?? snapshot.generated_at ?? new Date().toISOString(),
-    paymentMethod: (pay.method ?? "").toString().replace(/_/g, " ").toUpperCase(),
-    paymentReference: pay.reference ?? undefined,
+    outstandingBalance: Number(inv.outstanding ?? Math.max(invAmount - invPaid, 0)),
+    currency:
+      (typeof pay.currency === "string" ? pay.currency : undefined) ??
+      (typeof inv.currency === "string" ? inv.currency : undefined) ??
+      "INR",
+    paymentDate:
+      (typeof pay.paid_at === "string" ? pay.paid_at : undefined) ??
+      (typeof root.generated_at === "string" ? root.generated_at : undefined) ??
+      new Date().toISOString(),
+    paymentMethod: String(pay.method ?? "")
+      .replace(/_/g, " ")
+      .toUpperCase(),
+    paymentReference: typeof pay.reference === "string" ? pay.reference : undefined,
     subtotal: Number(inv.subtotal ?? inv.amount ?? 0),
     taxAmount: Number(inv.tax_amount ?? 0),
     isInstalment: false,

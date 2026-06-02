@@ -24,13 +24,17 @@ let journals: Journal[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Journal[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and use seed journals.
+  }
   return MOCK_JOURNALS;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 
@@ -207,6 +211,8 @@ export function updateJournal(id: string, patch: Partial<Journal>) {
   emit();
   if (!isUuid(id)) return;
   void (async () => {
+    let previousLineRows: any[] = [];
+    let hadLineReplacementAttempt = false;
     try {
       const { error: hErr } = await supabase
         .from("accounting_journals")
@@ -216,6 +222,15 @@ export function updateJournal(id: string, patch: Partial<Journal>) {
 
       // If lines changed, replace them all (atomic per-journal)
       if (patch.lines) {
+        hadLineReplacementAttempt = true;
+        const { data: existingRows, error: sErr } = await supabase
+          .from("accounting_journal_lines")
+          .select("*")
+          .eq("journal_id", id)
+          .order("line_number", { ascending: true });
+        if (sErr) throw sErr;
+        previousLineRows = existingRows ?? [];
+
         const { error: dErr } = await supabase
           .from("accounting_journal_lines")
           .delete()
@@ -230,6 +245,20 @@ export function updateJournal(id: string, patch: Partial<Journal>) {
         }
       }
     } catch (e: any) {
+      if (hadLineReplacementAttempt) {
+        try {
+          // Best-effort compensation so DB lines are not left empty on partial failure.
+          await supabase.from("accounting_journal_lines").delete().eq("journal_id", id);
+          if (previousLineRows.length) {
+            const { error: restoreErr } = await supabase.from("accounting_journal_lines").insert(previousLineRows as any);
+            if (restoreErr) {
+              console.warn("[journalsStore] line restore failed", restoreErr);
+            }
+          }
+        } catch (restoreCatch) {
+          console.warn("[journalsStore] line restore threw", restoreCatch);
+        }
+      }
       console.warn("[journalsStore] update failed", e);
       journals = journals.map((j) => (j.id === id ? prev : j));
       emit();

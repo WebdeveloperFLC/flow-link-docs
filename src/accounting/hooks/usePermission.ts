@@ -16,6 +16,19 @@ interface PermStateData {
   map: AcctPermissionMap;
 }
 
+type AccountingUserPermRow = {
+  id: string;
+  role: AccountingRole;
+  status: string;
+};
+
+type ModulePermissionRow = {
+  module: string;
+  can_view: boolean | null;
+  can_edit: boolean | null;
+  can_delete: boolean | null;
+};
+
 function isAdminRole(role: AccountingRole | null) {
   return role === "SUPER_ADMIN" || role === "FINANCE_ADMIN";
 }
@@ -41,11 +54,11 @@ async function loadPermissions(authUserId: string) {
   setState({ loading: true });
   try {
     const { data: rows } = await supabase
-      .from("accounting_users" as any)
+      .from("accounting_users" as never)
       .select("id, role, status")
       .eq("auth_user_id", authUserId)
       .limit(1);
-    const row: any = rows?.[0];
+    const row = (rows?.[0] ?? null) as AccountingUserPermRow | null;
     if (!row || row.status !== "ACTIVE") {
       setState({ loading: false, loaded: true, accountingUserId: null, role: null, isAdmin: false, map: acctEmptyMap() });
       return;
@@ -59,10 +72,10 @@ async function loadPermissions(authUserId: string) {
       return;
     }
     const { data: perms } = await supabase
-      .from("accounting_user_module_permissions" as any)
+      .from("accounting_user_module_permissions" as never)
       .select("module, can_view, can_edit, can_delete")
       .eq("accounting_user_id", row.id);
-    for (const p of (perms ?? []) as any[]) {
+    for (const p of ((perms ?? []) as unknown as ModulePermissionRow[])) {
       if (!map[p.module]) continue;
       map[p.module] = { view: !!p.can_view, edit: !!p.can_edit, delete: !!p.can_delete };
     }

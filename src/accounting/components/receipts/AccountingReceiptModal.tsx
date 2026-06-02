@@ -27,7 +27,9 @@ export default function AccountingReceiptModal({ receipt, isOpen, onClose }: Pro
     root.render(<AccountingReceiptTemplate receipt={receipt} />);
 
     const cleanup = () => {
-      try { root.unmount(); } catch {}
+      try { root.unmount(); } catch {
+        // Ignore unmount race conditions on cleanup.
+      }
       mount.remove();
       window.removeEventListener("afterprint", cleanup);
     };

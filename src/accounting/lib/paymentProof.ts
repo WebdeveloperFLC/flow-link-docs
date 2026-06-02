@@ -40,7 +40,7 @@ export async function uploadPaymentProof(opts: {
       size_bytes: file.size,
       uploaded_by: uid,
       status: "uploaded",
-    } as any)
+    } as never)
     .select("id")
     .single();
   if (docErr) throw docErr;

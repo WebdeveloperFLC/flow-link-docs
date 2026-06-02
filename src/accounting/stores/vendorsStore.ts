@@ -21,15 +21,37 @@ let vendors: Vendor[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as Vendor[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return MOCK_VENDORS;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(vendors)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
+
+type ErrorLike = { message?: string };
+const errMsg = (e: unknown) => ((e as ErrorLike)?.message ?? "unknown error");
+
+type VendorRow = {
+  id: string;
+  name: string | null;
+  company_name: string | null;
+  category: VendorCategory | null;
+  email: string | null;
+  phone: string | null;
+  country: string | null;
+  currency: Vendor["currency"] | null;
+  payment_terms: string | null;
+  tax_id: string | null;
+  bank_account: string | null;
+  status: VendorStatus | null;
+};
 
 // ─── DB mapping ─────────────────────────────────────────────────────────────
 // DB stores subset; address, outstandingBalance, ytdSpend, lastTxnDate,
@@ -51,7 +73,7 @@ function mapToDb(v: Vendor): Record<string, unknown> {
   };
 }
 
-function mergeFromDb(local: Vendor | undefined, row: any): Vendor {
+function mergeFromDb(local: Vendor | undefined, row: VendorRow): Vendor {
   return {
     id: row.id,
     name: row.name ?? local?.name ?? "",
@@ -81,11 +103,11 @@ async function hydrateFromSupabase() {
     // banking fields (column-level REVOKE on the base table would otherwise
     // return null for these columns). Writes still go to accounting_vendors.
     const { data, error } = await supabase
-      .from("accounting_vendors_safe" as any)
+      .from("accounting_vendors_safe" as never)
       .select("*");
     if (error) throw error;
     if (!data) return;
-    const rows = data as any[];
+    const rows = data as unknown as VendorRow[];
     const byId = new Map(vendors.map((v) => [v.id, v]));
     for (const row of rows) byId.set(row.id, mergeFromDb(byId.get(row.id), row));
     vendors = Array.from(byId.values());
@@ -126,13 +148,13 @@ export function addVendor(
       const { data: u } = await supabase.auth.getUser();
       const { error } = await supabase
         .from("accounting_vendors")
-        .insert({ ...mapToDb(created), created_by: u?.user?.id ?? null } as any);
+        .insert({ ...mapToDb(created), created_by: u?.user?.id ?? null } as never);
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[vendorsStore] insert failed", e);
       vendors = vendors.filter((v) => v.id !== created.id);
       emit();
-      toast.error(`Failed to save vendor: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to save vendor: ${errMsg(e)}`);
     }
   })();
   return created;
@@ -149,14 +171,14 @@ export function updateVendor(id: string, patch: Partial<Vendor>) {
     try {
       const { error } = await supabase
         .from("accounting_vendors")
-        .update(mapToDb(next) as any)
+        .update(mapToDb(next) as never)
         .eq("id", id);
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[vendorsStore] update failed", e);
       vendors = vendors.map((v) => (v.id === id ? prev : v));
       emit();
-      toast.error(`Failed to update vendor: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to update vendor: ${errMsg(e)}`);
     }
   })();
 }
@@ -170,11 +192,11 @@ export function deleteVendor(id: string) {
     try {
       const { error } = await supabase.from("accounting_vendors").delete().eq("id", id);
       if (error) throw error;
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn("[vendorsStore] delete failed", e);
       vendors = prev;
       emit();
-      toast.error(`Failed to delete vendor: ${e?.message ?? "unknown error"}`);
+      toast.error(`Failed to delete vendor: ${errMsg(e)}`);
     }
   })();
 }

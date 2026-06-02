@@ -6,5 +6,7 @@ export function isOnboardingDismissed(): boolean {
 }
 
 export function dismissOnboarding() {
-  try { window.localStorage.setItem(KEY, "1"); } catch {}
+  try { window.localStorage.setItem(KEY, "1"); } catch {
+    // Ignore localStorage write failures.
+  }
 }

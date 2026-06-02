@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { toast } from "sonner";
-import { snapshotToReceiptData } from "./receiptHelpers";
+import { snapshotToReceiptData, type ReceiptSnapshotJson } from "./receiptHelpers";
 import AccountingReceiptTemplate from "../components/receipts/AccountingReceiptTemplate";
 
 /**
@@ -8,7 +8,7 @@ import AccountingReceiptTemplate from "../components/receipts/AccountingReceiptT
  * using AccountingReceiptTemplate, then trigger window.print() so the
  * user can save it as PDF or send to a printer.
  */
-export function printReceiptSnapshot(snapshot: any) {
+export function printReceiptSnapshot(snapshot: ReceiptSnapshotJson | null | undefined) {
   const data = snapshotToReceiptData(snapshot);
   if (!data) { toast.error("Snapshot unavailable"); return; }
   const existing = document.getElementById("accounting-receipt-print-root");

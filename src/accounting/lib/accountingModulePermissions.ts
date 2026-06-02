@@ -44,6 +44,12 @@ export const ACCT_MODULE_BY_KEY: Record<string, AcctModuleDef> =
   Object.fromEntries(ACCT_MODULES.map((m) => [m.key, m]));
 
 export type AcctPermissionMap = Record<string, { view: boolean; edit: boolean; delete: boolean }>;
+type PermissionRow = {
+  module: string;
+  can_view: boolean | null;
+  can_edit: boolean | null;
+  can_delete: boolean | null;
+};
 
 const ALL = { view: true, edit: true, delete: true };
 const VIEW = { view: true, edit: false, delete: false };
@@ -128,12 +134,12 @@ export function autoGrantsFor(key: string): string[] {
 
 export async function fetchAcctPermissions(acctUserId: string): Promise<AcctPermissionMap> {
   const { data, error } = await supabase
-    .from("accounting_user_module_permissions" as any)
+    .from("accounting_user_module_permissions" as never)
     .select("module, can_view, can_edit, can_delete")
     .eq("accounting_user_id", acctUserId);
   if (error) throw error;
   const map = acctEmptyMap();
-  for (const row of (data ?? []) as any[]) {
+  for (const row of (data ?? []) as PermissionRow[]) {
     if (!map[row.module]) continue; // unknown legacy key
     map[row.module] = { view: !!row.can_view, edit: !!row.can_edit, delete: !!row.can_delete };
   }
@@ -151,7 +157,7 @@ export async function saveAcctPermissions(acctUserId: string, map: AcctPermissio
     updated_at: new Date().toISOString(),
   }));
   const { error } = await supabase
-    .from("accounting_user_module_permissions" as any)
+    .from("accounting_user_module_permissions" as never)
     .upsert(rows, { onConflict: "accounting_user_id,module" });
   if (error) throw error;
 }

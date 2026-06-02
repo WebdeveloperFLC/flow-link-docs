@@ -140,13 +140,17 @@ let entities: SettingsEntity[] = (() => {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as SettingsEntity[];
-  } catch {}
+  } catch {
+    // Ignore malformed local cache and fall back to seed data.
+  }
   return SEED;
 })();
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entities)); } catch {}
+  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entities)); } catch {
+    // Ignore localStorage write failures.
+  }
   listeners.forEach((l) => l());
 }
 function subscribe(l: () => void) { listeners.add(l); return () => listeners.delete(l); }
@@ -195,10 +199,11 @@ function mapToDb(e: SettingsEntity) {
 }
 
 let hydrated = false;
+let hydrating = false;
 let rlsLogged = false;
 async function hydrateFromSupabase() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
+  if (hydrated || hydrating || typeof window === "undefined") return;
+  hydrating = true;
   try {
     const { data, error } = await supabase
       .from("accounting_entities")
@@ -217,8 +222,11 @@ async function hydrateFromSupabase() {
     // so id-based merge never dedupes by name).
     entities = dbMapped;
     emit();
+    hydrated = true;
   } catch (e) {
     console.warn("[entitiesStore] Supabase hydration error:", e);
+  } finally {
+    hydrating = false;
   }
 }
 import { runWhenAuthReady } from "./_hydrationGate";

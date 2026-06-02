@@ -15,8 +15,81 @@ let accounts: FinancialAccount[] = [];
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
+type ErrorLike = { message?: string };
+const errMsg = (e: unknown) => ((e as ErrorLike)?.message ?? "unknown error");
+
+type OwnerProfileRow = {
+  id: string;
+  tenant_id: string | null;
+  category: OwnerCategory;
+  business_type: string | null;
+  brand_name: string | null;
+  legal_name: string | null;
+  linked_entity_id: string | null;
+  personal_type: PersonalOwnerType | null;
+  first_name: string | null;
+  last_name: string | null;
+  relationship: string | null;
+  date_of_birth: string | null;
+  pan_number: string | null;
+  aadhar_last4: string | null;
+  gst_number: string | null;
+  tax_id: string | null;
+  sin: string | null;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+  country: string | null;
+  tags: string[] | null;
+  notes: string | null;
+  avatar_initials: string | null;
+  avatar_color: string | null;
+  is_active: boolean | null;
+  karta_name: string | null;
+  linked_individual_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type FinancialAccountRow = {
+  id: string;
+  tenant_id: string | null;
+  owner_profile_id: string;
+  linked_entity_id: string | null;
+  gl_account_id: string | null;
+  account_type: AccountType;
+  category: AccountCategory;
+  nickname: string;
+  institution_name: string;
+  account_number: string | null;
+  policy_number: string | null;
+  folio_number: string | null;
+  dp_id: string | null;
+  maturity_date: string | null;
+  premium_amount: number | null;
+  premium_frequency: string | null;
+  next_premium_date: string | null;
+  sum_assured: number | null;
+  currency: string | null;
+  current_balance: number | null;
+  interest_rate: number | null;
+  emi_amount: number | null;
+  emi_day: number | null;
+  country: string | null;
+  branch: string | null;
+  ifsc_code: string | null;
+  swift_code: string | null;
+  status: FinancialAccount["status"];
+  opened_date: string | null;
+  closed_date: string | null;
+  tags: string[] | null;
+  remarks: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 // ─── Mappers ────────────────────────────────────────────────────────
-function ownerFromDb(r: any): OwnerProfile {
+function ownerFromDb(r: OwnerProfileRow): OwnerProfile {
   return {
     id: r.id,
     tenantId: r.tenant_id ?? "",
@@ -51,7 +124,7 @@ function ownerFromDb(r: any): OwnerProfile {
   } as OwnerProfile;
 }
 
-function ownerToDb(o: Partial<OwnerProfile>): Record<string, any> {
+function ownerToDb(o: Partial<OwnerProfile>): Record<string, unknown> {
   return {
     category: o.category,
     personal_type: o.personalType ?? null,
@@ -82,7 +155,7 @@ function ownerToDb(o: Partial<OwnerProfile>): Record<string, any> {
   };
 }
 
-function accountFromDb(r: any): FinancialAccount {
+function accountFromDb(r: FinancialAccountRow): FinancialAccount {
   return {
     id: r.id,
     tenantId: r.tenant_id ?? "",
@@ -122,7 +195,7 @@ function accountFromDb(r: any): FinancialAccount {
   };
 }
 
-function accountToDb(a: Partial<FinancialAccount>): Record<string, any> {
+function accountToDb(a: Partial<FinancialAccount>): Record<string, unknown> {
   return {
     owner_profile_id: a.ownerProfileId,
     linked_entity_id: a.linkedEntityId ?? null,
@@ -161,13 +234,13 @@ function accountToDb(a: Partial<FinancialAccount>): Record<string, any> {
 async function hydrateFromSupabase() {
   try {
     const [{ data: oRows, error: oErr }, { data: aRows, error: aErr }] = await Promise.all([
-      supabase.from("owner_profiles" as any).select("*"),
-      supabase.from("financial_accounts" as any).select("*"),
+      supabase.from("owner_profiles" as never).select("*"),
+      supabase.from("financial_accounts" as never).select("*"),
     ]);
     if (oErr) throw oErr;
     if (aErr) throw aErr;
-    owners = (oRows ?? []).map(ownerFromDb);
-    accounts = (aRows ?? []).map(accountFromDb);
+    owners = ((oRows ?? []) as unknown as OwnerProfileRow[]).map(ownerFromDb);
+    accounts = ((aRows ?? []) as unknown as FinancialAccountRow[]).map(accountFromDb);
     emit();
   } catch (e) {
     console.warn("[ownersStore] hydrate failed", e);
@@ -199,18 +272,18 @@ export const getAccountsForOwner = (ownerId: string) =>
 export async function createOwner(input: Partial<OwnerProfile>): Promise<OwnerProfile | null> {
   try {
     const { data, error } = await supabase
-      .from("owner_profiles" as any)
-      .insert(ownerToDb(input) as any)
+      .from("owner_profiles" as never)
+      .insert(ownerToDb(input) as never)
       .select("*")
       .single();
     if (error) throw error;
-    const created = ownerFromDb(data);
+    const created = ownerFromDb(data as unknown as OwnerProfileRow);
     owners = [created, ...owners];
     emit();
     return created;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] createOwner failed", e);
-    toast.error(`Failed to save owner: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to save owner: ${errMsg(e)}`);
     return null;
   }
 }
@@ -223,15 +296,15 @@ export async function updateOwner(id: string, patch: Partial<OwnerProfile>): Pro
   emit();
   try {
     const { error } = await supabase
-      .from("owner_profiles" as any)
-      .update(ownerToDb(next) as any)
+      .from("owner_profiles" as never)
+      .update(ownerToDb(next) as never)
       .eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] updateOwner failed", e);
     owners = owners.map((o) => (o.id === id ? prev : o));
     emit();
-    toast.error(`Failed to update owner: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to update owner: ${errMsg(e)}`);
   }
 }
 
@@ -240,13 +313,13 @@ export async function deleteOwner(id: string): Promise<void> {
   owners = owners.filter((o) => o.id !== id);
   emit();
   try {
-    const { error } = await supabase.from("owner_profiles" as any).delete().eq("id", id);
+    const { error } = await supabase.from("owner_profiles" as never).delete().eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] deleteOwner failed", e);
     owners = prev;
     emit();
-    toast.error(`Failed to delete owner: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to delete owner: ${errMsg(e)}`);
   }
 }
 
@@ -255,18 +328,18 @@ export async function createFinancialAccount(input: Partial<FinancialAccount>): 
   if (!payload.category && payload.accountType) payload.category = categoryOf(payload.accountType);
   try {
     const { data, error } = await supabase
-      .from("financial_accounts" as any)
-      .insert(accountToDb(payload) as any)
+      .from("financial_accounts" as never)
+      .insert(accountToDb(payload) as never)
       .select("*")
       .single();
     if (error) throw error;
-    const created = accountFromDb(data);
+    const created = accountFromDb(data as unknown as FinancialAccountRow);
     accounts = [created, ...accounts];
     emit();
     return created;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] createFinancialAccount failed", e);
-    toast.error(`Failed to save account: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to save account: ${errMsg(e)}`);
     return null;
   }
 }
@@ -279,15 +352,15 @@ export async function updateFinancialAccount(id: string, patch: Partial<Financia
   emit();
   try {
     const { error } = await supabase
-      .from("financial_accounts" as any)
-      .update(accountToDb(next) as any)
+      .from("financial_accounts" as never)
+      .update(accountToDb(next) as never)
       .eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] updateFinancialAccount failed", e);
     accounts = accounts.map((a) => (a.id === id ? prev : a));
     emit();
-    toast.error(`Failed to update account: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to update account: ${errMsg(e)}`);
   }
 }
 
@@ -296,12 +369,12 @@ export async function deleteFinancialAccount(id: string): Promise<void> {
   accounts = accounts.filter((a) => a.id !== id);
   emit();
   try {
-    const { error } = await supabase.from("financial_accounts" as any).delete().eq("id", id);
+    const { error } = await supabase.from("financial_accounts" as never).delete().eq("id", id);
     if (error) throw error;
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.warn("[ownersStore] deleteFinancialAccount failed", e);
     accounts = prev;
     emit();
-    toast.error(`Failed to delete account: ${e?.message ?? "unknown error"}`);
+    toast.error(`Failed to delete account: ${errMsg(e)}`);
   }
 }

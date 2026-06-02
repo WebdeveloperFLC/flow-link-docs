@@ -9,6 +9,11 @@ interface AccessState {
   accountingRole: string | null;
 }
 
+type AccountingUserRow = {
+  role: string | null;
+  status: string | null;
+};
+
 export function useAccountingAccess(): AccessState {
   const { user, loading: authLoading } = useAuth();
   const [state, setState] = useState<AccessState>({
@@ -26,22 +31,34 @@ export function useAccountingAccess(): AccessState {
     }
     let cancelled = false;
     (async () => {
-      const { data: rows } = await supabase
-        .from("accounting_users" as any)
-        .select("role,status")
-        .eq("auth_user_id", user.id)
-        .limit(1);
-      if (cancelled) return;
-      const row: any = rows?.[0];
-      const isActiveAccountingUser = row?.status === "ACTIVE";
-      setState({
-        loading: false,
-        // CRM admin no longer auto-grants accounting access.
-        // Only a row in accounting_users (status ACTIVE) grants access.
-        hasAccess: isActiveAccountingUser,
-        isBootstrap: false,
-        accountingRole: row?.role ?? null,
-      });
+      try {
+        const { data: rows, error } = await supabase
+          .from("accounting_users" as never)
+          .select("role,status")
+          .eq("auth_user_id", user.id)
+          .limit(1);
+        if (error) throw error;
+        if (cancelled) return;
+        const row = (rows?.[0] ?? null) as AccountingUserRow | null;
+        const isActiveAccountingUser = row?.status === "ACTIVE";
+        setState({
+          loading: false,
+          // CRM admin no longer auto-grants accounting access.
+          // Only a row in accounting_users (status ACTIVE) grants access.
+          hasAccess: isActiveAccountingUser,
+          isBootstrap: false,
+          accountingRole: row?.role ?? null,
+        });
+      } catch (e) {
+        if (cancelled) return;
+        console.warn("[useAccountingAccess] failed to load access", e);
+        setState({
+          loading: false,
+          hasAccess: false,
+          isBootstrap: false,
+          accountingRole: null,
+        });
+      }
     })();
     return () => {
       cancelled = true;
