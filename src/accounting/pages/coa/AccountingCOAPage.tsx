@@ -423,7 +423,7 @@ export default function AccountingCOAPage() {
               }
               action={
                 !filtersActive ? (
-                  <Button size="sm" onClick={openNew}>
+                  <Button size="sm" onClick={() => openNew()}>
                     <Plus className="size-4 mr-1" /> New account
                   </Button>
                 ) : undefined
