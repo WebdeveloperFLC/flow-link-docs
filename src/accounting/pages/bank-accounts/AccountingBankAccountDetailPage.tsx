@@ -33,7 +33,10 @@ export default function AccountingBankAccountDetailPage() {
   const ownersList = useOwners();
   const account = accounts.find((a) => a.id === id);
   const ledger = account ? ledgers.find((l) => l.id === account.coaAccountId) : null;
-  const entity = account ? entities.find((e) => e.id === account.entityId) : null;
+  const entity = account
+    ? entities.find((e) => e.id === account.entityId) ??
+      entities.find((e) => e.name.trim().toLowerCase() === account.entityId.trim().toLowerCase())
+    : null;
   const branch = account?.branchId ? entities.find((e) => e.id === account.branchId) : null;
   const owner = account ? ownersList.find((o) => o.id === account.ownerProfileId) : null;
 

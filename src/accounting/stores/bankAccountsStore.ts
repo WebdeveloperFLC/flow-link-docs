@@ -98,7 +98,7 @@ function mergeFromDb(local: BankAccount | undefined, row: any): BankAccount {
   return {
     ...base,
     country: row.country ?? base.country,
-    entityId: row.entity ?? base.entityId,
+    entityId: row.entity?.trim() ? row.entity : base.entityId,
     branchId: row.branch ?? base.branchId,
     coaAccountId: row.linked_coa_id ?? row.linked_coa_code ?? base.coaAccountId,
     currency: row.currency ?? base.currency,
