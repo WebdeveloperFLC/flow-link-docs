@@ -99,8 +99,19 @@ export default function AccountingApprovalsPage() {
             ),
             steps: [
               {
-                stepNumbe{ stepNumber: 1, stepName: "Submitted", requiredRole: "ACCOUNTANT", assignedTo: b.createdBy || "Staff", status: "approved" as const, actionAt: b.billDate ? `${b.billDate}T00:00:00Z` : new Date().toISOString() },
-{ stepNumber: 2, stepName: "Manager review", requiredRole: "MANAGER", assignedTo: "Manager", status: "pending" as const 
+                stepNumber: 1,
+                stepName: "Submitted",
+                requiredRole: "ACCOUNTANT",
+                assignedTo: b.createdBy || "Staff",
+                status: "APPROVED" as const,
+                actionAt: b.billDate ? `${b.billDate}T00:00:00Z` : new Date().toISOString(),
+              },
+              {
+                stepNumber: 2,
+                stepName: "Manager review",
+                requiredRole: "MANAGER",
+                assignedTo: "Manager",
+                status: "PENDING" as const,
               },
             ],
             linkedJournalId: b.linkedJournalId,
