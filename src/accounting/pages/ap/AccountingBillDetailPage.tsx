@@ -21,7 +21,7 @@ import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
 import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { fmtMoney } from "../../components/ap-ar/money";
-import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
+import { EXPENSE_CATEGORY_LABELS, type VendorBill } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
 import { useBankAccounts } from "../../stores/bankAccountsStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,28 @@ const PAYMENT_METHODS = [
   { value: "CASH", label: "Cash" },
   { value: "OTHER", label: "Other" },
 ];
+
+export function buildPaidBillPatch(args: {
+  payDate: string;
+  payMethod: NonNullable<VendorBill["paymentMethod"]>;
+  payRef: string;
+  payBank: string;
+  payNotes: string;
+  existingNotes?: string;
+  uploadedProofPath?: string;
+  existingProofPath?: string;
+}): Partial<VendorBill> {
+  const { payDate, payMethod, payRef, payBank, payNotes, existingNotes, uploadedProofPath, existingProofPath } = args;
+  return {
+    status: "PAID",
+    paymentDate: payDate,
+    paymentMethod: payMethod,
+    paymentReference: payRef.trim(),
+    linkedBankAccountId: payBank,
+    paymentProofPath: uploadedProofPath ?? existingProofPath,
+    notes: payNotes.trim() || existingNotes,
+  };
+}
 
 export default function AccountingBillDetailPage() {
   const { id } = useParams();
@@ -180,14 +202,19 @@ export default function AccountingBillDetailPage() {
           .eq("id", bill.id);
       }
 
-      updateApBill(bill.id, {
-        status: "PAID",
-        paymentDate: payDate,
-        paymentMethod: payMethod as any,
-        paymentReference: payRef.trim(),
-        linkedBankAccountId: payBank,
-        notes: payNotes.trim() || bill.notes,
-      });
+      updateApBill(
+        bill.id,
+        buildPaidBillPatch({
+          payDate,
+          payMethod: payMethod as NonNullable<VendorBill["paymentMethod"]>,
+          payRef,
+          payBank,
+          payNotes,
+          existingNotes: bill.notes,
+          uploadedProofPath: proofPath,
+          existingProofPath: bill.paymentProofPath,
+        }),
+      );
       toast.success(
         `Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}${proofPath ? " · Proof uploaded ✓" : ""}`,
       );
