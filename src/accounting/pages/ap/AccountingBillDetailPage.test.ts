@@ -11,7 +11,7 @@ describe("buildPaidBillPatch", () => {
       payNotes: " paid in full ",
       existingNotes: "old note",
       uploadedProofPath: "payment-proofs/user-1/bill-1-proof.pdf",
-      existingProofPath: "payment-proofs/user-1/old-proof.pdf",
+      existingProofPaths: ["payment-proofs/user-1/old-proof.pdf"],
     });
 
     expect(patch).toMatchObject({
@@ -20,7 +20,11 @@ describe("buildPaidBillPatch", () => {
       paymentMethod: "BANK_TRANSFER",
       paymentReference: "TXN-123",
       linkedBankAccountId: "bank-1",
-      paymentProofPath: "payment-proofs/user-1/bill-1-proof.pdf",
+      paymentProofPath: "payment-proofs/user-1/old-proof.pdf",
+      paymentProofPaths: [
+        "payment-proofs/user-1/old-proof.pdf",
+        "payment-proofs/user-1/bill-1-proof.pdf",
+      ],
       notes: "paid in full",
     });
   });
@@ -33,10 +37,11 @@ describe("buildPaidBillPatch", () => {
       payBank: "bank-2",
       payNotes: "",
       existingNotes: "keep this",
-      existingProofPath: "payment-proofs/user-1/existing-proof.pdf",
+      existingProofPaths: ["payment-proofs/user-1/existing-proof.pdf"],
     });
 
     expect(patch.paymentProofPath).toBe("payment-proofs/user-1/existing-proof.pdf");
+    expect(patch.paymentProofPaths).toEqual(["payment-proofs/user-1/existing-proof.pdf"]);
     expect(patch.notes).toBe("keep this");
   });
 });

@@ -48,6 +48,7 @@ export interface VendorBill {
   paymentDate?: string;
   paymentReference?: string;
   paymentProofPath?: string;
+  paymentProofPaths?: string[];
   paymentMethod?: "BANK_TRANSFER" | "CHEQUE" | "CASH" | "CREDIT_CARD" | "UPI" | "WIRE" | "OTHER";
   notes?: string;
   daysOverdue?: number;

@@ -26,6 +26,7 @@ import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStor
 import { useBankAccounts } from "../../stores/bankAccountsStore";
 import { supabase } from "@/integrations/supabase/client";
 import { getEntities } from "../../stores/accountingEntitiesStore";
+import { appendPaymentProofPath, getMaxPaymentProofs, serializePaymentProofPaths } from "../../lib/apPaymentProofs";
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0); // always today
@@ -48,16 +49,20 @@ export function buildPaidBillPatch(args: {
   payNotes: string;
   existingNotes?: string;
   uploadedProofPath?: string;
-  existingProofPath?: string;
+  existingProofPaths?: string[];
 }): Partial<VendorBill> {
-  const { payDate, payMethod, payRef, payBank, payNotes, existingNotes, uploadedProofPath, existingProofPath } = args;
+  const { payDate, payMethod, payRef, payBank, payNotes, existingNotes, uploadedProofPath, existingProofPaths } = args;
+  const nextProofPaths = uploadedProofPath
+    ? appendPaymentProofPath(existingProofPaths ?? [], uploadedProofPath)
+    : (existingProofPaths ?? []).slice(0, getMaxPaymentProofs());
   return {
     status: "PAID",
     paymentDate: payDate,
     paymentMethod: payMethod,
     paymentReference: payRef.trim(),
     linkedBankAccountId: payBank,
-    paymentProofPath: uploadedProofPath ?? existingProofPath,
+    paymentProofPath: nextProofPaths[0],
+    paymentProofPaths: nextProofPaths,
     notes: payNotes.trim() || existingNotes,
   };
 }
@@ -84,6 +89,10 @@ export default function AccountingBillDetailPage() {
   const bank = useMemo(
     () => (bill?.linkedBankAccountId ? bankAccounts.find((b) => b.id === bill.linkedBankAccountId) : null),
     [bill, bankAccounts],
+  );
+  const proofPaths = useMemo(
+    () => (bill?.paymentProofPaths?.length ? bill.paymentProofPaths : bill?.paymentProofPath ? [bill.paymentProofPath] : []),
+    [bill?.paymentProofPaths, bill?.paymentProofPath],
   );
 
   // Filter bank accounts to match the bill's currency
@@ -132,11 +141,11 @@ export default function AccountingBillDetailPage() {
           }
         : { tone: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400", text: `Due in ${due} days` };
 
-  const viewProof = async () => {
-    if (!bill.paymentProofPath) return;
+  const viewProof = async (proofPath: string) => {
+    if (!proofPath) return;
     const { data, error } = await supabase.storage
       .from("accounting-documents")
-      .createSignedUrl(bill.paymentProofPath, 60); // 60 second expiry
+      .createSignedUrl(proofPath, 60); // 60 second expiry
     if (error || !data?.signedUrl) {
       toast.error("Could not load proof file");
       return;
@@ -179,6 +188,11 @@ export default function AccountingBillDetailPage() {
       // Upload payment proof if provided
       let proofPath: string | undefined;
       if (proofFile) {
+        if (proofPaths.length >= getMaxPaymentProofs()) {
+          toast.error(`Maximum ${getMaxPaymentProofs()} payment proofs allowed per bill`);
+          setPayBusy(false);
+          return;
+        }
         setProofUploading(true);
         const {
           data: { user },
@@ -195,10 +209,11 @@ export default function AccountingBillDetailPage() {
           return;
         }
         proofPath = path;
+        const nextProofPaths = appendPaymentProofPath(proofPaths, path);
         // Also save to DB directly since VendorBill type may not have proof path
         await supabase
           .from("accounting_ap_bills")
-          .update({ payment_proof_path: path } as any)
+          .update({ payment_proof_path: serializePaymentProofPaths(nextProofPaths) } as any)
           .eq("id", bill.id);
       }
 
@@ -212,7 +227,7 @@ export default function AccountingBillDetailPage() {
           payNotes,
           existingNotes: bill.notes,
           uploadedProofPath: proofPath,
-          existingProofPath: bill.paymentProofPath,
+          existingProofPaths: proofPaths,
         }),
       );
       toast.success(
@@ -287,9 +302,9 @@ export default function AccountingBillDetailPage() {
                     View payment journal
                   </Button>
                 )}
-                {bill.status === "PAID" && bill.paymentProofPath && (
-                  <Button variant="outline" size="sm" onClick={viewProof}>
-                    📎 View payment proof
+                {bill.status === "PAID" && proofPaths.length > 0 && (
+                  <Button variant="outline" size="sm" onClick={() => viewProof(proofPaths[0])}>
+                    📎 View payment proof{proofPaths.length > 1 ? `s (${proofPaths.length})` : ""}
                   </Button>
                 )}
                 <Button
@@ -329,10 +344,14 @@ export default function AccountingBillDetailPage() {
               <Row
                 label="Payment proof"
                 v={
-                  bill.paymentProofPath ? (
-                    <button onClick={viewProof} className="text-primary underline text-sm">
-                      View uploaded proof →
-                    </button>
+                  proofPaths.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      {proofPaths.map((path, idx) => (
+                        <button key={path} onClick={() => viewProof(path)} className="text-primary underline text-sm text-left">
+                          View uploaded proof {idx + 1} →
+                        </button>
+                      ))}
+                    </div>
                   ) : (
                     <span className="text-muted-foreground text-sm">Not uploaded</span>
                   )

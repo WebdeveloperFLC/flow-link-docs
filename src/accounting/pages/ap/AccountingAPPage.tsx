@@ -57,6 +57,7 @@ import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStor
 import { supabase } from "@/integrations/supabase/client";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { cn } from "@/lib/utils";
+import { appendPaymentProofPath, getMaxPaymentProofs, serializePaymentProofPaths } from "../../lib/apPaymentProofs";
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0); // always today
@@ -523,6 +524,15 @@ export default function AccountingAPPage() {
                   if (!attachFile || !attachDialog) return;
                   setAttachBusy(true);
                   try {
+                    const existingPaths = attachDialog.paymentProofPaths?.length
+                      ? attachDialog.paymentProofPaths
+                      : attachDialog.paymentProofPath
+                        ? [attachDialog.paymentProofPath]
+                        : [];
+                    if (existingPaths.length >= getMaxPaymentProofs()) {
+                      toast.error(`Maximum ${getMaxPaymentProofs()} payment proofs allowed per bill`);
+                      return;
+                    }
                     const {
                       data: { user },
                     } = await supabase.auth.getUser();
@@ -535,11 +545,12 @@ export default function AccountingAPPage() {
                       toast.error(`Upload failed: ${error.message}`);
                       return;
                     }
+                    const nextPaths = appendPaymentProofPath(existingPaths, path);
                     await supabase
                       .from("accounting_ap_bills")
-                      .update({ payment_proof_path: path } as any)
+                      .update({ payment_proof_path: serializePaymentProofPaths(nextPaths) } as any)
                       .eq("id", attachDialog.id);
-                    updateApBill(attachDialog.id, { paymentProofPath: path });
+                    updateApBill(attachDialog.id, { paymentProofPath: nextPaths[0], paymentProofPaths: nextPaths });
                     toast.success("Document attached ✓");
                     setAttachDialog(null);
                     setAttachFile(null);
