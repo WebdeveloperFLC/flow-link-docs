@@ -24,6 +24,7 @@ import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
 import { useBankAccounts } from "../../stores/bankAccountsStore";
+import { supabase } from "@/integrations/supabase/client";
 import { getEntities } from "../../stores/accountingEntitiesStore";
 
 const TODAY = new Date();
@@ -55,6 +56,8 @@ export default function AccountingBillDetailPage() {
   const [payRef, setPayRef] = useState("");
   const [payNotes, setPayNotes] = useState("");
   const [payBusy, setPayBusy] = useState(false);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofUploading, setProofUploading] = useState(false);
 
   const bank = useMemo(
     () => (bill?.linkedBankAccountId ? bankAccounts.find((b) => b.id === bill.linkedBankAccountId) : null),
@@ -114,6 +117,7 @@ export default function AccountingBillDetailPage() {
     setPayMethod("BANK_TRANSFER");
     setPayRef("");
     setPayNotes("");
+    setProofFile(null);
     setShowPayDialog(true);
   };
 
@@ -137,6 +141,33 @@ export default function AccountingBillDetailPage() {
     setPayBusy(true);
     try {
       const selectedBank = bankAccounts.find((b) => b.id === payBank);
+
+      // Upload payment proof if provided
+      let proofPath: string | undefined;
+      if (proofFile) {
+        setProofUploading(true);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        const safeName = proofFile.name.replace(/[^A-Za-z0-9._-]/g, "_");
+        const path = `payment-proofs/${user?.id ?? "anon"}/${bill.id}-${safeName}`;
+        const { error: upErr } = await supabase.storage
+          .from("accounting-documents")
+          .upload(path, proofFile, { contentType: proofFile.type, upsert: true });
+        setProofUploading(false);
+        if (upErr) {
+          toast.error(`Proof upload failed: ${upErr.message}. Payment not recorded.`);
+          setPayBusy(false);
+          return;
+        }
+        proofPath = path;
+        // Also save to DB directly since VendorBill type may not have proof path
+        await supabase
+          .from("accounting_ap_bills")
+          .update({ payment_proof_path: path } as any)
+          .eq("id", bill.id);
+      }
+
       updateApBill(bill.id, {
         status: "PAID",
         paymentDate: payDate,
@@ -145,10 +176,14 @@ export default function AccountingBillDetailPage() {
         linkedBankAccountId: payBank,
         notes: payNotes.trim() || bill.notes,
       });
-      toast.success(`Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}`);
+      toast.success(
+        `Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}${proofPath ? " · Proof uploaded ✓" : ""}`,
+      );
       setShowPayDialog(false);
+      setProofFile(null);
     } finally {
       setPayBusy(false);
+      setProofUploading(false);
     }
   };
 
@@ -424,14 +459,37 @@ export default function AccountingBillDetailPage() {
                 placeholder="Any additional payment notes…"
               />
             </div>
+
+            {/* Payment proof upload */}
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-proof">Payment proof (optional)</Label>
+              <input
+                id="pay-proof"
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                className="block w-full text-sm text-muted-foreground
+                  file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                  file:text-xs file:font-medium file:bg-muted file:text-foreground
+                  hover:file:bg-accent cursor-pointer"
+                onChange={(e) => setProofFile(e.target.files?.[0] ?? null)}
+              />
+              {proofFile && (
+                <p className="text-[11px] text-green-600 dark:text-green-400">
+                  ✓ {proofFile.name} ({(proofFile.size / 1024).toFixed(0)} KB) — will upload on confirm
+                </p>
+              )}
+              <p className="text-[11px] text-muted-foreground">
+                Bank receipt, cheque scan, or transfer confirmation. PDF or image. Stored securely.
+              </p>
+            </div>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPayDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmPayment} disabled={payBusy}>
-              {payBusy ? "Saving…" : "Confirm payment"}
+            <Button onClick={confirmPayment} disabled={payBusy || proofUploading}>
+              {proofUploading ? "Uploading proof…" : payBusy ? "Saving…" : "Confirm payment"}
             </Button>
           </DialogFooter>
         </DialogContent>
