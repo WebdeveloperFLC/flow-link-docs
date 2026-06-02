@@ -77,6 +77,7 @@ function mapToDb(b: VendorBill): Record<string, unknown> {
     vendor_email: b.vendorEmail || null,
     vendor_phone: b.vendorPhone || null,
     tags: b.tags ?? [],
+    payment_proof_path: b.paymentProofPath || null,
   };
 }
 
@@ -112,6 +113,7 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     paymentMethod: (row.payment_method ?? local?.paymentMethod) as VendorBill["paymentMethod"],
     notes: row.notes ?? local?.notes,
     daysOverdue: local?.daysOverdue,
+    paymentProofPath: row.payment_proof_path ?? local?.paymentProofPath,
     createdBy: local?.createdBy ?? "",
     approvedBy: local?.approvedBy,
     tags: local?.tags,
