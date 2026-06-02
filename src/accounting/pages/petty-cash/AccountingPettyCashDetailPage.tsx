@@ -48,7 +48,17 @@ export default function AccountingPettyCashDetailPage() {
     );
   }
 
-  const branch = branches.find(b => b.id === voucher.branchId)!;
+  const branch = branches.find(b => b.id === voucher.branchId);
+  if (!branch) {
+    return (
+      <AppLayout>
+        <div className="p-10 text-center">
+          <div className="text-sm text-muted-foreground">Branch for this voucher was not found.</div>
+          <Button variant="link" onClick={() => navigate("/accounting/petty-cash")}>Back to petty cash</Button>
+        </div>
+      </AppLayout>
+    );
+  }
   const pendingStep = voucher.approvalTrail.find(s => s.status === "pending");
 
   // Journal preview
