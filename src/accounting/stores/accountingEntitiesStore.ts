@@ -195,10 +195,11 @@ function mapToDb(e: SettingsEntity) {
 }
 
 let hydrated = false;
+let hydrating = false;
 let rlsLogged = false;
 async function hydrateFromSupabase() {
-  if (hydrated || typeof window === "undefined") return;
-  hydrated = true;
+  if (hydrated || hydrating || typeof window === "undefined") return;
+  hydrating = true;
   try {
     const { data, error } = await supabase
       .from("accounting_entities")
@@ -217,8 +218,11 @@ async function hydrateFromSupabase() {
     // so id-based merge never dedupes by name).
     entities = dbMapped;
     emit();
+    hydrated = true;
   } catch (e) {
     console.warn("[entitiesStore] Supabase hydration error:", e);
+  } finally {
+    hydrating = false;
   }
 }
 import { runWhenAuthReady } from "./_hydrationGate";

@@ -79,10 +79,11 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
         errors.push(`Journal: ${error.message}`);
         continue;
       }
+      const journalId = (data as any).id;
       if (j.lines?.length > 0) {
-        await supabase.from('accounting_journal_lines').insert(
+        const { error: lineError } = await supabase.from('accounting_journal_lines').insert(
           j.lines.map((l: any, i: number) => ({
-            journal_id: (data as any).id,
+            journal_id: journalId,
             line_number: i + 1,
             account_code: l.accountCode || l.account_code,
             account_name: l.accountName || l.account_name,
@@ -91,6 +92,12 @@ export async function migrateAllToSupabase(): Promise<MigrationResult[]> {
             credit: l.credit || 0,
           })) as any,
         );
+        if (lineError) {
+          errors.push(`Journal lines (${journalId}): ${lineError.message}`);
+          // Keep migration consistent: if lines fail, remove header row.
+          await supabase.from('accounting_journals').delete().eq('id', journalId);
+          continue;
+        }
       }
       migrated++;
     }

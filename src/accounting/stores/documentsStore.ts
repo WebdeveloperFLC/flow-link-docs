@@ -126,6 +126,7 @@ export function addDocument(input: Omit<MockDocument, "id">, file?: File): MockD
   emit();
 
   void (async () => {
+    let uploadedPath: string | null = null;
     try {
       const { data: u } = await supabase.auth.getUser();
       const uid = u?.user?.id ?? null;
@@ -138,6 +139,7 @@ export function addDocument(input: Omit<MockDocument, "id">, file?: File): MockD
           .from(BUCKET)
           .upload(path, file, { contentType: file.type, upsert: true });
         if (upErr) throw upErr;
+        uploadedPath = path;
         storagePaths.set(created.id, path);
       }
 
@@ -147,6 +149,10 @@ export function addDocument(input: Omit<MockDocument, "id">, file?: File): MockD
         .insert({ ...mapToDb(created), created_by: uid } as any);
       if (error) throw error;
     } catch (e: any) {
+      if (uploadedPath) {
+        // Best-effort cleanup: avoid orphaning bytes when metadata insert fails.
+        await supabase.storage.from(BUCKET).remove([uploadedPath]).catch(() => {});
+      }
       console.warn("[documentsStore] save failed", e);
       // Roll back the optimistic insert.
       documents = documents.filter((d) => d.id !== created.id);

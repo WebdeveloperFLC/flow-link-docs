@@ -32,43 +32,65 @@ export function useEntityScope(): ScopeResult {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string | null>(null);
   const [rows, setRows] = useState<EntityScopeRow[]>([]);
+  const [fetchFailed, setFetchFailed] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) { setLoading(false); setRole(null); setRows([]); return; }
+    if (!user) {
+      setLoading(false);
+      setRole(null);
+      setRows([]);
+      setFetchFailed(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data: u } = await supabase
-        .from("accounting_users" as any)
-        .select("id, role, status")
-        .eq("auth_user_id", user.id)
-        .limit(1)
-        .maybeSingle();
-      if (cancelled) return;
-      const acctRow: any = u;
-      const r = acctRow?.role ?? null;
-      setRole(r);
-      if (!acctRow?.id || ADMIN_ROLES.has(r)) {
+      setFetchFailed(false);
+      try {
+        const { data: u, error: userErr } = await supabase
+          .from("accounting_users" as any)
+          .select("id, role, status")
+          .eq("auth_user_id", user.id)
+          .limit(1)
+          .maybeSingle();
+        if (userErr) throw userErr;
+        if (cancelled) return;
+        const acctRow: any = u;
+        const r = acctRow?.role ?? null;
+        setRole(r);
+        if (!acctRow?.id) {
+          setRows([]);
+          setLoading(false);
+          return;
+        }
+        if (ADMIN_ROLES.has(r)) {
+          setRows([]);
+          setLoading(false);
+          return;
+        }
+        const { data, error: scopeErr } = await supabase
+          .from("accounting_user_entity_scope" as any)
+          .select("*")
+          .eq("accounting_user_id", acctRow.id);
+        if (scopeErr) throw scopeErr;
+        if (cancelled) return;
+        setRows((data ?? []) as any);
+        setLoading(false);
+      } catch (e) {
+        if (cancelled) return;
+        console.warn("[useEntityScope] failed to load scope", e);
+        setFetchFailed(true);
         setRows([]);
         setLoading(false);
-        return;
       }
-      const { data } = await supabase
-        .from("accounting_user_entity_scope" as any)
-        .select("*")
-        .eq("accounting_user_id", acctRow.id);
-      if (cancelled) return;
-      setRows((data ?? []) as any);
-      setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [user, authLoading]);
 
   return useMemo<ScopeResult>(() => {
     const isAdmin = role ? ADMIN_ROLES.has(role) : false;
-    const noRows = rows.length === 0;
-    if (isAdmin || noRows) {
+    if (isAdmin) {
       return {
         loading,
         isUnrestricted: true,
@@ -77,6 +99,32 @@ export function useEntityScope(): ScopeResult {
         canEditEntity: () => true,
         canViewCountry: () => true,
         filterEntities: (items) => items,
+      };
+    }
+
+    // Fail closed when scope could not be loaded.
+    if (fetchFailed) {
+      return {
+        loading,
+        isUnrestricted: false,
+        allowedEntityIds: [],
+        canViewEntity: () => false,
+        canEditEntity: () => false,
+        canViewCountry: () => false,
+        filterEntities: () => [],
+      };
+    }
+
+    const noRows = rows.length === 0;
+    if (noRows) {
+      return {
+        loading,
+        isUnrestricted: false,
+        allowedEntityIds: [],
+        canViewEntity: () => false,
+        canEditEntity: () => false,
+        canViewCountry: () => false,
+        filterEntities: () => [],
       };
     }
 
@@ -124,7 +172,7 @@ export function useEntityScope(): ScopeResult {
       canViewCountry: (c) => countryView.get(c) === true,
       filterEntities: (items) => items.filter((x) => allowed.has(x.id)),
     };
-  }, [loading, role, rows, entities]);
+  }, [loading, role, rows, entities, fetchFailed]);
 }
 
 /** Convenience: returns entities filtered by current user's scope. */
