@@ -32,7 +32,9 @@ let bills: VendorBill[] = (() => {
 
 const listeners = new Set<() => void>();
 function emit() {
-  try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bills)); } catch {}
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(bills));
+  } catch {}
   listeners.forEach((l) => l());
 }
 
@@ -63,6 +65,18 @@ function mapToDb(b: VendorBill): Record<string, unknown> {
     reference: b.paymentReference || null,
     notes: b.notes || null,
     journal_id: isUuid(b.linkedJournalId) ? b.linkedJournalId : null,
+    description: b.description || null,
+    department: b.department || null,
+    linked_coa_code: b.linkedCOACode || null,
+    linked_expense_coa_code: b.linkedExpenseCOACode || null,
+    linked_bank_account_id: isUuid(b.linkedBankAccountId) ? b.linkedBankAccountId : null,
+    tax_code: b.taxCode || null,
+    branch: b.branch || null,
+    branch_country: b.branchCountry || null,
+    vendor_category: b.vendorCategory || null,
+    vendor_email: b.vendorEmail || null,
+    vendor_phone: b.vendorPhone || null,
+    tags: b.tags ?? [],
   };
 }
 
@@ -71,27 +85,28 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     id: row.id,
     billNumber: row.bill_number ?? local?.billNumber ?? "",
     vendor: row.vendor_name ?? local?.vendor ?? "",
-    vendorEmail: local?.vendorEmail,
-    vendorPhone: local?.vendorPhone,
-    vendorCategory: (local?.vendorCategory ?? "OTHER") as ExpenseCategory,
+    vendorEmail: row.vendor_email ?? local?.vendorEmail,
+    vendorPhone: row.vendor_phone ?? local?.vendorPhone,
+    vendorCategory: (row.vendor_category ?? local?.vendorCategory ?? "OTHER") as ExpenseCategory,
     entity: row.entity ?? local?.entity ?? "",
-    branch: local?.branch ?? "",
-    branchCountry: (local?.branchCountry ?? "OTHER") as VendorBill["branchCountry"],
-    department: local?.department,
-    description: local?.description ?? "",
+    branch: row.branch ?? local?.branch ?? "",
+    branchCountry: (row.branch_country ?? local?.branchCountry ?? "OTHER") as VendorBill["branchCountry"],
+    department: row.department ?? local?.department,
+    description: row.description ?? local?.description ?? "",
+    linkedBankAccountId: row.linked_bank_account_id ?? local?.linkedBankAccountId,
+    taxCode: row.tax_code ?? local?.taxCode ?? "",
     billDate: row.bill_date ?? local?.billDate ?? "",
     dueDate: row.due_date ?? local?.dueDate ?? "",
     currency: (row.currency ?? local?.currency ?? "INR") as VendorBill["currency"],
     subtotal: Number(row.subtotal ?? local?.subtotal ?? 0),
-    taxCode: local?.taxCode ?? "",
     taxAmount: Number(row.tax_amount ?? local?.taxAmount ?? 0),
     totalAmount: Number(row.total_amount ?? local?.totalAmount ?? 0),
     status: (row.status ?? local?.status ?? "DRAFT") as BillStatus,
     linkedDocumentId: local?.linkedDocumentId,
     linkedJournalId: row.journal_id ?? local?.linkedJournalId,
     linkedPaymentJournalId: local?.linkedPaymentJournalId,
-    linkedBankAccountId: local?.linkedBankAccountId,
-    linkedCOACode: local?.linkedCOACode ?? "2000",
+    linkedCOACode: row.linked_coa_code ?? local?.linkedCOACode ?? "2000",
+    linkedExpenseCOACode: row.linked_expense_coa_code ?? local?.linkedExpenseCOACode,
     paymentDate: local?.paymentDate,
     paymentReference: row.reference ?? local?.paymentReference,
     paymentMethod: (row.payment_method ?? local?.paymentMethod) as VendorBill["paymentMethod"],
@@ -122,7 +137,10 @@ runWhenAuthReady(hydrateFromSupabase);
 // ─── Public API ─────────────────────────────────────────────────────────────
 export function useApBills(): VendorBill[] {
   return useSyncExternalStore(
-    (l) => { listeners.add(l); return () => listeners.delete(l); },
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
     () => bills,
     () => bills,
   );
@@ -219,8 +237,13 @@ function patchLocal(id: string, patch: Partial<VendorBill>) {
 }
 
 function makeLine(opts: {
-  accountId: string; accountCode: string; accountName: string;
-  groupCode: string; debit: number; credit: number; description: string;
+  accountId: string;
+  accountCode: string;
+  accountName: string;
+  groupCode: string;
+  debit: number;
+  credit: number;
+  description: string;
 }): JournalLine {
   return {
     id: newUuid(),
@@ -228,8 +251,10 @@ function makeLine(opts: {
     accountCode: opts.accountCode,
     accountName: opts.accountName,
     accountType: toAccountType(opts.groupCode),
-    debit: opts.debit, credit: opts.credit,
-    description: opts.description, taxCode: "",
+    debit: opts.debit,
+    credit: opts.credit,
+    description: opts.description,
+    taxCode: "",
   };
 }
 
@@ -240,8 +265,10 @@ function findApAccount(bill?: VendorBill) {
     const chosen = coa.find((a) => a.code === bill.linkedCOACode && postable(a));
     if (chosen) return chosen;
   }
-  return coa.find((a) => a.code === "2000" && postable(a))
-    ?? coa.find((a) => a.groupCode === "LIABILITY" && a.typeCode === "AP" && postable(a));
+  return (
+    coa.find((a) => a.code === "2000" && postable(a)) ??
+    coa.find((a) => a.groupCode === "LIABILITY" && a.typeCode === "AP" && postable(a))
+  );
 }
 
 function findExpenseAccount(bill: VendorBill) {
@@ -299,13 +326,21 @@ function autoPostAccrual(bill: VendorBill) {
       postedAt: new Date().toISOString(),
       lines: [
         makeLine({
-          accountId: expense.id, accountCode: expense.code, accountName: expense.name,
-          groupCode: expense.groupCode, debit: bill.totalAmount, credit: 0,
+          accountId: expense.id,
+          accountCode: expense.code,
+          accountName: expense.name,
+          groupCode: expense.groupCode,
+          debit: bill.totalAmount,
+          credit: 0,
           description: bill.description || bill.vendor,
         }),
         makeLine({
-          accountId: ap.id, accountCode: ap.code, accountName: ap.name,
-          groupCode: ap.groupCode, debit: 0, credit: bill.totalAmount,
+          accountId: ap.id,
+          accountCode: ap.code,
+          accountName: ap.name,
+          groupCode: ap.groupCode,
+          debit: 0,
+          credit: bill.totalAmount,
           description: `Payable to ${bill.vendor}`,
         }),
       ],
@@ -340,13 +375,21 @@ function autoPostPayment(bill: VendorBill) {
       postedAt: new Date().toISOString(),
       lines: [
         makeLine({
-          accountId: ap.id, accountCode: ap.code, accountName: ap.name,
-          groupCode: ap.groupCode, debit: bill.totalAmount, credit: 0,
+          accountId: ap.id,
+          accountCode: ap.code,
+          accountName: ap.name,
+          groupCode: ap.groupCode,
+          debit: bill.totalAmount,
+          credit: 0,
           description: `Settle ${bill.vendor}`,
         }),
         makeLine({
-          accountId: bank.id, accountCode: bank.code, accountName: bank.name,
-          groupCode: bank.groupCode, debit: 0, credit: bill.totalAmount,
+          accountId: bank.id,
+          accountCode: bank.code,
+          accountName: bank.name,
+          groupCode: bank.groupCode,
+          debit: 0,
+          credit: bill.totalAmount,
           description: bill.paymentReference || bill.billNumber,
         }),
       ],
