@@ -37,6 +37,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingKPICard from "../../components/shared/AccountingKPICard";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
@@ -46,6 +54,7 @@ import FreeCombobox from "../../components/ap-ar/FreeCombobox";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS, type VendorBill, type BillStatus } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
+import { supabase } from "@/integrations/supabase/client";
 import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +93,9 @@ export default function AccountingAPPage() {
   const [payDialog, setPayDialog] = useState<VendorBill | null>(null);
   const [voidDialog, setVoidDialog] = useState<VendorBill | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<VendorBill | null>(null);
+  const [attachDialog, setAttachDialog] = useState<VendorBill | null>(null);
+  const [attachFile, setAttachFile] = useState<File | null>(null);
+  const [attachBusy, setAttachBusy] = useState(false);
 
   const entities = useMemo(() => Array.from(new Set(bills.map((b) => b.entity).filter(Boolean))), [bills]);
   const branches = useMemo(() => Array.from(new Set(bills.map((b) => b.branch).filter(Boolean))), [bills]);
@@ -403,7 +415,14 @@ export default function AccountingAPPage() {
                           >
                             {b.linkedJournalId ? "View journal entry" : "Create journal entry"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => toast.info("Coming soon")}>Attach document</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setAttachFile(null);
+                              setAttachDialog(b);
+                            }}
+                          >
+                            Attach document
+                          </DropdownMenuItem>
                           {(b.status === "DRAFT" || b.status === "PENDING_REVIEW") && (
                             <>
                               <DropdownMenuSeparator />
@@ -453,6 +472,87 @@ export default function AccountingAPPage() {
             }}
           />
         )}
+
+        {/* ── Attach document dialog ── */}
+        <Dialog
+          open={!!attachDialog}
+          onOpenChange={(o) => {
+            if (!o) {
+              setAttachDialog(null);
+              setAttachFile(null);
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Attach document</DialogTitle>
+              <DialogDescription>
+                Upload a supporting document for {attachDialog?.billNumber} — {attachDialog?.vendor}. PDF or image.
+                Stored securely in Supabase.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 py-2">
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp"
+                className="block w-full text-sm text-muted-foreground
+                  file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                  file:text-xs file:font-medium file:bg-muted file:text-foreground
+                  hover:file:bg-accent cursor-pointer"
+                onChange={(e) => setAttachFile(e.target.files?.[0] ?? null)}
+              />
+              {attachFile && (
+                <p className="text-[11px] text-green-600 dark:text-green-400">
+                  ✓ {attachFile.name} ({(attachFile.size / 1024).toFixed(0)} KB)
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAttachDialog(null);
+                  setAttachFile(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={!attachFile || attachBusy}
+                onClick={async () => {
+                  if (!attachFile || !attachDialog) return;
+                  setAttachBusy(true);
+                  try {
+                    const {
+                      data: { user },
+                    } = await supabase.auth.getUser();
+                    const safeName = attachFile.name.replace(/[^A-Za-z0-9._-]/g, "_");
+                    const path = `bill-attachments/${user?.id ?? "anon"}/${attachDialog.id}-${safeName}`;
+                    const { error } = await supabase.storage
+                      .from("accounting-documents")
+                      .upload(path, attachFile, { contentType: attachFile.type, upsert: true });
+                    if (error) {
+                      toast.error(`Upload failed: ${error.message}`);
+                      return;
+                    }
+                    await supabase
+                      .from("accounting_ap_bills")
+                      .update({ payment_proof_path: path } as any)
+                      .eq("id", attachDialog.id);
+                    updateApBill(attachDialog.id, { paymentProofPath: path });
+                    toast.success("Document attached ✓");
+                    setAttachDialog(null);
+                    setAttachFile(null);
+                  } finally {
+                    setAttachBusy(false);
+                  }
+                }}
+              >
+                {attachBusy ? "Uploading…" : "Upload"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <AlertDialog open={!!voidDialog} onOpenChange={(o) => !o && setVoidDialog(null)}>
           <AlertDialogContent>
