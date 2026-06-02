@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { addClient } from "../../stores/clientsStore";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { addClient, getClients } from "../../stores/clientsStore";
 import type { Client, ClientType } from "../../types/clients";
 import DynamicSelect from "../shared/DynamicSelect";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +41,7 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
   const [leadSource, setLeadSource] = useState<string>("");
   const [paymentTerms, setPaymentTerms] = useState<string>("DUE_ON_RECEIPT");
   const [notes, setNotes] = useState("");
+  const [dupWarning, setDupWarning] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -50,13 +54,13 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
         .in("role", ["counselor", "admin"] as any);
       const ids = Array.from(new Set((roleRows ?? []).map((r: any) => r.user_id)));
       if (ids.length === 0) {
-        if (!cancelled) { setCounselors([]); setCounselorsLoading(false); }
+        if (!cancelled) {
+          setCounselors([]);
+          setCounselorsLoading(false);
+        }
         return;
       }
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .in("id", ids);
+      const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", ids);
       const roleByUser = new Map<string, string>();
       (roleRows ?? []).forEach((r: any) => {
         // prefer "counselor" label if user has both
@@ -73,33 +77,67 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
         setCounselorsLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   const handleSave = () => {
-    if (!name.trim()) { toast.error("Client name is required"); return; }
-    const counselor = counselors.find(s => s.id === counselorId);
+    if (!name.trim()) {
+      toast.error("Client name is required");
+      return;
+    }
+
+    // Duplicate check before saving
+    const existing = getClients();
+    const emailDup = email.trim() ? existing.find((c) => c.email?.toLowerCase() === email.trim().toLowerCase()) : null;
+    const nameDup = existing.find((c) => c.name.toLowerCase().trim() === name.trim().toLowerCase());
+    if (emailDup || nameDup) {
+      const match = emailDup ?? nameDup!;
+      const confirmed = window.confirm(
+        `A client named "${match.name}" already exists${emailDup ? " with the same email" : " with the same name"}.
+
+Are you sure you want to create a new record? Click Cancel to go back, or OK to create anyway.`,
+      );
+      if (!confirmed) return;
+    }
+    const counselor = counselors.find((s) => s.id === counselorId);
     const created: Client = {
       id: `c-${Date.now()}`,
-      name, legalName: name,
+      name,
+      legalName: name,
       segment: clientType === "CORPORATE" ? "ENTERPRISE" : "INDIVIDUAL",
       clientType: clientType as ClientType,
-      country, taxId: taxId || "—",
+      country,
+      taxId: taxId || "—",
       paymentTerms,
       currency: country === "CA" ? "CAD" : country === "US" ? "USD" : "INR",
       status: "ACTIVE",
-      outstandingReceivable: 0, ytdRevenue: 0,
+      outstandingReceivable: 0,
+      ytdRevenue: 0,
       lastTxnDate: new Date().toISOString().slice(0, 10),
-      email, phone, address: "",
+      email,
+      phone,
+      address: "",
       accountManager: counselor?.name ?? "",
-      counselorId, counselorName: counselor?.name,
-      servicePackage, visaCategory, intake, leadSource, notes,
+      counselorId,
+      counselorName: counselor?.name,
+      servicePackage,
+      visaCategory,
+      intake,
+      leadSource,
+      notes,
     };
     const persisted = addClient(created);
     onCreated?.(persisted);
     toast.success(`Client "${name}" created`);
     onOpenChange(false);
-    setName(""); setEmail(""); setPhone(""); setTaxId(""); setNotes("");
+    setName("");
+    setEmail("");
+    setPhone("");
+    setTaxId("");
+    setNotes("");
+    setDupWarning(null);
   };
 
   return (
@@ -107,7 +145,9 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
       <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add new client</DialogTitle>
-          <DialogDescription>Create an accounting client record. Use "Link CRM client" if they already exist in the CRM.</DialogDescription>
+          <DialogDescription>
+            Create an accounting client record. Use "Link CRM client" if they already exist in the CRM.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2">
@@ -116,12 +156,22 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
             <div className="grid gap-3">
               <div className="grid gap-2">
                 <Label htmlFor="cname">Full name</Label>
-                <Input id="cname" value={name} onChange={(e) => setName(e.target.value)} placeholder="Anita Ramachandran" />
+                <Input
+                  id="cname"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Anita Ramachandran"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="grid gap-2">
                   <Label>Client type</Label>
-                  <DynamicSelect listKey="client_categories" value={clientType} onValueChange={setClientType} addLabel="client type" />
+                  <DynamicSelect
+                    listKey="client_categories"
+                    value={clientType}
+                    onValueChange={setClientType}
+                    addLabel="client type"
+                  />
                 </div>
                 <div className="grid gap-2">
                   <Label>Country</Label>
@@ -129,7 +179,27 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cemail">Email</Label>
-                  <Input id="cemail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  <Input
+                    id="cemail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setDupWarning(null);
+                    }}
+                    onBlur={() => {
+                      if (!email.trim()) return;
+                      const existing = getClients().filter(
+                        (c) => c.email?.toLowerCase() === email.trim().toLowerCase(),
+                      );
+                      if (existing.length > 0) {
+                        setDupWarning(
+                          `⚠️ A client with this email already exists: "${existing[0].name}". Check before creating a duplicate.`,
+                        );
+                      }
+                    }}
+                  />
+                  {dupWarning && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{dupWarning}</p>}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="cphone">Phone</Label>
@@ -148,51 +218,97 @@ export default function AddClientDialog({ open, onOpenChange, onCreated }: Props
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-2">
                 <Label>Assigned counselor</Label>
-                <Select value={counselorId} onValueChange={setCounselorId} disabled={counselorsLoading || counselors.length === 0}>
+                <Select
+                  value={counselorId}
+                  onValueChange={setCounselorId}
+                  disabled={counselorsLoading || counselors.length === 0}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder={
-                      counselorsLoading ? "Loading…"
-                      : counselors.length === 0 ? "No counselors found — add users first"
-                      : "Select a counselor"
-                    } />
+                    <SelectValue
+                      placeholder={
+                        counselorsLoading
+                          ? "Loading…"
+                          : counselors.length === 0
+                            ? "No counselors found — add users first"
+                            : "Select a counselor"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {counselors.map(s => <SelectItem key={s.id} value={s.id}>{s.name} · {s.role}</SelectItem>)}
+                    {counselors.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.name} · {s.role}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label>Service package <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
-                <DynamicSelect listKey="service_packages" value={servicePackage} onValueChange={setServicePackage} addLabel="service package" />
+                <Label>
+                  Service package <span className="text-xs text-muted-foreground font-normal">(type to add new)</span>
+                </Label>
+                <DynamicSelect
+                  listKey="service_packages"
+                  value={servicePackage}
+                  onValueChange={setServicePackage}
+                  addLabel="service package"
+                />
               </div>
               <div className="grid gap-2">
-                <Label>Visa category <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
-                <DynamicSelect listKey="visa_categories" value={visaCategory} onValueChange={setVisaCategory} addLabel="visa category" />
+                <Label>
+                  Visa category <span className="text-xs text-muted-foreground font-normal">(type to add new)</span>
+                </Label>
+                <DynamicSelect
+                  listKey="visa_categories"
+                  value={visaCategory}
+                  onValueChange={setVisaCategory}
+                  addLabel="visa category"
+                />
               </div>
               <div className="grid gap-2">
-                <Label>Intake / session <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
+                <Label>
+                  Intake / session <span className="text-xs text-muted-foreground font-normal">(type to add new)</span>
+                </Label>
                 <DynamicSelect listKey="intakes" value={intake} onValueChange={setIntake} addLabel="intake" />
               </div>
               <div className="grid gap-2">
-                <Label>Lead source <span className="text-xs text-muted-foreground font-normal">(type to add new)</span></Label>
-                <DynamicSelect listKey="lead_sources" value={leadSource} onValueChange={setLeadSource} addLabel="lead source" />
+                <Label>
+                  Lead source <span className="text-xs text-muted-foreground font-normal">(type to add new)</span>
+                </Label>
+                <DynamicSelect
+                  listKey="lead_sources"
+                  value={leadSource}
+                  onValueChange={setLeadSource}
+                  addLabel="lead source"
+                />
               </div>
               <div className="grid gap-2">
                 <Label>Payment terms</Label>
-                <DynamicSelect listKey="payment_terms" value={paymentTerms} onValueChange={setPaymentTerms} addLabel="payment term" />
+                <DynamicSelect
+                  listKey="payment_terms"
+                  value={paymentTerms}
+                  onValueChange={setPaymentTerms}
+                  addLabel="payment term"
+                />
               </div>
             </div>
           </section>
 
           <section>
             <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-3">Notes</div>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-              placeholder="Any notes about this client…" rows={3} />
+            <Textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Any notes about this client…"
+              rows={3}
+            />
           </section>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
           <Button onClick={handleSave}>Create client</Button>
         </DialogFooter>
       </DialogContent>
