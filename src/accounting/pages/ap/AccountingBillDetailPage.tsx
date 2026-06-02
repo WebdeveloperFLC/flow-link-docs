@@ -24,6 +24,7 @@ import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
 import { useBankAccounts } from "../../stores/bankAccountsStore";
+import { getEntities } from "../../stores/accountingEntitiesStore";
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0); // always today
@@ -61,17 +62,18 @@ export default function AccountingBillDetailPage() {
   );
 
   // Filter bank accounts to match the bill's currency
-  const eligibleBanks = useMemo(
-    () =>
-      bankAccounts.filter(
-        (b) =>
-          b.status === "ACTIVE" &&
-          (!bill?.currency || b.currency === bill.currency) &&
-          (!bill?.entity || b.entityId === bill.entity) && // match entity
-          b.isDefaultPayment !== false, // exclude savings/holding accounts
-      ),
-    [bankAccounts, bill?.currency, bill?.entity],
-  );
+  const eligibleBanks = useMemo(() => {
+    // bill.entity is a name string; bank account entityId is a UUID.
+    // Resolve the UUID from the entity name so we can match correctly.
+    const entityUuid = bill?.entity ? (getEntities().find((e) => e.name === bill.entity)?.id ?? null) : null;
+    return bankAccounts.filter(
+      (b) =>
+        b.status === "ACTIVE" &&
+        (!bill?.currency || b.currency === bill.currency) &&
+        (!entityUuid || b.entityId === entityUuid) &&
+        b.isDefaultPayment !== false,
+    );
+  }, [bankAccounts, bill?.currency, bill?.entity]);
 
   if (!bill)
     return (
