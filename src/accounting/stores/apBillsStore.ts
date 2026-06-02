@@ -8,6 +8,7 @@ import { getAccounts } from "./coaStore";
 import { getBankAccounts } from "./bankAccountsStore";
 import { toAccountType, nextJournalNumber } from "../lib/journalHelpers";
 import type { JournalLine } from "../data/mockJournals";
+import { parsePaymentProofPaths, serializePaymentProofPaths } from "../lib/apPaymentProofs";
 
 const STORAGE_KEY = "accounting:ap-bills:v3";
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -46,6 +47,9 @@ function emit() {
 function mapToDb(b: VendorBill): Record<string, unknown> {
   const paid = +(b.totalAmount - 0).toFixed(2); // outstanding calc handled below
   const isPaid = b.status === "PAID";
+  const proofPaths = (b.paymentProofPaths?.length ? b.paymentProofPaths : b.paymentProofPath ? [b.paymentProofPath] : []).filter(
+    Boolean,
+  ) as string[];
   return {
     id: b.id,
     bill_number: b.billNumber,
@@ -77,11 +81,12 @@ function mapToDb(b: VendorBill): Record<string, unknown> {
     vendor_email: b.vendorEmail || null,
     vendor_phone: b.vendorPhone || null,
     tags: b.tags ?? [],
-    payment_proof_path: b.paymentProofPath || null,
+    payment_proof_path: serializePaymentProofPaths(proofPaths),
   };
 }
 
 function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
+  const parsedProofPaths = parsePaymentProofPaths(row.payment_proof_path ?? local?.paymentProofPath ?? null);
   return {
     id: row.id,
     billNumber: row.bill_number ?? local?.billNumber ?? "",
@@ -113,7 +118,8 @@ function mergeFromDb(local: VendorBill | undefined, row: any): VendorBill {
     paymentMethod: (row.payment_method ?? local?.paymentMethod) as VendorBill["paymentMethod"],
     notes: row.notes ?? local?.notes,
     daysOverdue: local?.daysOverdue,
-    paymentProofPath: row.payment_proof_path ?? local?.paymentProofPath,
+    paymentProofPath: parsedProofPaths[0] ?? local?.paymentProofPath,
+    paymentProofPaths: parsedProofPaths,
     createdBy: local?.createdBy ?? "",
     approvedBy: local?.approvedBy,
     tags: local?.tags,
