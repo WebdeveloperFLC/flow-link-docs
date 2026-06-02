@@ -62,7 +62,11 @@ export default function AccountingBillDetailPage() {
 
   // Filter bank accounts to match the bill's currency
   const eligibleBanks = useMemo(
-    () => bankAccounts.filter((b) => b.status === "ACTIVE" && (!bill?.currency || b.currency === bill.currency)),
+    () =>
+      bankAccounts.filter(
+        (b) =>
+          b.status === "ACTIVE" && (!bill?.currency || b.currency === bill.currency) && b.isDefaultPayment !== false, // exclude savings/holding accounts
+      ),
     [bankAccounts, bill?.currency],
   );
 
