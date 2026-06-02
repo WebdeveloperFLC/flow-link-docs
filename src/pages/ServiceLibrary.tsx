@@ -11,14 +11,27 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import {
-  ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
-  resolveForCountry, scopeByCountry, htmlToPlain, htmlToWhatsApp, htmlToEmail,
-  feeItemsToTsv, copyToClipboard, copyHtmlToClipboard, buildShareableLink,
-  type Master, type Override, type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem, type Attachment,
+  ALLOWED_SERVICE_LIBRARY_COUNTRIES,
+  ALLOWED_COUNTRY_SET,
+  resolveForCountry,
+  scopeByCountry,
+  htmlToPlain,
+  htmlToWhatsApp,
+  htmlToEmail,
+  feeItemsToTsv,
+  copyToClipboard,
+  copyHtmlToClipboard,
+  buildShareableLink,
+  type Master,
+  type Override,
+  type FeeItem,
+  type ChecklistFile,
+  type SopTask,
+  type SubmissionItem,
+  type Attachment,
 } from "@/lib/serviceLibrary";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
@@ -58,8 +71,7 @@ export default function ServiceLibrary() {
 
   const { flatGroups, visaByCountry, visaForCountry, availableCountries } = useMemo(() => {
     const q = treeSearch.trim().toLowerCase();
-    const matches = (m: Master) =>
-      !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
+    const matches = (m: Master) => !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
     const flat: Record<string, Record<string, Master[]>> = {};
     const visa: Record<string, Record<string, Master[]>> = {};
     const countrySet = new Set<string>();
@@ -94,9 +106,7 @@ export default function ServiceLibrary() {
       const svcKeys = Object.keys(flat[label]).sort((a, b) => a.localeCompare(b));
       flatSorted[label] = {};
       for (const s of svcKeys) {
-        flatSorted[label][s] = [...flat[label][s]].sort((a, b) =>
-          a.sub_service.localeCompare(b.sub_service),
-        );
+        flatSorted[label][s] = [...flat[label][s]].sort((a, b) => a.sub_service.localeCompare(b.sub_service));
       }
     }
     const visaSorted: Record<string, Record<string, Master[]>> = {};
@@ -109,13 +119,10 @@ export default function ServiceLibrary() {
       const svcKeys = Object.keys(visa[c]).sort((a, b) => a.localeCompare(b));
       visaSorted[c] = {};
       for (const s of svcKeys) {
-        visaSorted[c][s] = [...visa[c][s]].sort((a, b) =>
-          a.sub_service.localeCompare(b.sub_service),
-        );
+        visaSorted[c][s] = [...visa[c][s]].sort((a, b) => a.sub_service.localeCompare(b.sub_service));
       }
     }
-    const visaSingle: Record<string, Master[]> =
-      countryFilter !== "ALL" ? visaSorted[countryFilter] ?? {} : {};
+    const visaSingle: Record<string, Master[]> = countryFilter !== "ALL" ? (visaSorted[countryFilter] ?? {}) : {};
     return {
       flatGroups: flatSorted,
       visaByCountry: visaSorted,
@@ -130,10 +137,12 @@ export default function ServiceLibrary() {
   );
 
   // Country passed to detail panel (for country-scoped overrides/fees).
-  const detailCountry = selected?.service_category === "visa_immigration"
-    ? (countryFilter !== "ALL" ? countryFilter
-        : (selected.service_library_countries.find((c) => ALLOWED_COUNTRY_SET.has(c.country))?.country ?? null))
-    : null;
+  const detailCountry =
+    selected?.service_category === "visa_immigration"
+      ? countryFilter !== "ALL"
+        ? countryFilter
+        : (selected.service_library_countries.find((c) => ALLOWED_COUNTRY_SET.has(c.country))?.country ?? null)
+      : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -155,21 +164,29 @@ export default function ServiceLibrary() {
           </div>
           <h1 className="mt-2 text-2xl font-semibold">Reference for counselors</h1>
           <p className="text-sm text-muted-foreground">
-            Coaching, Allied, and Travel &amp; Financial are listed flat. Use the country filter to view Visa &amp; Immigration services for one country at a time.
+            Coaching, Allied, and Travel &amp; Financial are listed flat. Use the country filter to view Visa &amp;
+            Immigration services for one country at a time.
           </p>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-12">
           <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
             <div className="mb-2 px-1 space-y-2">
-              <Select value={countryFilter} onValueChange={(v) => { setCountryFilter(v); }}>
+              <Select
+                value={countryFilter}
+                onValueChange={(v) => {
+                  setCountryFilter(v);
+                }}
+              >
                 <SelectTrigger className="h-8 text-sm">
                   <SelectValue placeholder="Filter by country…" />
                 </SelectTrigger>
                 <SelectContent className="max-h-72">
                   <SelectItem value="ALL">All countries</SelectItem>
                   {availableCountries.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -227,9 +244,7 @@ export default function ServiceLibrary() {
             )}
             {countryFilter === "ALL" && Object.keys(visaByCountry).length > 0 && (
               <Tree label="Visa & Immigration">
-                <div className="px-2 py-1 text-xs text-muted-foreground">
-                  Pick a country above to view services.
-                </div>
+                <div className="px-2 py-1 text-xs text-muted-foreground">Pick a country above to view services.</div>
                 {Object.entries(visaByCountry).map(([c, services]) => (
                   <button
                     key={c}
@@ -286,16 +301,23 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
     queryKey: ["sl-ov", master.id, country],
     enabled: !!country,
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_overrides").select("*")
-        .eq("library_id", master.id).eq("country", country!).maybeSingle();
+      const { data } = await supabase
+        .from("service_library_overrides")
+        .select("*")
+        .eq("library_id", master.id)
+        .eq("country", country!)
+        .maybeSingle();
       return data as Override | null;
     },
   });
   const fees = useQuery({
     queryKey: ["sl-fees-pub", master.id],
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_fee_items")
-        .select("*").eq("library_id", master.id).order("display_order");
+      const { data } = await supabase
+        .from("service_library_fee_items")
+        .select("*")
+        .eq("library_id", master.id)
+        .order("display_order");
       return (data ?? []) as unknown as FeeItem[];
     },
   });
@@ -309,24 +331,35 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
   const files = useQuery({
     queryKey: ["sl-cfiles-pub", master.id],
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_checklist_files")
-        .select("*").eq("library_id", master.id).order("version", { ascending: false });
+      const { data } = await supabase
+        .from("service_library_checklist_files")
+        .select("*")
+        .eq("library_id", master.id)
+        .order("version", { ascending: false });
       return (data ?? []) as unknown as ChecklistFile[];
     },
   });
   const sop = useQuery({
     queryKey: ["sl-sop-pub", master.id],
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_sop_tasks")
-        .select("*").eq("library_id", master.id).eq("is_active", true).order("sort_order");
+      const { data } = await supabase
+        .from("service_library_sop_tasks")
+        .select("*")
+        .eq("library_id", master.id)
+        .eq("is_active", true)
+        .order("sort_order");
       return (data ?? []) as unknown as SopTask[];
     },
   });
   const submission = useQuery({
     queryKey: ["sl-sub-pub", master.id],
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_submission_checklist")
-        .select("*").eq("library_id", master.id).eq("is_active", true).order("sort_order");
+      const { data } = await supabase
+        .from("service_library_submission_checklist")
+        .select("*")
+        .eq("library_id", master.id)
+        .eq("is_active", true)
+        .order("sort_order");
       return (data ?? []) as unknown as SubmissionItem[];
     },
   });
@@ -334,8 +367,10 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
     queryKey: ["sl-sub-mine", master.id, user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_submission_completions")
-        .select("item_id").eq("user_id", user!.id);
+      const { data } = await supabase
+        .from("service_library_submission_completions")
+        .select("item_id")
+        .eq("user_id", user!.id);
       return new Set(((data ?? []) as { item_id: string }[]).map((r) => r.item_id));
     },
   });
@@ -343,8 +378,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
     queryKey: ["sl-sop-mine", master.id, user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const { data } = await supabase.from("service_library_sop_completions")
-        .select("task_id").eq("user_id", user!.id);
+      const { data } = await supabase.from("service_library_sop_completions").select("task_id").eq("user_id", user!.id);
       return new Set(((data ?? []) as { task_id: string }[]).map((r) => r.task_id));
     },
   });
@@ -352,7 +386,10 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
   const resolved = resolveForCountry(master, override.data ?? null);
   const feeRows = scopeByCountry(fees.data ?? [], country);
   const attRows = scopeByCountry(attachments.data ?? [], country);
-  const fileRows = scopeByCountry((files.data ?? []).filter((f) => f.is_current), country);
+  const fileRows = scopeByCountry(
+    (files.data ?? []).filter((f) => f.is_current),
+    country,
+  );
   const sopRows = scopeByCountry(sop.data ?? [], country);
   const subRows = scopeByCountry(submission.data ?? [], country);
 
@@ -361,186 +398,331 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
   const toggleSub = async (itemId: string) => {
     if (!user?.id) return;
     if (myCompletions.data?.has(itemId)) {
-      await supabase.from("service_library_submission_completions")
-        .delete().eq("item_id", itemId).eq("user_id", user.id);
+      await supabase
+        .from("service_library_submission_completions")
+        .delete()
+        .eq("item_id", itemId)
+        .eq("user_id", user.id);
     } else {
-      await supabase.from("service_library_submission_completions")
-        .insert({ item_id: itemId, user_id: user.id });
+      await supabase.from("service_library_submission_completions").insert({ item_id: itemId, user_id: user.id });
     }
     qc.invalidateQueries({ queryKey: ["sl-sub-mine", master.id, user.id] });
   };
   const toggleSop = async (taskId: string) => {
     if (!user?.id) return;
     if (mySopDone.data?.has(taskId)) {
-      await supabase.from("service_library_sop_completions")
-        .delete().eq("task_id", taskId).eq("user_id", user.id);
+      await supabase.from("service_library_sop_completions").delete().eq("task_id", taskId).eq("user_id", user.id);
     } else {
-      await supabase.from("service_library_sop_completions")
-        .insert({ task_id: taskId, user_id: user.id });
+      await supabase.from("service_library_sop_completions").insert({ task_id: taskId, user_id: user.id });
     }
     qc.invalidateQueries({ queryKey: ["sl-sop-mine", master.id, user.id] });
   };
 
   const shareLink = buildShareableLink({
-    category: master.service_category, service: master.service, subService: master.sub_service, country,
+    category: master.service_category,
+    service: master.service,
+    subService: master.sub_service,
+    country,
   });
 
   const qg = resolved;
-  const hasQG = !!(qg.quick_guide_what_to_do || qg.quick_guide_common_mistakes || qg.quick_guide_escalation_rules || qg.quick_guide_important_reminders);
+  const hasQG = !!(
+    qg.quick_guide_what_to_do ||
+    qg.quick_guide_common_mistakes ||
+    qg.quick_guide_escalation_rules ||
+    qg.quick_guide_important_reminders
+  );
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="rounded-2xl border bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              {country && <span className="text-primary">{country}</span>}
+            <div className="flex items-center gap-2 mb-1">
+              {country && <Badge variant="secondary">{country}</Badge>}
+              <Badge variant="outline" className="text-xs capitalize">
+                {master.service_category.replace(/_/g, " ")}
+              </Badge>
             </div>
-            <h2 className="text-xl font-semibold">{master.service} · {master.sub_service}</h2>
+            <h2 className="text-xl font-semibold">{master.service}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">{master.sub_service}</p>
           </div>
-          <div className="flex gap-1">
-            <Button size="sm" variant="outline" onClick={async () => {
-              const ok = await copyToClipboard(shareLink);
-              toast({ title: ok ? "Link copied" : "Copy failed" });
-            }}><LinkIcon className="h-4 w-4 mr-1" />Copy link</Button>
-            <Button size="sm" variant="outline" onClick={() => {
-              const text = encodeURIComponent(`${master.service} · ${master.sub_service}\n${shareLink}`);
-              window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
-            }}><MessageCircle className="h-4 w-4 mr-1" />WhatsApp</Button>
+          <div className="flex gap-1 flex-shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={async () => {
+                const ok = await copyToClipboard(shareLink);
+                toast({ title: ok ? "Link copied" : "Copy failed" });
+              }}
+            >
+              <LinkIcon className="h-4 w-4 mr-1" />
+              Copy link
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const text = encodeURIComponent(`${master.service} · ${master.sub_service}
+${shareLink}`);
+                window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
+              }}
+            >
+              <MessageCircle className="h-4 w-4 mr-1" />
+              WhatsApp
+            </Button>
           </div>
         </div>
       </div>
 
-      {hasQG && (
-        <Panel title="Counselor Quick Guide" icon={<Sparkles className="h-4 w-4 text-amber-500" />} accent>
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              ["What to do", qg.quick_guide_what_to_do],
-              ["Common mistakes", qg.quick_guide_common_mistakes],
-              ["Escalation rules", qg.quick_guide_escalation_rules],
-              ["Important reminders", qg.quick_guide_important_reminders],
-            ].map(([label, val]) => (
-              <div key={label as string} className="rounded-lg bg-amber-50/60 border border-amber-200 p-3">
-                <div className="text-xs font-semibold uppercase text-amber-700">{label}</div>
-                {val ? (
-                  <div
-                    className="mt-1 text-sm prose prose-sm max-w-none prose-p:my-1"
-                    dangerouslySetInnerHTML={{ __html: val as string }}
-                  />
-                ) : (
-                  <div className="mt-1 text-sm">—</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
+      {/* Tabs */}
+      <Tabs defaultValue={hasQG ? "quickguide" : "checklist"}>
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-slate-100 p-1 rounded-xl w-full">
+          {hasQG && (
+            <TabsTrigger value="quickguide" className="flex items-center gap-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              Quick Guide
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="checklist" className="flex items-center gap-1">
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            Checklist
+          </TabsTrigger>
+          <TabsTrigger value="fees" className="flex items-center gap-1">
+            <Coins className="h-3.5 w-3.5" />
+            Fees &amp; Cost
+          </TabsTrigger>
+          <TabsTrigger value="process" className="flex items-center gap-1">
+            <ChevronRight className="h-3.5 w-3.5" />
+            Process Flow
+          </TabsTrigger>
+          {(resolved.internal_sop_html || sopRows.length > 0) && (
+            <TabsTrigger value="sop" className="flex items-center gap-1">
+              <BookOpen className="h-3.5 w-3.5" />
+              Internal SOP
+            </TabsTrigger>
+          )}
+          {fileRows.length > 0 && (
+            <TabsTrigger value="files" className="flex items-center gap-1">
+              <FileText className="h-3.5 w-3.5" />
+              Files
+            </TabsTrigger>
+          )}
+        </TabsList>
 
-      {subRows.length > 0 && (
-        <Panel title="Mandatory Submission Checklist" icon={<ClipboardCheck className="h-4 w-4" />}>
-          <div className="space-y-2">
-            {subRows.map((item) => {
-              const done = myCompletions.data?.has(item.id) ?? false;
-              return (
-                <label key={item.id} className="flex items-center gap-3 rounded-lg border p-2 cursor-pointer hover:bg-slate-50">
-                  <input type="checkbox" checked={done} onChange={() => toggleSub(item.id)} />
-                  <span className="text-sm">{item.item_label}</span>
-                  {item.is_mandatory && <Badge variant="outline" className="text-xs">Required</Badge>}
-                </label>
-              );
-            })}
-            <div className="text-xs text-muted-foreground">
-              {Array.from(myCompletions.data ?? []).filter((id) => subRows.some((s) => s.id === id)).length} / {subRows.length} done
+        {/* Quick Guide */}
+        {hasQG && (
+          <TabsContent value="quickguide" className="mt-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                ["What to do", qg.quick_guide_what_to_do],
+                ["Common mistakes", qg.quick_guide_common_mistakes],
+                ["Escalation rules", qg.quick_guide_escalation_rules],
+                ["Important reminders", qg.quick_guide_important_reminders],
+              ].map(([label, val]) => (
+                <div key={label as string} className="rounded-xl bg-amber-50/60 border border-amber-200 p-4">
+                  <div className="text-xs font-semibold uppercase text-amber-700 mb-2">{label}</div>
+                  {val ? (
+                    <div
+                      className="text-sm whitespace-pre-line prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: val as string }}
+                    />
+                  ) : (
+                    <div className="text-sm text-muted-foreground">—</div>
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-        </Panel>
-      )}
+          </TabsContent>
+        )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <Panel title="Checklist" icon={<FileText className="h-4 w-4" />}
+        {/* Checklist */}
+        <TabsContent value="checklist" className="mt-3 space-y-4">
+          {subRows.length > 0 && (
+            <Panel title="Submission checklist" icon={<ClipboardCheck className="h-4 w-4" />}>
+              <div className="space-y-2">
+                {subRows.map((item) => {
+                  const done = myCompletions.data?.has(item.id) ?? false;
+                  return (
+                    <label
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-lg border p-2 cursor-pointer hover:bg-slate-50"
+                    >
+                      <input type="checkbox" checked={done} onChange={() => toggleSub(item.id)} />
+                      <span className="text-sm">{item.item_label}</span>
+                      {item.is_mandatory && (
+                        <Badge variant="outline" className="text-xs ml-auto">
+                          Required
+                        </Badge>
+                      )}
+                    </label>
+                  );
+                })}
+                <div className="text-xs text-muted-foreground">
+                  {Array.from(myCompletions.data ?? []).filter((id) => subRows.some((s) => s.id === id)).length} /{" "}
+                  {subRows.length} done
+                </div>
+              </div>
+            </Panel>
+          )}
+          <Panel
+            title="Document checklist"
+            icon={<FileText className="h-4 w-4" />}
             action={
-              <Button size="sm" variant="ghost" onClick={async () => {
-                const ok = await copyToClipboard(resolved.checklist_text ?? "");
-                toast({ title: ok ? "Copied" : "Copy failed" });
-              }}><Copy className="h-4 w-4" /></Button>
-            }>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  const ok = await copyToClipboard(resolved.checklist_text ?? "");
+                  toast({ title: ok ? "Copied" : "Copy failed" });
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            }
+          >
             <div className="whitespace-pre-wrap text-sm leading-6 text-slate-700">
               {resolved.checklist_text || "No checklist text yet."}
             </div>
           </Panel>
+        </TabsContent>
 
-          <Panel title="Fees" icon={<Coins className="h-4 w-4" />}
+        {/* Fees & Cost */}
+        <TabsContent value="fees" className="mt-3 space-y-4">
+          <Panel
+            title="Fee items"
+            icon={<Coins className="h-4 w-4" />}
             action={
-              <Button size="sm" variant="ghost" onClick={async () => {
-                const ok = await copyToClipboard(feeItemsToTsv(feeRows));
-                toast({ title: ok ? "Table copied" : "Copy failed" });
-              }}><Copy className="h-4 w-4" /></Button>
-            }>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={async () => {
+                  const ok = await copyToClipboard(feeItemsToTsv(feeRows));
+                  toast({ title: ok ? "Table copied" : "Copy failed" });
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            }
+          >
             {feeRows.length === 0 ? (
               <div className="text-sm text-muted-foreground">No fee items.</div>
             ) : (
               <div className="space-y-2">
                 {feeRows.map((f) => (
-                  <div key={f.id} className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm">
-                    <span className="text-slate-600">{f.fee_label}{f.country && <Badge variant="outline" className="ml-2 text-xs">{f.country}</Badge>}</span>
-                    <span className="font-medium">{[f.currency, f.amount].filter(Boolean).join(" ") || f.notes || "—"}</span>
+                  <div
+                    key={f.id}
+                    className="flex items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm"
+                  >
+                    <span className="text-slate-600">
+                      {f.fee_label}
+                      {f.country && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          {f.country}
+                        </Badge>
+                      )}
+                    </span>
+                    <span className="font-medium">
+                      {[f.currency, f.amount].filter(Boolean).join(" ") || f.notes || "—"}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
           </Panel>
-
-          <Panel title="Complete Cost Summary" icon={<Coins className="h-4 w-4 text-emerald-600" />}>
+          <Panel title="Complete cost summary" icon={<Coins className="h-4 w-4 text-emerald-600" />}>
             {resolved.cost_summary_html ? (
               <>
-                <div className="prose prose-sm max-w-none rounded-lg bg-slate-50 p-3 text-sm"
-                  dangerouslySetInnerHTML={{ __html: resolved.cost_summary_html }} />
+                <div
+                  className="prose prose-sm max-w-none rounded-lg bg-slate-50 p-3 text-sm"
+                  dangerouslySetInnerHTML={{ __html: resolved.cost_summary_html }}
+                />
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    const ok = await copyToClipboard(htmlToPlain(resolved.cost_summary_html));
-                    toast({ title: ok ? "Copied" : "Copy failed" });
-                  }}><Copy className="h-4 w-4 mr-1" />Copy Cost Summary</Button>
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    const ok = await copyToClipboard(htmlToWhatsApp(resolved.cost_summary_html));
-                    toast({ title: ok ? "WhatsApp version copied" : "Copy failed" });
-                  }}><MessageCircle className="h-4 w-4 mr-1" />Copy WhatsApp Version</Button>
-                  <Button size="sm" variant="outline" onClick={async () => {
-                    const ok = await copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html));
-                    toast({ title: ok ? "Email version copied" : "Copy failed" });
-                  }}><Mail className="h-4 w-4 mr-1" />Copy Email Version</Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      const ok = await copyToClipboard(htmlToPlain(resolved.cost_summary_html));
+                      toast({ title: ok ? "Copied" : "Copy failed" });
+                    }}
+                  >
+                    <Copy className="h-4 w-4 mr-1" />
+                    Copy Cost Summary
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      const ok = await copyToClipboard(htmlToWhatsApp(resolved.cost_summary_html));
+                      toast({ title: ok ? "WhatsApp version copied" : "Copy failed" });
+                    }}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-1" />
+                    Copy WhatsApp
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={async () => {
+                      const ok = await copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html));
+                      toast({ title: ok ? "Email version copied" : "Copy failed" });
+                    }}
+                  >
+                    <Mail className="h-4 w-4 mr-1" />
+                    Copy Email
+                  </Button>
                 </div>
               </>
             ) : (
               <div className="text-sm text-muted-foreground">No cost summary yet.</div>
             )}
           </Panel>
+        </TabsContent>
 
-          {processFlow.length > 0 && (
-            <Panel title="Client Process Flow" icon={<ChevronRight className="h-4 w-4" />}>
-              <div className="flex flex-wrap items-center gap-2">
+        {/* Process Flow */}
+        <TabsContent value="process" className="mt-3">
+          <Panel title="Client process flow" icon={<ChevronRight className="h-4 w-4" />}>
+            {processFlow.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No process steps yet.</div>
+            ) : (
+              <div className="flex flex-col">
                 {processFlow.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="rounded-lg border bg-white px-3 py-1.5 text-sm">{i + 1}. {s}</div>
-                    {i < processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold flex-shrink-0">
+                        {i + 1}
+                      </div>
+                      {i < processFlow.length - 1 && <div className="w-px flex-1 bg-border my-1" />}
+                    </div>
+                    <div className="pb-4 pt-1 text-sm">{s}</div>
                   </div>
                 ))}
               </div>
-            </Panel>
-          )}
+            )}
+          </Panel>
+        </TabsContent>
 
-          {(resolved.internal_sop_html || sopRows.length > 0) && (
-            <Panel title="Internal SOP" icon={<BookOpen className="h-4 w-4" />}>
+        {/* Internal SOP */}
+        {(resolved.internal_sop_html || sopRows.length > 0) && (
+          <TabsContent value="sop" className="mt-3">
+            <Panel title="Internal SOP (counselors only)" icon={<BookOpen className="h-4 w-4" />}>
               {resolved.internal_sop_html && (
-                <div className="prose prose-sm max-w-none mb-3"
-                  dangerouslySetInnerHTML={{ __html: resolved.internal_sop_html }} />
+                <div
+                  className="prose prose-sm max-w-none mb-4 rounded-lg bg-amber-50/40 border border-amber-200 p-3"
+                  dangerouslySetInnerHTML={{ __html: resolved.internal_sop_html }}
+                />
               )}
               {sopRows.length > 0 && (
                 <div className="space-y-1">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">SOP tasks</div>
                   {sopRows.map((t) => {
                     const done = mySopDone.data?.has(t.id) ?? false;
                     return (
-                      <label key={t.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <label
+                        key={t.id}
+                        className="flex items-center gap-2 text-sm cursor-pointer rounded-lg hover:bg-slate-50 p-1.5"
+                      >
                         <input type="checkbox" checked={done} onChange={() => toggleSop(t.id)} />
                         <span className={done ? "line-through text-muted-foreground" : ""}>{t.task_text}</span>
                       </label>
@@ -549,28 +731,31 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
                 </div>
               )}
             </Panel>
-          )}
-        </div>
+          </TabsContent>
+        )}
 
-        <aside className="space-y-4">
-          <Panel title="Checklist files" icon={<FileText className="h-4 w-4" />}>
-            {fileRows.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No files.</div>
-            ) : (
+        {/* Files */}
+        {fileRows.length > 0 && (
+          <TabsContent value="files" className="mt-3 space-y-4">
+            <Panel title="Checklist files" icon={<FileText className="h-4 w-4" />}>
               <div className="space-y-2">
-                {fileRows.map((f) => <FileLink key={f.id} f={f} />)}
-              </div>
-            )}
-          </Panel>
-          {attRows.length > 0 && (
-            <Panel title="Other attachments" icon={<FileText className="h-4 w-4" />}>
-              <div className="space-y-2">
-                {attRows.map((a) => <AttachLink key={a.id} a={a} />)}
+                {fileRows.map((f) => (
+                  <FileLink key={f.id} f={f} />
+                ))}
               </div>
             </Panel>
-          )}
-        </aside>
-      </div>
+            {attRows.length > 0 && (
+              <Panel title="Other attachments" icon={<FileText className="h-4 w-4" />}>
+                <div className="space-y-2">
+                  {attRows.map((a) => (
+                    <AttachLink key={a.id} a={a} />
+                  ))}
+                </div>
+              </Panel>
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
@@ -584,10 +769,15 @@ function FileLink({ f }: { f: ChecklistFile }) {
     if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
   };
   return (
-    <button onClick={open} className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+    <button
+      onClick={open}
+      className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+    >
       <div className="min-w-0 text-left">
         <div className="truncate font-medium">{f.file_name}</div>
-        <div className="text-xs text-muted-foreground">v{f.version} · {new Date(f.uploaded_at).toLocaleDateString()}</div>
+        <div className="text-xs text-muted-foreground">
+          v{f.version} · {new Date(f.uploaded_at).toLocaleDateString()}
+        </div>
       </div>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
     </button>
@@ -602,7 +792,10 @@ function AttachLink({ a }: { a: Attachment }) {
     if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
   };
   return (
-    <button onClick={open} className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50">
+    <button
+      onClick={open}
+      className="flex w-full items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm hover:bg-slate-50"
+    >
       <div className="min-w-0 text-left">
         <div className="truncate font-medium">{a.label || a.file_name}</div>
         <div className="truncate text-xs text-muted-foreground">{a.file_name}</div>
@@ -612,11 +805,26 @@ function AttachLink({ a }: { a: Attachment }) {
   );
 }
 
-function Panel({ title, icon, children, action, accent }: { title: string; icon: ReactNode; children: ReactNode; action?: ReactNode; accent?: boolean }) {
+function Panel({
+  title,
+  icon,
+  children,
+  action,
+  accent,
+}: {
+  title: string;
+  icon: ReactNode;
+  children: ReactNode;
+  action?: ReactNode;
+  accent?: boolean;
+}) {
   return (
     <div className={`rounded-2xl border p-4 shadow-sm ${accent ? "bg-amber-50/30 border-amber-200" : "bg-white"}`}>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 font-semibold">{icon}{title}</div>
+        <div className="flex items-center gap-2 font-semibold">
+          {icon}
+          {title}
+        </div>
         {action}
       </div>
       {children}
@@ -624,11 +832,31 @@ function Panel({ title, icon, children, action, accent }: { title: string; icon:
   );
 }
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <div className="mb-3"><div className="mb-1 text-sm font-medium text-slate-700">{label}</div>{children}</div>;
+  return (
+    <div className="mb-3">
+      <div className="mb-1 text-sm font-medium text-slate-700">{label}</div>
+      {children}
+    </div>
+  );
 }
-function FilterSelect({ label, value, onChange, options, labelOf, placeholder, disabled, hidden }: {
-  label: string; value: string; onChange: (v: string) => void; options: string[];
-  labelOf?: (v: string) => string; placeholder?: string; disabled?: boolean; hidden?: boolean;
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+  labelOf,
+  placeholder,
+  disabled,
+  hidden,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  labelOf?: (v: string) => string;
+  placeholder?: string;
+  disabled?: boolean;
+  hidden?: boolean;
 }) {
   if (hidden) return null;
   return (
@@ -640,7 +868,11 @@ function FilterSelect({ label, value, onChange, options, labelOf, placeholder, d
         onChange={(e) => onChange(e.target.value)}
       >
         <option value="">{placeholder ?? "All"}</option>
-        {options.map((o) => <option key={o} value={o}>{labelOf ? labelOf(o) : o}</option>)}
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {labelOf ? labelOf(o) : o}
+          </option>
+        ))}
       </select>
     </Field>
   );

@@ -272,12 +272,18 @@ export default function AccountingPettyCashDetailPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Branch balance</CardTitle></CardHeader>
               <CardContent className="text-sm space-y-2">
-                <div className="flex justify-between"><span className="text-muted-foreground">Opening</span><span className="font-mono">{formatCurrency(branch.openingFloat, "INR")}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Current</span><span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span></div>
-                <Separator />
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/accounting/petty-cash/audit?branch=${branch.id}`)}>
-                  <Wallet className="size-3.5 mr-1.5" /> Branch activity
-                </Button>
+                {branch ? (
+                  <>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Opening</span><span className="font-mono">{formatCurrency(branch.openingFloat, "INR")}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Current</span><span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span></div>
+                    <Separator />
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/accounting/petty-cash/audit?branch=${branch.id}`)}>
+                      <Wallet className="size-3.5 mr-1.5" /> Branch activity
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-muted-foreground">Branch not linked — check Settings → Entities.</div>
+                )}
               </CardContent>
             </Card>
           </div>
