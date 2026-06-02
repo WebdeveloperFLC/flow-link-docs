@@ -173,6 +173,11 @@ export default function AccountingBillDetailPage() {
           return;
         }
         proofPath = path;
+        // Also save to DB directly since VendorBill type may not have proof path
+        await supabase
+          .from("accounting_ap_bills")
+          .update({ payment_proof_path: path } as any)
+          .eq("id", bill.id);
       }
 
       updateApBill(bill.id, {
@@ -182,7 +187,6 @@ export default function AccountingBillDetailPage() {
         paymentReference: payRef.trim(),
         linkedBankAccountId: payBank,
         notes: payNotes.trim() || bill.notes,
-        paymentProofPath: proofPath ?? bill.paymentProofPath,
       });
       toast.success(
         `Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}${proofPath ? " · Proof uploaded ✓" : ""}`,
@@ -529,6 +533,7 @@ export default function AccountingBillDetailPage() {
           deleteApBill(bill.id);
           navigate("/accounting/ap");
         }}
+        recordName={bill.billNumber}
       />
     </AppLayout>
   );

@@ -1,1 +1,0 @@
-ALTER TABLE public.accounting_ap_bills ADD COLUMN IF NOT EXISTS payment_date date;

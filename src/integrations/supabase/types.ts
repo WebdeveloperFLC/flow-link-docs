@@ -49,121 +49,76 @@ export type Database = {
       }
       accounting_ap_bills: {
         Row: {
-          approved_by: string | null
           bill_date: string
           bill_number: string
-          branch: string | null
-          branch_country: string | null
           created_at: string
           created_by: string | null
           currency: string | null
-          department: string | null
-          description: string | null
           due_date: string | null
           entity: string | null
           id: string
           journal_id: string | null
-          linked_bank_account_id: string | null
-          linked_coa_code: string | null
-          linked_expense_coa_code: string | null
           notes: string | null
           outstanding: number | null
           paid_amount: number | null
-          payment_date: string | null
           payment_method: string | null
-          payment_proof_path: string | null
           payment_terms: string | null
           reference: string | null
           status: string | null
           subtotal: number | null
-          tags: string[] | null
           tax_amount: number | null
-          tax_code: string | null
           total_amount: number | null
           updated_at: string
-          vendor_category: string | null
-          vendor_email: string | null
           vendor_id: string | null
           vendor_name: string
-          vendor_phone: string | null
         }
         Insert: {
-          approved_by?: string | null
           bill_date: string
           bill_number: string
-          branch?: string | null
-          branch_country?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
-          department?: string | null
-          description?: string | null
           due_date?: string | null
           entity?: string | null
           id?: string
           journal_id?: string | null
-          linked_bank_account_id?: string | null
-          linked_coa_code?: string | null
-          linked_expense_coa_code?: string | null
           notes?: string | null
           outstanding?: number | null
           paid_amount?: number | null
-          payment_date?: string | null
           payment_method?: string | null
-          payment_proof_path?: string | null
           payment_terms?: string | null
           reference?: string | null
           status?: string | null
           subtotal?: number | null
-          tags?: string[] | null
           tax_amount?: number | null
-          tax_code?: string | null
           total_amount?: number | null
           updated_at?: string
-          vendor_category?: string | null
-          vendor_email?: string | null
           vendor_id?: string | null
           vendor_name: string
-          vendor_phone?: string | null
         }
         Update: {
-          approved_by?: string | null
           bill_date?: string
           bill_number?: string
-          branch?: string | null
-          branch_country?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string | null
-          department?: string | null
-          description?: string | null
           due_date?: string | null
           entity?: string | null
           id?: string
           journal_id?: string | null
-          linked_bank_account_id?: string | null
-          linked_coa_code?: string | null
-          linked_expense_coa_code?: string | null
           notes?: string | null
           outstanding?: number | null
           paid_amount?: number | null
-          payment_date?: string | null
           payment_method?: string | null
-          payment_proof_path?: string | null
           payment_terms?: string | null
           reference?: string | null
           status?: string | null
           subtotal?: number | null
-          tags?: string[] | null
           tax_amount?: number | null
-          tax_code?: string | null
           total_amount?: number | null
           updated_at?: string
-          vendor_category?: string | null
-          vendor_email?: string | null
           vendor_id?: string | null
           vendor_name?: string
-          vendor_phone?: string | null
         }
         Relationships: [
           {
