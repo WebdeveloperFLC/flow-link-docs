@@ -354,7 +354,7 @@ export default function AccountingBillDetailPage() {
 
       {/* ── Payment confirmation dialog ─────────────────────────────── */}
       <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Record payment</DialogTitle>
             <DialogDescription>
