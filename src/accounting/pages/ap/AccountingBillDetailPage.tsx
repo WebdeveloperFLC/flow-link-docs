@@ -121,7 +121,7 @@ export default function AccountingBillDetailPage() {
     setShowPayDialog(true);
   };
 
-  const confirmPayment = () => {
+  const confirmPayment = async () => {
     if (!payDate) {
       toast.error("Payment date is required");
       return;
