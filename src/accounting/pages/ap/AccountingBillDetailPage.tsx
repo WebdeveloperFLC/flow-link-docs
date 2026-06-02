@@ -533,7 +533,6 @@ export default function AccountingBillDetailPage() {
           deleteApBill(bill.id);
           navigate("/accounting/ap");
         }}
-        recordName={bill.billNumber}
       />
     </AppLayout>
   );
