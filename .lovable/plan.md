@@ -1,27 +1,34 @@
-## Problem
+# Fix: payment proof and payment date not visible after reload
 
-The "Copy Email Version" button currently pastes raw HTML markup (e.g. `<p><strong>Government / Third-party Costs:</strong> ...</p>`) into Gmail/Outlook instead of formatted rich text. This happens because `copyToClipboard` writes only `text/plain`, and `htmlToEmail` returns the HTML string as-is — so the recipient app pastes it verbatim.
+## Root cause
 
-## Fix
+In `AccountingBillDetailPage.confirmPayment` (src/accounting/pages/ap/AccountingBillDetailPage.tsx) the flow is:
 
-Write the cost summary to the clipboard as **both** `text/html` and `text/plain` using the async Clipboard API's `ClipboardItem`. Email clients will then consume the `text/html` flavor and render bold/lists/paragraphs as formatted text. WhatsApp and Cost Summary buttons stay unchanged (they intentionally copy plain text).
+1. Upload proof → write `payment_proof_path` to DB with a direct `supabase.update`.
+2. Call `updateApBill(bill.id, { status: "PAID", paymentDate, paymentMethod, paymentReference, linkedBankAccountId, notes })` — **without** `paymentProofPath`.
 
-### Changes
+`updateApBill` then runs `mapToDb(next)` and `UPDATE accounting_ap_bills SET ...`. Because `next.paymentProofPath` is undefined, `mapToDb` writes `payment_proof_path: null`, **overwriting the path we just saved**. The local bill object also never gets `paymentProofPath`, so the page shows "Not uploaded".
 
-1. `src/lib/serviceLibrary.ts`
-   - Add a new helper `copyHtmlToClipboard(html: string)` that:
-     - Uses `navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': plainBlob })])` where the plain flavor is generated via existing `htmlToPlain`.
-     - Falls back to `navigator.clipboard.writeText(htmlToPlain(html))` if `ClipboardItem`/`clipboard.write` is unavailable, so the user still gets readable text rather than a failure.
-   - Leave `htmlToEmail`, `htmlToPlain`, `htmlToWhatsApp`, and `copyToClipboard` untouched (other callers depend on them).
+Separately, `payment_date` is not a column on `accounting_ap_bills` at all. `mapToDb` doesn't send it and `mergeFromDb` keeps `paymentDate: local?.paymentDate`. The "older" bill still shows the date only because it sits in `localStorage`; the new bill rendered after hydration loses it and shows "Paid on undefined". The "Bank used" UUID instead of nickname is the same symptom (bankAccounts store hadn't hydrated yet when rendered — but once paymentDate persists, a refresh will resolve it).
 
-2. `src/pages/ServiceLibrary.tsx` (lines 496–499, Copy Email Version button only)
-   - Replace `copyToClipboard(htmlToEmail(resolved.cost_summary_html))` with `copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html))`.
-   - Import `copyHtmlToClipboard` from `@/lib/serviceLibrary`.
+## Changes
 
-No other buttons, panels, data, or styling change.
+### 1. `src/accounting/pages/ap/AccountingBillDetailPage.tsx`
+- In `confirmPayment`, include `paymentProofPath: proofPath` in the `updateApBill` patch.
+- Remove the now-redundant direct `supabase.from("accounting_ap_bills").update({ payment_proof_path })` call — the store handles it via `mapToDb`.
 
-## Verification
+### 2. New migration: add `payment_date` column
+```sql
+ALTER TABLE public.accounting_ap_bills
+  ADD COLUMN IF NOT EXISTS payment_date date;
+```
+(No new grants/policies needed — table already has them.)
 
-- Click Copy Email Version on a Canada — Study Permit record, paste into Gmail compose → bold/paragraph formatting renders, no visible `<p>`/`<strong>` tags.
-- Paste into a plain-text field (e.g. terminal) → readable plain text without HTML tags.
-- Copy Cost Summary and Copy WhatsApp Version still produce their existing plain-text output.
+### 3. `src/accounting/stores/apBillsStore.ts`
+- `mapToDb`: add `payment_date: b.paymentDate || null`.
+- `mergeFromDb`: prefer `row.payment_date` over `local?.paymentDate`.
+
+## Out of scope
+
+- The "Bank used shows UUID" display is a transient hydration race; it resolves on its own once bankAccounts load. No change unless it persists after the above fixes.
+- Existing bills already saved with `payment_proof_path = null` from the broken flow cannot be recovered; user will need to re-mark them as paid (or we can leave their proofs as-is — the original upload likely still sits in storage under `payment-proofs/<user>/<bill-id>-*`, but reconnecting it is a manual step we won't automate here).
