@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES,
   ALLOWED_COUNTRY_SET,
@@ -437,17 +438,20 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="rounded-2xl border bg-white p-5 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">
-              {country && <span className="text-primary">{country}</span>}
+            <div className="flex items-center gap-2 mb-1">
+              {country && <Badge variant="secondary">{country}</Badge>}
+              <Badge variant="outline" className="text-xs capitalize">
+                {master.service_category.replace(/_/g, " ")}
+              </Badge>
             </div>
-            <h2 className="text-xl font-semibold">
-              {master.service} · {master.sub_service}
-            </h2>
+            <h2 className="text-xl font-semibold">{master.service}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">{master.sub_service}</p>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-shrink-0">
             <Button
               size="sm"
               variant="outline"
@@ -463,7 +467,8 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
               size="sm"
               variant="outline"
               onClick={() => {
-                const text = encodeURIComponent(`${master.service} · ${master.sub_service}\n${shareLink}`);
+                const text = encodeURIComponent(`${master.service} · ${master.sub_service}
+${shareLink}`);
                 window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
               }}
             >
@@ -474,63 +479,98 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
         </div>
       </div>
 
-      {hasQG && (
-        <Panel title="Counselor Quick Guide" icon={<Sparkles className="h-4 w-4 text-amber-500" />} accent>
-          <div className="grid gap-3 md:grid-cols-2">
-            {[
-              ["What to do", qg.quick_guide_what_to_do],
-              ["Common mistakes", qg.quick_guide_common_mistakes],
-              ["Escalation rules", qg.quick_guide_escalation_rules],
-              ["Important reminders", qg.quick_guide_important_reminders],
-            ].map(([label, val]) => (
-              <div key={label as string} className="rounded-lg bg-amber-50/60 border border-amber-200 p-3">
-                <div className="text-xs font-semibold uppercase text-amber-700">{label}</div>
-                {val ? (
-                  <div
-                    className="mt-1 text-sm prose prose-sm max-w-none prose-p:my-1"
-                    dangerouslySetInnerHTML={{ __html: val as string }}
-                  />
-                ) : (
-                  <div className="mt-1 text-sm">—</div>
-                )}
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
+      {/* Tabs */}
+      <Tabs defaultValue={hasQG ? "quickguide" : "checklist"}>
+        <TabsList className="flex flex-wrap h-auto gap-1 bg-slate-100 p-1 rounded-xl w-full">
+          {hasQG && (
+            <TabsTrigger value="quickguide" className="flex items-center gap-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              Quick Guide
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="checklist" className="flex items-center gap-1">
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            Checklist
+          </TabsTrigger>
+          <TabsTrigger value="fees" className="flex items-center gap-1">
+            <Coins className="h-3.5 w-3.5" />
+            Fees &amp; Cost
+          </TabsTrigger>
+          <TabsTrigger value="process" className="flex items-center gap-1">
+            <ChevronRight className="h-3.5 w-3.5" />
+            Process Flow
+          </TabsTrigger>
+          {(resolved.internal_sop_html || sopRows.length > 0) && (
+            <TabsTrigger value="sop" className="flex items-center gap-1">
+              <BookOpen className="h-3.5 w-3.5" />
+              Internal SOP
+            </TabsTrigger>
+          )}
+          {fileRows.length > 0 && (
+            <TabsTrigger value="files" className="flex items-center gap-1">
+              <FileText className="h-3.5 w-3.5" />
+              Files
+            </TabsTrigger>
+          )}
+        </TabsList>
 
-      {subRows.length > 0 && (
-        <Panel title="Mandatory Submission Checklist" icon={<ClipboardCheck className="h-4 w-4" />}>
-          <div className="space-y-2">
-            {subRows.map((item) => {
-              const done = myCompletions.data?.has(item.id) ?? false;
-              return (
-                <label
-                  key={item.id}
-                  className="flex items-center gap-3 rounded-lg border p-2 cursor-pointer hover:bg-slate-50"
-                >
-                  <input type="checkbox" checked={done} onChange={() => toggleSub(item.id)} />
-                  <span className="text-sm">{item.item_label}</span>
-                  {item.is_mandatory && (
-                    <Badge variant="outline" className="text-xs">
-                      Required
-                    </Badge>
+        {/* Quick Guide */}
+        {hasQG && (
+          <TabsContent value="quickguide" className="mt-3">
+            <div className="grid gap-3 md:grid-cols-2">
+              {[
+                ["What to do", qg.quick_guide_what_to_do],
+                ["Common mistakes", qg.quick_guide_common_mistakes],
+                ["Escalation rules", qg.quick_guide_escalation_rules],
+                ["Important reminders", qg.quick_guide_important_reminders],
+              ].map(([label, val]) => (
+                <div key={label as string} className="rounded-xl bg-amber-50/60 border border-amber-200 p-4">
+                  <div className="text-xs font-semibold uppercase text-amber-700 mb-2">{label}</div>
+                  {val ? (
+                    <div
+                      className="text-sm whitespace-pre-line prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: val as string }}
+                    />
+                  ) : (
+                    <div className="text-sm text-muted-foreground">—</div>
                   )}
-                </label>
-              );
-            })}
-            <div className="text-xs text-muted-foreground">
-              {Array.from(myCompletions.data ?? []).filter((id) => subRows.some((s) => s.id === id)).length} /{" "}
-              {subRows.length} done
+                </div>
+              ))}
             </div>
-          </div>
-        </Panel>
-      )}
+          </TabsContent>
+        )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
+        {/* Checklist */}
+        <TabsContent value="checklist" className="mt-3 space-y-4">
+          {subRows.length > 0 && (
+            <Panel title="Submission checklist" icon={<ClipboardCheck className="h-4 w-4" />}>
+              <div className="space-y-2">
+                {subRows.map((item) => {
+                  const done = myCompletions.data?.has(item.id) ?? false;
+                  return (
+                    <label
+                      key={item.id}
+                      className="flex items-center gap-3 rounded-lg border p-2 cursor-pointer hover:bg-slate-50"
+                    >
+                      <input type="checkbox" checked={done} onChange={() => toggleSub(item.id)} />
+                      <span className="text-sm">{item.item_label}</span>
+                      {item.is_mandatory && (
+                        <Badge variant="outline" className="text-xs ml-auto">
+                          Required
+                        </Badge>
+                      )}
+                    </label>
+                  );
+                })}
+                <div className="text-xs text-muted-foreground">
+                  {Array.from(myCompletions.data ?? []).filter((id) => subRows.some((s) => s.id === id)).length} /{" "}
+                  {subRows.length} done
+                </div>
+              </div>
+            </Panel>
+          )}
           <Panel
-            title="Checklist"
+            title="Document checklist"
             icon={<FileText className="h-4 w-4" />}
             action={
               <Button
@@ -549,9 +589,12 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
               {resolved.checklist_text || "No checklist text yet."}
             </div>
           </Panel>
+        </TabsContent>
 
+        {/* Fees & Cost */}
+        <TabsContent value="fees" className="mt-3 space-y-4">
           <Panel
-            title="Fees"
+            title="Fee items"
             icon={<Coins className="h-4 w-4" />}
             action={
               <Button
@@ -591,8 +634,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
               </div>
             )}
           </Panel>
-
-          <Panel title="Complete Cost Summary" icon={<Coins className="h-4 w-4 text-emerald-600" />}>
+          <Panel title="Complete cost summary" icon={<Coins className="h-4 w-4 text-emerald-600" />}>
             {resolved.cost_summary_html ? (
               <>
                 <div
@@ -620,7 +662,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
                     }}
                   >
                     <MessageCircle className="h-4 w-4 mr-1" />
-                    Copy WhatsApp Version
+                    Copy WhatsApp
                   </Button>
                   <Button
                     size="sm"
@@ -631,7 +673,7 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
                     }}
                   >
                     <Mail className="h-4 w-4 mr-1" />
-                    Copy Email Version
+                    Copy Email
                   </Button>
                 </div>
               </>
@@ -639,36 +681,51 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
               <div className="text-sm text-muted-foreground">No cost summary yet.</div>
             )}
           </Panel>
+        </TabsContent>
 
-          {processFlow.length > 0 && (
-            <Panel title="Client Process Flow" icon={<ChevronRight className="h-4 w-4" />}>
-              <div className="flex flex-wrap items-center gap-2">
+        {/* Process Flow */}
+        <TabsContent value="process" className="mt-3">
+          <Panel title="Client process flow" icon={<ChevronRight className="h-4 w-4" />}>
+            {processFlow.length === 0 ? (
+              <div className="text-sm text-muted-foreground">No process steps yet.</div>
+            ) : (
+              <div className="flex flex-col">
                 {processFlow.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="rounded-lg border bg-white px-3 py-1.5 text-sm">
-                      {i + 1}. {s}
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-semibold flex-shrink-0">
+                        {i + 1}
+                      </div>
+                      {i < processFlow.length - 1 && <div className="w-px flex-1 bg-border my-1" />}
                     </div>
-                    {i < processFlow.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
+                    <div className="pb-4 pt-1 text-sm">{s}</div>
                   </div>
                 ))}
               </div>
-            </Panel>
-          )}
+            )}
+          </Panel>
+        </TabsContent>
 
-          {(resolved.internal_sop_html || sopRows.length > 0) && (
-            <Panel title="Internal SOP" icon={<BookOpen className="h-4 w-4" />}>
+        {/* Internal SOP */}
+        {(resolved.internal_sop_html || sopRows.length > 0) && (
+          <TabsContent value="sop" className="mt-3">
+            <Panel title="Internal SOP (counselors only)" icon={<BookOpen className="h-4 w-4" />}>
               {resolved.internal_sop_html && (
                 <div
-                  className="prose prose-sm max-w-none mb-3"
+                  className="prose prose-sm max-w-none mb-4 rounded-lg bg-amber-50/40 border border-amber-200 p-3"
                   dangerouslySetInnerHTML={{ __html: resolved.internal_sop_html }}
                 />
               )}
               {sopRows.length > 0 && (
                 <div className="space-y-1">
+                  <div className="text-xs font-semibold text-muted-foreground uppercase mb-2">SOP tasks</div>
                   {sopRows.map((t) => {
                     const done = mySopDone.data?.has(t.id) ?? false;
                     return (
-                      <label key={t.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <label
+                        key={t.id}
+                        className="flex items-center gap-2 text-sm cursor-pointer rounded-lg hover:bg-slate-50 p-1.5"
+                      >
                         <input type="checkbox" checked={done} onChange={() => toggleSop(t.id)} />
                         <span className={done ? "line-through text-muted-foreground" : ""}>{t.task_text}</span>
                       </label>
@@ -677,32 +734,31 @@ function RecordDetail({ master, country }: { master: Master; country: string | n
                 </div>
               )}
             </Panel>
-          )}
-        </div>
+          </TabsContent>
+        )}
 
-        <aside className="space-y-4">
-          <Panel title="Checklist files" icon={<FileText className="h-4 w-4" />}>
-            {fileRows.length === 0 ? (
-              <div className="text-sm text-muted-foreground">No files.</div>
-            ) : (
+        {/* Files */}
+        {fileRows.length > 0 && (
+          <TabsContent value="files" className="mt-3 space-y-4">
+            <Panel title="Checklist files" icon={<FileText className="h-4 w-4" />}>
               <div className="space-y-2">
                 {fileRows.map((f) => (
                   <FileLink key={f.id} f={f} />
                 ))}
               </div>
-            )}
-          </Panel>
-          {attRows.length > 0 && (
-            <Panel title="Other attachments" icon={<FileText className="h-4 w-4" />}>
-              <div className="space-y-2">
-                {attRows.map((a) => (
-                  <AttachLink key={a.id} a={a} />
-                ))}
-              </div>
             </Panel>
-          )}
-        </aside>
-      </div>
+            {attRows.length > 0 && (
+              <Panel title="Other attachments" icon={<FileText className="h-4 w-4" />}>
+                <div className="space-y-2">
+                  {attRows.map((a) => (
+                    <AttachLink key={a.id} a={a} />
+                  ))}
+                </div>
+              </Panel>
+            )}
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }
