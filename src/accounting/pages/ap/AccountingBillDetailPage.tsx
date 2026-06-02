@@ -110,6 +110,18 @@ export default function AccountingBillDetailPage() {
           }
         : { tone: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400", text: `Due in ${due} days` };
 
+  const viewProof = async () => {
+    if (!bill.paymentProofPath) return;
+    const { data, error } = await supabase.storage
+      .from("accounting-documents")
+      .createSignedUrl(bill.paymentProofPath, 60); // 60 second expiry
+    if (error || !data?.signedUrl) {
+      toast.error("Could not load proof file");
+      return;
+    }
+    window.open(data.signedUrl, "_blank");
+  };
+
   const openPayDialog = () => {
     // Pre-fill bank with the one already linked to the bill
     setPayDate(new Date().toISOString().slice(0, 10));
@@ -248,6 +260,11 @@ export default function AccountingBillDetailPage() {
                     View payment journal
                   </Button>
                 )}
+                {bill.status === "PAID" && bill.paymentProofPath && (
+                  <Button variant="outline" size="sm" onClick={viewProof}>
+                    📎 View payment proof
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="text-destructive hover:text-destructive"
@@ -281,6 +298,20 @@ export default function AccountingBillDetailPage() {
             {bill.status === "PAID" && <Row label="Payment date" v={bill.paymentDate ?? "—"} />}
             {bill.status === "PAID" && <Row label="Payment method" v={bill.paymentMethod ?? "—"} />}
             {bill.status === "PAID" && <Row label="Bank used" v={bank?.nickname ?? bill.linkedBankAccountId ?? "—"} />}
+            {bill.status === "PAID" && (
+              <Row
+                label="Payment proof"
+                v={
+                  bill.paymentProofPath ? (
+                    <button onClick={viewProof} className="text-primary underline text-sm">
+                      View uploaded proof →
+                    </button>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Not uploaded</span>
+                  )
+                }
+              />
+            )}
           </CardContent>
         </Card>
 
