@@ -1,10 +1,21 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { ArrowLeft, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
@@ -12,20 +23,47 @@ import DeleteRecordDialog from "../../components/shared/DeleteRecordDialog";
 import { fmtMoney } from "../../components/ap-ar/money";
 import { EXPENSE_CATEGORY_LABELS } from "../../data/mockAP";
 import { useApBills, updateApBill, deleteApBill } from "../../stores/apBillsStore";
-import { SEED_BANK_ACCOUNTS } from "../../data/mockBankAccounts";
+import { useBankAccounts } from "../../stores/bankAccountsStore";
 
 const TODAY = new Date();
 TODAY.setHours(0, 0, 0, 0); // always today
+
+const PAYMENT_METHODS = [
+  { value: "BANK_TRANSFER", label: "Bank transfer" },
+  { value: "CHEQUE", label: "Cheque" },
+  { value: "WIRE", label: "Wire transfer" },
+  { value: "CREDIT_CARD", label: "Credit card" },
+  { value: "UPI", label: "UPI" },
+  { value: "CASH", label: "Cash" },
+  { value: "OTHER", label: "Other" },
+];
 
 export default function AccountingBillDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const bills = useApBills();
+  const bankAccounts = useBankAccounts();
   const bill = bills.find((b) => b.id === id);
   const [showDelete, setShowDelete] = useState(false);
+
+  // Payment dialog state
+  const [showPayDialog, setShowPayDialog] = useState(false);
+  const [payDate, setPayDate] = useState(new Date().toISOString().slice(0, 10));
+  const [payBank, setPayBank] = useState("");
+  const [payMethod, setPayMethod] = useState("");
+  const [payRef, setPayRef] = useState("");
+  const [payNotes, setPayNotes] = useState("");
+  const [payBusy, setPayBusy] = useState(false);
+
   const bank = useMemo(
-    () => (bill?.linkedBankAccountId ? SEED_BANK_ACCOUNTS.find((b) => b.id === bill.linkedBankAccountId) : null),
-    [bill],
+    () => (bill?.linkedBankAccountId ? bankAccounts.find((b) => b.id === bill.linkedBankAccountId) : null),
+    [bill, bankAccounts],
+  );
+
+  // Filter bank accounts to match the bill's currency
+  const eligibleBanks = useMemo(
+    () => bankAccounts.filter((b) => b.status === "ACTIVE" && (!bill?.currency || b.currency === bill.currency)),
+    [bankAccounts, bill?.currency],
   );
 
   if (!bill)
@@ -60,6 +98,51 @@ export default function AccountingBillDetailPage() {
           }
         : { tone: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400", text: `Due in ${due} days` };
 
+  const openPayDialog = () => {
+    // Pre-fill bank with the one already linked to the bill
+    setPayDate(new Date().toISOString().slice(0, 10));
+    setPayBank(bill.linkedBankAccountId ?? eligibleBanks[0]?.id ?? "");
+    setPayMethod("BANK_TRANSFER");
+    setPayRef("");
+    setPayNotes("");
+    setShowPayDialog(true);
+  };
+
+  const confirmPayment = () => {
+    if (!payDate) {
+      toast.error("Payment date is required");
+      return;
+    }
+    if (!payBank) {
+      toast.error("Please select the bank account used for payment");
+      return;
+    }
+    if (!payMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
+    if (!payRef.trim()) {
+      toast.error("Reference / transaction ID is required for reconciliation");
+      return;
+    }
+    setPayBusy(true);
+    try {
+      const selectedBank = bankAccounts.find((b) => b.id === payBank);
+      updateApBill(bill.id, {
+        status: "PAID",
+        paymentDate: payDate,
+        paymentMethod: payMethod as any,
+        paymentReference: payRef.trim(),
+        linkedBankAccountId: payBank,
+        notes: payNotes.trim() || bill.notes,
+      });
+      toast.success(`Marked as paid · ${selectedBank?.nickname ?? "Bank"} · Ref: ${payRef.trim()}`);
+      setShowPayDialog(false);
+    } finally {
+      setPayBusy(false);
+    }
+  };
+
   return (
     <AppLayout>
       <div className="max-w-4xl mx-auto p-6 space-y-5">
@@ -82,14 +165,7 @@ export default function AccountingBillDetailPage() {
                   </Button>
                 )}
                 {(bill.status === "APPROVED" || bill.status === "OVERDUE") && (
-                  <Button
-                    onClick={() => {
-                      updateApBill(bill.id, { status: "PAID", paymentDate: new Date().toISOString().slice(0, 10) });
-                      toast.success("Marked as paid");
-                    }}
-                  >
-                    Mark as paid
-                  </Button>
+                  <Button onClick={openPayDialog}>Mark as paid</Button>
                 )}
                 {bill.status === "DRAFT" && (
                   <>
@@ -119,104 +195,88 @@ export default function AccountingBillDetailPage() {
                     Create journal entry
                   </Button>
                 )}
-                {bill.status === "PAID" &&
-                  (bill.linkedPaymentJournalId ? (
-                    <Button
-                      variant="ghost"
-                      onClick={() => navigate(`/accounting/journals/${bill.linkedPaymentJournalId}`)}
-                    >
-                      View payment journal
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="border-amber-500/40 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
-                      onClick={() => navigate(`/accounting/journals/new?fromBill=${bill.id}&leg=payment`)}
-                    >
-                      Create payment journal
-                    </Button>
-                  ))}
+                {bill.status === "PAID" && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate(`/accounting/journals/${bill.linkedPaymentJournalId}`)}
+                  >
+                    View payment journal
+                  </Button>
+                )}
                 <Button
-                  variant="outline"
-                  className="text-destructive border-destructive/30 hover:bg-destructive/10"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive"
                   onClick={() => setShowDelete(true)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  Delete
                 </Button>
               </>
             }
           />
         </div>
 
+        {/* Bill Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Bill summary</CardTitle>
+            <CardTitle>Bill summary</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+          <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-6 text-sm">
             <Row label="Vendor" v={bill.vendor} />
             <Row label="Vendor email" v={bill.vendorEmail ?? "—"} />
             <Row label="Entity" v={bill.entity} />
-            <Row label="Branch" v={bill.branch} />
-            <Row label="Department" v={bill.department ?? "—"} />
-            <Row label="Category" v={EXPENSE_CATEGORY_LABELS[bill.vendorCategory]} />
+            <Row label="Branch" v={bill.branch || "—"} />
+            <Row label="Department" v={bill.department || "—"} />
+            <Row
+              label="Category"
+              v={EXPENSE_CATEGORY_LABELS[bill.vendorCategory ?? "OTHER"] ?? bill.vendorCategory ?? "—"}
+            />
             <Row label="Bill date" v={bill.billDate} />
             <Row label="Due date" v={bill.dueDate} />
             <Row label="Currency" v={bill.currency} />
+            {bill.status === "PAID" && <Row label="Payment date" v={bill.paymentDate ?? "—"} />}
             {bill.status === "PAID" && <Row label="Payment method" v={bill.paymentMethod ?? "—"} />}
+            {bill.status === "PAID" && <Row label="Bank used" v={bank?.nickname ?? bill.linkedBankAccountId ?? "—"} />}
           </CardContent>
         </Card>
 
+        {/* Financial Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Financial summary</CardTitle>
+            <CardTitle>Financial summary</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <div className="text-xs text-muted-foreground">Subtotal</div>
-                <div className="text-lg font-medium tabular-nums">{fmtMoney(bill.subtotal, bill.currency)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Tax ({bill.taxCode})</div>
-                <div className="text-lg font-medium tabular-nums">{fmtMoney(bill.taxAmount, bill.currency)}</div>
-              </div>
-              <div>
-                <div className="text-xs text-muted-foreground">Total</div>
-                <div className="text-2xl font-bold tabular-nums">{fmtMoney(bill.totalAmount, bill.currency)}</div>
-              </div>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              <Row label="Subtotal" v={fmtMoney(bill.subtotal, bill.currency)} />
+              <Row label={`Tax (${bill.taxCode || "—"})`} v={fmtMoney(bill.taxAmount, bill.currency)} />
+              <Row
+                label="Total"
+                v={<span className="font-semibold text-base">{fmtMoney(bill.totalAmount, bill.currency)}</span>}
+              />
             </div>
+            <div className={`rounded-lg px-3 py-2 text-sm ${aging.tone}`}>{aging.text}</div>
             {bill.status === "PAID" && (
-              <div className="mt-3 text-xs text-green-700 dark:text-green-400">
+              <div className="text-xs text-green-700 dark:text-green-400">
                 Paid {bill.paymentDate} · Ref {bill.paymentReference ?? "—"}
               </div>
             )}
-            <div className={`mt-3 text-sm px-3 py-2 rounded ${aging.tone}`}>{aging.text}</div>
           </CardContent>
         </Card>
 
+        {/* Accounting Links */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Accounting links</CardTitle>
+            <CardTitle>Accounting links</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-2 text-xs">
-            <Link
-              to="/accounting/coa"
-              className="px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
-            >
-              COA: {bill.linkedCOACode}
-            </Link>
-            {bank && (
-              <Link
-                to={`/accounting/bank-accounts/${bank.id}`}
-                className="px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
-              >
-                {bank.nickname} · ••••{bank.accountNumber.slice(-4)}
-              </Link>
+          <CardContent className="flex flex-wrap gap-2">
+            {bill.linkedCOACode && (
+              <span className="text-xs bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 px-2 py-1 rounded-md font-mono">
+                COA: {bill.linkedCOACode}
+              </span>
             )}
             {bill.linkedJournalId && (
               <Link
                 to={`/accounting/journals/${bill.linkedJournalId}`}
-                className="px-2 py-1 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                className="text-xs bg-muted text-muted-foreground hover:text-foreground px-2 py-1 rounded-md transition-colors"
               >
                 Accrual journal
               </Link>
@@ -224,82 +284,137 @@ export default function AccountingBillDetailPage() {
             {bill.linkedPaymentJournalId && (
               <Link
                 to={`/accounting/journals/${bill.linkedPaymentJournalId}`}
-                className="px-2 py-1 rounded bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                className="text-xs bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400 hover:text-green-800 px-2 py-1 rounded-md transition-colors"
               >
                 Payment journal
               </Link>
             )}
-            {bill.status === "PAID" && !bill.linkedPaymentJournalId && (
-              <span className="px-2 py-1 rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                Payment journal pending
-              </span>
-            )}
-            {bill.linkedDocumentId && (
-              <Link to="/accounting/documents" className="px-2 py-1 rounded bg-muted">
-                {bill.linkedDocumentId}
-              </Link>
-            )}
-            {!bank && !bill.linkedJournalId && !bill.linkedPaymentJournalId && !bill.linkedDocumentId && (
-              <span className="text-muted-foreground">No accounting links beyond COA</span>
+            {!bill.linkedJournalId && !bill.linkedCOACode && (
+              <span className="text-xs text-muted-foreground">No accounting links beyond COA</span>
             )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Tags & notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {(bill.tags ?? []).map((t) => (
-                <span key={t} className="text-xs bg-accent px-2 py-0.5 rounded">
-                  {t}
-                </span>
-              ))}
-            </div>
-            {bill.notes && <div className="bg-muted/30 rounded p-3 text-sm">{bill.notes}</div>}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Activity timeline</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Timeline color="bg-blue-500" label={`Bill created by ${bill.createdBy}`} ts={bill.billDate} />
-            {["PENDING_REVIEW", "APPROVED", "PAID"].includes(bill.status) && (
-              <Timeline color="bg-muted-foreground" label="Submitted for review" ts={bill.billDate} />
-            )}
-            {["APPROVED", "PAID"].includes(bill.status) && bill.approvedBy && (
-              <Timeline color="bg-green-500" label={`Approved by ${bill.approvedBy}`} ts={bill.billDate} />
-            )}
-            {bill.status === "PAID" && (
-              <Timeline
-                color="bg-green-500"
-                label={`Payment recorded — ${bill.paymentReference ?? ""} · ${fmtMoney(bill.totalAmount, bill.currency)}`}
-                ts={bill.paymentDate ?? ""}
-              />
-            )}
-            {bill.status === "VOID" && (
-              <Timeline
-                color="bg-destructive"
-                label={`Voided${bill.notes ? ` — ${bill.notes}` : ""}`}
-                ts={bill.billDate}
-              />
-            )}
-          </CardContent>
-        </Card>
+        {bill.description && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{bill.description}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* ── Payment confirmation dialog ─────────────────────────────── */}
+      <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Record payment</DialogTitle>
+            <DialogDescription>
+              Enter how this bill was paid. All fields except Notes are required for reconciliation.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Amount reminder */}
+            <div className="rounded-lg bg-muted px-4 py-3 flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Amount to mark paid</span>
+              <span className="font-semibold">{fmtMoney(bill.totalAmount, bill.currency)}</span>
+            </div>
+
+            {/* Payment date */}
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-date">Payment date *</Label>
+              <Input id="pay-date" type="date" value={payDate} onChange={(e) => setPayDate(e.target.value)} />
+            </div>
+
+            {/* Bank account */}
+            <div className="space-y-1.5">
+              <Label>Bank account used *</Label>
+              <Select value={payBank} onValueChange={setPayBank}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select bank account…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {eligibleBanks.length === 0 ? (
+                    <SelectItem value="__none__" disabled>
+                      No {bill.currency} bank accounts available
+                    </SelectItem>
+                  ) : (
+                    eligibleBanks.map((b) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.nickname} · ••••{b.accountNumber?.slice(-4)}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Payment method */}
+            <div className="space-y-1.5">
+              <Label>Payment method *</Label>
+              <Select value={payMethod} onValueChange={setPayMethod}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select method…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      {m.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Reference */}
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-ref">Reference / transaction ID *</Label>
+              <Input
+                id="pay-ref"
+                value={payRef}
+                onChange={(e) => setPayRef(e.target.value)}
+                placeholder="e.g. TXN123456, CHQ-001, NEFT/IMPS ref…"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Used to match this payment against your bank statement.
+              </p>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-1.5">
+              <Label htmlFor="pay-notes">Notes (optional)</Label>
+              <Input
+                id="pay-notes"
+                value={payNotes}
+                onChange={(e) => setPayNotes(e.target.value)}
+                placeholder="Any additional payment notes…"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPayDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmPayment} disabled={payBusy}>
+              {payBusy ? "Saving…" : "Confirm payment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DeleteRecordDialog
         open={showDelete}
         onOpenChange={setShowDelete}
         onConfirm={() => {
           deleteApBill(bill.id);
-          setShowDelete(false);
-          toast.success("Deleted successfully");
           navigate("/accounting/ap");
         }}
+        recordName={bill.billNumber}
       />
     </AppLayout>
   );
@@ -308,19 +423,8 @@ export default function AccountingBillDetailPage() {
 function Row({ label, v }: { label: string; v: React.ReactNode }) {
   return (
     <div>
-      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-xs text-muted-foreground mb-0.5">{label}</div>
       <div className="font-medium">{v}</div>
-    </div>
-  );
-}
-function Timeline({ color, label, ts }: { color: string; label: string; ts: string }) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className={`size-2.5 rounded-full mt-1.5 ${color}`} />
-      <div className="text-sm">
-        <div>{label}</div>
-        <div className="text-xs text-muted-foreground">{ts}</div>
-      </div>
     </div>
   );
 }
