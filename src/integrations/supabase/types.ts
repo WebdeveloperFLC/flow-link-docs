@@ -69,6 +69,7 @@ export type Database = {
           notes: string | null
           outstanding: number | null
           paid_amount: number | null
+          payment_date: string | null
           payment_method: string | null
           payment_proof_path: string | null
           payment_terms: string | null
@@ -107,6 +108,7 @@ export type Database = {
           notes?: string | null
           outstanding?: number | null
           paid_amount?: number | null
+          payment_date?: string | null
           payment_method?: string | null
           payment_proof_path?: string | null
           payment_terms?: string | null
@@ -145,6 +147,7 @@ export type Database = {
           notes?: string | null
           outstanding?: number | null
           paid_amount?: number | null
+          payment_date?: string | null
           payment_method?: string | null
           payment_proof_path?: string | null
           payment_terms?: string | null
