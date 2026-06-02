@@ -5,8 +5,25 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Layers, Plus, Search, MoreHorizontal, Pencil, Trash2, Power, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Layers,
+  Plus,
+  Search,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Power,
+  ChevronDown,
+  ChevronRight,
+  BookOpen,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { ColDef, GridApi, GridReadyEvent, ICellRendererParams } from "ag-grid-community";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
@@ -37,7 +54,10 @@ export default function AccountingCOAPage() {
   const entities = useScopedEntities();
 
   const [loading, setLoading] = useState(true);
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 200); return () => clearTimeout(t); }, []);
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 200);
+    return () => clearTimeout(t);
+  }, []);
 
   const [search, setSearch] = useState("");
   const [groupFilter, setGroupFilter] = useState(ALL);
@@ -107,11 +127,29 @@ export default function AccountingCOAPage() {
   }, [accounts]);
 
   // Reset type filter when group filter changes
-  useEffect(() => { setTypeFilter(ALL); }, [groupFilter]);
+  useEffect(() => {
+    setTypeFilter(ALL);
+  }, [groupFilter]);
 
-  const openNew = () => { setEditing(null); setForcedParent(null); setFormOpen(true); };
-  const openEdit = (a: CoaAccount) => { setEditing(a); setForcedParent(null); setFormOpen(true); setDetail(null); };
-  const openAddChild = (a: CoaAccount) => { setEditing(null); setForcedParent(a.id); setFormOpen(true); setDetail(null); };
+  const [formMode, setFormMode] = useState<"ledger" | "group" | "any">("any");
+  const openNew = (mode: "ledger" | "group" | "any" = "any") => {
+    setFormMode(mode);
+    setEditing(null);
+    setForcedParent(null);
+    setFormOpen(true);
+  };
+  const openEdit = (a: CoaAccount) => {
+    setEditing(a);
+    setForcedParent(null);
+    setFormOpen(true);
+    setDetail(null);
+  };
+  const openAddChild = (a: CoaAccount) => {
+    setEditing(null);
+    setForcedParent(a.id);
+    setFormOpen(true);
+    setDetail(null);
+  };
 
   useKeyboardShortcuts({ onNew: openNew });
 
@@ -126,33 +164,54 @@ export default function AccountingCOAPage() {
   const cols: ColDef<CoaAccount>[] = [
     { headerName: "Code", field: "code", minWidth: 100, maxWidth: 120, cellClass: "font-mono text-[12.5px]" },
     {
-      headerName: "Type", minWidth: 170, flex: 1,
+      headerName: "Type",
+      minWidth: 170,
+      flex: 1,
       valueGetter: (p) => types.find((t) => t.code === p.data?.typeCode)?.label ?? p.data?.typeCode,
     },
     {
-      headerName: "Group", minWidth: 140,
+      headerName: "Group",
+      minWidth: 140,
       valueGetter: (p) => groups.find((g) => g.code === p.data?.groupCode)?.label ?? p.data?.groupCode,
     },
     {
-      headerName: "Parent", minWidth: 200, flex: 1,
-      valueGetter: (p) => p.data?.parentId ? accountById.get(p.data.parentId)?.name ?? "—" : "—",
+      headerName: "Parent",
+      minWidth: 200,
+      flex: 1,
+      valueGetter: (p) => (p.data?.parentId ? (accountById.get(p.data.parentId)?.name ?? "—") : "—"),
     },
     { headerName: "Currency", field: "currency", minWidth: 100, maxWidth: 110 },
     {
-      headerName: "Entity", minWidth: 180, flex: 1,
-      valueGetter: (p) => p.data?.entityId ? entities.find((e) => e.id === p.data!.entityId)?.name ?? "—" : "All entities",
+      headerName: "Entity",
+      minWidth: 180,
+      flex: 1,
+      valueGetter: (p) =>
+        p.data?.entityId ? (entities.find((e) => e.id === p.data!.entityId)?.name ?? "—") : "All entities",
     },
     {
-      headerName: "Status", field: "status", minWidth: 110, maxWidth: 130,
-      cellRenderer: (p: ICellRendererParams<CoaAccount>) => p.data ? <AccountStatusBadge status={p.data.status} /> : null,
+      headerName: "Status",
+      field: "status",
+      minWidth: 110,
+      maxWidth: 130,
+      cellRenderer: (p: ICellRendererParams<CoaAccount>) =>
+        p.data ? <AccountStatusBadge status={p.data.status} /> : null,
     },
     {
-      headerName: "Balance", field: "currentBalance", minWidth: 130, type: "rightAligned",
+      headerName: "Balance",
+      field: "currentBalance",
+      minWidth: 130,
+      type: "rightAligned",
       cellClass: "tabular-nums",
-      valueFormatter: (p) => p.data ? formatCurrency(p.value as number, p.data.currency as "CAD" | "USD" | "INR") : "—",
+      valueFormatter: (p) =>
+        p.data ? formatCurrency(p.value as number, p.data.currency as "CAD" | "USD" | "INR") : "—",
     },
     {
-      headerName: "", maxWidth: 56, minWidth: 56, sortable: false, filter: false, resizable: false,
+      headerName: "",
+      maxWidth: 56,
+      minWidth: 56,
+      sortable: false,
+      filter: false,
+      resizable: false,
       cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
         if (!p.data) return null;
         const a = p.data;
@@ -165,18 +224,27 @@ export default function AccountingCOAPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openEdit(a)}><Pencil className="size-3.5 mr-2" /> Edit</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openAddChild(a)}><Plus className="size-3.5 mr-2" /> Add child</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEdit(a)}>
+                <Pencil className="size-3.5 mr-2" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openAddChild(a)}>
+                <Plus className="size-3.5 mr-2" /> Add child
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate(`/accounting/reports/general-ledger/${a.id}`)}>
                 <BookOpen className="size-3.5 mr-2" /> View ledger
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { toggleAccountStatus(a.id); toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`); }}>
+              <DropdownMenuItem
+                onClick={() => {
+                  toggleAccountStatus(a.id);
+                  toast.success(`Account ${a.status === "ACTIVE" ? "deactivated" : "activated"}`);
+                }}
+              >
                 <Power className="size-3.5 mr-2" /> {a.status === "ACTIVE" ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 disabled={!check.canDelete}
-                onClick={() => check.canDelete ? setDeleteTarget(a) : toast.error(check.reason ?? "Cannot delete")}
+                onClick={() => (check.canDelete ? setDeleteTarget(a) : toast.error(check.reason ?? "Cannot delete"))}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="size-3.5 mr-2" /> Delete
@@ -212,11 +280,20 @@ export default function AccountingCOAPage() {
     },
   };
 
-  const onGridReady = (e: GridReadyEvent<CoaAccount>) => { apiRef.current = e.api; e.api.expandAll(); };
+  const onGridReady = (e: GridReadyEvent<CoaAccount>) => {
+    apiRef.current = e.api;
+    e.api.expandAll();
+  };
   const expandAll = () => apiRef.current?.expandAll();
   const collapseAll = () => apiRef.current?.collapseAll();
 
-  const filtersActive = search || groupFilter !== ALL || typeFilter !== ALL || entityFilter !== ALL || statusFilter !== "all" || currencyFilter !== ALL;
+  const filtersActive =
+    search ||
+    groupFilter !== ALL ||
+    typeFilter !== ALL ||
+    entityFilter !== ALL ||
+    statusFilter !== "all" ||
+    currencyFilter !== ALL;
   const currencies = Array.from(new Set(accounts.map((a) => a.currency))).sort();
 
   return (
@@ -229,7 +306,12 @@ export default function AccountingCOAPage() {
           actions={
             <>
               <DarkModeToggle />
-              <Button onClick={openNew}><Plus className="size-4 mr-1" /> New account</Button>
+              <Button variant="outline" onClick={() => openNew("group")}>
+                <Plus className="size-4 mr-1" /> New group
+              </Button>
+              <Button onClick={() => openNew("ledger")}>
+                <Plus className="size-4 mr-1" /> New ledger
+              </Button>
             </>
           }
         />
@@ -254,30 +336,51 @@ export default function AccountingCOAPage() {
               />
             </div>
             <Select value={groupFilter} onValueChange={setGroupFilter}>
-              <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder="Group" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[170px]">
+                <SelectValue placeholder="Group" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All groups</SelectItem>
-                {groups.map((g) => <SelectItem key={g.code} value={g.code}>{g.label}</SelectItem>)}
+                {groups.map((g) => (
+                  <SelectItem key={g.code} value={g.code}>
+                    {g.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[180px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All types</SelectItem>
-                {types.filter((t) => groupFilter === ALL || t.groupCode === groupFilter).map((t) =>
-                  <SelectItem key={t.code} value={t.code}>{t.label}</SelectItem>)}
+                {types
+                  .filter((t) => groupFilter === ALL || t.groupCode === groupFilter)
+                  .map((t) => (
+                    <SelectItem key={t.code} value={t.code}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <Select value={entityFilter} onValueChange={setEntityFilter}>
-              <SelectTrigger className="h-9 w-[170px]"><SelectValue placeholder="Entity" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[170px]">
+                <SelectValue placeholder="Entity" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All entities</SelectItem>
                 <SelectItem value="__none__">All-entity accounts</SelectItem>
-                {entities.map((e) => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
+                {entities.map((e) => (
+                  <SelectItem key={e.id} value={e.id}>
+                    {e.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-              <SelectTrigger className="h-9 w-[130px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[130px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
@@ -285,15 +388,25 @@ export default function AccountingCOAPage() {
               </SelectContent>
             </Select>
             <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-              <SelectTrigger className="h-9 w-[130px]"><SelectValue placeholder="Currency" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[130px]">
+                <SelectValue placeholder="Currency" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All currencies</SelectItem>
-                {currencies.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                {currencies.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <div className="ml-auto flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-9" onClick={expandAll}><ChevronDown className="size-3.5 mr-1" /> Expand</Button>
-              <Button variant="ghost" size="sm" className="h-9" onClick={collapseAll}><ChevronRight className="size-3.5 mr-1" /> Collapse</Button>
+              <Button variant="ghost" size="sm" className="h-9" onClick={expandAll}>
+                <ChevronDown className="size-3.5 mr-1" /> Expand
+              </Button>
+              <Button variant="ghost" size="sm" className="h-9" onClick={collapseAll}>
+                <ChevronRight className="size-3.5 mr-1" /> Collapse
+              </Button>
             </div>
           </div>
 
@@ -303,8 +416,18 @@ export default function AccountingCOAPage() {
             <AccountingEmptyState
               icon={Layers}
               title={filtersActive ? "No accounts match your filters" : "No accounts yet"}
-              description={filtersActive ? "Try clearing some filters or searching for a different code." : "Create your first account to start tracking balances."}
-              action={!filtersActive ? <Button size="sm" onClick={openNew}><Plus className="size-4 mr-1" /> New account</Button> : undefined}
+              description={
+                filtersActive
+                  ? "Try clearing some filters or searching for a different code."
+                  : "Create your first account to start tracking balances."
+              }
+              action={
+                !filtersActive ? (
+                  <Button size="sm" onClick={openNew}>
+                    <Plus className="size-4 mr-1" /> New account
+                  </Button>
+                ) : undefined
+              }
             />
           ) : (
             <AccountingAGGrid<CoaAccount>
@@ -316,7 +439,9 @@ export default function AccountingCOAPage() {
               autoGroupColumnDef={autoGroupColumnDef as ColDef<CoaAccount>}
               getRowId={(p) => p.data.id}
               onGridReady={onGridReady}
-              onRowClicked={(e) => { if (e.data) setDetail(e.data); }}
+              onRowClicked={(e) => {
+                if (e.data) setDetail(e.data);
+              }}
               height={620}
             />
           )}
@@ -327,11 +452,14 @@ export default function AccountingCOAPage() {
           onOpenChange={setFormOpen}
           initial={editing}
           forcedParentId={forcedParent}
+          mode={editing ? "any" : formMode}
         />
 
         <AccountDetailDrawer
           account={detail}
-          onOpenChange={(v) => { if (!v) setDetail(null); }}
+          onOpenChange={(v) => {
+            if (!v) setDetail(null);
+          }}
           onEdit={openEdit}
           onAddChild={openAddChild}
           onDelete={(a) => setDeleteTarget(a)}
@@ -339,9 +467,15 @@ export default function AccountingCOAPage() {
 
         <ConfirmDialog
           open={!!deleteTarget}
-          onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}
+          onOpenChange={(v) => {
+            if (!v) setDeleteTarget(null);
+          }}
           title="Delete account?"
-          description={deleteTarget ? `This will permanently remove "${deleteTarget.code} · ${deleteTarget.name}" from the chart of accounts.` : ""}
+          description={
+            deleteTarget
+              ? `This will permanently remove "${deleteTarget.code} · ${deleteTarget.name}" from the chart of accounts.`
+              : ""
+          }
           confirmLabel="Delete account"
           destructive
           onConfirm={onConfirmDelete}
