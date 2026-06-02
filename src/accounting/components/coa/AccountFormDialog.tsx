@@ -32,12 +32,13 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   initial?: CoaAccount | null;
   forcedParentId?: string | null; // for "Add child"
+  mode?: "ledger" | "group" | "any"; // pre-sets isPostable and dialog title
 }
 
 const ADD_NEW = "__add_new__";
 const NONE = "__none__";
 
-export default function AccountFormDialog({ open, onOpenChange, initial, forcedParentId }: Props) {
+export default function AccountFormDialog({ open, onOpenChange, initial, forcedParentId, mode = "any" }: Props) {
   const groups = useGroups();
   const types = useTypes();
   const subTypes = useSubTypes();
@@ -98,13 +99,13 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       setNormalBalance(groups.find((g) => g.code === (parent?.groupCode ?? groups[0]?.code))?.nature ?? "DEBIT");
       setOpeningBalance("0");
       setStatus("ACTIVE");
-      setIsPostable(true);
+      setIsPostable(mode !== "group"); // Ledger = postable; Group = header only
       setDescription("");
       setExpenseCategoriesState([]);
       setRevenueCategoriesState([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initial?.id, forcedParentId]);
+  }, [open, initial?.id, forcedParentId, mode]);
   // See BankAccountFormDialog: depend on the stable id, not the whole object,
   // to avoid wiping in-progress edits when the store re-hydrates.
 
@@ -226,7 +227,15 @@ export default function AccountFormDialog({ open, onOpenChange, initial, forcedP
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[640px]">
           <DialogHeader>
-            <DialogTitle>{initial ? "Edit account" : "New account"}</DialogTitle>
+            <DialogTitle>
+              {initial
+                ? "Edit account"
+                : mode === "ledger"
+                  ? "New ledger account"
+                  : mode === "group"
+                    ? "New account group"
+                    : "New account"}
+            </DialogTitle>
             <DialogDescription>
               Configure the account so it appears in journals, reports, and reconciliation.
             </DialogDescription>
