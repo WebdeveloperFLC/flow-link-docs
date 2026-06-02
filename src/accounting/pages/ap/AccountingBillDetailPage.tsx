@@ -191,14 +191,15 @@ export default function AccountingBillDetailPage() {
                   <Button variant="ghost" onClick={() => navigate(`/accounting/journals/${bill.linkedJournalId}`)}>
                     View accrual journal
                   </Button>
-                ) : (
+                ) : bill.status === "APPROVED" || bill.status === "OVERDUE" ? (
                   <Button
                     variant="ghost"
+                    className="text-amber-600 dark:text-amber-400"
                     onClick={() => navigate(`/accounting/journals/new?fromBill=${bill.id}&leg=accrual`)}
                   >
-                    Create journal entry
+                    ⚠ Auto-post failed — create manually
                   </Button>
-                )}
+                ) : null}
                 {bill.status === "PAID" && (
                   <Button
                     variant="ghost"
