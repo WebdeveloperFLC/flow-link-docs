@@ -65,9 +65,12 @@ export default function AccountingBillDetailPage() {
     () =>
       bankAccounts.filter(
         (b) =>
-          b.status === "ACTIVE" && (!bill?.currency || b.currency === bill.currency) && b.isDefaultPayment !== false, // exclude savings/holding accounts
+          b.status === "ACTIVE" &&
+          (!bill?.currency || b.currency === bill.currency) &&
+          (!bill?.entity || b.entityId === bill.entity) && // match entity
+          b.isDefaultPayment !== false, // exclude savings/holding accounts
       ),
-    [bankAccounts, bill?.currency],
+    [bankAccounts, bill?.currency, bill?.entity],
   );
 
   if (!bill)
@@ -375,14 +378,34 @@ export default function AccountingBillDetailPage() {
               </Select>
             </div>
 
-            {/* Reference */}
+            {/* Reference — label and placeholder change based on payment method */}
             <div className="space-y-1.5">
-              <Label htmlFor="pay-ref">Reference / transaction ID *</Label>
+              <Label htmlFor="pay-ref">
+                {payMethod === "CHEQUE"
+                  ? "Cheque number *"
+                  : payMethod === "CREDIT_CARD"
+                    ? "Last 4 digits / transaction ID *"
+                    : payMethod === "UPI"
+                      ? "UPI transaction ID *"
+                      : payMethod === "WIRE"
+                        ? "Wire / SWIFT reference *"
+                        : "Reference / transaction ID *"}
+              </Label>
               <Input
                 id="pay-ref"
                 value={payRef}
                 onChange={(e) => setPayRef(e.target.value)}
-                placeholder="e.g. TXN123456, CHQ-001, NEFT/IMPS ref…"
+                placeholder={
+                  payMethod === "CHEQUE"
+                    ? "e.g. CHQ-001, 004521…"
+                    : payMethod === "CREDIT_CARD"
+                      ? "e.g. last 4 digits or auth code…"
+                      : payMethod === "UPI"
+                        ? "e.g. UPI/123456789012…"
+                        : payMethod === "WIRE"
+                          ? "e.g. SWIFT/TT ref number…"
+                          : "e.g. TXN123456, NEFT/IMPS ref…"
+                }
               />
               <p className="text-[11px] text-muted-foreground">
                 Used to match this payment against your bank statement.
