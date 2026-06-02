@@ -18,9 +18,11 @@ import { useAccounts } from "../../stores/coaStore";
 import { useGroups } from "../../stores/coaMasterStore";
 import { useJournals } from "../../stores/journalsStore";
 import { useScopedEntities } from "../../hooks/useEntityScope";
+import { entityDisplayName, journalMatchesEntityFilter } from "../../lib/entityResolve";
 import { formatCurrency } from "../../lib/format";
 import type { CoaAccount } from "../../types/coa";
 import type { Journal } from "../../data/mockJournals";
+import type { SettingsEntity } from "../../types/settings";
 
 const ALL = "__all__";
 
@@ -51,12 +53,9 @@ function buildLedger(
   entityFilter: string,
   statusFilter: "POSTED" | "ALL",
   search: string,
-  entityNameById: Map<string, string>,
+  entities: SettingsEntity[],
 ): { txns: Txn[]; opening: number; periodDr: number; periodCr: number; closing: number } {
   const opening = new Decimal(account.openingBalance || 0);
-  const entityName = entityFilter === ALL ? null
-    : entityFilter === "__none__" ? "__none__"
-    : entityNameById.get(entityFilter) ?? "";
   const q = search.trim().toLowerCase();
 
   const items: { date: string; journal: Journal; debit: number; credit: number }[] = [];
@@ -64,10 +63,7 @@ function buildLedger(
     if (statusFilter === "POSTED" && j.status !== "POSTED") return;
     if (statusFilter === "ALL" && j.status === "VOIDED") return;
     if (j.entryDate < from || j.entryDate > to) return;
-    if (entityName !== null) {
-      if (entityName === "__none__") { /* no-op: journals are not null entity */ }
-      else if (j.entity !== entityName) return;
-    }
+    if (entityFilter !== ALL && !journalMatchesEntityFilter(j.entity, entityFilter, entities)) return;
     if (q && !`${j.narration} ${j.reference}`.toLowerCase().includes(q)) return;
     j.lines.forEach((l) => {
       if (l.accountId !== account.id) return;
@@ -91,7 +87,7 @@ function buildLedger(
       journalNumber: it.journal.entryNumber,
       narration: it.journal.narration,
       reference: it.journal.reference,
-      entity: it.journal.entity,
+      entity: entityDisplayName(it.journal.entity, entities),
       debit: it.debit,
       credit: it.credit,
       balance: running.toNumber(),
@@ -145,7 +141,6 @@ export default function AccountingGeneralLedgerPage() {
   const [search, setSearch] = useState("");
 
   const groupBy = useMemo(() => new Map(groups.map((g) => [g.code, g])), [groups]);
-  const entityNameById = useMemo(() => new Map(entities.map((e) => [e.id, e.name])), [entities]);
 
   const targetAccounts = useMemo(() => {
     if (selectedAccount !== ALL) {
@@ -161,9 +156,9 @@ export default function AccountingGeneralLedgerPage() {
       account: a,
       groupLabel: groupBy.get(a.groupCode)?.label ?? a.groupCode,
       nature,
-      ...buildLedger(a, nature, journals, from, to, entityFilter, statusFilter, search, entityNameById),
+      ...buildLedger(a, nature, journals, from, to, entityFilter, statusFilter, search, entities),
     };
-  }), [targetAccounts, groupBy, journals, from, to, entityFilter, statusFilter, search, entityNameById]);
+  }), [targetAccounts, groupBy, journals, from, to, entityFilter, statusFilter, search, entities]);
 
   const noPostedJournals = journals.filter((j) => j.status === "POSTED").length === 0;
 

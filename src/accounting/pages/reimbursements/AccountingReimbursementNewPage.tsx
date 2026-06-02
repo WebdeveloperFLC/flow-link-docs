@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Decimal from "decimal.js";
 import { toast } from "sonner";
@@ -25,6 +25,7 @@ import { addReimbursement, nextClaimNumber } from "@/accounting/stores/reimburse
 import { EXPENSE_CATEGORIES, type ReimbursementLine } from "@/accounting/types/reimbursements";
 import { formatCurrency } from "@/accounting/lib/format";
 import { genId } from "@/accounting/stores/_persist";
+import { useProfileDisplayName } from "../../hooks/useProfileDisplayName";
 
 function emptyLine(): ReimbursementLine {
   return {
@@ -42,8 +43,10 @@ export default function AccountingReimbursementNewPage() {
   const entities = useScopedEntities();
   const accounts = useAccounts();
 
+  const profileName = useProfileDisplayName();
+
   const [claimDate, setClaimDate] = useState(new Date().toISOString().slice(0, 10));
-  const [claimedBy, setClaimedBy] = useState("Santosh Rakhiani");
+  const [claimedBy, setClaimedBy] = useState("");
   const [entity, setEntity] = useState("");
   const [branch, setBranch] = useState("");
   const [personalCard, setPersonalCard] = useState("");
@@ -51,6 +54,10 @@ export default function AccountingReimbursementNewPage() {
   const [notes, setNotes] = useState("");
   const [lines, setLines] = useState<ReimbursementLine[]>([emptyLine()]);
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (profileName && !claimedBy) setClaimedBy(profileName);
+  }, [profileName, claimedBy]);
 
   // Pre-fill from card reconciliation
   const prefillAmount = sp.get("amount");
@@ -78,6 +85,7 @@ export default function AccountingReimbursementNewPage() {
 
   function validate(): string | null {
     if (!entity) return "Select entity";
+    if (!claimedBy.trim()) return "Enter who is claiming reimbursement";
     if (!personalCard) return "Select personal card account";
     if (!companyBank) return "Select company bank account";
     if (lines.length === 0) return "Add at least one expense line";
@@ -93,7 +101,7 @@ export default function AccountingReimbursementNewPage() {
     if (err) { toast.error(err); return; }
     const created = addReimbursement({
       claimNumber: nextClaimNumber(),
-      claimDate, claimedBy, entity, branch,
+      claimDate, claimedBy: claimedBy.trim(), entity, branch,
       personalCardAccount: personalCard,
       companyBankAccount: companyBank,
       lines,
@@ -118,7 +126,17 @@ export default function AccountingReimbursementNewPage() {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Claim details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><Label>Claim date</Label><Input type="date" value={claimDate} onChange={(e) => setClaimDate(e.target.value)} /></div>
-            <div><Label>Claimed by</Label><Input value={claimedBy} onChange={(e) => setClaimedBy(e.target.value)} /></div>
+            <div>
+              <Label>Claimed by</Label>
+              <Input
+                value={claimedBy}
+                onChange={(e) => setClaimedBy(e.target.value)}
+                placeholder={profileName || "Your name"}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Prefilled from your profile when available. Edit if someone else is claiming.
+              </p>
+            </div>
             <div>
               <Label>Entity</Label>
               <Select value={entity} onValueChange={setEntity}>

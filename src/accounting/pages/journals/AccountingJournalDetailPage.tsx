@@ -17,6 +17,8 @@ import AccountingStatusBadge from "../../components/shared/AccountingStatusBadge
 import { formatCurrency } from "../../lib/format";
 import { Journal, AccountType } from "../../data/mockJournals";
 import { useJournals, updateJournal, deleteJournal } from "../../stores/journalsStore";
+import { useAllEntities } from "../../stores/accountingEntitiesStore";
+import { entityDisplayName, findEntityByRef } from "../../lib/entityResolve";
 
 const ACCOUNT_COLOR: Record<AccountType, string> = {
   ASSET: 'text-blue-600',
@@ -39,9 +41,19 @@ export default function AccountingJournalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const journals = useJournals();
+  const allEntities = useAllEntities();
   const entry = journals.find(j => j.id === id);
   const [voidOpen, setVoidOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const entityLabel = useMemo(
+    () => (entry ? entityDisplayName(entry.entity, allEntities) : "—"),
+    [entry, allEntities],
+  );
+  const entityRow = useMemo(
+    () => (entry ? findEntityByRef(entry.entity, allEntities) : undefined),
+    [entry, allEntities],
+  );
 
   const totals = useMemo(() => {
     if (!entry) return { dr: 0, cr: 0 };
@@ -127,7 +139,7 @@ export default function AccountingJournalDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <Field label="Entity" value={entry.entity} />
+              <EntityField label="Entity" name={entityLabel} entityId={entityRow?.id} />
               <Field label="Entry date" value={fmtDate(entry.entryDate)} />
               <Field label="Source type" value={entry.sourceType.replace(/_/g, ' ')} />
               <Field label="Reference" value={entry.reference || '—'} />
@@ -179,7 +191,7 @@ export default function AccountingJournalDetailPage() {
                         {l.accountName}
                       </Link>
                     </td>
-                    <td className="px-2 py-2 text-muted-foreground">{entry.entity}</td>
+                    <td className="px-2 py-2 text-muted-foreground">{entityLabel}</td>
                     <td className="px-2 py-2 text-muted-foreground">{l.taxCode || '—'}</td>
                     <td className="px-2 py-2">{l.description}</td>
                     <td className="px-2 py-2 text-right font-mono tabular-nums">
@@ -288,6 +300,23 @@ export default function AccountingJournalDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
     </AppLayout>
+  );
+}
+
+function EntityField({ label, name, entityId }: { label: string; name: string; entityId?: string }) {
+  return (
+    <div>
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="text-sm font-medium mt-0.5">
+        {entityId ? (
+          <Link to="/accounting/settings/entities" className="text-primary hover:underline">
+            {name}
+          </Link>
+        ) : (
+          name
+        )}
+      </div>
+    </div>
   );
 }
 

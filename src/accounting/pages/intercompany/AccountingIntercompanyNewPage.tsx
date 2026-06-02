@@ -117,7 +117,7 @@ export default function AccountingIntercompanyNewPage() {
 
       const fromJ = addJournal({
         entryNumber: nextJournalNumber("JE"),
-        entryDate: txnDate, entity: fromEntity,
+        entryDate: txnDate, entity: fromName,
         narration: `${description} — Inter-company with ${toName}`,
         sourceType: "MANUAL" as any, reference: txnNumber, currency: cur,
         status: "POSTED", createdBy: "Current user",
@@ -127,7 +127,7 @@ export default function AccountingIntercompanyNewPage() {
 
       const toJ = addJournal({
         entryNumber: nextJournalNumber("JE"),
-        entryDate: txnDate, entity: toEntity,
+        entryDate: txnDate, entity: toName,
         narration: `${description} — Inter-company with ${fromName}`,
         sourceType: "MANUAL" as any, reference: txnNumber, currency: cur,
         status: "POSTED", createdBy: "Current user",

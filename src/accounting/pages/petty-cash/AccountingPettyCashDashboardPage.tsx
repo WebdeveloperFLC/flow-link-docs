@@ -2,8 +2,9 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Wallet, AlertTriangle, Clock, ShieldAlert, TrendingDown, Plus,
-  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2, MoreHorizontal, Trash2,
+  Download, ArrowUpRight, ScanSearch, RefreshCw, Settings, Users, Tags, Building2, MoreHorizontal, Trash2, Pencil,
 } from "lucide-react";
+import { displayBranchApprover, displayBranchCustodian } from "../../lib/pettyCashEntityBranches";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ export default function AccountingPettyCashDashboardPage() {
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
   const [showManageBranches, setShowManageBranches] = useState(false);
+  const [editBranchId, setEditBranchId] = useState<string | null>(null);
   const [showManagePeople, setShowManagePeople] = useState(false);
   const [showManageCategories, setShowManageCategories] = useState(false);
 
@@ -106,11 +108,11 @@ export default function AccountingPettyCashDashboardPage() {
                     <Button variant="outline"><Settings className="size-4 mr-1.5" /> Manage</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setShowManageBranches(true)}>
-                      <Building2 className="size-4 mr-2" /> Branches
+                    <DropdownMenuItem onClick={() => { setEditBranchId(null); setShowManageBranches(true); }}>
+                      <Building2 className="size-4 mr-2" /> Branch custodian &amp; approver
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowManagePeople(true)}>
-                      <Users className="size-4 mr-2" /> Custodians, approvers & employees
+                      <Users className="size-4 mr-2" /> Name list (for dropdowns)
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowManageCategories(true)}>
                       <Tags className="size-4 mr-2" /> Categories
@@ -170,8 +172,27 @@ export default function AccountingPettyCashDashboardPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="text-sm font-semibold truncate">{s.branch.name}</div>
-                      <div className="text-[11px] text-muted-foreground truncate">Custodian: {s.branch.custodianName}</div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        Custodian: {displayBranchCustodian(s.branch.custodianName)}
+                      </div>
+                      <div className="text-[11px] text-muted-foreground truncate">
+                        Approver: {displayBranchApprover(s.branch.secondaryApproverName)}
+                      </div>
                     </div>
+                    {isAdmin && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8 shrink-0"
+                        title="Set custodian & approver for this branch"
+                        onClick={() => {
+                          setEditBranchId(s.branch.id);
+                          setShowManageBranches(true);
+                        }}
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                    )}
                     <div className="flex flex-col items-end gap-1">
                       {s.pendingCount > 0 && <Badge variant="secondary" className="text-[10px]">{s.pendingCount} pending</Badge>}
                       {s.flaggedCount > 0 && <Badge className="text-[10px] bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 hover:bg-red-50">{s.flaggedCount} flagged</Badge>}
@@ -378,7 +399,14 @@ export default function AccountingPettyCashDashboardPage() {
         </Card>
       </div>
 
-      <ManageBranchesDialog open={showManageBranches} onOpenChange={setShowManageBranches} />
+      <ManageBranchesDialog
+        open={showManageBranches}
+        onOpenChange={(open) => {
+          setShowManageBranches(open);
+          if (!open) setEditBranchId(null);
+        }}
+        initialBranchId={editBranchId}
+      />
       <ManagePeopleDialog open={showManagePeople} onOpenChange={setShowManagePeople} />
       <ManageCategoriesDialog open={showManageCategories} onOpenChange={setShowManageCategories} />
 

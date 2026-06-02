@@ -548,7 +548,7 @@ export default function AccountingAPPage() {
                     const nextPaths = appendPaymentProofPath(existingPaths, path);
                     await supabase
                       .from("accounting_ap_bills")
-                      .update({ payment_proof_path: serializePaymentProofPaths(nextPaths) } as any)
+                      .update({ payment_proof_path: serializePaymentProofPaths(nextPaths) })
                       .eq("id", attachDialog.id);
                     updateApBill(attachDialog.id, { paymentProofPath: nextPaths[0], paymentProofPaths: nextPaths });
                     toast.success("Document attached ✓");

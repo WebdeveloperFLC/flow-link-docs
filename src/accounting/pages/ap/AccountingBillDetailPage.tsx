@@ -213,7 +213,7 @@ export default function AccountingBillDetailPage() {
         // Also save to DB directly since VendorBill type may not have proof path
         await supabase
           .from("accounting_ap_bills")
-          .update({ payment_proof_path: serializePaymentProofPaths(nextProofPaths) } as any)
+          .update({ payment_proof_path: serializePaymentProofPaths(nextProofPaths) })
           .eq("id", bill.id);
       }
 
