@@ -26,9 +26,11 @@ import {
   Journal, JournalStatus, SourceType,
 } from "../../data/mockJournals";
 import { useJournals, updateJournal, deleteJournal } from "../../stores/journalsStore";
+import { useScopedEntities } from "../../hooks/useEntityScope";
+import { useAllEntities } from "../../stores/accountingEntitiesStore";
+import { entityDisplayName, journalMatchesEntityFilter } from "../../lib/entityResolve";
 
 const ALL_STATUSES: JournalStatus[] = ['DRAFT', 'PENDING_REVIEW', 'POSTED', 'VOIDED'];
-const ENTITIES = ['Canada HQ', 'USA Corp', 'India Mumbai', 'India Delhi'];
 const PAGE_SIZE = 15;
 
 const SOURCE_BADGE: Record<SourceType, string> = {
@@ -53,6 +55,8 @@ function lineTotals(j: Journal) {
 export default function AccountingJournalsPage() {
   const navigate = useNavigate();
   const journals = useJournals();
+  const entities = useScopedEntities();
+  const allEntities = useAllEntities();
   const [search, setSearch] = useState('');
   const [statuses, setStatuses] = useState<Set<JournalStatus>>(new Set());
   const [entity, setEntity] = useState<string>('all');
@@ -65,10 +69,10 @@ export default function AccountingJournalsPage() {
     return journals.filter(j => {
       if (q && !(j.narration.toLowerCase().includes(q) || j.reference.toLowerCase().includes(q))) return false;
       if (statuses.size > 0 && !statuses.has(j.status)) return false;
-      if (entity !== 'all' && j.entity !== entity) return false;
+      if (entity !== 'all' && !journalMatchesEntityFilter(j.entity, entity, allEntities)) return false;
       return true;
     });
-  }, [journals, search, statuses, entity]);
+  }, [journals, search, statuses, entity, allEntities]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -86,7 +90,7 @@ export default function AccountingJournalsPage() {
     const rows = filtered.map(j => {
       const t = lineTotals(j);
       return [
-        j.entryNumber, j.entryDate, j.entity,
+        j.entryNumber, j.entryDate, entityDisplayName(j.entity, allEntities),
         `"${j.narration.replace(/"/g, '""')}"`,
         j.sourceType, j.currency, t.dr.toFixed(2), t.cr.toFixed(2), j.status,
       ].join(',');
@@ -173,7 +177,7 @@ export default function AccountingJournalsPage() {
             <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All entities</SelectItem>
-              {ENTITIES.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+              {entities.map(e => <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>)}
             </SelectContent>
           </Select>
 
@@ -220,7 +224,7 @@ export default function AccountingJournalsPage() {
                       </span>
                     </td>
                     <td className="px-3">{fmtDate(j.entryDate)}</td>
-                    <td className="px-3">{j.entity}</td>
+                    <td className="px-3">{entityDisplayName(j.entity, allEntities)}</td>
                     <td className="px-3" title={j.narration}>
                       {j.narration.length > 45 ? `${j.narration.slice(0, 45)}…` : j.narration}
                     </td>

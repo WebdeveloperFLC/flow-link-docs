@@ -49,16 +49,7 @@ export default function AccountingPettyCashDetailPage() {
   }
 
   const branch = branches.find(b => b.id === voucher.branchId);
-  if (!branch) {
-    return (
-      <AppLayout>
-        <div className="p-10 text-center">
-          <div className="text-sm text-muted-foreground">Branch for this voucher was not found.</div>
-          <Button variant="link" onClick={() => navigate("/accounting/petty-cash")}>Back to petty cash</Button>
-        </div>
-      </AppLayout>
-    );
-  }
+  const branchLabel = branch?.name ?? "Branch not found";
   const pendingStep = voucher.approvalTrail.find(s => s.status === "pending");
 
   // Journal preview
@@ -66,7 +57,7 @@ export default function AccountingPettyCashDetailPage() {
   const jrows: { dr?: string; cr?: string; account: string; amount: number }[] = [];
   if (voucher.paymentType === "petty_cash") {
     jrows.push({ dr: "Dr", account: `Expense — ${catLabel}`, amount: voucher.amount });
-    jrows.push({ cr: "Cr", account: `Petty Cash — ${branch.name}`, amount: voucher.amount });
+    jrows.push({ cr: "Cr", account: `Petty Cash — ${branchLabel}`, amount: voucher.amount });
   } else {
     // reimbursement
     jrows.push({ dr: "Dr", account: `Expense — ${catLabel}`, amount: voucher.amount });
@@ -75,7 +66,7 @@ export default function AccountingPettyCashDetailPage() {
       jrows.push({ dr: "Dr", account: `Employee Payable — ${voucher.employeeName ?? "Employee"}`, amount: voucher.amount });
       jrows.push({
         cr: "Cr",
-        account: voucher.reimbursementMethod === "bank" ? `Bank — ${branch.name}` : `Petty Cash — ${branch.name}`,
+        account: voucher.reimbursementMethod === "bank" ? `Bank — ${branchLabel}` : `Petty Cash — ${branchLabel}`,
         amount: voucher.amount,
       });
     }
@@ -143,7 +134,7 @@ export default function AccountingPettyCashDetailPage() {
               <div className="text-sm text-muted-foreground mt-1">
                 {catLabel} · Paid to <span className="text-foreground font-medium">{voucher.paidTo}</span>
               </div>
-              <div className="text-xs text-muted-foreground mt-1">{branch.name} · {voucher.date}</div>
+              <div className="text-xs text-muted-foreground mt-1">{branchLabel} · {voucher.date}</div>
             </div>
             <div className="flex flex-col items-end gap-1.5">
               <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full", statusCls[voucher.status])}>{voucher.status}</span>
@@ -180,8 +171,8 @@ export default function AccountingPettyCashDetailPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Details</CardTitle></CardHeader>
               <CardContent className="grid grid-cols-2 gap-4 text-sm">
-                <Field label="Branch" value={branch.name} />
-                <Field label="Custodian" value={branch.custodianName} />
+                <Field label="Branch" value={branchLabel} />
+                <Field label="Custodian" value={branch?.custodianName ?? "—"} />
                 <Field label="Category" value={catLabel} />
                 <Field label="Required approval" value={LEVEL_LABEL[voucher.requiredLevel]} />
                 <Field label="Created by" value={voucher.createdBy} />
@@ -281,12 +272,18 @@ export default function AccountingPettyCashDetailPage() {
             <Card>
               <CardHeader><CardTitle className="text-base">Branch balance</CardTitle></CardHeader>
               <CardContent className="text-sm space-y-2">
-                <div className="flex justify-between"><span className="text-muted-foreground">Opening</span><span className="font-mono">{formatCurrency(branch.openingFloat, "INR")}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Current</span><span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span></div>
-                <Separator />
-                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/accounting/petty-cash/audit?branch=${branch.id}`)}>
-                  <Wallet className="size-3.5 mr-1.5" /> Branch activity
-                </Button>
+                {branch ? (
+                  <>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Opening</span><span className="font-mono">{formatCurrency(branch.openingFloat, "INR")}</span></div>
+                    <div className="flex justify-between"><span className="text-muted-foreground">Current</span><span className="font-mono">{formatCurrency(branch.currentBalance, "INR")}</span></div>
+                    <Separator />
+                    <Button variant="outline" size="sm" className="w-full" onClick={() => navigate(`/accounting/petty-cash/audit?branch=${branch.id}`)}>
+                      <Wallet className="size-3.5 mr-1.5" /> Branch activity
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-muted-foreground">Branch not linked — check Settings → Entities.</div>
+                )}
               </CardContent>
             </Card>
           </div>

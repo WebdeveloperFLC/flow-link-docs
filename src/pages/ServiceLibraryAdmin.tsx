@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
-  ListChecks, ChevronRight, ChevronDown, Globe, FileText, FileUp, Settings2,
+  ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
   ClipboardCheck, BookOpen, Coins, Sparkles, History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -178,18 +179,41 @@ export default function ServiceLibraryAdmin() {
 
   if (!canManage) {
     return (
-      <div className="min-h-screen p-6 grid place-items-center">
-        <div className="max-w-md rounded-2xl border bg-card p-6 text-center">
-          <ShieldAlert className="mx-auto h-8 w-8 text-amber-500" />
-          <h2 className="mt-2 text-lg font-semibold">No access</h2>
-          <p className="text-sm text-muted-foreground">Admin or Documentation role required.</p>
+      <div className="min-h-screen bg-slate-50">
+        <header className="sticky top-0 z-30 border-b bg-white shadow-sm">
+          <div className="mx-auto flex max-w-[1400px] items-center px-4 py-3 md:px-6">
+            <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 -ml-1" asChild>
+              <Link to="/">
+                <ChevronLeft className="h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+          </div>
+        </header>
+        <div className="p-6 grid place-items-center">
+          <div className="max-w-md rounded-2xl border bg-card p-6 text-center">
+            <ShieldAlert className="mx-auto h-8 w-8 text-amber-500" />
+            <h2 className="mt-2 text-lg font-semibold">No access</h2>
+            <p className="text-sm text-muted-foreground">Admin or Documentation role required.</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-30 border-b bg-white shadow-sm">
+        <div className="mx-auto flex max-w-[1400px] items-center px-4 py-3 md:px-6">
+          <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 -ml-1" asChild>
+            <Link to="/">
+              <ChevronLeft className="h-4 w-4" />
+              Dashboard
+            </Link>
+          </Button>
+        </div>
+      </header>
+      <div className="p-4 md:p-6">
       <div className="mx-auto max-w-[1400px] space-y-4">
         {log.data && !bannerHidden && (
           <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
@@ -340,6 +364,7 @@ export default function ServiceLibraryAdmin() {
           }}
         />
       )}
+      </div>
     </div>
   );
 }

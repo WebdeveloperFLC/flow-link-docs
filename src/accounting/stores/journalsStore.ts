@@ -6,6 +6,8 @@ import type {
 } from "../data/mockJournals";
 import { supabase } from "@/integrations/supabase/client";
 import { getAccounts } from "./coaStore";
+import { getAllEntities } from "./accountingEntitiesStore";
+import { entityDisplayName, isEntityUuid } from "../lib/entityResolve";
 
 const STORAGE_KEY = "accounting:journals:v3";
 const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -19,11 +21,19 @@ function newUuid(): string {
   });
 }
 
+function normalizeJournalEntity(j: Journal): Journal {
+  const entities = getAllEntities();
+  if (!isEntityUuid(j.entity)) return j;
+  const name = entityDisplayName(j.entity, entities);
+  if (name === j.entity) return j;
+  return { ...j, entity: name };
+}
+
 let journals: Journal[] = (() => {
   if (typeof window === "undefined") return MOCK_JOURNALS;
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Journal[];
+    if (raw) return (JSON.parse(raw) as Journal[]).map(normalizeJournalEntity);
   } catch {
     // Ignore malformed local cache and use seed journals.
   }
@@ -107,7 +117,7 @@ function journalFromDb(row: any): Journal {
     .slice()
     .sort((a, b) => (a.line_number ?? 0) - (b.line_number ?? 0))
     .map(lineFromDb);
-  return {
+  return normalizeJournalEntity({
     id: row.id,
     entryNumber: row.journal_number,
     entryDate: row.entry_date,
@@ -122,7 +132,24 @@ function journalFromDb(row: any): Journal {
     voidedAt: row.voided_at ?? undefined,
     voidReason: row.void_reason ?? undefined,
     lines,
-  };
+  });
+}
+
+async function repairJournalEntityRefsInDb() {
+  const entities = getAllEntities();
+  if (!entities.length) return;
+  const repairs = journals
+    .filter((j) => isEntityUuid(j.entity))
+    .map((j) => ({ id: j.id, entity: entityDisplayName(j.entity, entities) }))
+    .filter((r) => r.entity && !isEntityUuid(r.entity));
+  for (const r of repairs) {
+    if (!isUuid(r.id)) continue;
+    try {
+      await supabase.from("accounting_journals").update({ entity: r.entity }).eq("id", r.id);
+    } catch {
+      // best-effort migration for legacy intercompany journals
+    }
+  }
 }
 
 async function hydrateFromSupabase() {
@@ -137,6 +164,7 @@ async function hydrateFromSupabase() {
     for (const row of data) byId.set(row.id, journalFromDb(row));
     journals = Array.from(byId.values());
     emit();
+    void repairJournalEntityRefsInDb();
   } catch (e) {
     console.warn("[journalsStore] hydrate failed", e);
   }

@@ -29,7 +29,31 @@ export type PaymentType = "petty_cash" | "reimbursement";
 export type ReimbursementMethod = "cash" | "bank";
 export type ApprovalLevel = "auto" | "custodian" | "secondary" | "finance";
 
-export type PettyPersonRole = "custodian" | "approver" | "employee";
+export type PettyPersonRole = "custodian" | "approver" | "authority";
+
+export const PETTY_PERSON_ROLE_META: Record<
+  PettyPersonRole,
+  { tab: string; placeholder: string; hint: string; addedToast: string }
+> = {
+  custodian: {
+    tab: "Custodians",
+    placeholder: "Custodian name",
+    hint: "People who hold the petty-cash float. Assign to each branch under Branch custodian & approver.",
+    addedToast: "Custodian added",
+  },
+  approver: {
+    tab: "Approvers",
+    placeholder: "Approver name",
+    hint: "Secondary approvers for ₹2,000–₹5,000. Assign per branch under Branch custodian & approver.",
+    addedToast: "Approver added",
+  },
+  authority: {
+    tab: "Authority",
+    placeholder: "Authority name",
+    hint: "Finance or senior sign-off for vouchers above ₹5,000 (reference list; not the same as branch approver).",
+    addedToast: "Authority added",
+  },
+};
 
 export interface PettyPerson {
   id: string;

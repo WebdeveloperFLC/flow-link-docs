@@ -30,7 +30,7 @@ const APPROVAL_LABEL: Record<string, { text: string; cls: string }> = {
 export default function AccountingPettyCashVoucherPage() {
   const navigate = useNavigate();
   const [search] = useSearchParams();
-  const { branches, addVoucher, categories, people, addCategory, addPerson } = usePettyCash();
+  const { branches, addVoucher, categories, addCategory } = usePettyCash();
   const { isAdmin } = usePettyCashAdmin();
 
   const [branchId, setBranchId] = useState(search.get("branch") ?? branches[0]?.id ?? "");
@@ -51,7 +51,6 @@ export default function AccountingPettyCashVoucherPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [showAddCategory, setShowAddCategory] = useState(false);
-  const [showAddEmployee, setShowAddEmployee] = useState(false);
   const [showManageBranches, setShowManageBranches] = useState(false);
 
   const numAmount = parseFloat(amount) || 0;
@@ -63,7 +62,7 @@ export default function AccountingPettyCashVoucherPage() {
     if (!category) errs.push("Category required");
     if (numAmount <= 0) errs.push("Amount must be greater than zero");
     if (!paidTo.trim()) errs.push("Paid to required");
-    if (paymentType === "reimbursement" && !employeeName.trim()) errs.push("Employee name required");
+    if (paymentType === "reimbursement" && !employeeName.trim()) errs.push("Payee name required");
   }
 
   const onSubmit = () => {
@@ -86,7 +85,6 @@ export default function AccountingPettyCashVoucherPage() {
   };
 
   const branch = branches.find(b => b.id === branchId);
-  const employees = people.filter(p => p.role === "employee");
 
   return (
     <AppLayout>
@@ -183,17 +181,16 @@ export default function AccountingPettyCashVoucherPage() {
             {paymentType === "reimbursement" && (
               <>
                 <div className="space-y-1.5">
-                  <Label>Employee name *</Label>
-                  <ExtensibleSelect
+                  <Label>Staff / payee name *</Label>
+                  <Input
                     value={employeeName}
-                    onValueChange={setEmployeeName}
-                    options={employees.map(p => ({ value: p.name, label: p.name }))}
-                    placeholder="Select employee…"
-                    invalid={submitted && !employeeName.trim()}
-                    canAdd
-                    addLabel="Add new employee…"
-                    onAdd={() => setShowAddEmployee(true)}
+                    onChange={(e) => setEmployeeName(e.target.value)}
+                    placeholder="Who is being reimbursed?"
+                    className={cn(submitted && !employeeName.trim() && "border-destructive")}
                   />
+                  <p className="text-[11px] text-muted-foreground">
+                    Enter the person receiving reimbursement on this voucher (not the Authority list).
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label>Reimbursement method *</Label>
@@ -274,21 +271,6 @@ export default function AccountingPettyCashVoucherPage() {
           const c = addCategory(v.label);
           setCategory(c.value);
           toast.success("Category added");
-        }}
-      />
-
-      <AddOptionDialog
-        open={showAddEmployee}
-        onOpenChange={setShowAddEmployee}
-        title="Add employee"
-        fields={[
-          { key: "name", label: "Employee name", required: true },
-          { key: "email", label: "Email", type: "email", placeholder: "optional" },
-        ]}
-        onSubmit={(v) => {
-          const p = addPerson({ name: v.name, email: v.email, role: "employee" });
-          setEmployeeName(p.name);
-          toast.success("Employee added");
         }}
       />
 

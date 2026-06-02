@@ -1,24 +1,9 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
-  Filter,
-  Search,
-  Download,
-  Loader2,
-  Copy,
-  MessageCircle,
-  Mail,
-  Link as LinkIcon,
-  Sparkles,
-  ClipboardCheck,
-  Coins,
-  FileText,
-  ChevronRight,
-  ChevronDown,
-  BookOpen,
-  ListChecks,
-  History,
+  Filter, Search, Download, Loader2, Copy, MessageCircle, Mail, Link as LinkIcon,
+  Sparkles, ClipboardCheck, Coins, FileText, ChevronRight, ChevronDown, ChevronLeft, BookOpen, ListChecks, History,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -160,7 +145,18 @@ export default function ServiceLibrary() {
       : null;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-30 border-b bg-white shadow-sm">
+        <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-3 md:px-6">
+          <Button variant="ghost" size="sm" className="h-8 gap-1 px-2 -ml-1" asChild>
+            <Link to="/">
+              <ChevronLeft className="h-4 w-4" />
+              Dashboard
+            </Link>
+          </Button>
+        </div>
+      </header>
+      <div className="p-4 md:p-6">
       <div className="mx-auto max-w-[1400px] space-y-4">
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
@@ -275,6 +271,7 @@ export default function ServiceLibrary() {
             )}
           </section>
         </div>
+      </div>
       </div>
     </div>
   );

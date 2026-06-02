@@ -16,6 +16,7 @@ import {
 import AccountingPageHeader from "@/accounting/components/shared/AccountingPageHeader";
 import DynamicSelect from "@/accounting/components/shared/DynamicSelect";
 import { useScopedEntities } from "../../hooks/useEntityScope";
+import { useProfileDisplayName } from "../../hooks/useProfileDisplayName";
 import { useAccounts } from "@/accounting/stores/coaStore";
 import { addJournal } from "@/accounting/stores/journalsStore";
 import { addCardReconciliation, nextReconciliationNumber } from "@/accounting/stores/cardReconciliationStore";
@@ -387,12 +388,13 @@ export default function AccountingCardReconciliationNewPage() {
   const navigate = useNavigate();
   const entities = useScopedEntities();
   const accounts = useAccounts();
+  const profileName = useProfileDisplayName();
 
   const [step, setStep] = useState(0);
 
   // Step 1
   const [cardAccountId, setCardAccountId] = useState("");
-  const [cardHolder, setCardHolder] = useState("Santosh Rakhiani");
+  const [cardHolder, setCardHolder] = useState("");
   const [cardType, setCardType] = useState<"PERSONAL" | "BUSINESS">("PERSONAL");
   const [entity, setEntity] = useState("");
   const [fromDate, setFromDate] = useState("");
@@ -400,6 +402,10 @@ export default function AccountingCardReconciliationNewPage() {
   const [opening, setOpening] = useState("0");
   const [closing, setClosing] = useState("0");
   const [currency, setCurrency] = useState("CAD");
+
+  useEffect(() => {
+    if (profileName && !cardHolder) setCardHolder(profileName);
+  }, [profileName, cardHolder]);
 
   // Step 2-3
   const [lines, setLines] = useState<CardStatementLine[]>([]);
