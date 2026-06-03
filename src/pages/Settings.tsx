@@ -13,6 +13,7 @@ import { Plus, Trash2, KeyRound, Copy, Check, AlertTriangle, Mail, ChevronRight,
 import { toast } from "sonner";
 import { logActivity } from "@/lib/activity";
 import { FirmProfileCard } from "@/components/settings/FirmProfileCard";
+import { CrmAppearanceCard } from "@/components/settings/CrmAppearanceCard";
 import { OdooIntegrationCard } from "@/components/settings/OdooIntegrationCard";
 import { Link } from "react-router-dom";
 
@@ -103,6 +104,8 @@ const Settings = () => {
       />
       <div className="p-8 space-y-6 max-w-4xl">
         <FirmProfileCard />
+
+        <CrmAppearanceCard />
 
         <div className="pt-2">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">

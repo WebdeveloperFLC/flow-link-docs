@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
@@ -630,15 +631,15 @@ const ResultCard = ({
           <Badge variant="outline" className="text-[10px] gap-1"><Clock className="size-3" />{fmtDur(c.duration_months)}</Badge>
           <Badge variant="outline" className="text-[10px] gap-1"><CalendarDays className="size-3" />{c.intake_months.join(", ")} {c.intake_year}</Badge>
           {c.ielts_overall && <Badge variant="outline" className="text-[10px]">IELTS {c.ielts_overall}</Badge>}
-          {c.scholarship_available && <Badge className="text-[10px] bg-amber-500/15 text-amber-700 hover:bg-amber-500/20 border-0 gap-1"><Award className="size-3" /> Scholarship</Badge>}
-          {c.pr_friendly && <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 border-0 gap-1"><ShieldCheck className="size-3" /> PR-friendly</Badge>}
-          {c.coop_available && <Badge className="text-[10px] bg-blue-500/15 text-blue-700 hover:bg-blue-500/20 border-0 gap-1"><Briefcase className="size-3" /> Co-op</Badge>}
-          {c.visa_success_indicator === "high" && <Badge className="text-[10px] bg-violet-500/15 text-violet-700 hover:bg-violet-500/20 border-0">High visa success</Badge>}
+          {c.scholarship_available && <StatusBadge variant="warning" className="text-[10px] gap-1"><Award className="size-3" /> Scholarship</StatusBadge>}
+          {c.pr_friendly && <StatusBadge variant="success" className="text-[10px] gap-1"><ShieldCheck className="size-3" /> PR-friendly</StatusBadge>}
+          {c.coop_available && <StatusBadge variant="primary" className="text-[10px] gap-1"><Briefcase className="size-3" /> Co-op</StatusBadge>}
+          {c.visa_success_indicator === "high" && <StatusBadge variant="primary" className="text-[10px]">High visa success</StatusBadge>}
           {clientProgramStatus === "shortlisted" && (
             <Badge variant="secondary" className="text-[10px]">On client shortlist</Badge>
           )}
           {clientProgramStatus === "final" && (
-            <Badge className="text-[10px] bg-emerald-600/90">On client file</Badge>
+            <StatusBadge variant="success" className="text-[10px]">On client file</StatusBadge>
           )}
         </div>
       </div>
@@ -716,11 +717,11 @@ const CourseDetail = ({
     </div>
 
     <div className="flex flex-wrap gap-1.5 mb-4">
-      {c.scholarship_available && <Badge className="bg-amber-500/15 text-amber-700 border-0">Scholarship</Badge>}
-      {c.pr_friendly && <Badge className="bg-emerald-500/15 text-emerald-700 border-0">PR-friendly</Badge>}
-      {c.pgwp_eligible && <Badge className="bg-emerald-500/15 text-emerald-700 border-0">PGWP eligible</Badge>}
-      {c.stem_eligible && <Badge className="bg-violet-500/15 text-violet-700 border-0">STEM</Badge>}
-      {c.coop_available && <Badge className="bg-blue-500/15 text-blue-700 border-0">Co-op</Badge>}
+      {c.scholarship_available && <StatusBadge variant="warning">Scholarship</StatusBadge>}
+      {c.pr_friendly && <StatusBadge variant="success">PR-friendly</StatusBadge>}
+      {c.pgwp_eligible && <StatusBadge variant="success">PGWP eligible</StatusBadge>}
+      {c.stem_eligible && <StatusBadge variant="primary">STEM</StatusBadge>}
+      {c.coop_available && <StatusBadge variant="primary">Co-op</StatusBadge>}
       {c.applications_open && <Badge variant="outline">Applications open</Badge>}
     </div>
 
@@ -763,7 +764,7 @@ const CourseDetail = ({
         </Button>
       )}
       {clientProgramStatus === "final" && (
-        <p className="text-xs text-center text-emerald-700 font-medium">This course is on the client file (final).</p>
+        <p className="text-xs text-center text-success font-medium">This course is on the client file (final).</p>
       )}
       <div className="flex gap-2">
         {c.apply_url ? (

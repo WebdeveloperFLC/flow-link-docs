@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Coffee, SkipForward } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { MyQueueTab } from "@/components/telecaller/MyQueueTab";
 import { InboxTab } from "@/components/telecaller/InboxTab";
 import { TodayCallsTab } from "@/components/telecaller/TodayCallsTab";
@@ -34,12 +34,12 @@ const Telecaller = () => {
     if (error) toast.error(error.message);
   };
 
-  const STATUS_TONE: Record<CallerStatus, string> = {
-    calling: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-    paused: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-    break: "bg-orange-500/15 text-orange-700 border-orange-500/30",
-    offline: "bg-muted text-muted-foreground",
-  };
+  const STATUS_VARIANT = {
+    calling: "success",
+    paused: "warning",
+    break: "warning",
+    offline: "muted",
+  } as const;
 
   return (
     <AppLayout>
@@ -47,7 +47,7 @@ const Telecaller = () => {
         <PageHeader title="Telecaller workspace" description="Operate the call queue, log remarks, and hand off leads" />
 
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className={STATUS_TONE[status]}>{status.toUpperCase()}</Badge>
+          <StatusBadge variant={STATUS_VARIANT[status]} className="border">{status.toUpperCase()}</StatusBadge>
           <Button size="sm" variant={status === "calling" ? "default" : "outline"} onClick={() => setStatusRemote("calling")}>
             <Play className="size-4 mr-1.5" />Start calling
           </Button>

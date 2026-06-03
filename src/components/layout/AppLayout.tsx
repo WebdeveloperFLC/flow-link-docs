@@ -69,6 +69,7 @@ import { useCan } from "@/accounting/hooks/usePermission";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ThemeCustomizer } from "@/components/theme/ThemeCustomizer";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import type { NavSectionKey } from "@/lib/themeStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AiHelpDrawer } from "@/ai-help/components/AiHelpDrawer";
 
@@ -257,15 +258,14 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   };
 
   // A collapsible section: header toggles open/close; auto-opens if it holds the active route.
-  const renderSection = (key: string, title: string, items: NavItem[]) => {
+  const renderSection = (key: NavSectionKey, title: string, items: NavItem[]) => {
     if (items.length === 0) return null;
     const hasActive = items.some(
       (i) => location.pathname === i.to || (!i.end && location.pathname.startsWith(i.to + "/")),
     );
-    // open if user toggled it, or (not yet touched and it contains the active route)
     const isOpen = openSections[key] ?? hasActive;
+    const sectionColor = theme.navSectionColors[key];
 
-    // icons-only mode: no headers, just show all items (tooltips identify them)
     if (iconsOnly) return <>{items.map(renderNavLink)}</>;
 
     return (
@@ -274,7 +274,15 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
         <button
           type="button"
           onClick={() => toggleSection(key)}
-          className="w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest text-sidebar-foreground/60 px-3 py-2 hover:text-white transition-colors"
+          className={cn(
+            "w-full flex items-center justify-between text-[11px] font-semibold uppercase tracking-widest px-3 py-2 hover:text-white transition-colors",
+            theme.colorfulMode ? "text-sidebar-foreground/80" : "text-sidebar-foreground/60",
+          )}
+          style={
+            theme.colorfulMode
+              ? { borderLeft: `3px solid hsl(${sectionColor})`, marginLeft: 4, paddingLeft: 8 }
+              : undefined
+          }
         >
           <span>{title}</span>
           <ChevronDown className={cn("size-3.5 transition-transform", isOpen ? "" : "-rotate-90")} />
@@ -444,7 +452,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
         <main
           key={typeof window !== "undefined" ? window.location.pathname : "main"}
-          className="flex-1 overflow-auto page-transition"
+          className={cn("flex-1 overflow-auto page-transition", theme.colorfulMode && "gradient-subtle")}
         >
           {children}
         </main>

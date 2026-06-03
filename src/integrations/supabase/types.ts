@@ -8562,6 +8562,7 @@ export type Database = {
           rcic_name: string | null
           rcic_number: string | null
           signature_path: string | null
+          theme_config: Json | null
           updated_at: string
         }
         Insert: {
@@ -8577,6 +8578,7 @@ export type Database = {
           rcic_name?: string | null
           rcic_number?: string | null
           signature_path?: string | null
+          theme_config?: Json | null
           updated_at?: string
         }
         Update: {
@@ -8592,6 +8594,7 @@ export type Database = {
           rcic_name?: string | null
           rcic_number?: string | null
           signature_path?: string | null
+          theme_config?: Json | null
           updated_at?: string
         }
         Relationships: []

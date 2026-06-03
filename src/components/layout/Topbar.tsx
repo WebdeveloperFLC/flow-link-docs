@@ -17,9 +17,9 @@ export interface TopbarProps {
 export function Topbar({ searchSlot, quickActionsSlot, className }: TopbarProps) {
   return (
     <div
-      className={cn(
+        className={cn(
         "fixed top-3 right-3 z-50 flex items-center gap-2",
-        "rounded-full border border-border/60 bg-background/85 backdrop-blur shadow-sm",
+        "rounded-full border border-border/60 bg-card/85 backdrop-blur shadow-sm",
         "px-2 py-1",
         className,
       )}

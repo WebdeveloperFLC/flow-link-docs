@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -87,35 +89,36 @@ function HexColorPicker({ value, onChange, label }: { value: string; onChange: (
 function LivePreview({ theme }: { theme: ThemeConfig }) {
   const sidebarBg = theme.sidebarStyle === 'gradient' ? theme.sidebarGradient : `hsl(${theme.sidebarColor})`;
   const radius = RADIUS_PX[theme.borderRadius];
+  const crmColor = theme.navSectionColors.crm;
+  const walletColor = theme.navSectionColors.wallet;
   return (
-    <div className="w-full h-[120px] rounded-xl overflow-hidden border border-border flex shadow-sm">
-      <div className="w-1/5 flex flex-col items-center gap-2 py-3" style={{ background: sidebarBg }}>
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="block w-5 h-5 rounded-full"
-            style={{
-              background: i === 0 ? `hsl(${theme.primaryColor})` : `hsl(${theme.sidebarTextColor} / 0.35)`,
-            }}
-          />
-        ))}
+    <div className="w-full h-[140px] rounded-xl overflow-hidden border border-border flex shadow-sm">
+      <div className="w-1/4 flex flex-col py-3 gap-1" style={{ background: sidebarBg }}>
+        <span
+          className="block h-1 mx-2 rounded-full text-[0px]"
+          style={{ background: `hsl(${crmColor})`, borderLeft: theme.colorfulMode ? `3px solid hsl(${crmColor})` : undefined }}
+        >
+          CRM
+        </span>
+        <span className="block h-1 mx-2 rounded-full opacity-40" style={{ background: `hsl(${theme.sidebarTextColor})` }} />
+        <span
+          className="block h-1 mx-2 rounded-full"
+          style={{ background: `hsl(${walletColor})`, borderLeft: theme.colorfulMode ? `2px solid hsl(${walletColor})` : undefined }}
+        />
       </div>
-      <div className="flex-1 p-3 flex flex-col gap-2" style={{ background: `hsl(${theme.backgroundColor})` }}>
+      <div
+        className={cn('flex-1 p-3 flex flex-col gap-2', theme.colorfulMode && 'gradient-subtle')}
+        style={!theme.colorfulMode ? { background: `hsl(${theme.backgroundColor})` } : undefined}
+      >
         <div
           className="flex-1 p-2 flex flex-col gap-1.5 border"
           style={{ background: `hsl(${theme.cardColor})`, borderRadius: radius, borderColor: 'hsl(var(--border))' }}
         >
-          <div className="h-1.5 w-2/3 rounded-full" style={{ background: 'hsl(var(--muted-foreground) / 0.4)' }} />
-          <div className="h-1.5 w-1/2 rounded-full" style={{ background: 'hsl(var(--muted-foreground) / 0.25)' }} />
-          <div className="mt-auto">
-            <span
-              className="inline-block px-3 py-1 text-[10px] font-medium"
-              style={{
-                background: `hsl(${theme.primaryColor})`,
-                color: `hsl(${theme.primaryForeground})`,
-                borderRadius: RADIUS_PX[theme.buttonRadius],
-              }}
-            >Button</span>
+          <div className="flex gap-1 flex-wrap">
+            <span className="inline-block px-2 py-0.5 text-[9px] rounded" style={{ background: `hsl(${theme.primaryColor})`, color: `hsl(${theme.primaryForeground})` }}>Primary</span>
+            <span className="inline-block px-2 py-0.5 text-[9px] rounded" style={{ background: `hsl(${theme.secondaryColor})`, color: `hsl(${theme.secondaryForeground})` }}>Secondary</span>
+            <span className="inline-block px-2 py-0.5 text-[9px] rounded bg-success/15 text-success">Success</span>
+            <span className="inline-block px-2 py-0.5 text-[9px] rounded bg-warning/15 text-warning">Warning</span>
           </div>
         </div>
       </div>
@@ -127,7 +130,7 @@ function LivePreview({ theme }: { theme: ThemeConfig }) {
 
 export function ThemeCustomizer() {
   const { user } = useAuth();
-  const { theme, setTheme, resetTheme, applyPreset } = useTheme();
+  const { theme, setTheme, resetTheme, applyPreset, useOrgTheme, usePersonalTheme, preference, orgTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [savedThemes, setSavedThemes] = useState<SavedTheme[]>(() => loadSavedThemes());
   const [newThemeName, setNewThemeName] = useState('');
@@ -190,7 +193,9 @@ export function ThemeCustomizer() {
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Quick themes</div>
               <div className="grid grid-cols-4 gap-2">
                 {THEME_PRESETS.map((p) => {
-                  const active = theme.primaryColor === p.config.primaryColor && theme.sidebarColor === p.config.sidebarColor;
+                  const active =
+                    theme.primaryColor === p.config.primaryColor &&
+                    theme.colorfulMode === p.config.colorfulMode;
                   return (
                     <button
                       key={p.name}
@@ -201,7 +206,12 @@ export function ThemeCustomizer() {
                         active ? 'border-primary ring-1 ring-primary' : 'border-border',
                       )}
                     >
-                      <span className="block w-5 h-5 rounded-full" style={{ background: `hsl(${p.preview})` }} />
+                      <span
+                        className="block w-5 h-5 rounded-full"
+                        style={{
+                          background: `linear-gradient(135deg, hsl(${p.config.primaryColor}), hsl(${p.config.secondaryColor}))`,
+                        }}
+                      />
                       <span className="text-[10px] leading-tight text-center text-muted-foreground">{p.name}</span>
                     </button>
                   );
@@ -245,6 +255,21 @@ export function ThemeCustomizer() {
                   <Save className="size-3.5 mr-1" /> Save
                 </Button>
               </div>
+            </section>
+
+            <Separator />
+
+            {/* Colorful mode */}
+            <section className="flex items-center justify-between rounded-lg border p-3">
+              <div>
+                <Label htmlFor="colorful-mode" className="text-sm font-medium">Colorful mode</Label>
+                <p className="text-xs text-muted-foreground">Multi-color nav sections + gradient background</p>
+              </div>
+              <Switch
+                id="colorful-mode"
+                checked={theme.colorfulMode}
+                onCheckedChange={(v) => setTheme({ colorfulMode: v })}
+              />
             </section>
 
             <Separator />
@@ -453,6 +478,40 @@ export function ThemeCustomizer() {
 
             <Separator />
 
+            {/* Secondary & status colors */}
+            <section className="space-y-3">
+              <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Accent & status</div>
+              <div>
+                <div className="text-xs mb-1">Secondary (brand accent)</div>
+                <HexColorPicker
+                  key={`sec-${theme.secondaryColor}`}
+                  value={theme.secondaryColor}
+                  onChange={(hsl) => setTheme({ secondaryColor: hsl })}
+                  label="secondary"
+                />
+              </div>
+              <div>
+                <div className="text-xs mb-1">Success</div>
+                <HexColorPicker
+                  key={`suc-${theme.successColor}`}
+                  value={theme.successColor}
+                  onChange={(hsl) => setTheme({ successColor: hsl })}
+                  label="success"
+                />
+              </div>
+              <div>
+                <div className="text-xs mb-1">Warning</div>
+                <HexColorPicker
+                  key={`warn-${theme.warningColor}`}
+                  value={theme.warningColor}
+                  onChange={(hsl) => setTheme({ warningColor: hsl })}
+                  label="warning"
+                />
+              </div>
+            </section>
+
+            <Separator />
+
             {/* 5. Typography */}
             <section className="space-y-3">
               <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Font</div>
@@ -640,9 +699,24 @@ export function ThemeCustomizer() {
             </section>
           </div>
 
-          <SheetFooter className="flex-row justify-between gap-2 sm:justify-between border-t pt-3 mt-2">
-            <Button variant="ghost" size="sm" onClick={resetTheme}>Reset to default</Button>
-            <Button size="sm" onClick={() => setOpen(false)}>Close</Button>
+          <SheetFooter className="flex-col gap-2 sm:flex-col border-t pt-3 mt-2">
+            <div className="flex flex-wrap gap-2 w-full">
+              {orgTheme && (
+                <Button variant="outline" size="sm" className="flex-1" onClick={useOrgTheme}>
+                  Use company theme
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="flex-1" onClick={usePersonalTheme}>
+                My saved theme
+              </Button>
+            </div>
+            {preference === 'org' && (
+              <p className="text-[10px] text-muted-foreground w-full">Using company default theme</p>
+            )}
+            <div className="flex flex-row justify-between gap-2 w-full">
+              <Button variant="ghost" size="sm" onClick={resetTheme}>Reset to default</Button>
+              <Button size="sm" onClick={() => setOpen(false)}>Close</Button>
+            </div>
           </SheetFooter>
         </SheetContent>
       </Sheet>

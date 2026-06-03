@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -25,7 +25,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { ColDef, GridApi, GridReadyEvent, ICellRendererParams } from "ag-grid-community";
+import type { ColDef, ICellRendererParams } from "ag-grid-community";
 import AccountingPageHeader from "../../components/shared/AccountingPageHeader";
 import AccountingBreadcrumbs from "../../components/shared/AccountingBreadcrumbs";
 import AccountingEmptyState from "../../components/shared/AccountingEmptyState";
@@ -43,6 +43,7 @@ import { useScopedEntities } from "../../hooks/useEntityScope";
 import { useKeyboardShortcuts } from "../../hooks/useKeyboardShortcuts";
 import { CoaAccount } from "../../types/coa";
 import { formatCurrency } from "../../lib/format";
+import { cn } from "@/lib/utils";
 
 const ALL = "__all__";
 
@@ -71,8 +72,15 @@ export default function AccountingCOAPage() {
   const [forcedParent, setForcedParent] = useState<string | null>(null);
   const [detail, setDetail] = useState<CoaAccount | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CoaAccount | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => new Set(accounts.map((a) => a.id)));
 
-  const apiRef = useRef<GridApi<CoaAccount> | null>(null);
+  useEffect(() => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      accounts.forEach((a) => next.add(a.id));
+      return next;
+    });
+  }, [accounts]);
 
   const accountById = useMemo(() => {
     const m = new Map<string, CoaAccount>();
@@ -80,15 +88,25 @@ export default function AccountingCOAPage() {
     return m;
   }, [accounts]);
 
-  // Build tree path from parentId chain
-  const getPath = (a: CoaAccount): string[] => {
-    const out: string[] = [];
-    let cur: CoaAccount | undefined = a;
-    while (cur) {
-      out.unshift(`${cur.code} ${cur.name}`);
-      cur = cur.parentId ? accountById.get(cur.parentId) : undefined;
+  const getDepth = (a: CoaAccount): number => {
+    let depth = 0;
+    let parentId = a.parentId;
+    while (parentId) {
+      depth += 1;
+      parentId = accountById.get(parentId)?.parentId ?? null;
     }
-    return out;
+    return depth;
+  };
+
+  const hasChildren = (id: string) => accounts.some((a) => a.parentId === id);
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const filtered = useMemo(() => {
@@ -118,6 +136,17 @@ export default function AccountingCOAPage() {
     });
     return accounts.filter((a) => keep.has(a.id));
   }, [accounts, accountById, search, groupFilter, typeFilter, entityFilter, statusFilter, currencyFilter]);
+
+  const visibleRows = useMemo(() => {
+    return filtered.filter((a) => {
+      let parentId = a.parentId;
+      while (parentId) {
+        if (!expandedIds.has(parentId)) return false;
+        parentId = accountById.get(parentId)?.parentId ?? null;
+      }
+      return true;
+    });
+  }, [filtered, expandedIds, accountById]);
 
   const kpis = useMemo(() => {
     const total = accounts.length;
@@ -163,6 +192,47 @@ export default function AccountingCOAPage() {
 
   const cols: ColDef<CoaAccount>[] = [
     { headerName: "Code", field: "code", minWidth: 100, maxWidth: 120, cellClass: "font-mono text-[12.5px]" },
+    {
+      headerName: "Account name",
+      field: "name",
+      minWidth: 260,
+      flex: 1.6,
+      cellRenderer: (p: ICellRendererParams<CoaAccount>) => {
+        const a = p.data;
+        if (!a) return null;
+        const depth = getDepth(a);
+        const expandable = hasChildren(a.id);
+        const open = expandedIds.has(a.id);
+        const isHeader = a.isPostable === false;
+        return (
+          <div className="flex items-center gap-1 min-w-0 h-full" style={{ paddingLeft: depth * 18 }}>
+            {expandable ? (
+              <button
+                type="button"
+                className="shrink-0 p-0.5 rounded hover:bg-muted text-muted-foreground"
+                aria-label={open ? "Collapse" : "Expand"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpanded(a.id);
+                }}
+              >
+                {open ? <ChevronDown className="size-3.5" /> : <ChevronRight className="size-3.5" />}
+              </button>
+            ) : (
+              <span className="w-5 shrink-0" />
+            )}
+            <span className={cn("truncate", isHeader ? "font-semibold" : "font-medium")}>
+              {a.name?.trim() || "—"}
+            </span>
+            {isHeader && (
+              <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border">
+                Header
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
     {
       headerName: "Type",
       minWidth: 170,
@@ -256,36 +326,11 @@ export default function AccountingCOAPage() {
     },
   ];
 
-  const autoGroupColumnDef: ColDef = {
-    headerName: "Account",
-    minWidth: 320,
-    flex: 2,
-    cellRendererParams: {
-      suppressCount: true,
-      innerRenderer: (p: ICellRendererParams<CoaAccount>) => {
-        const a = p.data;
-        if (!a) return p.value;
-        const isHeader = a.isPostable === false;
-        return (
-          <span className={isHeader ? "font-semibold" : ""}>
-            {a.code} {a.name}
-            {isHeader && (
-              <span className="ml-2 inline-block text-[10px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground border">
-                Header
-              </span>
-            )}
-          </span>
-        );
-      },
-    },
+  const expandAll = () => setExpandedIds(new Set(accounts.map((a) => a.id)));
+  const collapseAll = () => {
+    const roots = new Set(accounts.filter((a) => !a.parentId).map((a) => a.id));
+    setExpandedIds(roots);
   };
-
-  const onGridReady = (e: GridReadyEvent<CoaAccount>) => {
-    apiRef.current = e.api;
-    e.api.expandAll();
-  };
-  const expandAll = () => apiRef.current?.expandAll();
-  const collapseAll = () => apiRef.current?.collapseAll();
 
   const filtersActive =
     search ||
@@ -411,7 +456,7 @@ export default function AccountingCOAPage() {
           </div>
 
           {loading ? (
-            <AccountingTableSkeleton rows={8} cols={7} />
+            <AccountingTableSkeleton rows={8} cols={8} />
           ) : filtered.length === 0 ? (
             <AccountingEmptyState
               icon={Layers}
@@ -431,14 +476,9 @@ export default function AccountingCOAPage() {
             />
           ) : (
             <AccountingAGGrid<CoaAccount>
-              rowData={filtered}
+              rowData={visibleRows}
               columnDefs={cols}
-              treeData
-              getDataPath={(d) => getPath(d as CoaAccount)}
-              groupDefaultExpanded={-1}
-              autoGroupColumnDef={autoGroupColumnDef as ColDef<CoaAccount>}
               getRowId={(p) => p.data.id}
-              onGridReady={onGridReady}
               onRowClicked={(e) => {
                 if (e.data) setDetail(e.data);
               }}

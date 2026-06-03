@@ -3,18 +3,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge, leadStatusVariant } from "@/components/ui/status-badge";
 import { Phone, ChevronRight, Search, Clock, Forward } from "lucide-react";
 import { listMyQueue, snoozeItem, type QueueItemWithClient } from "@/lib/telecallerQueue";
 import { applyContactMask } from "@/lib/masking";
 import { CallDrawer } from "./CallDrawer";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-
-const STATUS_TONES: Record<string, string> = {
-  hot: "bg-red-500/15 text-red-700 border-red-500/30",
-  warm: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-  cold: "bg-blue-500/15 text-blue-700 border-blue-500/30",
-};
 
 export function MyQueueTab({ mask }: { mask: boolean }) {
   const [items, setItems] = useState<QueueItemWithClient[]>([]);
@@ -83,7 +78,11 @@ export function MyQueueTab({ mask }: { mask: boolean }) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <div className="font-medium truncate">{it.client.full_name}</div>
-                    {it.lead_status && <Badge variant="outline" className={STATUS_TONES[it.lead_status] ?? "text-xs"}>{it.lead_status}</Badge>}
+                    {it.lead_status && (
+                      <StatusBadge variant={leadStatusVariant(it.lead_status)} className="text-xs border">
+                        {it.lead_status}
+                      </StatusBadge>
+                    )}
                     {it.status === "callback" && <Badge variant="secondary" className="text-[10px]">Callback</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground">
