@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { parseCsv, importRows, type PreviewRow, type DedupeAction, type ImportResult } from "@/lib/leadImport";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { toast } from "sonner";
 import { Loader2, Upload, Download } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -140,8 +141,8 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
                 </div>
                 <div className="flex items-end gap-2 text-sm">
                   <Badge variant="secondary">{rows.length} rows</Badge>
-                  <Badge variant="outline" className="text-emerald-700 border-emerald-500/30">{valid} valid</Badge>
-                  {dups > 0 && <Badge variant="outline" className="text-amber-700 border-amber-500/30">{dups} dup</Badge>}
+                  <StatusBadge variant="success" className="border">{valid} valid</StatusBadge>
+                  {dups > 0 && <StatusBadge variant="warning" className="border">{dups} dup</StatusBadge>}
                 </div>
               </div>
 
@@ -159,7 +160,7 @@ export function ImportLeadsDialog({ open, onOpenChange, campaigns, onDone }: {
                   </thead>
                   <tbody>
                     {rows.map((r) => (
-                      <tr key={r._row} className={r._errors.length ? "bg-destructive/10" : r._duplicate ? "bg-amber-500/10" : ""}>
+                      <tr key={r._row} className={r._errors.length ? "bg-destructive/10" : r._duplicate ? "bg-warning/10" : ""}>
                         <td className="p-2 font-mono">{r._row}</td>
                         <td className="p-2">{r.full_name}</td>
                         <td className="p-2 font-mono">{r.phone}</td>

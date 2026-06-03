@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,7 +64,7 @@ function ProgramRow({
             </Badge>
           )}
           {p.status === "final" && (
-            <Badge className="bg-emerald-600/90 text-[10px]">Final</Badge>
+            <StatusBadge variant="success" className="text-[10px]">Final</StatusBadge>
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">{c.university.name}</p>

@@ -10,7 +10,7 @@ import { ClientTimelineCard } from "@/components/clients/ClientTimelineCard";
 import { Link } from "react-router-dom";
 import { applyContactMask } from "@/lib/masking";
 import type { QueueItemWithClient } from "@/lib/telecallerQueue";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, leadStatusVariant } from "@/components/ui/status-badge";
 
 export function CallDrawer({ item, mask, open, onOpenChange, onChanged }: {
   item: QueueItemWithClient | null;
@@ -26,21 +26,17 @@ export function CallDrawer({ item, mask, open, onOpenChange, onChanged }: {
   const c = item.client;
   const masked = applyContactMask({ phone: c.phone, email: c.email, mask });
 
-  const STATUS_TONES: Record<string, string> = {
-    hot: "bg-red-500/15 text-red-700 border-red-500/30",
-    warm: "bg-amber-500/15 text-amber-700 border-amber-500/30",
-    cold: "bg-blue-500/15 text-blue-700 border-blue-500/30",
-    not_interested: "bg-muted text-muted-foreground",
-    converted: "bg-emerald-500/15 text-emerald-700 border-emerald-500/30",
-  };
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-3">
             {c.full_name}
-            {item.lead_status && <Badge variant="outline" className={STATUS_TONES[item.lead_status] ?? ""}>{item.lead_status}</Badge>}
+            {item.lead_status && (
+              <StatusBadge variant={leadStatusVariant(item.lead_status)} className="border">
+                {item.lead_status}
+              </StatusBadge>
+            )}
           </SheetTitle>
         </SheetHeader>
         <div className="space-y-4">
