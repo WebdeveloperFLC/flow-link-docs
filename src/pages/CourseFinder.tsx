@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/input";
@@ -14,11 +14,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
-  Search, Heart, GitCompareArrows, Sparkles, GraduationCap, MapPin, Clock,
-  CalendarDays, Award, ShieldCheck, Briefcase, Building2, BookmarkPlus, X, Star,
+  Search, Heart, GitCompareArrows, Sparkles, GraduationCap, Clock,
+  CalendarDays, Award, ShieldCheck, Briefcase, Building2, BookmarkPlus, X, Star, UserPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { AttachCourseToClientDialog } from "@/components/course-finder/AttachCourseToClientDialog";
+import { listClientPrograms, type ClientProgramStatus } from "@/lib/clientPrograms";
 
 // ---------- Types ----------
 type Country = {
@@ -43,7 +45,8 @@ type Course = {
   gpa_min: number | null; backlogs_allowed: number | null; gap_accepted_years: number | null;
   work_experience_required: boolean; applications_open: boolean; employability_score: number | null;
   description: string | null; career_outcomes: string | null;
-  scholarship_info: string | null; pr_visa_notes: string | null;
+  scholarship_info: string | null;   pr_visa_notes: string | null;
+  apply_url: string | null;
 };
 type Enriched = Course & { university: University; country: Country };
 
@@ -96,6 +99,11 @@ const fmtDur = (m: number | null) => (m ? (m % 12 === 0 ? `${m / 12} ${m / 12 ==
 // ---------- Page ----------
 const CourseFinder = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const clientIdParam = searchParams.get("clientId");
+  const [clientContext, setClientContext] = useState<{ id: string; full_name: string } | null>(null);
+  const [clientProgramByCourse, setClientProgramByCourse] = useState<Record<string, ClientProgramStatus>>({});
+  const [attachCourse, setAttachCourse] = useState<{ id: string; label: string } | null>(null);
   const [countries, setCountries] = useState<Country[]>([]);
   const [universities, setUniversities] = useState<University[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -126,6 +134,26 @@ const CourseFinder = () => {
     supabase.from("cf_shortlists").select("course_id").eq("user_id", user.id)
       .then(({ data }) => setShortlist(new Set((data ?? []).map((r) => r.course_id))));
   }, [user]);
+
+  const refreshClientPrograms = useCallback(async () => {
+    if (!clientIdParam) {
+      setClientContext(null);
+      setClientProgramByCourse({});
+      return;
+    }
+    const [{ data: client }, programs] = await Promise.all([
+      supabase.from("clients").select("id, full_name").eq("id", clientIdParam).maybeSingle(),
+      listClientPrograms(clientIdParam).catch(() => []),
+    ]);
+    if (client) setClientContext(client as { id: string; full_name: string });
+    const map: Record<string, ClientProgramStatus> = {};
+    for (const p of programs) map[p.course_id] = p.status;
+    setClientProgramByCourse(map);
+  }, [clientIdParam]);
+
+  useEffect(() => {
+    refreshClientPrograms();
+  }, [refreshClientPrograms]);
 
   const enriched: Enriched[] = useMemo(() => {
     const uMap = new Map(universities.map((u) => [u.id, u] as const));
@@ -227,6 +255,11 @@ const CourseFinder = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {clientContext && (
+              <Button size="sm" variant="secondary" asChild>
+                <Link to={`/clients/${clientContext.id}`}>{clientContext.full_name}</Link>
+              </Button>
+            )}
             {user ? (
               <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">← Dashboard</Link>
             ) : (
@@ -234,6 +267,17 @@ const CourseFinder = () => {
             )}
           </div>
         </div>
+        {clientContext && (
+          <div className="max-w-[1400px] mx-auto px-6 pb-2">
+            <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-2 text-sm">
+              Shortlisting courses for{" "}
+              <Link to={`/clients/${clientContext.id}`} className="font-semibold text-primary hover:underline">
+                {clientContext.full_name}
+              </Link>
+              . Use &quot;Shortlist for client&quot; on each course, then mark final on the client file.
+            </div>
+          </div>
+        )}
         {/* Search bar */}
         <div className="max-w-[1400px] mx-auto px-6 pb-4">
           <Card className="p-4 grid grid-cols-1 md:grid-cols-[1fr_220px_180px_auto] gap-3 items-end">
@@ -462,9 +506,19 @@ const CourseFinder = () => {
                   c={e}
                   shortlisted={shortlist.has(e.id)}
                   comparing={compare.includes(e.id)}
+                  clientProgramStatus={clientIdParam ? clientProgramByCourse[e.id] : undefined}
                   onShortlist={() => toggleShortlist(e.id)}
                   onCompare={() => toggleCompare(e.id)}
                   onView={() => setDetailId(e.id)}
+                  onAttachClient={
+                    user
+                      ? () =>
+                          setAttachCourse({
+                            id: e.id,
+                            label: `${e.university.name} — ${e.name}`,
+                          })
+                      : undefined
+                  }
                 />
               ))}
             </div>
@@ -475,9 +529,34 @@ const CourseFinder = () => {
       {/* Detail Drawer */}
       <Sheet open={!!detail} onOpenChange={(o) => !o && setDetailId(null)}>
         <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
-          {detail && <CourseDetail c={detail} />}
+          {detail && (
+            <CourseDetail
+              c={detail}
+              clientProgramStatus={clientIdParam ? clientProgramByCourse[detail.id] : undefined}
+              onAttachClient={
+                user
+                  ? () =>
+                      setAttachCourse({
+                        id: detail.id,
+                        label: `${detail.university.name} — ${detail.name}`,
+                      })
+                  : undefined
+              }
+            />
+          )}
         </SheetContent>
       </Sheet>
+
+      {attachCourse && (
+        <AttachCourseToClientDialog
+          open={!!attachCourse}
+          onOpenChange={(o) => !o && setAttachCourse(null)}
+          courseId={attachCourse.id}
+          courseLabel={attachCourse.label}
+          defaultClientId={clientIdParam}
+          onAttached={() => refreshClientPrograms()}
+        />
+      )}
 
       {/* Compare Modal */}
       <Dialog open={showCompare} onOpenChange={setShowCompare}>
@@ -506,10 +585,23 @@ const Toggle = ({ label, checked, onChange }: { label: string; checked: boolean;
 );
 
 const ResultCard = ({
-  c, shortlisted, comparing, onShortlist, onCompare, onView,
+  c,
+  shortlisted,
+  comparing,
+  clientProgramStatus,
+  onShortlist,
+  onCompare,
+  onView,
+  onAttachClient,
 }: {
-  c: Enriched; shortlisted: boolean; comparing: boolean;
-  onShortlist: () => void; onCompare: () => void; onView: () => void;
+  c: Enriched;
+  shortlisted: boolean;
+  comparing: boolean;
+  clientProgramStatus?: ClientProgramStatus;
+  onShortlist: () => void;
+  onCompare: () => void;
+  onView: () => void;
+  onAttachClient?: () => void;
 }) => (
   <Card className="p-4 hover:shadow-md transition-shadow">
     <div className="flex gap-4">
@@ -542,21 +634,34 @@ const ResultCard = ({
           {c.pr_friendly && <Badge className="text-[10px] bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/20 border-0 gap-1"><ShieldCheck className="size-3" /> PR-friendly</Badge>}
           {c.coop_available && <Badge className="text-[10px] bg-blue-500/15 text-blue-700 hover:bg-blue-500/20 border-0 gap-1"><Briefcase className="size-3" /> Co-op</Badge>}
           {c.visa_success_indicator === "high" && <Badge className="text-[10px] bg-violet-500/15 text-violet-700 hover:bg-violet-500/20 border-0">High visa success</Badge>}
+          {clientProgramStatus === "shortlisted" && (
+            <Badge variant="secondary" className="text-[10px]">On client shortlist</Badge>
+          )}
+          {clientProgramStatus === "final" && (
+            <Badge className="text-[10px] bg-emerald-600/90">On client file</Badge>
+          )}
         </div>
       </div>
       {/* Right */}
-      <div className="shrink-0 w-44 flex flex-col items-end justify-between">
+      <div className="shrink-0 w-52 flex flex-col items-end justify-between">
         <div className="text-right">
           <p className="text-lg font-bold">{fmtMoney(c.tuition_fee, c.currency)}</p>
           <p className="text-xs text-muted-foreground">per year</p>
         </div>
         <div className="flex flex-col gap-1.5 w-full">
           <Button size="sm" onClick={onView}>View details</Button>
+          {onAttachClient && clientProgramStatus !== "final" && (
+            <Button size="sm" variant="secondary" className="w-full gap-1" onClick={onAttachClient}>
+              <UserPlus className="size-3.5" />
+              {clientProgramStatus === "shortlisted" ? "On shortlist" : "Shortlist for client"}
+            </Button>
+          )}
           <div className="flex gap-1.5">
             <Button
               size="sm" variant="outline" className="flex-1 gap-1"
               onClick={onShortlist}
-              aria-label="Shortlist"
+              aria-label="My favorites"
+              title="My favorites"
             >
               <Heart className={cn("size-3.5", shortlisted && "fill-red-500 text-red-500")} />
             </Button>
@@ -575,7 +680,15 @@ const ResultCard = ({
   </Card>
 );
 
-const CourseDetail = ({ c }: { c: Enriched }) => (
+const CourseDetail = ({
+  c,
+  clientProgramStatus,
+  onAttachClient,
+}: {
+  c: Enriched;
+  clientProgramStatus?: ClientProgramStatus;
+  onAttachClient?: () => void;
+}) => (
   <>
     <SheetHeader>
       <div className="flex items-center gap-3">
@@ -642,9 +755,32 @@ const CourseDetail = ({ c }: { c: Enriched }) => (
       <Section title="PR / visa notes"><p className="text-sm text-muted-foreground">{c.pr_visa_notes}</p></Section>
     )}
 
-    <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 -mx-6 px-6 pb-2 flex gap-2">
-      <Button className="flex-1">Apply now</Button>
-      <Button variant="outline" className="flex-1">Request counseling</Button>
+    <div className="sticky bottom-0 bg-background border-t pt-3 mt-4 -mx-6 px-6 pb-2 flex flex-col gap-2">
+      {onAttachClient && clientProgramStatus !== "final" && (
+        <Button className="w-full gap-2" variant="secondary" onClick={onAttachClient}>
+          <UserPlus className="size-4" />
+          {clientProgramStatus === "shortlisted" ? "On client shortlist — add again?" : "Shortlist for client"}
+        </Button>
+      )}
+      {clientProgramStatus === "final" && (
+        <p className="text-xs text-center text-emerald-700 font-medium">This course is on the client file (final).</p>
+      )}
+      <div className="flex gap-2">
+        {c.apply_url ? (
+          <Button className="flex-1" asChild>
+            <a href={c.apply_url} target="_blank" rel="noopener noreferrer">
+              Apply now
+            </a>
+          </Button>
+        ) : (
+          <Button className="flex-1" disabled>
+            Apply now
+          </Button>
+        )}
+        <Button variant="outline" className="flex-1" asChild>
+          <Link to="/leads/new">Request counseling</Link>
+        </Button>
+      </div>
     </div>
   </>
 );

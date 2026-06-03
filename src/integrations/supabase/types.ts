@@ -3906,6 +3906,76 @@ export type Database = {
           },
         ]
       }
+      cf_client_programs: {
+        Row: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          is_primary: boolean
+          notes: string | null
+          shortlisted_at: string
+          shortlisted_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          country_code?: string
+          course_id?: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "cf_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       cf_saved_searches: {
         Row: {
           created_at: string
