@@ -11041,6 +11041,7 @@ export type Database = {
       }
       service_library: {
         Row: {
+          academy_metadata: Json
           checklist_text: string | null
           cost_summary_html: string | null
           created_at: string
@@ -11061,6 +11062,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           created_at?: string
@@ -11081,6 +11083,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           created_at?: string
@@ -11313,6 +11316,7 @@ export type Database = {
       }
       service_library_overrides: {
         Row: {
+          academy_metadata: Json
           checklist_text: string | null
           cost_summary_html: string | null
           country: string
@@ -11328,6 +11332,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           country: string
@@ -11343,6 +11348,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           country?: string

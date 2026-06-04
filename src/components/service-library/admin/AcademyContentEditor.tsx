@@ -1,0 +1,618 @@
+import { useEffect, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import {
+  Upload,
+  Download,
+  Copy,
+  Save,
+  FileJson,
+  ExternalLink,
+  Plus,
+  Trash2,
+  Loader2,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+import {
+  SERVICE_LIBRARY_METADATA_TEMPLATE,
+  arrayToLines,
+  exportAcademyMetadataJson,
+  linesToArray,
+  normalizeAcademyMetadata,
+  parseAcademyMetadataJson,
+  type ServiceAcademyMetadata,
+} from "@/lib/service-library/academyTypes";
+import type { Master } from "@/lib/serviceLibrary";
+
+type Props = {
+  master: Master & { service_library_countries?: { country: string }[] };
+  onChanged: () => void;
+};
+
+const COUNTRY_SCOPED = new Set(["visa_immigration"]);
+
+export function AcademyContentEditor({ master, onChanged }: Props) {
+  const qc = useQueryClient();
+  const countries = (master.service_library_countries ?? []).map((c) => c.country);
+  const countryScoped = COUNTRY_SCOPED.has(master.service_category);
+
+  const [scope, setScope] = useState<"master" | string>("master");
+  const [meta, setMeta] = useState<ServiceAcademyMetadata>({});
+  const [jsonText, setJsonText] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const override = useQuery({
+    queryKey: ["sl-library-override", master.id, scope],
+    enabled: countryScoped && scope !== "master",
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_overrides")
+        .select("*")
+        .eq("library_id", master.id)
+        .eq("country", scope)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const masterMeta = normalizeAcademyMetadata(master.academy_metadata);
+
+  useEffect(() => {
+    if (scope === "master") {
+      setMeta(masterMeta);
+      setJsonText(exportAcademyMetadataJson(masterMeta));
+      return;
+    }
+    const patch = normalizeAcademyMetadata(override.data?.academy_metadata);
+    setMeta(patch);
+    setJsonText(exportAcademyMetadataJson(patch));
+  }, [scope, master.id, master.academy_metadata, override.data?.academy_metadata]);
+
+  const counselorUrl = useMemo(() => {
+    const p = new URLSearchParams({ id: master.id });
+    if (scope !== "master") p.set("country", scope);
+    return `/service-library?${p.toString()}`;
+  }, [master.id, scope]);
+
+  const persist = async (payload: ServiceAcademyMetadata) => {
+    setSaving(true);
+    try {
+      if (scope === "master") {
+        const { error } = await supabase
+          .from("service_library")
+          .update({ academy_metadata: payload as Record<string, unknown> })
+          .eq("id", master.id);
+        if (error) throw error;
+      } else {
+        const patchOnly = payload;
+        if (override.data?.id) {
+          const { error } = await supabase
+            .from("service_library_overrides")
+            .update({ academy_metadata: patchOnly as Record<string, unknown> })
+            .eq("id", override.data.id);
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.from("service_library_overrides").insert({
+            library_id: master.id,
+            country: scope,
+            academy_metadata: patchOnly as Record<string, unknown>,
+          });
+          if (error) throw error;
+        }
+      }
+      toast({ title: "Service content saved" });
+      qc.invalidateQueries({ queryKey: ["sl-masters"] });
+      qc.invalidateQueries({ queryKey: ["sl-library-override", master.id] });
+      onChanged();
+    } catch (e) {
+      toast({
+        title: "Save failed",
+        description: e instanceof Error ? e.message : "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveForm = () => persist(meta);
+
+  const applyJson = () => {
+    try {
+      const parsed = parseAcademyMetadataJson(jsonText);
+      setMeta(parsed);
+      toast({ title: "JSON applied to editor — click Save to persist" });
+    } catch (e) {
+      toast({
+        title: "Invalid JSON",
+        description: e instanceof Error ? e.message : "Parse error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveJson = async () => {
+    try {
+      const parsed = parseAcademyMetadataJson(jsonText);
+      await persist(parsed);
+      setMeta(parsed);
+    } catch (e) {
+      toast({
+        title: "Invalid JSON",
+        description: e instanceof Error ? e.message : "Parse error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const loadTemplate = () => {
+    setJsonText(exportAcademyMetadataJson(SERVICE_LIBRARY_METADATA_TEMPLATE));
+    toast({ title: "Template loaded — review, then Apply JSON or Save JSON" });
+  };
+
+  const onFileUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      setJsonText(String(reader.result ?? ""));
+      toast({ title: "File loaded into editor" });
+    };
+    reader.readAsText(file);
+  };
+
+  const patch = (fn: (m: ServiceAcademyMetadata) => ServiceAcademyMetadata) => {
+    setMeta(fn(meta));
+  };
+
+  if (countryScoped && scope !== "master" && override.isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3 justify-between rounded-lg border bg-muted/20 p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Label className="text-xs uppercase text-muted-foreground shrink-0">Edit scope</Label>
+          <Select value={scope} onValueChange={setScope}>
+            <SelectTrigger className="w-[220px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="master">All countries (master)</SelectItem>
+              {countryScoped &&
+                countries.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c} override only
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+          {scope !== "master" && (
+            <span className="text-xs text-muted-foreground max-w-md">
+              Country scope saves only override fields; master content is merged on the counselor view.
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to={counselorUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="h-3.5 w-3.5 mr-1" />
+              Open counselor view
+            </Link>
+          </Button>
+          <Button size="sm" onClick={saveForm} disabled={saving}>
+            <Save className="h-3.5 w-3.5 mr-1" />
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </div>
+      </div>
+
+      <Tabs defaultValue="bulk" className="w-full">
+        <TabsList className="flex flex-wrap h-auto gap-1">
+          <TabsTrigger value="bulk">
+            <FileJson className="h-3.5 w-3.5 mr-1" />
+            Bulk JSON
+          </TabsTrigger>
+          <TabsTrigger value="header">Header & KPIs</TabsTrigger>
+          <TabsTrigger value="about">About & eligibility</TabsTrigger>
+          <TabsTrigger value="flags">Red flags & FAQs</TabsTrigger>
+          <TabsTrigger value="lists">Lists & performance</TabsTrigger>
+          <TabsTrigger value="changelog">Changelog & notes</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="bulk" className="space-y-3 mt-4">
+          <p className="text-sm text-muted-foreground">
+            Paste or upload a single JSON object with all service library content fields. Use{" "}
+            <strong>Load template</strong> for a full example, edit offline, then <strong>Apply JSON</strong> and{" "}
+            <strong>Save JSON</strong>. Fastest way to load large content in one go.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={loadTemplate}>
+              Load template
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setJsonText(exportAcademyMetadataJson(meta))}>
+              <Copy className="h-3.5 w-3.5 mr-1" />
+              Copy current
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <label className="cursor-pointer">
+                <Upload className="h-3.5 w-3.5 mr-1 inline" />
+                Upload .json
+                <input
+                  type="file"
+                  accept=".json,application/json"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onFileUpload(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const blob = new Blob([jsonText || exportAcademyMetadataJson(meta)], { type: "application/json" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `service-library-${master.sub_service.replace(/\s+/g, "-").toLowerCase()}.json`;
+                a.click();
+              }}
+            >
+              <Download className="h-3.5 w-3.5 mr-1" />
+              Download
+            </Button>
+            <Button variant="secondary" size="sm" onClick={applyJson}>
+              Apply JSON to forms
+            </Button>
+            <Button size="sm" onClick={saveJson} disabled={saving}>
+              Save JSON to database
+            </Button>
+          </div>
+          <Textarea
+            className="font-mono text-xs min-h-[360px]"
+            value={jsonText}
+            onChange={(e) => setJsonText(e.target.value)}
+            placeholder='{ "displayName": "...", "kpis": [...] }'
+          />
+        </TabsContent>
+
+        <TabsContent value="header" className="grid gap-3 md:grid-cols-2 mt-4">
+          <Field label="Display name" value={meta.displayName ?? ""} onChange={(v) => patch((m) => ({ ...m, displayName: v }))} />
+          <Field label="Short description" value={meta.shortDescription ?? ""} onChange={(v) => patch((m) => ({ ...m, shortDescription: v }))} />
+          <Field label="Version" value={meta.version ?? ""} onChange={(v) => patch((m) => ({ ...m, version: v }))} />
+          <Field label="Version status" value={meta.versionStatus ?? ""} onChange={(v) => patch((m) => ({ ...m, versionStatus: v }))} />
+          <Field label="Updated label" value={meta.updatedLabel ?? ""} onChange={(v) => patch((m) => ({ ...m, updatedLabel: v }))} />
+          <div>
+            <Label>Review status</Label>
+            <Select
+              value={meta.reviewStatus ?? "active"}
+              onValueChange={(v) => patch((m) => ({ ...m, reviewStatus: v as ServiceAcademyMetadata["reviewStatus"] }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="needs_review">Needs review</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="md:col-span-2">
+            <Label>Policy alert summary</Label>
+            <Textarea
+              rows={2}
+              value={meta.policyAlert?.summary ?? ""}
+              onChange={(e) =>
+                patch((m) => ({
+                  ...m,
+                  policyAlert: { ...m.policyAlert, summary: e.target.value, active: !!e.target.value },
+                }))
+              }
+            />
+          </div>
+          <Field
+            label="Policy alert date"
+            value={meta.policyAlert?.date ?? ""}
+            onChange={(v) => patch((m) => ({ ...m, policyAlert: { ...m.policyAlert, date: v } }))}
+          />
+          <div className="md:col-span-2">
+            <Label>KPIs (JSON array — use Bulk JSON for many items)</Label>
+            <Textarea
+              className="font-mono text-xs"
+              rows={6}
+              value={JSON.stringify(meta.kpis ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  const kpis = JSON.parse(e.target.value) as ServiceAcademyMetadata["kpis"];
+                  patch((m) => ({ ...m, kpis }));
+                } catch {
+                  /* ignore while typing */
+                }
+              }}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="about" className="space-y-4 mt-4">
+          <LineBlock
+            label="About rows (label | value per line, or use Bulk JSON about[])"
+            value={
+              meta.about?.map((a) => `${a.label} | ${a.value}`).join("\n") ??
+              ""
+            }
+            onChange={(text) => {
+              const about = text
+                .split("\n")
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                  const [label, ...rest] = line.split("|");
+                  return { label: label.trim(), value: rest.join("|").trim() };
+                });
+              patch((m) => ({ ...m, about }));
+            }}
+          />
+          <LineBlock
+            label="Eligibility (criterion | met:true/false | optional note)"
+            value={
+              meta.eligibility
+                ?.map((e) => `${e.criterion} | ${e.met ? "true" : "false"}${e.note ? ` | ${e.note}` : ""}`)
+                .join("\n") ?? ""
+            }
+            onChange={(text) => {
+              const eligibility = text
+                .split("\n")
+                .map((l) => l.trim())
+                .filter(Boolean)
+                .map((line) => {
+                  const parts = line.split("|").map((p) => p.trim());
+                  return {
+                    criterion: parts[0] ?? "",
+                    met: parts[1]?.toLowerCase() === "true",
+                    note: parts[2],
+                  };
+                });
+              patch((m) => ({ ...m, eligibility }));
+            }}
+          />
+        </TabsContent>
+
+        <TabsContent value="flags" className="space-y-4 mt-4">
+          <LineBlock
+            label="Red flags banner"
+            value={meta.redFlagsBanner ?? ""}
+            onChange={(v) => patch((m) => ({ ...m, redFlagsBanner: v }))}
+            rows={2}
+          />
+          <RedFlagsEditor
+            items={meta.redFlags ?? []}
+            onChange={(redFlags) => patch((m) => ({ ...m, redFlags }))}
+          />
+          <FaqsEditor items={meta.faqs ?? []} onChange={(faqs) => patch((m) => ({ ...m, faqs }))} />
+        </TabsContent>
+
+        <TabsContent value="lists" className="space-y-4 mt-4">
+          <LineBlock label="Compliance (one per line)" value={arrayToLines(meta.compliance)} onChange={(v) => patch((m) => ({ ...m, compliance: linesToArray(v) }))} />
+          <LineBlock label="Pro tips (one per line)" value={arrayToLines(meta.proTips)} onChange={(v) => patch((m) => ({ ...m, proTips: linesToArray(v) }))} />
+          <LineBlock label="Post-approval (one per line)" value={arrayToLines(meta.postApproval)} onChange={(v) => patch((m) => ({ ...m, postApproval: linesToArray(v) }))} />
+          <LineBlock label="Do's (one per line)" value={arrayToLines(meta.donts?.dos)} onChange={(v) => patch((m) => ({ ...m, donts: { ...m.donts, dos: linesToArray(v) } }))} />
+          <LineBlock label="Don'ts (one per line)" value={arrayToLines(meta.donts?.donts)} onChange={(v) => patch((m) => ({ ...m, donts: { ...m.donts, donts: linesToArray(v) } }))} />
+          <LineBlock label="Common mistakes (one per line)" value={arrayToLines(meta.donts?.mistakes)} onChange={(v) => patch((m) => ({ ...m, donts: { ...m.donts, mistakes: linesToArray(v) } }))} />
+          <div className="grid md:grid-cols-3 gap-2">
+            <Field
+              label="Our approval %"
+              type="number"
+              value={String(meta.performance?.ourRate ?? "")}
+              onChange={(v) => patch((m) => ({ ...m, performance: { ...m.performance, ourRate: Number(v) || 0 } }))}
+            />
+            <Field
+              label="Industry %"
+              type="number"
+              value={String(meta.performance?.industryRate ?? "")}
+              onChange={(v) => patch((m) => ({ ...m, performance: { ...m.performance, industryRate: Number(v) || 0 } }))}
+            />
+          </div>
+          <div>
+            <Label>Approval factors (JSON)</Label>
+            <Textarea
+              className="font-mono text-xs"
+              rows={4}
+              value={JSON.stringify(meta.approvalFactors ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  patch((m) => ({ ...m, approvalFactors: JSON.parse(e.target.value) }));
+                } catch {
+                  /* ignore */
+                }
+              }}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="changelog" className="space-y-4 mt-4">
+          <ChangelogEditor items={meta.changelog ?? []} onChange={(changelog) => patch((m) => ({ ...m, changelog }))} />
+          <StaffNotesEditor items={meta.staffNotes ?? []} onChange={(staffNotes) => patch((m) => ({ ...m, staffNotes }))} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+}) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Input type={type} value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function LineBlock({
+  label,
+  value,
+  onChange,
+  rows = 8,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  rows?: number;
+}) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <Textarea rows={rows} value={value} onChange={(e) => onChange(e.target.value)} className="font-mono text-sm" />
+    </div>
+  );
+}
+
+function RedFlagsEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["redFlags"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["redFlags"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Red flags</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onChange([...items, { title: "", description: "", fix: "", severity: "Common" }])}
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add
+        </Button>
+      </div>
+      {items.map((rf, i) => (
+        <div key={i} className="rounded-lg border p-3 space-y-2">
+          <div className="flex justify-end">
+            <Button type="button" variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+          <Input placeholder="Title" value={rf.title} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
+          <Textarea placeholder="Description" rows={2} value={rf.description ?? ""} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, description: e.target.value } : x)))} />
+          <Input placeholder="Fix / guidance" value={rf.fix} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, fix: e.target.value } : x)))} />
+          <Input placeholder="Severity" value={rf.severity ?? ""} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, severity: e.target.value } : x)))} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FaqsEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["faqs"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["faqs"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>FAQs</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { q: "", a: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add FAQ
+        </Button>
+      </div>
+      {items.map((faq, i) => (
+        <div key={i} className="rounded-lg border p-3 space-y-2">
+          <Input placeholder="Question" value={faq.q} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, q: e.target.value } : x)))} />
+          <Textarea placeholder="Answer" rows={2} value={faq.a} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, a: e.target.value } : x)))} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChangelogEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["changelog"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["changelog"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Change log</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { version: "v1", date: "", author: "", summary: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add entry
+        </Button>
+      </div>
+      {items.map((e, i) => (
+        <div key={i} className="grid md:grid-cols-4 gap-2 rounded-lg border p-3">
+          <Input placeholder="Version" value={e.version} onChange={(ev) => onChange(items.map((x, j) => (j === i ? { ...x, version: ev.target.value } : x)))} />
+          <Input placeholder="Date" value={e.date} onChange={(ev) => onChange(items.map((x, j) => (j === i ? { ...x, date: ev.target.value } : x)))} />
+          <Input placeholder="Author" value={e.author} onChange={(ev) => onChange(items.map((x, j) => (j === i ? { ...x, author: ev.target.value } : x)))} />
+          <Input placeholder="Summary" value={e.summary} onChange={(ev) => onChange(items.map((x, j) => (j === i ? { ...x, summary: ev.target.value } : x)))} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StaffNotesEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["staffNotes"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["staffNotes"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Staff notes</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { author: "", date: "", text: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add note
+        </Button>
+      </div>
+      {items.map((n, i) => (
+        <div key={i} className="rounded-lg border p-3 space-y-2">
+          <div className="grid md:grid-cols-2 gap-2">
+            <Input placeholder="Author" value={n.author} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, author: e.target.value } : x)))} />
+            <Input placeholder="Date" value={n.date} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, date: e.target.value } : x)))} />
+          </div>
+          <Textarea placeholder="Note" rows={3} value={n.text} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
+        </div>
+      ))}
+    </div>
+  );
+}
