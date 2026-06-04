@@ -13,6 +13,7 @@ import { useServiceAcademyDetail } from "@/hooks/useServiceAcademyDetail";
 import { buildAcademyNav } from "@/lib/service-library/academyNav";
 import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
+import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -26,8 +27,12 @@ export default function ServiceLibrary() {
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
-  const [activeTab, setActiveTab] = useState("redflags");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "eligibility" | "checklist" | "process" | "dos" | "redflags" | "faqs" | "compliance" | "downloads" | "quiz" | "notes" | "changelog"
+  >("redflags");
   const [policyDismissed] = useState(false);
+  const [clientDialogOpen, setClientDialogOpen] = useState(false);
+  const [clientDialogMode, setClientDialogMode] = useState<"application" | "push">("application");
 
   useEffect(() => {
     const p = new URLSearchParams();
@@ -117,6 +122,11 @@ export default function ServiceLibrary() {
     else toast.message("Upload checklist files in admin");
   };
 
+  const openClientDialog = (mode: "application" | "push") => {
+    setClientDialogMode(mode);
+    setClientDialogOpen(true);
+  };
+
   const userName = user?.email?.split("@")[0] ?? "Counselor";
   const userInitials = userName.slice(0, 2).toUpperCase();
 
@@ -158,6 +168,8 @@ export default function ServiceLibrary() {
                 <ServiceAcademyHero
                   view={detail.data.view}
                   onOpenTab={setActiveTab}
+                  onOpenResources={() => setActiveTab("downloads")}
+                  onNewApplication={() => openClientDialog("application")}
                   policyDismissed={policyDismissed}
                   canManage={canManage}
                 />
@@ -187,6 +199,7 @@ export default function ServiceLibrary() {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   onToggleChecklistItem={toggleSub}
+                  onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}
                 />
               </div>
@@ -197,11 +210,25 @@ export default function ServiceLibrary() {
                 view={detail.data.view}
                 onSelectRelated={(id) => setSelectedId(id)}
                 onDownloadChecklist={downloadFirstChecklist}
+                onNewApplication={() => openClientDialog("application")}
               />
             </div>
           </div>
         )}
       </div>
+
+      {detail.data && (
+        <ServiceLibraryClientDialog
+          open={clientDialogOpen}
+          onOpenChange={setClientDialogOpen}
+          mode={clientDialogMode}
+          libraryId={detail.data.master.id}
+          serviceTitle={detail.data.view.title}
+          subService={detail.data.master.sub_service}
+          country={detail.data.view.country}
+          shareLink={detail.data.view.shareLink}
+        />
+      )}
     </div>
   );
 }

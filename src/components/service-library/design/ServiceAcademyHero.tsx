@@ -6,16 +6,24 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { copyToClipboard } from "@/lib/serviceLibrary";
-import { toast } from "sonner";
 
 type Props = {
   view: AcademyViewModel;
   onOpenTab?: (tab: string) => void;
+  onOpenResources?: () => void;
+  onNewApplication?: () => void;
   policyDismissed?: boolean;
   canManage?: boolean;
 };
 
-export function ServiceAcademyHero({ view, onOpenTab, policyDismissed, canManage }: Props) {
+export function ServiceAcademyHero({
+  view,
+  onOpenTab,
+  onOpenResources,
+  onNewApplication,
+  policyDismissed,
+  canManage,
+}: Props) {
   const showPolicy = !policyDismissed && view.policyAlert;
 
   return (
@@ -100,7 +108,7 @@ export function ServiceAcademyHero({ view, onOpenTab, policyDismissed, canManage
               </a>
             </Button>
           )}
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => (onOpenResources ? onOpenResources() : onOpenTab?.("downloads"))}>
             <BookOpen className="size-4 mr-1.5" />
             Resources
           </Button>
@@ -111,7 +119,7 @@ export function ServiceAcademyHero({ view, onOpenTab, policyDismissed, canManage
           <Button
             size="sm"
             className="bg-success hover:bg-success/90 text-success-foreground"
-            onClick={() => toast.message("New application — link from Leads / Clients")}
+            onClick={onNewApplication}
           >
             <Plus className="size-4 mr-1.5" />
             New application

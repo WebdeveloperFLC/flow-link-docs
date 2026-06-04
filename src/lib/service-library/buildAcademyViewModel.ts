@@ -7,7 +7,6 @@ import {
   type SopTask,
   resolveForCountry,
   htmlToPlain,
-  buildShareableLink,
 } from "@/lib/serviceLibrary";
 import {
   mergeAcademyMetadata,
@@ -57,13 +56,21 @@ export type AcademyViewModel = {
   };
   process: { step: number; title: string; duration: string; owner: string; notes?: string }[];
   dosDonts: { dos: string[]; donts: string[]; mistakes: string[] };
+  resources: { title: string; url: string; description?: string }[];
   downloads: { name: string; size: string; fileId: string }[];
+  quiz: {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation?: string;
+  }[];
   internalNotes: { author: string; date: string; text: string }[];
   changelog: { version: string; date: string; author: string; summary: string }[];
   relatedServices: { id: string; label: string }[];
   sopHtml: string | null;
   shareLink: string;
   needsReview: boolean;
+  learningMinutes: number;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -243,6 +250,7 @@ export function buildAcademyViewModel(args: {
       donts: meta.donts?.donts?.length ? meta.donts.donts : dontsFromGuide,
       mistakes: meta.donts?.mistakes?.length ? meta.donts.mistakes : mistakesFromGuide,
     },
+    resources: meta.resources ?? [],
     downloads: args.checklistFiles
       .filter((f) => f.is_current)
       .map((f) => ({
@@ -250,6 +258,7 @@ export function buildAcademyViewModel(args: {
         size: f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—",
         fileId: f.id,
       })),
+    quiz: meta.quiz ?? [],
     internalNotes: (meta.staffNotes ?? []).map((n) => ({
       author: n.author,
       date: n.date,
@@ -261,12 +270,16 @@ export function buildAcademyViewModel(args: {
       label: r.label,
     })),
     sopHtml: resolved.internal_sop_html,
-    shareLink: buildShareableLink({
-      category: master.service_category,
-      service: master.service,
-      subService: master.sub_service,
-      country: displayCountry,
-    }),
+    shareLink: (() => {
+      const url = new URL(
+        typeof window !== "undefined" ? window.location.origin : "https://app",
+      );
+      url.pathname = "/service-library";
+      url.searchParams.set("id", master.id);
+      if (displayCountry) url.searchParams.set("country", displayCountry);
+      return url.toString();
+    })(),
     needsReview: meta.reviewStatus === "needs_review",
+    learningMinutes: meta.learningMinutes ?? 0,
   };
 }

@@ -39,6 +39,10 @@ const LeadNew = () => {
   const nav = useNavigate();
   const [sp] = useSearchParams();
   const editId = sp.get("id");
+  const slCountry = sp.get("country");
+  const slVisaService = sp.get("visa_service");
+  const slServiceLabel = sp.get("service_label");
+  const slLibraryId = sp.get("library_id");
   const initialMode: LeadMode = sp.get("mode") === "cold" ? "cold" : "warm_hot";
 
   const [mode, setMode] = useState<LeadMode>(initialMode);
@@ -66,6 +70,27 @@ const LeadNew = () => {
     fetchBranches().then(setBranches);
     fetchDepartments().then(setDepartments);
   }, []);
+
+  // Prefill from Service Library
+  useEffect(() => {
+    if (editId || leadId) return;
+    if (slCountry) setInterestedCountries([slCountry]);
+    if (slVisaService) {
+      setServices((s) => ({
+        ...s,
+        visa_services: s.visa_services?.length ? s.visa_services : [slVisaService],
+      }));
+    }
+    if (slLibraryId || slServiceLabel) {
+      const line = [
+        slServiceLabel ? `Service Library: ${slServiceLabel}` : null,
+        slLibraryId ? `library_id=${slLibraryId}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      setNotes((n) => (n ? `${n}\n${line}` : line));
+    }
+  }, [slCountry, slVisaService, slServiceLabel, slLibraryId, editId, leadId]);
 
   // Load existing record when editing
   useEffect(() => {

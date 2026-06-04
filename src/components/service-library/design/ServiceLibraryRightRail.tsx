@@ -4,15 +4,19 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
-import { toast } from "sonner";
-
 type Props = {
   view: AcademyViewModel;
   onSelectRelated?: (libraryId: string) => void;
   onDownloadChecklist?: () => void;
+  onNewApplication?: () => void;
 };
 
-export function ServiceLibraryRightRail({ view, onSelectRelated, onDownloadChecklist }: Props) {
+export function ServiceLibraryRightRail({
+  view,
+  onSelectRelated,
+  onDownloadChecklist,
+  onNewApplication,
+}: Props) {
   const sections = [
     { label: "Overview", done: true },
     { label: "Red flags", done: view.redFlags.length > 0 },
@@ -131,7 +135,8 @@ export function ServiceLibraryRightRail({ view, onSelectRelated, onDownloadCheck
         <Button
           className="w-full bg-success hover:bg-success/90 text-success-foreground"
           size="sm"
-          onClick={() => toast.message("New application — link from Leads / Clients")}
+          onClick={onNewApplication}
+          disabled={!onNewApplication}
         >
           <Plus className="size-4 mr-1.5" />
           New application

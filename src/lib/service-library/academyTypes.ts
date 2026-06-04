@@ -37,6 +37,15 @@ export type ServiceAcademyMetadata = {
   changelog?: { version: string; date: string; author: string; summary: string }[];
   staffNotes?: { author: string; date: string; text: string }[];
   donts?: { dos?: string[]; donts?: string[]; mistakes?: string[] };
+  /** Official links and reference PDFs (shown in Downloads / Resources). */
+  resources?: { title: string; url: string; description?: string }[];
+  /** In-app knowledge check (shown in Quiz tab). */
+  quiz?: {
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation?: string;
+  }[];
 };
 
 /** Bulk JSON template for Service Library admin. */

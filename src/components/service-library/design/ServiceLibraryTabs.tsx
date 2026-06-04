@@ -13,6 +13,7 @@ import {
   Send,
   Download,
   FileText,
+  ExternalLink,
   Brain,
   StickyNote,
   History,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
+import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 
 const TAB_IDS = [
   "overview",
@@ -103,7 +105,33 @@ export function ServiceLibraryTabs({
             <p className="text-sm text-muted-foreground">Add overview fields in Service Library Admin → Service content.</p>
           )}
         </Card>
-        {view.performance && (
+        {view.proTips.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-3">Pro tips</h3>
+            <ul className="space-y-2 text-sm">
+              {view.proTips.map((t, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-primary">•</span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+        {view.postApproval.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-3">After approval</h3>
+            <ul className="space-y-2 text-sm">
+              {view.postApproval.map((t, i) => (
+                <li key={i} className="flex gap-2">
+                  <span className="text-success">•</span>
+                  {t}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
+        {view.performance && (view.performance.ourRate > 0 || view.performance.stats.length > 0) && (
           <Card className="p-5 shadow-elev-sm">
             <h3 className="font-semibold mb-4">Approval performance</h3>
             <div className="space-y-2 mb-4">
@@ -205,7 +233,7 @@ export function ServiceLibraryTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="process" className="mt-0">
+      <TabsContent value="process" className="space-y-4 mt-0">
         <Card className="p-5 shadow-elev-sm">
           {view.process.length ? (
             <ol className="relative border-l border-border ml-3 space-y-6">
@@ -218,13 +246,27 @@ export function ServiceLibraryTabs({
                   <div className="text-xs text-muted-foreground">
                     {step.duration} · {step.owner}
                   </div>
+                  {step.notes && <p className="text-xs mt-1 text-muted-foreground">{step.notes}</p>}
                 </li>
               ))}
             </ol>
           ) : (
-            <p className="text-sm text-muted-foreground">Add process steps in admin or process flow field.</p>
+            <p className="text-sm text-muted-foreground">Add process steps in admin → Process Flow tab.</p>
           )}
         </Card>
+        {view.timeline.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-3">Timeline overview</h3>
+            <ul className="space-y-2 text-sm">
+              {view.timeline.map((t) => (
+                <li key={t.weeks + t.title} className="flex gap-3 border-b pb-2 last:border-0">
+                  <span className="font-mono text-xs text-muted-foreground shrink-0 w-14">{t.weeks}</span>
+                  <span>{t.title}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="dos" className="mt-0">
@@ -313,44 +355,70 @@ export function ServiceLibraryTabs({
         </Card>
       </TabsContent>
 
-      <TabsContent value="downloads" className="mt-0 space-y-2">
-        {view.downloads.length ? (
-          view.downloads.map((d) => (
-            <Card key={d.fileId} className="p-4 flex items-center justify-between shadow-elev-sm">
-              <div className="flex items-center gap-3 min-w-0">
-                <FileText className="size-5 text-primary shrink-0" />
+      <TabsContent value="downloads" className="mt-0 space-y-4">
+        {view.resources.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Official resources
+            </h3>
+            {view.resources.map((r) => (
+              <Card key={r.url} className="p-4 flex items-center justify-between shadow-elev-sm gap-3">
                 <div className="min-w-0">
-                  <div className="font-medium text-sm truncate">{d.name}</div>
-                  <div className="text-xs text-muted-foreground">{d.size}</div>
+                  <div className="font-medium text-sm">{r.title}</div>
+                  {r.description && (
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{r.description}</p>
+                  )}
                 </div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={!onDownloadFile}
-                onClick={() => onDownloadFile?.(d.fileId, d.name)}
-              >
-                <Download className="size-4 mr-1" />
-                Download
-              </Button>
-            </Card>
-          ))
-        ) : (
-          <Card className="p-5 text-sm text-muted-foreground">Upload files in admin checklist / resources.</Card>
+                <Button variant="outline" size="sm" className="shrink-0" asChild>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="size-4 mr-1" />
+                    Open
+                  </a>
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+        {view.downloads.length > 0 && (
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Downloadable files
+            </h3>
+            {view.downloads.map((d) => (
+              <Card key={d.fileId} className="p-4 flex items-center justify-between shadow-elev-sm">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="size-5 text-primary shrink-0" />
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm truncate">{d.name}</div>
+                    <div className="text-xs text-muted-foreground">{d.size}</div>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!onDownloadFile}
+                  onClick={() => onDownloadFile?.(d.fileId, d.name)}
+                >
+                  <Download className="size-4 mr-1" />
+                  Download
+                </Button>
+              </Card>
+            ))}
+          </div>
+        )}
+        {!view.resources.length && !view.downloads.length && (
+          <Card className="p-5 text-sm text-muted-foreground space-y-2">
+            <p>No resources yet for this service.</p>
+            <p className="text-xs">
+              Add official links in Admin → Service content (JSON <span className="font-mono">resources</span>
+              ), or upload PDFs under Checklist files.
+            </p>
+          </Card>
         )}
       </TabsContent>
 
       <TabsContent value="quiz" className="mt-0">
-        <Card className="p-8 text-center shadow-elev-sm">
-          <Brain className="size-10 mx-auto text-primary mb-3" />
-          <h3 className="font-semibold">Knowledge check</h3>
-          <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
-            Training quiz can be linked from your learning modules.
-          </p>
-          <Button className="mt-4" variant="outline" disabled>
-            Start quiz
-          </Button>
-        </Card>
+        <ServiceLibraryQuiz questions={view.quiz} learningMinutes={view.learningMinutes || undefined} />
       </TabsContent>
 
       <TabsContent value="notes" className="mt-0">
