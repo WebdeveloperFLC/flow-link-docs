@@ -40,7 +40,7 @@ import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
-import ServiceLibraryAcademy from "./pages/ServiceLibrary";
+import ServiceLibrary from "./pages/ServiceLibrary";
 import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
@@ -186,7 +186,7 @@ const App = () => (
                     path="/service-library"
                     element={
                       <ProtectedRoute>
-                        <ServiceLibraryAcademy />
+                        <ServiceLibrary />
                       </ProtectedRoute>
                     }
                   />

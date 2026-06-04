@@ -3748,90 +3748,6 @@ export type Database = {
         }
         Relationships: []
       }
-      cf_client_programs: {
-        Row: {
-          client_id: string
-          country_code: string
-          course_id: string
-          created_at: string
-          finalized_at: string | null
-          finalized_by: string | null
-          id: string
-          is_primary: boolean
-          notes: string | null
-          shortlisted_at: string
-          shortlisted_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          client_id: string
-          country_code: string
-          course_id: string
-          created_at?: string
-          finalized_at?: string | null
-          finalized_by?: string | null
-          id?: string
-          is_primary?: boolean
-          notes?: string | null
-          shortlisted_at?: string
-          shortlisted_by?: string | null
-          status: string
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string
-          country_code?: string
-          course_id?: string
-          created_at?: string
-          finalized_at?: string | null
-          finalized_by?: string | null
-          id?: string
-          is_primary?: boolean
-          notes?: string | null
-          shortlisted_at?: string
-          shortlisted_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cf_client_programs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "v_clients_masked"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "vw_client_current_stage"
-            referencedColumns: ["client_id"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_country_code_fkey"
-            columns: ["country_code"]
-            isOneToOne: false
-            referencedRelation: "cf_countries"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "cf_courses"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       cf_countries: {
         Row: {
           code: string
@@ -3987,6 +3903,76 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cf_universities"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      cf_client_programs: {
+        Row: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          is_primary: boolean
+          notes: string | null
+          shortlisted_at: string
+          shortlisted_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          country_code?: string
+          course_id?: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "cf_courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -11055,7 +11041,6 @@ export type Database = {
       }
       service_library: {
         Row: {
-          academy_metadata: Json
           checklist_text: string | null
           cost_summary_html: string | null
           created_at: string
@@ -11076,7 +11061,6 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
-          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           created_at?: string
@@ -11097,7 +11081,6 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
-          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           created_at?: string
@@ -11330,7 +11313,6 @@ export type Database = {
       }
       service_library_overrides: {
         Row: {
-          academy_metadata: Json
           checklist_text: string | null
           cost_summary_html: string | null
           country: string
@@ -11346,7 +11328,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           country: string
@@ -11362,7 +11343,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          academy_metadata?: Json
           checklist_text?: string | null
           cost_summary_html?: string | null
           country?: string
