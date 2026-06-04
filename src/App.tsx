@@ -40,7 +40,7 @@ import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
-import ServiceLibraryAcademy from "./pages/ServiceLibraryAcademy";
+import ServiceLibraryAcademy from "./pages/ServiceLibrary";
 import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
 import ServiceLibraryDesignPreview from "./pages/ServiceLibraryDesignPreview";
 import Telecaller from "./pages/Telecaller";
