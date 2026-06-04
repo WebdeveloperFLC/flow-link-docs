@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 import {
   agreementsRepo,
   commissionsRepo,
@@ -9,7 +10,6 @@ import {
   studentsRepo,
   campaignsRepo,
   suggestionsRepo,
-  sourcesMockRepo,
   paymentsRepo,
 } from "../repositories";
 import { RENEWAL_THRESHOLDS_DAYS } from "../config";
@@ -17,10 +17,17 @@ import { RENEWAL_THRESHOLDS_DAYS } from "../config";
 function useResource<T>(loader: () => Promise<T[]>, deps: any[]) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const reload = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       setData(await loader());
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to load data";
+      setError(msg);
+      setData([]);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -29,7 +36,7 @@ function useResource<T>(loader: () => Promise<T[]>, deps: any[]) {
   useEffect(() => {
     reload();
   }, [reload]);
-  return { data, loading, reload };
+  return { data, loading, error, reload };
 }
 
 export const useAgreements = (institutionId?: string) =>
@@ -76,8 +83,5 @@ export const useCampaigns = (institutionId?: string) =>
 
 export const useSuggestions = (institutionId?: string) =>
   useResource(() => suggestionsRepo.list(institutionId), [institutionId]);
-
-export const useMockSources = (institutionId?: string) =>
-  useResource(() => sourcesMockRepo.list(institutionId), [institutionId]);
 
 export const usePayments = () => useResource(() => paymentsRepo.list(), []);

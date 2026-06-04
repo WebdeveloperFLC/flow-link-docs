@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Upload, RefreshCw, Sparkles, Plus, ArrowUp, Trash2, BookOpen, Send, MessageSquarePlus } from "lucide-react";
-import type { UpiInstitution, UpiSource, UpiSuggestion } from "../types/upi";
+import type { UpiInstitution, UpiSource } from "../types/upi";
 import { RunCampaignDialog } from "../components/RunCampaignDialog";
 import { AgreementsPanel } from "../components/AgreementsPanel";
 import { CommissionsPanel } from "../components/CommissionsPanel";
@@ -24,9 +24,11 @@ import { PromotionsPanel } from "../components/PromotionsPanel";
 import { CampaignsPanel } from "../components/CampaignsPanel";
 import { AiSuggestionsPanel } from "../components/AiSuggestionsPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import { Lock } from "lucide-react";
-import { useMockSources } from "../hooks/useInstitutionData";
-import { ALLOW_TEST_DELETIONS } from "../config";
+import { ALLOW_TEST_DELETIONS, CONFIDENTIAL_SOURCE_TYPES, isConfidentialDocKind } from "../config";
+import { isSupabaseNotFound } from "../lib/scope";
+import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 
 // Sanitize a filename for use as a Supabase Storage object key.
 // Storage path must round-trip through createSignedUrl, which percent-encodes the
@@ -56,13 +58,11 @@ export default function InstitutionDetailPage() {
     );
   }
   const [inst, setInst] = useState<UpiInstitution | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [sources, setSources] = useState<UpiSource[]>([]);
   const [docs, setDocs] = useState<any[]>([]);
-  const [agreements, setAgreements] = useState<any[]>([]);
-  const [commissions, setCommissions] = useState<any[]>([]);
-  const [promos, setPromos] = useState<any[]>([]);
-  const [campaigns, setCampaigns] = useState<any[]>([]);
-  const [suggestions, setSuggestions] = useState<UpiSuggestion[]>([]);
   const [newSourceUrl, setNewSourceUrl] = useState("");
   const [newSourceType, setNewSourceType] = useState("website_url");
   const [newSourceDocId, setNewSourceDocId] = useState<string>("");
@@ -75,6 +75,7 @@ export default function InstitutionDetailPage() {
   const [generated, setGenerated] = useState("");
   const [busy, setBusy] = useState(false);
   const { isCommissionAdmin, isAccountingMember } = useAuth();
+  const { canEdit } = useModulePermission("institutions");
   const canSeeCommissions = isCommissionAdmin || isAccountingMember;
   const LockedPanel = ({ label }: { label: string }) => (
     <Card className="p-10 max-w-xl mx-auto text-center space-y-2">
@@ -90,7 +91,6 @@ export default function InstitutionDetailPage() {
     | "program_sheet" | "agreement" | "commission_sheet" | "brochure"
     | "promotion_campaign" | "invoice_template" | "renewal_document" | "other";
   const [docKind, setDocKind] = useState<DocKind | "">("");
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [suggestedKind, setSuggestedKind] = useState<DocKind | null>(null);
 
   const guessKindFromName = (name: string): DocKind | null => {
@@ -110,43 +110,108 @@ export default function InstitutionDetailPage() {
   const [campaignPromo, setCampaignPromo] = useState<{ id: string; title: string } | null>(null);
   const [reviewDoc, setReviewDoc] = useState<any | null>(null);
 
-  const { data: mockSourceRows } = useMockSources(id);
-
   const INSTITUTION_TYPES = [
     "Public University", "Private University", "Public College", "Private College",
     "Polytechnic", "Community College", "Language School", "Pathway Provider", "Other",
   ];
 
+  const DOC_KIND_OPTIONS: { value: DocKind | "promotion_campaign" | "invoice_template" | "renewal_document" | "other"; label: string }[] = [
+    { value: "program_sheet", label: "Program sheet (extract programs)" },
+    { value: "agreement", label: "Agreement" },
+    { value: "commission_sheet", label: "Commission sheet" },
+    { value: "brochure", label: "Brochure" },
+    { value: "promotion_campaign", label: "Promotion / Campaign" },
+    { value: "invoice_template", label: "Invoice template" },
+    { value: "renewal_document", label: "Renewal document" },
+    { value: "other", label: "Other" },
+  ];
+
+  const visibleDocKindOptions = DOC_KIND_OPTIONS.filter(
+    (o) => canSeeCommissions || !isConfidentialDocKind(o.value),
+  );
+
+  const catalogDocs = useMemo(
+    () => docs.filter((d) => !isConfidentialDocKind(d.metadata?.doc_kind)),
+    [docs],
+  );
+  const confidentialDocs = useMemo(
+    () => docs.filter((d) => isConfidentialDocKind(d.metadata?.doc_kind)),
+    [docs],
+  );
+
+  const renderDocRow = (d: any) => (
+    <Card key={d.id} className="p-4 flex items-center gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">{d.file_name}</div>
+        <div className="text-xs text-muted-foreground">
+          {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% · pipeline: {d.pipeline_status ?? d.review_status}
+        </div>
+      </div>
+      <Badge variant={d.pipeline_status === "approved" ? "default" : d.pipeline_status === "failed" ? "destructive" : "secondary"}>
+        {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
+      </Badge>
+      <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
+      {canEdit && d.file_path && /%/.test(d.file_path) && (
+        <Button size="sm" variant="outline" onClick={() => repairDocPath(d)} disabled={busy}>
+          Fix preview
+        </Button>
+      )}
+      {canEdit && ALLOW_TEST_DELETIONS && (
+        <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
+          <Trash2 className="size-4" />
+        </Button>
+      )}
+    </Card>
+  );
+
   const load = async () => {
-    const [i, s, d, a, c, p, mc, sg, j] = await Promise.all([
+    setLoading(true);
+    setNotFound(false);
+    setLoadError(null);
+    const [i, s, d, j] = await Promise.all([
       supabase.from("upi_institutions").select("*").eq("id", id).single(),
       supabase.from("upi_institution_sources").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_uploaded_documents").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
-      supabase.from("upi_agreements").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
-      supabase.from("upi_commissions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
-      supabase.from("upi_promotions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
-      supabase.from("upi_marketing_campaigns").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
-      supabase.from("upi_ai_suggestions").select("*").eq("institution_id", id).order("created_at", { ascending: false }),
       supabase.from("upi_sync_jobs").select("source_id,status,error_summary").eq("institution_id", id).order("started_at", { ascending: false }).limit(100),
     ]);
-    setInst(i.data as UpiInstitution); setSources((s.data ?? []) as UpiSource[]); setDocs(d.data ?? []);
-    setAgreements(a.data ?? []); setCommissions(c.data ?? []); setPromos(p.data ?? []);
-    setCampaigns(mc.data ?? []); setSuggestions((sg.data ?? []) as UpiSuggestion[]);
+    if (i.error || !i.data) {
+      setInst(null);
+      const missing = !i.data || isSupabaseNotFound(i.error);
+      setNotFound(missing);
+      if (i.error && !missing) {
+        setLoadError(i.error.message);
+        toast.error(i.error.message);
+      }
+      setLoading(false);
+      return;
+    }
+    setInst(i.data as UpiInstitution);
+    const secondary = [s, d, j];
+    const firstSecondaryError = secondary.find((r) => r.error)?.error;
+    if (firstSecondaryError) toast.error(firstSecondaryError.message);
+    setSources((s.data ?? []) as UpiSource[]);
+    setDocs(d.data ?? []);
     const latestErrors: Record<string, string | null> = {};
     (j.data ?? []).forEach((row: any) => {
       if (row.source_id && latestErrors[row.source_id] === undefined) latestErrors[row.source_id] = row.error_summary ?? null;
     });
     setSourceErrors(latestErrors);
+    setLoading(false);
   };
   useEffect(() => { load(); }, [id]);
 
   const saveInst = async (patch: Partial<UpiInstitution>) => {
+    if (!canEdit) return toast.error("View-only access — cannot save changes");
     if (!inst) return;
     const { error } = await supabase.from("upi_institutions").update(patch as any).eq("id", inst.id);
     if (error) toast.error(error.message); else { setInst({ ...inst, ...patch }); toast.success("Saved"); }
   };
 
   const addSource = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot add sources");
+    if (!canSeeCommissions && (CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(newSourceType)) {
+      return toast.error("Commission admin access required for this source type");
+    }
     const DOC_TYPES = new Set([
       "pdf_brochure", "excel_sheet", "csv_feed", "uploaded_email",
       "program_sheet", "brochure", "agreement", "commission_sheet", "promotion_campaign",
@@ -181,11 +246,7 @@ export default function InstitutionDetailPage() {
       .insert(insertPayload)
       .select()
       .single();
-    if (error) {
-      console.error("[addSource] insert failed", error);
-      return toast.error(`Add source failed: ${error.message}`);
-    }
-    console.log("[addSource] inserted", data);
+    if (error) return toast.error(`Add source failed: ${error.message}`);
     setNewSourceUrl("");
     setNewSourceDocId("");
     await load();
@@ -214,6 +275,7 @@ export default function InstitutionDetailPage() {
   };
 
   const syncNow = async (source: UpiSource, quiet = false) => {
+    if (!canEdit) return 0;
     if (!quiet) toast.info("Sync started — watching job status…");
     setSyncingSourceIds((prev) => new Set(prev).add(source.id));
     await supabase.from("upi_institution_sources").update({ crawl_status: "queued" }).eq("id", source.id);
@@ -244,6 +306,7 @@ export default function InstitutionDetailPage() {
   };
 
   const syncAll = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot sync sources");
     if (sources.length === 0) return;
     setSyncingAll(true);
     let total = 0;
@@ -264,6 +327,7 @@ export default function InstitutionDetailPage() {
   };
 
   const deleteSource = async (s: UpiSource) => {
+    if (!canEdit) return toast.error("View-only access — cannot delete sources");
     if (!confirm(`Delete this source?\n\n${s.url ?? s.file_path}\n\nExtracted programs will remain in Course Review.`)) return;
     const { error } = await supabase.from("upi_institution_sources").delete().eq("id", s.id);
     if (error) return toast.error(error.message);
@@ -272,9 +336,13 @@ export default function InstitutionDetailPage() {
   };
 
   const uploadDoc = async (file: File) => {
+    if (!canEdit) return toast.error("View-only access — cannot upload documents");
     if (!docKind) {
       toast.error("Pick a document type first");
       return;
+    }
+    if (!canSeeCommissions && isConfidentialDocKind(docKind)) {
+      return toast.error("Commission admin access required for this document type");
     }
     setBusy(true);
     const path = `${id}/${Date.now()}-${safeStorageName(file.name)}`;
@@ -300,6 +368,7 @@ export default function InstitutionDetailPage() {
   // Rename a doc's storage object to a sanitized key (fixes broken iframe preview
   // when the original file_path contains `%` or other URL-unsafe chars).
   const repairDocPath = async (d: any) => {
+    if (!canEdit) return toast.error("View-only access — cannot repair documents");
     if (!d?.file_path || !/%/.test(d.file_path)) return;
     setBusy(true);
     try {
@@ -332,6 +401,7 @@ export default function InstitutionDetailPage() {
   };
 
   const deleteDoc = async (d: any) => {
+    if (!canEdit) return toast.error("View-only access — cannot delete documents");
     if (!confirm(`Delete document "${d.file_name}"?\n\nThis removes the file and all pipeline events. Irreversible.`)) return;
     if (d.file_path) {
       await supabase.storage.from("institution-documents").remove([d.file_path]);
@@ -344,6 +414,7 @@ export default function InstitutionDetailPage() {
   };
 
   const generateContent = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot generate campaigns");
     setBusy(true);
     const { data, error } = await supabase.functions.invoke("upi-generate-content", {
       body: { institution_id: id, channel: campaignChannel, context_flags: { programs: true, promotions: true, commission: true }, tone: "professional" },
@@ -354,6 +425,7 @@ export default function InstitutionDetailPage() {
   };
 
   const saveCampaign = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot save campaigns");
     if (!generated) return;
     const { error } = await supabase.from("upi_marketing_campaigns").insert({
       institution_id: id, channel: campaignChannel, generated_content: generated, status: "approved", approved_at: new Date().toISOString(),
@@ -362,12 +434,8 @@ export default function InstitutionDetailPage() {
     setGenerated(""); load(); toast.success("Campaign saved");
   };
 
-  const updateSuggestion = async (sId: string, status: "accepted" | "dismissed" | "deferred") => {
-    await supabase.from("upi_ai_suggestions").update({ status, reviewed_at: new Date().toISOString() }).eq("id", sId);
-    load();
-  };
-
   const askAi = async (mode?: "generate") => {
+    if (!canEdit) return toast.error("View-only access — cannot run AI prompts");
     setAsking(true); setAskAnswer("");
     const { data, error } = await supabase.functions.invoke("upi-ask-suggestions", {
       body: { institution_id: id, prompt: askPrompt, mode },
@@ -380,12 +448,33 @@ export default function InstitutionDetailPage() {
     load();
   };
 
-  if (!inst) return <AppLayout><div className="p-8">Loading…</div></AppLayout>;
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-center text-muted-foreground">Loading…</div>
+      </AppLayout>
+    );
+  }
+  if (!inst) {
+    return (
+      <AppLayout>
+        <div className="p-8 text-center space-y-4">
+          <p className="text-muted-foreground">
+            {notFound ? "Institution not found." : loadError ?? "Unable to load institution."}
+          </p>
+          <Button asChild variant="outline">
+            <Link to="/institutions">Back to institutions</Link>
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <PageHeader title={inst.name} description={`${inst.country_name ?? "—"} · ${inst.institution_type ?? "—"}`} />
       <div className="p-8">
+        {!canEdit && <div className="mb-6"><ViewOnlyNotice /></div>}
         <Tabs defaultValue="overview">
           <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -403,23 +492,23 @@ export default function InstitutionDetailPage() {
             <OverviewPanel institutionId={id} />
             <Card className="p-6 space-y-3 max-w-2xl">
               <div className="text-sm font-medium">Institution profile</div>
-              <Input value={inst.name} onChange={(e) => setInst({ ...inst, name: e.target.value })} onBlur={(e) => saveInst({ name: e.target.value })} />
-              <Input placeholder="Country" value={inst.country_name ?? ""} onChange={(e) => setInst({ ...inst, country_name: e.target.value })} onBlur={(e) => saveInst({ country_name: e.target.value })} />
-              <Input placeholder="Website" value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => saveInst({ website_url: e.target.value })} />
-              <Input placeholder="Email" value={inst.email ?? ""} onChange={(e) => setInst({ ...inst, email: e.target.value })} onBlur={(e) => saveInst({ email: e.target.value })} />
-              <Input placeholder="Phone" value={inst.phone ?? ""} onChange={(e) => setInst({ ...inst, phone: e.target.value })} onBlur={(e) => saveInst({ phone: e.target.value })} />
+              <Input value={inst.name} disabled={!canEdit} onChange={(e) => setInst({ ...inst, name: e.target.value })} onBlur={(e) => canEdit && saveInst({ name: e.target.value })} />
+              <Input placeholder="Country" disabled={!canEdit} value={inst.country_name ?? ""} onChange={(e) => setInst({ ...inst, country_name: e.target.value })} onBlur={(e) => canEdit && saveInst({ country_name: e.target.value })} />
+              <Input placeholder="Website" disabled={!canEdit} value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => canEdit && saveInst({ website_url: e.target.value })} />
+              <Input placeholder="Email" disabled={!canEdit} value={inst.email ?? ""} onChange={(e) => setInst({ ...inst, email: e.target.value })} onBlur={(e) => canEdit && saveInst({ email: e.target.value })} />
+              <Input placeholder="Phone" disabled={!canEdit} value={inst.phone ?? ""} onChange={(e) => setInst({ ...inst, phone: e.target.value })} onBlur={(e) => canEdit && saveInst({ phone: e.target.value })} />
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Type</label>
-                <Select value={inst.institution_type ?? ""} onValueChange={(v) => { setInst({ ...inst, institution_type: v }); saveInst({ institution_type: v }); }}>
+                <Select disabled={!canEdit} value={inst.institution_type ?? ""} onValueChange={(v) => { setInst({ ...inst, institution_type: v }); saveInst({ institution_type: v }); }}>
                   <SelectTrigger><SelectValue placeholder="Pick institution type" /></SelectTrigger>
                   <SelectContent>
                     {INSTITUTION_TYPES.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <Textarea placeholder="Notes" value={inst.notes ?? ""} onChange={(e) => setInst({ ...inst, notes: e.target.value })} onBlur={(e) => saveInst({ notes: e.target.value })} />
+              <Textarea placeholder="Notes" disabled={!canEdit} value={inst.notes ?? ""} onChange={(e) => setInst({ ...inst, notes: e.target.value })} onBlur={(e) => canEdit && saveInst({ notes: e.target.value })} />
               <div className="flex items-center gap-3">
-                <Switch checked={inst.is_partner} onCheckedChange={(v) => saveInst({ is_partner: v })} />
+                <Switch disabled={!canEdit} checked={inst.is_partner} onCheckedChange={(v) => saveInst({ is_partner: v })} />
                 <span className="text-sm">Partner institution</span>
               </div>
               {Object.keys(inst.metadata ?? {}).length > 0 && (
@@ -464,7 +553,9 @@ export default function InstitutionDetailPage() {
                   { value: "sitemap",            label: "Sitemap (URL)" },
                   { value: "api_endpoint",       label: "API endpoint (URL)" },
                   { value: "json_feed",          label: "JSON feed (URL)" },
-                ];
+                ].filter(
+                  (o) => canSeeCommissions || !(CONFIDENTIAL_SOURCE_TYPES as readonly string[]).includes(o.value),
+                );
                 // When the chosen doc kind narrows the doc list, only show
                 // matching uploaded documents (e.g. Program sheet → program_sheet docs).
                 const KIND_FOR_TYPE: Record<string, string> = {
@@ -476,9 +567,10 @@ export default function InstitutionDetailPage() {
                   promotion_campaign: "promotion_campaign",
                 };
                 const wantedKind = KIND_FOR_TYPE[newSourceType];
-                const filteredDocs = wantedKind
+                const filteredDocs = (wantedKind
                   ? docs.filter((d: any) => (d.metadata?.doc_kind ?? "") === wantedKind)
-                  : docs;
+                  : docs
+                ).filter((d: any) => canSeeCommissions || !isConfidentialDocKind(d.metadata?.doc_kind));
                 return (
                   <>
                     <select
@@ -531,11 +623,11 @@ export default function InstitutionDetailPage() {
                         onKeyDown={(e) => e.key === "Enter" && addSource()}
                       />
                     )}
-                    <Button onClick={addSource}><Plus className="size-4" /> Add source</Button>
+                    <Button onClick={addSource} disabled={!canEdit}><Plus className="size-4" /> Add source</Button>
                   </>
                 );
               })()}
-              {sources.length > 0 && (
+              {sources.length > 0 && canEdit && (
                 <Button variant="secondary" onClick={syncAll} disabled={syncingAll}>
                   <RefreshCw className={`size-4 ${syncingAll ? "animate-spin" : ""}`} /> Sync all
                 </Button>
@@ -569,30 +661,17 @@ export default function InstitutionDetailPage() {
                     )}
                   </div>
                   <Badge variant={s.crawl_status === "completed" ? "default" : s.crawl_status === "failed" ? "destructive" : "secondary"}>{s.crawl_status}</Badge>
-                  <Button onClick={() => syncNow(s)} className="shrink-0" disabled={isSyncing}>
+                  <Button onClick={() => syncNow(s)} className="shrink-0" disabled={!canEdit || isSyncing}>
                     <RefreshCw className={`size-4 ${isSyncing ? "animate-spin" : ""}`} /> {isSyncing ? "Syncing" : "Sync now"}
                   </Button>
+                  {canEdit && (
                   <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => deleteSource(s)} title="Delete source">
                     <Trash2 className="size-4" />
                   </Button>
+                  )}
                 </Card>
               );})}
               {sources.length === 0 && (
-                <>
-                {mockSourceRows.length > 0 && (
-                  <div className="space-y-2 mb-4">
-                    <div className="text-xs text-muted-foreground">Demo sources (mock — replaced when real sources sync)</div>
-                    {mockSourceRows.map((m: any) => (
-                      <Card key={m.id} className="p-4 flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium truncate">{m.name}</div>
-                          <div className="text-xs text-muted-foreground">{m.source_type} · {m.status} · {m.confidence_score}% confidence{m.linked_agreement_id ? ` · linked to ${m.linked_agreement_id}` : ""}</div>
-                        </div>
-                        <Badge variant={m.status === "completed" ? "default" : m.status === "failed" ? "destructive" : "secondary"}>{m.status}</Badge>
-                      </Card>
-                    ))}
-                  </div>
-                )}
                 <Card className="p-8 border-dashed">
                   <div className="flex flex-col items-center gap-2 text-center">
                     <ArrowUp className="size-6 text-primary animate-bounce" />
@@ -605,12 +684,12 @@ export default function InstitutionDetailPage() {
                     </Button>
                   </div>
                 </Card>
-                </>
               )}
             </div>
           </TabsContent>
 
           <TabsContent value="documents">
+            {canEdit && (
             <Card className="p-6 mb-4">
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">
                 Uploading to: <span className="font-semibold">{inst.name}</span>
@@ -622,14 +701,9 @@ export default function InstitutionDetailPage() {
                   <Select value={docKind} onValueChange={(v) => { setDocKind(v as DocKind); setSuggestedKind(null); }}>
                     <SelectTrigger><SelectValue placeholder="Pick a document type…" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="program_sheet">Program sheet (extract programs)</SelectItem>
-                      <SelectItem value="agreement">Agreement</SelectItem>
-                      <SelectItem value="commission_sheet">Commission sheet</SelectItem>
-                      <SelectItem value="brochure">Brochure</SelectItem>
-                      <SelectItem value="promotion_campaign">Promotion / Campaign</SelectItem>
-                      <SelectItem value="invoice_template">Invoice template</SelectItem>
-                      <SelectItem value="renewal_document">Renewal document</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      {visibleDocKindOptions.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -641,7 +715,7 @@ export default function InstitutionDetailPage() {
                     : "AI will extract structured fields and surface as suggestions."}
                 </p>
               </div>
-              {suggestedKind && suggestedKind !== docKind && (
+              {suggestedKind && suggestedKind !== docKind && (!isConfidentialDocKind(suggestedKind) || canSeeCommissions) && (
                 <div className="mb-3 flex items-center justify-between gap-3 rounded border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm">
                   <span>
                     Filename suggests <span className="font-semibold">{suggestedKind}</span>
@@ -663,7 +737,7 @@ export default function InstitutionDetailPage() {
                     const f = e.target.files?.[0];
                     if (!f) return;
                     const guess = guessKindFromName(f.name);
-                    if (guess && guess !== docKind) {
+                    if (guess && guess !== docKind && (!isConfidentialDocKind(guess) || canSeeCommissions)) {
                       setSuggestedKind(guess);
                     }
                     uploadDoc(f);
@@ -672,32 +746,28 @@ export default function InstitutionDetailPage() {
                 />
               </label>
             </Card>
-            <div className="space-y-2">
-              {docs.map((d) => (
-                <Card key={d.id} className="p-4 flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">{d.file_name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {d.metadata?.doc_kind ?? d.mime_type ?? "?"} · confidence {d.confidence_score}% · pipeline: {d.pipeline_status ?? d.review_status}
-                    </div>
+            )}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Program materials</div>
+                {catalogDocs.map(renderDocRow)}
+                {catalogDocs.length === 0 && (
+                  <div className="text-center text-sm text-muted-foreground py-8">No program documents yet.</div>
+                )}
+              </div>
+              {canSeeCommissions ? (
+                confidentialDocs.length > 0 && (
+                  <div className="space-y-2 border-t pt-4">
+                    <div className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Confidential</div>
+                    {confidentialDocs.map(renderDocRow)}
                   </div>
-                  <Badge variant={d.pipeline_status === "approved" ? "default" : d.pipeline_status === "failed" ? "destructive" : "secondary"}>
-                    {d.pipeline_status ?? (d.is_processed ? "processed" : "pending")}
-                  </Badge>
-                  <Button size="sm" variant="outline" onClick={() => setReviewDoc(d)}>Review</Button>
-                  {d.file_path && /%/.test(d.file_path) && (
-                    <Button size="sm" variant="outline" onClick={() => repairDocPath(d)} disabled={busy}>
-                      Fix preview
-                    </Button>
-                  )}
-                  {ALLOW_TEST_DELETIONS && (
-                    <Button size="sm" variant="ghost" onClick={() => deleteDoc(d)} className="text-destructive hover:text-destructive">
-                      <Trash2 className="size-4" />
-                    </Button>
-                  )}
+                )
+              ) : confidentialDocs.length > 0 ? (
+                <Card className="p-4 border-dashed text-sm text-muted-foreground flex items-center gap-2">
+                  <Lock className="size-4 shrink-0" />
+                  {confidentialDocs.length} confidential document{confidentialDocs.length === 1 ? "" : "s"} hidden — commission admin access required.
                 </Card>
-              ))}
-              {docs.length === 0 && <div className="text-center text-sm text-muted-foreground py-8">No documents yet.</div>}
+              ) : null}
             </div>
           </TabsContent>
 
@@ -714,10 +784,11 @@ export default function InstitutionDetailPage() {
           </TabsContent>
 
           <TabsContent value="promotions">
-            <PromotionsPanel institutionId={id} onRunCampaign={(p) => setCampaignPromo(p)} />
+            <PromotionsPanel institutionId={id} readOnly={!canEdit} onRunCampaign={canEdit ? (p) => setCampaignPromo(p) : undefined} />
           </TabsContent>
 
           <TabsContent value="campaigns">
+            {canEdit && (
             <Card className="p-4 mb-4 space-y-3">
               <div className="flex gap-2 items-end">
                 <select className="h-10 px-3 rounded-md border bg-background text-sm" value={campaignChannel} onChange={(e) => setCampaignChannel(e.target.value)}>
@@ -736,10 +807,12 @@ export default function InstitutionDetailPage() {
                 </>
               )}
             </Card>
+            )}
             <CampaignsPanel institutionId={id} />
           </TabsContent>
 
           <TabsContent value="suggestions">
+            {canEdit && (
             <Card className="p-4 mb-4 space-y-3">
               <div className="flex items-start gap-2">
                 <Textarea
@@ -761,7 +834,8 @@ export default function InstitutionDetailPage() {
                 <div className="rounded border bg-muted/30 p-3 text-sm whitespace-pre-wrap">{askAnswer}</div>
               )}
             </Card>
-            <AiSuggestionsPanel institutionId={id} />
+            )}
+            <AiSuggestionsPanel institutionId={id} readOnly={!canEdit} />
           </TabsContent>
         </Tabs>
 

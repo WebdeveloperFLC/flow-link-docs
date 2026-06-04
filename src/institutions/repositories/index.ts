@@ -11,15 +11,11 @@ async function fetchLiveScoped(
   order?: { col: string; ascending?: boolean },
 ): Promise<any[]> {
   if (!institutionId) return [];
-  try {
-    let q = supabase.from(table as any).select("*").eq("institution_id", institutionId);
-    if (order) q = q.order(order.col, { ascending: order.ascending ?? false });
-    const { data, error } = await q;
-    if (error) throw error;
-    return (data ?? []) as any[];
-  } catch {
-    return [];
-  }
+  let q = supabase.from(table as any).select("*").eq("institution_id", institutionId);
+  if (order) q = q.order(order.col, { ascending: order.ascending ?? false });
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as any[];
 }
 
 export const agreementsRepo = {
@@ -30,16 +26,12 @@ export const commissionsRepo = {
   list: (institutionId?: string) => fetchLiveScoped("upi_commissions", institutionId, { col: "created_at" }),
   async rules(commissionIds: string[]) {
     if (commissionIds.length === 0) return [];
-    try {
-      const { data, error } = await supabase
-        .from("upi_commission_rules")
-        .select("*")
-        .in("commission_id", commissionIds);
-      if (error) throw error;
-      return (data ?? []) as any[];
-    } catch {
-      return [];
-    }
+    const { data, error } = await supabase
+      .from("upi_commission_rules")
+      .select("*")
+      .in("commission_id", commissionIds);
+    if (error) throw error;
+    return (data ?? []) as any[];
   },
 };
 
@@ -66,24 +58,17 @@ export const suggestionsRepo = {
     fetchLiveScoped("upi_ai_suggestions", institutionId, { col: "created_at" }),
 };
 
-// Stub kept for hook signature compatibility — always empty.
-export const sourcesMockRepo = { async list(_institutionId?: string) { return [] as any[]; } };
-
 export const studentsRepo = {
   async list(institutionId?: string, claimCycleId?: string) {
     if (!institutionId) return [];
-    try {
-      let q = supabase
-        .from("upi_commission_students")
-        .select("*")
-        .eq("institution_id", institutionId);
-      if (claimCycleId) q = q.eq("claim_cycle_id", claimCycleId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []) as any[];
-    } catch {
-      return [];
-    }
+    let q = supabase
+      .from("upi_commission_students")
+      .select("*")
+      .eq("institution_id", institutionId);
+    if (claimCycleId) q = q.eq("claim_cycle_id", claimCycleId);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []) as any[];
   },
 };
 
@@ -94,26 +79,22 @@ export const studentsRepo = {
  */
 export const paymentsRepo = {
   async list(institutionId?: string) {
-    try {
-      let q = supabase
-        .from("upi_commission_invoices")
-        .select("id, currency, payment_method, payment_reference, payment_received_date, payment_received_amount, institution_id")
-        .not("payment_received_date", "is", null);
-      if (institutionId) q = q.eq("institution_id", institutionId);
-      const { data, error } = await q;
-      if (error) throw error;
-      return (data ?? []).map((r: any) => ({
-        id: r.id,
-        invoice_id: r.id,
-        amount: r.payment_received_amount,
-        currency: r.currency,
-        paid_at: r.payment_received_date,
-        method: r.payment_method,
-        reference: r.payment_reference,
-      }));
-    } catch {
-      return [];
-    }
+    let q = supabase
+      .from("upi_commission_invoices")
+      .select("id, currency, payment_method, payment_reference, payment_received_date, payment_received_amount, institution_id")
+      .not("payment_received_date", "is", null);
+    if (institutionId) q = q.eq("institution_id", institutionId);
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []).map((r: any) => ({
+      id: r.id,
+      invoice_id: r.id,
+      amount: r.payment_received_amount,
+      currency: r.currency,
+      paid_at: r.payment_received_date,
+      method: r.payment_method,
+      reference: r.payment_reference,
+    }));
   },
 };
 

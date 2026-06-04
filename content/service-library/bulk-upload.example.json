@@ -1,0 +1,19 @@
+{
+  "_instructions": "Remove _instructions before upload. Each entry updates ONE service_library row by library_id.",
+  "entries": [
+    {
+      "library_id": "c35e6051-f40f-47bf-9cac-0a386c47a336",
+      "service": "Canada Student Visa",
+      "sub_service": "Study Permit (Undergraduate / Postgraduate / College)",
+      "countries": ["Canada"],
+      "academy_metadata": "PASTE full JSON object here (same shape as canada-student-visa.json)"
+    },
+    {
+      "library_id": "REPLACE-WITH-UUID-FROM-EXPORT-SQL",
+      "service": "UK Student Visa",
+      "sub_service": "Example sub-service",
+      "countries": ["United Kingdom"],
+      "academy_metadata": {}
+    }
+  ]
+}

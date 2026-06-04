@@ -13,9 +13,11 @@ import { toast } from "sonner";
 export function PromotionsPanel({
   institutionId,
   onRunCampaign,
+  readOnly = false,
 }: {
   institutionId: string;
   onRunCampaign?: (promo: { id: string; title: string }) => void;
+  readOnly?: boolean;
 }) {
   const { data: promos, loading, reload } = usePromotions(institutionId) as any;
   const [edit, setEdit] = useState<any | null>(null);
@@ -49,13 +51,13 @@ export function PromotionsPanel({
               </div>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => setEdit(p)}>Edit</Button>
-              {onRunCampaign && (
+              {!readOnly && <Button size="sm" variant="outline" onClick={() => setEdit(p)}>Edit</Button>}
+              {!readOnly && onRunCampaign && (
                 <Button size="sm" onClick={() => onRunCampaign({ id: p.id, title: p.title })}>
                   <Send className="size-4 mr-1" /> Run campaign
                 </Button>
               )}
-              {ALLOW_TEST_DELETIONS && (
+              {!readOnly && ALLOW_TEST_DELETIONS && (
                 <Button size="sm" variant="ghost" onClick={() => deletePromo(p)} className="text-destructive hover:text-destructive">
                   <Trash2 className="size-4" />
                 </Button>

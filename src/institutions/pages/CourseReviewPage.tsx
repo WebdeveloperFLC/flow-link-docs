@@ -15,10 +15,37 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/com
 import { toast } from "sonner";
 import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useModulePermission } from "@/hooks/useModulePermission";
+import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
+import type { UpiCourseStaging } from "../types/upi";
 
-type Row = any;
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
+
+const FILTER_DEFAULTS = {
+  status: "pending_review",
+  institutionId: "all",
+  level: "all",
+  country: "all",
+} as const;
+
+type FilterKey = keyof typeof FILTER_DEFAULTS;
+
+function setListFilter(
+  setSearchParams: ReturnType<typeof useSearchParams>[1],
+  key: FilterKey,
+  value: string,
+) {
+  setSearchParams(
+    (prev) => {
+      const next = new URLSearchParams(prev);
+      if (value === FILTER_DEFAULTS[key]) next.delete(key);
+      else next.set(key, value);
+      return next;
+    },
+    { replace: true },
+  );
+}
 
 const ConfidenceBadge = ({ score }: { score: number | null }) => {
   const s = score ?? 0;
@@ -32,22 +59,25 @@ const ConfidenceBadge = ({ score }: { score: number | null }) => {
 };
 
 export default function CourseReviewPage() {
-  const [searchParams] = useSearchParams();
-  const initialInst = searchParams.get("institutionId") ?? "all";
-  const initialStatus = searchParams.get("status") ?? "pending_review";
-  const [rows, setRows] = useState<Row[]>([]);
+  const { canEdit } = useModulePermission("institutions");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const statusFilter = searchParams.get("status") ?? FILTER_DEFAULTS.status;
+  const instFilter = searchParams.get("institutionId") ?? FILTER_DEFAULTS.institutionId;
+  const levelFilter = searchParams.get("level") ?? FILTER_DEFAULTS.level;
+  const countryFilter = searchParams.get("country") ?? FILTER_DEFAULTS.country;
+  const [rows, setRows] = useState<UpiCourseStaging[]>([]);
   const [institutions, setInstitutions] = useState<{ id: string; name: string; country_name: string | null }[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
-  const [instFilter, setInstFilter] = useState<string>(initialInst);
-  const [levelFilter, setLevelFilter] = useState<string>("all");
-  const [countryFilter, setCountryFilter] = useState<string>("all");
   const [countries, setCountries] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [editing, setEditing] = useState<Row | null>(null);
+  const [editing, setEditing] = useState<UpiCourseStaging | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [auxError, setAuxError] = useState<string | null>(null);
 
   const load = async () => {
+    setLoading(true);
     let q = supabase.from("upi_courses_staging").select("*").order("extracted_at", { ascending: false }).limit(500);
     if (statusFilter !== "all") q = q.eq("review_status", statusFilter);
     if (instFilter !== "all") q = q.eq("institution_id", instFilter);
@@ -61,19 +91,39 @@ export default function CourseReviewPage() {
       if (matchingIds.length === 0) {
         setRows([]);
         setSelected(new Set());
+        setLoadError(null);
+        setLoading(false);
         return;
       }
       q = q.in("institution_id", matchingIds);
     }
-    const { data } = await q;
-    setRows((data ?? []) as Row[]);
+    const { data, error } = await q;
+    if (error) {
+      setLoadError(error.message);
+      toast.error(error.message);
+      setRows([]);
+    } else {
+      setLoadError(null);
+      setRows((data ?? []) as UpiCourseStaging[]);
+    }
     setSelected(new Set());
+    setLoading(false);
   };
   const loadAux = async () => {
     const [i, l] = await Promise.all([
       supabase.from("upi_institutions").select("id,name,country_name").order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
     ]);
+    const err = i.error ?? l.error;
+    if (err) {
+      setAuxError(err.message);
+      toast.error(err.message);
+      setInstitutions([]);
+      setLevels([]);
+      setCountries([]);
+      return;
+    }
+    setAuxError(null);
     const insts = (i.data ?? []) as { id: string; name: string; country_name: string | null }[];
     setInstitutions(insts);
     setLevels((l.data ?? []) as any);
@@ -138,17 +188,25 @@ export default function CourseReviewPage() {
   }, [rows, searchText, instName, instCountry, levelName]);
 
   const setStatus = async (ids: string[], status: string) => {
+    if (!canEdit) return toast.error("View-only access — cannot update review status");
     if (!ids.length) return;
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from("upi_courses_staging")
       .update({ review_status: status, reviewed_at: new Date().toISOString() } as any)
-      .in("id", ids);
+      .in("id", ids)
+      .select("id", { count: "exact", head: true });
     if (error) return toast.error(error.message);
-    toast.success(`${ids.length} updated → ${status}`);
+    const updated = count ?? ids.length;
+    if (updated < ids.length) {
+      toast.warning(`Updated ${updated} of ${ids.length} → ${status}`);
+    } else {
+      toast.success(`${updated} updated → ${status}`);
+    }
     load();
   };
 
   const publish = async (ids: string[]) => {
+    if (!canEdit) return toast.error("View-only access — cannot publish courses");
     if (!ids.length) return;
     const t = toast.loading(`Publishing ${ids.length} to Course Finder…`);
     const { data, error } = await supabase.functions.invoke("upi-publish-courses", { body: { staging_ids: ids } });
@@ -161,7 +219,7 @@ export default function CourseReviewPage() {
       });
     } else {
       toast.success(`Published ${res?.published ?? 0} to Course Finder`, {
-        action: { label: "View", onClick: () => window.open("/courses", "_blank") },
+        action: { label: "View", onClick: () => window.open("/course-finder", "_blank") },
       });
     }
     load();
@@ -182,6 +240,12 @@ export default function CourseReviewPage() {
     <AppLayout>
       <PageHeader title="Course Review" description="Review and publish AI-extracted courses awaiting approval." />
       <div className="p-6 space-y-4">
+        {(loadError || auxError) && (
+          <Card className="p-4 border-destructive/50 bg-destructive/5 text-sm text-destructive">
+            {loadError ?? auxError}
+          </Card>
+        )}
+        {!canEdit && <ViewOnlyNotice label="Institutions (Course Review)" />}
         {statusFilter === "published" && (
           <Card className="p-4 flex items-center gap-3 bg-success/5 border-success/20">
             <Info className="size-4 text-success" />
@@ -189,7 +253,7 @@ export default function CourseReviewPage() {
               These programs are <strong>live in Course Finder</strong>. Students can see them on the public catalog.
             </div>
             <Button asChild size="sm" variant="outline">
-              <Link to="/courses" target="_blank">
+              <Link to="/course-finder" target="_blank">
                 View in Course Finder <ExternalLink className="size-3 ml-1" />
               </Link>
             </Button>
@@ -210,7 +274,7 @@ export default function CourseReviewPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Status</Label>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(v) => setListFilter(setSearchParams, "status", v)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -226,7 +290,7 @@ export default function CourseReviewPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Institution</Label>
-            <Select value={instFilter} onValueChange={setInstFilter}>
+            <Select value={instFilter} onValueChange={(v) => setListFilter(setSearchParams, "institutionId", v)}>
               <SelectTrigger className="w-64">
                 <SelectValue />
               </SelectTrigger>
@@ -242,7 +306,7 @@ export default function CourseReviewPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Program level</Label>
-            <Select value={levelFilter} onValueChange={setLevelFilter}>
+            <Select value={levelFilter} onValueChange={(v) => setListFilter(setSearchParams, "level", v)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -259,7 +323,7 @@ export default function CourseReviewPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Country</Label>
-            <Select value={countryFilter} onValueChange={setCountryFilter}>
+            <Select value={countryFilter} onValueChange={(v) => setListFilter(setSearchParams, "country", v)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>
@@ -275,7 +339,7 @@ export default function CourseReviewPage() {
             </Select>
           </div>
           <div className="flex-1" />
-          {selected.size > 0 && (
+          {canEdit && selected.size > 0 && (
             <div className="flex gap-2">
               <Badge variant="secondary">{selected.size} selected</Badge>
               <Button size="sm" onClick={() => setStatus(selectedIds, "approved")}>
@@ -297,10 +361,12 @@ export default function CourseReviewPage() {
               <thead className="bg-muted/50">
                 <tr className="text-left">
                   <th className="p-3 w-10">
+                    {canEdit && (
                     <Checkbox
                       checked={selected.size > 0 && selected.size === visibleRows.length}
                       onCheckedChange={toggleAll}
                     />
+                    )}
                   </th>
                   <th className="p-3">Course</th>
                   <th className="p-3">Institution</th>
@@ -319,18 +385,24 @@ export default function CourseReviewPage() {
                 {visibleRows.length === 0 && (
                   <tr>
                     <td colSpan={12} className="p-8 text-center text-muted-foreground">
-                      {searchText
-                        ? `No programs match "${searchText}".`
-                        : statusFilter === "published"
-                          ? 'Nothing published yet. Approve rows under "approved" status, then click Bulk Publish to push them to Course Finder.'
-                          : "No programs match the current filters. Try clearing Country / Level / Status or the search box."}
+                      {loading
+                        ? "Loading courses…"
+                        : loadError
+                          ? "Could not load courses. Check permissions or try again."
+                          : searchText
+                            ? `No programs match "${searchText}".`
+                            : statusFilter === "published"
+                              ? 'Nothing published yet. Approve rows under "approved" status, then click Bulk Publish to push them to Course Finder.'
+                              : "No programs match the current filters. Try clearing Country / Level / Status or the search box."}
                     </td>
                   </tr>
                 )}
                 {visibleRows.map((r) => (
                   <tr key={r.id} className="border-t hover:bg-accent/30">
                     <td className="p-3">
+                      {canEdit && (
                       <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} />
+                      )}
                     </td>
                     <td className="p-3 font-medium">{r.course_title}</td>
                     <td className="p-3">{instName(r.institution_id)}</td>
@@ -367,6 +439,8 @@ export default function CourseReviewPage() {
                     </td>
                     <td className="p-3">
                       <div className="flex gap-1 justify-end">
+                        {canEdit ? (
+                        <>
                         <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "approved")}>
                           <Check className="size-4" />
                         </Button>
@@ -378,7 +452,7 @@ export default function CourseReviewPage() {
                         </Button>
                         {r.review_status === "published" && r.published_course_id ? (
                           <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
-                            <Link to={`/courses?courseId=${r.published_course_id}`} target="_blank">
+                            <Link to={`/course-finder?courseId=${r.published_course_id}`} target="_blank">
                               <ExternalLink className="size-4" />
                             </Link>
                           </Button>
@@ -395,6 +469,16 @@ export default function CourseReviewPage() {
                             <Upload className="size-4" />
                           </Button>
                         )}
+                        </>
+                        ) : r.review_status === "published" && r.published_course_id ? (
+                          <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
+                            <Link to={`/course-finder?courseId=${r.published_course_id}`} target="_blank">
+                              <ExternalLink className="size-4" />
+                            </Link>
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-muted-foreground px-2">View only</span>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -407,6 +491,7 @@ export default function CourseReviewPage() {
 
       <EditSheet
         row={editing}
+        canEdit={canEdit}
         onClose={() => setEditing(null)}
         onSaved={load}
         institutions={institutions}
@@ -418,18 +503,20 @@ export default function CourseReviewPage() {
 
 function EditSheet({
   row,
+  canEdit,
   onClose,
   onSaved,
   institutions,
   levels,
 }: {
-  row: Row | null;
+  row: UpiCourseStaging | null;
+  canEdit: boolean;
   onClose: () => void;
   onSaved: () => void;
   institutions: { id: string; name: string }[];
   levels: { id: string; name: string }[];
 }) {
-  const [draft, setDraft] = useState<Row | null>(null);
+  const [draft, setDraft] = useState<UpiCourseStaging | null>(null);
   const [metaEntries, setMetaEntries] = useState<{ key: string; value: string }[]>([]);
   useEffect(() => {
     setDraft(row);
@@ -444,6 +531,7 @@ function EditSheet({
   if (!row || !draft) return null;
 
   const save = async () => {
+    if (!canEdit) return toast.error("View-only access — cannot save changes");
     const metadata: Record<string, unknown> = {};
     for (const e of metaEntries) {
       if (!e.key.trim()) continue;
@@ -469,6 +557,7 @@ function EditSheet({
       <Label className="text-xs">{label}</Label>
       <Input
         type={type}
+        disabled={!canEdit}
         value={(draft as any)[k] ?? ""}
         onChange={(e) =>
           setDraft({
@@ -484,12 +573,13 @@ function EditSheet({
     <Sheet open={!!row} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Edit course</SheetTitle>
+          <SheetTitle>{canEdit ? "Edit course" : "View course"}</SheetTitle>
         </SheetHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-1">
             <Label className="text-xs">Course title</Label>
             <Input
+              disabled={!canEdit}
               value={draft.course_title ?? ""}
               onChange={(e) => setDraft({ ...draft, course_title: e.target.value })}
             />
@@ -497,6 +587,7 @@ function EditSheet({
           <div className="space-y-1">
             <Label className="text-xs">Description</Label>
             <Textarea
+              disabled={!canEdit}
               rows={3}
               value={draft.course_description ?? ""}
               onChange={(e) => setDraft({ ...draft, course_description: e.target.value })}
@@ -506,6 +597,7 @@ function EditSheet({
             <div className="space-y-1">
               <Label className="text-xs">Institution</Label>
               <Select
+                disabled={!canEdit}
                 value={draft.institution_id ?? ""}
                 onValueChange={(v) => setDraft({ ...draft, institution_id: v })}
               >
@@ -524,6 +616,7 @@ function EditSheet({
             <div className="space-y-1">
               <Label className="text-xs">Program level</Label>
               <Select
+                disabled={!canEdit}
                 value={draft.program_level_id ?? ""}
                 onValueChange={(v) => setDraft({ ...draft, program_level_id: v })}
               >
@@ -558,7 +651,7 @@ function EditSheet({
               <Select
                 value={MANUAL_STATUSES.includes(draft.review_status) ? draft.review_status : "pending_review"}
                 onValueChange={(v) => setDraft({ ...draft, review_status: v })}
-                disabled={draft.review_status === "published"}
+                disabled={!canEdit || draft.review_status === "published"}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -580,6 +673,7 @@ function EditSheet({
             <div className="space-y-1">
               <Label className="text-xs">PGWP eligible</Label>
               <Select
+                disabled={!canEdit}
                 value={
                   draft.is_pgwp_eligible === null || draft.is_pgwp_eligible === undefined
                     ? "unknown"
@@ -601,6 +695,7 @@ function EditSheet({
           <div className="space-y-1">
             <Label className="text-xs">Review notes</Label>
             <Textarea
+              disabled={!canEdit}
               rows={2}
               value={draft.review_notes ?? ""}
               onChange={(e) => setDraft({ ...draft, review_notes: e.target.value })}
@@ -610,6 +705,7 @@ function EditSheet({
           <div className="border-t pt-4 space-y-2">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-semibold">Custom metadata fields</Label>
+              {canEdit && (
               <Button
                 size="sm"
                 variant="outline"
@@ -617,10 +713,12 @@ function EditSheet({
               >
                 <Plus className="size-3 mr-1" /> Add
               </Button>
+              )}
             </div>
             {metaEntries.map((e, i) => (
               <div key={i} className="flex gap-2 items-center">
                 <Input
+                  disabled={!canEdit}
                   placeholder="key"
                   value={e.key}
                   onChange={(ev) => {
@@ -630,6 +728,7 @@ function EditSheet({
                   }}
                 />
                 <Input
+                  disabled={!canEdit}
                   placeholder="value"
                   value={e.value}
                   onChange={(ev) => {
@@ -638,6 +737,7 @@ function EditSheet({
                     setMetaEntries(n);
                   }}
                 />
+                {canEdit && (
                 <Button
                   size="icon"
                   variant="ghost"
@@ -645,6 +745,7 @@ function EditSheet({
                 >
                   <Trash2 className="size-4" />
                 </Button>
+                )}
               </div>
             ))}
             {metaEntries.length === 0 && (
@@ -656,9 +757,9 @@ function EditSheet({
         </div>
         <SheetFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {canEdit ? "Cancel" : "Close"}
           </Button>
-          <Button onClick={save}>Save changes</Button>
+          {canEdit && <Button onClick={save}>Save changes</Button>}
         </SheetFooter>
       </SheetContent>
     </Sheet>

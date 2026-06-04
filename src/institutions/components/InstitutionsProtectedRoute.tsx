@@ -34,8 +34,9 @@ export const InstitutionsProtectedRoute = ({
             <ShieldAlert className="size-10 mx-auto text-destructive" />
             <div className="text-lg font-semibold">Access restricted</div>
             <p className="text-sm text-muted-foreground">
-              You don't have access to the Institutions section. Ask an admin to
-              grant you access in <b>Team &amp; roles → Permissions → Institutions</b>.
+              {requireEdit
+                ? <>You can view Institutions but cannot make changes. Ask an admin to grant <b>Edit</b> in <b>Team &amp; roles → Permissions → Institutions</b>.</>
+                : <>You don&apos;t have access to the Institutions section. Ask an admin to grant you access in <b>Team &amp; roles → Permissions → Institutions</b>.</>}
             </p>
           </Card>
         </div>

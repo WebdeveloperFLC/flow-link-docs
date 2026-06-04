@@ -16,6 +16,9 @@ import type { Database } from "@/integrations/supabase/types";
 export type CommissionStudent =
   Database["public"]["Tables"]["upi_commission_students"]["Row"];
 
+/** Live row from `upi_courses_staging` (Course Review queue). */
+export type UpiCourseStaging = Database["public"]["Tables"]["upi_courses_staging"]["Row"];
+
 export interface UpiInstitution {
   id: string;
   name: string;
@@ -60,26 +63,6 @@ export interface UpiSource {
   is_active: boolean;
   notes: string | null;
   metadata: Record<string, unknown>;
-}
-
-export interface UpiStagingCourse {
-  id: string;
-  institution_id: string | null;
-  course_title: string;
-  course_description: string | null;
-  campus_name: string | null;
-  country_name: string | null;
-  tuition_fee: number | null;
-  currency: string | null;
-  intake_months: string[];
-  ielts_overall: number | null;
-  has_scholarship: boolean | null;
-  is_coop: boolean | null;
-  is_pr_pathway: boolean | null;
-  review_status: ReviewStatus;
-  confidence_score: number;
-  metadata: Record<string, unknown>;
-  extracted_at: string;
 }
 
 export interface UpiSuggestion {
