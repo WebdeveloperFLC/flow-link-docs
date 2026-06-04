@@ -14,7 +14,7 @@ const SEV_VARIANT = {
   info: "secondary" as const,
 };
 
-export function AiSuggestionsPanel({ institutionId }: { institutionId: string }) {
+export function AiSuggestionsPanel({ institutionId, readOnly = false }: { institutionId: string; readOnly?: boolean }) {
   const { data: suggestions, loading, reload } = useSuggestions(institutionId);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -60,7 +60,7 @@ export function AiSuggestionsPanel({ institutionId }: { institutionId: string })
                 <div className="text-xs text-muted-foreground">{s.description}</div>
                 {s.affected_record && <div className="text-[10px] text-muted-foreground mt-1">Ref: {s.affected_record}</div>}
               </div>
-              {s.status === "pending" ? (
+              {s.status === "pending" && !readOnly ? (
                 <div className="flex gap-1">
                   <Button size="sm" disabled={busy === s.id} onClick={() => updateStatus(s.id, "accepted")}>Accept</Button>
                   <Button size="sm" variant="outline" disabled={busy === s.id} onClick={() => updateStatus(s.id, "deferred")}>Defer</Button>
@@ -69,7 +69,7 @@ export function AiSuggestionsPanel({ institutionId }: { institutionId: string })
               ) : (
                 <Badge variant="secondary">{s.status}</Badge>
               )}
-              {ALLOW_TEST_DELETIONS && (
+              {!readOnly && ALLOW_TEST_DELETIONS && (
                 <Button size="sm" variant="ghost" onClick={() => deleteSuggestion(s.id, s.title)} className="text-destructive hover:text-destructive">
                   <Trash2 className="size-4" />
                 </Button>

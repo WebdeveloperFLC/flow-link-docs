@@ -17,6 +17,8 @@ export default function InstitutionsListPage() {
   const navigate = useNavigate();
   const { canEdit } = useModulePermission("institutions");
   const [items, setItems] = useState<UpiInstitution[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [listError, setListError] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "partners" | "active" | "inactive">("all");
   const [stats, setStats] = useState({ total: 0, partners: 0, courses: 0, pending: 0 });
@@ -26,15 +28,26 @@ export default function InstitutionsListPage() {
   const [website, setWebsite] = useState("");
 
   const load = async () => {
-    const { data } = await supabase.from("upi_institutions").select("*").order("name");
-    setItems((data ?? []) as UpiInstitution[]);
+    setLoading(true);
+    setListError(null);
+    const { data, error } = await supabase.from("upi_institutions").select("*").order("name");
+    if (error) {
+      setListError(error.message);
+      toast.error(error.message);
+      setItems([]);
+    } else {
+      setItems((data ?? []) as UpiInstitution[]);
+    }
     const [t, p, c, pr] = await Promise.all([
       supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_active", true),
       supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_partner", true),
       supabase.from("upi_courses_staging").select("*", { count: "exact", head: true }).eq("review_status", "published"),
       supabase.from("upi_courses_staging").select("*", { count: "exact", head: true }).eq("review_status", "pending_review"),
     ]);
-    setStats({ total: t.count ?? 0, partners: p.count ?? 0, courses: c.count ?? 0, pending: pr.count ?? 0 });
+    const statsError = [t, p, c, pr].find((r) => r.error)?.error;
+    if (statsError) toast.error(statsError.message);
+    else setStats({ total: t.count ?? 0, partners: p.count ?? 0, courses: c.count ?? 0, pending: pr.count ?? 0 });
+    setLoading(false);
   };
   useEffect(() => { load(); }, []);
 
@@ -60,6 +73,11 @@ export default function InstitutionsListPage() {
     <AppLayout>
       <PageHeader title="Institutions" description="Manage partner and prospect institutions" />
       <div className="p-8 space-y-6">
+        {listError && (
+          <Card className="p-4 border-destructive/50 bg-destructive/5 text-sm text-destructive">
+            Could not load institutions: {listError}
+          </Card>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Total institutions", value: stats.total, onClick: () => setFilter("all") },
@@ -124,7 +142,12 @@ export default function InstitutionsListPage() {
               </Card>
             </Link>
           ))}
-          {filtered.length === 0 && <div className="col-span-full text-center text-sm text-muted-foreground py-12">No institutions yet.</div>}
+          {loading && (
+            <div className="col-span-full text-center text-sm text-muted-foreground py-12">Loading institutions…</div>
+          )}
+          {!loading && filtered.length === 0 && !listError && (
+            <div className="col-span-full text-center text-sm text-muted-foreground py-12">No institutions yet.</div>
+          )}
         </div>
       </div>
     </AppLayout>

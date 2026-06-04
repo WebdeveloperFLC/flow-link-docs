@@ -1,11 +1,15 @@
 #!/usr/bin/env node
 /**
- * Upload academy_metadata JSON to service_library rows.
+ * Upload academy_metadata to service_library.
  *
- * Usage:
- *   SUPABASE_SERVICE_ROLE_KEY=eyJ... node scripts/upload-service-library-metadata.mjs content/service-library/canada-student-visa.json
+ * Single service (JSON = metadata object only):
+ *   SL_LIBRARY_ID=<uuid> node scripts/upload-service-library-metadata.mjs content/service-library/canada-student-visa.json
  *
- * Get service role key: Supabase Dashboard → Project Settings → API → service_role (secret)
+ * Bulk (JSON = { entries: [{ library_id, academy_metadata }, ...] }):
+ *   node scripts/upload-service-library-metadata.mjs content/service-library/bulk-upload.json
+ *
+ * Legacy match (no library_id — updates all Canada student rows; avoid for production):
+ *   SL_MATCH=canada-student node scripts/upload-service-library-metadata.mjs content/service-library/canada-student-visa.json
  */
 import fs from "fs";
 import { createClient } from "@supabase/supabase-js";
@@ -23,42 +27,91 @@ if (!url || !key) {
   process.exit(1);
 }
 
-const meta = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
-const match = process.env.SL_MATCH || "canada-student"; // canada-student | all-from-file
-
+const raw = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
 const sb = createClient(url, key);
 
-const { data: rows, error } = await sb
-  .from("service_library")
-  .select("id, service, sub_service, service_library_countries(country)")
-  .eq("service_category", "visa_immigration")
-  .eq("is_active", true);
-
-if (error) {
-  console.error(error.message);
-  process.exit(1);
+function stripInstructions(obj) {
+  if (!obj || typeof obj !== "object") return obj;
+  const { _instructions, ...rest } = obj;
+  return rest;
 }
 
-const targets = (rows ?? []).filter((r) => {
-  const hasCanada = (r.service_library_countries ?? []).some((c) => c.country === "Canada");
-  if (!hasCanada) return false;
-  if (match === "canada-student") {
-    return /student|study permit/i.test(r.sub_service) || /student/i.test(r.service);
-  }
-  return true;
-});
-
-if (!targets.length) {
-  console.error("No matching service_library rows found.");
-  process.exit(1);
-}
-
-for (const row of targets) {
-  const { error: uerr } = await sb
+async function updateOne(libraryId, meta) {
+  const { error } = await sb
     .from("service_library")
-    .update({ academy_metadata: meta })
-    .eq("id", row.id);
-  console.log(uerr ? `FAIL ${row.sub_service}: ${uerr.message}` : `OK ${row.id} ${row.sub_service}`);
+    .update({ academy_metadata: stripInstructions(meta), updated_at: new Date().toISOString() })
+    .eq("id", libraryId);
+  return error;
 }
 
-console.log(`Updated ${targets.length} row(s).`);
+async function main() {
+  if (Array.isArray(raw.entries)) {
+    let ok = 0;
+    for (const entry of raw.entries) {
+      const id = entry.library_id;
+      const meta = entry.academy_metadata ?? entry.metadata;
+      if (!id || !meta) {
+        console.log(`SKIP missing library_id or academy_metadata: ${entry.service ?? "?"}`);
+        continue;
+      }
+      const err = await updateOne(id, meta);
+      if (err) console.log(`FAIL ${id} ${entry.sub_service ?? ""}: ${err.message}`);
+      else {
+        console.log(`OK ${id} ${entry.sub_service ?? entry.service ?? ""}`);
+        ok++;
+      }
+    }
+    console.log(`Updated ${ok} of ${raw.entries.length} entries.`);
+    return;
+  }
+
+  const libraryId = process.env.SL_LIBRARY_ID;
+  const meta = stripInstructions(raw);
+
+  if (libraryId) {
+    const err = await updateOne(libraryId, meta);
+    if (err) {
+      console.error(err.message);
+      process.exit(1);
+    }
+    console.log(`OK ${libraryId}`);
+    return;
+  }
+
+  const match = process.env.SL_MATCH || "canada-student";
+  const { data: rows, error } = await sb
+    .from("service_library")
+    .select("id, service, sub_service, service_library_countries(country)")
+    .eq("service_category", "visa_immigration")
+    .eq("is_active", true);
+
+  if (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+
+  const targets = (rows ?? []).filter((r) => {
+    const hasCanada = (r.service_library_countries ?? []).some((c) => c.country === "Canada");
+    if (!hasCanada) return false;
+    if (match === "canada-student") {
+      return /student|study permit/i.test(r.sub_service) || /student/i.test(r.service);
+    }
+    return true;
+  });
+
+  if (!targets.length) {
+    console.error("No matching rows. Set SL_LIBRARY_ID for a single row upload.");
+    process.exit(1);
+  }
+
+  for (const row of targets) {
+    const err = await updateOne(row.id, meta);
+    console.log(err ? `FAIL ${row.sub_service}: ${err.message}` : `OK ${row.id} ${row.sub_service}`);
+  }
+  console.log(`Updated ${targets.length} row(s). Prefer SL_LIBRARY_ID for one canonical row.`);
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

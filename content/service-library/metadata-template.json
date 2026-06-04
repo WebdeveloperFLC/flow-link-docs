@@ -1,0 +1,120 @@
+{
+  "_instructions": "Remove this _instructions key before upload. Copy this file per service (e.g. uk-student-visa.json). Fill every section for the target country + sub_service. Tag variants: success | warning | neutral. KPI tones: primary | warning | success | violet. correctIndex is 0-based.",
+  "displayName": "{Country} – {Service name}",
+  "shortDescription": "{One line: authority · pathway · key requirement}",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated {date}",
+  "learningLevel": "Beginner | Intermediate | Advanced",
+  "learningMinutes": 15,
+  "policyAlert": {
+    "active": true,
+    "date": "{date}",
+    "summary": "{Fee or policy change counselors must verify before quoting}"
+  },
+  "alert": {
+    "title": "{Optional urgent banner title}",
+    "body": "{Optional urgent banner body}"
+  },
+  "tags": [
+    { "label": "Active service", "variant": "success" },
+    { "label": "{Risk or stream tag}", "variant": "warning" },
+    { "label": "{Processing time}", "variant": "neutral" }
+  ],
+  "chips": [
+    { "label": "{Processing weeks}", "variant": "neutral" },
+    { "label": "{Fee or stream}", "variant": "neutral" }
+  ],
+  "kpis": [
+    { "label": "Processing time", "value": "{e.g. 8–12w}", "sub": "{note}", "tone": "primary" },
+    { "label": "Government fee", "value": "{amount}", "sub": "{updated note}", "tone": "warning" },
+    { "label": "Our approval rate", "value": "{%}", "sub": "{benchmark}", "tone": "success" },
+    { "label": "Required docs", "value": "{count}", "sub": "{conditional}", "tone": "violet" },
+    { "label": "Consultancy fee", "value": "{amount or See fee tab}", "sub": "{+ govt}", "tone": "primary" }
+  ],
+  "about": [
+    { "label": "Description", "value": "{What this visa/service is}" },
+    { "label": "Eligible applicants", "value": "{Who qualifies}" },
+    { "label": "{Stream or special rule}", "value": "{Detail}", "warning": false },
+    { "label": "Key authority", "value": "{Government body / portal}" },
+    { "label": "After approval", "value": "{Client obligations}" }
+  ],
+  "eligibility": [
+    { "criterion": "{Requirement 1}", "met": true, "note": "{counselor note}" },
+    { "criterion": "{Requirement 2}", "met": true },
+    { "criterion": "{Requirement 3}", "met": false, "note": "{often pending}" }
+  ],
+  "redFlagsBanner": "{One sentence: what to do after a refusal}",
+  "redFlags": [
+    {
+      "title": "{Red flag title}",
+      "description": "{Why it fails}",
+      "fix": "{How to fix}",
+      "severity": "Very common | Common | High | Medium"
+    }
+  ],
+  "faqs": [
+    { "q": "{Question 1}", "a": "{Answer}" },
+    { "q": "{Question 2}", "a": "{Answer}" }
+  ],
+  "compliance": [
+    "{Firm policy / legal line 1}",
+    "{Firm policy / legal line 2}"
+  ],
+  "proTips": ["{Counselor tip 1}", "{Counselor tip 2}"],
+  "postApproval": ["{After grant step 1}", "{After grant step 2}"],
+  "performance": {
+    "ourRate": 0,
+    "industryRate": 0,
+    "stats": [
+      { "label": "Files this year", "value": "0" },
+      { "label": "Approved", "value": "0" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "{Factor}", "ours": 0, "benchmark": 0 }
+  ],
+  "timeline": [
+    { "weeks": "1–2", "title": "{Phase}" },
+    { "weeks": "4–8", "title": "{Processing}" }
+  ],
+  "relatedServices": [
+    { "label": "{Related service name}", "libraryId": "{uuid or empty}" }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "{date}",
+      "author": "Service Library",
+      "summary": "{What changed}"
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "{Team}",
+      "date": "{date}",
+      "text": "{Internal note for counselors}"
+    }
+  ],
+  "donts": {
+    "dos": ["{Do 1}", "{Do 2}"],
+    "donts": ["{Don't 1}", "{Don't 2}"],
+    "mistakes": ["{Common mistake 1}", "{Common mistake 2}"]
+  },
+  "resources": [
+    {
+      "title": "{Official site name}",
+      "url": "https://",
+      "description": "{Why counselors open this link}"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "{Question}",
+      "options": ["{A}", "{B}", "{C}", "{D}"],
+      "correctIndex": 0,
+      "explanation": "{Why correct}"
+    }
+  ]
+}
