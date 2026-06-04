@@ -80,6 +80,10 @@ const ClientNew = () => {
   const [sp] = useSearchParams();
   const leadIdParam = sp.get("lead_id");
   const editId = sp.get("id");
+  const slCountry = sp.get("country");
+  const slVisaService = sp.get("visa_service");
+  const slServiceLabel = sp.get("service_label");
+  const slLibraryId = sp.get("library_id");
   const { hasRole, isAdmin } = useAuth();
   const isCounselor = isAdmin || hasRole(["counselor", "admin"]);
 
@@ -175,6 +179,35 @@ const ClientNew = () => {
       });
     });
   }, [leadIdParam, clientId]);
+
+  // Prefill from Service Library (new application)
+  useEffect(() => {
+    if (leadIdParam || editId || clientId) return;
+    if (slCountry) {
+      setInterestedCountries([slCountry]);
+      setF((p) => ({ ...p, country: slCountry }));
+    }
+    if (slVisaService) {
+      setServices((s) => ({
+        ...s,
+        visa_services: s.visa_services?.length ? s.visa_services : [slVisaService],
+      }));
+    }
+    if (slLibraryId || slServiceLabel) {
+      const note = [
+        slServiceLabel ? `Service Library: ${slServiceLabel}` : null,
+        slLibraryId ? `library_id=${slLibraryId}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+      setF((p) => ({
+        ...p,
+        counselor_notes: p.counselor_notes
+          ? `${p.counselor_notes}\n${note}`
+          : note,
+      }));
+    }
+  }, [slCountry, slVisaService, slServiceLabel, slLibraryId, leadIdParam, editId, clientId]);
 
   // Load existing client
   useEffect(() => {
