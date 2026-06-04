@@ -42,6 +42,7 @@ import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
 import ServiceLibrary from "./pages/ServiceLibrary";
 import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
+import ServiceLibraryDesignPreview from "./pages/ServiceLibraryDesignPreview";
 import Telecaller from "./pages/Telecaller";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
@@ -187,6 +188,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <ServiceLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/service-library/preview"
+                    element={
+                      <ProtectedRoute>
+                        <ServiceLibraryDesignPreview />
                       </ProtectedRoute>
                     }
                   />
