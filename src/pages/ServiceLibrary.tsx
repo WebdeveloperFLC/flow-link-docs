@@ -66,7 +66,10 @@ export default function ServiceLibrary() {
     }
   }, [selectedId, groups]);
 
-  const detail = useServiceAcademyDetail(selectedId, detailCountry || (countryFilter !== "ALL" ? countryFilter : null));
+  const detail = useServiceAcademyDetail(
+    selectedId,
+    detailCountry || (countryFilter !== "ALL" ? countryFilter : null),
+  );
 
   useEffect(() => {
     if (!detail.data) return;

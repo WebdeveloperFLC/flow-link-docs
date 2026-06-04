@@ -10,6 +10,7 @@ export type Override = {
   id: string;
   library_id: string;
   country: string;
+  academy_metadata?: Record<string, unknown> | null;
   quick_guide_what_to_do: string | null;
   quick_guide_common_mistakes: string | null;
   quick_guide_escalation_rules: string | null;
@@ -25,6 +26,7 @@ export type Master = {
   service_category: string;
   service: string;
   sub_service: string;
+  academy_metadata?: Record<string, unknown> | null;
   quick_guide_what_to_do: string | null;
   quick_guide_common_mistakes: string | null;
   quick_guide_escalation_rules: string | null;

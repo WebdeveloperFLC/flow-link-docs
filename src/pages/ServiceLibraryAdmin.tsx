@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
-  ClipboardCheck, BookOpen, Coins, Sparkles, History,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,7 @@ import {
   type Master, type Override,
   type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem,
 } from "@/lib/serviceLibrary";
+import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -526,6 +527,7 @@ function MasterDetail({
           <TabsTrigger value="process"><ChevronRight className="h-3.5 w-3.5 mr-1" />Process Flow</TabsTrigger>
           <TabsTrigger value="sop"><BookOpen className="h-3.5 w-3.5 mr-1" />Internal SOP</TabsTrigger>
           <TabsTrigger value="overrides"><Globe className="h-3.5 w-3.5 mr-1" />Overrides</TabsTrigger>
+          <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab master={master} onChanged={onChanged} /></TabsContent>
@@ -538,6 +540,9 @@ function MasterDetail({
         <TabsContent value="process"><ProcessFlowTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="sop"><InternalSopTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="overrides"><OverridesTab master={master} /></TabsContent>
+        <TabsContent value="content">
+          <AcademyContentEditor master={master} onChanged={onChanged} />
+        </TabsContent>
       </Tabs>
     </div>
   );
