@@ -34,10 +34,10 @@ export type AgingRow = {
 
 export type TelecallerRow = {
   user_id: string;
-  name: string | null;
-  calls: number;
-  talk_seconds: number;
-  answered: number;
+  name?: string | null;
+  calls?: number;
+  talk_seconds?: number;
+  answered?: number;
   callbacks_pending: number;
 };
 
@@ -59,14 +59,6 @@ export type RecentClientRow = {
   application_type: string | null;
 };
 
-export type CounselorRow = {
-  user_id: string;
-  name: string | null;
-  handoffs_accepted: number;
-  tasks_done: number;
-  enrollments: number;
-};
-
 export type OfferRoiRow = {
   offer_id: string;
   title: string;
@@ -79,48 +71,76 @@ export type StatusCount = {
   count: number;
 };
 
-export type DashboardV2Data = {
+export type CountryIntakeRow = {
+  country: string | null;
+  intake: string | null;
+  leads: number;
+};
+
+export type OdooHealth = {
+  crmOnly: number;
+  odooLinked: number;
+  syncedLast7d: number;
+};
+
+export type DashboardExecutiveData = {
   clients: number;
   hotLeads: number;
   totalLeads: number;
-  totalCalls: number;
-  answerRate: number;
   outstandingAr: number;
   overdueInvoices: number;
-  overdueTasks: number;
-  upcomingBookings: number;
-  whatsappQueue: number;
-  calls: CallDaily[];
-  funnel: FunnelRow[];
   stageDist: StageDist[];
   aging: AgingRow[];
+  admissions: {
+    enrollments: number;
+    newApplications30d: number;
+    studyPermits: number;
+  };
+  revenue: {
+    collected30d: number;
+    invoiced30d: number;
+    collectionRatePct: number;
+  };
+  applicationsByStatus: StatusCount[];
+  countryIntakeTop: CountryIntakeRow[];
+  odooHealth: OdooHealth | null;
+};
+
+export type DashboardOperationsData = {
+  overdueTasks: number;
+  upcomingBookings: number;
+  pendingCallbacks: number;
+  pendingHandoffs: number;
   tasksDue: TaskDueRow[];
   recentClients: RecentClientRow[];
-  telecallers: TelecallerRow[];
+  admissions: {
+    finalPrograms: number;
+    openFormalLeads: number;
+    assessmentsCompleted: number;
+  };
+};
+
+export type DashboardModuleData = {
+  whatsappQueue: number;
   upi: {
     institutions: number;
     partners: number;
     coursesPending: number;
     suggestionsPending: number;
   };
-  admissions: {
-    enrollments: number;
-    newApplications30d: number;
-    finalPrograms: number;
-    leadConversionPct: number;
-    openFormalLeads: number;
-    studyPermits: number;
-    assessmentsCompleted: number;
-  };
   revenue: {
-    collected30d: number;
-    invoiced30d: number;
-    collectionRatePct: number;
-    offerInfluencedRevenue: number;
     commissionExpected: number;
+    offerInfluencedRevenue: number;
     activeOffers: number;
   };
-  applicationsByStatus: StatusCount[];
-  counselors: CounselorRow[];
   offerRoiTop: OfferRoiRow[];
 };
+
+/** @deprecated Merged shape — prefer section hooks */
+export type DashboardV2Data = DashboardExecutiveData &
+  DashboardOperationsData &
+  DashboardModuleData & {
+    admissions: DashboardExecutiveData["admissions"] &
+      DashboardOperationsData["admissions"];
+    revenue: DashboardExecutiveData["revenue"] & DashboardModuleData["revenue"];
+  };
