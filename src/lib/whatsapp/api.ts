@@ -25,8 +25,11 @@ export async function resolveWhatsAppMediaUrl(messageId: string): Promise<{
   url: string | null;
   error?: string;
 }> {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
   const { data, error } = await supabase.functions.invoke("whatsapp-media-url", {
     body: { message_id: messageId },
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   });
   if (error) return { url: null, error: error.message };
   if (data?.error) return { url: null, error: String(data.error) };

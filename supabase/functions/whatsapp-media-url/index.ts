@@ -33,7 +33,6 @@ Deno.serve(async (req) => {
   });
   const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
   if (userErr || !userData.user) return json({ error: "invalid session" }, 401);
-  const uid = userData.user.id;
 
   let body: { message_id?: string };
   try {
@@ -45,21 +44,17 @@ Deno.serve(async (req) => {
   const messageId = body.message_id;
   if (!messageId) return json({ error: "message_id required" }, 400);
 
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-
-  const { data: msg, error: msgErr } = await admin
+  // Same RLS gate as CRM inbox — if the user can read the message row, they can resolve media.
+  const { data: msg, error: msgErr } = await userClient
     .from("whatsapp_messages")
     .select("id, conversation_id, message_type, media_storage_path, media_provider_id, media_mime, provider_message_id")
     .eq("id", messageId)
-    .single();
+    .maybeSingle();
 
-  if (msgErr || !msg) return json({ error: "message not found" }, 404);
+  if (msgErr) return json({ error: msgErr.message }, 500);
+  if (!msg) return json({ error: "forbidden" }, 403);
 
-  const { data: canView } = await admin.rpc("whatsapp_can_view_conversation", {
-    _uid: uid,
-    _conv_id: msg.conversation_id,
-  });
-  if (!canView) return json({ error: "forbidden" }, 403);
+  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
   let storagePath = msg.media_storage_path as string | null;
   let mediaMime = msg.media_mime as string | null;
