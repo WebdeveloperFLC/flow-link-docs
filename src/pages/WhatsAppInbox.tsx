@@ -215,9 +215,9 @@ const WhatsAppInbox = () => {
 
   const handleClientSimulate = async () => {
     if (!active || !clientSimText.trim()) return;
-    const phone = active.phone_display || active.phone_e164;
+    const phone = active.phone_e164 || active.phone_display || "";
     try {
-      await simulateInbound(phone, clientSimText.trim());
+      await simulateInbound(phone, clientSimText.trim(), active.id);
       setClientSimText("");
       await loadMessages(active.id);
       await refreshConversations();
