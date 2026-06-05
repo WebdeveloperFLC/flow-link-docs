@@ -23,6 +23,8 @@ export interface WhatsAppConversation {
   updated_at: string;
 }
 
+export type WhatsAppMessageType = "text" | "image" | "document" | "video" | "audio" | "unknown";
+
 export interface WhatsAppMessage {
   id: string;
   conversation_id: string;
@@ -31,6 +33,9 @@ export interface WhatsAppMessage {
   sent_by: "contact" | "ai" | "staff" | "system";
   sent_by_user_id: string | null;
   provider_message_id: string | null;
+  message_type: WhatsAppMessageType;
+  media_storage_path: string | null;
+  media_mime: string | null;
   created_at: string;
 }
 

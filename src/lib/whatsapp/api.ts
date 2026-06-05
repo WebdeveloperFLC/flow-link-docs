@@ -21,6 +21,14 @@ export async function listMessages(conversationId: string): Promise<WhatsAppMess
   return (data ?? []) as WhatsAppMessage[];
 }
 
+export async function getWhatsAppMediaSignedUrl(storagePath: string): Promise<string | null> {
+  const { data, error } = await supabase.storage
+    .from("whatsapp-media")
+    .createSignedUrl(storagePath, 3600);
+  if (error) return null;
+  return data?.signedUrl ?? null;
+}
+
 export async function markConversationRead(conversationId: string): Promise<void> {
   const { error } = await supabase
     .from("whatsapp_conversations" as any)

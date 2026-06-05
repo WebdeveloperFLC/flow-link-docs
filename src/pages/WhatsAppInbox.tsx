@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   assignConversation,
+  getWhatsAppMediaSignedUrl,
   listConversations,
   listCounselors,
   listMessages,
@@ -30,6 +31,55 @@ import { cn } from "@/lib/utils";
 const WHATSAPP_ENABLED = import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
 const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toLowerCase();
 const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto";
+
+function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!message.media_storage_path) return;
+    let cancelled = false;
+    setLoading(true);
+    getWhatsAppMediaSignedUrl(message.media_storage_path)
+      .then((signed) => { if (!cancelled) setUrl(signed); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [message.media_storage_path]);
+
+  if (!message.media_storage_path) {
+    return (
+      <div className="text-xs text-muted-foreground italic">
+        {message.body}
+      </div>
+    );
+  }
+
+  if (loading) return <div className="text-xs text-muted-foreground">Loading media…</div>;
+  if (!url) return <div className="text-xs text-muted-foreground">Media unavailable</div>;
+
+  if (message.message_type === "image") {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="block">
+        <img
+          src={url}
+          alt={message.body || "WhatsApp image"}
+          className="max-w-full max-h-64 rounded-md object-contain"
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="text-xs underline underline-offset-2"
+    >
+      {message.body || "Open attachment"}
+    </a>
+  );
+}
 
 const WhatsAppInbox = () => {
   const { user, isAdmin, hasRole } = useAuth();
@@ -308,7 +358,14 @@ const WhatsAppInbox = () => {
                           : "bg-primary text-primary-foreground ml-auto",
                     )}
                   >
-                    <div className="whitespace-pre-wrap">{m.body}</div>
+                    {m.media_storage_path || (m.message_type && m.message_type !== "text") ? (
+                      <MessageMediaPreview message={m} />
+                    ) : (
+                      <div className="whitespace-pre-wrap">{m.body}</div>
+                    )}
+                    {m.media_storage_path && m.body && !m.body.startsWith("[") && (
+                      <div className="whitespace-pre-wrap mt-1 text-xs opacity-90">{m.body}</div>
+                    )}
                     <div className="text-[10px] opacity-70 mt-1">
                       {m.sent_by === "ai" ? "AI · " : m.sent_by === "staff" ? "You · " : ""}
                       {new Date(m.created_at).toLocaleString()}
