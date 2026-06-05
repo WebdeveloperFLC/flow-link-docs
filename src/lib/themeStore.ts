@@ -7,6 +7,7 @@ export type NavSectionKey =
   | 'digital'
   | 'institution'
   | 'commissions'
+  | 'guide'
   | 'accounts'
   | 'admin';
 
@@ -78,6 +79,7 @@ export const DEFAULT_NAV_SECTION_COLORS: Record<NavSectionKey, string> = {
   digital: '280 78% 56%',
   institution: '24 95% 53%',
   commissions: '199 89% 48%',
+  guide: '170 70% 42%',
   accounts: '215 25% 55%',
   admin: '221 83% 53%',
 };
@@ -171,6 +173,7 @@ const RAINBOW_CRM: ThemeConfig = {
     digital: '280 78% 60%',
     institution: '24 95% 58%',
     commissions: '199 89% 52%',
+    guide: '170 70% 48%',
     accounts: '215 25% 60%',
     admin: '221 83% 58%',
   },

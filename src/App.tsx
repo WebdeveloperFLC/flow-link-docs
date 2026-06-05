@@ -158,6 +158,8 @@ import WalletTopups from "@/pages/WalletTopups";
 import PeriodClose from "@/pages/PeriodClose";
 import IncentivePlans from "@/pages/IncentivePlans";
 import AiHelpPage from "./ai-help/pages/AiHelpPage";
+import GuidesIndexPage from "./guides/pages/GuidesIndexPage";
+import GuideDetailPage from "./guides/pages/GuideDetailPage";
 import AiStudioPage from "./digital-success/ai/AiStudioPage";
 
 const queryClient = new QueryClient();
@@ -571,6 +573,22 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <AiHelpPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/guides"
+                    element={
+                      <ProtectedRoute>
+                        <GuidesIndexPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/guides/:slug"
+                    element={
+                      <ProtectedRoute>
+                        <GuideDetailPage />
                       </ProtectedRoute>
                     }
                   />
