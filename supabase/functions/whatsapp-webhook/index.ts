@@ -4,11 +4,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
 import {
+  fetchMetaMedia,
   isMetaWebhookPayload,
+  mediaStoragePath,
   metaSendEnabled,
   parseMetaInbound,
   sendMetaText,
   verifyMetaSignature,
+  type MetaMessageType,
 } from "../_shared/whatsapp/metaApi.ts";
 
 const corsHeaders = {
@@ -166,6 +169,10 @@ Deno.serve(async (req) => {
   let phoneRaw = String(payload.phone || payload.from || "");
   let text = String(payload.text || payload.body || "");
   let providerMessageId = payload.message_id ? String(payload.message_id) : null;
+  let messageType: MetaMessageType = "text";
+  let mediaId: string | null = null;
+  let mediaMime: string | null = null;
+  let fileName: string | null = null;
 
   if (fromMeta) {
     const parsed = parseMetaInbound(payload);
@@ -177,6 +184,10 @@ Deno.serve(async (req) => {
     phoneRaw = parsed.phoneRaw;
     text = parsed.text;
     providerMessageId = parsed.providerMessageId;
+    messageType = parsed.messageType;
+    mediaId = parsed.mediaId;
+    mediaMime = parsed.mediaMime;
+    fileName = parsed.fileName;
   }
 
   const phoneE164 = normalizePhoneE164(phoneRaw);
@@ -243,12 +254,38 @@ Deno.serve(async (req) => {
     conv = created;
   }
 
+  let mediaStoragePathValue: string | null = null;
+  if (fromMeta && mediaId && messageType !== "text") {
+    const downloaded = await fetchMetaMedia(mediaId);
+    if (downloaded) {
+      const path = mediaStoragePath(conv.id, providerMessageId, downloaded.mime);
+      const { error: upErr } = await admin.storage
+        .from("whatsapp-media")
+        .upload(path, downloaded.bytes, { contentType: downloaded.mime, upsert: true });
+      if (upErr) console.error("[whatsapp-webhook] media upload:", upErr.message);
+      else {
+        mediaStoragePathValue = path;
+        mediaMime = downloaded.mime;
+      }
+    }
+  }
+
+  const displayBody = text.trim()
+    || (messageType === "image" ? "[Image]" : "")
+    || (messageType === "document" ? `[Document${fileName ? `: ${fileName}` : ""}]` : "")
+    || (messageType === "video" ? "[Video]" : "")
+    || (messageType === "audio" ? "[Audio]" : "")
+    || "(empty)";
+
   await admin.from("whatsapp_messages").insert({
     conversation_id: conv.id,
     direction: "inbound",
-    body: text || "(empty)",
+    body: displayBody,
     sent_by: "contact",
     provider_message_id: providerMessageId,
+    message_type: messageType,
+    media_storage_path: mediaStoragePathValue,
+    media_mime: mediaMime,
   });
 
   await admin.from("whatsapp_conversations").update({
@@ -270,7 +307,12 @@ Deno.serve(async (req) => {
       updated_at: now,
     }).eq("id", conv.id);
     replies.push("Starting over. Which country are you interested in? (e.g. Canada, UK)");
-  } else if (aiMode !== "off" && (conv.status === "unmatched_ai_intake" || intakeInProgress)) {
+  } else if (
+    aiMode !== "off"
+    && (conv.status === "unmatched_ai_intake" || intakeInProgress)
+    && text.trim()
+    && messageType === "text"
+  ) {
     const { intake: nextIntake, replies: botReplies, confirmed } = nextRulesReply(intake as any, text);
 
     if (confirmed) {
