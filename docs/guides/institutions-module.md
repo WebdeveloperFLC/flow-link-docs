@@ -1,538 +1,474 @@
 # Institutions Module — Staff Operational Guide
 
-This guide explains how to use the **Institutions** area of Flow Link: managing partner schools, extracting programs with AI, publishing to **Course Finder**, and (for finance/commission staff) handling agreements, commissions, and claims.
+Use the **search bar** at the top of this page to find answers — try keywords like *publish*, *permissions*, *sync*, or *empty review*.
 
-It is written for **day-to-day staff and team leads**, not developers. Admins should use the permission and rollout sections when onboarding new users.
+> **TIP:** This guide is for **day-to-day staff and team leads**. Admins should read sections **10–11** when onboarding new users.
 
 ---
 
-## 1. Module purpose and scope
+## 1. Quick search — find your answer
 
-### What this module is for
+| I want to… | Search for | Section |
+|------------|------------|---------|
+| Publish programs to Course Finder | `publish` `course finder` | §4 Step 5–6 |
+| Fix empty Course Review | `empty review` `sync` | §4 Step 2–3, §12 |
+| Understand who can see what | `permissions` `view-only` | §3, §9 |
+| Upload a program PDF | `upload` `program sheet` | §5 |
+| Upload agreement / commission file | `confidential` `agreement` | §5 |
+| Approve or reject courses | `approve` `reject` | §4 Step 4, §6 |
+| Run website sync | `sync` `source` | §4 Step 2 |
+| Set up a new staff member | `onboarding` `permissions` | §11 |
+| Agreements tab is locked | `locked` `commission` | §3, §12 |
+| Something failed / error message | `troubleshoot` | §12 |
 
-The Institutions module is your **partner school catalog and program pipeline**:
+### At-a-glance: the whole pipeline
 
-- Maintain a list of universities, colleges, and pathway providers you work with.
-- Collect program information from **websites** and **uploaded documents**.
-- Use AI to extract structured course data into a **review queue**.
-- **Approve and publish** approved programs to **Course Finder** (the catalog counselors and students search).
-- Manage **promotions**, **marketing campaigns**, and **AI suggestions** at the institution level.
-- For commission/finance staff: manage **agreements**, **commission structures**, **claim cycles**, **invoices**, and **commission students** (confidential).
-
-### What this module is **not**
-
-- It is **not** the client/counselor CRM (that is Clients, Leads, etc.).
-- It is **not** Course Finder itself — Course Finder is the **published output** (`/course-finder`).
-- The **Client → Commission auto-sync** (linking enrolled clients to commission rows) is **planned but not active** yet.
-
-### Real system, not a demo
-
-All data is stored in Supabase (`upi_*` tables). Access is enforced in the **UI and the database**. Empty screens or error messages usually mean **permissions**, not “no data.”
+```flow
+Add Institution
+Complete Profile
+Add Source (URL or PDF)
+Sync / AI Extract
+Course Review
+Approve Rows
+Publish to Course Finder
+Live in Catalog
+```
 
 ---
 
 ## 2. Where to find it in the app
 
-| Menu / route | Screen | Who needs access |
-|--------------|--------|------------------|
-| **Institution → Institutions** `/institutions` | Institution list & stats | Institutions **View** |
-| **Institution → Course Review** `/institutions/review` | Program approval queue | Institutions **View** (Edit to action) |
-| **Institution → AI Suggestions** `/institutions/suggestions` | Cross-school AI inbox | Institutions **View** (Edit to action) |
-| Institution detail `/institutions/:id` | Single school workspace | Institutions **View** |
-| **Course Finder** `/course-finder` | Published catalog (read/search) | Broader app access |
-| **Commissions** `/commissions` | Global claims & invoice overview | Commission / accounting access |
-
----
-
-## 3. User roles and permissions matrix
-
-Access uses **two layers**:
-
-1. **Module permissions** — set in **Team & roles → Permissions** (`institutions`, `commissions`).
-2. **App roles & accounting** — e.g. `commission_admin`, active **Accounting** user, **Admin**.
-
-The database applies the same rules (Row Level Security). If the UI lets you click something but the save fails, check permissions below.
-
-### Role definitions (staff-facing)
-
-| Role label | How it is granted | Typical job |
-|------------|-------------------|-------------|
-| **Institutions View** | Permissions → **Institutions** → View | Read catalog, review queue, suggestions (no changes) |
-| **Institutions Edit** | Permissions → **Institutions** → Edit | Add schools, sources, uploads, sync, approve/publish |
-| **Commission View** | Commissions **View**, or **Accounting** user, or `commission_admin` | See agreements, commissions, claims, confidential docs |
-| **Commission Admin** | Commissions **Edit**, or **`commission_admin`** role, or Accounting **Finance/Super Admin** | Edit agreements, commissions, claims, confidential uploads |
-| **Super Admin** | App role **Admin** / **Administrator** | Full access to everything |
-
-**Note:** “Commission View” in this guide means *can see confidential commission data*. In the app, that includes anyone who is a **Commission admin**, an **Accounting team member**, or has **Commissions** module view/edit.
-
-### Permissions matrix — what each role can do
-
-| Action | Institutions View | Institutions Edit | Commission View | Commission Admin | Super Admin |
-|--------|:-----------------:|:-----------------:|:---------------:|:----------------:|:-----------:|
-| Open Institutions list & detail | Yes | Yes | Yes* | Yes | Yes |
-| Edit institution profile | No | Yes | No** | No** | Yes |
-| Add website sources & sync | No | Yes | No** | No** | Yes |
-| Upload **catalog** documents | No | Yes | No** | No** | Yes |
-| Upload **confidential** documents | No | No | No | Yes | Yes |
-| Course Review — view queue | Yes | Yes | Yes* | Yes | Yes |
-| Course Review — approve/reject/publish | No | Yes | No** | No** | Yes |
-| AI Suggestions — view | Yes | Yes | Yes* | Yes | Yes |
-| AI Suggestions — accept/dismiss | No | Yes | No** | No** | Yes |
-| Promotions & campaigns | View | Edit | View* | View | Yes |
-| Agreements / Commissions / Claims tabs | Locked | Locked | View | Edit | Yes |
-| Commissions overview page `/commissions` | No | No | Yes | Yes | Yes |
-| Delete test rows (dev flag only) | — | — | — | — | Env flag |
-
-\* Commission View users can **read** catalog tables (institutions, staging, etc.) via database rules when they have confidential access.  
-\*\* Unless they **also** have Institutions Edit.
-
-### View-only banner
-
-Users with **Institutions View** but not **Edit** see a yellow **view-only** notice. They can browse Course Review and institution pages but cannot save, sync, upload, or publish.
-
-### Locked commission tabs
-
-On institution detail, **Agreements**, **Commissions**, and **Claims** tabs are **hidden or locked** unless the user is Commission View or above (`commission_admin`, Accounting member, or Commissions module access).
-
----
-
-## 4. Institution lifecycle workflow
-
-End-to-end flow from adding a school to live programs in Course Finder.
-
-```mermaid
-flowchart TB
-  subgraph setup [1. Setup]
-    A[Add Institution]
-    B[Complete profile]
-  end
-  subgraph ingest [2. Ingest programs]
-    C[Add website source OR upload program sheet]
-    D[Sync now / AI extraction]
-  end
-  subgraph review [3. Review]
-    E[Course Review queue]
-    F[Approve rows]
-    G[Publish to Course Finder]
-  end
-  subgraph live [4. Live]
-    H[Course Finder catalog]
-  end
-  A --> B --> C --> D --> E --> F --> G --> H
+```navmap
+Institution → Institutions | /institutions | School list & stats
+Institution → Course Review | /institutions/review | Program approval queue
+Institution → AI Suggestions | /institutions/suggestions | Cross-school AI inbox
+Institution → [school name] | /institutions/:id | Single school workspace
+Course Finder | /course-finder | Published catalog (search programs)
+Commissions | /commissions | Claims & invoices (finance only)
+Guide → Institutions Module | /guides/institutions-module | This guide
 ```
+
+### System map — how screens connect
+
+```flow
+Institutions List
+Institution Detail
+Sources + Documents
+AI Extraction
+Course Review Queue
+Course Finder (live)
+```
+
+> **NOTE:** Course Finder is the **output**. Institutions is the **pipeline** that feeds it.
+
+---
+
+## 3. Two-tier access model (permissions)
+
+Access is split into **catalog** (programs & schools) and **confidential** (money & contracts). Both the **UI and database** enforce this.
+
+```tier
+Catalog / Institutions staff | Confidential / Commission staff
+Institutions View or Edit | Commission Admin, Accounting, or Commissions module
+List schools & Course Review | Agreements, Commissions, Claims tabs
+Upload program sheets & brochures | Upload agreements & commission sheets
+Approve & publish to Course Finder | Invoice templates, renewal docs, claim cycles
+Promotions & marketing campaigns | Commission students & invoicing
+```
+
+### Who gets which tier?
+
+| Role label | How granted | Typical job |
+|------------|-------------|-------------|
+| **Institutions View** | Team & roles → Institutions → **View** | Read-only QA, browse queue |
+| **Institutions Edit** | Team & roles → Institutions → **Edit** | Sources, sync, upload, publish |
+| **Commission View** | Commissions View, Accounting user, or `commission_admin` | See agreements & claims |
+| **Commission Admin** | Commissions Edit or `commission_admin` role | Edit agreements, commissions, claims |
+| **Super Admin** | App role Admin | Everything |
+
+### Permissions matrix (quick reference)
+
+| Action | Inst. View | Inst. Edit | Comm. View | Comm. Admin |
+|--------|:----------:|:----------:|:----------:|:-----------:|
+| Open list & detail | ✓ | ✓ | ✓ | ✓ |
+| Edit profile / sync / upload catalog docs | — | ✓ | — | — |
+| Course Review — approve / publish | — | ✓ | — | — |
+| Upload confidential documents | — | — | — | ✓ |
+| Agreements / Commissions / Claims tabs | 🔒 Locked | 🔒 Locked | ✓ View | ✓ Edit |
+
+> **WARNING:** Yellow **view-only** banner = user has View but not Edit. They can browse but cannot save, sync, upload, or publish.
+
+### Permission decision tree
+
+```decision
+Can you open Institution in the sidebar?
+  → No: Ask admin for Institutions View (§11)
+  → Yes: Do you see a yellow view-only banner?
+    → Yes: You have View only — request Edit to publish
+    → No: Can you see Agreements tab on a school?
+      → No: Expected for catalog staff — request Commission access if needed
+      → Yes: You have confidential tier access
+```
+
+---
+
+## 4. Institution lifecycle (step by step)
+
+### End-to-end flow
+
+```flow
+Add Institution
+Complete Profile
+Add Website Source OR Upload Program Sheet
+Click Sync Now
+Rows Appear in Course Review
+Approve Each Row
+Bulk Publish
+Verify in Course Finder
+```
+
+---
 
 ### Step 1 — Add institution
 
-**Who:** Institutions Edit  
-**Where:** `/institutions` → **Add institution**
+**Who:** Institutions **Edit** · **Where:** `/institutions` → **Add institution**
 
-Enter at minimum:
-
-- **Name** (required)
-- **Country** (recommended)
-- **Website URL** (recommended)
-
-**Example:** *Conestoga College*, Canada, `https://www.conestogac.on.ca`
+| Field | Required? | Example |
+|-------|:---------:|---------|
+| Name | ✓ | Conestoga College |
+| Country | Recommended | Canada |
+| Website | Recommended | https://www.conestogac.on.ca |
 
 ---
 
 ### Step 2 — Add sources
 
-**Who:** Institutions Edit  
-**Where:** Institution detail → **Sources** tab
-
-Two ways to feed programs:
+**Who:** Institutions **Edit** · **Where:** Institution detail → **Sources** tab
 
 | Source type | When to use | Example |
 |-------------|-------------|---------|
-| **Website URL** | School publishes a program listing online | `https://www.conestogac.on.ca/fulltime-programs` |
-| **Document from Documents tab** | You already uploaded a program sheet or brochure | Pick file under “Program sheet (from Documents)” |
+| **Website URL** | School lists programs online | `https://example.edu/programs` |
+| **Document link** | PDF/Excel already uploaded | Pick from Documents tab |
 
-**Add source** → then **Sync now** on the new row (or **Sync all**).
+After adding → click **Sync now** (or **Sync all**).
 
-**What sync does:** Calls the system crawler/extractor. New or updated rows appear in **Course Review** with status `pending_review`. Sync status and errors show on the source row (e.g. failed crawl, Cloudflare block).
+> **TIP:** If sync fails (bot block, bad URL), upload a **Program sheet** PDF instead — often more reliable.
 
 ---
 
-### Step 3 — Sync programs (automatic)
+### Step 3 — Sync & extraction
 
-**Who:** Institutions Edit  
-**Action:** **Sync now** / **Sync all**
+**Who:** Institutions **Edit** · **Action:** **Sync now**
 
-You do not manually create course rows. Sync and document extraction write to **`upi_courses_staging`** (the review queue).
+You do **not** manually create course rows. Sync writes to the review queue automatically.
 
-Monitor:
-
-- Source row: `crawl_status`, pages scanned, confidence
-- Failed sync: error text under the source
-- **Course Review** filter: Status = `pending_review`, Institution = your school
+**Watch for:**
+- Source row status & error text
+- Course Review filter: Status = `pending_review`
 
 ---
 
 ### Step 4 — Review programs
 
-**Who:** Institutions View (browse); Institutions Edit (action)  
-**Where:** `/institutions/review` or institution → **View programs**
+**Who:** View = browse · Edit = action · **Where:** `/institutions/review`
 
-Use filters (saved in the URL — safe to bookmark and use browser Back):
+**Filters** (saved in URL — bookmarkable):
 
-- **Status** — start with `pending_review`
-- **Institution** — one school at a time
-- **Country / Program level** — narrow large queues
-- **Search** — title, IELTS, campus, intake, etc.
-
-Open a row → **pencil** to edit tuition, IELTS, PGWP, campus, notes, custom metadata.
+| Filter | Start with |
+|--------|------------|
+| Status | `pending_review` |
+| Institution | One school at a time |
+| Search | Title, IELTS, campus, intake |
 
 **Review statuses:**
 
-| Status | Meaning |
-|--------|---------|
-| `pending_review` | Newly extracted — needs staff review |
-| `approved` | Ready to publish |
-| `rejected` | Do not publish |
-| `needs_update` | Re-sync or fix data, then approve again |
-| `published` | Live in Course Finder |
-
----
-
-### Step 5 — Approve and publish
-
-**Who:** Institutions Edit  
-
-1. **Approve** — row status → `approved` (single row or bulk).
-2. **Publish** — pushes **approved** (or `needs_update` where allowed) rows to Course Finder via **Bulk Publish** or per-row publish button.
-
-Publish only works on **approved** rows. The publish action calls the server; you may see a summary if some rows fail (permissions, validation, duplicates).
-
----
-
-### Step 6 — Display in Course Finder
-
-**Who:** Anyone with Course Finder access  
-**Where:** `/course-finder`
-
-After publish:
-
-- Staging row status becomes **`published`**
-- A link **View in Course Finder** appears on published rows
-- Programs are searchable in the public catalog
-
-**Example check:** Publish “Business Administration – Diploma” → open Course Finder → search institution name → confirm program appears with correct tuition/intake.
-
----
-
-## 5. Document categories
-
-Documents are uploaded on institution detail → **Documents** tab. **Document type** controls how AI processes the file.
-
-### Public / catalog documents
-
-Safe for **catalog / admissions / documentation staff**. Visible to anyone with Institutions access (not hidden as confidential).
-
-| Document type | Purpose | AI behavior |
-|---------------|---------|-------------|
-| **Program sheet** | Official program list (PDF/Excel) | Extract **every program** → Course Review |
-| **Brochure** | Marketing flyer | Detect **promotions** |
-| **Promotion / Campaign** | Promo materials | Structured promo extraction |
-| **Other** | General file | Generic extraction / suggestions |
-
-**Who can view:** Institutions View and above (catalog tier).  
-**Who can upload/edit:** Institutions Edit.
-
-Documents appear under **Program materials** on the Documents tab.
-
----
-
-### Confidential documents
-
-Restricted to **commission and finance staff**. Hidden from catalog-only users (UI shows a count: “N confidential documents hidden”).
-
-| Document type | Purpose | AI behavior |
-|---------------|---------|-------------|
-| **Agreement** | Partner contract (RAA/MOU) | Analyze terms, dates, renewal |
-| **Commission sheet** | Payout tariff / rate card | Extract commission structure |
-| **Invoice template** | How institution invoices you | Stored for claims/invoicing |
-| **Renewal document** | Contract renewal pack | Renewal tracking |
-
-**Who can view:** Commission View and above.  
-**Who can upload/edit:** Commission Admin and above.
-
-Documents appear under **Confidential** on the Documents tab (Tier B users only).
-
----
-
-### Upload permissions summary
-
-| Document type | Upload | View file list | View in UI section |
-|---------------|:------:|:--------------:|--------------------|
-| Program sheet, Brochure, Promo, Other | Institutions Edit | Institutions View | Program materials |
-| Agreement, Commission sheet, Invoice template, Renewal | Commission Admin | Commission View | Confidential |
-
-Storage bucket: **institution-documents** (private files; preview uses signed links).
-
----
-
-## 6. Course Review workflow (detailed)
-
-```mermaid
-stateDiagram-v2
-  [*] --> pending_review: Sync or document extract
-  pending_review --> approved: Staff approves
-  pending_review --> rejected: Staff rejects
-  pending_review --> needs_update: Needs fix / re-sync
-  approved --> published: Publish action
-  needs_update --> approved: Fixed and approved
-  published --> [*]: Live in Course Finder
-  rejected --> [*]
+```status
+pending_review
+approved
+published
 ```
 
-### Daily workflow (documentation / admissions team)
+```status
+pending_review
+rejected
+```
 
-1. Open **Course Review** → filter `pending_review`.
-2. Sort by institution or country if working in batches.
-3. For each row:
-   - Check **title**, **tuition**, **intakes**, **IELTS**, **PGWP**, **campus**.
-   - Fix obvious AI errors (Edit sheet).
-   - **Approve** or **Reject**; use **needs_update** if waiting on a new sync.
-4. Filter `approved` → **Bulk Publish** (or publish per institution after QA).
-5. Spot-check in **Course Finder**.
+```status
+pending_review
+needs_update
+approved
+published
+```
 
-### Bulk actions
+| Status | Meaning |
+|--------|---------|
+| `pending_review` | Newly extracted — needs review |
+| `approved` | Ready to publish |
+| `rejected` | Do not publish |
+| `needs_update` | Fix or re-sync first |
+| `published` | **Live** in Course Finder |
 
-Select checkboxes → **Bulk Approve**, **Bulk Reject**, or **Bulk Publish** (Edit permission required).
+---
 
-If bulk update affects fewer rows than selected, you may see a warning — often **RLS** blocked some rows; ask an admin to confirm Institutions Edit on your account.
+### Step 5 — Approve & publish
+
+**Who:** Institutions **Edit**
+
+1. **Approve** — single row or bulk checkbox → **Bulk Approve**
+2. **Publish** — only **approved** rows → **Bulk Publish** or per-row publish button
+
+> **WARNING:** Publish calls the server. If some rows fail, read the toast — often a permission or validation issue.
+
+---
+
+### Step 6 — Verify in Course Finder
+
+**Who:** Anyone with Course Finder access · **Where:** `/course-finder`
+
+After publish:
+- Row status → `published`
+- **View in Course Finder** link appears on the row
+- Search by institution name to confirm tuition & intakes
+
+---
+
+## 5. Document types (catalog vs confidential)
+
+### Catalog documents — Program materials
+
+| Type | Purpose | AI does |
+|------|---------|---------|
+| **Program sheet** | Official program list | Extract **all programs** → Course Review |
+| **Brochure** | Marketing flyer | Detect promotions |
+| **Promotion / Campaign** | Promo materials | Structured promo extraction |
+| **Other** | General file | Generic extraction |
+
+**Who uploads:** Institutions **Edit** · **Who sees:** All Institutions users
+
+---
+
+### Confidential documents — Commission staff only
+
+| Type | Purpose |
+|------|---------|
+| **Agreement** | Partner contract (RAA/MOU) |
+| **Commission sheet** | Payout rate card |
+| **Invoice template** | How institution bills you |
+| **Renewal document** | Contract renewal pack |
+
+**Who uploads:** Commission **Admin** · **Who sees:** Commission View and above
+
+Catalog-only users see: *"N confidential documents hidden"* — this is **expected**.
+
+### Document upload cheat sheet
+
+| Document | Upload | View list |
+|----------|:------:|:---------:|
+| Program sheet, Brochure, Promo | Inst. Edit | Inst. View |
+| Agreement, Commission sheet, Invoice | Comm. Admin | Comm. View |
+
+---
+
+## 6. Course Review — daily workflow
+
+### Status flow (visual)
+
+```status
+pending_review
+approved
+published
+```
+
+### Daily checklist (documentation team)
+
+| # | Task |
+|---|------|
+| 1 | Open Course Review → filter `pending_review` |
+| 2 | Check title, tuition, intakes, IELTS, PGWP, campus |
+| 3 | Edit obvious AI errors (pencil icon) |
+| 4 | **Approve** or **Reject** each row |
+| 5 | Filter `approved` → **Bulk Publish** |
+| 6 | Spot-check in Course Finder |
 
 ### Confidence scores
 
-| Score | Guidance |
-|-------|----------|
-| **≥ 80%** | Usually reliable; still spot-check tuition/intake |
+| Score | What to do |
+|-------|------------|
+| **≥ 80%** | Usually reliable — still check tuition & intake |
 | **50–79%** | Review carefully |
-| **< 50%** | Likely incomplete; edit or re-sync source |
+| **< 50%** | Likely incomplete — edit or re-sync source |
+
+### Bulk actions
+
+Select checkboxes → **Bulk Approve** · **Bulk Reject** · **Bulk Publish**
+
+> **NOTE:** If bulk update says *"Updated X of Y"* — some rows were blocked by permissions. Confirm you have Institutions **Edit**.
 
 ---
 
-## 7. AI Suggestions workflow
+## 7. AI Suggestions
 
-Two places suggestions appear:
+Two places:
 
-### A. Global inbox — `/institutions/suggestions`
+| Location | Route / tab | Use |
+|----------|-------------|-----|
+| **Global inbox** | `/institutions/suggestions` | Cross-school pending items |
+| **Per school** | Institution → AI Suggestions tab | Ask AI about one partner |
 
-Cross-institution queue of AI-generated insights (new fields, program hints, commission notes, etc.).
+**Actions (Edit required):** Accept · Dismiss · Defer
 
-| Tab | Use |
-|-----|-----|
-| **Pending** | Needs decision |
-| **Accepted** | Applied / acknowledged |
-| **Dismissed** | Not relevant |
-| **All** | Audit |
-
-**Actions (Edit required):** Accept, Dismiss, Defer (per row or bulk).
-
-### B. Per institution — **AI Suggestions** tab
-
-- **Ask AI** — free-text question about the school (`upi-ask-suggestions`).
-- **Generate suggestions** — AI creates new suggestion records.
-- Same accept/defer/dismiss on each card.
-
-**Example prompt:** *“Which programs should we prioritize publishing for September intake?”*
+**Example prompt:** *"Which programs should we prioritize for September intake?"*
 
 ---
 
-## 8. Commission & claims (Commission staff only)
+## 8. Commission & claims (finance only)
 
-On institution detail (Tier B users):
+Visible only to **Commission View** and above on institution detail:
 
 | Tab | Purpose |
 |-----|---------|
-| **Agreements** | Contract metadata, validity, renewal countdown |
-| **Commissions** | Commission models and rules |
-| **Claims** | Claim cycles, commission students, invoicing, CSV export, carry-forward |
+| **Agreements** | Contract dates, renewal countdown |
+| **Commissions** | Rate models & rules |
+| **Claims** | Claim cycles, students, invoicing, CSV export |
 
-Global **Commissions** page (`/commissions`): overview of claim cycles and invoice counts by status.
-
-Accounting users and `commission_admin` role holders see these areas; pure catalog staff see a **locked** message instead.
+Global overview: `/commissions`
 
 ---
 
-## 9. Screens and modules affected by the permission model
+## 9. Screens vs permissions (reference)
 
-| Screen / module | Permission driver |
-|-----------------|-------------------|
+| Screen | Needs |
+|--------|-------|
 | Sidebar **Institution** section | Institutions **View** |
-| Institutions list — **Add institution** | Institutions **Edit** |
-| Institution profile fields | Edit = editable; View = read-only |
-| Sources — add/sync/delete | Institutions **Edit** |
+| Add institution / save profile | Institutions **Edit** |
+| Sources — sync / delete | Institutions **Edit** |
 | Documents — catalog upload | Institutions **Edit** |
-| Documents — confidential upload | Commission Admin |
-| Documents — confidential list | Commission View |
-| Course Review — filters & table | Institutions **View** |
-| Course Review — approve/publish/edit | Institutions **Edit** |
-| AI Suggestions — actions | Institutions **Edit** |
-| Promotions — run campaign | Institutions **Edit** |
-| Agreements / Commissions / Claims tabs | Commission View |
-| `/commissions` overview | Commission View |
-| Course Finder | Separate catalog (published output) |
-| Dashboard institution stats | Institutions **View** (counts may be 0 if RLS blocks) |
-
-Database policies (for IT/admin): migration `20260604140000_upi_two_tier_rls.sql` — helpers `can_view_upi_catalog`, `can_manage_upi_catalog`, `can_view_upi_confidential`, `can_manage_upi_confidential`.
+| Documents — confidential | Commission **Admin** |
+| Course Review — table | Institutions **View** |
+| Course Review — approve / publish | Institutions **Edit** |
+| Agreements / Commissions / Claims | Commission **View** |
+| Course Finder | Broader app access |
 
 ---
 
-## 10. Future Link — recommended permission assignments by department
+## 10. Recommended access by department
 
-Use as a **starting template**. Adjust per person.
+| Department | Institutions | Commissions | Notes |
+|------------|:------------:|:-----------:|-------|
+| Admissions / Counselors | View | — | Search Course Finder only |
+| Documentation / Program research | **View + Edit** | — | Primary catalog operators |
+| Marketing | View + Edit | — | Brochures, campaigns |
+| Partnerships / BD | View + Edit | View | May need to *see* agreements |
+| Commission / Finance | View | **View + Edit** | `commission_admin` or Accounting |
+| Team leads / Ops | View + Edit | View | Oversight |
+| Administrators | Admin | Admin | Full access |
 
-| Department | Institutions | Commissions | App role / notes |
-|------------|:------------:|:-----------:|------------------|
-| **Admissions / Counselors** | View | — | Search Course Finder; usually no institution edits |
-| **Documentation / Program research** | **View + Edit** | — | Primary catalog operators: sources, review, publish |
-| **Marketing** | View + Edit | — | Brochures, promotions, campaigns; optional Edit if they upload |
-| **Partnerships / BD** | View + Edit | View | Institution setup; may need to *see* agreements |
-| **Commission / Finance** | View (optional Edit) | **View + Edit** | `commission_admin` or Accounting user |
-| **Accounting (AP/AR)** | View | View | Active **accounting_users** record → confidential view |
-| **Team leads / Ops** | View + Edit | View | Oversight without daily claim entry |
-| **System administrators** | Admin bypass | Admin bypass | **Admin** / **Administrator** role |
+### Persona quick picks
 
-### Minimal viable setups
-
-| Persona | Setup |
-|---------|--------|
-| **“I only search programs for clients”** | Institutions **View** (or Course Finder only if separate policy) |
-| **“I maintain the catalog”** | Institutions **View + Edit** |
-| **“I handle partner invoices”** | Commissions **View + Edit** + Accounting or `commission_admin` |
-| **“I do both catalog and commissions”** | Institutions **Edit** + Commissions **Edit** (or `commission_admin`) |
+| I am… | Grant |
+|-------|-------|
+| "I only search programs for clients" | Institutions **View** (or Course Finder) |
+| "I maintain the catalog" | Institutions **View + Edit** |
+| "I handle partner invoices" | Commissions **View + Edit** + Accounting |
+| "I do catalog and commissions" | Institutions **Edit** + Commissions **Edit** |
 
 ---
 
-## 11. Admin setup — new staff members
+## 11. Admin onboarding checklist
 
-### Checklist for each new user
+| Step | Action |
+|:----:|--------|
+| 1 | Create / confirm user login |
+| 2 | **Team & roles → Permissions** — assign modules |
+| 3 | Catalog staff → Institutions **View + Edit** |
+| 4 | Read-only QA → Institutions **View** only |
+| 5 | Finance → Commissions **Edit** or `commission_admin` |
+| 6 | User **logs out and back in** |
+| 7 | Verify checklist below |
 
-1. **Create user** (or confirm they can log in).
-2. Open **Team & roles → Permissions**.
-3. Assign modules:
+### 5-minute verification
 
-   | If they… | Grant |
-   |----------|--------|
-   | Maintain programs & publish | **Institutions** → View + **Edit** |
-   | Read-only QA | **Institutions** → **View** only |
-   | Handle agreements/claims | **Commissions** → View + **Edit** *or* role **`commission_admin`** |
-   | Finance read-only on commissions | Add to **Accounting users** (active) *or* Commissions **View** |
-
-4. Optional app roles (`user_roles`):
-
-   - **`commission_admin`** — full commission UI + RLS confidential tier (includes accounting admin check in code).
-
-5. Ask user to **log out and back in** (permission cache refreshes on session).
-
-6. **Verify** (5 minutes):
-
-   - [ ] Can open `/institutions`
-   - [ ] Can open `/institutions/review` and see rows (not empty error)
-   - [ ] If Edit: can save institution name change
-   - [ ] If Edit: can Sync or upload program sheet
-   - [ ] If commission: Agreements tab visible on a test institution
-   - [ ] If catalog only: Agreements tab shows locked message
-
-### Where permissions live (admin reference)
-
-| Store | Fields |
-|-------|--------|
-| `user_module_permissions` | `user_id`, `module` (`institutions`, `commissions`), `can_view`, `can_edit`, `can_delete` |
-| `user_roles` | e.g. `commission_admin`, `admin` |
-| `accounting_users` | Active accounting membership → confidential **view** in UI |
+- [ ] Opens `/institutions`
+- [ ] Opens `/institutions/review` — sees rows or empty (not permission error)
+- [ ] If Edit: can save a name change
+- [ ] If Edit: can Sync or upload program sheet
+- [ ] If commission: Agreements tab visible
+- [ ] If catalog only: Agreements shows **locked** message
 
 ---
 
-## 12. Common troubleshooting
+## 12. Troubleshooting
 
-| Symptom | Likely cause | What to do |
-|---------|--------------|------------|
-| **“Access restricted”** on Institutions | No Institutions View | Admin: grant Institutions View in Permissions |
-| Yellow **view-only** banner | View without Edit | Expected for read-only; request Edit if they should publish |
-| **Course Review empty**, no error | No extracted programs yet | Add source → Sync; or upload program sheet |
-| **Course Review empty** + red error | RLS / permission denied | Grant Institutions View; check user logged in |
-| **Could not load courses. Check permissions** | Same as above | Confirm module permission + migration applied |
-| **Agreements tab locked** | Catalog-only user | Expected; grant Commission access if needed |
-| **“N confidential documents hidden”** | Catalog user | Expected; commission staff uploads those files |
-| **Upload fails** silently / toast error | Wrong tier for doc type | Catalog user cannot upload Agreement/Commission sheet |
-| **Sync failed** on source | Site blocks bots, bad URL | Fix URL; read `error_summary`; try document upload instead |
-| **Publish failed** | Row not `approved`, or server validation | Approve first; read toast detail |
-| **Published but not in Course Finder** | Cache or search mismatch | Search by institution; check `published_course_id` link from review row |
-| **Preview broken** (document iframe) | Bad filename in storage | Use **Fix preview** on document row (Edit required) |
-| **Spinner forever** on institution URL | Invalid institution ID | Use list page; bad links show “Institution not found” |
-| Delete buttons on agreements/promos | Dev env flag on | Production: `VITE_ALLOW_TEST_DELETIONS=false` (default) |
+### Search by symptom
 
-### Permission vs data — quick test
+| Symptom | Search | Likely cause | Fix |
+|---------|--------|--------------|-----|
+| Access restricted | `permissions` | No Institutions View | Grant View in Permissions |
+| Yellow view-only banner | `view-only` | View without Edit | Request Edit if they should publish |
+| Course Review empty, no error | `empty review` `sync` | No programs extracted yet | Add source → Sync |
+| Red error loading courses | `permissions` `RLS` | Permission denied | Grant Institutions View |
+| Agreements tab locked | `locked` `commission` | Catalog-only user | Expected — or grant Commission access |
+| Confidential docs hidden | `confidential` | Catalog user | Expected for catalog staff |
+| Upload fails | `confidential` | Wrong tier for doc type | Commission Admin for agreements |
+| Sync failed | `sync` `troubleshoot` | Bad URL / bot block | Fix URL or upload PDF |
+| Publish failed | `publish` | Row not approved | Approve first; read toast |
+| Not in Course Finder after publish | `course finder` | Search mismatch | Search by institution name |
+| Infinite loading on school page | `troubleshoot` | Invalid URL / ID | Use list page link |
 
-Ask the user to open browser **Network** tab while loading Course Review:
+### Permission vs data — network test
 
-- **200 with `[]`** → permission OK, no staged courses.
-- **403 / RLS error in response** → fix Institutions (or Commissions) permissions.
-
----
-
-## 13. Rollout checklist (organization)
-
-Use when turning on the module for a team or go-live.
-
-### Phase A — Admin & access
-
-- [ ] RLS migration `20260604140000_upi_two_tier_rls.sql` applied to production
-- [ ] Permission matrix agreed (section 10)
-- [ ] Pilot users created: 1× catalog editor, 1× commission admin, 1× view-only
-- [ ] `.env` production: `VITE_USE_MOCK_DATA=false`, `VITE_ALLOW_TEST_DELETIONS=false`
-
-### Phase B — Pilot institution
-
-- [ ] Add one real partner institution (profile complete)
-- [ ] Add one website source OR upload one program sheet
-- [ ] Sync / extract → rows in Course Review
-- [ ] Approve 2–3 programs → Publish
-- [ ] Verify in Course Finder
-- [ ] (Commission) Upload test agreement + commission sheet on same institution — confirm catalog user cannot see them
-
-### Phase C — Team enablement
-
-- [ ] Share this guide with documentation & finance leads
-- [ ] Walkthrough: lifecycle diagram (section 4)
-- [ ] Define owner: who approves publish vs who uploads sources
-- [ ] Define SLA: e.g. review queue cleared weekly
-
-### Phase D — Scale
-
-- [ ] Bulk onboarding of institutions (import or manual)
-- [ ] Monitor Dashboard stats: pending review count
-- [ ] Review AI Suggestions inbox weekly
-- [ ] Plan Phase 2: Client → Commission bridge (not live yet)
+```decision
+Open Course Review with Network tab (F12)
+  → Response 200 with empty array [] ?
+    → Permissions OK — add source and sync
+  → Response 403 or RLS error ?
+    → Fix Institutions or Commissions permissions (§11)
+```
 
 ---
 
-## 14. Examples — three common scenarios
+## 13. Rollout checklist (go-live)
 
-### Example A — New college from website only
+| Phase | Tasks |
+|-------|-------|
+| **A — Access** | RLS migration applied · permissions matrix agreed · pilot users created |
+| **B — Pilot** | One real school · one source or PDF · sync → review → publish → verify Course Finder |
+| **C — Team** | Share this guide · walkthrough lifecycle (§4) · define publish owner & SLA |
+| **D — Scale** | Bulk onboarding · monitor pending review count · weekly AI Suggestions review |
 
-1. Add **Northern Polytechnic**, Canada.
-2. Sources → **Program listing page (URL)** → `https://example.edu/programs`.
-3. **Sync now** → wait for `completed` (or check error).
-4. Course Review → filter institution → approve 10 programs → **Bulk Publish**.
-5. Counselor searches Course Finder → confirms programs show.
+---
 
-### Example B — PDF program list only (no good website)
+## 14. Example scenarios
 
-1. Documents → **Program sheet** → upload `2026-Program-Guide.pdf`.
-2. AI extracts → Course Review populates.
-3. Edit rows with wrong intakes → Approve → Publish.
+### A — New college from website
 
-### Example C — Finance onboarding a partner
+```flow
+Add Northern Polytechnic
+Add program listing URL
+Sync Now
+Course Review → Approve 10 rows
+Bulk Publish
+Verify in Course Finder
+```
 
-1. Catalog team creates institution + publishes programs (Examples A/B).
-2. Commission admin uploads **Agreement** + **Commission sheet** (Confidential section).
-3. Commissions tab → verify extracted rates.
-4. Claims tab → create/open claim cycle when students enroll.
-5. Catalog counselor **cannot** see agreement PDF — by design.
+### B — PDF only (no website)
+
+```flow
+Upload Program Sheet PDF
+Wait for extraction
+Edit wrong intakes
+Approve → Publish
+```
+
+### C — Finance onboarding
+
+```flow
+Catalog team publishes programs
+Commission admin uploads Agreement + Commission sheet
+Verify rates in Commissions tab
+Open claim cycle when students enroll
+Catalog counselor cannot see agreement PDF ✓
+```
 
 ---
 
@@ -540,26 +476,24 @@ Use when turning on the module for a team or go-live.
 
 | Term | Meaning |
 |------|---------|
-| **UPI / upi_** | Internal prefix for University/Partner Institution tables |
-| **Staging** | Pre-publish course rows (`upi_courses_staging`) |
-| **Publish** | Copy approved staging row to live **Course Finder** (`courses` table) |
-| **Source** | Website URL or linked document used to extract programs |
-| **Catalog tier** | Institutions module access — program & school operations |
-| **Confidential tier** | Commission/accounting access — contracts & money |
-| **Course Finder** | Published program catalog at `/course-finder` |
+| **Staging** | Pre-publish rows in Course Review queue |
+| **Publish** | Push approved row to live Course Finder |
+| **Source** | Website URL or document used for extraction |
+| **Catalog tier** | Institutions access — programs & schools |
+| **Confidential tier** | Commission access — contracts & money |
+| **Course Finder** | Published catalog at `/course-finder` |
 
 ---
 
-## 16. Support and escalation
+## 16. Support & escalation
 
-| Issue type | Escalate to |
-|------------|-------------|
+| Issue | Escalate to |
+|-------|-------------|
 | Permission / access | System admin (Team & roles) |
-| Sync repeatedly fails on a domain | Program research lead + IT (may need manual PDF upload) |
-| Publish errors for valid rows | Admin / dev (edge function logs: `upi-publish-courses`) |
-| Commission calculation disputes | Finance + commission admin |
-| Wrong data live in Course Finder | Institutions Edit user: set staging to `needs_update`, fix, re-publish |
+| Sync fails repeatedly | Program research + IT (try PDF upload) |
+| Publish errors | Admin / dev (`upi-publish-courses` logs) |
+| Wrong data live in Course Finder | Inst. Edit: set `needs_update`, fix, re-publish |
 
 ---
 
-*Last updated: aligns with Institutions module review Phases 1–4 (RLS two-tier model, Course Finder links, role UI gating, operational cleanup).*
+*Last updated: Institutions module Phases 1–4 — two-tier RLS, Course Finder links, role UI gating, Staff Guides module.*
