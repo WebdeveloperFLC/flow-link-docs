@@ -42,8 +42,9 @@ Using **TeleCMI** click-to-call and the CRM **browser phone** / telecaller queue
 
 ---
 
-## 5. Related documentation
+## 5. Escalation
 
-- [OPERATIONS_RUNBOOK.md](../OPERATIONS_RUNBOOK.md) § TeleCMI
-- [MONTHLY_AUDIT.md](../MONTHLY_AUDIT.md) § 6.3, § 12.6
-- System map: `docs/system-map/03-backend-map.md` § Telephony
+| Issue | Contact |
+|---|---|
+| Click-to-call / webhook errors | TECH (operations team) |
+| Agent mapping / numbers | Telephony admin (TEL role) |

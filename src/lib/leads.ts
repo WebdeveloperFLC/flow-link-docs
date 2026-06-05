@@ -253,12 +253,26 @@ export function suggestDepartmentFromServices(
 let _serviceMapCache: Map<string, string> | null = null;
 export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
   if (_serviceMapCache) return _serviceMapCache;
+  const m = new Map<string, string>();
+
+  // Primary source: service_library IDs used by the lead/client service picker.
+  const catalogue = await fetchAllServiceCatalogue();
+  for (const s of catalogue) {
+    const code = s.service_code || s.id;
+    m.set(code, s.service_name);
+    m.set(s.id, s.service_name);
+  }
+
+  // Legacy fallback for older records that still reference service_catalogue codes.
   const { data, error } = await supabase
     .from("service_catalogue")
     .select("service_code, service_name");
-  if (error) throw error;
-  const m = new Map<string, string>();
-  (data ?? []).forEach((r: { service_code: string; service_name: string }) => m.set(r.service_code, r.service_name));
+  if (!error) {
+    (data ?? []).forEach((r: { service_code: string; service_name: string }) => {
+      if (r.service_code && !m.has(r.service_code)) m.set(r.service_code, r.service_name);
+    });
+  }
+
   _serviceMapCache = m;
   return m;
 }

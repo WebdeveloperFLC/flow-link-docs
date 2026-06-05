@@ -90,7 +90,7 @@ Reference: [EXIT_STRATEGY.md § User-Owned Secrets](./EXIT_STRATEGY.md#user-owne
 |---|---|---|---|
 | 4.1 | `WHATSAPP_*` secrets present if `VITE_WHATSAPP_PROVIDER=meta` | ☐ | |
 | 4.2 | `TELECMI_*` secrets present if telephony in use | ☐ | |
-| 4.3 | `ODOO_*` secrets valid — test connection or check `odoo-cron` logs | ☐ | |
+| 4.3 | ~~`ODOO_*` secrets~~ — N/A (Odoo inactive; deferred cleanup) | ☐ | Skip unless re-enabling |
 | 4.4 | `LOVABLE_API_KEY` present — AI + transactional email functional | ☐ | |
 | 4.5 | `OPENAI_API_KEY` / `GEMINI_API_KEY` valid if those features used | ☐ | |
 | 4.6 | SMTP credentials in CRM Settings still valid (test notification email) | ☐ | `app_email_logs` |
@@ -100,7 +100,7 @@ Reference: [EXIT_STRATEGY.md § User-Owned Secrets](./EXIT_STRATEGY.md#user-owne
 
 ## 5. Email pipelines
 
-Reference: [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) § Email, [notifications-email-smtp flow](./system-map/flows/notifications-email-smtp.md)
+Reference: [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) § Email, [notifications-email-smtp flow](../system-map/flows/notifications-email-smtp.md)
 
 | # | Check | Pass | Notes |
 |---|---|---|---|
@@ -118,9 +118,9 @@ Reference: [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) § Email, [notificat
 | # | Check | Pass | Notes |
 |---|---|---|---|
 | 6.1 | **WhatsApp** — Simulate inbound in CRM succeeds | ☐ | |
-| 6.2 | **WhatsApp (Meta)** — if live: webhook URL still `…/whatsapp-webhook` on `auofttkyosgjhxcbhscw` | ☐ | [phase-1 setup](./guides/whatsapp-phase1-meta-setup.md) |
+| 6.2 | **WhatsApp (Meta)** — if live: webhook URL still `…/whatsapp-webhook` on `auofttkyosgjhxcbhscw` | ☐ | [phase-1 setup](../guides/whatsapp-phase1-meta-setup.md) |
 | 6.3 | **TeleCMI** — click-to-call smoke test | ☐ | Skip if N/A |
-| 6.4 | **Odoo** — `odoo-cron-every-5min` running; recent sync in logs | ☐ | |
+| 6.4 | ~~**Odoo**~~ — N/A (inactive; `odoo-cron` may still fire but sync is skipped) | ☐ | Deferred cleanup |
 | 6.5 | **pg_cron** — all expected jobs present | ☐ | `odoo-cron`, `process-email-queue`, `process-notification-email-queue`, `offers-lifecycle-tick`, `offers-expiry-tick` |
 
 ---
@@ -159,7 +159,7 @@ Reference: [OWNERSHIP_MATRIX.md](./OWNERSHIP_MATRIX.md)
 | 9.1 | [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) still accurate after recent changes | ☐ | |
 | 9.2 | [EXIT_STRATEGY.md](./EXIT_STRATEGY.md) function/migration counts still match repo | ☐ | Currently: 81 functions, 182 migrations |
 | 9.3 | [ACCESS_REGISTER.md](./ACCESS_REGISTER.md) review log updated if access changed | ☐ | Quarterly minimum |
-| 9.4 | System map updated if architecture changed | ☐ | [system-map/00-README.md](./system-map/00-README.md) |
+| 9.4 | System map updated if architecture changed | ☐ | [system-map/00-README.md](../system-map/00-README.md) |
 
 ---
 
@@ -220,9 +220,9 @@ Track trends month-over-month. Record counts in the **Growth log** below; invest
 | 12.6 | TeleCMI call volume reviewed | ☐ | `call_sessions` count (30d); TeleCMI invoice minutes |
 | 12.7 | AI usage growth trend reviewed | ☐ | Edge function invocations (`ai-*`, `dsh-ai-*`, `upi-*`); Lovable AI credits (§ 11) |
 | 12.8 | Performance bottlenecks identified | ☐ | Slow pages, timeout errors in function logs, queue backlog |
-| 12.9 | Leads created (30d) reviewed | ☐ | `leads` table; see [leads-and-conversion flow](./system-map/flows/leads-and-conversion.md) |
+| 12.9 | Leads created (30d) reviewed | ☐ | `leads` table; see [leads-and-conversion flow](../system-map/flows/leads-and-conversion.md) |
 | 12.10 | Applications submitted (30d) reviewed | ☐ | `questionnaire_instances` where `status = 'submitted'` and `submitted_at` in last 30d (visa/application forms) |
-| 12.11 | Revenue collected (30d) reviewed | ☐ | `client_invoice_payments` where `archived_at IS NULL`, `is_refund = false`, `payment_status = 'verified'`, `paid_at` in last 30d — see [invoices-payments-receipts](./system-map/flows/invoices-payments-receipts.md) |
+| 12.11 | Revenue collected (30d) reviewed | ☐ | `client_invoice_payments` where `archived_at IS NULL`, `is_refund = false`, `payment_status = 'verified'`, `paid_at` in last 30d — see [invoices-payments-receipts](../system-map/flows/invoices-payments-receipts.md) |
 | 12.12 | Visa approvals (30d) reviewed | ☐ | `client_timeline` where `event_type = 'status_change'`, `metadata->>'to'` in approval slugs, `created_at` in last 30d — confirm slug in Settings → Masters → Client Statuses (`visa_approved`, `approved`) |
 
 **Growth log (record each audit):**

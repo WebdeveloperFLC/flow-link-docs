@@ -6,7 +6,9 @@
 | **Status** | Active |
 | **Approved** | 2026-06-04 |
 
-Master index for **infrastructure governance** documentation. These documents are separate from the technical [system-map/00-README.md](./system-map/00-README.md) (architecture and safety rules for developers).
+Master index for **infrastructure governance** documentation. These documents are separate from the technical [system-map/00-README.md](../system-map/00-README.md) (architecture and safety rules for developers) and from staff-facing [guides](../guides/README.md) in the CRM **Guides** module.
+
+**Repository only:** Governance docs live in `docs/governance/` and are maintained in git for OPS and TECH. They are **not** exposed in the CRM Guides UI (`/guides`).
 
 **Organization:** Future Link Consultants  
 **Maintainers:** OPS (operations lead), TECH (technical admin)
