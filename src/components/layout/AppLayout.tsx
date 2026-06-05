@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useMemo, useState } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
   Tag,
   ClipboardCheck,
   BookOpen,
+  Library,
   Layers,
   ArrowDownCircle,
   ArrowUpCircle,
@@ -72,6 +73,7 @@ import { useTheme } from "@/components/theme/ThemeProvider";
 import type { NavSectionKey } from "@/lib/themeStore";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AiHelpDrawer } from "@/ai-help/components/AiHelpDrawer";
+import { useVisibleGuides } from "@/guides/hooks/useVisibleGuides";
 
 type NavItem = {
   to: string;
@@ -220,6 +222,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const { canView: canViewInstitutions } = useModulePermission("institutions");
   const { canView: canViewCommissions } = useModulePermission("commissions");
   const { canView: canViewDsh } = useModulePermission("digital_success_hub");
+  const { guides: visibleGuides } = useVisibleGuides();
   const { theme } = useTheme();
   const [hiddenOpen, setHiddenOpen] = useState(false);
   const location = useLocation();
@@ -227,6 +230,18 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const iconsOnly = sidebarMode === "icons-only";
   const isHidden = sidebarMode === "hidden";
   const sidebarBg = theme.sidebarStyle === "gradient" ? theme.sidebarGradient : undefined;
+
+  const guideNav = useMemo<NavItem[]>(
+    () => [
+      { to: "/guides", icon: Library, label: "All Staff Guides", end: true },
+      ...visibleGuides.map((g) => ({
+        to: `/guides/${g.slug}`,
+        icon: BookOpen,
+        label: g.navLabel,
+      })),
+    ],
+    [visibleGuides],
+  );
 
   // which collapsible sections are open (multiple allowed). null = not yet initialised.
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -378,6 +393,8 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
             {(isAdmin || isCommissionAdmin || canViewCommissions) &&
               renderSection("commissions", "Commissions", commissionsNav)}
+
+            {renderSection("guide", "Guide", guideNav)}
 
             {!accountingAccessLoading &&
               hasAccountingAccess &&
