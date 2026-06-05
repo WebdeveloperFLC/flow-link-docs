@@ -35,6 +35,7 @@ export interface WhatsAppMessage {
   provider_message_id: string | null;
   message_type: WhatsAppMessageType;
   media_storage_path: string | null;
+  media_provider_id: string | null;
   media_mime: string | null;
   created_at: string;
 }

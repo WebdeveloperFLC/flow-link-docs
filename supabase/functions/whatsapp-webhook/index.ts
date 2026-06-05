@@ -3,10 +3,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
+import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
 import {
-  fetchMetaMedia,
   isMetaWebhookPayload,
-  mediaStoragePath,
   metaSendEnabled,
   parseMetaInbound,
   sendMetaText,
@@ -256,17 +255,17 @@ Deno.serve(async (req) => {
 
   let mediaStoragePathValue: string | null = null;
   if (fromMeta && mediaId && messageType !== "text") {
-    const downloaded = await fetchMetaMedia(mediaId);
-    if (downloaded) {
-      const path = mediaStoragePath(conv.id, providerMessageId, downloaded.mime);
-      const { error: upErr } = await admin.storage
-        .from("whatsapp-media")
-        .upload(path, downloaded.bytes, { contentType: downloaded.mime, upsert: true });
-      if (upErr) console.error("[whatsapp-webhook] media upload:", upErr.message);
-      else {
-        mediaStoragePathValue = path;
-        mediaMime = downloaded.mime;
-      }
+    const stored = await ensureWhatsAppMediaStored(admin, {
+      conversationId: conv.id,
+      providerMessageId,
+      mediaProviderId: mediaId,
+      mediaMime,
+      existingPath: null,
+    });
+    if (stored.error) console.warn("[whatsapp-webhook] media store:", stored.error);
+    else if (stored.path) {
+      mediaStoragePathValue = stored.path;
+      mediaMime = stored.mime;
     }
   }
 
@@ -285,6 +284,7 @@ Deno.serve(async (req) => {
     provider_message_id: providerMessageId,
     message_type: messageType,
     media_storage_path: mediaStoragePathValue,
+    media_provider_id: mediaId,
     media_mime: mediaMime,
     media_provider_id: mediaId,
   });

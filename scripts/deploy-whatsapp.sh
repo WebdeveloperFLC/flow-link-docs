@@ -24,5 +24,8 @@ $CLI functions deploy whatsapp-webhook --project-ref "$PROJECT_REF"
 echo "→ Deploying whatsapp-send..."
 $CLI functions deploy whatsapp-send --project-ref "$PROJECT_REF"
 
+echo "→ Deploying whatsapp-media-url..."
+$CLI functions deploy whatsapp-media-url --project-ref "$PROJECT_REF"
+
 echo ""
-echo "✓ Deployed. Test CRM → WhatsApp → Simulate inbound."
+echo "✓ Deployed. Test CRM → WhatsApp → send a photo from sandbox phone."

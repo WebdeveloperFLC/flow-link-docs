@@ -21,12 +21,16 @@ export async function listMessages(conversationId: string): Promise<WhatsAppMess
   return (data ?? []) as WhatsAppMessage[];
 }
 
-export async function getWhatsAppMediaSignedUrl(storagePath: string): Promise<string | null> {
-  const { data, error } = await supabase.storage
-    .from("whatsapp-media")
-    .createSignedUrl(storagePath, 3600);
-  if (error) return null;
-  return data?.signedUrl ?? null;
+export async function resolveWhatsAppMediaUrl(messageId: string): Promise<{
+  url: string | null;
+  error?: string;
+}> {
+  const { data, error } = await supabase.functions.invoke("whatsapp-media-url", {
+    body: { message_id: messageId },
+  });
+  if (error) return { url: null, error: error.message };
+  if (data?.error) return { url: null, error: String(data.error) };
+  return { url: data?.url ?? null };
 }
 
 export async function markConversationRead(conversationId: string): Promise<void> {
