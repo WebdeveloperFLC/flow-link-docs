@@ -14961,6 +14961,9 @@ export type Database = {
           created_at: string
           direction: string
           id: string
+          media_mime: string | null
+          media_storage_path: string | null
+          message_type: string
           provider_message_id: string | null
           sent_by: string
           sent_by_user_id: string | null
@@ -14971,6 +14974,9 @@ export type Database = {
           created_at?: string
           direction: string
           id?: string
+          media_mime?: string | null
+          media_storage_path?: string | null
+          message_type?: string
           provider_message_id?: string | null
           sent_by?: string
           sent_by_user_id?: string | null
@@ -14981,6 +14987,9 @@ export type Database = {
           created_at?: string
           direction?: string
           id?: string
+          media_mime?: string | null
+          media_storage_path?: string | null
+          message_type?: string
           provider_message_id?: string | null
           sent_by?: string
           sent_by_user_id?: string | null
