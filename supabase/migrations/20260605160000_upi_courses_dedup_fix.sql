@@ -1,4 +1,5 @@
 -- Fix course staging duplicates: stable dedup key (no source_url) and cleanup existing dupes.
+-- Idempotent: safe to re-run if a prior attempt failed on the UPDATE step.
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
@@ -26,6 +27,19 @@ BEGIN
   s := lower(regexp_replace(trim(s), '\s{2,}', ' ', 'g'));
   RETURN s;
 END;
+$$;
+
+-- Resolve program level the same way everywhere (metadata empty string must not block FK name).
+CREATE OR REPLACE FUNCTION public.upi_course_dedup_level(_metadata jsonb, _program_level_id uuid)
+RETURNS text
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT coalesce(
+    nullif(trim(_metadata->>'program_level'), ''),
+    (SELECT name FROM public.upi_program_levels WHERE id = _program_level_id),
+    ''
+  );
 $$;
 
 CREATE OR REPLACE FUNCTION public.upi_course_dedup_key(
@@ -75,22 +89,44 @@ AS $$
   );
 $$;
 
+CREATE OR REPLACE FUNCTION public.upi_staging_row_dedup_hash(
+  _institution_id uuid,
+  _course_title text,
+  _program_level_id uuid,
+  _metadata jsonb,
+  _campus_name text
+)
+RETURNS text
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT public.upi_course_dedup_hash(
+    _institution_id,
+    _course_title,
+    _program_level_id,
+    public.upi_course_dedup_level(_metadata, _program_level_id),
+    _campus_name
+  );
+$$;
+
+-- Clear old hashes so survivors can be re-keyed without fighting the unique index mid-update.
+UPDATE public.upi_courses_staging SET dedup_hash = NULL;
+
 -- Drop duplicate staging rows (keep best status / highest confidence / oldest).
 WITH computed AS (
   SELECT
     s.id,
-    public.upi_course_dedup_hash(
+    public.upi_staging_row_dedup_hash(
       s.institution_id,
       s.course_title,
       s.program_level_id,
-      coalesce(s.metadata->>'program_level', lvl.name, ''),
+      s.metadata,
       s.campus_name
     ) AS new_hash,
     s.review_status,
     s.confidence_score,
     s.extracted_at
   FROM public.upi_courses_staging s
-  LEFT JOIN public.upi_program_levels lvl ON lvl.id = s.program_level_id
 ),
 ranked AS (
   SELECT
@@ -116,16 +152,12 @@ USING ranked r
 WHERE s.id = r.id
   AND r.rn > 1;
 
--- Backfill dedup_hash on survivors using the stable formula.
+-- Backfill dedup_hash on survivors (one row per hash guaranteed).
 UPDATE public.upi_courses_staging s
-SET dedup_hash = public.upi_course_dedup_hash(
+SET dedup_hash = public.upi_staging_row_dedup_hash(
   s.institution_id,
   s.course_title,
   s.program_level_id,
-  coalesce(
-    s.metadata->>'program_level',
-    (SELECT name FROM public.upi_program_levels WHERE id = s.program_level_id),
-    ''
-  ),
+  s.metadata,
   s.campus_name
 );

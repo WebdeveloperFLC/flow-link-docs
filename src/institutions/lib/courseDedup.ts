@@ -15,6 +15,15 @@ export function canonicalCourseTitle(title: string, level?: string): string {
   return s;
 }
 
+export function resolveCourseDedupLevel(
+  metadata: Record<string, unknown> | null | undefined,
+  programLevelName?: string | null,
+): string {
+  const fromMeta = String(metadata?.program_level ?? "").trim();
+  if (fromMeta) return fromMeta;
+  return String(programLevelName ?? "").trim();
+}
+
 export function buildCourseDedupKey(input: {
   institution_id?: string | null;
   course_title?: string | null;
@@ -22,8 +31,9 @@ export function buildCourseDedupKey(input: {
   program_level?: string | null;
   campus_name?: string | null;
 }): string {
-  const levelText = String(input.program_level ?? "").toLowerCase().trim();
-  const titleKey = canonicalCourseTitle(String(input.course_title ?? ""), levelText);
+  const levelRaw = String(input.program_level ?? "");
+  const levelText = levelRaw.toLowerCase().trim();
+  const titleKey = canonicalCourseTitle(String(input.course_title ?? ""), levelRaw);
   const campusKey = String(input.campus_name ?? "").toLowerCase().trim();
   return `${input.institution_id ?? ""}||${titleKey}||${input.program_level_id ?? ""}||${levelText}||${campusKey}`;
 }

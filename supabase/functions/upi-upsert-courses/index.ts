@@ -37,17 +37,27 @@ function normalizeLevelName(raw: string): string | null {
 }
 
 function buildLevelResolver(levels: Array<{ id: string; name: string }>) {
+  const byId = new Map(levels.map((l) => [l.id, l.name]));
   const byName = new Map(levels.map((l) => [l.name.toLowerCase(), l.id]));
-  return (raw: unknown): string | null => {
+  const resolveId = (raw: unknown): string | null => {
     const text = String(raw ?? "").trim();
     if (!text) return null;
-    // Direct case-insensitive match against canonical names first.
     const direct = byName.get(text.toLowerCase());
     if (direct) return direct;
     const canonical = normalizeLevelName(text);
     if (!canonical) return null;
     return byName.get(canonical.toLowerCase()) ?? null;
   };
+  const resolveText = (
+    metadata: Record<string, unknown>,
+    programLevelId: unknown,
+  ): string => {
+    const fromMeta = String((metadata as any).program_level ?? "").trim();
+    if (fromMeta) return fromMeta;
+    const fromFk = byId.get(String(programLevelId ?? "")) ?? "";
+    return fromFk.trim();
+  };
+  return { resolveId, resolveText };
 }
 
 async function sha256Hex(s: string): Promise<string> {
@@ -83,7 +93,7 @@ Deno.serve(async (req) => {
 
     const { data: levelRows } = await supabase
       .from("upi_program_levels").select("id,name");
-    const resolveLevelId = buildLevelResolver((levelRows ?? []) as any);
+    const { resolveId, resolveText } = buildLevelResolver((levelRows ?? []) as any);
 
     let upserted = 0, rejected = 0;
     for (const raw of courses) {
@@ -98,16 +108,14 @@ Deno.serve(async (req) => {
         // Course Review level filter can find these rows.
         if (!known.program_level_id) {
           const fromMeta = (metadata as any).program_level;
-          const lvlId = resolveLevelId(fromMeta);
+          const lvlId = resolveId(fromMeta);
           if (lvlId) known.program_level_id = lvlId;
         }
-        // Dedup by institution + canonical title + level + campus.
-        // Do NOT include source_url — the same program may arrive from different URLs or re-syncs.
-        const levelText = String((metadata as any).program_level ?? known.program_level ?? "")
-          .toLowerCase()
-          .trim();
-        const titleKey = canonicalTitle(String(known.course_title), levelText);
+        const levelRaw = resolveText(metadata, known.program_level_id);
+        const levelText = levelRaw.toLowerCase().trim();
+        const titleKey = canonicalTitle(String(known.course_title), levelRaw);
         const campusKey = String(known.campus_name ?? "").toLowerCase().trim();
+        // Dedup by institution + canonical title + level + campus (not source_url).
         const dedup = await sha256Hex(
           `${known.institution_id ?? ""}||${titleKey}||${known.program_level_id ?? ""}||${levelText}||${campusKey}`,
         );

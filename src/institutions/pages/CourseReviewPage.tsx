@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import type { UpiCourseStaging } from "../types/upi";
-import { buildCourseDedupKey, computeCourseDedupHash } from "../lib/courseDedup";
+import { buildCourseDedupKey, computeCourseDedupHash, resolveCourseDedupLevel } from "../lib/courseDedup";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
@@ -577,8 +577,7 @@ function EditSheet({
       }
     }
     const levelName = levels.find((l) => l.id === draft.program_level_id)?.name ?? null;
-    const programLevel =
-      typeof metadata.program_level === "string" ? metadata.program_level : (levelName ?? "");
+    const programLevel = resolveCourseDedupLevel(metadata, levelName);
     const dedup_hash = await computeCourseDedupHash(
       buildCourseDedupKey({
         institution_id: draft.institution_id,
