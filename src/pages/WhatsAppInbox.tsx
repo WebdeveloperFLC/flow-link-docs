@@ -43,11 +43,14 @@ function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    resolveWhatsAppMediaUrl(message.id)
+    resolveWhatsAppMediaUrl(message.id, message.media_storage_path, message.media_provider_id)
       .then((res) => {
         if (cancelled) return;
         setUrl(res.url);
         if (!res.url && res.error) setError(res.error);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String(e?.message || e));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -368,7 +371,7 @@ const WhatsAppInbox = () => {
                           : "bg-primary text-primary-foreground ml-auto",
                     )}
                   >
-                    {m.media_storage_path || (m.message_type && m.message_type !== "text") ? (
+                    {m.media_storage_path || m.media_provider_id ? (
                       <MessageMediaPreview message={m} />
                     ) : (
                       <div className="whitespace-pre-wrap">{m.body}</div>
