@@ -8,24 +8,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (req.method !== "POST") return json({ error: "method not allowed" }, 405);
 
   const authHeader = req.headers.get("authorization") || "";
   const jwt = authHeader.replace(/^Bearer\s+/i, "").trim();
-  if (!jwt) {
-    return new Response(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (!jwt) return json({ error: "unauthorized" }, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -36,31 +32,18 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
   const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
-  if (userErr || !userData.user) {
-    return new Response(JSON.stringify({ error: "invalid session" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (userErr || !userData.user) return json({ error: "invalid session" }, 401);
   const uid = userData.user.id;
 
   let body: { message_id?: string };
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: "invalid json" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: "invalid json" }, 400);
   }
 
   const messageId = body.message_id;
-  if (!messageId) {
-    return new Response(JSON.stringify({ error: "message_id required" }), {
-      status: 400,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (!messageId) return json({ error: "message_id required" }, 400);
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
@@ -70,23 +53,13 @@ Deno.serve(async (req) => {
     .eq("id", messageId)
     .single();
 
-  if (msgErr || !msg) {
-    return new Response(JSON.stringify({ error: "message not found" }), {
-      status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (msgErr || !msg) return json({ error: "message not found" }, 404);
 
   const { data: canView } = await admin.rpc("whatsapp_can_view_conversation", {
     _uid: uid,
     _conv_id: msg.conversation_id,
   });
-  if (!canView) {
-    return new Response(JSON.stringify({ error: "forbidden" }), {
-      status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (!canView) return json({ error: "forbidden" }, 403);
 
   let storagePath = msg.media_storage_path as string | null;
   let mediaMime = msg.media_mime as string | null;
@@ -96,7 +69,7 @@ Deno.serve(async (req) => {
       conversationId: msg.conversation_id,
       providerMessageId: msg.provider_message_id,
       mediaProviderId: msg.media_provider_id,
-      mediaMime: mediaMime,
+      mediaMime,
       existingPath: null,
     });
 
@@ -111,39 +84,26 @@ Deno.serve(async (req) => {
         })
         .eq("id", messageId);
     } else {
-      return new Response(JSON.stringify({
+      return json({
         error: stored.error || "media_unavailable",
         hint: "Meta media may have expired; ask the client to resend the image.",
-      }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }, 502);
     }
   }
 
-  if (!storagePath) {
-    return new Response(JSON.stringify({ error: "no_media" }), {
-      status: 404,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  if (!storagePath) return json({ error: "no_media" }, 404);
 
   const { data: signed, error: signErr } = await admin.storage
     .from("whatsapp-media")
     .createSignedUrl(storagePath, 3600);
 
   if (signErr || !signed?.signedUrl) {
-    return new Response(JSON.stringify({ error: signErr?.message || "sign_failed" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return json({ error: signErr?.message || "sign_failed" }, 500);
   }
 
-  return new Response(JSON.stringify({
+  return json({
     url: signed.signedUrl,
     mime: mediaMime,
     message_type: msg.message_type,
-  }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
