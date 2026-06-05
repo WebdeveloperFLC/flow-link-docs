@@ -14962,6 +14962,7 @@ export type Database = {
           direction: string
           id: string
           media_mime: string | null
+          media_provider_id: string | null
           media_storage_path: string | null
           message_type: string
           provider_message_id: string | null
@@ -14975,6 +14976,7 @@ export type Database = {
           direction: string
           id?: string
           media_mime?: string | null
+          media_provider_id?: string | null
           media_storage_path?: string | null
           message_type?: string
           provider_message_id?: string | null
@@ -14988,6 +14990,7 @@ export type Database = {
           direction?: string
           id?: string
           media_mime?: string | null
+          media_provider_id?: string | null
           media_storage_path?: string | null
           message_type?: string
           provider_message_id?: string | null
