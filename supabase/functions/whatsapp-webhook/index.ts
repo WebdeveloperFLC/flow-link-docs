@@ -286,6 +286,7 @@ Deno.serve(async (req) => {
     message_type: messageType,
     media_storage_path: mediaStoragePathValue,
     media_mime: mediaMime,
+    media_provider_id: mediaId,
   });
 
   await admin.from("whatsapp_conversations").update({
