@@ -9,12 +9,14 @@ import { cn } from "@/lib/utils";
 import { getGuideBySlug, getGuideContent } from "../lib/guideRegistry";
 import { GuideMarkdown } from "../components/GuideMarkdown";
 import { GuideSearchBar, INSTITUTIONS_GUIDE_KEYWORDS } from "../components/GuideSearchBar";
+import { WHATSAPP_GUIDE_KEYWORDS } from "../lib/whatsappGuideKeywords";
 import { useVisibleGuides } from "../hooks/useVisibleGuides";
 import { filterSections, introMatches, parseGuideSections } from "../lib/parseGuideSections";
 import { slugify } from "../lib/slugify";
 
 const GUIDE_KEYWORDS: Record<string, string[]> = {
   "institutions-module": INSTITUTIONS_GUIDE_KEYWORDS,
+  "whatsapp-helpline": WHATSAPP_GUIDE_KEYWORDS,
 };
 
 export default function GuideDetailPage() {

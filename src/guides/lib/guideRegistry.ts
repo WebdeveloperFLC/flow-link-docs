@@ -15,6 +15,15 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     contentFile: "institutions-module.md",
     relatedModule: "institutions",
   },
+  {
+    slug: "whatsapp-helpline",
+    title: "WhatsApp Helpline — Staff Guide",
+    navLabel: "WhatsApp Helpline",
+    description:
+      "Helpline inbox, AI intake, leads, counselor privacy, mock testing (Phase 0), and Meta Cloud API setup (Phase 1).",
+    category: "CRM",
+    contentFile: "whatsapp-helpline.md",
+  },
 ];
 
 const contentModules = import.meta.glob("../../../docs/guides/*.md", {
