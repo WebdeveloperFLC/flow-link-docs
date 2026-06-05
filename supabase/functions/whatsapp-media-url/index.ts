@@ -2,6 +2,7 @@
 // Resolve WhatsApp media: sign cached file or lazy-fetch from Meta and store.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
+import { whatsappUserCanViewConversation } from "../_shared/whatsapp/permissions.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,7 @@ Deno.serve(async (req) => {
   });
   const { data: userData, error: userErr } = await userClient.auth.getUser(jwt);
   if (userErr || !userData.user) return json({ error: "invalid session" }, 401);
+  const uid = userData.user.id;
 
   let body: { message_id?: string };
   try {
@@ -44,17 +46,19 @@ Deno.serve(async (req) => {
   const messageId = body.message_id;
   if (!messageId) return json({ error: "message_id required" }, 400);
 
-  // Same RLS gate as CRM inbox — if the user can read the message row, they can resolve media.
-  const { data: msg, error: msgErr } = await userClient
+  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+
+  const { data: msg, error: msgErr } = await admin
     .from("whatsapp_messages")
     .select("id, conversation_id, message_type, media_storage_path, media_provider_id, media_mime, provider_message_id")
     .eq("id", messageId)
     .maybeSingle();
 
   if (msgErr) return json({ error: msgErr.message }, 500);
-  if (!msg) return json({ error: "forbidden" }, 403);
+  if (!msg) return json({ error: "message not found" }, 404);
 
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+  const allowed = await whatsappUserCanViewConversation(admin, uid, msg.conversation_id);
+  if (!allowed) return json({ error: "forbidden" }, 403);
 
   let storagePath = msg.media_storage_path as string | null;
   let mediaMime = msg.media_mime as string | null;

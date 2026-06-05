@@ -25,14 +25,27 @@ export async function resolveWhatsAppMediaUrl(messageId: string): Promise<{
   url: string | null;
   error?: string;
 }> {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const token = sessionData.session?.access_token;
-  const { data, error } = await supabase.functions.invoke("whatsapp-media-url", {
-    body: { message_id: messageId },
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-  if (error) return { url: null, error: error.message };
-  if (data?.error) return { url: null, error: String(data.error) };
+  const refreshed = await supabase.auth.refreshSession();
+  const token = refreshed.data.session?.access_token;
+  if (!token) return { url: null, error: "not signed in" };
+
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const res = await fetch(
+    `https://${projectId}.supabase.co/functions/v1/whatsapp-media-url`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        apikey,
+      },
+      body: JSON.stringify({ message_id: messageId }),
+    },
+  );
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) return { url: null, error: String(data?.error || res.statusText) };
   return { url: data?.url ?? null };
 }
 

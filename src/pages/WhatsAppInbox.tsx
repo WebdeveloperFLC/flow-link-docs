@@ -368,7 +368,7 @@ const WhatsAppInbox = () => {
                           : "bg-primary text-primary-foreground ml-auto",
                     )}
                   >
-                    {m.media_storage_path || (m.message_type && m.message_type !== "text") ? (
+                    {m.media_storage_path || m.media_provider_id ? (
                       <MessageMediaPreview message={m} />
                     ) : (
                       <div className="whitespace-pre-wrap">{m.body}</div>
