@@ -1,0 +1,21 @@
+/** Search hints for Meta team setup guide */
+export const WHATSAPP_META_TEAM_SETUP_KEYWORDS = [
+  "meta",
+  "helpline",
+  "sandbox",
+  "webhook",
+  "verify",
+  "secrets",
+  "token",
+  "phone number id",
+  "lovable",
+  "supabase",
+  "developers.facebook",
+  "whatsapp manager",
+  "business verification",
+  "system user",
+  "callback",
+  "publish",
+  "go-live",
+  "test recipient",
+];

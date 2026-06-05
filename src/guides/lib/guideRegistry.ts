@@ -20,9 +20,18 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
     title: "WhatsApp Helpline — Staff Guide",
     navLabel: "WhatsApp Helpline",
     description:
-      "Helpline inbox, AI intake, leads, counselor privacy, mock testing (Phase 0), and Meta Cloud API setup (Phase 1).",
+      "Helpline inbox, AI intake, leads, counselor privacy, mock testing (Phase 0), and Meta Cloud API overview (Phase 1).",
     category: "CRM",
     contentFile: "whatsapp-helpline.md",
+  },
+  {
+    slug: "whatsapp-meta-team-setup",
+    title: "Helpline on Meta — Team setup",
+    navLabel: "WhatsApp Meta setup",
+    description:
+      "Step-by-step for your team: Meta Developer, sandbox, webhook, Supabase secrets, real helpline number, and go-live checklist.",
+    category: "CRM",
+    contentFile: "whatsapp-meta-team-setup.md",
   },
 ];
 
