@@ -119,23 +119,43 @@ export function parseMetaInbound(payload: Record<string, unknown>): MetaInboundM
   return null;
 }
 
-export async function fetchMetaMedia(
-  mediaId: string,
-): Promise<{ bytes: Uint8Array; mime: string } | null> {
+export type MetaMediaFetchResult =
+  | { ok: true; bytes: Uint8Array; mime: string }
+  | { ok: false; error: string; status?: number; detail?: string };
+
+function metaMediaError(status: number, detail: string): MetaMediaFetchResult {
+  if (status === 401 || status === 403) {
+    return { ok: false, error: "meta_auth_failed", status, detail };
+  }
+  if (status === 404) {
+    return { ok: false, error: "meta_media_expired", status, detail };
+  }
+  return { ok: false, error: "meta_fetch_failed", status, detail };
+}
+
+export async function fetchMetaMedia(mediaId: string): Promise<MetaMediaFetchResult> {
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")?.trim();
-  if (!token || !mediaId) return null;
+  if (!token) {
+    return { ok: false, error: "meta_auth_failed", detail: "WHATSAPP_ACCESS_TOKEN not set" };
+  }
+  if (!mediaId) {
+    return { ok: false, error: "meta_fetch_failed", detail: "missing media id" };
+  }
 
   const apiVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v21.0";
   const metaRes = await fetch(`https://graph.facebook.com/${apiVersion}/${mediaId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!metaRes.ok) {
-    console.error("[metaApi] media meta failed:", metaRes.status, await metaRes.text().catch(() => ""));
-    return null;
+    const detail = await metaRes.text().catch(() => "");
+    console.error("[metaApi] media meta failed:", metaRes.status, detail.slice(0, 200));
+    return metaMediaError(metaRes.status, detail.slice(0, 200));
   }
 
   const meta = await metaRes.json().catch(() => ({})) as { url?: string; mime_type?: string };
-  if (!meta.url) return null;
+  if (!meta.url) {
+    return { ok: false, error: "meta_fetch_failed", detail: "no url in meta response" };
+  }
 
   const mime = meta.mime_type || "application/octet-stream";
   const binRes = await fetch(meta.url, {
@@ -145,16 +165,15 @@ export async function fetchMetaMedia(
   if (!binRes.ok) {
     const detail = await binRes.text().catch(() => "");
     console.error("[metaApi] media download failed:", binRes.status, detail.slice(0, 200));
-    return null;
+    return metaMediaError(binRes.status, detail.slice(0, 200));
   }
 
   const bytes = new Uint8Array(await binRes.arrayBuffer());
   if (!bytes.length) {
-    console.error("[metaApi] media download empty for id:", mediaId);
-    return null;
+    return { ok: false, error: "meta_fetch_failed", detail: "empty response body" };
   }
 
-  return { bytes, mime };
+  return { ok: true, bytes, mime };
 }
 
 export function mediaStoragePath(

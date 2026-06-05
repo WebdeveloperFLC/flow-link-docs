@@ -33,7 +33,10 @@ const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toL
 const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto";
 
 const MEDIA_ERROR_HINTS: Record<string, string> = {
-  meta_fetch_failed: "Resend the photo from WhatsApp — Meta no longer hosts this file.",
+  meta_auth_failed: "Update WHATSAPP_ACCESS_TOKEN in Lovable secrets (Meta → WhatsApp → API Setup).",
+  meta_media_expired: "Resend the photo from WhatsApp — Meta no longer hosts this file.",
+  meta_fetch_failed: "Resend the photo from WhatsApp. If this is a new image, redeploy whatsapp-webhook.",
+  storage_upload_failed: "Storage upload failed — confirm whatsapp-media bucket migration ran.",
   no_media: "No media stored for this message.",
 };
 

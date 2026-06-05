@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       } else {
         return fail(
           stored.error || "media_unavailable",
-          "Meta media may have expired. Ask the client to resend the image.",
+          stored.hint || "Meta media may have expired. Ask the client to resend the image.",
         );
       }
     }
