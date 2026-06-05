@@ -166,6 +166,15 @@ Deno.serve(async (req) => {
   }
 
   let phoneRaw = String(payload.phone || payload.from || "");
+  if (mock && payload.conversation_id) {
+    const { data: mockConv } = await admin
+      .from("whatsapp_conversations")
+      .select("phone_e164, phone_display")
+      .eq("id", String(payload.conversation_id))
+      .maybeSingle();
+    if (mockConv?.phone_e164) phoneRaw = mockConv.phone_e164;
+    else if (mockConv?.phone_display) phoneRaw = mockConv.phone_display;
+  }
   let text = String(payload.text || payload.body || "");
   let providerMessageId = payload.message_id ? String(payload.message_id) : null;
   let messageType: MetaMessageType = "text";

@@ -28,6 +28,38 @@ function functionsBaseUrl(): string | null {
   return projectId ? `https://${projectId}.supabase.co` : null;
 }
 
+async function postEdgeFunction(
+  functionName: string,
+  body: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error("You must be signed in");
+
+  const base = functionsBaseUrl();
+  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+  if (!base || !apikey) throw new Error("Missing Supabase config");
+
+  const res = await fetch(`${base}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      apikey,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = [data?.error, data?.hint].filter(Boolean).join(" — ")
+      || res.statusText
+      || `Edge function failed (${res.status})`;
+    throw new Error(msg);
+  }
+  return data;
+}
+
 export async function resolveWhatsAppMediaUrl(
   messageId: string,
   storagePath?: string | null,
@@ -35,6 +67,7 @@ export async function resolveWhatsAppMediaUrl(
 ): Promise<{
   url: string | null;
   error?: string;
+  hint?: string;
 }> {
   try {
     if (storagePath) {
@@ -68,6 +101,13 @@ export async function resolveWhatsAppMediaUrl(
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { url: null, error: String(data?.error || res.statusText) };
+    if (data?.error) {
+      return {
+        url: null,
+        error: String(data.error),
+        hint: data.hint ? String(data.hint) : undefined,
+      };
+    }
     return { url: data?.url ?? null };
   } catch (e) {
     return { url: null, error: e instanceof Error ? e.message : String(e) };
@@ -117,11 +157,17 @@ export async function assignConversation(
   }
 }
 
-export async function simulateInbound(phone: string, text: string): Promise<void> {
-  const { error } = await supabase.functions.invoke("whatsapp-webhook", {
-    body: { phone, text, mock: true },
+export async function simulateInbound(
+  phone: string,
+  text: string,
+  conversationId?: string,
+): Promise<void> {
+  await postEdgeFunction("whatsapp-webhook", {
+    phone,
+    text,
+    mock: true,
+    ...(conversationId ? { conversation_id: conversationId } : {}),
   });
-  if (error) throw error;
 }
 
 export async function listCounselors(): Promise<{ id: string; full_name: string | null; email: string | null }[]> {

@@ -32,10 +32,16 @@ const WHATSAPP_ENABLED = import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
 const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toLowerCase();
 const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto";
 
+const MEDIA_ERROR_HINTS: Record<string, string> = {
+  meta_fetch_failed: "Resend the photo from WhatsApp — Meta no longer hosts this file.",
+  no_media: "No media stored for this message.",
+};
+
 function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hint, setHint] = useState<string | null>(null);
   const hasMedia = !!(message.media_storage_path || message.media_provider_id);
 
   useEffect(() => {
@@ -43,18 +49,22 @@ function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
+    setHint(null);
     resolveWhatsAppMediaUrl(message.id, message.media_storage_path, message.media_provider_id)
       .then((res) => {
         if (cancelled) return;
         setUrl(res.url);
-        if (!res.url && res.error) setError(res.error);
+        if (!res.url && res.error) {
+          setError(res.error);
+          setHint(res.hint || MEDIA_ERROR_HINTS[res.error] || null);
+        }
       })
       .catch((e) => {
         if (!cancelled) setError(String(e?.message || e));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [message.id, hasMedia]);
+  }, [message.id, message.media_storage_path, message.media_provider_id, hasMedia]);
 
   if (!hasMedia) {
     return <div className="whitespace-pre-wrap">{message.body}</div>;
@@ -65,7 +75,11 @@ function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
     return (
       <div className="text-xs text-muted-foreground italic">
         {message.body}
-        {error && <span className="block mt-0.5 not-italic">({error})</span>}
+        {error && (
+          <span className="block mt-0.5 not-italic text-[11px]">
+            {hint || `(${error})`}
+          </span>
+        )}
       </div>
     );
   }
@@ -215,9 +229,9 @@ const WhatsAppInbox = () => {
 
   const handleClientSimulate = async () => {
     if (!active || !clientSimText.trim()) return;
-    const phone = active.phone_display || active.phone_e164;
+    const phone = active.phone_e164 || active.phone_display || "";
     try {
-      await simulateInbound(phone, clientSimText.trim());
+      await simulateInbound(phone, clientSimText.trim(), active.id);
       setClientSimText("");
       await loadMessages(active.id);
       await refreshConversations();
