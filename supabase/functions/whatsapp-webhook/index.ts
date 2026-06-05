@@ -1,8 +1,15 @@
 // @ts-nocheck
-// Phase 0: mock inbound + rules-based intake. Meta Cloud API wiring comes in Phase 1.
+// WhatsApp helpline: mock simulate (Phase 0) + Meta Cloud API webhook (Phase 1).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
+import {
+  isMetaWebhookPayload,
+  metaSendEnabled,
+  parseMetaInbound,
+  sendMetaText,
+  verifyMetaSignature,
+} from "../_shared/whatsapp/metaApi.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,15 +59,25 @@ async function matchClientOrLead(admin: ReturnType<typeof createClient>, phoneE1
 async function insertOutbound(
   admin: ReturnType<typeof createClient>,
   conversationId: string,
+  phoneE164: string,
   body: string,
   sentBy: "ai" | "system" = "ai",
 ) {
   const now = new Date().toISOString();
+  let providerMessageId: string | null = null;
+
+  if (metaSendEnabled()) {
+    const sent = await sendMetaText(phoneE164, body);
+    if (sent.error) console.warn("[whatsapp-webhook] meta send:", sent.error);
+    else providerMessageId = sent.messageId ?? null;
+  }
+
   await admin.from("whatsapp_messages").insert({
     conversation_id: conversationId,
     direction: "outbound",
     body,
     sent_by: sentBy,
+    provider_message_id: providerMessageId,
   });
   await admin.from("whatsapp_conversations").update({
     last_message_at: now,
@@ -97,9 +114,10 @@ Deno.serve(async (req) => {
     });
   }
 
+  const rawBody = await req.text();
   let payload: Record<string, unknown>;
   try {
-    payload = await req.json();
+    payload = rawBody ? JSON.parse(rawBody) : {};
   } catch {
     return new Response(JSON.stringify({ error: "invalid json" }), {
       status: 400,
@@ -107,7 +125,26 @@ Deno.serve(async (req) => {
     });
   }
 
+  const fromMeta = isMetaWebhookPayload(payload);
   const mock = payload.mock === true;
+
+  if (fromMeta) {
+    const sig = req.headers.get("x-hub-signature-256");
+    const ok = await verifyMetaSignature(rawBody, sig);
+    if (!ok) {
+      return new Response(JSON.stringify({ error: "invalid meta signature" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const parsed = parseMetaInbound(payload);
+    if (parsed?.isStatusOnly) {
+      return new Response(JSON.stringify({ ok: true, status_event: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   const secret = req.headers.get("x-webhook-secret") || String(payload.secret || "");
   const expectedSecret = Deno.env.get("WHATSAPP_WEBHOOK_SECRET");
 
@@ -119,24 +156,27 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-  } else if (expectedSecret && secret !== expectedSecret) {
+  } else if (!fromMeta && expectedSecret && secret !== expectedSecret) {
     return new Response(JSON.stringify({ error: "invalid secret" }), {
       status: 403,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  // Normalize inbound text + phone from mock payload or Meta shape (stub)
   let phoneRaw = String(payload.phone || payload.from || "");
   let text = String(payload.text || payload.body || "");
-  const providerMessageId = payload.message_id ? String(payload.message_id) : null;
+  let providerMessageId = payload.message_id ? String(payload.message_id) : null;
 
-  const metaEntry = (payload.entry as unknown[])?.[0] as Record<string, unknown> | undefined;
-  const metaChange = ((metaEntry?.changes as unknown[])?.[0] as Record<string, unknown>)?.value as Record<string, unknown> | undefined;
-  const metaMsg = (metaChange?.messages as unknown[])?.[0] as Record<string, unknown> | undefined;
-  if (metaMsg) {
-    phoneRaw = String(metaMsg.from || phoneRaw);
-    text = String((metaMsg.text as Record<string, string>)?.body || text);
+  if (fromMeta) {
+    const parsed = parseMetaInbound(payload);
+    if (!parsed?.phoneRaw) {
+      return new Response(JSON.stringify({ ok: true, ignored: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    phoneRaw = parsed.phoneRaw;
+    text = parsed.text;
+    providerMessageId = parsed.providerMessageId;
   }
 
   const phoneE164 = normalizePhoneE164(phoneRaw);
@@ -219,13 +259,18 @@ Deno.serve(async (req) => {
   }).eq("id", conv.id);
 
   const replies: string[] = [];
+  const intake = (conv.intake_data || {}) as Record<string, unknown>;
+  const intakeStep = intake?.step as string | undefined;
+  const intakeInProgress = !!intakeStep && intakeStep !== "done";
 
-  if (conv.status === "existing_client" || conv.status === "assigned_active") {
-    // Known contact — no auto-reply; counselor handles in CRM
-  } else if (conv.status === "awaiting_assignment_confirm") {
-    replies.push("Thank you for your message. A counselor will respond shortly.");
-  } else if (conv.status === "unmatched_ai_intake" && aiMode !== "off") {
-    const intake = (conv.intake_data || {}) as Record<string, unknown>;
+  if (/^restart$/i.test(text.trim())) {
+    await admin.from("whatsapp_conversations").update({
+      status: "unmatched_ai_intake",
+      intake_data: { step: "country" },
+      updated_at: now,
+    }).eq("id", conv.id);
+    replies.push("Starting over. Which country are you interested in? (e.g. Canada, UK)");
+  } else if (aiMode !== "off" && (conv.status === "unmatched_ai_intake" || intakeInProgress)) {
     const { intake: nextIntake, replies: botReplies, confirmed } = nextRulesReply(intake as any, text);
 
     if (confirmed) {
@@ -261,10 +306,14 @@ Deno.serve(async (req) => {
     }
 
     replies.push(...botReplies);
+  } else if (conv.status === "existing_client" || conv.status === "assigned_active") {
+    // Known contact — counselor handles in CRM (intake already finished)
+  } else if (conv.status === "awaiting_assignment_confirm") {
+    replies.push("Thank you for your message. A counselor will respond shortly.");
   }
 
   for (const reply of replies) {
-    await insertOutbound(admin, conv.id, reply, "ai");
+    await insertOutbound(admin, conv.id, phoneE164, reply, "ai");
   }
 
   return new Response(JSON.stringify({
@@ -272,6 +321,8 @@ Deno.serve(async (req) => {
     conversation_id: conv.id,
     replies,
     mock,
+    meta: fromMeta,
+    meta_send_enabled: metaSendEnabled(),
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });

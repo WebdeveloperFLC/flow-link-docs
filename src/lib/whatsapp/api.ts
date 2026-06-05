@@ -29,26 +29,15 @@ export async function markConversationRead(conversationId: string): Promise<void
   if (error) throw error;
 }
 
-export async function sendStaffReply(
-  conversationId: string,
-  userId: string,
-  body: string,
-): Promise<void> {
-  const now = new Date().toISOString();
-  const { error: msgErr } = await supabase.from("whatsapp_messages" as any).insert({
-    conversation_id: conversationId,
-    direction: "outbound",
-    body,
-    sent_by: "staff",
-    sent_by_user_id: userId,
+export async function sendStaffReply(conversationId: string, _userId: string, body: string): Promise<{
+  meta_sent: boolean;
+}> {
+  const { data, error } = await supabase.functions.invoke("whatsapp-send", {
+    body: { conversation_id: conversationId, text: body },
   });
-  if (msgErr) throw msgErr;
-
-  const { error: convErr } = await supabase
-    .from("whatsapp_conversations" as any)
-    .update({ last_message_at: now, updated_at: now })
-    .eq("id", conversationId);
-  if (convErr) throw convErr;
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return { meta_sent: !!data?.meta_sent };
 }
 
 export async function assignConversation(

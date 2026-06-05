@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const WHATSAPP_ENABLED = import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
+const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toLowerCase();
+const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto";
 
 const WhatsAppInbox = () => {
   const { user, isAdmin, hasRole } = useAuth();
@@ -44,6 +46,7 @@ const WhatsAppInbox = () => {
   const [simulateOpen, setSimulateOpen] = useState(false);
   const [simPhone, setSimPhone] = useState("9876543210");
   const [simText, setSimText] = useState("Hi, I want to study in Canada");
+  const [clientSimText, setClientSimText] = useState("");
 
   const refreshConversations = useCallback(async () => {
     const rows = await listConversations();
@@ -115,9 +118,10 @@ const WhatsAppInbox = () => {
   const handleSend = async () => {
     if (!active || !user || !reply.trim()) return;
     try {
-      await sendStaffReply(active.id, user.id, reply.trim());
+      const { meta_sent } = await sendStaffReply(active.id, user.id, reply.trim());
       setReply("");
       await loadMessages(active.id);
+      toast.success(meta_sent ? "Sent on WhatsApp" : "Saved in CRM (mock mode)");
     } catch (e: any) {
       toast.error(e.message || "Failed to send");
     }
@@ -140,6 +144,20 @@ const WhatsAppInbox = () => {
       toast.success("Simulated inbound message");
       setSimulateOpen(false);
       await refreshConversations();
+      if (activeId) await loadMessages(activeId);
+    } catch (e: any) {
+      toast.error(e.message || "Simulate failed");
+    }
+  };
+
+  const handleClientSimulate = async () => {
+    if (!active || !clientSimText.trim()) return;
+    const phone = active.phone_display || active.phone_e164;
+    try {
+      await simulateInbound(phone, clientSimText.trim());
+      setClientSimText("");
+      await loadMessages(active.id);
+      await refreshConversations();
     } catch (e: any) {
       toast.error(e.message || "Simulate failed");
     }
@@ -160,7 +178,11 @@ const WhatsAppInbox = () => {
     <AppLayout>
       <PageHeader
         title="WhatsApp Inbox"
-        description="Helpline number — mock mode (Phase 0). Counselors see assigned threads; admins see all."
+        description={
+          IS_META_MODE
+            ? "Helpline — Meta Cloud API (Phase 1). Replies send to WhatsApp when edge secrets are set."
+            : "Helpline — mock mode (Phase 0). Counselors see assigned threads; admins see all."
+        }
         actions={
           canSimulate ? (
             <Button variant="outline" size="sm" onClick={() => setSimulateOpen(true)}>
@@ -295,23 +317,50 @@ const WhatsAppInbox = () => {
                 ))}
               </div>
 
-              <div className="p-3 border-t flex gap-2">
-                <Textarea
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  placeholder="Reply (mock — stored in CRM; Meta send in Phase 1)"
-                  className="min-h-[44px] max-h-28"
-                  rows={2}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
+              <div className="p-3 border-t space-y-2">
+                <p className="text-[11px] text-muted-foreground">
+                  Bottom box = counselor reply. Use &quot;As client&quot; to simulate WhatsApp messages (Postgraduate, name, YES).
+                </p>
+                <div className="flex gap-2">
+                  <Textarea
+                    value={clientSimText}
+                    onChange={(e) => setClientSimText(e.target.value)}
+                    placeholder="Simulate client message (e.g. Postgraduate)"
+                    className="min-h-[40px] max-h-24"
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleClientSimulate();
+                      }
+                    }}
+                  />
+                  <Button variant="secondary" onClick={handleClientSimulate} disabled={!clientSimText.trim()}>
+                    As client
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Textarea
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
+                    placeholder={
+                      IS_META_MODE
+                        ? "Counselor reply (sends on WhatsApp when Meta is configured)"
+                        : "Counselor reply (stored in CRM until Meta Phase 1 secrets are set)"
                     }
-                  }}
-                />
-                <Button onClick={handleSend} disabled={!reply.trim()}>
-                  <Send className="size-4" />
-                </Button>
+                    className="min-h-[44px] max-h-28"
+                    rows={2}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                  />
+                  <Button onClick={handleSend} disabled={!reply.trim()}>
+                    <Send className="size-4" />
+                  </Button>
+                </div>
               </div>
             </>
           )}
