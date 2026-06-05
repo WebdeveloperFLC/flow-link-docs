@@ -14,11 +14,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   assignConversation,
-  getWhatsAppMediaSignedUrl,
   listConversations,
   listCounselors,
   listMessages,
   markConversationRead,
+  resolveWhatsAppMediaUrl,
   sendStaffReply,
   simulateInbound,
 } from "@/lib/whatsapp/api";
@@ -35,27 +35,41 @@ const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto
 function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const hasMedia = !!(
+    message.media_storage_path
+    || message.media_provider_id
+    || (message.message_type && message.message_type !== "text")
+  );
 
   useEffect(() => {
-    if (!message.media_storage_path) return;
+    if (!hasMedia) return;
     let cancelled = false;
     setLoading(true);
-    getWhatsAppMediaSignedUrl(message.media_storage_path)
-      .then((signed) => { if (!cancelled) setUrl(signed); })
+    setError(null);
+    resolveWhatsAppMediaUrl(message.id)
+      .then((res) => {
+        if (cancelled) return;
+        setUrl(res.url);
+        if (!res.url && res.error) setError(res.error);
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [message.media_storage_path]);
+  }, [message.id, hasMedia]);
 
-  if (!message.media_storage_path) {
-    return (
-      <div className="text-xs text-muted-foreground italic">
-        {message.body}
-      </div>
-    );
+  if (!hasMedia) {
+    return <div className="whitespace-pre-wrap">{message.body}</div>;
   }
 
   if (loading) return <div className="text-xs text-muted-foreground">Loading media…</div>;
-  if (!url) return <div className="text-xs text-muted-foreground">Media unavailable</div>;
+  if (!url) {
+    return (
+      <div className="text-xs text-muted-foreground italic">
+        {message.body}
+        {error && <span className="block mt-0.5 not-italic">({error})</span>}
+      </div>
+    );
+  }
 
   if (message.message_type === "image") {
     return (

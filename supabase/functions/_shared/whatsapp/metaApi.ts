@@ -138,13 +138,23 @@ export async function fetchMetaMedia(
   if (!meta.url) return null;
 
   const mime = meta.mime_type || "application/octet-stream";
-  const binRes = await fetch(meta.url, { headers: { Authorization: `Bearer ${token}` } });
+  const binRes = await fetch(meta.url, {
+    headers: { Authorization: `Bearer ${token}` },
+    redirect: "follow",
+  });
   if (!binRes.ok) {
-    console.error("[metaApi] media download failed:", binRes.status);
+    const detail = await binRes.text().catch(() => "");
+    console.error("[metaApi] media download failed:", binRes.status, detail.slice(0, 200));
     return null;
   }
 
-  return { bytes: new Uint8Array(await binRes.arrayBuffer()), mime };
+  const bytes = new Uint8Array(await binRes.arrayBuffer());
+  if (!bytes.length) {
+    console.error("[metaApi] media download empty for id:", mediaId);
+    return null;
+  }
+
+  return { bytes, mime };
 }
 
 export function mediaStoragePath(
