@@ -72,8 +72,9 @@ Deno.serve(async (req) => {
     const callerId = userData.user.id;
 
     const svc = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data: isAdminData } = await svc.rpc("has_role", { _user_id: callerId, _role: "admin" });
-    if (!isAdminData) return json({ error: "Forbidden: admin only" }, 403);
+    const { data: isAdmin } = await svc.rpc("has_role", { _user_id: callerId, _role: "admin" });
+    const { data: isAdministrator } = await svc.rpc("has_role", { _user_id: callerId, _role: "administrator" });
+    if (!isAdmin && !isAdministrator) return json({ error: "Forbidden: admin only" }, 403);
 
     const body = await req.json();
     const action = body.action as string;

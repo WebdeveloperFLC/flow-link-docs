@@ -28,6 +28,7 @@ export const EditUserDetailsDialog = ({
   const [branchId, setBranchId] = useState<string>("");
   const [departmentId, setDepartmentId] = useState<string>("");
   const [designation, setDesignation] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
 
   useEffect(() => {
     if (!open || !user) return;
@@ -35,7 +36,7 @@ export const EditUserDetailsDialog = ({
       const [b, d, current] = await Promise.all([
         supabase.from("branches").select("id, name").eq("is_active", true).order("display_order"),
         supabase.from("departments").select("id, name").eq("is_active", true).order("display_order"),
-        supabase.from("profiles").select("branch_id, department_id, designation").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("branch_id, department_id, designation, phone").eq("id", user.id).maybeSingle(),
       ]);
       setBranches((b.data ?? []) as Opt[]);
       setDepartments((d.data ?? []) as Opt[]);
@@ -43,17 +44,20 @@ export const EditUserDetailsDialog = ({
       setBranchId(cur?.branch_id ?? "");
       setDepartmentId(cur?.department_id ?? "");
       setDesignation(cur?.designation ?? "");
+      setPhone(cur?.phone ?? "");
     })();
   }, [open, user?.id]);
 
   const onSave = async () => {
     if (!user) return;
     if (!departmentId) { toast.error("Department is required"); return; }
+    if (!phone.trim()) { toast.error("Phone is required"); return; }
     setBusy(true);
     try {
       await callAdminUsers({
         action: "update",
         user_id: user.id,
+        phone: phone.trim(),
         branch_id: branchId || null,
         department_id: departmentId,
         designation: designation.trim() || null,
@@ -100,6 +104,16 @@ export const EditUserDetailsDialog = ({
                 {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
               </select>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="edit_phone">Phone *</Label>
+            <Input
+              id="edit_phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              maxLength={40}
+              placeholder="e.g. +14162942739"
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="edit_designation">Designation</Label>
