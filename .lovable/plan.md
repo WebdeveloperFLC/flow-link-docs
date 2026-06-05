@@ -1,27 +1,23 @@
-## Problem
+## Plan: Re-enter WhatsApp Meta secrets
 
-The "Copy Email Version" button currently pastes raw HTML markup (e.g. `<p><strong>Government / Third-party Costs:</strong> ...</p>`) into Gmail/Outlook instead of formatted rich text. This happens because `copyToClipboard` writes only `text/plain`, and `htmlToEmail` returns the HTML string as-is — so the recipient app pastes it verbatim.
+Update these 6 backend secrets with fresh values from Meta:
 
-## Fix
+1. `WHATSAPP_PROVIDER` = `meta`
+2. `WHATSAPP_ACCESS_TOKEN` = fresh token from Meta → WhatsApp → API Setup (or permanent System User token)
+3. `WHATSAPP_PHONE_NUMBER_ID` = from Meta API Setup
+4. `WHATSAPP_APP_SECRET` = from Meta App → Settings → Basic
+5. `WHATSAPP_VERIFY_TOKEN` = same value used in Meta webhook configuration
+6. `WHATSAPP_AI_MODE` = `rules`
 
-Write the cost summary to the clipboard as **both** `text/html` and `text/plain` using the async Clipboard API's `ClipboardItem`. Email clients will then consume the `text/html` flavor and render bold/lists/paragraphs as formatted text. WhatsApp and Cost Summary buttons stay unchanged (they intentionally copy plain text).
+### Steps on approval
 
-### Changes
+1. Open the secrets dialog for all 6 names so you can paste values in one secure form.
+2. After you save, redeploy `whatsapp-webhook`, `whatsapp-send`, and `whatsapp-media-url` so they pick up the new env vars.
+3. Test: send an inbound message + image from your test phone (+14162942739 must be listed under Meta API Setup → To) and confirm:
+   - Outbound reply lands on the phone
+   - Inbound image renders in CRM (not `[Image]` fallback)
 
-1. `src/lib/serviceLibrary.ts`
-   - Add a new helper `copyHtmlToClipboard(html: string)` that:
-     - Uses `navigator.clipboard.write([new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': plainBlob })])` where the plain flavor is generated via existing `htmlToPlain`.
-     - Falls back to `navigator.clipboard.writeText(htmlToPlain(html))` if `ClipboardItem`/`clipboard.write` is unavailable, so the user still gets readable text rather than a failure.
-   - Leave `htmlToEmail`, `htmlToPlain`, `htmlToWhatsApp`, and `copyToClipboard` untouched (other callers depend on them).
+### Notes
 
-2. `src/pages/ServiceLibrary.tsx` (lines 496–499, Copy Email Version button only)
-   - Replace `copyToClipboard(htmlToEmail(resolved.cost_summary_html))` with `copyHtmlToClipboard(htmlToEmail(resolved.cost_summary_html))`.
-   - Import `copyHtmlToClipboard` from `@/lib/serviceLibrary`.
-
-No other buttons, panels, data, or styling change.
-
-## Verification
-
-- Click Copy Email Version on a Canada — Study Permit record, paste into Gmail compose → bold/paragraph formatting renders, no visible `<p>`/`<strong>` tags.
-- Paste into a plain-text field (e.g. terminal) → readable plain text without HTML tags.
-- Copy Cost Summary and Copy WhatsApp Version still produce their existing plain-text output.
+- Temporary tokens expire in 24h — for a permanent fix use a System User token (guide Part G3).
+- No code changes in this plan, just secret refresh + redeploy.
