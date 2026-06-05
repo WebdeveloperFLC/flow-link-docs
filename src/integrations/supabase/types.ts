@@ -16060,6 +16060,44 @@ export type Database = {
       recover_stale_calling_items: { Args: never; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
+      upi_canonical_course_title: {
+        Args: { level?: string; title: string }
+        Returns: string
+      }
+      upi_course_dedup_hash: {
+        Args: {
+          _campus_name: string
+          _course_title: string
+          _institution_id: string
+          _program_level: string
+          _program_level_id: string
+        }
+        Returns: string
+      }
+      upi_course_dedup_key: {
+        Args: {
+          _campus_name: string
+          _course_title: string
+          _institution_id: string
+          _program_level: string
+          _program_level_id: string
+        }
+        Returns: string
+      }
+      upi_course_dedup_level: {
+        Args: { _metadata: Json; _program_level_id: string }
+        Returns: string
+      }
+      upi_staging_row_dedup_hash: {
+        Args: {
+          _campus_name: string
+          _course_title: string
+          _institution_id: string
+          _metadata: Json
+          _program_level_id: string
+        }
+        Returns: string
+      }
       user_can_see_offer: {
         Args: { _offer_id: string; _uid: string }
         Returns: boolean
