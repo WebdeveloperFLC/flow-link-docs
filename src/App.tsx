@@ -40,6 +40,7 @@ import SharedView from "./pages/SharedView";
 import Questionnaire from "./pages/Questionnaire";
 import CourseFinder from "./pages/CourseFinder";
 import Messages from "./pages/Messages";
+import WhatsAppInbox from "./pages/WhatsAppInbox";
 import ServiceLibrary from "./pages/ServiceLibrary";
 import ServiceLibraryAdmin from "./pages/ServiceLibraryAdmin";
 import Telecaller from "./pages/Telecaller";
@@ -373,6 +374,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Messages />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/whatsapp"
+                    element={
+                      <ProtectedRoute>
+                        <WhatsAppInbox />
                       </ProtectedRoute>
                     }
                   />
