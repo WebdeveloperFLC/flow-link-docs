@@ -176,6 +176,8 @@ Telecaller or admin: use this for the unassigned queue. Counselors then reply fr
 
 ## 7. Phase 1 — Meta Cloud API (real WhatsApp)
 
+> **Team setup (step-by-step):** [Helpline on Meta — Team setup](/guides/whatsapp-meta-team-setup) — sandbox, webhook, secrets, real number, sign-off checklist.
+
 ### Prerequisites
 
 - Meta Business account

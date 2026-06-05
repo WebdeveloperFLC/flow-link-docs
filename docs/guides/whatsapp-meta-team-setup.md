@@ -1,0 +1,242 @@
+# Helpline WhatsApp on Meta — Team setup guide
+
+Use the **search bar** on this page — try *webhook*, *sandbox*, *secrets*, *helpline*, or *verify*.
+
+> **TIP:** Complete **sandbox test (Part C–F)** before adding the public helpline number (Part G).  
+> **Related:** [WhatsApp Helpline — Staff Guide](/guides/whatsapp-helpline) (inbox usage, counselor privacy, troubleshooting).
+
+**Purpose:** Connect the company **helpline WhatsApp number** to the CRM inbox.  
+**CRM Supabase project:** `auofttkyosgjhxcbhscw`  
+**Who should do this:** Meta Business access + Lovable or Supabase (for secrets).
+
+---
+
+## 1. Quick search
+
+| I want to… | Search for | Section |
+|------------|------------|---------|
+| Start from zero | `developer` `register` | Part A |
+| Test without real helpline | `sandbox` | Part C |
+| Connect CRM to Meta | `webhook` `verify` | Part D |
+| Set backend secrets | `secrets` `lovable` | Part E |
+| Add real office number | `helpline` `production` | Part G |
+| Daily staff workflow | `counselor` `assign` | Part H |
+
+### Setup phases
+
+```flow
+Meta Developer account
+Create Business app + WhatsApp
+Sandbox test + webhook
+Supabase secrets + Publish
+End-to-end test
+Add real helpline number
+Permanent token + go-live
+```
+
+---
+
+## 2. What you are setting up
+
+| Item | What it is |
+|------|------------|
+| **Helpline number** | The one number clients message on WhatsApp |
+| **Meta WhatsApp Business** | Hosts that number; API send/receive |
+| **CRM WhatsApp Inbox** | Staff read/reply in the app |
+
+> **IMPORTANT:** Counselors do **not** add personal WhatsApp numbers to CRM. They use **CRM → WhatsApp** after assign/forward. Clients always see the **helpline** number.
+
+---
+
+## 3. Before you start
+
+- [ ] Meta Business account ([business.facebook.com](https://business.facebook.com))
+- [ ] Work Facebook / Meta login for Future Link
+- [ ] Helpline phone ready for SMS/voice OTP (real number, Part G)
+- [ ] CRM: `whatsapp-webhook` and `whatsapp-send` deployed (Lovable)
+- [ ] Staff trained on **Guide → WhatsApp Helpline**
+
+---
+
+## 4. Part A — Meta Developer account (one-time)
+
+1. Open [developers.facebook.com](https://developers.facebook.com).
+2. **Create a Meta for Developers account** → **Continue** through Register, Verify, Contact info, About you.
+3. If macOS Keychain asks for password → **Allow** (Mac login password).
+
+---
+
+## 5. Part B — Create app and add WhatsApp
+
+1. **My Apps** → **Create App**.
+2. Type: **Business** (not Consumer).
+3. Name example: `Future Link CRM WhatsApp`.
+4. Link your **Meta Business** account.
+5. **Add product** → **WhatsApp** → **Set up** → open **API Setup**.
+
+---
+
+## 6. Part C — Sandbox test first
+
+Use Meta’s **test number** before the public helpline.
+
+### C1 — Copy API credentials
+
+On **API Setup**, save securely:
+
+| Field | Supabase secret |
+|--------|-----------------|
+| **Phone number ID** | `WHATSAPP_PHONE_NUMBER_ID` |
+| **Temporary access token** | `WHATSAPP_ACCESS_TOKEN` (test only; expires) |
+| **WABA ID** | Reference only |
+
+### C2 — Add test recipient
+
+1. **Send messages** / **To** on API Setup.
+2. Add **your personal mobile** with country code (e.g. `91XXXXXXXXXX`).
+3. Confirm WhatsApp verification code.
+
+Only listed numbers can message the **sandbox** business number during testing.
+
+---
+
+## 7. Part D — Webhook (Meta → CRM)
+
+1. **WhatsApp → Configuration** → **Edit** webhook.
+
+| Field | Value |
+|--------|--------|
+| **Callback URL** | `https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook` |
+| **Verify token** | Team secret, e.g. `flc-helpline-verify-2026` |
+
+2. **Verify and save**.
+3. Subscribe webhook field: **messages**.
+
+```decision
+Webhook verify failed?
+  → Token matches WHATSAPP_VERIFY_TOKEN in Supabase exactly?
+  → whatsapp-webhook deployed on auofttkyosgjhxcbhscw?
+```
+
+---
+
+## 8. Part E — Supabase edge secrets
+
+Set in **Supabase → Edge Functions → Secrets** or via **Lovable**:
+
+| Secret | Value |
+|--------|--------|
+| `WHATSAPP_PROVIDER` | `meta` |
+| `WHATSAPP_ACCESS_TOKEN` | From API Setup |
+| `WHATSAPP_PHONE_NUMBER_ID` | From API Setup |
+| `WHATSAPP_VERIFY_TOKEN` | Same as Part D verify token |
+| `WHATSAPP_APP_SECRET` | App → Settings → Basic → App secret |
+| `WHATSAPP_AI_MODE` | `rules` (optional) |
+
+**Lovable prompt (copy):**
+
+```text
+Set Supabase edge secrets on project auofttkyosgjhxcbhscw:
+WHATSAPP_PROVIDER=meta
+WHATSAPP_ACCESS_TOKEN=<from Meta API Setup>
+WHATSAPP_PHONE_NUMBER_ID=<from Meta API Setup>
+WHATSAPP_VERIFY_TOKEN=<same as webhook verify token>
+WHATSAPP_APP_SECRET=<from Meta App Settings Basic>
+WHATSAPP_AI_MODE=rules
+Redeploy whatsapp-webhook and whatsapp-send. Set VITE_WHATSAPP_PROVIDER=meta and Publish.
+```
+
+> **WARNING:** Never paste tokens in email, Slack, or chat. Revoke if leaked.
+
+---
+
+## 9. Part F — End-to-end sandbox test
+
+```flow
+Publish CRM app
+Message sandbox number from test phone
+Thread in CRM WhatsApp
+Assign counselor
+Counselor replies in CRM
+Reply on phone from business number
+```
+
+1. **Publish** in Lovable.
+2. From **test recipient phone**, WhatsApp the **sandbox business number** (on API Setup).
+3. **CRM → WhatsApp** — conversation appears.
+4. Admin/telecaller **assigns** counselor.
+5. Counselor replies in **counselor** box (bottom) — not personal WhatsApp.
+6. Client phone receives reply **from sandbox business number**.
+
+---
+
+## 10. Part G — Real helpline number (go-live)
+
+### G1 — WhatsApp Manager
+
+1. [business.facebook.com](https://business.facebook.com) → **WhatsApp Manager**.
+2. **Phone numbers** → **Add phone number** → enter **helpline**.
+3. Complete SMS/voice verification.
+
+### G2 — Business verification
+
+Start early if Meta prompts — can take several days.
+
+### G3 — Permanent access token
+
+Replace 24h temp token with **System User** token:
+
+1. Business Settings → **System users** → create user.
+2. Assign WhatsApp Business Account + app.
+3. Token permissions: `whatsapp_business_messaging` (and related).
+4. Update `WHATSAPP_ACCESS_TOKEN` in Supabase.
+
+### G4 — Phone number ID
+
+When the **real** line is live, API Setup may show a **new Phone number ID**. Update `WHATSAPP_PHONE_NUMBER_ID` to the helpline line’s ID (not sandbox).
+
+### G5 — Client communication
+
+Clients message **only the helpline**. Staff replies always come from that same number.
+
+---
+
+## 11. Part H — Daily CRM workflow
+
+```navmap
+CRM | /whatsapp | Helpline inbox
+CRM | /leads | Leads from whatsapp_helpline
+Guide | /guides/whatsapp-helpline | Operations guide
+Guide | /guides/whatsapp-meta-team-setup | This guide
+```
+
+| Role | Action |
+|------|--------|
+| Client | Messages **helpline** on WhatsApp |
+| AI rules bot | Intake → YES → lead (unknown numbers) |
+| Telecaller / Admin | Assign or forward in inbox |
+| Counselor | **CRM → WhatsApp** only (assigned threads) |
+| Super admin | All threads |
+
+---
+
+## 12. Troubleshooting
+
+| Problem | Check |
+|---------|--------|
+| Webhook verify fails | Verify token match; function deployed |
+| No CRM thread | `messages` subscribed; function logs |
+| Signature 401 | `WHATSAPP_APP_SECRET` |
+| No reply on phone | `WHATSAPP_PROVIDER=meta`; token; correct Phone number ID |
+| Counselor sees nothing | Thread **assigned**; use CRM not personal WA |
+
+---
+
+## 13. Sign-off checklist (team lead)
+
+- [ ] Sandbox inbound in CRM
+- [ ] Sandbox counselor reply on test phone
+- [ ] Real helpline in WhatsApp Manager
+- [ ] Permanent token + correct Phone number ID
+- [ ] Staff briefed: CRM inbox for helpline
+- [ ] [WhatsApp Helpline guide](/guides/whatsapp-helpline) published in app
