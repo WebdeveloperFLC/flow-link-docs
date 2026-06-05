@@ -21,19 +21,42 @@ export async function listMessages(conversationId: string): Promise<WhatsAppMess
   return (data ?? []) as WhatsAppMessage[];
 }
 
-export async function resolveWhatsAppMediaUrl(messageId: string): Promise<{
+function functionsBaseUrl(): string | null {
+  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  if (url) return url.replace(/\/$/, "");
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
+  return projectId ? `https://${projectId}.supabase.co` : null;
+}
+
+export async function resolveWhatsAppMediaUrl(
+  messageId: string,
+  storagePath?: string | null,
+  mediaProviderId?: string | null,
+): Promise<{
   url: string | null;
   error?: string;
 }> {
-  const refreshed = await supabase.auth.refreshSession();
-  const token = refreshed.data.session?.access_token;
-  if (!token) return { url: null, error: "not signed in" };
+  try {
+    if (storagePath) {
+      const { data, error } = await supabase.storage
+        .from("whatsapp-media")
+        .createSignedUrl(storagePath, 3600);
+      if (!error && data?.signedUrl) return { url: data.signedUrl };
+    }
 
-  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
-  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  const res = await fetch(
-    `https://${projectId}.supabase.co/functions/v1/whatsapp-media-url`,
-    {
+    if (!mediaProviderId) {
+      return { url: null, error: storagePath ? "sign failed" : "no media" };
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) return { url: null, error: "not signed in" };
+
+    const base = functionsBaseUrl();
+    const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+    if (!base || !apikey) return { url: null, error: "missing supabase config" };
+
+    const res = await fetch(`${base}/functions/v1/whatsapp-media-url`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,12 +64,14 @@ export async function resolveWhatsAppMediaUrl(messageId: string): Promise<{
         apikey,
       },
       body: JSON.stringify({ message_id: messageId }),
-    },
-  );
+    });
 
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) return { url: null, error: String(data?.error || res.statusText) };
-  return { url: data?.url ?? null };
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return { url: null, error: String(data?.error || res.statusText) };
+    return { url: data?.url ?? null };
+  } catch (e) {
+    return { url: null, error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function markConversationRead(conversationId: string): Promise<void> {

@@ -43,11 +43,14 @@ function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    resolveWhatsAppMediaUrl(message.id)
+    resolveWhatsAppMediaUrl(message.id, message.media_storage_path, message.media_provider_id)
       .then((res) => {
         if (cancelled) return;
         setUrl(res.url);
         if (!res.url && res.error) setError(res.error);
+      })
+      .catch((e) => {
+        if (!cancelled) setError(String(e?.message || e));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
