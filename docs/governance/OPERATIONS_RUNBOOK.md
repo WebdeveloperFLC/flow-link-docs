@@ -22,7 +22,7 @@ Day-to-day operations for staff and technical owners. For account ownership see 
 | Supabase API | `https://auofttkyosgjhxcbhscw.supabase.co` |
 | GitHub | Source of truth for frontend, migrations, edge functions |
 | Local dev | `npm run dev` (port 8080) |
-| Architecture map | [docs/system-map/00-README.md](./system-map/00-README.md) |
+| Architecture map | [docs/system-map/00-README.md](../system-map/00-README.md) |
 
 **Dashboards (Future Link accounts):**
 
@@ -68,7 +68,7 @@ Run **weekly** (or after any deploy). For a full **monthly** governance pass, se
 - [ ] **Notification email** — send test from invoice/receipt flow; check `app_email_logs`
 - [ ] **WhatsApp** — CRM → WhatsApp → Simulate inbound (staff session)
 - [ ] **TeleCMI** — click-to-call from CRM (if telephony enabled)
-- [ ] **Odoo** — verify `odoo-cron` logs / last sync timestamp
+- [ ] ~~**Odoo**~~ — N/A while integration inactive (deferred cleanup)
 - [ ] Review `auth_emails_dlq` / `transactional_emails_dlq` / `notification_emails_dlq` if queues enabled
 
 ---
@@ -103,8 +103,8 @@ npx supabase db push --project-ref auofttkyosgjhxcbhscw
 
 **Before pushing:**
 
-- Read [09-safety-rules.md](./system-map/09-safety-rules.md) for affected domain
-- Fill [10-change-impact-checklist.md](./system-map/10-change-impact-checklist.md)
+- Read [09-safety-rules.md](../system-map/09-safety-rules.md) for affected domain
+- Fill [10-change-impact-checklist.md](../system-map/10-change-impact-checklist.md)
 - Test migration on a branch/staging project when change is high-risk (RLS, financial triggers)
 
 **Optional seeds:** `supabase/seed/` (manual run in SQL editor — not auto-applied on push)
@@ -201,9 +201,9 @@ See full inventory in [EXIT_STRATEGY.md § User-Owned Secrets](./EXIT_STRATEGY.m
 
 | Task | Reference |
 |---|---|
-| Staff guide | [guides/whatsapp-helpline.md](./guides/whatsapp-helpline.md) |
-| Meta team setup | [guides/whatsapp-meta-team-setup.md](./guides/whatsapp-meta-team-setup.md) |
-| Technical webhook URL | [guides/whatsapp-phase1-meta-setup.md](./guides/whatsapp-phase1-meta-setup.md) |
+| Staff guide | [guides/whatsapp-helpline.md](../guides/whatsapp-helpline.md) |
+| Meta team setup | [guides/whatsapp-meta-team-setup.md](../guides/whatsapp-meta-team-setup.md) |
+| Technical webhook URL | [guides/whatsapp-phase1-meta-setup.md](../guides/whatsapp-phase1-meta-setup.md) |
 
 **Webhook URL:**
 
@@ -219,7 +219,7 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 
 - Pipeline: `notifications-dispatch` → `smtp-send` (or queue when `QUEUE_EMAILS=true`)
 - **Rollback queue:** set `QUEUE_EMAILS=false` on **both** `notifications-dispatch` and `process-notification-email-queue`
-- Debug: [flows/notifications-email-smtp.md](./system-map/flows/notifications-email-smtp.md)
+- Debug: [flows/notifications-email-smtp.md](../system-map/flows/notifications-email-smtp.md)
 - Logs: `app_email_logs` table
 
 ### Transactional / assessment email (Lovable)
@@ -236,7 +236,9 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 
 ### Odoo
 
-- Sync: `odoo-sync` (on demand), `odoo-cron` (every 5 min)
+> **Inactive (2026-06):** Integration disabled in `integration_settings`; no active business workflows depend on Odoo. Edge functions, cron job, secrets, and schema columns are **retained for historical compatibility** until a future infrastructure cleanup phase. Skip weekly Odoo checks below unless re-enabling.
+
+- Sync: `odoo-sync` (on demand), `odoo-cron` (every 5 min) — dormant when `enabled = false`
 - Secrets: `ODOO_URL`, `ODOO_DB`, `ODOO_LOGIN`, `ODOO_API_KEY`
 - API bridge: `odoo-api`
 
@@ -261,7 +263,7 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 1. Check `app_email_logs` for error rows
 2. Verify entity/global SMTP in CRM Settings
 3. If `QUEUE_EMAILS=true`: confirm `process-notification-email-queue` cron running; check `notification_emails_dlq`
-4. See [notifications-email-smtp.md](./system-map/flows/notifications-email-smtp.md) debug tags
+4. See [notifications-email-smtp.md](../system-map/flows/notifications-email-smtp.md) debug tags
 
 ### Assessment / invite emails not sending
 
@@ -337,7 +339,7 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 1. **Clone** GitHub repo
 2. **Copy** `.env.example` → `.env`; fill `VITE_*` from team vault
 3. **`npm ci`** then **`npm run dev`**
-4. **Change** with system map: read [09-safety-rules.md](./system-map/09-safety-rules.md) first
+4. **Change** with system map: read [09-safety-rules.md](../system-map/09-safety-rules.md) first
 5. **PR** to GitHub with change-impact checklist
 6. **Deploy** migrations + functions + Lovable publish per sections above
 
@@ -361,9 +363,9 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 | [MONTHLY_AUDIT.md](./MONTHLY_AUDIT.md) | Monthly governance checklist |
 | [GOVERNANCE_INDEX.md](./GOVERNANCE_INDEX.md) | Master registry of governance docs |
 | [EXIT_STRATEGY.md](./EXIT_STRATEGY.md) | Ownership scorecard, Lovable dependencies, DR plan |
-| [system-map/00-README.md](./system-map/00-README.md) | Architecture index |
-| [system-map/03-backend-map.md](./system-map/03-backend-map.md) | Edge functions & cron |
-| [system-map/09-safety-rules.md](./system-map/09-safety-rules.md) | Non-negotiable build rules |
-| [guides/whatsapp-helpline.md](./guides/whatsapp-helpline.md) | WhatsApp staff operations |
+| [system-map/00-README.md](../system-map/00-README.md) | Architecture index |
+| [system-map/03-backend-map.md](../system-map/03-backend-map.md) | Edge functions & cron |
+| [system-map/09-safety-rules.md](../system-map/09-safety-rules.md) | Non-negotiable build rules |
+| [guides/whatsapp-helpline.md](../guides/whatsapp-helpline.md) | WhatsApp staff operations |
 
 **Review this runbook quarterly** alongside EXIT_STRATEGY.

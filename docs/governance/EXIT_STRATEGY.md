@@ -456,6 +456,6 @@ Review this document **quarterly** and update the audit date, function counts, a
 - [MONTHLY_AUDIT.md](./MONTHLY_AUDIT.md) — monthly governance checklist
 - [GOVERNANCE_INDEX.md](./GOVERNANCE_INDEX.md) — master registry of governance docs
 - [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) — day-to-day deploy, secrets, cron, troubleshooting
-- [system-map/01-system-overview.md](./system-map/01-system-overview.md) — stack overview
-- [guides/whatsapp-phase1-meta-setup.md](./guides/whatsapp-phase1-meta-setup.md) — webhook URL and deploy
+- [system-map/01-system-overview.md](../system-map/01-system-overview.md) — stack overview
+- [guides/whatsapp-phase1-meta-setup.md](../guides/whatsapp-phase1-meta-setup.md) — webhook URL and deploy
 - `scripts/deploy-whatsapp.sh` — CLI deploy without Lovable UI

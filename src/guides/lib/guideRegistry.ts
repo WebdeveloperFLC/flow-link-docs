@@ -4,8 +4,22 @@ import type { StaffGuideDef } from "./guideTypes";
  * Register staff guides here. Add a markdown file under `docs/guides/` and a
  * matching entry in this list — the sidebar and index page update automatically.
  *
- * Index: docs/guides/README.md
+ * **Governance separation:** Administrative and infrastructure governance docs live
+ * under `docs/governance/` and must never appear in STAFF_GUIDES or the CRM Guides
+ * module. Staff guides are SOPs, training, workflows, and process documentation only.
+ *
+ * Index: docs/guides/README.md | Governance: docs/governance/GOVERNANCE_INDEX.md
  */
+
+/** Filenames that must never be registered or loaded via the Guides UI. */
+export const GOVERNANCE_CONTENT_DENYLIST = [
+  "GOVERNANCE_INDEX.md",
+  "EXIT_STRATEGY.md",
+  "OPERATIONS_RUNBOOK.md",
+  "ACCESS_REGISTER.md",
+  "OWNERSHIP_MATRIX.md",
+  "MONTHLY_AUDIT.md",
+] as const;
 export const STAFF_GUIDES: StaffGuideDef[] = [
   // —— SOP ——
   {
@@ -100,11 +114,31 @@ export const STAFF_GUIDES: StaffGuideDef[] = [
   },
 ];
 
+/** Staff guides only — intentionally excludes `docs/governance/`. */
 const contentModules = import.meta.glob("../../../docs/guides/*.md", {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
+
+function assertStaffGuidesPolicy(): void {
+  const denylist = GOVERNANCE_CONTENT_DENYLIST as readonly string[];
+  for (const guide of STAFF_GUIDES) {
+    if (denylist.includes(guide.contentFile)) {
+      throw new Error(
+        `[Guides] "${guide.slug}" references governance file "${guide.contentFile}". ` +
+          "Governance docs belong in docs/governance/ and must not be exposed in CRM Guides.",
+      );
+    }
+    if (guide.contentFile.includes("/") || guide.contentFile.includes("..")) {
+      throw new Error(
+        `[Guides] "${guide.slug}" contentFile must be a bare filename under docs/guides/.`,
+      );
+    }
+  }
+}
+
+assertStaffGuidesPolicy();
 
 function contentPathFor(file: string): string | undefined {
   return Object.keys(contentModules).find((k) => k.endsWith(`/${file}`));

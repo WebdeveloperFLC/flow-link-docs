@@ -191,4 +191,4 @@ Future Link is **data controller** for client data. Subprocessors include Supaba
 | [GOVERNANCE_INDEX.md](./GOVERNANCE_INDEX.md) | Master registry of governance docs |
 | [EXIT_STRATEGY.md](./EXIT_STRATEGY.md) | Scorecard, Lovable dependencies, disaster recovery |
 | [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md) | Deploy, cron, troubleshooting |
-| [system-map/00-README.md](./system-map/00-README.md) | Technical architecture index |
+| [system-map/00-README.md](../system-map/00-README.md) | Technical architecture index |

@@ -38,9 +38,7 @@ Document package complete
 
 ## 4. Visa approval tracking
 
-Monthly ops audit counts visa approvals via `client_timeline` — see [MONTHLY_AUDIT.md](../MONTHLY_AUDIT.md) § 12.12.
-
-Confirm your approval status slug (`visa_approved`, `approved`, etc.) matches masters.
+Operations tracks monthly visa approval counts via `client_timeline` (`event_type = 'status_change'`). Confirm your approval status slug (`visa_approved`, `approved`, etc.) matches **Settings → Masters → Client Statuses**.
 
 ---
 

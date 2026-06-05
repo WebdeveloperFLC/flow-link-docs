@@ -97,9 +97,9 @@ Staff permissions inside the CRM (counselor, admin, accounting, institutions tie
 
 | Topic | Document |
 |---|---|
-| Roles & modules | [system-map/05-roles-and-permissions.md](./system-map/05-roles-and-permissions.md) |
-| Institutions two-tier access | [guides/institutions-module.md](./guides/institutions-module.md) § 3 |
-| Portal client access | [system-map/flows/portal-access.md](./system-map/flows/portal-access.md) |
+| Roles & modules | [system-map/05-roles-and-permissions.md](../system-map/05-roles-and-permissions.md) |
+| Institutions two-tier access | [guides/institutions-module.md](../guides/institutions-module.md) § 3 |
+| Portal client access | [system-map/flows/portal-access.md](../system-map/flows/portal-access.md) |
 | User provisioning | CRM → Settings → Users (`admin-users` edge function) |
 
 **Infrastructure vs CRM:** This register covers **vendor and platform** access. CRM admins grant module permissions without needing Supabase dashboard access.
