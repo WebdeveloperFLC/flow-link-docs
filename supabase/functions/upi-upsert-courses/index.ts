@@ -101,14 +101,15 @@ Deno.serve(async (req) => {
           const lvlId = resolveLevelId(fromMeta);
           if (lvlId) known.program_level_id = lvlId;
         }
-        // Dedup hash now includes program_level and campus so multi-campus / multi-level
-        // programs with the same title don't collapse into a single staging row.
-        const titleKey = canonicalTitle(String(known.course_title), String(known.program_level ?? ""));
-        const levelKey = String(known.program_level ?? "").toLowerCase().trim();
+        // Dedup by institution + canonical title + level + campus.
+        // Do NOT include source_url — the same program may arrive from different URLs or re-syncs.
+        const levelText = String((metadata as any).program_level ?? known.program_level ?? "")
+          .toLowerCase()
+          .trim();
+        const titleKey = canonicalTitle(String(known.course_title), levelText);
         const campusKey = String(known.campus_name ?? "").toLowerCase().trim();
-        const urlKey = String(known.source_url ?? "").trim();
         const dedup = await sha256Hex(
-          `${known.institution_id ?? ""}||${titleKey}||${levelKey}||${campusKey}||${urlKey}`,
+          `${known.institution_id ?? ""}||${titleKey}||${known.program_level_id ?? ""}||${levelText}||${campusKey}`,
         );
 
         const { data: existing } = await supabase.from("upi_courses_staging")

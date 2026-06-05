@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
 import type { UpiCourseStaging } from "../types/upi";
+import { buildCourseDedupKey, computeCourseDedupHash } from "../lib/courseDedup";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
@@ -225,6 +226,28 @@ export default function CourseReviewPage() {
     load();
   };
 
+  const deleteRows = async (ids: string[]) => {
+    if (!canEdit) return toast.error("View-only access — cannot delete courses");
+    if (!ids.length) return;
+    const targets = rows.filter((r) => ids.includes(r.id));
+    const publishedCount = targets.filter((r) => r.review_status === "published").length;
+    const label = ids.length === 1 ? "this program" : `${ids.length} programs`;
+    const publishedNote =
+      publishedCount > 0
+        ? ` ${publishedCount} ${publishedCount === 1 ? "is" : "are"} published to Course Finder and will be removed from the review queue only (not from Course Finder).`
+        : "";
+    if (!window.confirm(`Permanently delete ${label}?${publishedNote} This cannot be undone.`)) return;
+
+    const { error, count } = await supabase
+      .from("upi_courses_staging")
+      .delete({ count: "exact" })
+      .in("id", ids);
+    if (error) return toast.error(error.message);
+    const deleted = count ?? ids.length;
+    toast.success(`Deleted ${deleted} program${deleted === 1 ? "" : "s"}`);
+    load();
+  };
+
   const toggle = (id: string) => {
     const s = new Set(selected);
     s.has(id) ? s.delete(id) : s.add(id);
@@ -351,6 +374,9 @@ export default function CourseReviewPage() {
               <Button size="sm" variant="outline" onClick={() => publish(selectedIds)}>
                 <Upload className="size-4 mr-1" /> Bulk Publish
               </Button>
+              <Button size="sm" variant="destructive" onClick={() => deleteRows(selectedIds)}>
+                <Trash2 className="size-4 mr-1" /> Bulk Delete
+              </Button>
             </div>
           )}
         </Card>
@@ -450,6 +476,15 @@ export default function CourseReviewPage() {
                         <Button size="sm" variant="ghost" onClick={() => setEditing(r)}>
                           <Pencil className="size-4" />
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-destructive hover:text-destructive"
+                          title="Delete program"
+                          onClick={() => deleteRows([r.id])}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
                         {r.review_status === "published" && r.published_course_id ? (
                           <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
                             <Link to={`/course-finder?courseId=${r.published_course_id}`} target="_blank">
@@ -541,7 +576,19 @@ function EditSheet({
         metadata[e.key] = e.value;
       }
     }
-    const patch: any = { ...draft, metadata };
+    const levelName = levels.find((l) => l.id === draft.program_level_id)?.name ?? null;
+    const programLevel =
+      typeof metadata.program_level === "string" ? metadata.program_level : (levelName ?? "");
+    const dedup_hash = await computeCourseDedupHash(
+      buildCourseDedupKey({
+        institution_id: draft.institution_id,
+        course_title: draft.course_title,
+        program_level_id: draft.program_level_id,
+        program_level: programLevel,
+        campus_name: draft.campus_name,
+      }),
+    );
+    const patch: any = { ...draft, metadata, dedup_hash };
     delete patch.id;
     delete patch.extracted_at;
     delete patch.updated_at;
