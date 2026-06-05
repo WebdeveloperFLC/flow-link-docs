@@ -36,11 +36,7 @@ function MessageMediaPreview({ message }: { message: WhatsAppMessage }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const hasMedia = !!(
-    message.media_storage_path
-    || message.media_provider_id
-    || (message.message_type && message.message_type !== "text")
-  );
+  const hasMedia = !!(message.media_storage_path || message.media_provider_id);
 
   useEffect(() => {
     if (!hasMedia) return;
