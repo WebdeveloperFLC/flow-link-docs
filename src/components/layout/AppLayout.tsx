@@ -17,6 +17,7 @@ import {
   Phone,
   KeyRound,
   MessageSquare,
+  MessageCircle,
   Headphones,
   Tag,
   ClipboardCheck,
@@ -95,6 +96,12 @@ const crmNav: NavItem[] = [
   { to: "/clients", icon: Users, label: "Clients" },
   { to: "/clients/new", icon: UserPlus, label: "+ New Client" },
   { to: "/messages", icon: MessageSquare, label: "Messages" },
+  {
+    to: "/whatsapp",
+    icon: MessageCircle,
+    label: "WhatsApp",
+    roles: ["admin", "administrator", "counselor", "telecaller", "documentation"],
+  },
   { to: "/telecaller", icon: Headphones, label: "Telecaller", roles: ["telecaller", "admin", "counselor"] },
   { to: "/course-finder", icon: GraduationCap, label: "Course finder" },
 

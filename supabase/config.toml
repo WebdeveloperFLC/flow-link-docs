@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.offers-lifecycle-tick]
 verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
