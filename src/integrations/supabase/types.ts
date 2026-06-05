@@ -3748,6 +3748,90 @@ export type Database = {
         }
         Relationships: []
       }
+      cf_client_programs: {
+        Row: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at: string
+          finalized_at: string | null
+          finalized_by: string | null
+          id: string
+          is_primary: boolean
+          notes: string | null
+          shortlisted_at: string
+          shortlisted_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          country_code: string
+          course_id: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          country_code?: string
+          course_id?: string
+          created_at?: string
+          finalized_at?: string | null
+          finalized_by?: string | null
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          shortlisted_at?: string
+          shortlisted_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "cf_countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "cf_client_programs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "cf_courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cf_countries: {
         Row: {
           code: string
@@ -3903,76 +3987,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cf_universities"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      cf_client_programs: {
-        Row: {
-          client_id: string
-          country_code: string
-          course_id: string
-          created_at: string
-          finalized_at: string | null
-          finalized_by: string | null
-          id: string
-          is_primary: boolean
-          notes: string | null
-          shortlisted_at: string
-          shortlisted_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          client_id: string
-          country_code: string
-          course_id: string
-          created_at?: string
-          finalized_at?: string | null
-          finalized_by?: string | null
-          id?: string
-          is_primary?: boolean
-          notes?: string | null
-          shortlisted_at?: string
-          shortlisted_by?: string | null
-          status: string
-          updated_at?: string
-        }
-        Update: {
-          client_id?: string
-          country_code?: string
-          course_id?: string
-          created_at?: string
-          finalized_at?: string | null
-          finalized_by?: string | null
-          id?: string
-          is_primary?: boolean
-          notes?: string | null
-          shortlisted_at?: string
-          shortlisted_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cf_client_programs_client_id_fkey"
-            columns: ["client_id"]
-            isOneToOne: false
-            referencedRelation: "clients"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "cf_courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cf_client_programs_country_code_fkey"
-            columns: ["country_code"]
-            isOneToOne: false
-            referencedRelation: "cf_countries"
-            referencedColumns: ["code"]
           },
         ]
       }
@@ -14860,6 +14874,127 @@ export type Database = {
           },
         ]
       }
+      whatsapp_conversations: {
+        Row: {
+          ai_mode: string
+          assigned_user_id: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          intake_data: Json
+          last_inbound_at: string | null
+          last_message_at: string | null
+          lead_id: string | null
+          phone_display: string | null
+          phone_e164: string
+          status: string
+          unread_count_staff: number
+          updated_at: string
+        }
+        Insert: {
+          ai_mode?: string
+          assigned_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          intake_data?: Json
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          lead_id?: string | null
+          phone_display?: string | null
+          phone_e164: string
+          status?: string
+          unread_count_staff?: number
+          updated_at?: string
+        }
+        Update: {
+          ai_mode?: string
+          assigned_user_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          intake_data?: Json
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          lead_id?: string | null
+          phone_display?: string | null
+          phone_e164?: string
+          status?: string
+          unread_count_staff?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "v_clients_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "vw_client_current_stage"
+            referencedColumns: ["client_id"]
+          },
+          {
+            foreignKeyName: "whatsapp_conversations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          direction: string
+          id: string
+          provider_message_id: string | null
+          sent_by: string
+          sent_by_user_id: string | null
+        }
+        Insert: {
+          body: string
+          conversation_id: string
+          created_at?: string
+          direction: string
+          id?: string
+          provider_message_id?: string | null
+          sent_by?: string
+          sent_by_user_id?: string | null
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          id?: string
+          provider_message_id?: string | null
+          sent_by?: string
+          sent_by_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workflow_templates: {
         Row: {
           category: string
@@ -15410,6 +15545,8 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      can_manage_upi_catalog: { Args: { _uid: string }; Returns: boolean }
+      can_manage_upi_confidential: { Args: { _uid: string }; Returns: boolean }
       can_upload_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -15418,6 +15555,8 @@ export type Database = {
         Args: { _cid: string; _uid: string }
         Returns: boolean
       }
+      can_view_upi_catalog: { Args: { _uid: string }; Returns: boolean }
+      can_view_upi_confidential: { Args: { _uid: string }; Returns: boolean }
       claim_next_queue_item: {
         Args: { _agent_id: string; _campaign_id?: string }
         Returns: {
@@ -15774,6 +15913,10 @@ export type Database = {
       is_client_staff_editor: { Args: { _uid: string }; Returns: boolean }
       is_client_staff_viewer: { Args: { _uid: string }; Returns: boolean }
       is_commission_admin: { Args: { _uid: string }; Returns: boolean }
+      is_confidential_upi_document: {
+        Args: { _metadata: Json }
+        Returns: boolean
+      }
       is_portal_user_for: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -15841,6 +15984,7 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_phone_digits: { Args: { p_raw: string }; Returns: string }
       offer_roi_stats: {
         Args: { _date_from?: string; _date_to?: string }
         Returns: {
@@ -15888,6 +16032,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      phone_digits_match: { Args: { a: string; b: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -15916,6 +16061,14 @@ export type Database = {
         Returns: boolean
       }
       user_telephony_agent_id: { Args: { _uid: string }; Returns: string }
+      whatsapp_can_edit_conversation: {
+        Args: { _conv_id: string; _uid: string }
+        Returns: boolean
+      }
+      whatsapp_can_view_conversation: {
+        Args: { _conv_id: string; _uid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
