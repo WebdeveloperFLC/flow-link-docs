@@ -67,6 +67,7 @@ export async function resolveWhatsAppMediaUrl(
 ): Promise<{
   url: string | null;
   error?: string;
+  hint?: string;
 }> {
   try {
     if (storagePath) {
@@ -100,6 +101,13 @@ export async function resolveWhatsAppMediaUrl(
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { url: null, error: String(data?.error || res.statusText) };
+    if (data?.error) {
+      return {
+        url: null,
+        error: String(data.error),
+        hint: data.hint ? String(data.hint) : undefined,
+      };
+    }
     return { url: data?.url ?? null };
   } catch (e) {
     return { url: null, error: e instanceof Error ? e.message : String(e) };
