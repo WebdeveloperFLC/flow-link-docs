@@ -104,8 +104,23 @@ export function GuideStatusPipeline({ lines }: { lines: string[] }) {
               s === "pending_review" && "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
               s === "rejected" && "bg-destructive/15 text-destructive",
               s === "needs_update" && "bg-orange-500/15 text-orange-700",
-              !["published", "approved", "pending_review", "rejected", "needs_update"].includes(s) &&
-                "bg-muted text-foreground",
+              s === "unmatched_ai_intake" && "bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+              s === "awaiting_assignment_confirm" && "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+              s === "assigned_active" && "bg-primary/15 text-primary",
+              s === "existing_client" && "bg-success/15 text-success",
+              s === "closed" && "bg-muted text-muted-foreground",
+              ![
+                "published",
+                "approved",
+                "pending_review",
+                "rejected",
+                "needs_update",
+                "unmatched_ai_intake",
+                "awaiting_assignment_confirm",
+                "assigned_active",
+                "existing_client",
+                "closed",
+              ].includes(s) && "bg-muted text-foreground",
             )}
           >
             {s.replace(/_/g, " ")}
