@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowRightLeft,
   ArrowUpRight,
   Building2,
   CalendarClock,
@@ -9,12 +11,13 @@ import {
   FileText,
   Flame,
   GraduationCap,
+  Globe,
   Handshake,
   ListChecks,
   Loader2,
   MessageCircle,
-  Percent,
   Phone,
+  PhoneForwarded,
   Receipt,
   Sparkles,
   Stamp,
@@ -24,16 +27,14 @@ import {
   UserPlus,
   Users,
   Workflow,
+  Info,
 } from "lucide-react";
 import {
   Bar,
   BarChart,
   Cell,
-  Legend,
-  Pie,
-  PieChart,
   ResponsiveContainer,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -46,18 +47,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useDashboardV2Data } from "../hooks/useDashboardV2Data";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
 import {
-  aggregateAgingBuckets,
-  aggregateCallsByDay,
-  buildLeadTemperatureData,
-} from "../lib/aggregations";
-
-const TEMP_COLORS: Record<string, string> = {
-  hot: "#ef4444",
-  warm: "#f59e0b",
-  cold: "#3b82f6",
-};
+  useDashboardExecutiveData,
+  useDashboardModuleData,
+  useDashboardOperationsData,
+} from "../hooks/useDashboardV2Data";
+import {
+  getDashboardVisibility,
+  profileLabel,
+  resolveDashboardProfile,
+  type ExecutiveMode,
+  type OperationsMode,
+} from "../config/dashboardVisibility";
+import type { DashboardExecutiveData, DashboardModuleData, DashboardOperationsData } from "../types";
+import { DashboardMigrationBanner } from "./DashboardMigrationBanner";
+import { KPI_TOOLTIPS } from "../config/kpiTooltips";
+import {
+  DASHBOARD_ASSESSMENTS_KPI,
+  DASHBOARD_OFFERS_WIDGETS,
+  DASHBOARD_WHATSAPP_KPI,
+} from "../config/featureFlags";
+import { aggregateAgingBuckets } from "../lib/aggregations";
 
 const AGING_COLORS: Record<string, string> = {
   current: "hsl(var(--primary))",
@@ -65,6 +78,16 @@ const AGING_COLORS: Record<string, string> = {
   "8-15": "#f97316",
   "16-30": "#ef4444",
   "30+": "#991b1b",
+};
+
+type KpiItem = {
+  label: string;
+  value: string | number;
+  icon: typeof Users;
+  tone: StatTone;
+  hint?: string;
+  to?: string;
+  info?: string;
 };
 
 function fmtMoney(value: number) {
@@ -85,112 +108,241 @@ function KpiSkeleton() {
   );
 }
 
+function ChartTitleWithInfo({ title, info }: { title: string; info: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span>{title}</span>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex rounded-sm text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`About ${title}`}
+            >
+              <Info className="size-3.5" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs font-normal">
+            {info}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </div>
+  );
+}
+
+function ZoneSection({
+  title,
+  subtitle,
+  children,
+  className,
+}: {
+  title: string;
+  subtitle?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={cn("space-y-4", className)} aria-label={title}>
+      <div className="border-b border-border pb-3">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">{title}</h2>
+        {subtitle ? <p className="text-xs text-muted-foreground mt-1">{subtitle}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function KpiGrid({ items, isLoading, skeletonCount, gridClass }: { items: KpiItem[]; isLoading: boolean; skeletonCount: number; gridClass: string }) {
+  return (
+    <div className={cn("grid grid-cols-2 md:grid-cols-4 gap-3", gridClass)}>
+      {isLoading
+        ? Array.from({ length: skeletonCount }).map((_, i) => <KpiSkeleton key={i} />)
+        : items.map((kpi) => (
+            <StatCard
+              key={kpi.label}
+              label={kpi.label}
+              value={kpi.value}
+              icon={kpi.icon}
+              tone={kpi.tone}
+              hint={kpi.hint}
+              to={kpi.to}
+              info={kpi.info}
+            />
+          ))}
+    </div>
+  );
+}
+
+function buildExecutiveKpis(executive: DashboardExecutiveData, mode: ExecutiveMode): KpiItem[] {
+  if (mode === "revenue") {
+    return [
+      {
+        label: "Outstanding AR",
+        value: fmtMoney(executive.outstandingAr),
+        icon: Receipt,
+        tone: "review",
+        hint: executive.overdueInvoices ? `${executive.overdueInvoices} overdue` : undefined,
+        info: KPI_TOOLTIPS.outstandingAr,
+      },
+      { label: "Collected (30d)", value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", info: KPI_TOOLTIPS.collected30d },
+      { label: "Invoiced (30d)", value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", info: KPI_TOOLTIPS.invoiced30d },
+      { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", info: KPI_TOOLTIPS.collectionRate },
+    ];
+  }
+
+  if (mode === "summary") {
+    return [
+      { label: "Enrollments", value: executive.admissions.enrollments, icon: GraduationCap, tone: "binders", to: "/clients", info: KPI_TOOLTIPS.enrollments },
+      { label: "New Apps (30d)", value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
+      {
+        label: "Hot Leads",
+        value: executive.hotLeads,
+        icon: Flame,
+        tone: "review",
+        hint: `${executive.totalLeads} total`,
+        to: "/leads",
+        info: KPI_TOOLTIPS.hotLeads,
+      },
+      { label: "Total Clients", value: executive.clients, icon: Users, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.totalClients },
+    ];
+  }
+
+  return [
+    { label: "Enrollments", value: executive.admissions.enrollments, icon: GraduationCap, tone: "binders", to: "/clients", info: KPI_TOOLTIPS.enrollments },
+    { label: "New Apps (30d)", value: executive.admissions.newApplications30d, icon: FileText, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.newApps30d },
+    { label: "Study Permits", value: executive.admissions.studyPermits, icon: Stamp, tone: "ai", info: KPI_TOOLTIPS.studyPermits },
+    {
+      label: "Outstanding AR",
+      value: fmtMoney(executive.outstandingAr),
+      icon: Receipt,
+      tone: "review",
+      hint: executive.overdueInvoices ? `${executive.overdueInvoices} overdue` : undefined,
+      info: KPI_TOOLTIPS.outstandingAr,
+    },
+    { label: "Collected (30d)", value: fmtMoney(executive.revenue.collected30d), icon: DollarSign, tone: "binders", info: KPI_TOOLTIPS.collected30d },
+    { label: "Invoiced (30d)", value: fmtMoney(executive.revenue.invoiced30d), icon: Receipt, tone: "clients", info: KPI_TOOLTIPS.invoiced30d },
+    { label: "Collection Rate", value: `${executive.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review", info: KPI_TOOLTIPS.collectionRate },
+  ];
+}
+
+function buildOperationsKpis(executive: DashboardExecutiveData | undefined, operations: DashboardOperationsData, mode: OperationsMode): KpiItem[] {
+  const handoffKpi: KpiItem = {
+    label: "Pending Handoffs",
+    value: operations.pendingHandoffs,
+    icon: ArrowRightLeft,
+    tone: "review",
+    to: "/telecaller",
+    info: KPI_TOOLTIPS.pendingHandoffs,
+  };
+
+  if (mode === "counselor") {
+    return [
+      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+      { label: "Bookings (7d)", value: operations.upcomingBookings, icon: CalendarClock, tone: "ai", to: "/calendar" },
+      handoffKpi,
+    ];
+  }
+
+  if (mode === "telecaller") {
+    return [
+      { label: "Pending Callbacks", value: operations.pendingCallbacks, icon: PhoneForwarded, tone: "documents", to: "/reports" },
+      { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+      handoffKpi,
+    ];
+  }
+
+  return [
+    { label: "Overdue Tasks", value: operations.overdueTasks, icon: ListChecks, tone: "institutions" },
+    { label: "Bookings (7d)", value: operations.upcomingBookings, icon: CalendarClock, tone: "ai", to: "/calendar" },
+    { label: "Pending Callbacks", value: operations.pendingCallbacks, icon: PhoneForwarded, tone: "documents", to: "/reports" },
+    handoffKpi,
+    {
+      label: "Hot Leads",
+      value: executive?.hotLeads ?? 0,
+      icon: Flame,
+      tone: "review",
+      hint: executive ? `${executive.totalLeads} total` : undefined,
+      to: "/leads",
+      info: KPI_TOOLTIPS.hotLeads,
+    },
+    { label: "Open Leads", value: operations.admissions.openFormalLeads, icon: Users, tone: "institutions", to: "/leads", info: KPI_TOOLTIPS.openLeads },
+    { label: "Final Programs", value: operations.admissions.finalPrograms, icon: Target, tone: "documents" },
+    { label: "Total Clients", value: executive?.clients ?? 0, icon: Users, tone: "clients", to: "/clients", info: KPI_TOOLTIPS.totalClients },
+    ...(DASHBOARD_ASSESSMENTS_KPI
+      ? [{ label: "Assessments Done", value: operations.admissions.assessmentsCompleted, icon: ClipboardList, tone: "documents" as StatTone }]
+      : []),
+  ];
+}
+
+function buildUpiCards(module: DashboardModuleData): KpiItem[] {
+  return [
+    { label: "Active Institutions", value: module.upi.institutions, icon: Building2, tone: "institutions", to: "/institutions" },
+    { label: "Partner Institutions", value: module.upi.partners, icon: Handshake, tone: "binders", to: "/institutions" },
+    { label: "Courses Pending Review", value: module.upi.coursesPending, icon: ListChecks, tone: "review", to: "/institutions/review" },
+    { label: "AI Suggestions Pending", value: module.upi.suggestionsPending, icon: Sparkles, tone: "ai", to: "/institutions/suggestions" },
+    {
+      label: "Commission Expected",
+      value: fmtMoney(module.revenue.commissionExpected),
+      icon: Building2,
+      tone: "institutions",
+      to: "/institutions",
+      info: KPI_TOOLTIPS.commissionExpected,
+    },
+  ];
+}
+
 export function DashboardV2() {
-  const { user } = useAuth();
-  const { data, isLoading, isError, refetch } = useDashboardV2Data();
+  const { user, roles, isAdmin, isCommissionAdmin, loading: authLoading } = useAuth();
+  const visibility = useMemo(
+    () => getDashboardVisibility(resolveDashboardProfile(roles, { isAdmin, isCommissionAdmin })),
+    [roles, isAdmin, isCommissionAdmin],
+  );
+
+  const executiveQuery = useDashboardExecutiveData(visibility.executive.mode);
+  const operationsQuery = useDashboardOperationsData(visibility.operations.enabled, visibility.operations.mode);
+  const moduleQuery = useDashboardModuleData(visibility.modules.enabled);
+
+  const executive = executiveQuery.data;
+  const operations = operationsQuery.data;
+  const moduleData = moduleQuery.data;
+
   const [selectedPipeline, setSelectedPipeline] = useState("");
 
-  const callsByDay = useMemo(() => (data ? aggregateCallsByDay(data.calls) : []), [data]);
-  const tempData = useMemo(() => (data ? buildLeadTemperatureData(data.funnel) : []), [data]);
-  const agingData = useMemo(() => (data ? aggregateAgingBuckets(data.aging) : []), [data]);
+  const agingData = useMemo(() => (executive ? aggregateAgingBuckets(executive.aging) : []), [executive]);
 
   const pipelines = useMemo(() => {
-    if (!data?.stageDist.length) return [];
-    return Array.from(new Map(data.stageDist.map((row) => [row.pipeline_id, row])).values());
-  }, [data?.stageDist]);
+    if (!executive?.stageDist.length) return [];
+    return Array.from(new Map(executive.stageDist.map((row) => [row.pipeline_id, row])).values());
+  }, [executive?.stageDist]);
 
   const activePipeline = selectedPipeline || pipelines[0]?.pipeline_id || "";
-  const stageChartData = data?.stageDist.filter((row) => row.pipeline_id === activePipeline) ?? [];
+  const stageChartData = executive?.stageDist.filter((row) => row.pipeline_id === activePipeline) ?? [];
+  const statusChartData = executive?.applicationsByStatus.slice(0, 10) ?? [];
 
-  const kpis: { label: string; value: string | number; icon: typeof Users; tone: StatTone; hint?: string; to?: string }[] =
-    data
-      ? [
-          { label: "Total Clients", value: data.clients, icon: Users, tone: "clients", to: "/clients" },
-          {
-            label: "Hot Leads",
-            value: data.hotLeads,
-            icon: Flame,
-            tone: "review",
-            hint: `${data.totalLeads} total`,
-            to: "/leads",
-          },
-          { label: "Calls (30d)", value: data.totalCalls, icon: Phone, tone: "documents", to: "/reports" },
-          {
-            label: "Answer Rate",
-            value: `${data.answerRate}%`,
-            icon: Phone,
-            tone: "binders",
-            to: "/reports",
-          },
-          {
-            label: "Outstanding AR",
-            value: fmtMoney(data.outstandingAr),
-            icon: Receipt,
-            tone: "review",
-            hint: data.overdueInvoices ? `${data.overdueInvoices} overdue` : undefined,
-          },
-          {
-            label: "Overdue Tasks",
-            value: data.overdueTasks,
-            icon: ListChecks,
-            tone: "institutions",
-          },
-          {
-            label: "Bookings (7d)",
-            value: data.upcomingBookings,
-            icon: CalendarClock,
-            tone: "ai",
-            to: "/calendar",
-          },
-          {
-            label: "WhatsApp Queue",
-            value: data.whatsappQueue,
-            icon: MessageCircle,
-            tone: "documents",
-            to: "/whatsapp",
-          },
-        ]
-      : [];
+  const executiveKpis = executive ? buildExecutiveKpis(executive, visibility.executive.mode) : [];
+  const operationsKpis = operations ? buildOperationsKpis(executive, operations, visibility.operations.mode) : [];
+  const upiCards = moduleData ? buildUpiCards(moduleData) : [];
 
-  const upiCards = data
-    ? [
-        { label: "Active Institutions", value: data.upi.institutions, icon: Building2, tone: "institutions" as StatTone, to: "/institutions" },
-        { label: "Partner Institutions", value: data.upi.partners, icon: Handshake, tone: "binders" as StatTone, to: "/institutions" },
-        { label: "Courses Pending Review", value: data.upi.coursesPending, icon: ListChecks, tone: "review" as StatTone, to: "/institutions/review" },
-        { label: "AI Suggestions Pending", value: data.upi.suggestionsPending, icon: Sparkles, tone: "ai" as StatTone, to: "/institutions/suggestions" },
-      ]
-    : [];
+  const showExecutiveCharts = visibility.executive.mode === "full";
+  const showCountryIntake = visibility.executive.mode === "full";
+  const showArAging = visibility.executive.mode === "full" || visibility.executive.mode === "revenue";
+  const showRecentClients = visibility.operations.mode === "full" || visibility.operations.mode === "counselor";
+  const showTeamPerformanceCta = visibility.operations.mode === "full" || visibility.operations.mode === "telecaller";
 
-  const admissionsKpis = data
-    ? [
-        { label: "Enrollments", value: data.admissions.enrollments, icon: GraduationCap, tone: "binders" as StatTone, to: "/clients" },
-        { label: "New Apps (30d)", value: data.admissions.newApplications30d, icon: FileText, tone: "clients" as StatTone, to: "/clients" },
-        { label: "Final Programs", value: data.admissions.finalPrograms, icon: Target, tone: "documents" as StatTone },
-        { label: "Lead Conversion", value: `${data.admissions.leadConversionPct}%`, icon: Percent, tone: "review" as StatTone, to: "/leads" },
-        { label: "Open Leads", value: data.admissions.openFormalLeads, icon: Users, tone: "institutions" as StatTone, to: "/leads" },
-        { label: "Study Permits", value: data.admissions.studyPermits, icon: Stamp, tone: "ai" as StatTone },
-        { label: "Assessments Done", value: data.admissions.assessmentsCompleted, icon: ClipboardList, tone: "documents" as StatTone },
-      ]
-    : [];
+  const executiveLoading = authLoading || executiveQuery.isLoading;
+  const operationsLoading = visibility.operations.enabled && operationsQuery.isLoading;
+  const moduleLoading = visibility.modules.enabled && moduleQuery.isLoading;
 
-  const revenueKpis = data
-    ? [
-        { label: "Collected (30d)", value: fmtMoney(data.revenue.collected30d), icon: DollarSign, tone: "binders" as StatTone },
-        { label: "Invoiced (30d)", value: fmtMoney(data.revenue.invoiced30d), icon: Receipt, tone: "clients" as StatTone },
-        { label: "Collection Rate", value: `${data.revenue.collectionRatePct}%`, icon: TrendingUp, tone: "review" as StatTone },
-        { label: "Offer Revenue", value: fmtMoney(data.revenue.offerInfluencedRevenue), icon: Tag, tone: "documents" as StatTone, to: "/offers-analytics" },
-        { label: "Commission Expected", value: fmtMoney(data.revenue.commissionExpected), icon: Building2, tone: "institutions" as StatTone, to: "/institutions" },
-        { label: "Active Offers", value: data.revenue.activeOffers, icon: Sparkles, tone: "ai" as StatTone, to: "/offers-admin" },
-      ]
-    : [];
-
-  const statusChartData = data?.applicationsByStatus.slice(0, 10) ?? [];
+  const isError = executiveQuery.isError || operationsQuery.isError || moduleQuery.isError;
+  const refetchAll = () => Promise.all([executiveQuery.refetch(), operationsQuery.refetch(), moduleQuery.refetch()]);
 
   return (
     <AppLayout>
       <PageHeader
         title="Dashboard"
-        description={`Welcome back${user?.email ? `, ${user.email.split("@")[0]}` : ""}. Admissions, revenue, and operations — last 30 days.`}
+        description={`Welcome back${user?.email ? `, ${user.email.split("@")[0]}` : ""}. CRM metrics only — Odoo data not included.`}
         actions={
           <Button asChild variant="outline" size="sm">
             <Link to="/reports">
@@ -200,304 +352,118 @@ export function DashboardV2() {
         }
       />
 
-      <div className="p-8 space-y-8">
+      <div className="p-8 space-y-10">
         {isError && (
           <Card className="border-destructive/40 bg-destructive/5">
             <CardContent className="py-4 flex items-center justify-between gap-4">
               <p className="text-sm text-destructive">Could not load dashboard metrics.</p>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
+              <Button variant="outline" size="sm" onClick={() => refetchAll()}>
                 Retry
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Executive KPI row */}
-        <section aria-label="Executive KPIs">
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-3">
-            {isLoading
-              ? Array.from({ length: 8 }).map((_, i) => <KpiSkeleton key={i} />)
-              : kpis.map((kpi) => (
-                  <StatCard
-                    key={kpi.label}
-                    label={kpi.label}
-                    value={kpi.value}
-                    icon={kpi.icon}
-                    tone={kpi.tone}
-                    hint={kpi.hint}
-                    to={kpi.to}
-                  />
-                ))}
-          </div>
-        </section>
+        <DashboardMigrationBanner odooHealth={executive?.odooHealth} />
 
-        {/* Admissions KPIs */}
-        <section aria-label="Admissions KPIs">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Admissions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
-            {isLoading
-              ? Array.from({ length: 7 }).map((_, i) => <KpiSkeleton key={i} />)
-              : admissionsKpis.map((kpi) => (
-                  <StatCard
-                    key={kpi.label}
-                    label={kpi.label}
-                    value={kpi.value}
-                    icon={kpi.icon}
-                    tone={kpi.tone}
-                    to={kpi.to}
-                  />
-                ))}
-          </div>
-        </section>
+        <ZoneSection
+          title="Executive Snapshot"
+          subtitle={
+            visibility.executive.mode === "full"
+              ? "Admissions and revenue health — last 30 days"
+              : `${profileLabel(visibility.profile)} — key metrics`
+          }
+        >
+          <KpiGrid
+            items={executiveKpis}
+            isLoading={executiveLoading}
+            skeletonCount={executiveKpis.length || (visibility.executive.mode === "full" ? 7 : 4)}
+            gridClass={
+              visibility.executive.mode === "full" ? "xl:grid-cols-7" : "xl:grid-cols-4"
+            }
+          />
 
-        {/* Revenue KPIs */}
-        <section aria-label="Revenue KPIs">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Revenue</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => <KpiSkeleton key={i} />)
-              : revenueKpis.map((kpi) => (
-                  <StatCard
-                    key={kpi.label}
-                    label={kpi.label}
-                    value={kpi.value}
-                    icon={kpi.icon}
-                    tone={kpi.tone}
-                    to={kpi.to}
-                  />
-                ))}
-          </div>
-        </section>
-
-        {/* Applications by status + counselor productivity */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-label="Admissions and counselors">
-          <Card className="shadow-elev-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Applications by status</CardTitle>
-            </CardHeader>
-            <CardContent style={{ height: 300 }}>
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="size-6 animate-spin" />
-                </div>
-              ) : !statusChartData.length ? (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No application data yet.</div>
-              ) : (
-                <ResponsiveContainer>
-                  <BarChart data={statusChartData} layout="vertical" margin={{ left: 8, right: 16 }}>
-                    <XAxis type="number" fontSize={11} allowDecimals={false} />
-                    <YAxis type="category" dataKey="status" fontSize={11} width={100} />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} name="Applications" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-elev-sm">
-            <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Counselor productivity</CardTitle>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/reports">
-                  Details <ArrowUpRight className="size-4 ml-1" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0 pb-2">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Counselor</TableHead>
-                    <TableHead className="text-right">Enrollments</TableHead>
-                    <TableHead className="text-right">Tasks</TableHead>
-                    <TableHead className="text-right">Handoffs</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        <Loader2 className="size-5 animate-spin inline-block" />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {!isLoading && !data?.counselors.length && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        No counselor data yet.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {!isLoading &&
-                    data?.counselors.map((row) => (
-                      <TableRow key={row.user_id}>
-                        <TableCell>{row.name || "—"}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.enrollments}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.tasks_done}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.handoffs_accepted}</TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* Offer ROI summary */}
-        <Card className="shadow-elev-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Top offers by influenced revenue (30d)</CardTitle>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/offers-analytics">
-                Full analytics <ArrowUpRight className="size-4 ml-1" />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent className="p-0 pb-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Offer</TableHead>
-                  <TableHead className="text-right">Redemptions</TableHead>
-                  <TableHead className="text-right">Influenced revenue</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading && (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      <Loader2 className="size-5 animate-spin inline-block" />
-                    </TableCell>
-                  </TableRow>
+          {showExecutiveCharts && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="shadow-elev-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">
+                  <ChartTitleWithInfo title="Applications by status" info={KPI_TOOLTIPS.appsByStatus} />
+                </CardTitle>
+              </CardHeader>
+              <CardContent style={{ height: 300 }}>
+                {executiveLoading ? (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin" />
+                  </div>
+                ) : !statusChartData.length ? (
+                  <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No application data yet.</div>
+                ) : (
+                  <ResponsiveContainer>
+                    <BarChart data={statusChartData} layout="vertical" margin={{ left: 8, right: 16 }}>
+                      <XAxis type="number" fontSize={11} allowDecimals={false} />
+                      <YAxis type="category" dataKey="status" fontSize={11} width={100} />
+                      <RechartsTooltip />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} name="Applications" />
+                    </BarChart>
+                  </ResponsiveContainer>
                 )}
-                {!isLoading && !data?.offerRoiTop.length && (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      No offer activity in the last 30 days.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {!isLoading &&
-                  data?.offerRoiTop.map((row) => (
-                    <TableRow key={row.offer_id}>
-                      <TableCell className="font-medium">{row.title}</TableCell>
-                      <TableCell className="text-right tabular-nums">{row.redemptions}</TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtMoney(row.influenced_revenue)}</TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
 
-        {/* Charts row */}
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4" aria-label="Call and lead charts">
-          <Card className="lg:col-span-2 shadow-elev-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Calls (last 30 days)</CardTitle>
-            </CardHeader>
-            <CardContent style={{ height: 280 }}>
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="size-6 animate-spin" />
-                </div>
-              ) : callsByDay.length === 0 ? (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No call data yet.</div>
-              ) : (
-                <ResponsiveContainer>
-                  <BarChart data={callsByDay}>
-                    <XAxis dataKey="day" fontSize={11} />
-                    <YAxis fontSize={11} allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="answered" stackId="a" fill="hsl(var(--primary))" name="Answered" />
-                    <Bar dataKey="unanswered" stackId="a" fill="hsl(var(--muted))" name="Unanswered" />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-elev-sm">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Lead temperature</CardTitle>
-            </CardHeader>
-            <CardContent style={{ height: 280 }}>
-              {isLoading ? (
-                <div className="h-full flex items-center justify-center text-muted-foreground">
-                  <Loader2 className="size-6 animate-spin" />
-                </div>
-              ) : tempData.every((d) => d.value === 0) ? (
-                <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No lead data yet.</div>
-              ) : (
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie data={tempData} dataKey="value" nameKey="name" outerRadius={90} label>
-                      {tempData.map((d) => (
-                        <Cell key={d.name} fill={TEMP_COLORS[d.name] ?? "hsl(var(--muted))"} />
+            <Card className="shadow-elev-sm">
+              <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Workflow className="size-4" />
+                  <ChartTitleWithInfo title="Pipeline stage distribution" info={KPI_TOOLTIPS.pipelineStages} />
+                </CardTitle>
+                {pipelines.length > 0 && !executiveLoading && (
+                  <Select value={activePipeline} onValueChange={setSelectedPipeline}>
+                    <SelectTrigger className="w-[220px]">
+                      <SelectValue placeholder="Pipeline" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pipelines.map((p) => (
+                        <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
+                          {p.pipeline_name}{" "}
+                          <span className="text-muted-foreground">— {p.country}</span>
+                        </SelectItem>
                       ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              )}
-            </CardContent>
-          </Card>
-        </section>
+                    </SelectContent>
+                  </Select>
+                )}
+              </CardHeader>
+              <CardContent style={{ height: 300 }}>
+                {executiveLoading ? (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin" />
+                  </div>
+                ) : !stageChartData.length ? (
+                  <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No pipeline data yet.</div>
+                ) : (
+                  <ResponsiveContainer>
+                    <BarChart data={stageChartData}>
+                      <XAxis dataKey="stage_label" fontSize={11} angle={-15} textAnchor="end" height={60} interval={0} />
+                      <YAxis fontSize={11} allowDecimals={false} />
+                      <RechartsTooltip />
+                      <Bar dataKey="client_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Clients" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          )}
 
-        {/* Pipeline stage distribution */}
-        <Card className="shadow-elev-sm">
-          <CardHeader className="flex flex-row items-center justify-between gap-3 pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Workflow className="size-4" />
-              Pipeline stage distribution
-            </CardTitle>
-            {pipelines.length > 0 && !isLoading && (
-              <Select value={activePipeline} onValueChange={setSelectedPipeline}>
-                <SelectTrigger className="w-[280px]">
-                  <SelectValue placeholder="Pipeline" />
-                </SelectTrigger>
-                <SelectContent>
-                  {pipelines.map((p) => (
-                    <SelectItem key={p.pipeline_id} value={p.pipeline_id}>
-                      {p.pipeline_name}{" "}
-                      <span className="text-muted-foreground">— {p.country}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </CardHeader>
-          <CardContent style={{ height: 320 }}>
-            {isLoading ? (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                <Loader2 className="size-6 animate-spin" />
-              </div>
-            ) : !stageChartData.length ? (
-              <div className="h-full flex items-center justify-center text-sm text-muted-foreground">No pipeline data yet.</div>
-            ) : (
-              <ResponsiveContainer>
-                <BarChart data={stageChartData}>
-                  <XAxis dataKey="stage_label" fontSize={11} angle={-15} textAnchor="end" height={60} interval={0} />
-                  <YAxis fontSize={11} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="client_count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} name="Clients" />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* AR aging + tasks due */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-label="Collections and tasks">
+          {showArAging && (
           <Card className="shadow-elev-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base">AR aging buckets</CardTitle>
+              <CardTitle className="text-base">
+                <ChartTitleWithInfo title="AR aging buckets" info={KPI_TOOLTIPS.arAgingChart} />
+              </CardTitle>
             </CardHeader>
             <CardContent style={{ height: 280 }}>
-              {isLoading ? (
+              {executiveLoading ? (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
                   <Loader2 className="size-6 animate-spin" />
                 </div>
@@ -508,7 +474,7 @@ export function DashboardV2() {
                   <BarChart data={agingData}>
                     <XAxis dataKey="name" fontSize={11} />
                     <YAxis fontSize={11} />
-                    <Tooltip formatter={(v: number) => fmtMoney(v)} />
+                    <RechartsTooltip formatter={(v: number) => fmtMoney(v)} />
                     <Bar dataKey="value" name="Balance due" radius={[4, 4, 0, 0]}>
                       {agingData.map((d) => (
                         <Cell key={d.name} fill={AGING_COLORS[d.name] ?? "hsl(var(--primary))"} />
@@ -519,104 +485,18 @@ export function DashboardV2() {
               )}
             </CardContent>
           </Card>
+          )}
 
-          <Card className="shadow-elev-sm overflow-hidden">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <div>
-                <div className="font-display font-semibold text-base">Tasks & follow-ups due</div>
-                <div className="text-xs text-muted-foreground">Next 8 open items by due date</div>
-              </div>
-            </div>
-            <div className="divide-y max-h-[280px] overflow-y-auto">
-              {isLoading && (
-                <div className="py-12 flex justify-center text-muted-foreground">
-                  <Loader2 className="size-6 animate-spin" />
-                </div>
-              )}
-              {!isLoading && !data?.tasksDue.length && (
-                <div className="py-12 text-center text-sm text-muted-foreground">No open tasks with due dates.</div>
-              )}
-              {!isLoading &&
-                data?.tasksDue.map((task) => (
-                  <Link
-                    key={task.id}
-                    to={`/clients/${task.client_id}`}
-                    className="block px-6 py-3 hover:bg-accent/40 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-medium truncate">{task.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                          {task.clients?.full_name ?? "Client"} · {task.priority}
-                        </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground shrink-0">{fmtDue(task.due_at)}</div>
-                    </div>
-                  </Link>
-                ))}
-            </div>
-          </Card>
-        </section>
-
-        {/* Recent clients + telecaller leaderboard */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-label="Clients and telecallers">
-          <Card className="overflow-hidden shadow-elev-sm">
-            <div className="px-6 py-4 border-b flex items-center justify-between">
-              <div>
-                <div className="font-display font-semibold text-base">Recent clients</div>
-                <div className="text-xs text-muted-foreground">Latest profiles added</div>
-              </div>
-              <Button asChild variant="ghost" size="sm">
-                <Link to="/clients">
-                  View all <ArrowUpRight className="size-4 ml-1" />
-                </Link>
-              </Button>
-            </div>
-            <div className="divide-y">
-              {isLoading && (
-                <div className="py-12 flex justify-center text-muted-foreground">
-                  <Loader2 className="size-6 animate-spin" />
-                </div>
-              )}
-              {!isLoading && !data?.recentClients.length && (
-                <EmptyState
-                  icon={UserPlus}
-                  title="No clients yet"
-                  description="Start managing your educational consulting workflow by adding your first client profile."
-                  action={
-                    <Button asChild>
-                      <Link to="/clients/new">Create the first one</Link>
-                    </Button>
-                  }
-                />
-              )}
-              {!isLoading &&
-                data?.recentClients.map((client) => (
-                  <Link
-                    key={client.id}
-                    to={`/clients/${client.id}`}
-                    className="block px-6 py-3.5 hover:bg-accent/40 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{client.full_name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {client.application_id} · {client.country} · {client.application_type}
-                        </div>
-                      </div>
-                      <ArrowUpRight className="size-4 text-muted-foreground" />
-                    </div>
-                  </Link>
-                ))}
-            </div>
-          </Card>
-
+          {showCountryIntake && (
           <Card className="shadow-elev-sm">
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Telecaller leaderboard</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="size-4" />
+                <ChartTitleWithInfo title="Top country / intake demand" info={KPI_TOOLTIPS.countryIntake} />
+              </CardTitle>
               <Button asChild variant="ghost" size="sm">
                 <Link to="/reports">
-                  Details <ArrowUpRight className="size-4 ml-1" />
+                  Full table <ArrowUpRight className="size-4 ml-1" />
                 </Link>
               </Button>
             </CardHeader>
@@ -624,60 +504,283 @@ export function DashboardV2() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Agent</TableHead>
-                    <TableHead className="text-right">Calls</TableHead>
-                    <TableHead className="text-right">Answered</TableHead>
-                    <TableHead className="text-right">Callbacks</TableHead>
+                    <TableHead>Country</TableHead>
+                    <TableHead>Intake</TableHead>
+                    <TableHead className="text-right">Clients</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {isLoading && (
+                  {executiveLoading && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                         <Loader2 className="size-5 animate-spin inline-block" />
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading && !data?.telecallers.length && (
+                  {!executiveLoading && !executive?.countryIntakeTop.length && (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                        No telecaller data yet.
+                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                        No country/intake data yet.
                       </TableCell>
                     </TableRow>
                   )}
-                  {!isLoading &&
-                    data?.telecallers.map((row) => (
-                      <TableRow key={row.user_id}>
-                        <TableCell>{row.name || "—"}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.calls}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.answered}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.callbacks_pending}</TableCell>
+                  {!executiveLoading &&
+                    executive?.countryIntakeTop.map((row, i) => (
+                      <TableRow key={`${row.country}-${row.intake}-${i}`}>
+                        <TableCell>{row.country ?? "Unknown"}</TableCell>
+                        <TableCell>{row.intake ?? "—"}</TableCell>
+                        <TableCell className="text-right tabular-nums">{row.leads}</TableCell>
                       </TableRow>
                     ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
-        </section>
+          )}
+        </ZoneSection>
 
-        {/* Institutions row (preserved from V1) */}
-        <section aria-label="Institutions">
-          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Institutions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {isLoading
-              ? Array.from({ length: 4 }).map((_, i) => <KpiSkeleton key={i} />)
-              : upiCards.map((card) => (
-                  <StatCard
-                    key={card.label}
-                    label={card.label}
-                    value={card.value}
-                    icon={card.icon}
-                    tone={card.tone}
-                    to={card.to}
+        {visibility.operations.enabled && (
+        <ZoneSection
+          title="Your Work Today"
+          subtitle={`${profileLabel(visibility.profile)} — daily queues and client activity`}
+          className="border-t border-border pt-10"
+        >
+          <KpiGrid
+            items={operationsKpis}
+            isLoading={operationsLoading}
+            skeletonCount={operationsKpis.length || 2}
+            gridClass={
+              operationsKpis.length >= 7
+                ? DASHBOARD_ASSESSMENTS_KPI
+                  ? "xl:grid-cols-8"
+                  : "xl:grid-cols-7"
+                : "xl:grid-cols-4"
+            }
+          />
+
+          <div className={cn("grid gap-4", showRecentClients ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
+            <Card className="shadow-elev-sm overflow-hidden">
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <div className="font-display font-semibold text-base">Tasks & follow-ups due</div>
+                  <div className="text-xs text-muted-foreground">Next 8 open items by due date</div>
+                </div>
+              </div>
+              <div className="divide-y max-h-[320px] overflow-y-auto">
+                {operationsLoading && (
+                  <div className="py-12 flex justify-center text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin" />
+                  </div>
+                )}
+                {!operationsLoading && !operations?.tasksDue.length && (
+                  <div className="py-12 text-center text-sm text-muted-foreground">No open tasks with due dates.</div>
+                )}
+                {!operationsLoading &&
+                  operations?.tasksDue.map((task) => (
+                    <Link
+                      key={task.id}
+                      to={`/clients/${task.client_id}`}
+                      className="block px-6 py-3 hover:bg-accent/40 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-medium truncate">{task.title}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {task.clients?.full_name ?? "Client"} · {task.priority}
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground shrink-0">{fmtDue(task.due_at)}</div>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            </Card>
+
+            {showRecentClients && (
+            <Card className="overflow-hidden shadow-elev-sm">
+              <div className="px-6 py-4 border-b flex items-center justify-between">
+                <div>
+                  <div className="font-display font-semibold text-base">Recent clients</div>
+                  <div className="text-xs text-muted-foreground">Latest profiles added</div>
+                </div>
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/clients">
+                    View all <ArrowUpRight className="size-4 ml-1" />
+                  </Link>
+                </Button>
+              </div>
+              <div className="divide-y max-h-[320px] overflow-y-auto">
+                {operationsLoading && (
+                  <div className="py-12 flex justify-center text-muted-foreground">
+                    <Loader2 className="size-6 animate-spin" />
+                  </div>
+                )}
+                {!operationsLoading && !operations?.recentClients.length && (
+                  <EmptyState
+                    icon={UserPlus}
+                    title="No clients yet"
+                    description="Start managing your educational consulting workflow by adding your first client profile."
+                    action={
+                      <Button asChild>
+                        <Link to="/clients/new">Create the first one</Link>
+                      </Button>
+                    }
                   />
-                ))}
+                )}
+                {!operationsLoading &&
+                  operations?.recentClients.map((client) => (
+                    <Link
+                      key={client.id}
+                      to={`/clients/${client.id}`}
+                      className="block px-6 py-3.5 hover:bg-accent/40 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium">{client.full_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {client.application_id} · {client.country} · {client.application_type}
+                          </div>
+                        </div>
+                        <ArrowUpRight className="size-4 text-muted-foreground" />
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            </Card>
+            )}
           </div>
-        </section>
+
+          {showTeamPerformanceCta && (
+          <Card className="shadow-elev-sm border-dashed">
+            <CardContent className="py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="min-w-0">
+                <div className="font-display font-semibold text-base flex items-center gap-2">
+                  <Phone className="size-4 text-primary" />
+                  Team performance
+                </div>
+                <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
+                  Telephony, counselor productivity, campaigns, and country/intake analytics live on Reports — not
+                  duplicated here during migration.
+                </p>
+              </div>
+              <Button asChild variant="outline" className="shrink-0">
+                <Link to="/reports">
+                  View full reports <ArrowUpRight className="size-4 ml-1" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+          )}
+        </ZoneSection>
+        )}
+
+        {visibility.modules.enabled && (
+        <ZoneSection title="Module Snapshots" subtitle="Expand for module-specific KPIs" className="border-t border-border pt-10">
+          <Accordion
+            type="multiple"
+            defaultValue={visibility.modules.defaultExpanded}
+            className="rounded-xl border border-border bg-card px-4 shadow-elev-sm"
+          >
+            <AccordionItem value="institutions">
+              <AccordionTrigger>Institutions (UPI)</AccordionTrigger>
+              <AccordionContent>
+                <KpiGrid items={upiCards} isLoading={moduleLoading} skeletonCount={5} gridClass="lg:grid-cols-5" />
+              </AccordionContent>
+            </AccordionItem>
+
+            {DASHBOARD_OFFERS_WIDGETS && (
+              <AccordionItem value="offers">
+                <AccordionTrigger>Offers</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  {moduleData && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      <StatCard
+                        label="Offer Revenue"
+                        value={fmtMoney(moduleData.revenue.offerInfluencedRevenue)}
+                        icon={Tag}
+                        tone="documents"
+                        to="/offers-analytics"
+                        info={KPI_TOOLTIPS.offerRevenue}
+                      />
+                      <StatCard
+                        label="Active Offers"
+                        value={moduleData.revenue.activeOffers}
+                        icon={Sparkles}
+                        tone="ai"
+                        to="/offers-admin"
+                      />
+                    </div>
+                  )}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Offer</TableHead>
+                        <TableHead className="text-right">Redemptions</TableHead>
+                        <TableHead className="text-right">Influenced revenue</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {moduleLoading && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                            <Loader2 className="size-5 animate-spin inline-block" />
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {!moduleLoading && !moduleData?.offerRoiTop.length && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                            No offer activity in the last 30 days.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {!moduleLoading &&
+                        moduleData?.offerRoiTop.map((row) => (
+                          <TableRow key={row.offer_id}>
+                            <TableCell className="font-medium">{row.title}</TableCell>
+                            <TableCell className="text-right tabular-nums">{row.redemptions}</TableCell>
+                            <TableCell className="text-right tabular-nums">{fmtMoney(row.influenced_revenue)}</TableCell>
+                          </TableRow>
+                        ))}
+                    </TableBody>
+                  </Table>
+                  <Button asChild variant="ghost" size="sm" className="px-0">
+                    <Link to="/offers-analytics">
+                      Full offer analytics <ArrowUpRight className="size-4 ml-1" />
+                    </Link>
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+            {DASHBOARD_WHATSAPP_KPI && (
+              <AccordionItem value="whatsapp">
+                <AccordionTrigger>WhatsApp (Phase 1)</AccordionTrigger>
+                <AccordionContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-md">
+                    {moduleLoading ? (
+                      <KpiSkeleton />
+                    ) : (
+                      <StatCard
+                        label="WhatsApp Queue"
+                        value={moduleData?.whatsappQueue ?? 0}
+                        icon={MessageCircle}
+                        tone="documents"
+                        to="/whatsapp"
+                      />
+                    )}
+                  </div>
+                  <Button asChild variant="ghost" size="sm" className="mt-3 px-0">
+                    <Link to="/whatsapp">
+                      Open inbox <ArrowUpRight className="size-4 ml-1" />
+                    </Link>
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+          </Accordion>
+        </ZoneSection>
+        )}
       </div>
     </AppLayout>
   );
