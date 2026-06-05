@@ -21,15 +21,22 @@ export async function callAdminUsers<T = AdminUsersResult>(body: Record<string, 
     throw new Error("No active admin session. Please sign in again, then retry.");
   }
 
-  const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-    },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(
+      "Could not reach admin-users edge function. Ask Lovable to deploy admin-users on Supabase.",
+    );
+  }
 
   if (!response.ok) {
     throw new Error((await parseErrorBody(response)) ?? `Request failed with status ${response.status}`);
