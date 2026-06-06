@@ -131,7 +131,9 @@ Set in **Supabase Dashboard → Edge Functions → Secrets** (project `auofttkyo
 | `WHATSAPP_PHONE_NUMBER_ID` | From API Setup |
 | `WHATSAPP_VERIFY_TOKEN` | Same as Part D verify token |
 | `WHATSAPP_APP_SECRET` | App → Settings → Basic → App secret |
-| `WHATSAPP_AI_MODE` | `rules` (optional) |
+| `WHATSAPP_AI_MODE` | `rules` (default) or `gemini_dev` for smarter intake |
+| `WHATSAPP_AUTO_ASSIGN` | `true` (default) — auto-assign counselor after intake YES |
+| `GEMINI_API_KEY` | Optional — direct Gemini for `gemini_dev` (else uses `LOVABLE_API_KEY`) |
 
 **After secrets change**, redeploy edge functions from the GitHub repo:
 

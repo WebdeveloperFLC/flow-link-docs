@@ -600,6 +600,11 @@ const WhatsAppInbox = () => {
                       </Badge>
                     )}
                   </div>
+                  {typeof active.intake_data?.branch_preference === "string" && (
+                    <div className="text-[10px] text-muted-foreground mt-1">
+                      Branch/city: {active.intake_data.branch_preference}
+                    </div>
+                  )}
                   {assignments.length > 1 && (
                     <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                       <Clock className="size-3" />

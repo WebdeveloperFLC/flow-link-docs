@@ -3,6 +3,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
 import { DEFAULT_HELPLINE_LINE_ID, resolveBusinessLine } from "../_shared/whatsapp/businessLines.ts";
+import {
+  applyWhatsAppAutoAssignment,
+  autoAssignEnabled,
+  notifyCounselorWhatsAppAssigned,
+  pickCounselorForAssignment,
+  resolveBranchFromPreference,
+} from "../_shared/whatsapp/autoAssign.ts";
 import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
@@ -347,6 +354,15 @@ Deno.serve(async (req) => {
 
     if (confirmed) {
       const { first_name, last_name } = splitName(String(nextIntake.full_name || "WhatsApp Lead"));
+      const branchResolved = await resolveBranchFromPreference(
+        admin,
+        nextIntake.branch_preference as string | undefined,
+      );
+      if (branchResolved.branchId) nextIntake.branch_id = branchResolved.branchId;
+
+      const branchNote = nextIntake.branch_preference
+        ? `; branch: ${nextIntake.branch_preference}`
+        : "";
       const { data: lead, error: leadErr } = await admin
         .from("leads")
         .insert({
@@ -357,19 +373,56 @@ Deno.serve(async (req) => {
           lead_temperature: "warm",
           lead_source: "whatsapp_helpline",
           interested_countries: nextIntake.country ? [nextIntake.country] : [],
-          notes: `WhatsApp intake — level: ${nextIntake.level ?? "n/a"}`,
+          notes: `WhatsApp intake — level: ${nextIntake.level ?? "n/a"}${branchNote}`,
           status: "new",
         })
         .select("id")
         .single();
       if (leadErr) console.error("[whatsapp-webhook] lead insert:", leadErr.message);
 
-      await admin.from("whatsapp_conversations").update({
-        intake_data: nextIntake,
-        lead_id: lead?.id ?? null,
-        status: "awaiting_assignment_confirm",
-        updated_at: now,
-      }).eq("id", conv.id);
+      let finalStatus = "awaiting_assignment_confirm";
+
+      if (autoAssignEnabled() && businessLine?.line_type !== "counselor") {
+        const pick = await pickCounselorForAssignment(admin, {
+          branchId: branchResolved.branchId,
+        });
+        if (pick) {
+          await applyWhatsAppAutoAssignment(admin, {
+            conversationId: conv.id,
+            leadId: lead?.id ?? null,
+            counselorId: pick.userId,
+            branchLabel: branchResolved.branchLabel,
+            contactName: String(nextIntake.full_name || ""),
+          });
+          await notifyCounselorWhatsAppAssigned(admin, {
+            counselorId: pick.userId,
+            conversationId: conv.id,
+            contactName: String(nextIntake.full_name || ""),
+            branchLabel: branchResolved.branchLabel,
+          });
+          finalStatus = "assigned_active";
+          const lastIdx = botReplies.length - 1;
+          if (lastIdx >= 0) {
+            botReplies[lastIdx] =
+              `Thank you, ${first_name}! You are connected with ${pick.fullName} from Future Link. They will contact you shortly on this number.`;
+          }
+        }
+      }
+
+      if (finalStatus !== "assigned_active") {
+        await admin.from("whatsapp_conversations").update({
+          intake_data: nextIntake,
+          lead_id: lead?.id ?? null,
+          status: finalStatus,
+          updated_at: now,
+        }).eq("id", conv.id);
+      } else {
+        await admin.from("whatsapp_conversations").update({
+          intake_data: nextIntake,
+          lead_id: lead?.id ?? null,
+          updated_at: now,
+        }).eq("id", conv.id);
+      }
     } else {
       await admin.from("whatsapp_conversations").update({
         intake_data: nextIntake,
