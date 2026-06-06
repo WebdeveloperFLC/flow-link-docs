@@ -1,5 +1,20 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { WhatsAppConversation, WhatsAppMessage } from "./types";
+import type {
+  WhatsAppAssignment,
+  WhatsAppBusinessLine,
+  WhatsAppConversation,
+  WhatsAppMessage,
+  WhatsAppMessageTemplate,
+} from "./types";
+
+export const DEFAULT_HELPLINE_LINE_ID = "a0000000-0000-4000-8000-000000000001";
+
+const WA_SESSION_MS = 24 * 60 * 60 * 1000;
+
+export function isWhatsAppSessionOpen(lastInboundAt: string | null | undefined): boolean {
+  if (!lastInboundAt) return false;
+  return Date.now() - new Date(lastInboundAt).getTime() < WA_SESSION_MS;
+}
 
 export async function listConversations(): Promise<WhatsAppConversation[]> {
   const { data, error } = await supabase
@@ -28,10 +43,7 @@ function functionsBaseUrl(): string | null {
   return projectId ? `https://${projectId}.supabase.co` : null;
 }
 
-async function postEdgeFunction(
-  functionName: string,
-  body: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+async function edgeAuthHeaders(): Promise<{ base: string; token: string; apikey: string }> {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
   if (!token) throw new Error("You must be signed in");
@@ -39,6 +51,27 @@ async function postEdgeFunction(
   const base = functionsBaseUrl();
   const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
   if (!base || !apikey) throw new Error("Missing Supabase config");
+  return { base, token, apikey };
+}
+
+function parseEdgeError(data: Record<string, unknown>, status: number, statusText: string): string {
+  const err = String(data?.error || "");
+  if (err.includes("conversation_id and text required")) {
+    return "whatsapp-send needs redeploy — pull latest code and redeploy the whatsapp-send edge function";
+  }
+  if (err.includes("invalid json") && status === 400) {
+    return "whatsapp-send needs redeploy — media attachments require the latest edge function";
+  }
+  return [data?.error, data?.hint].filter(Boolean).join(" — ")
+    || statusText
+    || `Edge function failed (${status})`;
+}
+
+async function postEdgeFunction(
+  functionName: string,
+  body: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const { base, token, apikey } = await edgeAuthHeaders();
 
   const res = await fetch(`${base}/functions/v1/${functionName}`, {
     method: "POST",
@@ -51,12 +84,27 @@ async function postEdgeFunction(
   });
 
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const msg = [data?.error, data?.hint].filter(Boolean).join(" — ")
-      || res.statusText
-      || `Edge function failed (${res.status})`;
-    throw new Error(msg);
-  }
+  if (!res.ok) throw new Error(parseEdgeError(data, res.status, res.statusText));
+  return data;
+}
+
+async function postEdgeFunctionMultipart(
+  functionName: string,
+  form: FormData,
+): Promise<Record<string, unknown>> {
+  const { base, token, apikey } = await edgeAuthHeaders();
+
+  const res = await fetch(`${base}/functions/v1/${functionName}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey,
+    },
+    body: form,
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(parseEdgeError(data, res.status, res.statusText));
   return data;
 }
 
@@ -129,46 +177,60 @@ export type StaffReplyMedia = {
   filename?: string;
 };
 
-async function uploadOutboundWhatsAppMedia(conversationId: string, file: File): Promise<string> {
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "attachment";
-  const path = `${conversationId}/outbound-${crypto.randomUUID()}-${safeName}`;
-  const { error } = await supabase.storage
-    .from("whatsapp-media")
-    .upload(path, file, { contentType: file.type, upsert: false });
-  if (error) {
-    if (error.message?.toLowerCase().includes("policy")) {
-      throw new Error("Upload blocked — run whatsapp_outbound_media_upload migration and redeploy");
-    }
-    throw new Error(error.message || "Failed to upload attachment");
-  }
-  return path;
-}
-
 export async function sendStaffReply(
   conversationId: string,
   _userId: string,
   body: string,
   media?: StaffReplyMedia,
 ): Promise<{ meta_sent: boolean }> {
-  const payload: Record<string, unknown> = {
-    conversation_id: conversationId,
-    text: body.trim(),
-  };
+  let data: Record<string, unknown>;
+
   if (media) {
-    const storagePath = await uploadOutboundWhatsAppMedia(conversationId, media.file);
-    payload.media_storage_path = storagePath;
-    payload.mime_type = media.mime_type;
-    payload.message_type = media.message_type;
-    if (media.filename) payload.filename = media.filename;
+    const form = new FormData();
+    form.append("conversation_id", conversationId);
+    form.append("text", body.trim());
+    form.append("file", media.file, media.filename || media.file.name);
+    form.append("mime_type", media.mime_type);
+    form.append("message_type", media.message_type);
+    if (media.filename) form.append("filename", media.filename);
+    data = await postEdgeFunctionMultipart("whatsapp-send", form);
+  } else {
+    data = await postEdgeFunction("whatsapp-send", {
+      conversation_id: conversationId,
+      text: body.trim(),
+    });
   }
-  const data = await postEdgeFunction("whatsapp-send", payload);
-  if (data?.error) {
-    const err = String(data.error);
-    if (err.includes("conversation_id and text required")) {
-      throw new Error("whatsapp-send needs redeploy — media attachments require the latest edge function");
-    }
-    throw new Error(err);
-  }
+
+  if (data?.error) throw new Error(String(data.error));
+  return { meta_sent: !!data?.meta_sent };
+}
+
+export async function listMessageTemplates(): Promise<WhatsAppMessageTemplate[]> {
+  const { data, error } = await supabase
+    .from("whatsapp_message_templates" as any)
+    .select("*")
+    .eq("active", true)
+    .order("label", { ascending: true });
+  if (error) throw error;
+  return ((data ?? []) as WhatsAppMessageTemplate[]).map((row) => ({
+    ...row,
+    param_labels: Array.isArray(row.param_labels) ? row.param_labels : [],
+  }));
+}
+
+export async function sendStaffTemplate(
+  conversationId: string,
+  templateName: string,
+  templateLanguage: string,
+  templateParams: string[],
+): Promise<{ meta_sent: boolean }> {
+  const data = await postEdgeFunction("whatsapp-send", {
+    conversation_id: conversationId,
+    template_name: templateName,
+    template_language: templateLanguage,
+    template_params: templateParams,
+  });
+  if (data?.error) throw new Error(String(data.error));
   return { meta_sent: !!data?.meta_sent };
 }
 
@@ -176,6 +238,7 @@ export async function assignConversation(
   conversationId: string,
   counselorId: string,
   leadId?: string | null,
+  assignedByUserId?: string | null,
 ): Promise<void> {
   const patch: Record<string, unknown> = {
     assigned_user_id: counselorId,
@@ -188,12 +251,77 @@ export async function assignConversation(
     .eq("id", conversationId);
   if (convErr) throw convErr;
 
+  const { data: { user } } = await supabase.auth.getUser();
+  await supabase.from("whatsapp_conversation_assignments" as any).insert({
+    conversation_id: conversationId,
+    assigned_user_id: counselorId,
+    assigned_by_user_id: assignedByUserId ?? user?.id ?? null,
+  });
+
   if (leadId) {
     await supabase
       .from("leads")
       .update({ assigned_counselor_id: counselorId })
       .eq("id", leadId);
   }
+}
+
+export async function listAssignmentHistory(conversationId: string): Promise<WhatsAppAssignment[]> {
+  const { data, error } = await supabase
+    .from("whatsapp_conversation_assignments" as any)
+    .select("*")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  if (error) throw error;
+  return (data ?? []) as WhatsAppAssignment[];
+}
+
+export async function listBusinessLines(): Promise<WhatsAppBusinessLine[]> {
+  const { data, error } = await supabase
+    .from("whatsapp_business_lines" as any)
+    .select("*")
+    .eq("active", true)
+    .order("is_default", { ascending: false })
+    .order("label", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as WhatsAppBusinessLine[];
+}
+
+export async function saveBusinessLine(
+  line: Partial<WhatsAppBusinessLine> & { label: string; meta_phone_number_id: string; line_type: "helpline" | "counselor" },
+): Promise<void> {
+  const row = {
+    label: line.label,
+    meta_phone_number_id: line.meta_phone_number_id,
+    display_phone: line.display_phone ?? null,
+    line_type: line.line_type,
+    assigned_user_id: line.assigned_user_id ?? null,
+    is_default: line.is_default ?? false,
+    active: line.active ?? true,
+    updated_at: new Date().toISOString(),
+  };
+  if (line.id) {
+    const { error } = await supabase
+      .from("whatsapp_business_lines" as any)
+      .update(row)
+      .eq("id", line.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("whatsapp_business_lines" as any).insert(row);
+    if (error) throw error;
+  }
+}
+
+export async function updateDefaultHelplineMetaId(metaPhoneNumberId: string): Promise<void> {
+  const { error } = await supabase
+    .from("whatsapp_business_lines" as any)
+    .update({
+      meta_phone_number_id: metaPhoneNumberId,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", DEFAULT_HELPLINE_LINE_ID);
+  if (error) throw error;
 }
 
 async function removeConversationMedia(conversationId: string): Promise<void> {

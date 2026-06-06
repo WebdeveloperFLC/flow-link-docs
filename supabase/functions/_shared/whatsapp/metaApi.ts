@@ -26,7 +26,22 @@ export type MetaInboundMessage = {
   mediaId: string | null;
   mediaMime: string | null;
   fileName: string | null;
+  metaPhoneNumberId: string | null;
 };
+
+export function resolveMetaPhoneNumberId(override?: string | null): string {
+  return (override?.trim() || Deno.env.get("WHATSAPP_PHONE_NUMBER_ID") || "").trim();
+}
+
+/** Meta rejects free-text outside the 24h customer care window. */
+export function isMetaSessionWindowError(error?: string): boolean {
+  if (!error) return false;
+  const lower = error.toLowerCase();
+  return /24[\s-]?hour/.test(lower)
+    || /re-engagement/.test(lower)
+    || lower.includes("131047")
+    || lower.includes("131026");
+}
 
 function mediaBlock(msg: Record<string, unknown>, key: string): Record<string, unknown> | null {
   const block = msg[key];
@@ -53,6 +68,11 @@ export function parseMetaInbound(payload: Record<string, unknown>): MetaInboundM
     | Record<string, unknown>
     | undefined;
   if (!value) return null;
+
+  const metadata = value.metadata as Record<string, unknown> | undefined;
+  const metaPhoneNumberId = metadata?.phone_number_id
+    ? String(metadata.phone_number_id)
+    : null;
 
   const messages = value.messages as unknown[] | undefined;
   const msg = messages?.[0] as Record<string, unknown> | undefined;
@@ -100,6 +120,7 @@ export function parseMetaInbound(payload: Record<string, unknown>): MetaInboundM
       mediaId,
       mediaMime,
       fileName,
+      metaPhoneNumberId,
     };
   }
 
@@ -113,6 +134,7 @@ export function parseMetaInbound(payload: Record<string, unknown>): MetaInboundM
       mediaId: null,
       mediaMime: null,
       fileName: null,
+      metaPhoneNumberId,
     };
   }
 
@@ -216,11 +238,13 @@ export async function uploadMetaMedia(
   bytes: Uint8Array,
   mime: string,
   fileName?: string,
+  phoneNumberIdOverride?: string | null,
 ): Promise<{ mediaId?: string; error?: string }> {
   if (!metaSendEnabled()) return { error: "meta not configured" };
 
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!.trim();
+  const phoneNumberId = resolveMetaPhoneNumberId(phoneNumberIdOverride);
+  if (!phoneNumberId) return { error: "WHATSAPP_PHONE_NUMBER_ID not set" };
   const apiVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v21.0";
 
   const form = new FormData();
@@ -253,12 +277,14 @@ export async function sendMetaMediaMessage(
     mediaId: string;
     caption?: string;
     filename?: string;
+    phoneNumberId?: string | null;
   },
-): Promise<{ messageId?: string; skipped: boolean; error?: string }> {
+): Promise<{ messageId?: string; skipped: boolean; error?: string; sessionExpired?: boolean }> {
   if (!metaSendEnabled()) return { skipped: true };
 
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!.trim();
+  const phoneNumberId = resolveMetaPhoneNumberId(opts.phoneNumberId);
+  if (!phoneNumberId) return { skipped: true, error: "WHATSAPP_PHONE_NUMBER_ID not set" };
   const to = toPhoneE164.replace(/\D/g, "");
   if (!to || !opts.mediaId) return { skipped: true, error: "missing phone or media" };
 
@@ -294,7 +320,7 @@ export async function sendMetaMediaMessage(
   if (!res.ok) {
     const msg = (json as { error?: { message?: string } })?.error?.message || res.statusText;
     console.error("[metaApi] media send failed:", msg, json);
-    return { skipped: false, error: msg };
+    return { skipped: false, error: msg, sessionExpired: isMetaSessionWindowError(msg) };
   }
 
   const messageId = (json as { messages?: { id: string }[] }).messages?.[0]?.id;
@@ -304,11 +330,13 @@ export async function sendMetaMediaMessage(
 export async function sendMetaText(
   toPhoneE164: string,
   body: string,
-): Promise<{ messageId?: string; skipped: boolean; error?: string }> {
+  phoneNumberIdOverride?: string | null,
+): Promise<{ messageId?: string; skipped: boolean; error?: string; sessionExpired?: boolean }> {
   if (!metaSendEnabled()) return { skipped: true };
 
   const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!.trim();
+  const phoneNumberId = resolveMetaPhoneNumberId(phoneNumberIdOverride);
+  if (!phoneNumberId) return { skipped: true, error: "WHATSAPP_PHONE_NUMBER_ID not set" };
   const to = toPhoneE164.replace(/\D/g, "");
   if (!to || !body.trim()) return { skipped: true, error: "missing phone or body" };
 
@@ -332,6 +360,65 @@ export async function sendMetaText(
   if (!res.ok) {
     const msg = (json as { error?: { message?: string } })?.error?.message || res.statusText;
     console.error("[metaApi] send failed:", msg, json);
+    return { skipped: false, error: msg, sessionExpired: isMetaSessionWindowError(msg) };
+  }
+
+  const messageId = (json as { messages?: { id: string }[] }).messages?.[0]?.id;
+  return { messageId, skipped: false };
+}
+
+export async function sendMetaTemplate(
+  toPhoneE164: string,
+  opts: {
+    name: string;
+    languageCode: string;
+    parameters: string[];
+    phoneNumberId?: string | null;
+  },
+): Promise<{ messageId?: string; skipped: boolean; error?: string }> {
+  if (!metaSendEnabled()) return { skipped: true };
+
+  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
+  const phoneNumberId = resolveMetaPhoneNumberId(opts.phoneNumberId);
+  if (!phoneNumberId) return { skipped: true, error: "WHATSAPP_PHONE_NUMBER_ID not set" };
+
+  const to = toPhoneE164.replace(/\D/g, "");
+  if (!to || !opts.name.trim()) return { skipped: true, error: "missing phone or template" };
+
+  const components: Record<string, unknown>[] = [];
+  if (opts.parameters.length > 0) {
+    components.push({
+      type: "body",
+      parameters: opts.parameters.map((text) => ({ type: "text", text: String(text) })),
+    });
+  }
+
+  const payload: Record<string, unknown> = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to,
+    type: "template",
+    template: {
+      name: opts.name.trim(),
+      language: { code: opts.languageCode || "en" },
+      ...(components.length ? { components } : {}),
+    },
+  };
+
+  const apiVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v21.0";
+  const res = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (json as { error?: { message?: string } })?.error?.message || res.statusText;
+    console.error("[metaApi] template send failed:", msg, json);
     return { skipped: false, error: msg };
   }
 

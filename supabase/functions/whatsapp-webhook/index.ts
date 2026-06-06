@@ -2,6 +2,8 @@
 // WhatsApp helpline: mock simulate (Phase 0) + Meta Cloud API webhook (Phase 1).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
+import { DEFAULT_HELPLINE_LINE_ID, resolveBusinessLine } from "../_shared/whatsapp/businessLines.ts";
+import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
 import {
@@ -64,12 +66,13 @@ async function insertOutbound(
   phoneE164: string,
   body: string,
   sentBy: "ai" | "system" = "ai",
+  phoneNumberId?: string | null,
 ) {
   const now = new Date().toISOString();
   let providerMessageId: string | null = null;
 
   if (metaSendEnabled()) {
-    const sent = await sendMetaText(phoneE164, body);
+    const sent = await sendMetaText(phoneE164, body, phoneNumberId);
     if (sent.error) console.warn("[whatsapp-webhook] meta send:", sent.error);
     else providerMessageId = sent.messageId ?? null;
   }
@@ -181,6 +184,7 @@ Deno.serve(async (req) => {
   let mediaId: string | null = null;
   let mediaMime: string | null = null;
   let fileName: string | null = null;
+  let metaPhoneNumberId: string | null = null;
 
   if (fromMeta) {
     const parsed = parseMetaInbound(payload);
@@ -196,6 +200,7 @@ Deno.serve(async (req) => {
     mediaId = parsed.mediaId;
     mediaMime = parsed.mediaMime;
     fileName = parsed.fileName;
+    metaPhoneNumberId = parsed.metaPhoneNumberId;
   }
 
   const phoneE164 = normalizePhoneE164(phoneRaw);
@@ -222,10 +227,18 @@ Deno.serve(async (req) => {
   const now = new Date().toISOString();
   const aiMode = Deno.env.get("WHATSAPP_AI_MODE") || "rules";
 
+  const businessLine = await resolveBusinessLine(admin, metaPhoneNumberId);
+  const businessLineId = businessLine?.id ?? DEFAULT_HELPLINE_LINE_ID;
+  const sendPhoneNumberId = businessLine?.meta_phone_number_id
+    && businessLine.meta_phone_number_id !== "CONFIGURE_ME"
+    ? businessLine.meta_phone_number_id
+    : null;
+
   let { data: conv } = await admin
     .from("whatsapp_conversations")
     .select("*")
     .eq("phone_e164", phoneE164)
+    .eq("business_line_id", businessLineId)
     .neq("status", "closed")
     .maybeSingle();
 
@@ -234,13 +247,20 @@ Deno.serve(async (req) => {
     const base: Record<string, unknown> = {
       phone_e164: phoneE164,
       phone_display: phoneRaw || phoneE164,
+      business_line_id: businessLineId,
       ai_mode: aiMode,
       last_message_at: now,
       last_inbound_at: now,
       unread_count_staff: 1,
     };
 
-    if (match?.type === "client") {
+    const counselorLine = businessLine?.line_type === "counselor" && businessLine.assigned_user_id;
+
+    if (counselorLine) {
+      base.assigned_user_id = businessLine.assigned_user_id;
+      base.status = "assigned_active";
+      base.intake_data = { step: "done" };
+    } else if (match?.type === "client") {
       base.client_id = match.record.id;
       base.assigned_user_id = match.record.assigned_counselor_id;
       base.status = "existing_client";
@@ -322,7 +342,8 @@ Deno.serve(async (req) => {
     && text.trim()
     && messageType === "text"
   ) {
-    const { intake: nextIntake, replies: botReplies, confirmed } = nextRulesReply(intake as any, text);
+    const intakeFn = aiMode === "gemini_dev" ? nextGeminiReply : nextRulesReply;
+    const { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
 
     if (confirmed) {
       const { first_name, last_name } = splitName(String(nextIntake.full_name || "WhatsApp Lead"));
@@ -364,7 +385,7 @@ Deno.serve(async (req) => {
   }
 
   for (const reply of replies) {
-    await insertOutbound(admin, conv.id, phoneE164, reply, "ai");
+    await insertOutbound(admin, conv.id, phoneE164, reply, "ai", sendPhoneNumberId);
   }
 
   return new Response(JSON.stringify({
