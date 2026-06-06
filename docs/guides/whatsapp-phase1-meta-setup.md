@@ -12,11 +12,21 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 
 ## Secrets
 
-See the [Meta team setup guide](/guides/whatsapp-meta-team-setup) for the full table and Lovable prompt.
+See the [Meta team setup guide](/guides/whatsapp-meta-team-setup) for the full table. Set in **Supabase Dashboard → Edge Functions → Secrets**.
 
-## Deploy
+## Deploy (from GitHub repo)
+
+```bash
+export SUPABASE_ACCESS_TOKEN="sbp_..."   # https://supabase.com/dashboard/account/tokens
+./scripts/deploy-whatsapp.sh
+```
+
+Deploys:
 
 - `whatsapp-webhook`
 - `whatsapp-send`
+- `whatsapp-media-url`
 
-Via Lovable or Supabase CLI (requires project deploy permissions).
+**Frontend:** push to `main` → production host deploys with `VITE_WHATSAPP_PROVIDER=meta`.
+
+**Lovable:** only when creating **new** Supabase edge function files — not for routine deploys.

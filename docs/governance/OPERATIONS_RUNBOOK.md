@@ -27,7 +27,7 @@ Day-to-day operations for staff and technical owners. For account ownership see 
 **Dashboards (Future Link accounts):**
 
 - Supabase — project settings, logs, secrets, SQL editor
-- Lovable — publish frontend, deploy functions/secrets (optional path)
+- Lovable — optional; only for **new** Supabase scaffolding (not routine deploy)
 - Meta — WhatsApp app & webhook
 - TeleCMI — telephony
 - Odoo — CRM sync target
@@ -39,11 +39,11 @@ Day-to-day operations for staff and technical owners. For account ownership see 
 
 | Environment | Frontend | Backend | Notes |
 |---|---|---|---|
-| **Production** | Lovable publish or custom domain | Supabase `auofttkyosgjhxcbhscw` | Live CRM + portal |
+| **Production** | GitHub → `dms.futurelinkconsultants.com` | Supabase `auofttkyosgjhxcbhscw` | Live CRM + portal |
 | **Local** | Vite dev server | Same Supabase project (`.env`) | Never commit `.env` |
 | **Lovable preview** | `*.lovable.app` iframe | Same Supabase project | OAuth/iframe quirks documented in code |
 
-**Frontend env** (`.env` / Lovable Publish):
+**Frontend env** (`.env` / production host CI):
 
 ```env
 VITE_SUPABASE_URL=https://auofttkyosgjhxcbhscw.supabase.co
@@ -77,14 +77,12 @@ Run **weekly** (or after any deploy). For a full **monthly** governance pass, se
 
 ### Frontend (production)
 
-**Via Lovable (default):**
+**Default (GitHub):**
 
-1. Merge changes to GitHub main branch
-2. Lovable → **Publish**
-3. Set/update `VITE_*` env in Lovable if needed
-4. Confirm `https://dms.futurelinkconsultants.com` (or published URL)
-
-**Via static host (Vercel / Cloudflare Pages):**
+1. Merge changes to GitHub `main`
+2. CI/host builds and deploys (`npm run build` → `dist/`)
+3. Set/update `VITE_*` env on the host (build-time)
+4. Confirm `https://dms.futurelinkconsultants.com`
 
 ```bash
 npm ci
@@ -92,9 +90,11 @@ npm run build
 # Deploy dist/ per host; set same VITE_* at build time
 ```
 
+**Lovable:** only for initial project scaffolding — not the routine production deploy path.
+
 ### Database migrations
 
-Migrations live in `supabase/migrations/` (182 files). Apply via Lovable or CLI:
+Migrations live in `supabase/migrations/`. Apply via CLI or Supabase SQL editor:
 
 ```bash
 export SUPABASE_ACCESS_TOKEN="sbp_..."   # https://supabase.com/dashboard/account/tokens
@@ -130,9 +130,8 @@ npx supabase functions deploy <function-name> --project-ref auofttkyosgjhxcbhscw
 
 ```text
 Need to deploy functions?
-  → Lovable connected to Supabase?
-    → Yes: Ask Lovable to deploy <function-names>
-    → No: Supabase CLI (needs org access token) or dashboard
+  → Default: Supabase CLI from GitHub repo (./scripts/deploy-whatsapp.sh or functions deploy)
+  → Lovable: only when creating NEW edge function files / first-time Supabase wiring
 ```
 
 ---
@@ -211,7 +210,7 @@ See full inventory in [EXIT_STRATEGY.md § User-Owned Secrets](./EXIT_STRATEGY.m
 https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 ```
 
-**Deploy:** `./scripts/deploy-whatsapp.sh` or Lovable deploy of `whatsapp-webhook` + `whatsapp-send`
+**Deploy:** `./scripts/deploy-whatsapp.sh` (from GitHub repo after merge to `main`)
 
 **Mock vs live:** `WHATSAPP_PROVIDER=mock` in secrets + `VITE_WHATSAPP_PROVIDER=mock` — no Meta charges. Set `meta` on both for production WhatsApp.
 
@@ -274,7 +273,7 @@ https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook
 
 ### WhatsApp simulate fails
 
-1. Redeploy `whatsapp-webhook`
+1. Redeploy `whatsapp-webhook` (`./scripts/deploy-whatsapp.sh`)
 2. User must be logged in as staff
 3. `WHATSAPP_WEBHOOK_SECRET` for simulate path (mock)
 

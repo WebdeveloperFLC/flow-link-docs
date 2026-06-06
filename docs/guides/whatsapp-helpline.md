@@ -183,7 +183,7 @@ Telecaller or admin: use this for the unassigned queue. Counselors then reply fr
 - Meta Business account
 - [developers.facebook.com](https://developers.facebook.com) → App → **WhatsApp** product
 - Supabase project: `auofttkyosgjhxcbhscw`
-- Edge functions deployed: `whatsapp-webhook`, `whatsapp-send` (via Lovable or CLI)
+- Edge functions deployed from repo: `whatsapp-webhook`, `whatsapp-send` (`./scripts/deploy-whatsapp.sh`)
 
 ### Setup flow
 
@@ -194,7 +194,7 @@ Supabase Edge secrets
 Meta Webhook URL + verify token
 Subscribe messages
 VITE_WHATSAPP_PROVIDER=meta
-Publish app
+Push to GitHub → frontend deploy
 Test from phone
 ```
 
@@ -222,7 +222,9 @@ Subscribe to field: **messages**.
 
 Keep `WHATSAPP_PROVIDER=mock` (or unset tokens) to stay **CRM-only** — no Meta charges.
 
-### Frontend env (Lovable Publish)
+### Frontend env (hosting / CI)
+
+Set on your production host (build-time `VITE_*` vars from the GitHub repo):
 
 ```env
 VITE_WHATSAPP_ENABLED=true
@@ -247,7 +249,7 @@ VITE_WHATSAPP_PROVIDER=meta
 | Bot wrong country/level/name | Short answers; use **As client**; send `RESTART` |
 | No AI after first message | Thread may be **Assigned** — use new phone or RESTART |
 | Lead not in Clients | Check **Leads** — YES creates a lead, not a client |
-| Simulate fails | Lovable: redeploy `whatsapp-webhook`; stay logged in as staff |
+| Simulate fails | Redeploy `whatsapp-webhook` via `./scripts/deploy-whatsapp.sh`; stay logged in as staff |
 | Webhook verify fails | `WHATSAPP_VERIFY_TOKEN` must match Meta exactly |
 | No inbound from real phone | Webhook subscribed to `messages`; check function logs |
 | Reply not on phone | Tokens + `WHATSAPP_PROVIDER=meta`; 24h WhatsApp session rules |
@@ -255,11 +257,20 @@ VITE_WHATSAPP_PROVIDER=meta
 
 ### Deploy path (team)
 
-```decision
-Need to deploy functions?
-  → Lovable connected to Supabase?
-    → Yes: Ask Lovable to deploy whatsapp-webhook + whatsapp-send
-    → No: Supabase CLI (needs org Owner) or dashboard
+**Default:** GitHub is source of truth. Lovable is only for **initial** Supabase scaffolding (new edge function files, first-time project wiring).
+
+```flow
+Code change in GitHub
+Push to main
+Frontend deploys from repo (CI / host)
+Edge functions: ./scripts/deploy-whatsapp.sh
+SQL: Supabase SQL editor or npx supabase db push
+Secrets: Supabase Dashboard → Edge Functions → Secrets
+```
+
+```bash
+export SUPABASE_ACCESS_TOKEN="sbp_..."   # https://supabase.com/dashboard/account/tokens
+./scripts/deploy-whatsapp.sh
 ```
 
 ---
@@ -287,7 +298,7 @@ Optional Gemini intake
 
 1. **CRM → WhatsApp → Lines** — set helpline **Meta Phone number ID** (must match `WHATSAPP_PHONE_NUMBER_ID` secret).
 2. **Legacy counselors** — add a **counselor line** per Meta number; assign the counselor. Inbound on that number auto-assigns and skips AI intake.
-3. Run migration `20260606120000_whatsapp_phase2.sql` via Lovable if not applied.
+3. Run migration `20260606120000_whatsapp_phase2.sql` (SQL editor or `npx supabase db push`) if not applied.
 
 ### 24-hour session rule
 
@@ -300,7 +311,7 @@ WhatsApp allows free text/files only within **24 hours** of the client’s last 
 3. Body example (2 variables):  
    `Hello {{1}}, this is {{2}} from Future Link. We are here to help with your study abroad query. Please reply when convenient.`
 4. Run migration `20260606140000_whatsapp_message_templates.sql` (or insert row manually).
-5. Redeploy `whatsapp-send` after code update.
+5. Push code to GitHub and redeploy `whatsapp-send` (`./scripts/deploy-whatsapp.sh`).
 
 In CRM, when session is closed: choose template → fill client name + counselor name → **Send template**.
 
