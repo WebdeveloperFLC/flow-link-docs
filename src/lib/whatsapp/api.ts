@@ -122,14 +122,31 @@ export async function markConversationRead(conversationId: string): Promise<void
   if (error) throw error;
 }
 
-export async function sendStaffReply(conversationId: string, _userId: string, body: string): Promise<{
-  meta_sent: boolean;
-}> {
-  const { data, error } = await supabase.functions.invoke("whatsapp-send", {
-    body: { conversation_id: conversationId, text: body },
-  });
-  if (error) throw error;
-  if (data?.error) throw new Error(data.error);
+export type StaffReplyMedia = {
+  base64: string;
+  mime_type: string;
+  message_type: "image" | "document";
+  filename?: string;
+};
+
+export async function sendStaffReply(
+  conversationId: string,
+  _userId: string,
+  body: string,
+  media?: StaffReplyMedia,
+): Promise<{ meta_sent: boolean }> {
+  const payload: Record<string, unknown> = {
+    conversation_id: conversationId,
+    text: body.trim(),
+  };
+  if (media) {
+    payload.media_base64 = media.base64;
+    payload.mime_type = media.mime_type;
+    payload.message_type = media.message_type;
+    if (media.filename) payload.filename = media.filename;
+  }
+  const data = await postEdgeFunction("whatsapp-send", payload);
+  if (data?.error) throw new Error(String(data.error));
   return { meta_sent: !!data?.meta_sent };
 }
 

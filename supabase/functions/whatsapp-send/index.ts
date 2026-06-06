@@ -1,12 +1,53 @@
 // @ts-nocheck
 // Staff outbound WhatsApp — stores in CRM and sends via Meta Cloud API when configured.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { metaSendEnabled, sendMetaText } from "../_shared/whatsapp/metaApi.ts";
+import {
+  mediaStoragePath,
+  metaSendEnabled,
+  sendMetaMediaMessage,
+  sendMetaText,
+  uploadMetaMedia,
+} from "../_shared/whatsapp/metaApi.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const DOC_MIMES = new Set(["application/pdf"]);
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_DOC_BYTES = 16 * 1024 * 1024;
+
+function decodeBase64(data: string): Uint8Array | null {
+  try {
+    const normalized = data.replace(/^data:[^;]+;base64,/, "").trim();
+    const binary = atob(normalized);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+function resolveMessageType(mime: string): "image" | "document" | null {
+  if (IMAGE_MIMES.has(mime)) return "image";
+  if (DOC_MIMES.has(mime)) return "document";
+  return null;
+}
+
+function displayBody(
+  messageType: "text" | "image" | "document",
+  text: string,
+  filename?: string,
+): string {
+  const caption = text.trim();
+  if (messageType === "text") return caption;
+  if (caption) return caption;
+  if (messageType === "image") return "[Image]";
+  return filename ? `[Document: ${filename}]` : "[Document]";
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -44,7 +85,14 @@ Deno.serve(async (req) => {
   }
   const uid = userData.user.id;
 
-  let body: { conversation_id?: string; text?: string };
+  let body: {
+    conversation_id?: string;
+    text?: string;
+    media_base64?: string;
+    mime_type?: string;
+    message_type?: string;
+    filename?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -56,11 +104,56 @@ Deno.serve(async (req) => {
 
   const conversationId = body.conversation_id;
   const text = (body.text || "").trim();
-  if (!conversationId || !text) {
-    return new Response(JSON.stringify({ error: "conversation_id and text required" }), {
+  const mediaBase64 = body.media_base64?.trim();
+  const mimeType = (body.mime_type || "").trim().toLowerCase();
+  const filename = (body.filename || "").trim() || undefined;
+
+  if (!conversationId) {
+    return new Response(JSON.stringify({ error: "conversation_id required" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+  if (!text && !mediaBase64) {
+    return new Response(JSON.stringify({ error: "text or media required" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  let mediaBytes: Uint8Array | null = null;
+  let messageType: "text" | "image" | "document" = "text";
+
+  if (mediaBase64) {
+    if (!mimeType) {
+      return new Response(JSON.stringify({ error: "mime_type required with media" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const resolved = resolveMessageType(mimeType);
+    if (!resolved) {
+      return new Response(JSON.stringify({ error: "unsupported file type (use JPG, PNG, WebP, or PDF)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    messageType = resolved;
+    mediaBytes = decodeBase64(mediaBase64);
+    if (!mediaBytes?.length) {
+      return new Response(JSON.stringify({ error: "invalid media data" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const maxBytes = messageType === "image" ? MAX_IMAGE_BYTES : MAX_DOC_BYTES;
+    if (mediaBytes.length > maxBytes) {
+      const limitMb = messageType === "image" ? 5 : 16;
+      return new Response(JSON.stringify({ error: `file too large (max ${limitMb} MB)` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
   }
 
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
@@ -90,30 +183,76 @@ Deno.serve(async (req) => {
 
   let providerMessageId: string | null = null;
   let metaSent = false;
-  let metaError: string | undefined;
+  let mediaStoragePathValue: string | null = null;
+  let mediaMime: string | null = null;
 
-  if (metaSendEnabled()) {
-    const sent = await sendMetaText(conv.phone_e164, text);
-    if (sent.error) {
-      return new Response(JSON.stringify({ error: sent.error }), {
-        status: 502,
+  if (mediaBytes && messageType !== "text") {
+    mediaMime = mimeType;
+
+    if (metaSendEnabled()) {
+      const uploaded = await uploadMetaMedia(mediaBytes, mimeType, filename);
+      if (uploaded.error) {
+        return new Response(JSON.stringify({ error: uploaded.error }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const sent = await sendMetaMediaMessage(conv.phone_e164, {
+        messageType,
+        mediaId: uploaded.mediaId!,
+        caption: text || undefined,
+        filename,
+      });
+      if (sent.error) {
+        return new Response(JSON.stringify({ error: sent.error }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      metaSent = !sent.skipped;
+      providerMessageId = sent.messageId ?? null;
+    }
+
+    const storageKey = providerMessageId || crypto.randomUUID();
+    mediaStoragePathValue = mediaStoragePath(conversationId, storageKey, mimeType);
+    const blob = new Blob([mediaBytes], { type: mimeType });
+    const { error: storageErr } = await admin.storage
+      .from("whatsapp-media")
+      .upload(mediaStoragePathValue, blob, { contentType: mimeType, upsert: true });
+    if (storageErr) {
+      return new Response(JSON.stringify({ error: `storage upload failed: ${storageErr.message}` }), {
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    metaSent = !sent.skipped;
-    providerMessageId = sent.messageId ?? null;
+  } else if (text) {
+    if (metaSendEnabled()) {
+      const sent = await sendMetaText(conv.phone_e164, text);
+      if (sent.error) {
+        return new Response(JSON.stringify({ error: sent.error }), {
+          status: 502,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      metaSent = !sent.skipped;
+      providerMessageId = sent.messageId ?? null;
+    }
   }
 
   const now = new Date().toISOString();
+
   const { data: msg, error: insErr } = await admin
     .from("whatsapp_messages")
     .insert({
       conversation_id: conversationId,
       direction: "outbound",
-      body: text,
+      body: displayBody(messageType, text, filename),
       sent_by: "staff",
       sent_by_user_id: uid,
       provider_message_id: providerMessageId,
+      message_type: messageType,
+      media_storage_path: mediaStoragePathValue,
+      media_mime: mediaMime,
     })
     .select("id")
     .single();
@@ -134,6 +273,7 @@ Deno.serve(async (req) => {
     message_id: msg.id,
     meta_sent: metaSent,
     provider_message_id: providerMessageId,
+    message_type: messageType,
   }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });

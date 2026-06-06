@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -27,7 +27,7 @@ import {
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { STATUS_LABELS, type WhatsAppConversation, type WhatsAppMessage } from "@/lib/whatsapp/types";
-import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive } from "lucide-react";
+import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -45,6 +45,29 @@ import { Checkbox } from "@/components/ui/checkbox";
 const WHATSAPP_ENABLED = import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
 const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toLowerCase();
 const IS_META_MODE = WHATSAPP_PROVIDER === "meta" || WHATSAPP_PROVIDER === "auto";
+
+const OUTBOUND_ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
+const MAX_OUTBOUND_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_OUTBOUND_DOC_BYTES = 16 * 1024 * 1024;
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.includes(",") ? result.split(",")[1] : result;
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function outboundMessageType(mime: string): "image" | "document" | null {
+  if (mime.startsWith("image/")) return "image";
+  if (mime === "application/pdf") return "document";
+  return null;
+}
 
 const MEDIA_ERROR_HINTS: Record<string, string> = {
   meta_auth_failed: "Update WHATSAPP_ACCESS_TOKEN in Lovable secrets (Meta → WhatsApp → API Setup).",
@@ -147,6 +170,10 @@ const WhatsAppInbox = () => {
   const [clearAllOpen, setClearAllOpen] = useState(false);
   const [clearLeadsToo, setClearLeadsToo] = useState(true);
   const [busyAction, setBusyAction] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshConversations = useCallback(async () => {
     const rows = await listConversations();
@@ -178,6 +205,19 @@ const WhatsAppInbox = () => {
     if (!activeId) return;
     loadMessages(activeId).catch((e) => toast.error(String(e.message || e)));
   }, [activeId, loadMessages]);
+
+  useEffect(() => {
+    setPendingFile(null);
+    setPendingPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, [activeId]);
+
+  useEffect(() => () => {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+  }, [pendingPreview]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -215,15 +255,69 @@ const WhatsAppInbox = () => {
     return p?.full_name || p?.email || id.slice(0, 8);
   };
 
+  const clearPendingFile = () => {
+    setPendingFile(null);
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const mime = file.type || "application/octet-stream";
+    const msgType = outboundMessageType(mime);
+    if (!msgType) {
+      toast.error("Use JPG, PNG, WebP, or PDF");
+      e.target.value = "";
+      return;
+    }
+
+    const maxBytes = msgType === "image" ? MAX_OUTBOUND_IMAGE_BYTES : MAX_OUTBOUND_DOC_BYTES;
+    if (file.size > maxBytes) {
+      toast.error(msgType === "image" ? "Image must be under 5 MB" : "PDF must be under 16 MB");
+      e.target.value = "";
+      return;
+    }
+
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(file);
+    setPendingPreview(msgType === "image" ? URL.createObjectURL(file) : null);
+  };
+
   const handleSend = async () => {
-    if (!active || !user || !reply.trim()) return;
+    if (!active || !user || sending) return;
+    const text = reply.trim();
+    if (!text && !pendingFile) return;
+
+    setSending(true);
     try {
-      const { meta_sent } = await sendStaffReply(active.id, user.id, reply.trim());
+      let media;
+      if (pendingFile) {
+        const mime = pendingFile.type || "application/octet-stream";
+        const message_type = outboundMessageType(mime);
+        if (!message_type) throw new Error("Unsupported file type");
+        media = {
+          base64: await fileToBase64(pendingFile),
+          mime_type: mime,
+          message_type,
+          filename: pendingFile.name,
+        };
+      }
+
+      const { meta_sent } = await sendStaffReply(active.id, user.id, text, media);
       setReply("");
+      clearPendingFile();
       await loadMessages(active.id);
-      toast.success(meta_sent ? "Sent on WhatsApp" : "Saved in CRM (mock mode)");
+      const label = media
+        ? (meta_sent ? "File sent on WhatsApp" : "File saved in CRM (mock mode)")
+        : (meta_sent ? "Sent on WhatsApp" : "Saved in CRM (mock mode)");
+      toast.success(label);
     } catch (e: any) {
       toast.error(e.message || "Failed to send");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -498,7 +592,7 @@ const WhatsAppInbox = () => {
 
               <div className="p-3 border-t space-y-2">
                 <p className="text-[11px] text-muted-foreground">
-                  Bottom box = counselor reply. Use &quot;As client&quot; to simulate WhatsApp messages (Postgraduate, name, YES).
+                  Bottom box = counselor reply (text or attach image/PDF). Use &quot;As client&quot; to simulate WhatsApp messages (Postgraduate, name, YES).
                 </p>
                 <div className="flex gap-2">
                   <Textarea
@@ -518,17 +612,51 @@ const WhatsAppInbox = () => {
                     As client
                   </Button>
                 </div>
-                <div className="flex gap-2">
+                {pendingFile && (
+                  <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-2 py-1.5 text-xs">
+                    {pendingPreview ? (
+                      <img src={pendingPreview} alt="Attachment preview" className="h-10 w-10 rounded object-cover" />
+                    ) : (
+                      <Paperclip className="size-4 shrink-0 text-muted-foreground" />
+                    )}
+                    <span className="flex-1 truncate">{pendingFile.name}</span>
+                    <Button type="button" variant="ghost" size="icon" className="size-7" onClick={clearPendingFile}>
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                )}
+                <div className="flex gap-2 items-end">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={OUTBOUND_ACCEPT}
+                    className="hidden"
+                    onChange={handleFileSelect}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="shrink-0"
+                    disabled={sending}
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach image or PDF"
+                  >
+                    <Paperclip className="size-4" />
+                  </Button>
                   <Textarea
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
                     placeholder={
-                      IS_META_MODE
-                        ? "Counselor reply (sends on WhatsApp when Meta is configured)"
-                        : "Counselor reply (stored in CRM until Meta Phase 1 secrets are set)"
+                      pendingFile
+                        ? "Optional caption for attachment"
+                        : IS_META_MODE
+                          ? "Counselor reply (sends on WhatsApp when Meta is configured)"
+                          : "Counselor reply (stored in CRM until Meta Phase 1 secrets are set)"
                     }
                     className="min-h-[44px] max-h-28"
                     rows={2}
+                    disabled={sending}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -536,7 +664,10 @@ const WhatsAppInbox = () => {
                       }
                     }}
                   />
-                  <Button onClick={handleSend} disabled={!reply.trim()}>
+                  <Button
+                    onClick={handleSend}
+                    disabled={sending || (!reply.trim() && !pendingFile)}
+                  >
                     <Send className="size-4" />
                   </Button>
                 </div>

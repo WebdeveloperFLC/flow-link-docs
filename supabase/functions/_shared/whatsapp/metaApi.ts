@@ -212,6 +212,95 @@ export async function verifyMetaSignature(
   return hex === expected;
 }
 
+export async function uploadMetaMedia(
+  bytes: Uint8Array,
+  mime: string,
+  fileName?: string,
+): Promise<{ mediaId?: string; error?: string }> {
+  if (!metaSendEnabled()) return { error: "meta not configured" };
+
+  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!.trim();
+  const apiVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v21.0";
+
+  const form = new FormData();
+  form.append("messaging_product", "whatsapp");
+  form.append("type", mime);
+  form.append("file", new Blob([bytes], { type: mime }), fileName || `file.${extFromMime(mime)}`);
+
+  const res = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/media`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (json as { error?: { message?: string } })?.error?.message || res.statusText;
+    console.error("[metaApi] media upload failed:", msg, json);
+    return { error: msg };
+  }
+
+  const mediaId = (json as { id?: string }).id;
+  if (!mediaId) return { error: "no media id returned" };
+  return { mediaId };
+}
+
+export async function sendMetaMediaMessage(
+  toPhoneE164: string,
+  opts: {
+    messageType: "image" | "document";
+    mediaId: string;
+    caption?: string;
+    filename?: string;
+  },
+): Promise<{ messageId?: string; skipped: boolean; error?: string }> {
+  if (!metaSendEnabled()) return { skipped: true };
+
+  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")!.trim();
+  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")!.trim();
+  const to = toPhoneE164.replace(/\D/g, "");
+  if (!to || !opts.mediaId) return { skipped: true, error: "missing phone or media" };
+
+  const caption = opts.caption?.trim() || undefined;
+  const payload: Record<string, unknown> = {
+    messaging_product: "whatsapp",
+    recipient_type: "individual",
+    to,
+    type: opts.messageType,
+  };
+
+  if (opts.messageType === "image") {
+    payload.image = { id: opts.mediaId, ...(caption ? { caption } : {}) };
+  } else {
+    payload.document = {
+      id: opts.mediaId,
+      ...(caption ? { caption } : {}),
+      ...(opts.filename ? { filename: opts.filename } : {}),
+    };
+  }
+
+  const apiVersion = Deno.env.get("WHATSAPP_GRAPH_VERSION") || "v21.0";
+  const res = await fetch(`https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = (json as { error?: { message?: string } })?.error?.message || res.statusText;
+    console.error("[metaApi] media send failed:", msg, json);
+    return { skipped: false, error: msg };
+  }
+
+  const messageId = (json as { messages?: { id: string }[] }).messages?.[0]?.id;
+  return { messageId, skipped: false };
+}
+
 export async function sendMetaText(
   toPhoneE164: string,
   body: string,
