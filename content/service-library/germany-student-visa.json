@@ -1,0 +1,433 @@
+{
+  "displayName": "Germany – Student Visa (National Visa)",
+  "shortDescription": "German Embassy · National D visa · Admission + blocked account · APS for India",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 22,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current national visa fee (€75 approx) and blocked account amount (€11,904 for 2026) on auswaertiges-amt.de and deutsche-bank.de before quoting."
+  },
+  "alert": {
+    "title": "APS certificate for India",
+    "body": "Indian students generally need APS certificate before visa appointment. Verify current APS processing time before promising intake dates."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "APS required",
+      "variant": "warning"
+    },
+    {
+      "label": "6–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Embassy appointment",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "6–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "€75 + blocked account",
+      "variant": "neutral"
+    },
+    {
+      "label": "Admission letter",
+      "variant": "success"
+    },
+    {
+      "label": "APS for India",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "6–12w",
+      "sub": "After complete file + APS",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "€75",
+      "sub": "+ blocked account €11,904",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "88%",
+      "sub": "~74% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "15",
+      "sub": "+ APS & blocked account",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & third-party",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter"
+    },
+    {
+      "label": "Blocked account",
+      "value": "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter Germany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Admission from recognised German institution",
+      "met": true
+    },
+    {
+      "criterion": "APS certificate (India)",
+      "met": false,
+      "note": "Apply early—processing takes weeks"
+    },
+    {
+      "criterion": "Blocked account or financial proof",
+      "met": false,
+      "note": "€11,904 for 2026 or equivalent"
+    },
+    {
+      "criterion": "Health insurance (travel + statutory)",
+      "met": false
+    },
+    {
+      "criterion": "Motivation letter and CV",
+      "met": true
+    },
+    {
+      "criterion": "Language proficiency (as required)",
+      "met": true,
+      "note": "German or English per program"
+    },
+    {
+      "criterion": "Valid passport",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "After refusal, address embassy feedback before rebooking—blocked account and APS cannot be rushed last minute.",
+  "redFlags": [
+    {
+      "title": "APS not completed",
+      "description": "Visa appointment booked without APS certificate.",
+      "fix": "Complete APS before embassy slot; track processing on APS website",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient blocked account",
+      "description": "Amount below required monthly sum or not from recognised provider.",
+      "fix": "Open blocked account at approved bank for full required amount",
+      "severity": "Very common"
+    },
+    {
+      "title": "Admission not from recognised institution",
+      "description": "Private unrecognised college or expired Zulassung.",
+      "fix": "Verify Anabin/institution recognition before fees",
+      "severity": "Common"
+    },
+    {
+      "title": "Weak motivation letter",
+      "description": "Generic letter not explaining study plan and Germany choice.",
+      "fix": "Course-specific motivation linking prior study to German program",
+      "severity": "Common"
+    },
+    {
+      "title": "Language proof missing",
+      "description": "Program requires German/English certificate not provided.",
+      "fix": "Obtain required TestDaF/IELTS/Goethe per admission",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals not addressed",
+      "description": "Schengen or German refusals hidden.",
+      "fix": "Disclose and explain changed circumstances",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee student visa approval?",
+      "a": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+    },
+    {
+      "q": "What is APS?",
+      "a": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+    },
+    {
+      "q": "Blocked account amount for 2026?",
+      "a": "Typically €11,904 (12 months × €992). Verify current amount before opening account."
+    },
+    {
+      "q": "Can spouse accompany?",
+      "a": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+    },
+    {
+      "q": "English-taught programs need German?",
+      "a": "Depends on program—follow admission and embassy requirements."
+    },
+    {
+      "q": "How long to convert to residence permit?",
+      "a": "Apply at Ausländerbehörde soon after arrival and registration."
+    },
+    {
+      "q": "Can I work on student visa?",
+      "a": "Limited working hours permitted—verify current rules for students in Germany."
+    },
+    {
+      "q": "What after graduation?",
+      "a": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs",
+    "Blocked account funds belong to client—never commingle with firm accounts"
+  ],
+  "proTips": [
+    "Start APS 3–4 months before intended intake",
+    "Open blocked account only after admission confirmed",
+    "Book embassy slot when file 90% ready",
+    "Motivation letter must match admission course",
+    "Verify health insurance accepted by embassy"
+  ],
+  "postApproval": [
+    "Explain address registration (Anmeldung) within deadline",
+    "Guide on Ausländerbehörde appointment after arrival",
+    "Remind blocked account monthly withdrawal rules",
+    "Discuss post-study job-seeker pathway"
+  ],
+  "performance": {
+    "ourRate": 88,
+    "industryRate": 74,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "156"
+      },
+      {
+        "label": "Approved",
+        "value": "137"
+      },
+      {
+        "label": "Refused",
+        "value": "14"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "5"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 88,
+      "benchmark": 74
+    },
+    {
+      "label": "APS timing",
+      "ours": 85,
+      "benchmark": 68
+    },
+    {
+      "label": "Financial docs",
+      "ours": 87,
+      "benchmark": 72
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 92,
+      "benchmark": 76
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Counseling, admission review, APS initiation"
+    },
+    {
+      "weeks": "2–8",
+      "title": "APS processing, blocked account, documents"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Embassy appointment & submission"
+    },
+    {
+      "weeks": "6–12",
+      "title": "Embassy processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Germany – Job Seeker Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Opportunity Card",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Visitor Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Germany student visa counselor content with 2026 blocked account amount."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "APS backlog is real—do not promise winter intake without APS timeline confirmation."
+    }
+  ],
+  "resources": [
+    {
+      "title": "German Missions India — Visa",
+      "url": "https://india.diplo.de/in-en/service/visa",
+      "description": "Official visa information for India"
+    },
+    {
+      "title": "Make it in Germany — Student visa",
+      "url": "https://www.make-it-in-germany.com/en/visa-desp/studying/education-visa",
+      "description": "Study visa requirements"
+    },
+    {
+      "title": "APS India",
+      "url": "https://www.aps-india.de/",
+      "description": "Academic verification for Indian applicants"
+    },
+    {
+      "title": "Federal Foreign Office — Visa",
+      "url": "https://www.auswaertiges-amt.de/en/visa-service",
+      "description": "National visa overview"
+    },
+    {
+      "title": "Anabin — Institution database",
+      "url": "https://anabin.kmk.org/",
+      "description": "Verify institution recognition"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Indian students generally need:",
+      "options": [
+        "Only passport",
+        "APS certificate + admission + blocked account",
+        "Job offer",
+        "EU citizenship"
+      ],
+      "correctIndex": 1,
+      "explanation": "APS mandatory for India."
+    },
+    {
+      "question": "Blocked account 2026 amount approx:",
+      "options": [
+        "€5,000",
+        "€11,904",
+        "€50,000",
+        "€500"
+      ],
+      "correctIndex": 1,
+      "explanation": "12 × €992 monthly requirement."
+    },
+    {
+      "question": "National visa fee approx:",
+      "options": [
+        "€500",
+        "€75",
+        "€2,000",
+        "Free"
+      ],
+      "correctIndex": 1,
+      "explanation": "Embassy national visa fee."
+    },
+    {
+      "question": "After arrival student must:",
+      "options": [
+        "Ignore registration",
+        "Register address and apply residence permit",
+        "Work full-time immediately",
+        "Leave in 1 week"
+      ],
+      "correctIndex": 1,
+      "explanation": "Anmeldung and Ausländerbehörde required."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track APS",
+        "Guarantee visa approval",
+        "Verify admission",
+        "Check blocked account"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Start APS early",
+      "Verify institution on Anabin",
+      "Open blocked account for full required amount",
+      "Write course-specific motivation letter",
+      "Disclose prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not book embassy without APS",
+      "Do not use unrecognised institutions",
+      "Do not hide Schengen refusals",
+      "Do not quote outdated blocked account amount"
+    ],
+    "mistakes": [
+      "APS applied too late for intake",
+      "Blocked account short by even €1",
+      "Generic motivation letter",
+      "Wrong health insurance type",
+      "Expired admission letter"
+    ]
+  }
+}

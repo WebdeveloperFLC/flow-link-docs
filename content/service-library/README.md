@@ -63,6 +63,29 @@ node scripts/upload-service-library-metadata.mjs content/service-library/bulk-up
 | Notes | `staffNotes` |
 | Change log | `changelog` |
 
+## Canonical library UUIDs (visa services)
+
+| Service | `library_id` |
+|---------|----------------|
+| Canada – Student Visa | `c35e6051-f40f-47bf-9cac-0a386c47a336` |
+| Canada – Visitor Visa | `b2000001-0001-4000-8000-000000000011` |
+| UK – Student Visa | `b2000001-0001-4000-8000-000000000021` |
+| USA – F-1 Student | `b2000001-0001-4000-8000-000000000031` |
+| … | See `scripts/build-bulk-upload.mjs` `LIBRARY_IDS` |
+
+Full list of 31 JSON files + UUIDs: run `node scripts/build-bulk-upload.mjs`.
+
+## Deploy content to Supabase
+
+```bash
+# After migrations applied:
+node scripts/upload-service-library-metadata.mjs content/service-library/bulk-upload.json
+
+# Or regenerate SQL migration from JSON:
+node scripts/generate-visa-metadata-sql.mjs
+# then apply 20260606170000_seed_visa_academy_metadata.sql
+```
+
 ## Canada canonical row
 
 Only one row should hold full Canada student content:

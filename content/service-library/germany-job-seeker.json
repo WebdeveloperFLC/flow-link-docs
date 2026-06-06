@@ -1,0 +1,430 @@
+{
+  "displayName": "Germany – Job Seeker Visa",
+  "shortDescription": "German Embassy · Qualified professional job search · Recognition required",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 22,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current job seeker visa requirements on make-it-in-germany.com. Opportunity Card may supersede traditional job seeker for many applicants—assess correct pathway."
+  },
+  "alert": {
+    "title": "Opportunity Card vs Job Seeker",
+    "body": "Many applicants now qualify via Opportunity Card (Chancenkarte) instead of traditional job seeker. Assess which pathway fits before fee collection."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Qualification recognition",
+      "variant": "warning"
+    },
+    {
+      "label": "8–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "No job offer",
+      "variant": "success"
+    }
+  ],
+  "chips": [
+    {
+      "label": "6 months search",
+      "variant": "neutral"
+    },
+    {
+      "label": "€75 visa fee",
+      "variant": "neutral"
+    },
+    {
+      "label": "Recognised degree",
+      "variant": "warning"
+    },
+    {
+      "label": "Blocked account",
+      "variant": "neutral"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "8–12w",
+      "sub": "Embassy processing",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "€75",
+      "sub": "National visa approx",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "79%",
+      "sub": "~68% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "13",
+      "sub": "+ recognition & funds",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & blocked account",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "National visa allowing qualified professionals with recognised German-equivalent degree to search for employment in Germany, typically up to 6 months."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Recognised higher education qualification · Sufficient funds (blocked account) · Health insurance · CV and job search plan · May need vocational recognition for some fields"
+    },
+    {
+      "label": "Recognition prerequisite",
+      "value": "Degree must be recognised as equivalent to German qualification via Anabin or statement of comparability.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "German Embassy in India · ZAB for recognition · Ausländerbehörde after arrival"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter Germany; attend interviews; convert to work permit when employment secured."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Recognised qualification (Anabin/ZAB)",
+      "met": true,
+      "note": "Verify before apply"
+    },
+    {
+      "criterion": "Blocked account or financial proof",
+      "met": false
+    },
+    {
+      "criterion": "Health insurance for stay",
+      "met": false
+    },
+    {
+      "criterion": "Detailed CV and cover letter",
+      "met": true
+    },
+    {
+      "criterion": "Job search plan",
+      "met": true
+    },
+    {
+      "criterion": "Valid passport",
+      "met": true
+    },
+    {
+      "criterion": "Accommodation plan in Germany",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If qualification not recognised, complete ZAB recognition or assess Opportunity Card points pathway before applying.",
+  "redFlags": [
+    {
+      "title": "Degree not recognised",
+      "description": "Qualification not equivalent on Anabin/ZAB.",
+      "fix": "Apply for recognition; consider Opportunity Card if eligible",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient blocked account",
+      "description": "Funds below required amount.",
+      "fix": "Open blocked account for full required period",
+      "severity": "Very common"
+    },
+    {
+      "title": "Weak job search plan",
+      "description": "Generic plan without target industry or qualifications match.",
+      "fix": "Industry-specific search plan with target companies",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong pathway chosen",
+      "description": "Applied job seeker when Opportunity Card more suitable.",
+      "fix": "Compare pathways at intake",
+      "severity": "Common"
+    },
+    {
+      "title": "Health insurance gaps",
+      "description": "Travel insurance not valid for entire stay.",
+      "fix": "Compliant health insurance for full visa period",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals hidden",
+      "description": "Schengen or German refusals not disclosed.",
+      "fix": "Full disclosure in application",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee job seeker visa approval?",
+      "a": "No. Embassy assesses recognition, funds, and credibility. Never promise approval or employment."
+    },
+    {
+      "q": "Job seeker vs Opportunity Card?",
+      "a": "Opportunity Card uses points system; traditional job seeker requires recognised degree. Assess which fits."
+    },
+    {
+      "q": "Can work while searching?",
+      "a": "Generally cannot work on job seeker visa—limited exceptions. Verify current rules."
+    },
+    {
+      "q": "How long to find job?",
+      "a": "Visa typically 6 months—employment must match qualification level."
+    },
+    {
+      "q": "Blocked account amount?",
+      "a": "Verify current requirement—similar to student amount (~€11,904 for 2026)."
+    },
+    {
+      "q": "Recognition process time?",
+      "a": "ZAB statement can take weeks—start early."
+    },
+    {
+      "q": "After job offer?",
+      "a": "Apply for work residence permit at Ausländerbehörde."
+    },
+    {
+      "q": "Does visa guarantee job?",
+      "a": "No. Visa allows search only—employment depends on market and qualifications."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Verify Anabin recognition before fees",
+    "Compare Opportunity Card vs job seeker at intake",
+    "Prepare German and English CVs",
+    "Open blocked account when ready",
+    "Research target industry employers before arrival"
+  ],
+  "postApproval": [
+    "Explain job search timeline and limits",
+    "Guide on Ausländerbehörde registration",
+    "Advise on converting to work permit",
+    "Connect to Make it in Germany job portal"
+  ],
+  "performance": {
+    "ourRate": 79,
+    "industryRate": 68,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "41"
+      },
+      {
+        "label": "Approved",
+        "value": "32"
+      },
+      {
+        "label": "Refused",
+        "value": "7"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 79,
+      "benchmark": 68
+    },
+    {
+      "label": "Recognition verification",
+      "ours": 84,
+      "benchmark": 70
+    },
+    {
+      "label": "Pathway selection",
+      "ours": 86,
+      "benchmark": 72
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 85,
+      "benchmark": 70
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Pathway assessment, recognition check"
+    },
+    {
+      "weeks": "2–8",
+      "title": "ZAB if needed, blocked account, documents"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Embassy submission"
+    },
+    {
+      "weeks": "8–12",
+      "title": "Embassy processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Germany – Opportunity Card",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Germany job seeker visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Always check if client qualifies for Opportunity Card first—may be better pathway than traditional job seeker."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Make it in Germany — Job search",
+      "url": "https://www.make-it-in-germany.com/en/visa-desp/working/job-search",
+      "description": "Job search visa information"
+    },
+    {
+      "title": "Make it in Germany — Recognition",
+      "url": "https://www.make-it-in-germany.com/en/qualification-recognition",
+      "description": "Qualification recognition"
+    },
+    {
+      "title": "German Missions India — Visa",
+      "url": "https://india.diplo.de/in-en/service/visa",
+      "description": "Embassy services"
+    },
+    {
+      "title": "Anabin database",
+      "url": "https://anabin.kmk.org/",
+      "description": "Degree recognition check"
+    },
+    {
+      "title": "ZAB — Central Office",
+      "url": "https://www.kmk.org/zab/zentralstelle-fuer-auslaendisches-bildungswesen.html",
+      "description": "Statement of comparability"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Job seeker visa primary purpose:",
+      "options": [
+        "Permanent residence immediately",
+        "Search for qualified employment",
+        "Tourism",
+        "Study full-time"
+      ],
+      "correctIndex": 1,
+      "explanation": "Job search purpose."
+    },
+    {
+      "question": "Qualification generally must be:",
+      "options": [
+        "Unrecognised",
+        "Recognised as German equivalent",
+        "Not required",
+        "Primary school only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Recognition required."
+    },
+    {
+      "question": "Visa guarantees employment:",
+      "options": [
+        "Yes always",
+        "No—allows search only",
+        "Government assigns job",
+        "Automatic"
+      ],
+      "correctIndex": 1,
+      "explanation": "No employment guarantee."
+    },
+    {
+      "question": "Financial proof typically via:",
+      "options": [
+        "Cash only",
+        "Blocked account or equivalent proof",
+        "No proof",
+        "Employer letter only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Blocked account common."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Verify recognition",
+        "Guarantee visa or job",
+        "Compare pathways",
+        "Check blocked account"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees on visa or employment."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify qualification recognition on Anabin",
+      "Compare Opportunity Card vs job seeker",
+      "Open blocked account for required amount",
+      "Prepare industry-specific job search plan",
+      "Disclose prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee visa or employment",
+      "Do not apply without recognition",
+      "Do not use insufficient blocked account",
+      "Do not promise job placement",
+      "Do not hide Schengen refusals"
+    ],
+    "mistakes": [
+      "Degree not recognised",
+      "Wrong pathway chosen",
+      "Generic job search plan",
+      "Blocked account short",
+      "Client expected guaranteed employment"
+    ]
+  }
+}

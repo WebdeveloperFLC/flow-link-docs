@@ -1,5 +1,8 @@
--- Replace partial dedupe indexes with full UNIQUE constraint (required for ON CONFLICT upsert).
--- Drop constraint first if a prior partial run created it (index cannot drop before constraint).
+-- Run once in Supabase SQL editor if Lovable notification migrations failed.
+-- Safe to re-run (idempotent).
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.app_notifications TO authenticated;
+GRANT ALL ON public.app_notifications TO service_role;
 
 ALTER TABLE public.app_notifications
   DROP CONSTRAINT IF EXISTS app_notifications_user_dedupe_key;

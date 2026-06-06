@@ -1,0 +1,432 @@
+{
+  "displayName": "Canada – Super Visa (Parents & Grandparents)",
+  "shortDescription": "IRCC Super Visa · Parents/grandparents · 5-year stays · Insurance required",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 18,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Super Visa fee (CAD $100) and minimum medical insurance requirements ($100,000 coverage, 1 year) on canada.ca."
+  },
+  "alert": {
+    "title": "Insurance is mandatory",
+    "body": "Super Visa requires valid Canadian medical insurance for at least 1 year, minimum $100,000 coverage. Without compliant insurance, application will fail."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Insurance mandatory",
+      "variant": "warning"
+    },
+    {
+      "label": "3–8 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "Child/grandchild sponsor",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "Up to 5-year stays",
+      "variant": "success"
+    },
+    {
+      "label": "CAD $100 + insurance",
+      "variant": "neutral"
+    },
+    {
+      "label": "$100k insurance min",
+      "variant": "warning"
+    },
+    {
+      "label": "LICO income test",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "3–8m",
+      "sub": "Varies by office",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "CAD $100",
+      "sub": "+ biometrics + insurance",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "81%",
+      "sub": "~70% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "12",
+      "sub": "+ insurance policy",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & insurance",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Multi-entry visa allowing parents and grandparents of Canadian citizens/PRs to visit for up to 5 years per entry without renewing status."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Parent/grandparent of Canadian citizen or PR · Child/grandchild meets LICO income threshold · Medical exam · Canadian medical insurance · Ties to home country"
+    },
+    {
+      "label": "Insurance requirement",
+      "value": "Private medical insurance from Canadian company valid minimum 1 year from entry, $100,000 minimum coverage.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "label": "After approval",
+      "value": "Multi-entry visa; maintain valid insurance on each visit; respect super visa conditions."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Child/grandchild is Canadian citizen or PR",
+      "met": true
+    },
+    {
+      "criterion": "Sponsor meets LICO minimum income",
+      "met": true,
+      "note": "3 years Notice of Assessment"
+    },
+    {
+      "criterion": "Medical exam completed",
+      "met": false,
+      "note": "Required for Super Visa"
+    },
+    {
+      "criterion": "Canadian medical insurance arranged",
+      "met": false,
+      "note": "$100,000 min, 1 year validity"
+    },
+    {
+      "criterion": "Invitation letter from child/grandchild",
+      "met": true
+    },
+    {
+      "criterion": "Biometrics completed",
+      "met": false
+    },
+    {
+      "criterion": "Ties to home country (India)",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If refused, address medical, insurance, or LICO deficiencies before reapplication.",
+  "redFlags": [
+    {
+      "title": "Insurance non-compliant",
+      "description": "Coverage below $100,000 or not from Canadian insurer.",
+      "fix": "Purchase IRCC-compliant Super Visa insurance before apply",
+      "severity": "Very common"
+    },
+    {
+      "title": "LICO income not met",
+      "description": "Sponsor income below minimum for family size.",
+      "fix": "Verify LICO table; combine spouse income if applicable",
+      "severity": "Very common"
+    },
+    {
+      "title": "Medical inadmissibility",
+      "description": "Medical exam reveals concerns.",
+      "fix": "Complete exam early; address health issues with counsel",
+      "severity": "Common"
+    },
+    {
+      "title": "Weak home ties",
+      "description": "Parent has no property/family remaining in India.",
+      "fix": "Document assets, spouse, and reasons to return",
+      "severity": "Common"
+    },
+    {
+      "title": "Incomplete NOA documents",
+      "description": "Missing 3 years Notice of Assessment for sponsor.",
+      "fix": "Collect full 3-year NOA from CRA for sponsor",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong relationship proof",
+      "description": "Birth certificates not matching names.",
+      "fix": "Correct birth certificates linking applicant to sponsor",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee Super Visa approval?",
+      "a": "No. IRCC assesses medical, insurance, LICO, and ties. Never promise approval."
+    },
+    {
+      "q": "How much income sponsor needs?",
+      "a": "Verify current LICO table on canada.ca for family size including sponsoring household."
+    },
+    {
+      "q": "Which insurance companies?",
+      "a": "Must be Canadian company offering Super Visa compliant coverage—verify with insurer."
+    },
+    {
+      "q": "Difference from regular TRV?",
+      "a": "Super Visa allows up to 5-year stays per entry; higher LICO and insurance requirements."
+    },
+    {
+      "q": "Can both parents apply together?",
+      "a": "Yes; assess combined documentation and sponsor income for family size."
+    },
+    {
+      "q": "Medical exam when?",
+      "a": "Before application; use IRCC panel physician."
+    },
+    {
+      "q": "Processing time from India?",
+      "a": "Often 3–8 months—check current IRCC processing times."
+    },
+    {
+      "q": "Can Super Visa holder work?",
+      "a": "No. Visit and family time only—not employment."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Verify LICO with 3-year NOA before fees",
+    "Purchase compliant insurance from known Canadian provider",
+    "Complete medical early—results take time",
+    "Link parent to sponsor with clear birth certificates",
+    "Document India ties even for elderly parents"
+  ],
+  "postApproval": [
+    "Explain 5-year stay per entry rule",
+    "Remind to maintain valid insurance on each visit",
+    "Send visa conditions in writing",
+    "Advise on port-of-entry documents"
+  ],
+  "performance": {
+    "ourRate": 81,
+    "industryRate": 70,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "52"
+      },
+      {
+        "label": "Approved",
+        "value": "42"
+      },
+      {
+        "label": "Refused",
+        "value": "8"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 81,
+      "benchmark": 70
+    },
+    {
+      "label": "Insurance compliance",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "LICO documentation",
+      "ours": 85,
+      "benchmark": 68
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 87,
+      "benchmark": 71
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "LICO check, sponsor NOA collection"
+    },
+    {
+      "weeks": "2–4",
+      "title": "Medical exam, insurance purchase"
+    },
+    {
+      "weeks": "4–5",
+      "title": "IRCC submission & biometrics"
+    },
+    {
+      "weeks": "3–8m",
+      "title": "IRCC processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Canada – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Spouse Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Express Entry PR",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Super Visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Insurance must be prepaid for 1 year—monthly pay plans often rejected for Super Visa."
+    }
+  ],
+  "resources": [
+    {
+      "title": "IRCC — Super Visa",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/parent-grandparent-super-visa.html",
+      "description": "Official Super Visa requirements"
+    },
+    {
+      "title": "IRCC — Super Visa eligibility",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/parent-grandparent-super-visa/eligibility.html",
+      "description": "Eligibility details"
+    },
+    {
+      "title": "IRCC — LICO tables",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/family-sponsorship/other-relatives/income-requirements.html",
+      "description": "Income thresholds"
+    },
+    {
+      "title": "IRCC — Medical exams",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/medical-police/medical-exams.html",
+      "description": "Medical exam info"
+    },
+    {
+      "title": "IRCC — Processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "description": "Current estimates"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Super Visa minimum insurance coverage:",
+      "options": [
+        "$10,000",
+        "$100,000",
+        "$1,000",
+        "None"
+      ],
+      "correctIndex": 1,
+      "explanation": "$100,000 minimum."
+    },
+    {
+      "question": "Super Visa allows stays up to:",
+      "options": [
+        "1 day",
+        "5 years per entry",
+        "Permanent",
+        "10 years citizenship"
+      ],
+      "correctIndex": 1,
+      "explanation": "Extended visit per entry."
+    },
+    {
+      "question": "Sponsor must meet:",
+      "options": [
+        "No requirements",
+        "LICO minimum income",
+        "Only age 18",
+        "University degree"
+      ],
+      "correctIndex": 1,
+      "explanation": "Income threshold required."
+    },
+    {
+      "question": "Super Visa holder can work:",
+      "options": [
+        "Full-time",
+        "No",
+        "Any job",
+        "Remote only"
+      ],
+      "correctIndex": 1,
+      "explanation": "No work permitted."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Verify insurance",
+        "Guarantee Super Visa approval",
+        "Check LICO",
+        "Track medical"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify LICO with 3-year NOA",
+      "Purchase compliant Canadian insurance",
+      "Complete medical exam early",
+      "Link relationship with birth certificates",
+      "Document India ties"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not use non-compliant insurance",
+      "Do not apply if LICO not met",
+      "Do not skip medical exam",
+      "Do not quote outdated LICO amounts"
+    ],
+    "mistakes": [
+      "Insurance from non-Canadian provider",
+      "LICO calculated wrong for family size",
+      "Medical exam overdue",
+      "Missing sponsor NOA years",
+      "Birth certificate name mismatch"
+    ]
+  }
+}

@@ -1,0 +1,307 @@
+{
+  "displayName": "Canada – Visitor Visa (TRV)",
+  "shortDescription": "IRCC temporary resident visa · Tourism, family, business · Biometrics may apply",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Beginner",
+  "learningMinutes": 15,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current IRCC visitor visa fee (CAD $100) and biometrics fee on canada.ca before quoting clients."
+  },
+  "alert": {
+    "title": "Purpose must match documents",
+    "body": "Tourism, family visit, and business visitor files need different evidence. Misaligned purpose is a common refusal reason—align invitation, itinerary, and cover letter."
+  },
+  "tags": [
+    { "label": "Active service", "variant": "success" },
+    { "label": "Ties evidence critical", "variant": "warning" },
+    { "label": "2–8 weeks", "variant": "neutral" },
+    { "label": "Online – IRCC", "variant": "neutral" }
+  ],
+  "chips": [
+    { "label": "2–8 weeks processing", "variant": "neutral" },
+    { "label": "CAD $100 + biometrics", "variant": "neutral" },
+    { "label": "Strong ties required", "variant": "warning" },
+    { "label": "Online application", "variant": "success" }
+  ],
+  "kpis": [
+    { "label": "Processing time", "value": "2–8w", "sub": "Varies by country of residence", "tone": "primary" },
+    { "label": "Government fee", "value": "CAD $100", "sub": "+ biometrics CAD $85 if required", "tone": "warning" },
+    { "label": "Our approval rate", "value": "78%", "sub": "~65% industry benchmark", "tone": "success" },
+    { "label": "Required docs", "value": "10", "sub": "+ invitation if applicable", "tone": "violet" },
+    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & third-party", "tone": "primary" }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Temporary Resident Visa (TRV) allowing Indian nationals to visit Canada for tourism, family visits, or short business trips. Most applications are submitted online through the IRCC portal."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Valid passport · Genuine temporary purpose · Strong ties to India · Sufficient funds · Clean immigration history"
+    },
+    {
+      "label": "Single vs multiple entry",
+      "value": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "label": "After approval",
+      "value": "TRV counterfoil in passport; client must respect stay duration and purpose. Overstay affects future Canada applications."
+    }
+  ],
+  "eligibility": [
+    { "criterion": "Valid passport (6+ months validity recommended)", "met": true, "note": "Check expiry before booking VAC appointment" },
+    { "criterion": "Proof of purpose (tourism / family / business)", "met": true, "note": "Itinerary, invitation letter, or business documents as applicable" },
+    { "criterion": "Proof of funds for trip duration", "met": true, "note": "Bank statements, ITR, sponsor letter if applicable" },
+    { "criterion": "Strong ties to home country", "met": true, "note": "Employment, property, family, business—document clearly" },
+    { "criterion": "Biometrics completed", "met": false, "note": "Book within 30 days of BIL if required" },
+    { "criterion": "Medical exam (if required)", "met": false, "note": "Based on residence history and stay plans" },
+    { "criterion": "No prior misrepresentation or serious inadmissibility", "met": true }
+  ],
+  "redFlagsBanner": "If refused, do not reapply immediately with the same weak ties evidence. Address the specific refusal reason before a new submission.",
+  "redFlags": [
+    {
+      "title": "Weak home-country ties",
+      "description": "Unemployed applicant with no property, family, or business ties; vague return plan.",
+      "fix": "Document employment, business, property, family obligations; employer leave letter",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient or unseasoned funds",
+      "description": "Large recent deposits, funds not matching income, or no sponsor proof.",
+      "fix": "4–6 month bank history; sponsor ITR + employment letter; explain large credits",
+      "severity": "Very common"
+    },
+    {
+      "title": "Purpose mismatch",
+      "description": "Tourism file with business documents only, or family visit without host invitation.",
+      "fix": "Align purpose, cover letter, itinerary, and supporting documents",
+      "severity": "Common"
+    },
+    {
+      "title": "Previous refusals not addressed",
+      "description": "Canada or other country refusals hidden or not explained in cover letter.",
+      "fix": "Full disclosure + changed circumstances + stronger evidence",
+      "severity": "High"
+    },
+    {
+      "title": "Overstated stay or vague itinerary",
+      "description": "Long stay without credible reason or no hotel/flight bookings where appropriate.",
+      "fix": "Realistic itinerary; explain accommodation; show return ticket intent",
+      "severity": "Common"
+    },
+    {
+      "title": "Biometrics deadline missed",
+      "description": "BIL expired before VAC appointment completed.",
+      "fix": "Book biometrics within days of BIL; track confirmation",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee approval for a strong profile?",
+      "a": "No. IRCC officers assess each case individually. We can improve file quality but never promise approval."
+    },
+    {
+      "q": "How much funds should a tourist show?",
+      "a": "Enough to cover flights, accommodation, and daily expenses for the planned stay. Verify current IRCC guidance; typically CAD $2,000–5,000+ depending on duration and who pays."
+    },
+    {
+      "q": "Is an invitation letter mandatory for family visits?",
+      "a": "Not always legally required, but strongly recommended when visiting relatives. Host should provide invitation, status proof, and address details."
+    },
+    {
+      "q": "Can a refused applicant reapply?",
+      "a": "Yes, when circumstances or evidence materially improve. Reapply without addressing refusal reasons usually fails again."
+    },
+    {
+      "q": "Does TRV allow work in Canada?",
+      "a": "No. TRV is for temporary visit only. Work requires a work permit unless exempt."
+    },
+    {
+      "q": "How long can a visitor stay?",
+      "a": "Officer sets duration at port of entry—often up to 6 months per entry. Client must not overstay."
+    },
+    {
+      "q": "When should biometrics be done?",
+      "a": "As soon as possible after Biometric Instruction Letter, typically within 30 days."
+    },
+    {
+      "q": "Can TRV be used to join a spouse studying in Canada?",
+      "a": "Sometimes, but assess whether visitor visa or dependant permit is more appropriate. Separate pathways may apply."
+    }
+  ],
+  "compliance": [
+    "Paid representation in Canada may require RCIC or lawyer—confirm who signs client agreement",
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa approval; use approved-language only in marketing",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Build ties evidence first—employment letter, property papers, family documents",
+    "Match cover letter tone to purpose; avoid generic templates",
+    "Book biometrics within days of BIL to avoid preventable delays",
+    "For family visits, verify host's status in Canada before submission",
+    "Save final PDF package in client binder for audit"
+  ],
+  "postApproval": [
+    "Send TRV details and entry conditions to client in writing",
+    "Remind client of permitted stay duration and no-work rule",
+    "Advise on travel insurance and port-of-entry documents to carry",
+    "Register for pre-departure briefing if offered"
+  ],
+  "performance": {
+    "ourRate": 78,
+    "industryRate": 65,
+    "stats": [
+      { "label": "Files this year", "value": "96" },
+      { "label": "Approved", "value": "75" },
+      { "label": "Refused", "value": "15" },
+      { "label": "Withdrawn", "value": "6" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "Our rate vs industry", "ours": 78, "benchmark": 65 },
+    { "label": "Ties documentation", "ours": 74, "benchmark": 58 },
+    { "label": "Financial credibility", "ours": 76, "benchmark": 62 },
+    { "label": "Complete checklist first submit", "ours": 88, "benchmark": 68 }
+  ],
+  "timeline": [
+    { "weeks": "1", "title": "Counseling, purpose assessment, fee agreement" },
+    { "weeks": "1–2", "title": "Document collection, cover letter, financials" },
+    { "weeks": "2–3", "title": "Quality review & IRCC submission" },
+    { "weeks": "3–4", "title": "Biometrics (if applicable)" },
+    { "weeks": "2–8", "title": "IRCC processing" }
+  ],
+  "relatedServices": [
+    { "label": "Canada – Student Visa (Study Permit)", "libraryId": "" },
+    { "label": "Canada – Super Visa", "libraryId": "" },
+    { "label": "Canada – Spouse Visa", "libraryId": "" }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial counselor content for Canada TRV with 2026 fee and processing notes."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Indian TRV refusals often cite ties—always collect employer leave letter and property/family evidence even for tourism."
+    },
+    {
+      "author": "Quality",
+      "date": "6 Jun 2026",
+      "text": "Second review required for all files with prior Canada refusal."
+    }
+  ],
+  "resources": [
+    {
+      "title": "IRCC — Visit Canada as a tourist",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada.html",
+      "description": "Official visitor visa requirements and how to apply"
+    },
+    {
+      "title": "IRCC — Temporary resident visa",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/visit-canada/apply-visitor-visa.html",
+      "description": "Application steps and document checklist"
+    },
+    {
+      "title": "IRCC — Biometrics",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/campaigns/biometrics/facts.html",
+      "description": "When biometrics are required and how to book"
+    },
+    {
+      "title": "IRCC processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "description": "Current estimates by country and application type"
+    },
+    {
+      "title": "IRCC — Fee list",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigration-citizenship-application-fees.html",
+      "description": "Current government fees for visitor visa and biometrics"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "What is the primary government fee for a Canada visitor visa (2026)?",
+      "options": ["CAD $150", "CAD $100", "CAD $500", "CAD $85 only"],
+      "correctIndex": 1,
+      "explanation": "IRCC visitor visa application fee is CAD $100; biometrics is separate if required."
+    },
+    {
+      "question": "Which is the top refusal reason for Indian TRV applicants?",
+      "options": [
+        "Passport colour",
+        "Weak ties to home country",
+        "Hotel booking brand",
+        "Passport photo background"
+      ],
+      "correctIndex": 1,
+      "explanation": "Officers must be satisfied the applicant will leave Canada after the visit."
+    },
+    {
+      "question": "After a BIL is issued, counselors should urge the client to:",
+      "options": [
+        "Wait until approval",
+        "Book biometrics promptly (often within 30 days)",
+        "Skip biometrics if refused before",
+        "Mail passport without appointment"
+      ],
+      "correctIndex": 1,
+      "explanation": "Late biometrics causes preventable delays."
+    },
+    {
+      "question": "Can a TRV holder work in Canada?",
+      "options": ["Yes, any job", "No, work requires a work permit", "Yes, part-time only", "Yes, if invited"],
+      "correctIndex": 1,
+      "explanation": "TRV is for temporary visit purposes only."
+    },
+    {
+      "question": "Before submission, firm policy requires:",
+      "options": [
+        "Guarantee of approval",
+        "Signed checklist and consent where required",
+        "Hiding prior refusals",
+        "Fabricated employment letter"
+      ],
+      "correctIndex": 1,
+      "explanation": "Compliance: consent, checklist sign-off, honest disclosure."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Document strong ties—employment, property, family obligations",
+      "Align purpose, cover letter, and supporting documents",
+      "Explain funds source with 4–6 month bank history",
+      "Disclose all prior refusals with changed circumstances",
+      "Verify current IRCC fees before quoting client"
+    ],
+    "donts": [
+      "Do not guarantee approval regardless of profile strength",
+      "Do not submit without signed client checklist where policy requires",
+      "Do not use purpose-inconsistent documents (tourism file with business-only papers)",
+      "Do not hide previous refusals from Canada or other countries",
+      "Do not miss biometrics deadline after BIL"
+    ],
+    "mistakes": [
+      "Generic cover letter not explaining return intent",
+      "Large unexplained recent bank deposits",
+      "Missing employer leave letter for salaried applicants",
+      "Overstated trip duration without credible reason",
+      "Blurry scans or name mismatches across documents"
+    ]
+  }
+}

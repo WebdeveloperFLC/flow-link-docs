@@ -1,0 +1,431 @@
+{
+  "displayName": "Canada – Post-Graduation Work Permit (PGWP)",
+  "shortDescription": "IRCC PGWP · After study · DLI completion · Open work permit",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 18,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current PGWP fee (CAD $255 approx) and length rules on canada.ca. PGWP is one-time only for most applicants."
+  },
+  "alert": {
+    "title": "One-time PGWP eligibility",
+    "body": "PGWP can usually only be obtained once. Program length and DLI status determine permit duration—verify before promising 3-year PGWP."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "DLI completion required",
+      "variant": "warning"
+    },
+    {
+      "label": "3–5 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – IRCC",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "3–5 months processing",
+      "variant": "neutral"
+    },
+    {
+      "label": "CAD $255 approx",
+      "variant": "neutral"
+    },
+    {
+      "label": "Open work permit",
+      "variant": "success"
+    },
+    {
+      "label": "One-time only",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "3–5m",
+      "sub": "Online application",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "CAD $255",
+      "sub": "Verify on canada.ca",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "92%",
+      "sub": "~85% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "8",
+      "sub": "+ completion letter",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt only",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Open work permit allowing international graduates of eligible DLIs to work in Canada after completing program. Duration linked to program length."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Completed eligible program at DLI · Valid study permit · Graduation confirmation · Applied within 180 days of completion letter"
+    },
+    {
+      "label": "Duration rules",
+      "value": "Program 8 months–2 years: PGWP may match program length. 2+ years: up to 3 years. Verify current IRCC rules.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "label": "After approval",
+      "value": "Work anywhere in Canada. PGWP time supports CEC pathway to PR via Express Entry."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Graduated from eligible DLI program",
+      "met": true
+    },
+    {
+      "criterion": "Valid study permit at completion",
+      "met": true
+    },
+    {
+      "criterion": "Completion letter / transcript",
+      "met": true
+    },
+    {
+      "criterion": "Applied within 180 days of completion",
+      "met": true,
+      "note": "Critical deadline"
+    },
+    {
+      "criterion": "Full-time student status maintained",
+      "met": true
+    },
+    {
+      "criterion": "Passport valid through desired PGWP period",
+      "met": true
+    },
+    {
+      "criterion": "Not previously received PGWP",
+      "met": true,
+      "note": "One-time rule"
+    }
+  ],
+  "redFlagsBanner": "If ineligible due to program length or part-time study, explore other work permit options—do not submit weak PGWP application.",
+  "redFlags": [
+    {
+      "title": "Applied after 180-day deadline",
+      "description": "Completion letter date exceeded 180 days.",
+      "fix": "Apply within 180 days or restore status if eligible",
+      "severity": "Very common"
+    },
+    {
+      "title": "Program too short",
+      "description": "Program under 8 months generally ineligible.",
+      "fix": "Verify eligibility before completion; plan alternative",
+      "severity": "High"
+    },
+    {
+      "title": "Part-time study history",
+      "description": "Did not maintain required full-time status.",
+      "fix": "Document exceptional circumstances if any; verify eligibility",
+      "severity": "Common"
+    },
+    {
+      "title": "Non-eligible DLI or program",
+      "description": "Institution or program not PGWP-eligible.",
+      "fix": "Verify on IRCC DLI list before enrolment—not at PGWP stage",
+      "severity": "High"
+    },
+    {
+      "title": "Missing completion letter",
+      "description": "Applied with transcript only without official completion.",
+      "fix": "Obtain official completion letter from registrar",
+      "severity": "Common"
+    },
+    {
+      "title": "Passport expires before PGWP length",
+      "description": "Short passport limits PGWP duration.",
+      "fix": "Renew passport before applying for full PGWP length",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee PGWP approval?",
+      "a": "No. IRCC verifies eligibility. Most eligible graduates are approved but we never guarantee."
+    },
+    {
+      "q": "How long is PGWP?",
+      "a": "Depends on program length—8 months minimum program for any PGWP; up to 3 years for 2+ year programs."
+    },
+    {
+      "q": "Can apply from outside Canada?",
+      "a": "Generally must apply within 180 days while eligible—rules vary if outside Canada. Verify current instructions."
+    },
+    {
+      "q": "Can work while waiting?",
+      "a": "If applied before study permit expiry, may work under implied status—verify current rules."
+    },
+    {
+      "q": "PGWP and Express Entry?",
+      "a": "Canadian work experience on PGWP counts toward CEC—key PR pathway."
+    },
+    {
+      "q": "Second PGWP possible?",
+      "a": "Generally one PGWP per lifetime—exceptions rare."
+    },
+    {
+      "q": "Online vs paper?",
+      "a": "Online via IRCC portal recommended."
+    },
+    {
+      "q": "Spouse work permit?",
+      "a": "Spouse may qualify for open work permit if PGWP holder meets skill level—verify current rules."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Confirm PGWP eligibility at enrolment stage not just graduation",
+    "Apply within 180 days of completion letter",
+    "Renew passport if expiring soon",
+    "Obtain official completion letter from DLI",
+    "Track implied status work rules if applying near permit expiry"
+  ],
+  "postApproval": [
+    "Send PGWP approval and expiry date",
+    "Discuss CEC/Express Entry timeline",
+    "Remind PGWP is open—any employer",
+    "Guide on SIN and tax registration"
+  ],
+  "performance": {
+    "ourRate": 92,
+    "industryRate": 85,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "124"
+      },
+      {
+        "label": "Approved",
+        "value": "114"
+      },
+      {
+        "label": "Refused",
+        "value": "7"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "3"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 92,
+      "benchmark": 85
+    },
+    {
+      "label": "Deadline compliance",
+      "ours": 95,
+      "benchmark": 78
+    },
+    {
+      "label": "Document completeness",
+      "ours": 93,
+      "benchmark": 82
+    },
+    {
+      "label": "Eligibility pre-check",
+      "ours": 90,
+      "benchmark": 75
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1",
+      "title": "Eligibility verification at graduation"
+    },
+    {
+      "weeks": "1–2",
+      "title": "Completion letter, document prep"
+    },
+    {
+      "weeks": "2–3",
+      "title": "IRCC online submission"
+    },
+    {
+      "weeks": "3–5m",
+      "title": "IRCC processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Canada – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Express Entry PR",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Work Permit",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial PGWP counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "180-day deadline from completion letter—not convocation date. Counsel at graduation immediately."
+    }
+  ],
+  "resources": [
+    {
+      "title": "IRCC — PGWP",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation.html",
+      "description": "Official PGWP requirements"
+    },
+    {
+      "title": "IRCC — PGWP eligibility",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation/eligibility.html",
+      "description": "Eligibility details"
+    },
+    {
+      "title": "IRCC — How to apply PGWP",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation/apply.html",
+      "description": "Application steps"
+    },
+    {
+      "title": "IRCC — Processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "description": "Current estimates"
+    },
+    {
+      "title": "IRCC — DLI list",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/prepare/designated-learning-institutions-list.html",
+      "description": "Verify DLI status"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "PGWP application deadline after completion:",
+      "options": [
+        "30 days",
+        "180 days",
+        "5 years",
+        "No deadline"
+      ],
+      "correctIndex": 1,
+      "explanation": "180-day rule critical."
+    },
+    {
+      "question": "PGWP is generally available:",
+      "options": [
+        "Unlimited times",
+        "Once per lifetime",
+        "Never",
+        "Only before study"
+      ],
+      "correctIndex": 1,
+      "explanation": "One-time rule."
+    },
+    {
+      "question": "Minimum program length for any PGWP:",
+      "options": [
+        "1 week",
+        "8 months",
+        "5 years",
+        "1 day"
+      ],
+      "correctIndex": 1,
+      "explanation": "8-month minimum."
+    },
+    {
+      "question": "PGWP allows:",
+      "options": [
+        "Study only",
+        "Open work anywhere in Canada",
+        "Visit only",
+        "No activities"
+      ],
+      "correctIndex": 1,
+      "explanation": "Open work permit."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track 180-day deadline",
+        "Guarantee PGWP approval",
+        "Verify DLI",
+        "Check passport validity"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify eligibility before graduation",
+      "Apply within 180 days",
+      "Obtain official completion letter",
+      "Ensure passport validity covers PGWP period",
+      "Discuss CEC pathway early"
+    ],
+    "donts": [
+      "Do not guarantee PGWP",
+      "Do not miss 180-day deadline",
+      "Do not apply without completion letter",
+      "Do not promise 3-year PGWP without verifying program length",
+      "Do not ignore part-time study issues"
+    ],
+    "mistakes": [
+      "Applied on convocation day but letter dated months earlier",
+      "Passport expiry shortened PGWP",
+      "Program under 8 months",
+      "Missing completion letter",
+      "Second PGWP attempt after prior PGWP"
+    ]
+  }
+}

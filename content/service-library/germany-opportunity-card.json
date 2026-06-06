@@ -1,0 +1,432 @@
+{
+  "displayName": "Germany – Opportunity Card (Chancenkarte)",
+  "shortDescription": "German Embassy · Points-based job search · 1 year · No job offer required",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 22,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Opportunity Card points requirements and blocked account amount on make-it-in-germany.com and embassy website before quoting."
+  },
+  "alert": {
+    "title": "Points-based eligibility",
+    "body": "Opportunity Card requires minimum 6 points from qualifications, experience, language, and age. Verify points calculation before application."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "6 points minimum",
+      "variant": "warning"
+    },
+    {
+      "label": "8–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Job search visa",
+      "variant": "success"
+    }
+  ],
+  "chips": [
+    {
+      "label": "1 year validity",
+      "variant": "success"
+    },
+    {
+      "label": "€75 visa fee",
+      "variant": "neutral"
+    },
+    {
+      "label": "6+ points required",
+      "variant": "warning"
+    },
+    {
+      "label": "Blocked account",
+      "variant": "neutral"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "8–12w",
+      "sub": "Embassy processing",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "€75",
+      "sub": "National visa approx",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "82%",
+      "sub": "~70% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "14",
+      "sub": "+ points evidence",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & blocked account",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Residence permit for qualified professionals to search for employment in Germany for up to one year without prior job offer. Points-based eligibility under Section 20a AufenthG."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Minimum 6 points · Recognised qualification or IT experience · German A1 or English B2 · Blocked account or employment contract · Age typically under 35 for max age points"
+    },
+    {
+      "label": "Points system",
+      "value": "Points for qualification recognition, work experience, language, age, and previous Germany stay. Minimum 6 points required.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "German Embassy in India · Local Ausländerbehörde after arrival"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter Germany; search for qualified employment; convert to work residence permit when job secured."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Minimum 6 points achieved",
+      "met": true,
+      "note": "Calculate using official criteria"
+    },
+    {
+      "criterion": "Recognised degree or IT experience pathway",
+      "met": true
+    },
+    {
+      "criterion": "German A1 or English B2",
+      "met": true
+    },
+    {
+      "criterion": "Blocked account or job offer",
+      "met": false,
+      "note": "Financial proof required"
+    },
+    {
+      "criterion": "Qualification recognition (if claiming points)",
+      "met": false,
+      "note": "Anabin or partial recognition"
+    },
+    {
+      "criterion": "Valid passport",
+      "met": true
+    },
+    {
+      "criterion": "Health insurance",
+      "met": false
+    }
+  ],
+  "redFlagsBanner": "If below 6 points, improve language level or obtain qualification recognition before applying—do not submit ineligible application.",
+  "redFlags": [
+    {
+      "title": "Below 6 points",
+      "description": "Application lodged without meeting minimum points.",
+      "fix": "Calculate points honestly; improve language or get recognition",
+      "severity": "Very common"
+    },
+    {
+      "title": "Qualification not recognised",
+      "description": "Degree not equivalent to German qualification for points.",
+      "fix": "Check Anabin database; apply for recognition if needed",
+      "severity": "Common"
+    },
+    {
+      "title": "Insufficient blocked account",
+      "description": "Funds below required amount for stay.",
+      "fix": "Open blocked account for required duration",
+      "severity": "Common"
+    },
+    {
+      "title": "Language certificate missing",
+      "description": "Neither German A1 nor English B2 provided.",
+      "fix": "Obtain required language certificate",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong visa category",
+      "description": "Applied Opportunity Card when job offer exists—work visa may be better.",
+      "fix": "Assess job offer vs job search pathway at intake",
+      "severity": "Medium"
+    },
+    {
+      "title": "Incomplete IT experience evidence",
+      "description": "IT pathway without 2 years documented experience.",
+      "fix": "Detailed employer letters for IT experience route",
+      "severity": "Common"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee Opportunity Card approval?",
+      "a": "No. Embassy assesses points and documentation. Never promise approval."
+    },
+    {
+      "q": "How to calculate points?",
+      "a": "Use official criteria on make-it-in-germany.com—qualification, experience, language, age, prior Germany stay."
+    },
+    {
+      "q": "Need job offer?",
+      "a": "No—that is the purpose. Search for job after arrival. Blocked account required instead."
+    },
+    {
+      "q": "Can work on Opportunity Card?",
+      "a": "Limited—part-time work while searching allowed per current rules. Verify limits."
+    },
+    {
+      "q": "Difference from job seeker visa?",
+      "a": "Opportunity Card replaces old job seeker for points-based pathway—verify current rules."
+    },
+    {
+      "q": "Blocked account amount?",
+      "a": "Verify current amount on embassy website—similar to student blocked account."
+    },
+    {
+      "q": "After finding job?",
+      "a": "Apply for work residence permit at Ausländerbehörde."
+    },
+    {
+      "q": "Age limit?",
+      "a": "No strict limit but fewer age points above 35."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Calculate 6 points at intake before fees",
+    "Check Anabin for degree recognition",
+    "Obtain B2 English or A1 German early",
+    "Open blocked account when file ready",
+    "Prepare CV in German and English formats"
+  ],
+  "postApproval": [
+    "Explain job search obligation",
+    "Guide on Ausländerbehörde registration",
+    "Advise on converting to work permit when employed",
+    "Connect to German job platforms"
+  ],
+  "performance": {
+    "ourRate": 82,
+    "industryRate": 70,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "34"
+      },
+      {
+        "label": "Approved",
+        "value": "28"
+      },
+      {
+        "label": "Refused",
+        "value": "5"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "1"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 82,
+      "benchmark": 70
+    },
+    {
+      "label": "Points calculation accuracy",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "Recognition prep",
+      "ours": 80,
+      "benchmark": 65
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 86,
+      "benchmark": 70
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Points assessment, pathway selection"
+    },
+    {
+      "weeks": "2–8",
+      "title": "Language test, recognition, blocked account"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Embassy appointment & submission"
+    },
+    {
+      "weeks": "8–12",
+      "title": "Embassy processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Germany – Job Seeker Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Work pathways",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Germany Opportunity Card counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Points calculation worksheet mandatory sign-off before embassy appointment booking."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Make it in Germany — Opportunity Card",
+      "url": "https://www.make-it-in-germany.com/en/visa-desp/working/opportunity-card",
+      "description": "Official Opportunity Card info"
+    },
+    {
+      "title": "German Missions India — Visa",
+      "url": "https://india.diplo.de/in-en/service/visa",
+      "description": "Embassy visa services"
+    },
+    {
+      "title": "Make it in Germany — Points system",
+      "url": "https://www.make-it-in-germany.com/en/visa-desp/working/opportunity-card/points-system",
+      "description": "Points criteria"
+    },
+    {
+      "title": "Anabin database",
+      "url": "https://anabin.kmk.org/",
+      "description": "Qualification recognition"
+    },
+    {
+      "title": "Federal Foreign Office — Visa fees",
+      "url": "https://www.auswaertiges-amt.de/en/visa-service/visa-fees",
+      "description": "Current fees"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Opportunity Card minimum points:",
+      "options": [
+        "0",
+        "6",
+        "100",
+        "1"
+      ],
+      "correctIndex": 1,
+      "explanation": "6 points minimum."
+    },
+    {
+      "question": "Purpose of Opportunity Card:",
+      "options": [
+        "Permanent work without search",
+        "Job search in Germany up to 1 year",
+        "Tourism only",
+        "Study only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Job search residence permit."
+    },
+    {
+      "question": "Language option includes:",
+      "options": [
+        "No language needed",
+        "German A1 OR English B2",
+        "Latin only",
+        "French C2 only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Language requirement options."
+    },
+    {
+      "question": "Job offer required before apply:",
+      "options": [
+        "Yes mandatory",
+        "No—search after arrival",
+        "Only from government",
+        "Never possible"
+      ],
+      "correctIndex": 1,
+      "explanation": "No prior job offer needed."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Calculate points",
+        "Guarantee approval",
+        "Check Anabin",
+        "Verify blocked account"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Calculate 6 points at intake",
+      "Verify qualification on Anabin",
+      "Obtain A1 German or B2 English",
+      "Open blocked account",
+      "Prepare German-format CV"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not apply below 6 points",
+      "Do not skip language certificate",
+      "Do not use unrecognised degrees without IT route",
+      "Do not quote outdated points criteria"
+    ],
+    "mistakes": [
+      "Points overestimated at sales",
+      "Degree not in Anabin database",
+      "Blocked account insufficient",
+      "Wrong language certificate level",
+      "IT experience poorly documented"
+    ]
+  }
+}

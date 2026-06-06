@@ -1,0 +1,430 @@
+{
+  "displayName": "New Zealand – Skilled Migrant Category (SMC)",
+  "shortDescription": "Immigration NZ · Points-based PR · EOI · Job offer or skilled employment",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 28,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current SMC points requirements and fees on immigration.govt.nz. Expression of Interest selection depends on points threshold—never promise selection."
+  },
+  "alert": {
+    "title": "EOI selection not guaranteed",
+    "body": "Submitting Expression of Interest does not guarantee selection. Points threshold varies each ballot—counsel on realistic points before fees."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Points-tested",
+      "variant": "warning"
+    },
+    {
+      "label": "6–18 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "EOI system",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "Points-based",
+      "variant": "warning"
+    },
+    {
+      "label": "NZD $4,890 approx",
+      "variant": "neutral"
+    },
+    {
+      "label": "Skilled job required",
+      "variant": "success"
+    },
+    {
+      "label": "No selection guarantee",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "6–18m",
+      "sub": "After ITA",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "NZD $4,890",
+      "sub": "Residence approx—verify",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "86%",
+      "sub": "~78% post-ITA benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "17",
+      "sub": "+ qualifications & experience",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & assessments",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with periodic selection."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications assessment if required"
+    },
+    {
+      "label": "Selection threshold varies",
+      "value": "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration New Zealand (INZ)"
+    },
+    {
+      "label": "After approval",
+      "value": "Permanent residence visa; live and work in New Zealand indefinitely subject to travel conditions on initial visa."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Skilled job offer or current skilled employment in NZ",
+      "met": true
+    },
+    {
+      "criterion": "Points meet or exceed recent selection threshold",
+      "met": false,
+      "note": "Check recent ballots"
+    },
+    {
+      "criterion": "Age under 55 (for maximum points)",
+      "met": true
+    },
+    {
+      "criterion": "English competency (IELTS 6.5 avg or equivalent)",
+      "met": true
+    },
+    {
+      "criterion": "Qualification assessment (if required)",
+      "met": false
+    },
+    {
+      "criterion": "EOI submitted and selected",
+      "met": false
+    },
+    {
+      "criterion": "Health and character clearances",
+      "met": false
+    }
+  ],
+  "redFlagsBanner": "Without EOI selection, do not lodge residence application. Improve points via NZ employment, qualification level, or work experience before expecting selection.",
+  "redFlags": [
+    {
+      "title": "Points below selection threshold",
+      "description": "EOI submitted but recent selections at higher points.",
+      "fix": "Gain NZ skilled work experience; improve English; partner qualifications",
+      "severity": "Very common"
+    },
+    {
+      "title": "Job not skilled (ANZSCO)",
+      "description": "Occupation below skill level 1–3 or not on green list.",
+      "fix": "Verify ANZSCO skill level and green list eligibility",
+      "severity": "Very common"
+    },
+    {
+      "title": "Qualification not recognised",
+      "description": "Overseas qualification not assessed or equivalent.",
+      "fix": "Complete NZQA International Qualification Assessment",
+      "severity": "Common"
+    },
+    {
+      "title": "Age over 55",
+      "description": "Zero age points; difficult to reach threshold.",
+      "fix": "Assess alternative visa pathways",
+      "severity": "High"
+    },
+    {
+      "title": "English below requirement",
+      "description": "IELTS scores below 6.5 average.",
+      "fix": "Retake for higher scores",
+      "severity": "Common"
+    },
+    {
+      "title": "EOI selected but docs not ready",
+      "description": "Missed invitation to apply deadline.",
+      "fix": "Prepare document templates while EOI in pool",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee SMC selection or PR?",
+      "a": "No. EOI selection depends on points and INZ ballot. Never promise selection or approval."
+    },
+    {
+      "q": "How many points needed?",
+      "a": "Check recent INZ selection announcements—threshold varies each ballot."
+    },
+    {
+      "q": "Need job offer?",
+      "a": "Skilled employment in NZ or job offer typically required—verify current SMC rules."
+    },
+    {
+      "q": "Green List fast track?",
+      "a": "Some occupations on Green List have simplified residence pathways—assess separately."
+    },
+    {
+      "q": "Partner points?",
+      "a": "Partner qualifications and skilled employment may add points."
+    },
+    {
+      "q": "Processing after ITA?",
+      "a": "Typically several months—verify current INZ processing times."
+    },
+    {
+      "q": "Can apply from India?",
+      "a": "Generally need NZ job offer or be in NZ on eligible visa—verify current rules."
+    },
+    {
+      "q": "NZQA assessment required?",
+      "a": "For many overseas qualifications—verify if needed for points claim."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Calculate points with official INZ calculator",
+    "Monitor selection ballot results",
+    "Verify ANZSCO skill level for occupation",
+    "Complete NZQA assessment early if needed",
+    "Prepare docs while EOI in pool"
+  ],
+  "postApproval": [
+    "Send residence visa grant",
+    "Explain travel conditions on initial visa",
+    "Guide on IRD registration",
+    "Connect to settlement services"
+  ],
+  "performance": {
+    "ourRate": 86,
+    "industryRate": 78,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "48"
+      },
+      {
+        "label": "Approved",
+        "value": "41"
+      },
+      {
+        "label": "Refused",
+        "value": "5"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Post-ITA approval",
+      "ours": 86,
+      "benchmark": 78
+    },
+    {
+      "label": "Points accuracy",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "ANZSCO verification",
+      "ours": 85,
+      "benchmark": 70
+    },
+    {
+      "label": "Document readiness",
+      "ours": 90,
+      "benchmark": 74
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–4",
+      "title": "Points assessment, job/qualification verification"
+    },
+    {
+      "weeks": "4–8",
+      "title": "NZQA assessment if needed, EOI submission"
+    },
+    {
+      "weeks": "Variable",
+      "title": "Wait for EOI selection"
+    },
+    {
+      "weeks": "6–18m",
+      "title": "Residence processing after ITA"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "New Zealand – Post Study Work Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Partner Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial NZ Skilled Migrant Category counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Check Green List separately—some occupations have faster residence pathway than standard SMC."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Immigration NZ — Skilled Migrant",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/skilled-migrant-category-resident-visa",
+      "description": "Official SMC requirements"
+    },
+    {
+      "title": "Immigration NZ — Points indicator",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/tools/smc-points-indicator",
+      "description": "Points calculator"
+    },
+    {
+      "title": "Immigration NZ — Green List",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/green-list-occupations",
+      "description": "Green List occupations"
+    },
+    {
+      "title": "NZQA — Qualifications",
+      "url": "https://www.nzqa.govt.nz/qualifications-standards/qualifications/",
+      "description": "Qualification assessment"
+    },
+    {
+      "title": "Immigration NZ — Processing times",
+      "url": "https://www.immigration.govt.nz/about-us/our-monitoring-and-evaluation/visa-processing-times",
+      "description": "Estimates"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "SMC uses:",
+      "options": [
+        "Random lottery only",
+        "Points-based EOI selection",
+        "No assessment",
+        "Employer choice only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Points-based system."
+    },
+    {
+      "question": "EOI selection guaranteed at minimum points:",
+      "options": [
+        "Yes",
+        "No—depends on ballot threshold",
+        "Always",
+        "Automatic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Selection not guaranteed."
+    },
+    {
+      "question": "Skilled occupation must meet:",
+      "options": [
+        "Any job",
+        "ANZSCO skill level requirements",
+        "No job needed",
+        "Volunteer only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Skilled employment required."
+    },
+    {
+      "question": "Age over 55 typically:",
+      "options": [
+        "Gets maximum points",
+        "Receives zero age points",
+        "Automatic PR",
+        "No effect"
+      ],
+      "correctIndex": 1,
+      "explanation": "Age points reduce/disappear."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Calculate points",
+        "Guarantee selection or PR",
+        "Check Green List",
+        "Monitor ballots"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Calculate points with INZ calculator",
+      "Verify ANZSCO skill level",
+      "Monitor selection ballot thresholds",
+      "Complete NZQA if needed",
+      "Only lodge after EOI selection"
+    ],
+    "donts": [
+      "Do not guarantee selection or PR",
+      "Do not collect full residence fee before ITA",
+      "Do not claim wrong skill level",
+      "Do not ignore Green List alternatives",
+      "Do not miss ITA deadline"
+    ],
+    "mistakes": [
+      "Points below recent selection threshold",
+      "Job not at skilled level",
+      "NZQA assessment delayed",
+      "ITA deadline missed",
+      "Wrong occupation ANZSCO code"
+    ]
+  }
+}

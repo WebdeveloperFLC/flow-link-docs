@@ -1,0 +1,431 @@
+{
+  "displayName": "Canada – Work Permit (LMIA & LMIA-Exempt)",
+  "shortDescription": "IRCC work permit · Employer-sponsored · LMIA or exempt category",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 25,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current work permit fees on canada.ca. LMIA processing via ESDC adds significant time and employer cost."
+  },
+  "alert": {
+    "title": "LMIA vs LMIA-exempt",
+    "body": "Most employer-specific permits require LMIA from ESDC unless exempt (ICT, CUSMA, PGWP, etc.). Verify category before quoting timeline."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Employer sponsorship",
+      "variant": "warning"
+    },
+    {
+      "label": "3–9 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – IRCC",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "LMIA may required",
+      "variant": "warning"
+    },
+    {
+      "label": "CAD $155 worker fee",
+      "variant": "neutral"
+    },
+    {
+      "label": "Job offer needed",
+      "variant": "success"
+    },
+    {
+      "label": "Biometrics",
+      "variant": "neutral"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "3–9m",
+      "sub": "LMIA + IRCC combined",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "CAD $155",
+      "sub": "Worker fee + biometrics",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "86%",
+      "sub": "~78% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "15",
+      "sub": "+ LMIA if applicable",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & LMIA",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Employer-specific or open work permit allowing foreign nationals to work in Canada. LMIA-required streams need positive LMIA from Employment and Social Development Canada (ESDC)."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Valid job offer from Canadian employer · LMIA or exempt category · Qualifying skills/experience · Medical/biometrics as required"
+    },
+    {
+      "label": "LMIA process",
+      "value": "Employer must advertise, recruit, and demonstrate no Canadians available. ESDC LMIA adds weeks to months before IRCC application.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "ESDC (LMIA) · IRCC (work permit)"
+    },
+    {
+      "label": "After approval",
+      "value": "Work for specified employer (closed permit) or open category. Maintain status; employer compliance with LMIA conditions."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Valid job offer / contract",
+      "met": true
+    },
+    {
+      "criterion": "LMIA positive or exempt category confirmed",
+      "met": false,
+      "note": "Employer responsibility for LMIA"
+    },
+    {
+      "criterion": "Qualifying work experience/education",
+      "met": true
+    },
+    {
+      "criterion": "Medical exam (if required)",
+      "met": false
+    },
+    {
+      "criterion": "Biometrics completed",
+      "met": false
+    },
+    {
+      "criterion": "No criminal inadmissibility",
+      "met": true
+    },
+    {
+      "criterion": "Employer compliance history",
+      "met": true,
+      "note": "Verify employer legitimacy"
+    }
+  ],
+  "redFlagsBanner": "If LMIA refused, address ESDC reasons before reapplication—do not submit IRCC work permit without positive LMIA when required.",
+  "redFlags": [
+    {
+      "title": "LMIA advertising deficiencies",
+      "description": "Employer did not meet recruitment advertising requirements.",
+      "fix": "Ensure ESDC advertising compliance before LMIA submit",
+      "severity": "Very common"
+    },
+    {
+      "title": "Wrong NOC/ wage offer",
+      "description": "Job classification or wage below median for region.",
+      "fix": "Verify TEER and prevailing wage on Job Bank",
+      "severity": "Common"
+    },
+    {
+      "title": "Fake job offer",
+      "description": "Employer not genuine or employee-payback schemes.",
+      "fix": "Verify employer legitimacy; avoid fraudulent job offers",
+      "severity": "High"
+    },
+    {
+      "title": "Medical/biometrics overdue",
+      "description": "Not completed within IRCC deadlines.",
+      "fix": "Book immediately after instructions",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior status violations",
+      "description": "Overstay or unauthorized work history.",
+      "fix": "Address inadmissibility; legal counsel if needed",
+      "severity": "High"
+    },
+    {
+      "title": "Closed permit employer change",
+      "description": "Worker switching employers without new permit.",
+      "fix": "New LMIA and work permit for employer change",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee work permit?",
+      "a": "No. Both ESDC (LMIA) and IRCC must approve where applicable."
+    },
+    {
+      "q": "LMIA processing time?",
+      "a": "Varies—often 2–5 months for standard LMIA. Verify current ESDC service standards."
+    },
+    {
+      "q": "LMIA-exempt categories?",
+      "a": "Includes ICT transfers, CUSMA professionals, PGWP, spousal open permits, etc.—verify exemption code."
+    },
+    {
+      "q": "Can spouse work?",
+      "a": "Spouse may qualify for open work permit in some categories—verify current rules."
+    },
+    {
+      "q": "Employer costs for LMIA?",
+      "a": "LMIA application fee CAD $1,000 per position; plus recruitment costs."
+    },
+    {
+      "q": "Can apply at border?",
+      "a": "Some nationals may flagpole—verify eligibility and current policy."
+    },
+    {
+      "q": "Work permit and PR pathway?",
+      "a": "Canadian experience may support CEC via Express Entry."
+    },
+    {
+      "q": "What if LMIA refused?",
+      "a": "Review ESDC reasons; address recruitment or wage issues; reapply or explore exempt categories."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Confirm LMIA vs exempt at intake",
+    "Verify employer genuine and financially stable",
+    "Align NOC/TEER with actual job duties",
+    "Track LMIA and IRCC stages separately",
+    "Medical/biometrics immediately on request"
+  ],
+  "postApproval": [
+    "Send work permit conditions and employer name",
+    "Explain closed vs open permit rules",
+    "Guide on SIN application",
+    "Discuss CEC timeline if applicable"
+  ],
+  "performance": {
+    "ourRate": 86,
+    "industryRate": 78,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "67"
+      },
+      {
+        "label": "Approved",
+        "value": "58"
+      },
+      {
+        "label": "Refused",
+        "value": "7"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 86,
+      "benchmark": 78
+    },
+    {
+      "label": "LMIA prep quality",
+      "ours": 84,
+      "benchmark": 70
+    },
+    {
+      "label": "NOC accuracy",
+      "ours": 88,
+      "benchmark": 74
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 90,
+      "benchmark": 76
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Category assessment, employer verification"
+    },
+    {
+      "weeks": "2–16",
+      "title": "LMIA processing (if required)"
+    },
+    {
+      "weeks": "16–20",
+      "title": "IRCC work permit application"
+    },
+    {
+      "weeks": "3–9m",
+      "title": "Total timeline varies"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Canada – Express Entry PR",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – PGWP",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Canada work permit counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Verify employer is not on IRCC non-compliant list before LMIA investment."
+    }
+  ],
+  "resources": [
+    {
+      "title": "IRCC — Work in Canada",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada.html",
+      "description": "Work permit overview"
+    },
+    {
+      "title": "ESDC — LMIA",
+      "url": "https://www.canada.ca/en/employment-social-development/services/foreign-workers.html",
+      "description": "LMIA information"
+    },
+    {
+      "title": "IRCC — Work permit apply",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/apply.html",
+      "description": "Application steps"
+    },
+    {
+      "title": "IRCC — Processing times",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/application/check-processing-times.html",
+      "description": "Estimates"
+    },
+    {
+      "title": "IRCC — LMIA exempt workers",
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/work-canada/permit/temporary/work-permit-exemptions.html",
+      "description": "Exemption categories"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "LMIA is issued by:",
+      "options": [
+        "IRCC only",
+        "ESDC/Service Canada",
+        "Provincial court",
+        "University"
+      ],
+      "correctIndex": 1,
+      "explanation": "ESDC handles LMIA."
+    },
+    {
+      "question": "Closed work permit means:",
+      "options": [
+        "Work anywhere",
+        "Work for specific employer on permit",
+        "No work allowed",
+        "Study only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Employer-specific permit."
+    },
+    {
+      "question": "Before IRCC work permit when LMIA required:",
+      "options": [
+        "Skip LMIA",
+        "Positive LMIA from ESDC",
+        "Only job email",
+        "Visitor visa"
+      ],
+      "correctIndex": 1,
+      "explanation": "LMIA first when required."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Verify employer",
+        "Guarantee work permit",
+        "Check NOC code",
+        "Track LMIA status"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    },
+    {
+      "question": "Fake job offers risk:",
+      "options": [
+        "No consequence",
+        "Misrepresentation and permanent ban",
+        "Small fine only",
+        "Automatic PR"
+      ],
+      "correctIndex": 1,
+      "explanation": "Serious immigration consequences."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify LMIA vs exempt category",
+      "Confirm employer legitimacy",
+      "Align NOC with job duties",
+      "Track LMIA and IRCC timelines",
+      "Complete medical/biometrics promptly"
+    ],
+    "donts": [
+      "Do not guarantee work permit",
+      "Do not proceed with fraudulent employers",
+      "Do not submit IRCC before positive LMIA when required",
+      "Do not misclassify NOC/TEER",
+      "Do not hide unauthorized work history"
+    ],
+    "mistakes": [
+      "LMIA advertising non-compliance",
+      "Wage below prevailing median",
+      "Employer on non-compliant list",
+      "Wrong exemption code claimed",
+      "Medical deadline missed"
+    ]
+  }
+}

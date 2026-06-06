@@ -10,12 +10,15 @@ import {
   Calculator,
   Download,
   ChevronLeft,
+  ChevronDown,
+  ChevronRight,
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { AcademyNavGroup } from "@/lib/service-library/academyNav";
+import { useState } from "react";
+import type { AcademyNavGroup, AcademyServiceItem } from "@/lib/service-library/academyNav";
 import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
 const iconMap: Record<string, typeof Plane> = {
@@ -47,6 +50,44 @@ type Props = {
   showCountryFilter?: boolean;
 };
 
+function NavItemButton({
+  item,
+  selectedId,
+  onSelect,
+  showBadge,
+}: {
+  item: AcademyServiceItem;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  showBadge?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item.id)}
+      className={cn(
+        "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
+        selectedId === item.id
+          ? "bg-primary text-primary-foreground font-medium"
+          : "text-slate-300 hover:bg-slate-800",
+      )}
+    >
+      <span className="flex-1 truncate">{item.label}</span>
+      {showBadge && item.countryBadge && (
+        <span className="text-[10px] opacity-80">{item.countryBadge}</span>
+      )}
+      {item.needsReview && (
+        <span className="size-1.5 rounded-full bg-amber-400 shrink-0" />
+      )}
+    </button>
+  );
+}
+
+function groupItemCount(group: AcademyNavGroup): number {
+  if (group.items) return group.items.length;
+  return (group.countries ?? []).reduce((n, c) => n + c.items.length, 0);
+}
+
 export function ServiceAcademySidebar({
   groups,
   activeCount,
@@ -64,6 +105,12 @@ export function ServiceAcademySidebar({
   userInitials = "FL",
   showCountryFilter = true,
 }: Props) {
+  const [expandedCountries, setExpandedCountries] = useState<Record<string, boolean>>({});
+
+  const toggleCountry = (c: string) => {
+    setExpandedCountries((prev) => ({ ...prev, [c]: !prev[c] }));
+  };
+
   const initials =
     userInitials ||
     userName
@@ -151,37 +198,79 @@ export function ServiceAcademySidebar({
       <nav className="flex-1 overflow-y-auto p-3 space-y-4">
         {groups.map((group) => {
           const Icon = iconMap[group.key] ?? BookOpen;
+          const count = groupItemCount(group);
           return (
             <div key={group.key}>
               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 px-2 mb-1">
                 <Icon className="size-3" />
                 {group.label}
-                <span className="ml-auto tabular-nums">{group.items.length}</span>
+                <span className="ml-auto tabular-nums">{count}</span>
               </div>
-              <ul className="space-y-0.5">
-                {group.items.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => onSelect(item.id)}
-                      className={cn(
-                        "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
-                        selectedId === item.id
-                          ? "bg-primary text-primary-foreground font-medium"
-                          : "text-slate-300 hover:bg-slate-800",
-                      )}
-                    >
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {item.countryBadge && (
-                        <span className="text-[10px] opacity-80">{item.countryBadge}</span>
-                      )}
-                      {item.needsReview && (
-                        <span className="size-1.5 rounded-full bg-amber-400 shrink-0" />
-                      )}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+
+              {group.items && (
+                <ul className="space-y-0.5">
+                  {group.items.map((item) => (
+                    <li key={item.id}>
+                      <NavItemButton
+                        item={item}
+                        selectedId={selectedId}
+                        onSelect={onSelect}
+                        showBadge={country === "ALL"}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {group.countries && (
+                <ul className="space-y-1">
+                  {group.countries.map((section) => {
+                    const open = expandedCountries[section.country] ?? section.country === "Canada";
+                    return (
+                      <li key={section.country}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            toggleCountry(section.country);
+                            onCountry(section.country);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-left transition-colors",
+                            country === section.country
+                              ? "bg-slate-800 text-slate-100"
+                              : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200",
+                          )}
+                        >
+                          {open ? (
+                            <ChevronDown className="size-3 shrink-0" />
+                          ) : (
+                            <ChevronRight className="size-3 shrink-0" />
+                          )}
+                          <span className="flex-1 truncate">{section.country}</span>
+                          <span className="text-[10px] tabular-nums opacity-70">{section.countryBadge}</span>
+                          <span className="text-[10px] tabular-nums opacity-70">{section.items.length}</span>
+                        </button>
+                        {open && (
+                          <ul className="mt-0.5 ml-2 pl-2 border-l border-slate-700 space-y-0.5">
+                            {section.items.map((item) => (
+                              <li key={item.id}>
+                                <NavItemButton
+                                  item={item}
+                                  selectedId={selectedId}
+                                  onSelect={(id) => {
+                                    onCountry(section.country);
+                                    onSelect(id);
+                                  }}
+                                />
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           );
         })}

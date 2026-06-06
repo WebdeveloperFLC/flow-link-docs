@@ -1,0 +1,428 @@
+{
+  "displayName": "New Zealand – Visitor Visa",
+  "shortDescription": "Immigration NZ · Visitor visa · Tourism, family · Genuine visitor",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Beginner",
+  "learningMinutes": 14,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Visitor Visa fee (NZD $341 approx for online) on immigration.govt.nz before quoting."
+  },
+  "alert": {
+    "title": "Genuine visitor intent",
+    "body": "INZ must be satisfied applicant will leave NZ after visit. Strong ties to India are essential."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Ties critical",
+      "variant": "warning"
+    },
+    {
+      "label": "3–6 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – INZ",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "3–6 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "NZD $341 approx",
+      "variant": "neutral"
+    },
+    {
+      "label": "Strong ties",
+      "variant": "warning"
+    },
+    {
+      "label": "Return ticket",
+      "variant": "success"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "3–6w",
+      "sub": "Standard",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "NZD $341",
+      "sub": "Online approx",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "73%",
+      "sub": "~61% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "9",
+      "sub": "+ ties evidence",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt only",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements"
+    },
+    {
+      "label": "No work permitted",
+      "value": "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration New Zealand (INZ)"
+    },
+    {
+      "label": "After approval",
+      "value": "Respect visa conditions and departure date. Overstay affects future NZ applications."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Valid passport",
+      "met": true
+    },
+    {
+      "criterion": "Clear visit purpose",
+      "met": true
+    },
+    {
+      "criterion": "Proof of funds",
+      "met": true
+    },
+    {
+      "criterion": "Strong ties to India",
+      "met": true
+    },
+    {
+      "criterion": "Onward/return travel plans",
+      "met": true
+    },
+    {
+      "criterion": "Health/character requirements",
+      "met": true
+    },
+    {
+      "criterion": "Immigration history disclosed",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "After refusal, strengthen ties evidence before reapplication.",
+  "redFlags": [
+    {
+      "title": "Weak ties to India",
+      "description": "No employment, assets, or family obligations.",
+      "fix": "Employment letter, business, property, family proof",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient funds",
+      "description": "Cannot credibly fund trip.",
+      "fix": "Bank history, ITR, sponsor letter",
+      "severity": "Very common"
+    },
+    {
+      "title": "Vague purpose",
+      "description": "Unclear itinerary or long stay without reason.",
+      "fix": "Detailed itinerary; realistic duration",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals hidden",
+      "description": "NZ or other refusals not disclosed.",
+      "fix": "Disclose and explain changes",
+      "severity": "High"
+    },
+    {
+      "title": "Generic cover letter",
+      "description": "Template not matching profile.",
+      "fix": "Personalised statement with dates and ties",
+      "severity": "Common"
+    },
+    {
+      "title": "Health issues undisclosed",
+      "description": "Medical conditions not declared.",
+      "fix": "Honest health disclosure per INZ form",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee visitor visa?",
+      "a": "No. INZ decides each case individually."
+    },
+    {
+      "q": "How much funds?",
+      "a": "Enough for trip duration—no fixed amount but must be credible."
+    },
+    {
+      "q": "Can visitor work?",
+      "a": "No. Work not permitted on visitor visa."
+    },
+    {
+      "q": "Can switch to student in NZ?",
+      "a": "Generally must apply from outside NZ—verify current rules."
+    },
+    {
+      "q": "Reapply after refusal?",
+      "a": "Yes when circumstances improve."
+    },
+    {
+      "q": "Invitation letter needed?",
+      "a": "Recommended for family visits."
+    },
+    {
+      "q": "Processing time?",
+      "a": "Typically 3–6 weeks standard."
+    },
+    {
+      "q": "Multiple entry?",
+      "a": "Officer decides visa conditions at approval."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Personalise cover letter",
+    "Show employment leave letter",
+    "For family visits collect host invitation and status",
+    "Keep trip duration realistic",
+    "Disclose all prior refusals"
+  ],
+  "postApproval": [
+    "Explain visa conditions and departure obligation",
+    "Remind no-work rule",
+    "Advise travel insurance"
+  ],
+  "performance": {
+    "ourRate": 73,
+    "industryRate": 61,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "64"
+      },
+      {
+        "label": "Approved",
+        "value": "47"
+      },
+      {
+        "label": "Refused",
+        "value": "14"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "3"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 73,
+      "benchmark": 61
+    },
+    {
+      "label": "Ties docs",
+      "ours": 70,
+      "benchmark": 54
+    },
+    {
+      "label": "Cover letter",
+      "ours": 75,
+      "benchmark": 57
+    },
+    {
+      "label": "First-submit",
+      "ours": 84,
+      "benchmark": 65
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1",
+      "title": "Counseling, fee agreement"
+    },
+    {
+      "weeks": "1–2",
+      "title": "Documents, cover letter"
+    },
+    {
+      "weeks": "2–3",
+      "title": "INZ submission"
+    },
+    {
+      "weeks": "3–6",
+      "title": "INZ processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "New Zealand – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Skilled Migrant",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial NZ visitor visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Parents visiting children in NZ need strong India ties documentation."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Immigration NZ — Visitor visa",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/visitor-visa",
+      "description": "Official requirements"
+    },
+    {
+      "title": "Immigration NZ — Visa fees",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fees",
+      "description": "Current fees"
+    },
+    {
+      "title": "Immigration NZ — Processing times",
+      "url": "https://www.immigration.govt.nz/about-us/our-monitoring-and-evaluation/visa-processing-times",
+      "description": "Estimates"
+    },
+    {
+      "title": "Immigration NZ — Apply online",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/apply-online",
+      "description": "Online application"
+    },
+    {
+      "title": "Immigration NZ — Supporting documents",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/general-information/supporting-documents",
+      "description": "Document guidance"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Visitor visa is for:",
+      "options": [
+        "Permanent residence",
+        "Temporary visits",
+        "Full-time work",
+        "Student enrolment only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Temporary visit purpose."
+    },
+    {
+      "question": "Top refusal reason:",
+      "options": [
+        "Passport colour",
+        "Weak ties / not genuine visitor",
+        "Hotel brand",
+        "Photo"
+      ],
+      "correctIndex": 1,
+      "explanation": "Ties critical."
+    },
+    {
+      "question": "Visitors can work:",
+      "options": [
+        "Full-time",
+        "No",
+        "Any job",
+        "Unlimited"
+      ],
+      "correctIndex": 1,
+      "explanation": "Work not permitted."
+    },
+    {
+      "question": "Funds must be:",
+      "options": [
+        "Not shown",
+        "Credible for trip duration",
+        "Exactly NZD $100",
+        "Hidden"
+      ],
+      "correctIndex": 1,
+      "explanation": "Credible funding required."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Check ties",
+        "Guarantee approval",
+        "Verify fees",
+        "Review letter"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Document strong India ties",
+      "Personalise cover letter",
+      "Show credible funds",
+      "Disclose refusals",
+      "Verify fees on INZ website"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not advise working in NZ",
+      "Do not hide refusals",
+      "Do not use generic letter",
+      "Do not overstate stay"
+    ],
+    "mistakes": [
+      "Unemployed with no ties",
+      "Large unexplained deposits",
+      "Missing host invitation for family visit",
+      "Vague itinerary",
+      "Prior refusal not disclosed"
+    ]
+  }
+}

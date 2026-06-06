@@ -1,0 +1,431 @@
+{
+  "displayName": "Australia – Skilled Migration (Subclass 189/190/491)",
+  "shortDescription": "Home Affairs · Points-tested PR · Skills assessment · EOI",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 30,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current skills assessment fees and visa charges on homeaffairs.gov.au. Invitation depends on points and occupation ceiling—never promise invitation."
+  },
+  "alert": {
+    "title": "Points and invitation required",
+    "body": "EOI in SkillSelect does not guarantee invitation. Points, occupation demand, and state nomination (190/491) determine outcome."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Points-tested",
+      "variant": "warning"
+    },
+    {
+      "label": "6–18 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "Skills assessment",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "65+ points minimum",
+      "variant": "warning"
+    },
+    {
+      "label": "Skills assessment",
+      "variant": "success"
+    },
+    {
+      "label": "EOI then invitation",
+      "variant": "warning"
+    },
+    {
+      "label": "No invite guarantee",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "6–18m",
+      "sub": "After invitation",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "AUD $4,640+",
+      "sub": "Primary applicant approx",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "88%",
+      "sub": "~80% post-invite benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "18",
+      "sub": "+ skills assessment",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & assessing body",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Permanent residence via points-tested skilled migration. Subclass 189 (independent), 190 (state nominated), 491 (regional provisional). Requires skills assessment, EOI, and invitation."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Occupation on relevant skilled list · Positive skills assessment · 65+ points (competitive higher) · Age under 45 · Competent English · Health and character"
+    },
+    {
+      "label": "Invitation not guaranteed",
+      "value": "Minimum 65 points does not guarantee invitation. Competitive scores often 80–90+ for popular occupations.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Department of Home Affairs · Skills assessing authorities · State/territory governments (190/491)"
+    },
+    {
+      "label": "After approval",
+      "value": "Permanent visa (189/190) or provisional 491 leading to 191 PR. Meet residence conditions for regional visas."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Occupation on skilled occupation list",
+      "met": true
+    },
+    {
+      "criterion": "Positive skills assessment",
+      "met": false,
+      "note": "Assessing authority specific"
+    },
+    {
+      "criterion": "65+ points (competitive score)",
+      "met": true,
+      "note": "Check recent invitation rounds"
+    },
+    {
+      "criterion": "Age under 45 at invitation",
+      "met": true
+    },
+    {
+      "criterion": "Competent English (IELTS 6 each band min)",
+      "met": true
+    },
+    {
+      "criterion": "EOI submitted in SkillSelect",
+      "met": false
+    },
+    {
+      "criterion": "Invitation received",
+      "met": false
+    }
+  ],
+  "redFlagsBanner": "Without invitation, do not lodge visa application. Improve points via PTE/IELTS, NAATI, partner skills, or state nomination before expecting invite.",
+  "redFlags": [
+    {
+      "title": "Points below competitive threshold",
+      "description": "Client has 65 points but occupation invites at 85+.",
+      "fix": "Improve English to superior; partner skills; state nomination 190/491",
+      "severity": "Very common"
+    },
+    {
+      "title": "Skills assessment delayed or negative",
+      "description": "Assessing body finds insufficient experience or wrong ANZSCO.",
+      "fix": "Match ANZSCO duties; detailed reference letters before assessment",
+      "severity": "Very common"
+    },
+    {
+      "title": "Age turning 45",
+      "description": "Will age out before invitation.",
+      "fix": "Expedite EOI; assess age points decline at 33 and 40",
+      "severity": "High"
+    },
+    {
+      "title": "Wrong ANZSCO code",
+      "description": "Occupation code does not match actual duties.",
+      "fix": "Verify with assessing authority before skills assessment fee",
+      "severity": "Common"
+    },
+    {
+      "title": "State nomination requirements not met",
+      "description": "190/491 application without meeting state criteria.",
+      "fix": "Research state occupation lists and commitment requirements",
+      "severity": "Common"
+    },
+    {
+      "title": "Documents not ready at invitation",
+      "description": "60-day invitation window missed.",
+      "fix": "Prepare document templates while in EOI pool",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee PR invitation?",
+      "a": "No. SkillSelect invitation depends on points and occupation demand. Never promise invitation or PR."
+    },
+    {
+      "q": "189 vs 190 vs 491?",
+      "a": "189 independent; 190 state nominated (+5 points); 491 regional provisional (+15 points, leads to 191)."
+    },
+    {
+      "q": "How to improve points?",
+      "a": "Superior English, skilled partner, Australian study, NAATI CCL, state nomination, work experience."
+    },
+    {
+      "q": "Skills assessment bodies?",
+      "a": "Varies by occupation—ACS for IT, Engineers Australia, VETASSESS, etc."
+    },
+    {
+      "q": "Processing after invitation?",
+      "a": "Typically 6–12 months—verify current processing times."
+    },
+    {
+      "q": "Age limit?",
+      "a": "Must be under 45 at time of invitation."
+    },
+    {
+      "q": "Can apply from India?",
+      "a": "Yes—skilled migration is offshore application after invitation."
+    },
+    {
+      "q": "Partner points?",
+      "a": "Skilled partner adds points; partner English and skills assessment may help."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Calculate points honestly with official calculator",
+    "Start skills assessment 6+ months early",
+    "Monitor invitation rounds for occupation",
+    "Prepare documents while waiting in pool",
+    "Consider 190/491 if 189 points insufficient"
+  ],
+  "postApproval": [
+    "Send visa grant and conditions",
+    "Explain initial entry date requirement",
+    "Guide on Medicare enrolment",
+    "Connect to settlement services"
+  ],
+  "performance": {
+    "ourRate": 88,
+    "industryRate": 80,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "72"
+      },
+      {
+        "label": "Approved",
+        "value": "63"
+      },
+      {
+        "label": "Refused",
+        "value": "6"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "3"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Post-invite approval",
+      "ours": 88,
+      "benchmark": 80
+    },
+    {
+      "label": "Points assessment accuracy",
+      "ours": 90,
+      "benchmark": 74
+    },
+    {
+      "label": "Skills assessment prep",
+      "ours": 86,
+      "benchmark": 72
+    },
+    {
+      "label": "Document readiness at invite",
+      "ours": 91,
+      "benchmark": 76
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "2–6m",
+      "title": "Skills assessment"
+    },
+    {
+      "weeks": "6–8m",
+      "title": "EOI submission"
+    },
+    {
+      "weeks": "Variable",
+      "title": "Wait for invitation"
+    },
+    {
+      "weeks": "6–18m",
+      "title": "Visa processing after invite"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Australia – Subclass 485",
+      "libraryId": ""
+    },
+    {
+      "label": "Australia – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Australia – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Australia skilled migration counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Never collect full visa fee before invitation—EOI and skills assessment fees only until invite received."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Home Affairs — Skilled migration",
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing",
+      "description": "Visa listing and requirements"
+    },
+    {
+      "title": "Home Affairs — SkillSelect",
+      "url": "https://immi.homeaffairs.gov.au/visas/working-in-australia/skillselect",
+      "description": "EOI system"
+    },
+    {
+      "title": "Home Affairs — Points calculator",
+      "url": "https://immi.homeaffairs.gov.au/visas/working-in-australia/skillselect/points-calculator",
+      "description": "Points test"
+    },
+    {
+      "title": "Home Affairs — Invitation rounds",
+      "url": "https://immi.homeaffairs.gov.au/visas/working-in-australia/skillselect/invitation-rounds",
+      "description": "Recent invite scores"
+    },
+    {
+      "title": "Home Affairs — Processing times",
+      "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times",
+      "description": "Estimates"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Minimum points for EOI:",
+      "options": [
+        "30",
+        "65",
+        "100",
+        "0"
+      ],
+      "correctIndex": 1,
+      "explanation": "65 minimum but competitive higher."
+    },
+    {
+      "question": "Skills assessment required:",
+      "options": [
+        "Never",
+        "Yes from relevant assessing authority",
+        "Only passport",
+        "Employer letter only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Mandatory for most occupations."
+    },
+    {
+      "question": "Invitation guaranteed at 65 points:",
+      "options": [
+        "Yes always",
+        "No—depends on occupation demand",
+        "Automatic",
+        "By lottery only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Competitive invitation system."
+    },
+    {
+      "question": "Age limit for skilled migration:",
+      "options": [
+        "No limit",
+        "Under 45 at invitation",
+        "Under 18 only",
+        "Over 60"
+      ],
+      "correctIndex": 1,
+      "explanation": "45 age cap."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Calculate points",
+        "Guarantee invitation or PR",
+        "Track invitation rounds",
+        "Prepare skills assessment"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Calculate points honestly",
+      "Start skills assessment early",
+      "Monitor invitation rounds",
+      "Prepare docs while in EOI pool",
+      "Only lodge visa after invitation"
+    ],
+    "donts": [
+      "Do not guarantee invitation or PR",
+      "Do not collect full visa fee before invite",
+      "Do not use wrong ANZSCO code",
+      "Do not ignore age turning 45",
+      "Do not miss 60-day invitation window"
+    ],
+    "mistakes": [
+      "Points overestimated at sales",
+      "Skills assessment negative outcome",
+      "Invitation missed 60-day deadline",
+      "Wrong assessing authority used",
+      "Age points not recalculated"
+    ]
+  }
+}

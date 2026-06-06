@@ -1,0 +1,84 @@
+{
+  "displayName": "Australia – Student Visa (Subclass 500)",
+  "shortDescription": "Dept of Home Affairs · Subclass 500 · CoE required · GS requirement",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 20,
+  "policyAlert": { "active": true, "date": "6 Jun 2026", "summary": "Confirm current Subclass 500 visa fee (AUD $2,000 approx) and GS requirements on homeaffairs.gov.au before quoting." },
+  "alert": { "title": "Genuine Student (GS) requirement", "body": "Officers assess genuine intent to study. Weak GS statement and course mismatch are leading refusal factors for Indian applicants." },
+  "tags": [{ "label": "Active service", "variant": "success" }, { "label": "GS statement critical", "variant": "warning" }, { "label": "4–8 weeks", "variant": "neutral" }, { "label": "Online – ImmiAccount", "variant": "neutral" }],
+  "chips": [{ "label": "4–8 weeks processing", "variant": "neutral" }, { "label": "AUD $2,000 approx", "variant": "neutral" }, { "label": "CoE mandatory", "variant": "success" }, { "label": "GS requirement", "variant": "warning" }],
+  "kpis": [
+    { "label": "Processing time", "value": "4–8w", "sub": "Varies by sector", "tone": "primary" },
+    { "label": "Government fee", "value": "AUD $2,000", "sub": "Verify on homeaffairs.gov.au", "tone": "warning" },
+    { "label": "Our approval rate", "value": "86%", "sub": "~73% industry benchmark", "tone": "success" },
+    { "label": "Required docs", "value": "14", "sub": "+ OSHC & funds", "tone": "violet" },
+    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & OSHC", "tone": "primary" }
+  ],
+  "about": [
+    { "label": "Description", "value": "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount application." },
+    { "label": "Eligible applicants", "value": "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements" },
+    { "label": "Financial evidence", "value": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting.", "warning": true },
+    { "label": "Key authority", "value": "Department of Home Affairs (Australia)" },
+    { "label": "After approval", "value": "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period." }
+  ],
+  "eligibility": [
+    { "criterion": "CoE from CRICOS provider", "met": true, "note": "Must match intended course" },
+    { "criterion": "Genuine Student (GS) requirement", "met": true, "note": "Study rationale and home ties" },
+    { "criterion": "Financial capacity", "met": true, "note": "Per Home Affairs amounts" },
+    { "criterion": "English proficiency", "met": true, "note": "IELTS/PTE per course level" },
+    { "criterion": "OSHC for study duration", "met": false, "note": "Mandatory health cover" },
+    { "criterion": "Health exam (if required)", "met": false },
+    { "criterion": "Police certificates (if required)", "met": false }
+  ],
+  "redFlagsBanner": "After refusal, analyse refusal letter and strengthen GS statement and financial evidence before reapplication with new CoE.",
+  "redFlags": [
+    { "title": "Weak Genuine Student statement", "description": "Generic GS, course mismatch with background, unclear career plan.", "fix": "Course-specific GS linking prior study/work to Australia program", "severity": "Very common" },
+    { "title": "Insufficient financial evidence", "description": "Unseasoned funds or amount below Home Affairs threshold.", "fix": "12-month funds per guidelines; sponsor ITR; loan evidence", "severity": "Very common" },
+    { "title": "CoE / provider issues", "description": "Non-CRICOS provider or course start passed.", "fix": "Verify CRICOS register before CoE fee", "severity": "Common" },
+    { "title": "OSHC gaps", "description": "Missing or incorrect OSHC period.", "fix": "Purchase OSHC covering full visa period", "severity": "Common" },
+    { "title": "Prior refusals not addressed", "description": "Hidden Australia or other refusals.", "fix": "Disclose and explain changed circumstances", "severity": "High" },
+    { "title": "English scores below requirement", "description": "Test expired or below course minimum.", "fix": "Retake and obtain valid scores before apply", "severity": "Medium" }
+  ],
+  "faqs": [
+    { "q": "Can we guarantee Subclass 500 approval?", "a": "No. Home Affairs assesses GS, funds, and eligibility. Strong files improve chances but approval is never guaranteed." },
+    { "q": "What is GS requirement?", "a": "Officers assess whether applicant is genuine student with credible study plan and intent to comply with visa conditions." },
+    { "q": "How much funds to show?", "a": "Verify current living cost amounts on homeaffairs.gov.au plus tuition and travel. Include credible source evidence." },
+    { "q": "Can spouse join?", "a": "Partner may apply for subsequent entrant or separate visa depending on circumstances—assess case-by-case." },
+    { "q": "Can student work?", "a": "Limited work hours during study—verify current conditions on Home Affairs website." },
+    { "q": "When to apply?", "a": "After CoE issued; allow processing time before course start." },
+    { "q": "Is health exam mandatory?", "a": "Depends on profile and country—follow Home Affairs health requirements." },
+    { "q": "What after graduation?", "a": "Discuss Subclass 485 Temporary Graduate visa eligibility separately." }
+  ],
+  "compliance": ["Client service agreement and consent must be on file before submission", "Never guarantee visa approval", "Fee quotes must separate consultancy, visa, OSHC, and medical costs", "CoE must be from CRICOS-registered provider only"],
+  "proTips": ["Verify CRICOS before CoE payment", "Draft GS before document collection", "Purchase OSHC for exact visa period", "Season funds early with ITR", "Cross-check CoE against passport name"],
+  "postApproval": ["Send visa grant notification and conditions", "Remind OSHC maintenance and enrolment deadlines", "Explain work hour limits", "Discuss 485 pathway timeline if relevant"],
+  "performance": { "ourRate": 86, "industryRate": 73, "stats": [{ "label": "Files this year", "value": "192" }, { "label": "Approved", "value": "165" }, { "label": "Refused", "value": "19" }, { "label": "Withdrawn", "value": "8" }] },
+  "approvalFactors": [{ "label": "Our rate vs industry", "ours": 86, "benchmark": 73 }, { "label": "GS quality", "ours": 84, "benchmark": 68 }, { "label": "Financial docs", "ours": 82, "benchmark": 70 }, { "label": "First-submit completeness", "ours": 91, "benchmark": 74 }],
+  "timeline": [{ "weeks": "1–2", "title": "Counseling, CoE review, fee agreement" }, { "weeks": "2–4", "title": "GS, funds, OSHC, documents" }, { "weeks": "4–5", "title": "ImmiAccount submission & biometrics" }, { "weeks": "4–8", "title": "Home Affairs processing" }],
+  "relatedServices": [{ "label": "Australia – Subclass 485", "libraryId": "" }, { "label": "Australia – Visitor Visa", "libraryId": "" }, { "label": "Australia – Skilled Migration", "libraryId": "" }],
+  "changelog": [{ "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial Subclass 500 counselor content with GS and 2026 fee notes." }],
+  "staffNotes": [{ "author": "Documentation team", "date": "6 Jun 2026", "text": "GS statement must be original—template GS is top QA rejection internally." }],
+  "resources": [
+    { "title": "Home Affairs — Student visa (500)", "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500", "description": "Official requirements" },
+    { "title": "Home Affairs — Genuine Student requirement", "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500/genuine-temporary-entrant", "description": "GS assessment criteria" },
+    { "title": "CRICOS register", "url": "https://cricos.education.gov.au/", "description": "Verify institution registration" },
+    { "title": "Home Affairs — Visa pricing", "url": "https://immi.homeaffairs.gov.au/visas/visa-pricing-estimator", "description": "Current visa fees" },
+    { "title": "Home Affairs — Processing times", "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-processing-times/global-visa-processing-times", "description": "Processing estimates" }
+  ],
+  "quiz": [
+    { "question": "Mandatory enrolment document?", "options": ["LOA only", "CoE from CRICOS provider", "LMIA", "Job offer"], "correctIndex": 1, "explanation": "CoE required for Subclass 500." },
+    { "question": "GS requirement assesses:", "options": ["Only bank balance", "Genuine intent to study and comply with visa", "Hotel bookings", "Passport colour"], "correctIndex": 1, "explanation": "Genuine Student framework." },
+    { "question": "OSHC is:", "options": ["Optional travel insurance", "Mandatory Overseas Student Health Cover", "University tuition", "Embassy fee"], "correctIndex": 1, "explanation": "Required health cover for students." },
+    { "question": "Top refusal factor often:", "options": ["Wrong photo", "Weak GS / course rationale", "Passport brand", "Airline"], "correctIndex": 1, "explanation": "GS and credibility key." },
+    { "question": "Counselors must never:", "options": ["Verify CRICOS", "Guarantee visa approval", "Check OSHC", "Review CoE"], "correctIndex": 1, "explanation": "No guarantees permitted." }
+  ],
+  "donts": {
+    "dos": ["Verify CRICOS and CoE before apply", "Write original course-specific GS", "Purchase correct OSHC period", "Show funds per Home Affairs amounts", "Disclose prior refusals"],
+    "donts": ["Do not guarantee approval", "Do not use template GS", "Do not apply with expired CoE", "Do not hide refusals", "Do not quote outdated fees"],
+    "mistakes": ["Generic GS not matching course", "OSHC period too short", "Funds below threshold", "Course unrelated to background without explanation", "Blurry financial documents"]
+  }
+}

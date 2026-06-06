@@ -1,0 +1,430 @@
+{
+  "displayName": "New Zealand – Partner of a New Zealander Visa",
+  "shortDescription": "Immigration NZ · Partnership visa · Cultural marriage evidence · Living together",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 26,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Partnership visa fee (NZD $1,670 approx) on immigration.govt.nz before quoting."
+  },
+  "alert": {
+    "title": "Genuine and stable partnership",
+    "body": "INZ assesses whether relationship is genuine, stable, and of minimum duration. Weak evidence is leading refusal factor."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Relationship proof",
+      "variant": "warning"
+    },
+    {
+      "label": "8–16 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – INZ",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "8–16 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "NZD $1,670 approx",
+      "variant": "neutral"
+    },
+    {
+      "label": "12+ months together",
+      "variant": "warning"
+    },
+    {
+      "label": "NZ partner sponsor",
+      "variant": "success"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "8–16w",
+      "sub": "Partnership resident",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "NZD $1,670",
+      "sub": "Approx online fee",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "88%",
+      "sub": "~79% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "19",
+      "sub": "+ relationship evidence",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & medical",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Residence visa for partner of New Zealand citizen or resident in genuine and stable relationship. Includes cultural marriage recognition for Indian applicants where applicable."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Genuine stable partnership 12+ months living together (or other qualifying criteria) · NZ citizen/resident partner · Health and character · Relationship evidence"
+    },
+    {
+      "label": "Living together evidence",
+      "value": "Must demonstrate 12+ months cohabitation or meet alternative INZ criteria for cultural marriage or long-distance relationships.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration New Zealand (INZ)"
+    },
+    {
+      "label": "After approval",
+      "value": "Residence visa conditions; pathway to permanent residence per INZ rules."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "NZ citizen or resident partner",
+      "met": true
+    },
+    {
+      "criterion": "Genuine and stable relationship 12+ months",
+      "met": true,
+      "note": "Cohabitation or qualifying exception"
+    },
+    {
+      "criterion": "Relationship evidence package",
+      "met": true
+    },
+    {
+      "criterion": "Health requirements",
+      "met": false
+    },
+    {
+      "criterion": "Character requirements (police certs)",
+      "met": false
+    },
+    {
+      "criterion": "Partner support declaration",
+      "met": true
+    },
+    {
+      "criterion": "Immigration history disclosed",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If refused on partnership grounds, rebuild evidence chronology before reapplication.",
+  "redFlags": [
+    {
+      "title": "Insufficient cohabitation evidence",
+      "description": "Cannot prove 12+ months living together.",
+      "fix": "Joint lease, bills, photos with dates, affidavits",
+      "severity": "Very common"
+    },
+    {
+      "title": "Weak relationship timeline",
+      "description": "Few photos, no communication history, recent relationship.",
+      "fix": "Chronological narrative; visit records; family statements",
+      "severity": "Common"
+    },
+    {
+      "title": "Partner eligibility unclear",
+      "description": "Partner visa status or citizenship not verified.",
+      "fix": "Verify NZ partner status before apply",
+      "severity": "High"
+    },
+    {
+      "title": "Health/character issues",
+      "description": "Undisclosed medical or criminal history.",
+      "fix": "Complete medical early; police certificates",
+      "severity": "Common"
+    },
+    {
+      "title": "Cultural marriage without support",
+      "description": "Arranged marriage with weak pre/post marriage evidence.",
+      "fix": "Pre-marriage communication; ceremony photos; family affidavits",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals hidden",
+      "description": "Hidden INZ or other refusals.",
+      "fix": "Full disclosure",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee partnership visa?",
+      "a": "No. INZ assesses relationship genuineness individually."
+    },
+    {
+      "q": "12 months living together mandatory?",
+      "a": "Generally required; some exceptions for long-distance or cultural marriages—verify INZ criteria."
+    },
+    {
+      "q": "Can partner work after approval?",
+      "a": "Residence visa typically allows work—verify grant conditions."
+    },
+    {
+      "q": "Processing time?",
+      "a": "Typically 8–16 weeks for complete applications."
+    },
+    {
+      "q": "Indian marriage valid?",
+      "a": "Yes if legally registered with certified translation."
+    },
+    {
+      "q": "What if partner is NZ citizen abroad?",
+      "a": "Assess whether application from inside or outside NZ."
+    },
+    {
+      "q": "Prior student refusal impact?",
+      "a": "Must disclose all immigration history."
+    },
+    {
+      "q": "Medical required?",
+      "a": "Yes for residence applications—INZ panel physicians."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Build relationship timeline from first meeting",
+    "Collect cohabitation proof with dates",
+    "Verify NZ partner status early",
+    "Complete medical and police promptly",
+    "For arranged marriages include pre-marriage communication"
+  ],
+  "postApproval": [
+    "Explain residence conditions",
+    "Guide on IRD/tax registration if applicable",
+    "Remind on ongoing relationship genuineness",
+    "Connect to settlement services"
+  ],
+  "performance": {
+    "ourRate": 88,
+    "industryRate": 79,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "22"
+      },
+      {
+        "label": "Approved",
+        "value": "19"
+      },
+      {
+        "label": "Refused",
+        "value": "2"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "1"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 88,
+      "benchmark": 79
+    },
+    {
+      "label": "Relationship evidence",
+      "ours": 86,
+      "benchmark": 72
+    },
+    {
+      "label": "Cohabitation proof",
+      "ours": 84,
+      "benchmark": 68
+    },
+    {
+      "label": "First-submit",
+      "ours": 91,
+      "benchmark": 76
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Eligibility, partner verification"
+    },
+    {
+      "weeks": "2–8",
+      "title": "Relationship evidence, medical, police"
+    },
+    {
+      "weeks": "8–10",
+      "title": "INZ submission"
+    },
+    {
+      "weeks": "8–16",
+      "title": "INZ processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "New Zealand – Skilled Migrant",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Post Study Work Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial NZ partnership visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Long-distance partnerships need extra INZ criteria check—do not assume 12-month cohabitation rule applies without verification."
+    }
+  ],
+  "resources": [
+    {
+      "title": "Immigration NZ — Partner visa",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/partner-of-a-new-zealander",
+      "description": "Official partnership visa"
+    },
+    {
+      "title": "Immigration NZ — Visa fees",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fees",
+      "description": "Current fees"
+    },
+    {
+      "title": "Immigration NZ — Processing times",
+      "url": "https://www.immigration.govt.nz/about-us/our-monitoring-and-evaluation/visa-processing-times",
+      "description": "Estimates"
+    },
+    {
+      "title": "Immigration NZ — Partnership evidence",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/general-information/evidence-of-partnership",
+      "description": "Relationship evidence guide"
+    },
+    {
+      "title": "Immigration NZ — Medical exams",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/general-information/medical-examinations",
+      "description": "Medical requirements"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Partnership visa requires:",
+      "options": [
+        "No relationship proof",
+        "Genuine stable partnership evidence",
+        "Only passport",
+        "Job offer"
+      ],
+      "correctIndex": 1,
+      "explanation": "Relationship evidence critical."
+    },
+    {
+      "question": "Cohabitation generally:",
+      "options": [
+        "Not relevant",
+        "12+ months evidence typically required",
+        "1 day enough",
+        "Not documented"
+      ],
+      "correctIndex": 1,
+      "explanation": "Living together evidence key."
+    },
+    {
+      "question": "NZ partner must be:",
+      "options": [
+        "Tourist only",
+        "Citizen or resident",
+        "Student only",
+        "Visitor"
+      ],
+      "correctIndex": 1,
+      "explanation": "Qualifying NZ partner required."
+    },
+    {
+      "question": "Top refusal reason:",
+      "options": [
+        "Photo size",
+        "Insufficient partnership evidence",
+        "Airline",
+        "Hotel"
+      ],
+      "correctIndex": 1,
+      "explanation": "Relationship proof critical."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Verify partner",
+        "Guarantee approval",
+        "Collect evidence",
+        "Check fees"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify NZ partner status",
+      "Build cohabitation evidence timeline",
+      "Complete medical and police early",
+      "Include cultural marriage support docs if applicable",
+      "Disclose all immigration history"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not apply without cohabitation evidence",
+      "Do not hide refusals",
+      "Do not fabricate relationship evidence",
+      "Do not quote outdated fees"
+    ],
+    "mistakes": [
+      "Missing joint lease or bills",
+      "Weak photo chronology",
+      "Partner status not verified",
+      "Medical delayed",
+      "Arranged marriage without supporting narrative"
+    ]
+  }
+}

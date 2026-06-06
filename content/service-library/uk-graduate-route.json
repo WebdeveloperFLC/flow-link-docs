@@ -1,0 +1,431 @@
+{
+  "displayName": "UK – Graduate Route Visa",
+  "shortDescription": "UKVI · Post-study work · 2–3 years · UK degree required",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 16,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Graduate Route fee (£822) and IHS on gov.uk. Must apply before student visa expires."
+  },
+  "alert": {
+    "title": "Apply before visa expiry",
+    "body": "Graduate Route must be applied from within UK while Student visa still valid. Missing deadline loses eligibility."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "UK study required",
+      "variant": "warning"
+    },
+    {
+      "label": "8–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Apply in UK",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "2–3 year visa",
+      "variant": "success"
+    },
+    {
+      "label": "£822 + IHS",
+      "variant": "neutral"
+    },
+    {
+      "label": "Apply before expiry",
+      "variant": "warning"
+    },
+    {
+      "label": "Open work rights",
+      "variant": "success"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "8–12w",
+      "sub": "In-country application",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "£822",
+      "sub": "+ IHS",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "95%",
+      "sub": "~90% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "6",
+      "sub": "+ completion proof",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & IHS",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period"
+    },
+    {
+      "label": "One-time route",
+      "value": "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "UK Visas and Immigration (UKVI)"
+    },
+    {
+      "label": "After approval",
+      "value": "Work freely in UK. Transition to Skilled Worker or other visa before Graduate Route expires."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Completed eligible UK degree",
+      "met": true,
+      "note": "University confirms completion to UKVI"
+    },
+    {
+      "criterion": "Valid Student visa at application",
+      "met": true
+    },
+    {
+      "criterion": "Applied before Student visa expiry",
+      "met": true,
+      "note": "Critical deadline"
+    },
+    {
+      "criterion": "Studied in UK required duration",
+      "met": true
+    },
+    {
+      "criterion": "Passport valid",
+      "met": true
+    },
+    {
+      "criterion": "IHS paid",
+      "met": false
+    },
+    {
+      "criterion": "Not previously held Graduate Route",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If Student visa expiring soon, prioritise Graduate Route application immediately—no in-country application after expiry.",
+  "redFlags": [
+    {
+      "title": "Applied after Student visa expired",
+      "description": "Missed in-country application window.",
+      "fix": "Apply before expiry; track visa end date from day one",
+      "severity": "Very common"
+    },
+    {
+      "title": "Degree not eligible",
+      "description": "Course or institution not eligible for Graduate Route.",
+      "fix": "Verify eligibility at enrolment—not at graduation",
+      "severity": "High"
+    },
+    {
+      "title": "Insufficient UK study period",
+      "description": "Did not complete required time physically in UK.",
+      "fix": "Verify attendance and UK study duration requirements",
+      "severity": "Common"
+    },
+    {
+      "title": "University confirmation delay",
+      "description": "UKVI waiting for university to confirm completion.",
+      "fix": "Follow up with university registry early",
+      "severity": "Common"
+    },
+    {
+      "title": "IHS not paid",
+      "description": "Application incomplete without IHS.",
+      "fix": "Pay IHS via gov.uk before submit",
+      "severity": "Medium"
+    },
+    {
+      "title": "Passport expiring soon",
+      "description": "Short passport limits visa grant length.",
+      "fix": "Renew passport before application if needed",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee Graduate Route approval?",
+      "a": "No. Most eligible graduates are approved but we never guarantee."
+    },
+    {
+      "q": "How long is Graduate Route?",
+      "a": "2 years (3 years for PhD graduates)—verify current rules."
+    },
+    {
+      "q": "Can apply from India?",
+      "a": "No. Must apply from within UK on valid Student visa."
+    },
+    {
+      "q": "Can work any job?",
+      "a": "Yes—open work at any skill level during Graduate Route."
+    },
+    {
+      "q": "Can extend Graduate Route?",
+      "a": "Generally no extension—plan next visa before expiry."
+    },
+    {
+      "q": "Path to Skilled Worker?",
+      "a": "Common transition—need job offer from licensed sponsor before Graduate Route ends."
+    },
+    {
+      "q": "Dependants?",
+      "a": "Dependants who were on Student visa as dependants may extend—verify rules."
+    },
+    {
+      "q": "When to apply?",
+      "a": "After degree completion confirmed; before Student visa expires."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Track Student visa expiry from enrolment",
+    "Apply as soon as completion confirmed",
+    "Pay IHS before submission",
+    "Plan Skilled Worker timeline 6 months before Graduate Route expiry",
+    "Follow up university UKVI confirmation"
+  ],
+  "postApproval": [
+    "Send Graduate Route grant and expiry",
+    "Explain open work rights",
+    "Plan next visa route before expiry",
+    "Guide on NI number if not already obtained"
+  ],
+  "performance": {
+    "ourRate": 95,
+    "industryRate": 90,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "87"
+      },
+      {
+        "label": "Approved",
+        "value": "83"
+      },
+      {
+        "label": "Refused",
+        "value": "3"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "1"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 95,
+      "benchmark": 90
+    },
+    {
+      "label": "Deadline compliance",
+      "ours": 97,
+      "benchmark": 85
+    },
+    {
+      "label": "Application timing",
+      "ours": 94,
+      "benchmark": 88
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 96,
+      "benchmark": 90
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1",
+      "title": "Completion confirmation from university"
+    },
+    {
+      "weeks": "1–2",
+      "title": "IHS payment, online application"
+    },
+    {
+      "weeks": "2–3",
+      "title": "Biometrics if requested"
+    },
+    {
+      "weeks": "8–12",
+      "title": "UKVI processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "UK – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Skilled Worker",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial UK Graduate Route counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Set calendar alert 90 days before Student visa expiry for every UK graduate client."
+    }
+  ],
+  "resources": [
+    {
+      "title": "GOV.UK — Graduate visa",
+      "url": "https://www.gov.uk/graduate-visa",
+      "description": "Official Graduate Route requirements"
+    },
+    {
+      "title": "GOV.UK — Apply from inside UK",
+      "url": "https://www.gov.uk/apply-uk-visa",
+      "description": "In-country application"
+    },
+    {
+      "title": "GOV.UK — IHS",
+      "url": "https://www.gov.uk/healthcare-immigration-application",
+      "description": "Healthcare surcharge"
+    },
+    {
+      "title": "GOV.UK — Visa fees",
+      "url": "https://www.gov.uk/visa-fees",
+      "description": "Current fees"
+    },
+    {
+      "title": "GOV.UK — Processing times",
+      "url": "https://www.gov.uk/visa-processing-times",
+      "description": "Estimates"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Graduate Route applied from:",
+      "options": [
+        "India",
+        "Within UK on valid Student visa",
+        "Any country after leaving",
+        "Online only from India"
+      ],
+      "correctIndex": 1,
+      "explanation": "In-country application required."
+    },
+    {
+      "question": "Graduate Route duration (bachelors/masters):",
+      "options": [
+        "6 months",
+        "2 years typically",
+        "10 years",
+        "Permanent"
+      ],
+      "correctIndex": 1,
+      "explanation": "2 years for most graduates."
+    },
+    {
+      "question": "Work restrictions:",
+      "options": [
+        "No work allowed",
+        "Open work at any skill level",
+        "Only unpaid",
+        "Employer sponsor only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Open work permit."
+    },
+    {
+      "question": "Must apply:",
+      "options": [
+        "After Student visa expires",
+        "Before Student visa expires",
+        "Never",
+        "From home country only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Before expiry critical."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Track expiry date",
+        "Guarantee approval",
+        "Plan next visa route",
+        "Pay IHS"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Track Student visa expiry",
+      "Apply immediately after completion confirmed",
+      "Pay IHS before submit",
+      "Plan Skilled Worker before Graduate Route ends",
+      "Verify degree eligibility at enrolment"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not miss in-country deadline",
+      "Do not assume extension possible",
+      "Do not apply from outside UK",
+      "Do not ignore passport validity"
+    ],
+    "mistakes": [
+      "Applied day after Student visa expired",
+      "Degree course not Graduate Route eligible",
+      "University confirmation delayed",
+      "No plan for visa after 2 years",
+      "IHS payment incomplete"
+    ]
+  }
+}

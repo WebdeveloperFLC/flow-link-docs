@@ -1,0 +1,430 @@
+{
+  "displayName": "Germany – Visitor / Schengen Visa (Type C)",
+  "shortDescription": "German Embassy · Schengen short-stay · Tourism, family, business · 90/180 rule",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Beginner",
+  "learningMinutes": 14,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Schengen visa fee (€90 for adults) on auswaertiges-amt.de before quoting."
+  },
+  "alert": {
+    "title": "Schengen 90/180 day rule",
+    "body": "Short-stay visa allows max 90 days in any 180-day period in Schengen area. Counsel clients on cumulative stay limits."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Ties critical",
+      "variant": "warning"
+    },
+    {
+      "label": "2–4 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "VFS appointment",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "2–4 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "€90 visa fee",
+      "variant": "neutral"
+    },
+    {
+      "label": "Travel insurance €30k+",
+      "variant": "warning"
+    },
+    {
+      "label": "Strong ties",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "2–4w",
+      "sub": "Schengen standard",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "€90",
+      "sub": "Adult Schengen visa",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "76%",
+      "sub": "~64% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "10",
+      "sub": "+ travel insurance",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & insurance",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Schengen Type C short-stay visa for tourism, family visits, or business trips to Germany up to 90 days per 180-day period."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Temporary visit purpose · Travel insurance €30,000+ · Funds for trip · Strong ties to India · Clean Schengen history"
+    },
+    {
+      "label": "Main destination rule",
+      "value": "Apply at embassy of main Schengen destination. If Germany is primary stay, apply via German mission.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "German Embassy/Consulate · VFS Global (appointment partner in India)"
+    },
+    {
+      "label": "After approval",
+      "value": "Respect visa validity and 90/180 rule. Overstay affects future Schengen applications."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Valid passport (3+ months beyond stay)",
+      "met": true
+    },
+    {
+      "criterion": "Travel medical insurance €30,000+",
+      "met": true,
+      "note": "Valid for entire Schengen stay"
+    },
+    {
+      "criterion": "Proof of accommodation and itinerary",
+      "met": true
+    },
+    {
+      "criterion": "Proof of funds",
+      "met": true
+    },
+    {
+      "criterion": "Strong ties to India",
+      "met": true
+    },
+    {
+      "criterion": "Cover letter explaining purpose",
+      "met": true
+    },
+    {
+      "criterion": "Biometrics (if not in VIS)",
+      "met": false
+    }
+  ],
+  "redFlagsBanner": "After Schengen refusal, analyse refusal letter and strengthen ties before reapplication to any Schengen state.",
+  "redFlags": [
+    {
+      "title": "Weak ties to India",
+      "description": "Unemployed, no assets, vague return plan.",
+      "fix": "Employment letter, business proof, property, family obligations",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient travel insurance",
+      "description": "Coverage below €30,000 or wrong dates.",
+      "fix": "Purchase Schengen-compliant insurance for full trip dates",
+      "severity": "Very common"
+    },
+    {
+      "title": "Itinerary inconsistencies",
+      "description": "Flights/hotels not matching stated purpose.",
+      "fix": "Align bookings with cover letter dates",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior Schengen refusals",
+      "description": "Hidden refusals from other Schengen states.",
+      "fix": "Disclose all refusals; address in cover letter",
+      "severity": "High"
+    },
+    {
+      "title": "Wrong embassy application",
+      "description": "Applied Germany but main destination is another country.",
+      "fix": "Apply at main destination embassy per Schengen rules",
+      "severity": "Common"
+    },
+    {
+      "title": "Insufficient funds",
+      "description": "Cannot credibly fund trip.",
+      "fix": "Bank statements, ITR, sponsor letter",
+      "severity": "Common"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee Schengen approval?",
+      "a": "No. Consulate decides each application individually."
+    },
+    {
+      "q": "Which embassy to apply?",
+      "a": "Country of main destination or first entry if equal stays—follow Schengen rules."
+    },
+    {
+      "q": "How much travel insurance?",
+      "a": "Minimum €30,000 medical coverage valid across Schengen for entire trip."
+    },
+    {
+      "q": "Can I visit multiple Schengen countries?",
+      "a": "Yes on single visa if main destination rule followed; respect 90/180 limit."
+    },
+    {
+      "q": "How long processing?",
+      "a": "Typically 2–4 weeks; apply well before travel date."
+    },
+    {
+      "q": "Does prior UK/US refusal affect Schengen?",
+      "a": "Must disclose; consulate considers overall immigration history."
+    },
+    {
+      "q": "Can visitor work?",
+      "a": "No. Employment not permitted on Schengen short-stay visa."
+    },
+    {
+      "q": "Reapply after refusal?",
+      "a": "Yes when circumstances improve; address prior refusal grounds."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs"
+  ],
+  "proTips": [
+    "Purchase Schengen insurance before VFS appointment",
+    "Personalise cover letter with exact dates and purpose",
+    "Book refundable flights/hotels for itinerary",
+    "Show employment leave letter",
+    "Check 90/180 rule if client has recent Schengen travel"
+  ],
+  "postApproval": [
+    "Explain 90/180 day rule in writing",
+    "Remind to carry insurance and accommodation proof at border",
+    "Advise on passport stamp checks",
+    "Note reapplication if travel plans change"
+  ],
+  "performance": {
+    "ourRate": 76,
+    "industryRate": 64,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "112"
+      },
+      {
+        "label": "Approved",
+        "value": "85"
+      },
+      {
+        "label": "Refused",
+        "value": "22"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "5"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 76,
+      "benchmark": 64
+    },
+    {
+      "label": "Ties docs",
+      "ours": 72,
+      "benchmark": 58
+    },
+    {
+      "label": "Insurance compliance",
+      "ours": 88,
+      "benchmark": 70
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 86,
+      "benchmark": 68
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1",
+      "title": "Counseling, itinerary, fee agreement"
+    },
+    {
+      "weeks": "1–2",
+      "title": "Insurance, bookings, documents"
+    },
+    {
+      "weeks": "2–3",
+      "title": "VFS appointment & submission"
+    },
+    {
+      "weeks": "2–4",
+      "title": "Consulate processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "Germany – Student Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Job Seeker Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Germany – Spouse Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Germany Schengen visitor visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Check client Schengen travel history for 90/180 compliance before filing."
+    }
+  ],
+  "resources": [
+    {
+      "title": "German Missions India — Short-stay visa",
+      "url": "https://india.diplo.de/in-en/service/visa/shortterm",
+      "description": "Schengen visa requirements"
+    },
+    {
+      "title": "Federal Foreign Office — Schengen visa",
+      "url": "https://www.auswaertiges-amt.de/en/visa-service/schengenvisum",
+      "description": "Official Schengen information"
+    },
+    {
+      "title": "Make it in Germany — Visa",
+      "url": "https://www.make-it-in-germany.com/en/visa-desp",
+      "description": "Visa overview"
+    },
+    {
+      "title": "VFS Global — Germany India",
+      "url": "https://visa.vfsglobal.com/ind/en/deu",
+      "description": "Appointment booking"
+    },
+    {
+      "title": "Federal Foreign Office — Visa fees",
+      "url": "https://www.auswaertiges-amt.de/en/visa-service/visa-fees",
+      "description": "Current fee list"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Schengen short-stay visa fee (2026) approx:",
+      "options": [
+        "€200",
+        "€90",
+        "€500",
+        "€10"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standard adult Schengen fee."
+    },
+    {
+      "question": "Minimum travel insurance coverage:",
+      "options": [
+        "€5,000",
+        "€30,000",
+        "€100",
+        "None"
+      ],
+      "correctIndex": 1,
+      "explanation": "Schengen requirement."
+    },
+    {
+      "question": "90/180 rule means:",
+      "options": [
+        "Unlimited stay",
+        "Max 90 days in any 180-day Schengen period",
+        "One day only",
+        "365 days"
+      ],
+      "correctIndex": 1,
+      "explanation": "Short-stay limit."
+    },
+    {
+      "question": "Top refusal reason:",
+      "options": [
+        "Passport colour",
+        "Weak ties / purpose",
+        "Hotel brand",
+        "Photo size only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Ties and credibility key."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Check insurance",
+        "Guarantee approval",
+        "Verify itinerary",
+        "Review ties"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Purchase compliant travel insurance",
+      "Document strong India ties",
+      "Align itinerary with purpose",
+      "Apply at correct embassy",
+      "Disclose prior Schengen refusals"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not apply with wrong main destination",
+      "Do not use insufficient insurance",
+      "Do not hide refusals",
+      "Do not advise working on tourist visa"
+    ],
+    "mistakes": [
+      "Insurance dates don't cover full trip",
+      "Generic cover letter",
+      "No employment proof for salaried applicant",
+      "Itinerary dates mismatch flights",
+      "Prior Schengen overstay not disclosed"
+    ]
+  }
+}

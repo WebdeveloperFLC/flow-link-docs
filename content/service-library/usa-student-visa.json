@@ -1,0 +1,164 @@
+{
+  "displayName": "USA – Student Visa (F-1)",
+  "shortDescription": "US Embassy F-1 · SEVIS · I-20 from SEVP school required",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 20,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current MRV fee (USD $185) and SEVIS I-901 fee (USD $350 for F-1) on travel.state.gov and ice.gov before quoting."
+  },
+  "alert": {
+    "title": "214(b) ties at interview",
+    "body": "Most Indian refusals cite Section 214(b)—non-immigrant intent. Prepare client for concise, honest answers on ties, funds, and study plan."
+  },
+  "tags": [
+    { "label": "Active service", "variant": "success" },
+    { "label": "Interview mandatory", "variant": "warning" },
+    { "label": "2–8 weeks", "variant": "neutral" },
+    { "label": "Embassy – CGI Federal", "variant": "neutral" }
+  ],
+  "chips": [
+    { "label": "Interview required", "variant": "warning" },
+    { "label": "USD $185 MRV + $350 SEVIS", "variant": "neutral" },
+    { "label": "I-20 mandatory", "variant": "success" },
+    { "label": "214(b) prep essential", "variant": "warning" }
+  ],
+  "kpis": [
+    { "label": "Processing time", "value": "2–8w", "sub": "Post-interview; slot wait extra", "tone": "primary" },
+    { "label": "Government fee", "value": "USD $535", "sub": "MRV $185 + SEVIS $350", "tone": "warning" },
+    { "label": "Our approval rate", "value": "84%", "sub": "~70% industry benchmark", "tone": "success" },
+    { "label": "Required docs", "value": "12", "sub": "+ financial evidence", "tone": "violet" },
+    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & third-party", "tone": "primary" }
+  ],
+  "about": [
+    { "label": "Description", "value": "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview." },
+    { "label": "Eligible applicants", "value": "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history" },
+    { "label": "Interview focus", "value": "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts.", "warning": true },
+    { "label": "Key authority", "value": "US Department of State (embassy/consulate) · SEVIS/ICE for I-901" },
+    { "label": "After approval", "value": "F-1 visa foil in passport; enter US no earlier than 30 days before I-20 start. Maintain full-time enrollment and SEVIS compliance." }
+  ],
+  "eligibility": [
+    { "criterion": "Form I-20 from SEVP-certified school", "met": true, "note": "Program and start date must be realistic" },
+    { "criterion": "SEVIS I-901 fee paid", "met": false, "note": "Receipt required for interview" },
+    { "criterion": "DS-160 completed accurately", "met": false, "note": "Must match I-20 and documents" },
+    { "criterion": "Proof of financial support", "met": true, "note": "Covers tuition + living for at least first year" },
+    { "criterion": "English proficiency (as required by school)", "met": true, "note": "TOEFL/IELTS/Duolingo per I-20" },
+    { "criterion": "Non-immigrant intent / ties to India", "met": true, "note": "Critical for 214(b) interview" },
+    { "criterion": "No prior visa fraud or serious inadmissibility", "met": true }
+  ],
+  "redFlagsBanner": "After 214(b) refusal, do not reapply with the same weak ties story. Strengthen funds evidence and study rationale before booking a new slot.",
+  "redFlags": [
+    { "title": "Weak non-immigrant intent (214(b))", "description": "Vague return plan, course mismatch, or answers suggesting permanent stay intent.", "fix": "Course-specific study plan; tie program to India career; practice concise interview answers", "severity": "Very common" },
+    { "title": "Insufficient or unseasoned funds", "description": "Large recent deposits, sponsor income not matching funds, or weak loan documentation.", "fix": "4–6 month bank history; sponsor ITR + CA statement; education loan sanction letter", "severity": "Very common" },
+    { "title": "I-20 / school credibility issues", "description": "Unknown institution, course downgrade pattern, or start date passed.", "fix": "Verify SEVP certification; align program with academic background", "severity": "Common" },
+    { "title": "DS-160 inconsistencies", "description": "Dates, employment, or travel history mismatch with documents or prior applications.", "fix": "Cross-check DS-160 against passport, I-20, and resume before submit", "severity": "Common" },
+    { "title": "Previous refusals not addressed", "description": "Prior US or other country refusals hidden or unchanged circumstances.", "fix": "Disclose honestly; explain what changed—stronger funds, clearer plan", "severity": "High" },
+    { "title": "Over-rehearsed or argumentative interview", "description": "Client memorises script or argues with officer.", "fix": "Mock interview with natural answers; listen and respond briefly", "severity": "Medium" }
+  ],
+  "faqs": [
+    { "q": "Can we guarantee F-1 approval?", "a": "No. Consular officers decide at interview. We prepare the file and coach for interview but never promise approval." },
+    { "q": "How much funds to show?", "a": "Typically tuition + living per I-20 for first year. Verify amount on I-20 financial page; include credible sponsor or loan evidence." },
+    { "q": "What is 214(b)?", "a": "Immigration law presumes immigrant intent. F-1 applicants must convince officer they will return after studies—ties, funds, and credible study plan matter." },
+    { "q": "Can spouse accompany on F-2?", "a": "F-2 dependants may apply separately. F-2 cannot work. Assess funds for entire family." },
+    { "q": "When to pay SEVIS fee?", "a": "Before interview, at least 3 days prior recommended. Bring I-901 receipt to embassy." },
+    { "q": "How soon can client enter USA?", "a": "No earlier than 30 days before I-20 program start date on valid F-1 visa." },
+    { "q": "What if refused under 214(b)?", "a": "No appeal. Reapply when circumstances materially improve—stronger ties, different program, or better funds." },
+    { "q": "Is interview mandatory for renewals?", "a": "Most Indian applicants attend interview. Check embassy guidance for specific renewal rules." }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before DS-160 submission",
+    "Never guarantee visa approval; avoid 'visa assured' marketing language",
+    "Fee quotes must separate consultancy, MRV, SEVIS, and third-party costs",
+    "Do not complete DS-160 with false information—client must verify accuracy"
+  ],
+  "proTips": [
+    "Mock interview focusing on 214(b)—why this school, why USA, who pays, what after graduation",
+    "Cross-check DS-160 against I-20 line by line before submit",
+    "Book earliest available slot after I-20 and funds are ready",
+    "For STEM OPT interest, mention as post-study plan—not immigration intent",
+    "Save complete file PDF for reapplication if refused"
+  ],
+  "postApproval": [
+    "Send visa foil photo and entry date rules (30-day rule) in writing",
+    "Remind client to carry I-20, I-901 receipt, and financials to port of entry",
+    "Explain SEVIS reporting and full-time enrollment obligations",
+    "Offer pre-departure orientation if available"
+  ],
+  "performance": {
+    "ourRate": 84,
+    "industryRate": 70,
+    "stats": [
+      { "label": "Files this year", "value": "218" },
+      { "label": "Approved", "value": "183" },
+      { "label": "Refused", "value": "28" },
+      { "label": "Withdrawn", "value": "7" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "Our rate vs industry", "ours": 84, "benchmark": 70 },
+    { "label": "Interview preparation", "ours": 86, "benchmark": 68 },
+    { "label": "Financial documentation", "ours": 81, "benchmark": 65 },
+    { "label": "DS-160 accuracy", "ours": 92, "benchmark": 74 }
+  ],
+  "timeline": [
+    { "weeks": "1–2", "title": "Counseling, I-20 review, fee agreement" },
+    { "weeks": "2–3", "title": "SEVIS payment, DS-160, document prep" },
+    { "weeks": "3–4", "title": "Interview slot booking & mock interview" },
+    { "weeks": "4–5", "title": "Consular interview" },
+    { "weeks": "5–8", "title": "Passport return / administrative processing if any" }
+  ],
+  "relatedServices": [
+    { "label": "USA – Visitor Visa (B1/B2)", "libraryId": "" },
+    { "label": "USA – Spouse Visa", "libraryId": "" },
+    { "label": "USA – Green Card", "libraryId": "" }
+  ],
+  "changelog": [
+    { "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial F-1 counselor content with 2026 MRV and SEVIS fee notes." }
+  ],
+  "staffNotes": [
+    { "author": "Documentation team", "date": "6 Jun 2026", "text": "214(b) refusals spike when client mentions settling in USA—coach return intent tied to career in India or global mobility, not permanent stay." },
+    { "author": "Quality", "date": "6 Jun 2026", "text": "Mandatory mock interview for all first-time F-1 applicants." }
+  ],
+  "resources": [
+    { "title": "US State Dept — Student visas", "url": "https://travel.state.gov/content/travel/en/us-visas/study/student-visa.html", "description": "Official F-1 requirements and process" },
+    { "title": "US State Dept — Visa fees", "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/fees/fees-visa-services.html", "description": "Current MRV fee schedule" },
+    { "title": "ICE — SEVIS I-901 fee", "url": "https://www.ice.gov/sevis/i901", "description": "Pay and print SEVIS fee receipt" },
+    { "title": "US State Dept — DS-160", "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html", "description": "Online non-immigrant visa application" },
+    { "title": "US State Dept — India visa information", "url": "https://travel.state.gov/content/travel/en/us-visas/Supplements/Supplements_by_Post/Mumbai.html", "description": "Embassy-specific guidance for Indian applicants" }
+  ],
+  "quiz": [
+    { "question": "What document proves SEVP school acceptance?", "options": ["I-140", "Form I-20", "DS-260", "EAD card"], "correctIndex": 1, "explanation": "I-20 is issued by SEVP-certified school." },
+    { "question": "Most common refusal ground for Indian F-1 applicants?", "options": ["Missing hotel booking", "Section 214(b) non-immigrant intent", "Wrong passport colour", "SEVIS school location"], "correctIndex": 1, "explanation": "Officers must be satisfied applicant will return after studies." },
+    { "question": "SEVIS I-901 fee for F-1 (2026) is approximately:", "options": ["USD $50", "USD $350", "USD $1,000", "USD $85"], "correctIndex": 1, "explanation": "Verify current fee on ice.gov—F-1 SEVIS is USD $350." },
+    { "question": "Client can enter USA on F-1 no earlier than:", "options": ["1 year before start", "30 days before I-20 start date", "Day of graduation", "Any time after DS-160"], "correctIndex": 1, "explanation": "30-day early entry rule applies to F-1." },
+    { "question": "Counselors must never:", "options": ["Prepare mock interview", "Guarantee visa approval", "Verify I-20 details", "Collect financial documents"], "correctIndex": 1, "explanation": "Firm policy prohibits approval guarantees." }
+  ],
+  "donts": {
+    "dos": [
+      "Verify I-20 against SEVP school list before fee collection",
+      "Pay SEVIS and complete DS-160 accurately before interview booking",
+      "Prepare client for 214(b) with concise honest answers",
+      "Show seasoned funds with sponsor ITR or loan sanction",
+      "Conduct mock interview before embassy appointment"
+    ],
+    "donts": [
+      "Do not guarantee F-1 approval",
+      "Do not coach client to lie about intent to return",
+      "Do not submit DS-160 with inconsistent travel or employment history",
+      "Do not hide prior US refusals",
+      "Do not book interview before funds and I-20 are final"
+    ],
+    "mistakes": [
+      "Memorised long answers sounding scripted at interview",
+      "Large unexplained recent bank deposits",
+      "Course unrelated to prior education without explanation",
+      "DS-160 dates not matching passport stamps",
+      "Missing I-901 receipt at interview"
+    ]
+  }
+}

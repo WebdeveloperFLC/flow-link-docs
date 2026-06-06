@@ -1,0 +1,432 @@
+{
+  "displayName": "USA – Green Card (Employment & Family)",
+  "shortDescription": "USCIS · EB categories · Family preference · Multi-year process",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 6 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 35,
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current USCIS filing fees (I-140, I-485, etc.) on uscis.gov. Green card timelines vary widely by category and country of birth."
+  },
+  "alert": {
+    "title": "Category and priority date matter",
+    "body": "Employment-based (EB) and family-based categories have different wait times. Indian-born applicants often face long backlogs in EB-2/EB-3—set realistic expectations."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Long timelines",
+      "variant": "warning"
+    },
+    {
+      "label": "2–10+ years",
+      "variant": "neutral"
+    },
+    {
+      "label": "USCIS + NVC",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "EB or family based",
+      "variant": "neutral"
+    },
+    {
+      "label": "Priority date backlog",
+      "variant": "warning"
+    },
+    {
+      "label": "PERM for EB-2/3",
+      "variant": "success"
+    },
+    {
+      "label": "No guarantee",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Processing time",
+      "value": "2–10+y",
+      "sub": "Category & country dependent",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "USD $2,000+",
+      "sub": "Multiple forms over process",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "85%",
+      "sub": "~78% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "22",
+      "sub": "+ employer docs for EB",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & legal",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Lawful permanent residence (green card) via employment sponsorship (EB-1/2/3/5) or family petition (I-130). Multi-step process involving PERM, I-140, priority date, and I-485 or consular processing."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Qualifying job offer/sponsor (EB) or qualifying family relationship · PERM for most EB-2/3 · Priority date current per Visa Bulletin · Medical and character clearances"
+    },
+    {
+      "label": "India backlog reality",
+      "value": "Indian-born EB-2/EB-3 applicants often wait years after I-140 approval for priority date to become current. Monitor Visa Bulletin monthly.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "USCIS · Department of Labor (PERM) · Department of State (Visa Bulletin/NVC)"
+    },
+    {
+      "label": "After approval",
+      "value": "Receive green card; maintain residence; eligible for citizenship after qualifying period (typically 5 years)."
+    }
+  ],
+  "eligibility": [
+    {
+      "criterion": "Qualifying EB category or family relationship",
+      "met": true
+    },
+    {
+      "criterion": "Employer sponsorship / PERM (EB-2/3)",
+      "met": false,
+      "note": "PERM adds 12–18 months"
+    },
+    {
+      "criterion": "I-140 approved",
+      "met": false
+    },
+    {
+      "criterion": "Priority date current (Visa Bulletin)",
+      "met": false,
+      "note": "Check monthly bulletin"
+    },
+    {
+      "criterion": "I-485 or consular processing eligible",
+      "met": false
+    },
+    {
+      "criterion": "Medical exam completed",
+      "met": false
+    },
+    {
+      "criterion": "No serious inadmissibility",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If priority date not current, I-485 cannot be filed—monitor Visa Bulletin and maintain lawful status meanwhile.",
+  "redFlags": [
+    {
+      "title": "Priority date not current",
+      "description": "Client expects green card but Visa Bulletin shows years of backlog.",
+      "fix": "Monitor Visa Bulletin; maintain H-1B/status; set realistic timeline",
+      "severity": "Very common"
+    },
+    {
+      "title": "PERM recruitment issues",
+      "description": "DOL audits or inadequate recruitment advertising.",
+      "fix": "Ensure PERM compliance; experienced immigration attorney for PERM",
+      "severity": "Common"
+    },
+    {
+      "title": "Status gap during wait",
+      "description": "Fell out of status while waiting for priority date.",
+      "fix": "Maintain valid non-immigrant status throughout wait",
+      "severity": "High"
+    },
+    {
+      "title": "Job change during PERM/I-140",
+      "description": "Changed employer before I-140 approved 180+ days.",
+      "fix": "Understand AC21 portability rules; may need new PERM",
+      "severity": "Common"
+    },
+    {
+      "title": "Incorrect EB category",
+      "description": "Filed EB-3 when EB-2 qualifications exist or vice versa.",
+      "fix": "Assess education/experience for optimal category",
+      "severity": "Common"
+    },
+    {
+      "title": "Medical inadmissibility",
+      "description": "Health grounds not addressed.",
+      "fix": "Complete medical early; consult on waivers if needed",
+      "severity": "Medium"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Can we guarantee green card?",
+      "a": "No. Multi-step process with DOL, USCIS, and visa availability. Never promise approval or timeline."
+    },
+    {
+      "q": "How long for Indians EB-2?",
+      "a": "Check current Visa Bulletin—often many years backlog. Dates move monthly."
+    },
+    {
+      "q": "What is PERM?",
+      "a": "Labor certification proving no qualified US workers available—required for most EB-2/EB-3."
+    },
+    {
+      "q": "Can spouse work during wait?",
+      "a": "Depends on status—H-4 EAD, L-2, or EAD with pending I-485 if eligible."
+    },
+    {
+      "q": "What is priority date?",
+      "a": "Date PERM filed or I-140 receipt—determines place in queue per Visa Bulletin."
+    },
+    {
+      "q": "EB-1 vs EB-2?",
+      "a": "EB-1 for extraordinary ability/multinational managers—no PERM. EB-2 typically needs PERM unless NIW."
+    },
+    {
+      "q": "What is NIW?",
+      "a": "National Interest Waiver—EB-2 without PERM if work benefits US national interest."
+    },
+    {
+      "q": "Family-based options?",
+      "a": "I-130 through US citizen/LPR relatives—preference categories have own backlogs."
+    }
+  ],
+  "compliance": [
+    "Client service agreement and consent must be on file before submission",
+    "Never guarantee visa or immigration approval; use approved-language only",
+    "Fee quotes must separate consultancy, government, and third-party costs",
+    "Green card cases typically require licensed US immigration attorney"
+  ],
+  "proTips": [
+    "Check Visa Bulletin monthly with client",
+    "Maintain lawful status during entire wait",
+    "PERM with experienced attorney—DOL audits real",
+    "Document AC21 eligibility if changing jobs post-I-140",
+    "Set realistic timeline expectations at sales stage"
+  ],
+  "postApproval": [
+    "Send green card and conditions",
+    "Explain citizenship eligibility timeline",
+    "Guide on SS card and state ID",
+    "Remind on residency obligations"
+  ],
+  "performance": {
+    "ourRate": 85,
+    "industryRate": 78,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "45"
+      },
+      {
+        "label": "Approved",
+        "value": "38"
+      },
+      {
+        "label": "Refused",
+        "value": "5"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 85,
+      "benchmark": 78
+    },
+    {
+      "label": "Category assessment",
+      "ours": 87,
+      "benchmark": 72
+    },
+    {
+      "label": "Status maintenance",
+      "ours": 82,
+      "benchmark": 68
+    },
+    {
+      "label": "Timeline expectation setting",
+      "ours": 90,
+      "benchmark": 70
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "6–18m",
+      "title": "PERM process (EB-2/3 if applicable)"
+    },
+    {
+      "weeks": "18–24m",
+      "title": "I-140 petition"
+    },
+    {
+      "weeks": "Variable years",
+      "title": "Wait for priority date current"
+    },
+    {
+      "weeks": "6–18m",
+      "title": "I-485 or consular processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "USA – Spouse Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Student Visa (F-1)",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Visitor Visa",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial USA green card counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Never promise EB-2 timeline for India-born without showing current Visa Bulletin backlog."
+    }
+  ],
+  "resources": [
+    {
+      "title": "USCIS — Green card",
+      "url": "https://www.uscis.gov/green-card",
+      "description": "Official green card information"
+    },
+    {
+      "title": "USCIS — Employment-based immigration",
+      "url": "https://www.uscis.gov/working-in-the-united-states/permanent-workers",
+      "description": "EB categories"
+    },
+    {
+      "title": "DOL — PERM",
+      "url": "https://www.dol.gov/agencies/eta/foreign-labor",
+      "description": "Labor certification"
+    },
+    {
+      "title": "State Dept — Visa Bulletin",
+      "url": "https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html",
+      "description": "Priority date movement"
+    },
+    {
+      "title": "USCIS — Processing times",
+      "url": "https://egov.uscis.gov/processing-times/",
+      "description": "USCIS estimates"
+    }
+  ],
+  "quiz": [
+    {
+      "question": "PERM is required for most:",
+      "options": [
+        "EB-1",
+        "EB-2 and EB-3 employment",
+        "Visitor visa",
+        "F-1 student"
+      ],
+      "correctIndex": 1,
+      "explanation": "Labor certification for most EB-2/3."
+    },
+    {
+      "question": "Priority date determined by:",
+      "options": [
+        "Random draw",
+        "Visa Bulletin based on PERM/I-140 filing date",
+        "Passport colour",
+        "Interview date only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Queue position from filing date."
+    },
+    {
+      "question": "Indian EB-2 backlog typically means:",
+      "options": [
+        "Instant green card",
+        "Long wait after I-140",
+        "No wait ever",
+        "Automatic citizenship"
+      ],
+      "correctIndex": 1,
+      "explanation": "Country-specific backlogs common."
+    },
+    {
+      "question": "During wait client should:",
+      "options": [
+        "Overstay visa",
+        "Maintain lawful status",
+        "Leave US permanently",
+        "Work illegally"
+      ],
+      "correctIndex": 1,
+      "explanation": "Status maintenance critical."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Check Visa Bulletin",
+        "Guarantee green card",
+        "Explain categories",
+        "Set realistic expectations"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees."
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Monitor Visa Bulletin monthly",
+      "Maintain lawful status during wait",
+      "Use experienced attorney for PERM",
+      "Assess optimal EB category",
+      "Set realistic India backlog expectations"
+    ],
+    "donts": [
+      "Do not guarantee green card or timeline",
+      "Do not let status expire during wait",
+      "Do not misrepresent PERM job requirements",
+      "Do not promise instant approval",
+      "Do not skip priority date check"
+    ],
+    "mistakes": [
+      "Client fell out of status during backlog wait",
+      "PERM job duties inflated",
+      "Wrong EB category chosen",
+      "Timeline promised without Visa Bulletin check",
+      "Job change without AC21 analysis"
+    ]
+  }
+}

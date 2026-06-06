@@ -10,7 +10,7 @@ import { ServiceAcademyKpiRow } from "@/components/service-library/design/Servic
 import { ServiceLibraryTabs } from "@/components/service-library/design/ServiceLibraryTabs";
 import { ServiceLibraryRightRail } from "@/components/service-library/design/ServiceLibraryRightRail";
 import { useServiceAcademyDetail } from "@/hooks/useServiceAcademyDetail";
-import { buildAcademyNav } from "@/lib/service-library/academyNav";
+import { buildAcademyNav, flattenNavItemIds } from "@/lib/service-library/academyNav";
 import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
@@ -23,7 +23,7 @@ export default function ServiceLibrary() {
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(params.get("id"));
-  const [countryFilter, setCountryFilter] = useState(params.get("country") || "ALL");
+  const [countryFilter, setCountryFilter] = useState(params.get("country") || "Canada");
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
@@ -65,11 +65,16 @@ export default function ServiceLibrary() {
   );
 
   useEffect(() => {
-    if (!selectedId && groups.length) {
-      const first = groups[0]?.items[0]?.id;
-      if (first) setSelectedId(first);
-    }
-  }, [selectedId, groups]);
+    const ids = flattenNavItemIds(groups);
+    if (selectedId && ids.includes(selectedId)) return;
+    const first = ids[0];
+    if (first) setSelectedId(first);
+  }, [selectedId, groups, countryFilter]);
+
+  const handleCountryChange = (c: string) => {
+    setCountryFilter(c);
+    if (c !== "ALL") setDetailCountry(c);
+  };
 
   const detail = useServiceAcademyDetail(
     selectedId,
@@ -139,7 +144,7 @@ export default function ServiceLibrary() {
         selectedId={selectedId}
         onSelect={setSelectedId}
         country={countryFilter}
-        onCountry={setCountryFilter}
+        onCountry={handleCountryChange}
         statusFilter={statusFilter}
         onStatusFilter={setStatusFilter}
         search={treeSearch}

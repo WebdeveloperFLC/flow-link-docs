@@ -109,7 +109,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
   // managed in Service Library Admin.
   const { data, error } = await supabase
     .from("service_library")
-    .select("id, service_category, service, sub_service, display_order, is_active, service_library_countries(country)")
+    .select("id, service_category, service, sub_service, display_order, is_active, academy_metadata, service_library_countries(country)")
     .eq("is_active", true)
     .order("service_category", { ascending: true })
     .order("display_order", { ascending: true })
@@ -122,12 +122,15 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     sub_service: string;
     display_order: number;
     is_active: boolean;
+    academy_metadata?: { displayName?: string } | null;
     service_library_countries: { country: string }[] | null;
   };
   const rows = (data ?? []) as unknown as Row[];
   const items: ServiceCatalogueItem[] = [];
   for (const r of rows) {
     const countries = (r.service_library_countries ?? []).map((c) => c.country);
+    const displayLabel =
+      (r.academy_metadata as { displayName?: string } | null)?.displayName ?? r.sub_service;
     if (r.service_category === "visa_immigration") {
       // Emit one row per country so the per-country filter in ServiceTabs works.
       const list = countries.length > 0 ? countries : [null];
@@ -135,8 +138,8 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
         items.push({
           id: c ? `${r.id}::${c}` : r.id,
           master_key: r.service_category,
-          service_name: r.service,
-          sub_category: r.sub_service,
+          service_name: displayLabel,
+          sub_category: c ?? r.service,
           service_code: c ? `${r.id}::${c}` : r.id,
           pricing_type: "ON_REQUEST",
           country_tag: c,
@@ -251,6 +254,9 @@ export function suggestDepartmentFromServices(
 }
 
 let _serviceMapCache: Map<string, string> | null = null;
+export function clearServiceCodeMapCache() {
+  _serviceMapCache = null;
+}
 export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
   if (_serviceMapCache) return _serviceMapCache;
   const m = new Map<string, string>();
@@ -261,6 +267,7 @@ export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
     const code = s.service_code || s.id;
     m.set(code, s.service_name);
     m.set(s.id, s.service_name);
+    if (s.sub_category) m.set(`${code}::label`, s.sub_category);
   }
 
   // Legacy fallback for older records that still reference service_catalogue codes.
