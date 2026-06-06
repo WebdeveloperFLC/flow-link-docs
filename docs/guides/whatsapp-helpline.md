@@ -264,22 +264,45 @@ Need to deploy functions?
 
 ---
 
-## 9. Phase 2+ (later)
+## 9. Phase 2+ (live features)
 
 ```flow
-Permanent Meta token
-Real helpline number
-Business verification
+Helpline + legacy counselor lines
+Assignment history
+24h session warning
+Staff name on replies
+Counselor attachments (image/PDF)
 Optional Gemini intake
-CRM-only counselors after sign-off
 ```
 
-| Phase | What |
-|-------|------|
-| **0** | Mock simulate + rules AI ($0) — **done** |
-| **1** | Meta sandbox send/receive — **this guide §7** |
-| **2** | Production helpline pilot |
-| **3** | Smarter AI (`WHATSAPP_AI_MODE=gemini_dev`) |
+| Phase | What | Status |
+|-------|------|--------|
+| **0** | Mock simulate + rules AI ($0) | Done |
+| **1** | Meta send/receive + media | Done |
+| **2** | Production helpline + business lines + assignment log + 24h UX | **Live** |
+| **2b** | Meta message templates (after 24h) | **Live** |
+| **3** | Gemini intake (`WHATSAPP_AI_MODE=gemini_dev`) | Optional — set secret + redeploy webhook |
+
+### Phase 2 admin setup (one-time)
+
+1. **CRM → WhatsApp → Lines** — set helpline **Meta Phone number ID** (must match `WHATSAPP_PHONE_NUMBER_ID` secret).
+2. **Legacy counselors** — add a **counselor line** per Meta number; assign the counselor. Inbound on that number auto-assigns and skips AI intake.
+3. Run migration `20260606120000_whatsapp_phase2.sql` via Lovable if not applied.
+
+### 24-hour session rule
+
+WhatsApp allows free text/files only within **24 hours** of the client’s last message. When the window is closed, the inbox shows a warning and offers **approved templates**.
+
+### Phase 2b — Message templates (Meta)
+
+1. In **Meta Business Manager → WhatsApp Manager → Message templates**, create a template named exactly **`fl_helpline_followup`** (or update the CRM row to match your Meta name).
+2. Category: **Utility** or **Marketing** (per Meta policy).
+3. Body example (2 variables):  
+   `Hello {{1}}, this is {{2}} from Future Link. We are here to help with your study abroad query. Please reply when convenient.`
+4. Run migration `20260606140000_whatsapp_message_templates.sql` (or insert row manually).
+5. Redeploy `whatsapp-send` after code update.
+
+In CRM, when session is closed: choose template → fill client name + counselor name → **Send template**.
 
 ---
 

@@ -17,17 +17,32 @@ import {
   clearAllTestConversations,
   closeConversation,
   deleteConversation,
+  isWhatsAppSessionOpen,
+  listAssignmentHistory,
+  listBusinessLines,
   listConversations,
   listCounselors,
+  listMessageTemplates,
   listMessages,
   markConversationRead,
   resolveWhatsAppMediaUrl,
+  saveBusinessLine,
   sendStaffReply,
+  sendStaffTemplate,
   simulateInbound,
+  updateDefaultHelplineMetaId,
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
-import { STATUS_LABELS, type WhatsAppConversation, type WhatsAppMessage } from "@/lib/whatsapp/types";
-import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X } from "lucide-react";
+import {
+  STATUS_LABELS,
+  type WhatsAppAssignment,
+  type WhatsAppBusinessLine,
+  type WhatsAppConversation,
+  type WhatsAppMessage,
+  type WhatsAppMessageTemplate,
+} from "@/lib/whatsapp/types";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X, Settings2, Clock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -140,6 +155,7 @@ const WhatsAppInbox = () => {
   const canAssign = isAdmin || hasRole(["telecaller", "administrator"]);
   const canSimulate = isAdmin || hasRole(["telecaller", "administrator", "counselor"]);
   const canDeleteTests = isAdmin || hasRole(["administrator"]);
+  const canManageLines = isAdmin || hasRole(["administrator"]);
 
   const [conversations, setConversations] = useState<WhatsAppConversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -160,6 +176,16 @@ const WhatsAppInbox = () => {
   const [sending, setSending] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [assignments, setAssignments] = useState<WhatsAppAssignment[]>([]);
+  const [businessLines, setBusinessLines] = useState<WhatsAppBusinessLine[]>([]);
+  const [linesOpen, setLinesOpen] = useState(false);
+  const [helplineMetaId, setHelplineMetaId] = useState("");
+  const [newLineLabel, setNewLineLabel] = useState("");
+  const [newLineMetaId, setNewLineMetaId] = useState("");
+  const [newLineCounselor, setNewLineCounselor] = useState("");
+  const [templates, setTemplates] = useState<WhatsAppMessageTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [templateParams, setTemplateParams] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const refreshConversations = useCallback(async () => {
@@ -186,11 +212,16 @@ const WhatsAppInbox = () => {
       .catch((e) => toast.error(String(e.message || e)))
       .finally(() => setLoading(false));
     listCounselors().then(setCounselors).catch(() => {});
-  }, [refreshConversations]);
+    if (canManageLines) {
+      listBusinessLines().then(setBusinessLines).catch(() => {});
+    }
+    listMessageTemplates().then(setTemplates).catch(() => {});
+  }, [refreshConversations, canManageLines]);
 
   useEffect(() => {
     if (!activeId) return;
     loadMessages(activeId).catch((e) => toast.error(String(e.message || e)));
+    listAssignmentHistory(activeId).then(setAssignments).catch(() => setAssignments([]));
   }, [activeId, loadMessages]);
 
   useEffect(() => {
@@ -242,6 +273,38 @@ const WhatsAppInbox = () => {
     return p?.full_name || p?.email || id.slice(0, 8);
   };
 
+  const staffNameMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of counselors) {
+      m.set(c.id, c.full_name || c.email || c.id.slice(0, 8));
+    }
+    return m;
+  }, [counselors]);
+
+  const activeLine = useMemo(
+    () => businessLines.find((l) => l.id === active?.business_line_id) ?? null,
+    [businessLines, active?.business_line_id],
+  );
+
+  const sessionOpen = isWhatsAppSessionOpen(active?.last_inbound_at);
+
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === selectedTemplateId) ?? null,
+    [templates, selectedTemplateId],
+  );
+
+  useEffect(() => {
+    if (!selectedTemplate) {
+      setTemplateParams([]);
+      return;
+    }
+    setTemplateParams((prev) => {
+      const next = [...prev];
+      while (next.length < selectedTemplate.param_count) next.push("");
+      return next.slice(0, selectedTemplate.param_count);
+    });
+  }, [selectedTemplate]);
+
   const clearPendingFile = () => {
     setPendingFile(null);
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
@@ -273,8 +336,35 @@ const WhatsAppInbox = () => {
     setPendingPreview(msgType === "image" ? URL.createObjectURL(file) : null);
   };
 
+  const handleSendTemplate = async () => {
+    if (!active || !user || sending || !selectedTemplate) return;
+    if (templateParams.some((p) => !p.trim())) {
+      toast.error("Fill all template fields");
+      return;
+    }
+    setSending(true);
+    try {
+      const { meta_sent } = await sendStaffTemplate(
+        active.id,
+        selectedTemplate.name,
+        selectedTemplate.language_code,
+        templateParams.map((p) => p.trim()),
+      );
+      await loadMessages(active.id);
+      toast.success(meta_sent ? "Template sent on WhatsApp" : "Template saved in CRM (mock mode)");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to send template");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleSend = async () => {
     if (!active || !user || sending) return;
+    if (IS_META_MODE && !sessionOpen) {
+      toast.error("Session closed — use an approved template below");
+      return;
+    }
     const text = reply.trim();
     if (!text && !pendingFile) return;
 
@@ -311,7 +401,8 @@ const WhatsAppInbox = () => {
   const handleAssign = async () => {
     if (!active || !assignTo) return;
     try {
-      await assignConversation(active.id, assignTo, active.lead_id);
+      await assignConversation(active.id, assignTo, active.lead_id, user?.id);
+      await listAssignmentHistory(active.id).then(setAssignments);
       toast.success("Conversation assigned");
       await refreshConversations();
     } catch (e: any) {
@@ -413,11 +504,21 @@ const WhatsAppInbox = () => {
         title="WhatsApp Inbox"
         description={
           IS_META_MODE
-            ? "Helpline — Meta Cloud API (Phase 1). Replies send to WhatsApp when edge secrets are set."
+            ? "Helpline — Phase 2 live. Text + attachments; legacy counselor lines supported."
             : "Helpline — mock mode (Phase 0). Counselors see assigned threads; admins see all."
         }
         actions={
           <div className="flex flex-wrap gap-2">
+            {canManageLines && (
+              <Button variant="outline" size="sm" onClick={() => {
+                const helpline = businessLines.find((l) => l.is_default);
+                setHelplineMetaId(helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""));
+                setLinesOpen(true);
+              }}>
+                <Settings2 className="size-4 mr-1.5" />
+                Lines
+              </Button>
+            )}
             {canDeleteTests && conversations.length > 0 && (
               <Button variant="outline" size="sm" disabled={busyAction} onClick={() => setClearAllOpen(true)}>
                 <Trash2 className="size-4 mr-1.5" />
@@ -493,7 +594,18 @@ const WhatsAppInbox = () => {
                       <UserRound className="size-3" />
                       {counselorLabel(active.assigned_user_id)}
                     </span>
+                    {activeLine && (
+                      <Badge variant="secondary" className="text-[10px]">
+                        {activeLine.label}
+                      </Badge>
+                    )}
                   </div>
+                  {assignments.length > 1 && (
+                    <div className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                      <Clock className="size-3" />
+                      Assigned {assignments.length} times — latest {counselorLabel(assignments[0]?.assigned_user_id)}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {canAssign && (
@@ -548,6 +660,61 @@ const WhatsAppInbox = () => {
                 </div>
               )}
 
+              {IS_META_MODE && active && !sessionOpen && (
+                <Alert variant="destructive" className="mx-4 mt-3 py-2 rounded-md border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+                  <AlertTriangle className="size-4" />
+                  <AlertDescription className="text-xs">
+                    24-hour session closed — free text/files are blocked. Send an approved template below, or wait for the client to message again.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {IS_META_MODE && active && !sessionOpen && templates.length > 0 && (
+                <div className="mx-4 mt-2 p-3 border rounded-md bg-muted/30 space-y-2">
+                  <Label className="text-xs">Approved template (outside 24h)</Label>
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={setSelectedTemplateId}
+                  >
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Choose template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((t) => (
+                        <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {selectedTemplate?.body_preview && (
+                    <p className="text-[11px] text-muted-foreground">{selectedTemplate.body_preview}</p>
+                  )}
+                  {selectedTemplate && selectedTemplate.param_count > 0 && (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {(selectedTemplate.param_labels.length
+                        ? selectedTemplate.param_labels
+                        : Array.from({ length: selectedTemplate.param_count }, (_, i) => `Parameter ${i + 1}`)
+                      ).map((label, i) => (
+                        <div key={i}>
+                          <Label className="text-[10px]">{label}</Label>
+                          <Input
+                            className="h-8 mt-0.5"
+                            value={templateParams[i] || ""}
+                            onChange={(e) => {
+                              const next = [...templateParams];
+                              next[i] = e.target.value;
+                              setTemplateParams(next);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <Button size="sm" disabled={!selectedTemplate || sending} onClick={handleSendTemplate}>
+                    Send template
+                  </Button>
+                </div>
+              )}
+
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messages.map((m) => (
                   <div
@@ -570,7 +737,11 @@ const WhatsAppInbox = () => {
                       <div className="whitespace-pre-wrap mt-1 text-xs opacity-90">{m.body}</div>
                     )}
                     <div className="text-[10px] opacity-70 mt-1">
-                      {m.sent_by === "ai" ? "AI · " : m.sent_by === "staff" ? "You · " : ""}
+                      {m.sent_by === "ai"
+                        ? "AI · "
+                        : m.sent_by === "staff"
+                          ? `${m.sent_by_user_id && m.sent_by_user_id === user?.id ? "You" : staffNameMap.get(m.sent_by_user_id || "") || "Staff"} · `
+                          : ""}
                       {new Date(m.created_at).toLocaleString()}
                     </div>
                   </div>
@@ -625,7 +796,7 @@ const WhatsAppInbox = () => {
                     variant="outline"
                     size="icon"
                     className="shrink-0"
-                    disabled={sending}
+                    disabled={sending || (IS_META_MODE && !sessionOpen)}
                     onClick={() => fileInputRef.current?.click()}
                     title="Attach image or PDF"
                   >
@@ -643,7 +814,7 @@ const WhatsAppInbox = () => {
                     }
                     className="min-h-[44px] max-h-28"
                     rows={2}
-                    disabled={sending}
+                    disabled={sending || (IS_META_MODE && !sessionOpen)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
@@ -653,7 +824,7 @@ const WhatsAppInbox = () => {
                   />
                   <Button
                     onClick={handleSend}
-                    disabled={sending || (!reply.trim() && !pendingFile)}
+                    disabled={sending || (IS_META_MODE && !sessionOpen) || (!reply.trim() && !pendingFile)}
                   >
                     <Send className="size-4" />
                   </Button>
@@ -663,6 +834,80 @@ const WhatsAppInbox = () => {
           )}
         </Card>
       </div>
+
+      <Dialog open={linesOpen} onOpenChange={setLinesOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>WhatsApp business lines (Phase 2)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p className="text-muted-foreground text-xs">
+              Set the helpline Meta Phone number ID (same as WHATSAPP_PHONE_NUMBER_ID secret). Add legacy counselor lines so inbound routes to their inbox automatically.
+            </p>
+            <div>
+              <Label>Helpline Meta Phone number ID</Label>
+              <Input
+                value={helplineMetaId}
+                onChange={(e) => setHelplineMetaId(e.target.value)}
+                placeholder="From Meta API Setup"
+                className="mt-1"
+              />
+            </div>
+            <div className="border-t pt-3 space-y-2">
+              <Label className="text-xs uppercase text-muted-foreground">Add legacy counselor line</Label>
+              <Input value={newLineLabel} onChange={(e) => setNewLineLabel(e.target.value)} placeholder="Label e.g. Priya — Canada desk" />
+              <Input value={newLineMetaId} onChange={(e) => setNewLineMetaId(e.target.value)} placeholder="Meta Phone number ID for that line" />
+              <Select value={newLineCounselor} onValueChange={setNewLineCounselor}>
+                <SelectTrigger><SelectValue placeholder="Assigned counselor" /></SelectTrigger>
+                <SelectContent>
+                  {counselors.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {businessLines.length > 0 && (
+              <ul className="text-xs space-y-1 max-h-32 overflow-y-auto border rounded-md p-2">
+                {businessLines.map((l) => (
+                  <li key={l.id} className="flex justify-between gap-2">
+                    <span>{l.label} <span className="text-muted-foreground">({l.line_type})</span></span>
+                    <span className="text-muted-foreground truncate">{l.meta_phone_number_id}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
+            <Button onClick={async () => {
+              try {
+                if (helplineMetaId.trim()) {
+                  await updateDefaultHelplineMetaId(helplineMetaId.trim());
+                }
+                if (newLineLabel.trim() && newLineMetaId.trim() && newLineCounselor) {
+                  await saveBusinessLine({
+                    label: newLineLabel.trim(),
+                    meta_phone_number_id: newLineMetaId.trim(),
+                    line_type: "counselor",
+                    assigned_user_id: newLineCounselor,
+                  });
+                  setNewLineLabel("");
+                  setNewLineMetaId("");
+                  setNewLineCounselor("");
+                }
+                const lines = await listBusinessLines();
+                setBusinessLines(lines);
+                toast.success("Lines saved");
+                setLinesOpen(false);
+              } catch (e: any) {
+                toast.error(e.message || "Save failed");
+              }
+            }}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={simulateOpen} onOpenChange={setSimulateOpen}>
         <DialogContent>

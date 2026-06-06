@@ -199,6 +199,19 @@ When the **real** line is live, API Setup may show a **new Phone number ID**. Up
 
 Clients message **only the helpline**. Staff replies always come from that same number.
 
+### G6 — Message templates (Phase 2b, outside 24h)
+
+When the client has not messaged in 24 hours, counselors must use **Meta-approved templates** (not free text).
+
+1. **WhatsApp Manager → Message templates** → Create template.
+2. **Name (exact):** `fl_helpline_followup`
+3. **Language:** English (`en`)
+4. **Body:** `Hello {{1}}, this is {{2}} from Future Link. We are here to help with your study abroad query. Please reply when convenient.`
+5. Submit for Meta review; wait for **Approved** status.
+6. CRM DB row must match (migration `20260606140000_whatsapp_message_templates.sql`).
+
+If Meta rejects, adjust wording per their policy and keep the **same template name** in CRM.
+
 ---
 
 ## 11. Part H — Daily CRM workflow
