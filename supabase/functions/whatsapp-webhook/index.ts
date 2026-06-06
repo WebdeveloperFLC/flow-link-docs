@@ -283,6 +283,31 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Short-window dedup for mock/simulate paths (no provider_message_id).
+  // Prevents double-clicks from doubling inbound rows and AI replies.
+  if (!providerMessageId) {
+    const sinceIso = new Date(Date.now() - 4000).toISOString();
+    const dedupBody = (text || "").trim();
+    if (dedupBody) {
+      const { data: recentDupes } = await admin
+        .from("whatsapp_messages")
+        .select("id, body, conversation_id, created_at, whatsapp_conversations!inner(phone_e164, business_line_id)")
+        .eq("direction", "inbound")
+        .eq("body", dedupBody)
+        .gte("created_at", sinceIso)
+        .limit(5);
+      const hit = (recentDupes ?? []).find((r: any) =>
+        r.whatsapp_conversations?.phone_e164 === phoneE164
+        && r.whatsapp_conversations?.business_line_id === businessLineId
+      );
+      if (hit) {
+        return new Response(JSON.stringify({ ok: true, deduped: true, reason: "short_window" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+  }
+
   const now = new Date().toISOString();
   const aiMode = resolveAiMode();
   const useGemini = isGeminiAiMode(aiMode);
