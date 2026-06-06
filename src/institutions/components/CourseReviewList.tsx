@@ -5,6 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
 import { Check, X, Pencil, Trash2, Upload, ExternalLink } from "lucide-react";
 import type { UpiCourseStaging } from "../types/upi";
+import { InstitutionLogo } from "./InstitutionLogo";
 
 type ColumnId =
   | "course"
@@ -144,6 +145,7 @@ export function CourseReviewList({
   selected,
   instName,
   instCountry,
+  instLogo,
   levelName,
   onToggle,
   onToggleAll,
@@ -164,6 +166,7 @@ export function CourseReviewList({
   selected: Set<string>;
   instName: (id: string | null) => string;
   instCountry: (id: string | null) => string | null;
+  instLogo: (id: string | null) => string | null;
   levelName: (id: string | null) => string;
   onToggle: (id: string) => void;
   onToggleAll: () => void;
@@ -189,7 +192,16 @@ export function CourseReviewList({
       case "course":
         return <span className="font-medium">{r.course_title}</span>;
       case "institution":
-        return instName(r.institution_id);
+        return (
+          <div className="flex items-center gap-2 min-w-[140px]">
+            <InstitutionLogo
+              url={instLogo(r.institution_id)}
+              name={instName(r.institution_id)}
+              size="sm"
+            />
+            <span className="truncate">{instName(r.institution_id)}</span>
+          </div>
+        );
       case "country":
         return instCountry(r.institution_id) ?? r.country_name ?? "—";
       case "level":
@@ -285,13 +297,18 @@ export function CourseReviewList({
         )}
         {rows.map((r) => (
           <Card key={r.id} className="p-4 space-y-3">
-            <div className="flex items-start gap-2">
-              {canEdit && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => onToggle(r.id)} />}
+            <div className="flex items-start gap-3">
+              {canEdit && <Checkbox checked={selected.has(r.id)} onCheckedChange={() => onToggle(r.id)} className="mt-1" />}
+              <InstitutionLogo
+                url={instLogo(r.institution_id)}
+                name={instName(r.institution_id)}
+                size="md"
+              />
               <div className="flex-1 min-w-0">
                 <div className="font-medium leading-snug">{r.course_title}</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  {instName(r.institution_id)}
-                  {r.campus_name ? ` · ${r.campus_name}` : ""}
+                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span>{instName(r.institution_id)}</span>
+                  {r.campus_name ? <span>· {r.campus_name}</span> : null}
                 </div>
               </div>
               <StatusBadge status={r.review_status} />
