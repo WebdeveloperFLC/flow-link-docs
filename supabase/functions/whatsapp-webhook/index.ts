@@ -9,6 +9,12 @@ import {
   pickCounselorForAssignment,
   resolveBranchFromPreference,
 } from "../_shared/whatsapp/autoAssign.ts";
+import { counselingBeforeAssignEnabled, clientRequestsCounselor } from "../_shared/whatsapp/counselingHandoff.ts";
+import {
+  counselingWelcomeMessage,
+  nextGeminiCounseling,
+} from "../_shared/whatsapp/geminiCounseling.ts";
+import { geminiKeysAvailable, isGeminiAiMode } from "../_shared/whatsapp/geminiClient.ts";
 import {
   notifyCounselorInboundMessage,
   notifyCounselorWhatsAppAssigned,
@@ -42,6 +48,48 @@ async function staffFromAuth(req: Request, admin: ReturnType<typeof createClient
   const allowed = new Set(["admin", "administrator", "counselor", "telecaller", "documentation"]);
   const ok = (roles ?? []).some((r: { role: string }) => allowed.has(r.role));
   return ok ? uid : null;
+}
+
+function resolveAiMode(): string {
+  const configured = Deno.env.get("WHATSAPP_AI_MODE")?.trim();
+  if (configured) return configured;
+  return geminiKeysAvailable() ? "gemini" : "rules";
+}
+
+async function assignCounselorAfterIntake(
+  admin: ReturnType<typeof createClient>,
+  opts: {
+    conversationId: string;
+    leadId: string | null;
+    branchId: string | null;
+    branchLabel: string | null;
+    contactName: string;
+    firstName: string;
+    businessLineType?: string | null;
+  },
+): Promise<{ assigned: boolean; counselorName?: string }> {
+  if (!autoAssignEnabled() || opts.businessLineType === "counselor") {
+    return { assigned: false };
+  }
+
+  const pick = await pickCounselorForAssignment(admin, { branchId: opts.branchId });
+  if (!pick) return { assigned: false };
+
+  await applyWhatsAppAutoAssignment(admin, {
+    conversationId: opts.conversationId,
+    leadId: opts.leadId,
+    counselorId: pick.userId,
+    branchLabel: opts.branchLabel,
+    contactName: opts.contactName,
+  });
+  await notifyCounselorWhatsAppAssigned(admin, {
+    counselorId: pick.userId,
+    conversationId: opts.conversationId,
+    contactName: opts.contactName,
+    branchLabel: opts.branchLabel,
+  });
+
+  return { assigned: true, counselorName: pick.fullName };
 }
 
 async function matchClientOrLead(admin: ReturnType<typeof createClient>, phoneE164: string) {
@@ -236,7 +284,9 @@ Deno.serve(async (req) => {
   }
 
   const now = new Date().toISOString();
-  const aiMode = Deno.env.get("WHATSAPP_AI_MODE") || "rules";
+  const aiMode = resolveAiMode();
+  const useGemini = isGeminiAiMode(aiMode);
+  const deferAssign = counselingBeforeAssignEnabled(aiMode);
 
   const businessLine = await resolveBusinessLine(admin, metaPhoneNumberId);
   const businessLineId = businessLine?.id ?? DEFAULT_HELPLINE_LINE_ID;
@@ -349,11 +399,70 @@ Deno.serve(async (req) => {
     replies.push("Starting over. Which country are you interested in? (e.g. Canada, UK)");
   } else if (
     aiMode !== "off"
+    && conv.status === "ai_counseling"
+    && text.trim()
+    && messageType === "text"
+  ) {
+    const intakeData = (conv.intake_data || {}) as Record<string, unknown>;
+    const { data: recentMsgs } = await admin
+      .from("whatsapp_messages")
+      .select("direction, body")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: false })
+      .limit(8);
+
+    const { replies: counselReplies, requestHandoff } = await nextGeminiCounseling(
+      admin,
+      intakeData as any,
+      text,
+      (recentMsgs ?? []).reverse(),
+    );
+
+    if (requestHandoff || clientRequestsCounselor(text)) {
+      const branchResolved = await resolveBranchFromPreference(
+        admin,
+        intakeData.branch_preference as string | undefined,
+      );
+      const firstName = String(intakeData.full_name || "there").split(/\s+/)[0];
+      const assignResult = await assignCounselorAfterIntake(admin, {
+        conversationId: conv.id,
+        leadId: conv.lead_id,
+        branchId: branchResolved.branchId,
+        branchLabel: branchResolved.branchLabel,
+        contactName: String(intakeData.full_name || conv.phone_display || phoneE164),
+        firstName,
+        businessLineType: businessLine?.line_type,
+      });
+
+      if (assignResult.assigned) {
+        replies.push(
+          `Thank you! ${assignResult.counselorName} from Future Link will continue this chat with you shortly.`,
+        );
+      } else {
+        await admin.from("whatsapp_conversations").update({
+          status: "awaiting_assignment_confirm",
+          updated_at: now,
+        }).eq("id", conv.id);
+        await notifyQueueUnassignedThread(admin, {
+          conversationId: conv.id,
+          contactLabel: conv.phone_display || phoneE164,
+          reason: "intake_complete",
+        });
+        replies.push(
+          counselReplies[0]
+            || "Thank you! A Future Link counselor will respond on this chat shortly.",
+        );
+      }
+    } else {
+      replies.push(...counselReplies);
+    }
+  } else if (
+    aiMode !== "off"
     && (conv.status === "unmatched_ai_intake" || intakeInProgress)
     && text.trim()
     && messageType === "text"
   ) {
-    const intakeFn = aiMode === "gemini_dev" ? nextGeminiReply : nextRulesReply;
+    const intakeFn = useGemini ? nextGeminiReply : nextRulesReply;
     const { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
 
     if (confirmed) {
@@ -384,56 +493,61 @@ Deno.serve(async (req) => {
         .single();
       if (leadErr) console.error("[whatsapp-webhook] lead insert:", leadErr.message);
 
-      let finalStatus = "awaiting_assignment_confirm";
+      nextIntake.step = "done";
 
-      if (autoAssignEnabled() && businessLine?.line_type !== "counselor") {
-        const pick = await pickCounselorForAssignment(admin, {
-          branchId: branchResolved.branchId,
-        });
-        if (pick) {
-          await applyWhatsAppAutoAssignment(admin, {
-            conversationId: conv.id,
-            leadId: lead?.id ?? null,
-            counselorId: pick.userId,
-            branchLabel: branchResolved.branchLabel,
-            contactName: String(nextIntake.full_name || ""),
-          });
-          await notifyCounselorWhatsAppAssigned(admin, {
-            counselorId: pick.userId,
-            conversationId: conv.id,
-            contactName: String(nextIntake.full_name || ""),
-            branchLabel: branchResolved.branchLabel,
-          });
-          finalStatus = "assigned_active";
-          const lastIdx = botReplies.length - 1;
-          if (lastIdx >= 0) {
-            botReplies[lastIdx] =
-              `Thank you, ${first_name}! You are connected with ${pick.fullName} from Future Link. They will contact you shortly on this number.`;
-          }
-        }
-      }
-
-      if (finalStatus !== "assigned_active") {
+      if (deferAssign && useGemini) {
         await admin.from("whatsapp_conversations").update({
           intake_data: nextIntake,
           lead_id: lead?.id ?? null,
-          status: finalStatus,
+          status: "ai_counseling",
           updated_at: now,
         }).eq("id", conv.id);
 
-        if (finalStatus === "awaiting_assignment_confirm") {
-          await notifyQueueUnassignedThread(admin, {
-            conversationId: conv.id,
-            contactLabel: conv.phone_display || phoneE164,
-            reason: "intake_complete",
-          });
-        }
+        botReplies.length = 0;
+        botReplies.push(counselingWelcomeMessage(nextIntake));
       } else {
-        await admin.from("whatsapp_conversations").update({
-          intake_data: nextIntake,
-          lead_id: lead?.id ?? null,
-          updated_at: now,
-        }).eq("id", conv.id);
+        let finalStatus = "awaiting_assignment_confirm";
+
+        const assignResult = await assignCounselorAfterIntake(admin, {
+          conversationId: conv.id,
+          leadId: lead?.id ?? null,
+          branchId: branchResolved.branchId,
+          branchLabel: branchResolved.branchLabel,
+          contactName: String(nextIntake.full_name || ""),
+          firstName: first_name,
+          businessLineType: businessLine?.line_type,
+        });
+
+        if (assignResult.assigned) {
+          finalStatus = "assigned_active";
+          botReplies.length = 0;
+          botReplies.push(
+            `Thank you, ${first_name}! You are connected with ${assignResult.counselorName} from Future Link. They will contact you shortly on this number.`,
+          );
+        }
+
+        if (finalStatus !== "assigned_active") {
+          await admin.from("whatsapp_conversations").update({
+            intake_data: nextIntake,
+            lead_id: lead?.id ?? null,
+            status: finalStatus,
+            updated_at: now,
+          }).eq("id", conv.id);
+
+          if (finalStatus === "awaiting_assignment_confirm") {
+            await notifyQueueUnassignedThread(admin, {
+              conversationId: conv.id,
+              contactLabel: conv.phone_display || phoneE164,
+              reason: "intake_complete",
+            });
+          }
+        } else {
+          await admin.from("whatsapp_conversations").update({
+            intake_data: nextIntake,
+            lead_id: lead?.id ?? null,
+            updated_at: now,
+          }).eq("id", conv.id);
+        }
       }
     } else {
       await admin.from("whatsapp_conversations").update({
@@ -450,7 +564,9 @@ Deno.serve(async (req) => {
   }
 
   const contactLabel = String(conv.phone_display || phoneE164);
-  const skipInboundNotify = conv.status === "unmatched_ai_intake" || intakeInProgress;
+  const skipInboundNotify = conv.status === "unmatched_ai_intake"
+    || intakeInProgress
+    || conv.status === "ai_counseling";
 
   const { data: convNow } = await admin
     .from("whatsapp_conversations")

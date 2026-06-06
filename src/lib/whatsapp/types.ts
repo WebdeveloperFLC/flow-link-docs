@@ -1,5 +1,6 @@
 export type WhatsAppConversationStatus =
   | "unmatched_ai_intake"
+  | "ai_counseling"
   | "awaiting_assignment_confirm"
   | "assigned_active"
   | "existing_client"
@@ -75,6 +76,7 @@ export interface WhatsAppMessage {
 
 export const STATUS_LABELS: Record<WhatsAppConversationStatus, string> = {
   unmatched_ai_intake: "AI intake",
+  ai_counseling: "AI counseling",
   awaiting_assignment_confirm: "Awaiting assign",
   assigned_active: "Assigned",
   existing_client: "Existing client",

@@ -280,7 +280,7 @@ export async function fetchDashboardModuleData(): Promise<DashboardModuleData> {
       ? (supabase as any)
           .from("whatsapp_conversations")
           .select("*", { count: "exact", head: true })
-          .in("status", ["unmatched_ai_intake", "awaiting_assignment_confirm", "escalated_admin"])
+          .in("status", ["unmatched_ai_intake", "ai_counseling", "awaiting_assignment_confirm", "escalated_admin"])
       : emptyCount,
   ]);
 

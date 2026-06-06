@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { notifyUsers } from "@/lib/appNotifications";
+import { normalizePhoneE164 } from "./phone";
 import type {
   WhatsAppAssignment,
   WhatsAppBusinessLine,
@@ -15,6 +16,76 @@ const WA_SESSION_MS = 24 * 60 * 60 * 1000;
 export function isWhatsAppSessionOpen(lastInboundAt: string | null | undefined): boolean {
   if (!lastInboundAt) return false;
   return Date.now() - new Date(lastInboundAt).getTime() < WA_SESSION_MS;
+}
+
+export function isWhatsAppInboxEnabled(): boolean {
+  return import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
+}
+
+export function buildWhatsAppInboxUrl(conversationId: string): string {
+  return `/whatsapp?conversation=${encodeURIComponent(conversationId)}`;
+}
+
+export async function findConversationForContact(opts: {
+  phone?: string | null;
+  leadId?: string | null;
+  clientId?: string | null;
+}): Promise<WhatsAppConversation | null> {
+  if (opts.leadId) {
+    const { data, error } = await supabase
+      .from("whatsapp_conversations" as any)
+      .select("*")
+      .eq("lead_id", opts.leadId)
+      .neq("status", "closed")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (data) return data as WhatsAppConversation;
+  }
+
+  if (opts.clientId) {
+    const { data, error } = await supabase
+      .from("whatsapp_conversations" as any)
+      .select("*")
+      .eq("client_id", opts.clientId)
+      .neq("status", "closed")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    if (data) return data as WhatsAppConversation;
+  }
+
+  const e164 = opts.phone ? normalizePhoneE164(opts.phone) : "";
+  if (!e164) return null;
+
+  const { data: exact, error: exactErr } = await supabase
+    .from("whatsapp_conversations" as any)
+    .select("*")
+    .eq("phone_e164", e164)
+    .neq("status", "closed")
+    .maybeSingle();
+  if (exactErr) throw exactErr;
+  if (exact) return exact as WhatsAppConversation;
+
+  const tail = e164.slice(-10);
+  if (tail.length < 10) return null;
+
+  const { data: rows, error: listErr } = await supabase
+    .from("whatsapp_conversations" as any)
+    .select("*")
+    .neq("status", "closed")
+    .order("updated_at", { ascending: false })
+    .limit(300);
+  if (listErr) throw listErr;
+
+  for (const row of rows ?? []) {
+    const digits = String((row as WhatsAppConversation).phone_e164 || "").replace(/\D/g, "");
+    if (digits.endsWith(tail)) return row as WhatsAppConversation;
+  }
+
+  return null;
 }
 
 export async function listConversations(): Promise<WhatsAppConversation[]> {
@@ -242,7 +313,11 @@ export function whatsAppSlaBadge(
   if (!ref) return null;
   const hours = (Date.now() - new Date(ref).getTime()) / (60 * 60 * 1000);
 
-  if (c.status === "awaiting_assignment_confirm" && !c.assigned_user_id && hours >= 2) {
+  if (
+    (c.status === "awaiting_assignment_confirm" || c.status === "ai_counseling")
+    && !c.assigned_user_id
+    && hours >= 2
+  ) {
     const h = Math.floor(hours);
     return {
       text: `Unassigned ${h}h`,

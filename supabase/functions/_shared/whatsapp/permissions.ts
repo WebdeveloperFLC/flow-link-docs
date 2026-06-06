@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
-const POOL_STATUSES = new Set(["unmatched_ai_intake", "awaiting_assignment_confirm", "escalated_admin"]);
+const POOL_STATUSES = new Set(["unmatched_ai_intake", "ai_counseling", "awaiting_assignment_confirm", "escalated_admin"]);
 const STAFF_ROLES = new Set(["telecaller", "admin", "administrator"]);
 
 export async function whatsappUserCanViewConversation(

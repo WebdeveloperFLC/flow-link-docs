@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -158,8 +158,11 @@ const WhatsAppInbox = () => {
   const canDeleteTests = isAdmin || hasRole(["administrator"]);
   const canManageLines = isAdmin || hasRole(["administrator"]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkConversationId = searchParams.get("conversation");
+
   const [conversations, setConversations] = useState<WhatsAppConversation[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(deepLinkConversationId);
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [reply, setReply] = useState("");
   const [counselors, setCounselors] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
@@ -189,11 +192,21 @@ const WhatsAppInbox = () => {
   const [templateParams, setTemplateParams] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const selectConversation = useCallback((id: string) => {
+    setActiveId(id);
+    setSearchParams({ conversation: id }, { replace: true });
+  }, [setSearchParams]);
+
   const refreshConversations = useCallback(async () => {
     const rows = await listConversations();
     setConversations(rows);
-    if (!activeId && rows.length) setActiveId(rows[0].id);
-  }, [activeId]);
+    setActiveId((cur) => {
+      const preferred = deepLinkConversationId || cur;
+      if (preferred && rows.some((r) => r.id === preferred)) return preferred;
+      if (cur && rows.some((r) => r.id === cur)) return cur;
+      return rows.length ? rows[0].id : null;
+    });
+  }, [deepLinkConversationId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     const rows = await listMessages(conversationId);
@@ -203,6 +216,11 @@ const WhatsAppInbox = () => {
       prev.map((c) => (c.id === conversationId ? { ...c, unread_count_staff: 0 } : c)),
     );
   }, []);
+
+  useEffect(() => {
+    if (!deepLinkConversationId) return;
+    setActiveId(deepLinkConversationId);
+  }, [deepLinkConversationId]);
 
   useEffect(() => {
     if (!WHATSAPP_ENABLED) {
@@ -565,7 +583,7 @@ const WhatsAppInbox = () => {
               <button
                 key={c.id}
                 type="button"
-                onClick={() => setActiveId(c.id)}
+                onClick={() => selectConversation(c.id)}
                 className={cn(
                   "w-full text-left px-3 py-2.5 hover:bg-muted/50",
                   activeId === c.id && "bg-muted",

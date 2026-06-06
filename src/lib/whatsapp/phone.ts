@@ -11,3 +11,16 @@ export function formatPhoneDisplay(e164: string): string {
   if (d.length <= 10) return d;
   return `+${d}`;
 }
+
+/** Build E.164-ish digits from lead phone + country code fields. */
+export function leadPhoneToE164(
+  phone?: string | null,
+  phoneCountryCode?: string | null,
+  defaultCountryCode = "91",
+): string {
+  const local = (phone || "").replace(/\D/g, "");
+  if (!local) return "";
+  if (local.length > 10) return local;
+  const code = (phoneCountryCode || "").replace(/\D/g, "") || defaultCountryCode;
+  return `${code}${local}`;
+}

@@ -324,9 +324,9 @@ In CRM, when session is closed: choose template → fill client name + counselor
 | Feature | How |
 |---------|-----|
 | **Branch question** | Client replies city/branch name or *Any* |
-| **Auto-assign** | After YES, CRM picks a **counselor** (branch match → round-robin by open threads) |
+| **Auto-assign** | After YES (rules mode) or when client requests counselor (Gemini mode) |
 | **Counselor alert** | Bell notification: *WhatsApp helpline assigned* |
-| **Gemini intake** | `WHATSAPP_AI_MODE=gemini_dev` + `GEMINI_API_KEY` or `LOVABLE_API_KEY` |
+| **Gemini intake** | `WHATSAPP_AI_MODE=gemini` (default when API key set) + `GEMINI_API_KEY` or `LOVABLE_API_KEY` |
 | **Disable auto-assign** | Secret `WHATSAPP_AUTO_ASSIGN=false` (telecaller assigns manually) |
 
 **Counselor routing:** matches `profiles.branch_id` to CRM **branches** (Masters → Branches). Ensure counselors have a branch set in **Users → Edit details**.
@@ -337,15 +337,40 @@ In CRM, when session is closed: choose template → fill client name + counselor
 ./scripts/deploy-whatsapp.sh   # redeploy whatsapp-webhook
 ```
 
-**Test script (Simulate):**
+**Test script (Simulate, rules mode):**
 
 ```text
-study in Canada
-Postgraduate
-Ahmedabad
-Full Name
-YES
-→ Lead created, counselor auto-assigned, notification sent
+study in Canada → Postgraduate → Ahmedabad → Full Name → YES
+→ Lead created, counselor auto-assigned
+```
+
+### Phase 5 — AI counseling before assign (Gemini)
+
+When Gemini mode is active, intake YES **does not** auto-assign immediately. The client enters **AI counseling** first.
+
+| Step | What happens |
+|------|----------------|
+| Intake YES | Lead created; status = **AI counseling** |
+| Client questions | Gemini answers using **Service Library** (documents, fees, timelines, eligibility) |
+| Handoff | Client replies *COUNSELOR* (or similar) → auto-assign counselor (if enabled) |
+| Staff | Telecaller/admin can still **Assign** manually from inbox during AI counseling |
+
+| Secret | Value |
+|--------|--------|
+| `WHATSAPP_AI_MODE` | `gemini` (default when `GEMINI_API_KEY` or `LOVABLE_API_KEY` set) |
+| `WHATSAPP_COUNSELING_BEFORE_ASSIGN` | `true` (default in Gemini mode); set `false` to assign on YES like rules |
+| `WHATSAPP_AUTO_ASSIGN` | `true` — runs on counselor handoff, not on YES |
+
+**SQL:** run migration `20260606150000_whatsapp_ai_counseling.sql` (adds `ai_counseling` status).
+
+**Redeploy:** `whatsapp-webhook` via Lovable or `./scripts/deploy-whatsapp.sh`.
+
+**Test script (Gemini mode):**
+
+```text
+study in Canada → Postgraduate → Ahmedabad → Test Name → YES
+→ "What documents do I need?" → Gemini answers from service library
+→ COUNSELOR → counselor auto-assigned + notification
 ```
 
 ### Phase 4 — Notifications & queue SLAs
@@ -361,6 +386,20 @@ YES
 Disable all WhatsApp notifications: secret `WHATSAPP_NOTIFY=false`.
 
 Redeploy **`whatsapp-webhook`** after code update (Lovable or `./scripts/deploy-whatsapp.sh`).
+
+### Phase 5 — CRM deep links
+
+| Feature | Where |
+|---------|--------|
+| **WhatsApp inbox** button | Lead detail header, Client quick actions |
+| **Deep link** | `/whatsapp?conversation=<uuid>` opens that thread in the inbox |
+| **Lookup order** | `lead_id` → `client_id` → phone (E.164, last-10 fallback) |
+
+If no helpline thread exists yet, staff see *No helpline WhatsApp thread yet for this contact*.
+
+Frontend-only — deploy from GitHub `main` (no edge redeploy or SQL).
+
+See **Phase 5 — AI counseling** above for Gemini auto-replies before counselor assign.
 
 ---
 

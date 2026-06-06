@@ -11,6 +11,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fetchLead, fetchServiceCodeMap, type Lead } from "@/lib/leads";
 import { LeadOwnerCard } from "@/components/leads/LeadOwnerCard";
+import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
+import { leadPhoneToE164 } from "@/lib/whatsapp/phone";
 // badges shown inline via PageHeader description string
 
 const Row = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -74,6 +76,10 @@ const LeadDetail = () => {
         description={`${lead.lead_number} · ${lead.lead_temperature} · ${lead.status} · created ${format(new Date(lead.created_at), "dd MMM yyyy")}`}
         actions={
           <div className="flex gap-2">
+            <WhatsAppInboxLink
+              phone={leadPhoneToE164(lead.phone, lead.phone_country_code)}
+              leadId={lead.id}
+            />
             <Button variant="outline" onClick={() => nav(`/leads/new?id=${lead.id}`)}>
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>

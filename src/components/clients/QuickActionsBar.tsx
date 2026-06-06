@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { VoiceRecorderButton } from "@/components/voice/VoiceRecorderButton";
+import { WhatsAppInboxLink } from "@/components/whatsapp/WhatsAppInboxLink";
 import { generateSummary } from "@/lib/aiSummaries";
 
 export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, onEmail }: {
@@ -58,9 +59,12 @@ export function QuickActionsBar({ clientId, clientName, phone, email, onUpload, 
       <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mr-1">Quick actions</div>
       <CallClientButton clientId={clientId} />
       {!isTelecaller && phone && (
-        <Button size="sm" variant="outline" onClick={() => import("@/lib/whatsappShare").then(m => m.openWhatsApp(cleanPhone, ""))}>
-          <MessageCircle className="size-3.5 mr-1" /> WhatsApp
-        </Button>
+        <>
+          <Button size="sm" variant="outline" onClick={() => import("@/lib/whatsappShare").then(m => m.openWhatsApp(cleanPhone, ""))}>
+            <MessageCircle className="size-3.5 mr-1" /> WhatsApp
+          </Button>
+          <WhatsAppInboxLink phone={phone} clientId={clientId} />
+        </>
       )}
       {!isTelecaller && email && (
         <Button size="sm" variant="outline" onClick={() => onEmail ? onEmail() : window.open(`mailto:${email}`)}>
