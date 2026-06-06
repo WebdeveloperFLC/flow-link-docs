@@ -1,5 +1,5 @@
 import type { IntakeData } from "./rulesIntake.ts";
-import { intakeReadyToConfirm, isIntakeYesConfirm, nextRulesReply, normalizeIntakeFields, shouldForceIntakeConfirm } from "./rulesIntake.ts";
+import { nextRulesReply, normalizeIntakeFields, shouldForceIntakeConfirm } from "./rulesIntake.ts";
 import { callGeminiJson, geminiKeysAvailable } from "./geminiClient.ts";
 
 const INTAKE_SYSTEM = `You are the Future Link Consultants WhatsApp helpline assistant.
