@@ -16,8 +16,9 @@ import {
   matchInstitutionId,
   parseProgramSheetFile,
 } from "../lib/programSheetImport";
+import { fetchInstitutionLogos } from "../lib/fetchInstitutionLogo";
 
-type Inst = { id: string; name: string };
+type Inst = { id: string; name: string; logo_url?: string | null; website_url?: string | null };
 
 export function ImportProgramSheetButton({
   institutions,
@@ -74,6 +75,7 @@ export function ImportProgramSheetButton({
       let upserted = 0;
       let rejected = 0;
       const unmatched: string[] = [];
+      const importedInstitutionIds = new Set<string>();
 
       for (const batch of batches) {
         const institutionId = matchInstitutionId(batch.instituteName, institutions);
@@ -82,12 +84,29 @@ export function ImportProgramSheetButton({
           rejected += batch.courses.length;
           continue;
         }
+        importedInstitutionIds.add(institutionId);
         const { data, error } = await supabase.functions.invoke("upi-upsert-courses", {
           body: { courses: batch.courses, institution_id: institutionId },
         });
         if (error) throw new Error(`${batch.instituteName}: ${error.message}`);
         upserted += (data as { upserted?: number })?.upserted ?? 0;
         rejected += (data as { rejected?: number })?.rejected ?? 0;
+      }
+
+      const logoCandidates = [...importedInstitutionIds].filter((id) => {
+        const inst = institutions.find((i) => i.id === id);
+        return inst && !inst.logo_url && !!inst.website_url?.trim();
+      });
+      if (logoCandidates.length) {
+        fetchInstitutionLogos(logoCandidates).then((resp) => {
+          const fetched = resp.fetched ?? 0;
+          if (fetched > 0) {
+            toast.success(`Fetched ${fetched} institution logo${fetched === 1 ? "" : "s"} from website`);
+            onImported();
+          }
+        }).catch(() => {
+          /* non-blocking — manual fetch available on institution profile */
+        });
       }
 
       toast.dismiss(t);

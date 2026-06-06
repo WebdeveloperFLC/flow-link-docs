@@ -502,6 +502,7 @@ export default function InstitutionDetailPage() {
                 institutionId={id}
                 institutionName={inst.name}
                 logoUrl={inst.logo_url}
+                websiteUrl={inst.website_url}
                 canEdit={canEdit}
                 onUpdated={(logo_url) => setInst({ ...inst, logo_url })}
               />
