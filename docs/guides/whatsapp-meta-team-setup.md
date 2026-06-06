@@ -7,7 +7,7 @@ Use the **search bar** on this page — try *webhook*, *sandbox*, *secrets*, *he
 
 **Purpose:** Connect the company **helpline WhatsApp number** to the CRM inbox.  
 **CRM Supabase project:** `auofttkyosgjhxcbhscw`  
-**Who should do this:** Meta Business access + Lovable or Supabase (for secrets).
+**Who should do this:** Meta Business access + Supabase Dashboard (secrets, SQL). Deploy code from **GitHub**; use Lovable only when **creating new** Supabase resources.
 
 ---
 
@@ -18,7 +18,7 @@ Use the **search bar** on this page — try *webhook*, *sandbox*, *secrets*, *he
 | Start from zero | `developer` `register` | Part A |
 | Test without real helpline | `sandbox` | Part C |
 | Connect CRM to Meta | `webhook` `verify` | Part D |
-| Set backend secrets | `secrets` `lovable` | Part E |
+| Set backend secrets | `secrets` `supabase` | Part E |
 | Add real office number | `helpline` `production` | Part G |
 | Daily staff workflow | `counselor` `assign` | Part H |
 
@@ -28,7 +28,7 @@ Use the **search bar** on this page — try *webhook*, *sandbox*, *secrets*, *he
 Meta Developer account
 Create Business app + WhatsApp
 Sandbox test + webhook
-Supabase secrets + Publish
+GitHub push + edge deploy
 End-to-end test
 Add real helpline number
 Permanent token + go-live
@@ -53,7 +53,7 @@ Permanent token + go-live
 - [ ] Meta Business account ([business.facebook.com](https://business.facebook.com))
 - [ ] Work Facebook / Meta login for Future Link
 - [ ] Helpline phone ready for SMS/voice OTP (real number, Part G)
-- [ ] CRM: `whatsapp-webhook` and `whatsapp-send` deployed (Lovable)
+- [ ] CRM: `whatsapp-webhook` and `whatsapp-send` deployed from repo (`./scripts/deploy-whatsapp.sh`)
 - [ ] Staff trained on **Guide → WhatsApp Helpline**
 
 ---
@@ -122,7 +122,7 @@ Webhook verify failed?
 
 ## 8. Part E — Supabase edge secrets
 
-Set in **Supabase → Edge Functions → Secrets** or via **Lovable**:
+Set in **Supabase Dashboard → Edge Functions → Secrets** (project `auofttkyosgjhxcbhscw`):
 
 | Secret | Value |
 |--------|--------|
@@ -133,18 +133,21 @@ Set in **Supabase → Edge Functions → Secrets** or via **Lovable**:
 | `WHATSAPP_APP_SECRET` | App → Settings → Basic → App secret |
 | `WHATSAPP_AI_MODE` | `rules` (optional) |
 
-**Lovable prompt (copy):**
+**After secrets change**, redeploy edge functions from the GitHub repo:
 
-```text
-Set Supabase edge secrets on project auofttkyosgjhxcbhscw:
-WHATSAPP_PROVIDER=meta
-WHATSAPP_ACCESS_TOKEN=<from Meta API Setup>
-WHATSAPP_PHONE_NUMBER_ID=<from Meta API Setup>
-WHATSAPP_VERIFY_TOKEN=<same as webhook verify token>
-WHATSAPP_APP_SECRET=<from Meta App Settings Basic>
-WHATSAPP_AI_MODE=rules
-Redeploy whatsapp-webhook and whatsapp-send. Set VITE_WHATSAPP_PROVIDER=meta and Publish.
+```bash
+export SUPABASE_ACCESS_TOKEN="sbp_..."   # https://supabase.com/dashboard/account/tokens
+./scripts/deploy-whatsapp.sh
 ```
+
+**Frontend:** merge to `main` and deploy via your normal CI/host. Set build-time env:
+
+```env
+VITE_WHATSAPP_ENABLED=true
+VITE_WHATSAPP_PROVIDER=meta
+```
+
+> **Lovable:** use only when **creating new** Supabase edge function files or first-time project wiring — not for routine deploys or frontend publish.
 
 > **WARNING:** Never paste tokens in email, Slack, or chat. Revoke if leaked.
 
@@ -153,7 +156,7 @@ Redeploy whatsapp-webhook and whatsapp-send. Set VITE_WHATSAPP_PROVIDER=meta and
 ## 9. Part F — End-to-end sandbox test
 
 ```flow
-Publish CRM app
+Deploy from GitHub
 Message sandbox number from test phone
 Thread in CRM WhatsApp
 Assign counselor
@@ -161,7 +164,7 @@ Counselor replies in CRM
 Reply on phone from business number
 ```
 
-1. **Publish** in Lovable.
+1. **Push** latest code to GitHub; confirm production frontend is deployed (`VITE_WHATSAPP_PROVIDER=meta`).
 2. From **test recipient phone**, WhatsApp the **sandbox business number** (on API Setup).
 3. **CRM → WhatsApp** — conversation appears.
 4. Admin/telecaller **assigns** counselor.
