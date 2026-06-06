@@ -13,10 +13,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "@/components/ui/sheet";
 import { toast } from "sonner";
-import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search } from "lucide-react";
+import { Plus, Trash2, ExternalLink, Check, X, Pencil, Upload, Info, Search, LayoutGrid, LayoutList, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
+import { ImportProgramSheetButton } from "../components/ImportProgramSheetButton";
+import { CourseReviewList } from "../components/CourseReviewList";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { UpiCourseStaging } from "../types/upi";
 import { buildCourseDedupKey, computeCourseDedupHash, resolveCourseDedupLevel } from "../lib/courseDedup";
 
@@ -28,9 +38,56 @@ const FILTER_DEFAULTS = {
   institutionId: "all",
   level: "all",
   country: "all",
+  campus: "all",
+  pgwp: "all",
+  confidenceMin: "all",
+  sort: "newest",
 } as const;
 
 type FilterKey = keyof typeof FILTER_DEFAULTS;
+
+const COLUMN_DEFS = [
+  { id: "course", label: "Course", default: true },
+  { id: "institution", label: "Institution", default: true },
+  { id: "country", label: "Country", default: false },
+  { id: "level", label: "Level", default: true },
+  { id: "campus", label: "Campus", default: true },
+  { id: "duration", label: "Duration", default: true },
+  { id: "tuition", label: "Tuition", default: true },
+  { id: "intakes", label: "Intakes", default: true },
+  { id: "ielts", label: "IELTS", default: true },
+  { id: "pte", label: "PTE", default: true },
+  { id: "toefl", label: "TOEFL", default: false },
+  { id: "duolingo", label: "Duolingo", default: false },
+  { id: "pgwp", label: "PGWP", default: true },
+  { id: "appFee", label: "App fee", default: false },
+  { id: "delivery", label: "Delivery", default: false },
+  { id: "status", label: "Status", default: false },
+  { id: "confidence", label: "Confidence", default: true },
+  { id: "source", label: "Source", default: true },
+] as const;
+
+type ColumnId = (typeof COLUMN_DEFS)[number]["id"];
+const LS_COLUMNS = "courseReview.visibleColumns";
+const LS_VIEW = "courseReview.viewMode";
+
+function loadVisibleColumns(): Set<ColumnId> {
+  try {
+    const raw = localStorage.getItem(LS_COLUMNS);
+    if (raw) return new Set(JSON.parse(raw) as ColumnId[]);
+  } catch {}
+  return new Set(COLUMN_DEFS.filter((c) => c.default).map((c) => c.id));
+}
+
+function loadViewMode(): "table" | "cards" {
+  const v = localStorage.getItem(LS_VIEW);
+  return v === "cards" ? "cards" : "table";
+}
+
+function deliveryMode(r: UpiCourseStaging) {
+  const m = r.metadata as Record<string, unknown> | null;
+  return String(m?.program_delivery_mode ?? (r.is_online ? "Online" : "")).trim() || "—";
+}
 
 function setListFilter(
   setSearchParams: ReturnType<typeof useSearchParams>[1],
@@ -48,17 +105,6 @@ function setListFilter(
   );
 }
 
-const ConfidenceBadge = ({ score }: { score: number | null }) => {
-  const s = score ?? 0;
-  const cls =
-    s >= 80
-      ? "bg-success/15 text-success"
-      : s >= 50
-        ? "bg-yellow-500/15 text-yellow-700"
-        : "bg-destructive/15 text-destructive";
-  return <Badge className={`${cls} border-0`}>{Math.round(s)}%</Badge>;
-};
-
 export default function CourseReviewPage() {
   const { canEdit } = useModulePermission("institutions");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -66,6 +112,12 @@ export default function CourseReviewPage() {
   const instFilter = searchParams.get("institutionId") ?? FILTER_DEFAULTS.institutionId;
   const levelFilter = searchParams.get("level") ?? FILTER_DEFAULTS.level;
   const countryFilter = searchParams.get("country") ?? FILTER_DEFAULTS.country;
+  const campusFilter = searchParams.get("campus") ?? FILTER_DEFAULTS.campus;
+  const pgwpFilter = searchParams.get("pgwp") ?? FILTER_DEFAULTS.pgwp;
+  const confidenceMinFilter = searchParams.get("confidenceMin") ?? FILTER_DEFAULTS.confidenceMin;
+  const sortFilter = searchParams.get("sort") ?? FILTER_DEFAULTS.sort;
+  const [viewMode, setViewMode] = useState<"table" | "cards">(loadViewMode);
+  const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(loadVisibleColumns);
   const [rows, setRows] = useState<UpiCourseStaging[]>([]);
   const [institutions, setInstitutions] = useState<{ id: string; name: string; country_name: string | null }[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
@@ -79,7 +131,7 @@ export default function CourseReviewPage() {
 
   const load = async () => {
     setLoading(true);
-    let q = supabase.from("upi_courses_staging").select("*").order("extracted_at", { ascending: false }).limit(500);
+    let q = supabase.from("upi_courses_staging").select("*").order("extracted_at", { ascending: false }).limit(2000);
     if (statusFilter !== "all") q = q.eq("review_status", statusFilter);
     if (instFilter !== "all") q = q.eq("institution_id", instFilter);
     if (levelFilter === "unclassified") q = q.is("program_level_id", null);
@@ -138,6 +190,30 @@ export default function CourseReviewPage() {
     load();
   }, [statusFilter, instFilter, levelFilter, countryFilter, institutions]);
 
+  const campuses = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      const c = r.campus_name?.trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort();
+  }, [rows]);
+
+  const toggleColumn = (id: ColumnId, on: boolean) => {
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      localStorage.setItem(LS_COLUMNS, JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  const setView = (mode: "table" | "cards") => {
+    setViewMode(mode);
+    localStorage.setItem(LS_VIEW, mode);
+  };
+
   const instName = useMemo(() => {
     const m = new Map(institutions.map((i) => [i.id, i.name]));
     return (id: string | null) => (id ? (m.get(id) ?? "—") : "—");
@@ -152,41 +228,73 @@ export default function CourseReviewPage() {
   }, [levels]);
 
   const visibleRows = useMemo(() => {
+    let list = rows;
+    if (campusFilter !== "all") {
+      list = list.filter((r) => (r.campus_name ?? "").trim() === campusFilter);
+    }
+    if (pgwpFilter === "yes") list = list.filter((r) => r.is_pgwp_eligible === true);
+    else if (pgwpFilter === "no") list = list.filter((r) => r.is_pgwp_eligible === false);
+    else if (pgwpFilter === "unknown") list = list.filter((r) => r.is_pgwp_eligible == null);
+
+    if (confidenceMinFilter !== "all") {
+      const min = Number(confidenceMinFilter);
+      if (Number.isFinite(min)) list = list.filter((r) => (r.confidence_score ?? 0) >= min);
+    }
+
     const tokens = searchText.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    if (!tokens.length) return rows;
-    return rows.filter((r) => {
-      const parts: (string | number | null | undefined)[] = [
-        r.course_title,
-        r.course_description,
-        r.campus_name,
-        r.city,
-        r.state_province,
-        r.country_name,
-        r.currency,
-        r.gpa_requirement,
-        r.source_url,
-        r.source_identifier,
-        r.review_status,
-        r.ielts_overall,
-        r.toefl_overall,
-        r.pte_overall,
-        r.duolingo_overall,
-        Array.isArray(r.intake_months) ? r.intake_months.join(" ") : "",
-        r.is_pgwp_eligible === true ? "yes pgwp eligible" : r.is_pgwp_eligible === false ? "no pgwp" : "",
-        instName(r.institution_id),
-        instCountry(r.institution_id),
-        levelName(r.program_level_id),
-      ];
-      try {
-        parts.push(JSON.stringify(r.metadata ?? {}));
-      } catch {}
-      const hay = parts
-        .filter((v) => v !== null && v !== undefined && v !== "")
-        .join(" ")
-        .toLowerCase();
-      return tokens.every((t) => hay.includes(t));
-    });
-  }, [rows, searchText, instName, instCountry, levelName]);
+    if (tokens.length) {
+      list = list.filter((r) => {
+        const parts: (string | number | null | undefined)[] = [
+          r.course_title,
+          r.course_description,
+          r.campus_name,
+          r.city,
+          r.state_province,
+          r.country_name,
+          r.currency,
+          r.gpa_requirement,
+          r.source_url,
+          r.source_identifier,
+          r.review_status,
+          r.ielts_overall,
+          r.toefl_overall,
+          r.pte_overall,
+          r.duolingo_overall,
+          deliveryMode(r),
+          Array.isArray(r.intake_months) ? r.intake_months.join(" ") : "",
+          r.is_pgwp_eligible === true ? "yes pgwp eligible" : r.is_pgwp_eligible === false ? "no pgwp" : "",
+          instName(r.institution_id),
+          instCountry(r.institution_id),
+          levelName(r.program_level_id),
+        ];
+        try {
+          parts.push(JSON.stringify(r.metadata ?? {}));
+        } catch {}
+        const hay = parts
+          .filter((v) => v !== null && v !== undefined && v !== "")
+          .join(" ")
+          .toLowerCase();
+        return tokens.every((t) => hay.includes(t));
+      });
+    }
+
+    const sorted = [...list];
+    if (sortFilter === "title") sorted.sort((a, b) => (a.course_title ?? "").localeCompare(b.course_title ?? ""));
+    else if (sortFilter === "confidence") sorted.sort((a, b) => (b.confidence_score ?? 0) - (a.confidence_score ?? 0));
+    else if (sortFilter === "ielts") sorted.sort((a, b) => (b.ielts_overall ?? 0) - (a.ielts_overall ?? 0));
+    else sorted.sort((a, b) => new Date(b.extracted_at).getTime() - new Date(a.extracted_at).getTime());
+    return sorted;
+  }, [
+    rows,
+    searchText,
+    instName,
+    instCountry,
+    levelName,
+    campusFilter,
+    pgwpFilter,
+    confidenceMinFilter,
+    sortFilter,
+  ]);
 
   const setStatus = async (ids: string[], status: string) => {
     if (!canEdit) return toast.error("View-only access — cannot update review status");
@@ -261,7 +369,10 @@ export default function CourseReviewPage() {
 
   return (
     <AppLayout>
-      <PageHeader title="Course Review" description="Review and publish AI-extracted courses awaiting approval." />
+      <PageHeader
+        title="Course Review"
+        description="Review, import, and publish programs to Course Finder."
+      />
       <div className="p-6 space-y-4">
         {(loadError || auxError) && (
           <Card className="p-4 border-destructive/50 bg-destructive/5 text-sm text-destructive">
@@ -361,6 +472,106 @@ export default function CourseReviewPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Campus</Label>
+            <Select value={campusFilter} onValueChange={(v) => setListFilter(setSearchParams, "campus", v)}>
+              <SelectTrigger className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All campuses</SelectItem>
+                {campuses.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">PGWP</Label>
+            <Select value={pgwpFilter} onValueChange={(v) => setListFilter(setSearchParams, "pgwp", v)}>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="yes">Eligible</SelectItem>
+                <SelectItem value="no">Not eligible</SelectItem>
+                <SelectItem value="unknown">Unknown</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Min confidence</Label>
+            <Select value={confidenceMinFilter} onValueChange={(v) => setListFilter(setSearchParams, "confidenceMin", v)}>
+              <SelectTrigger className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Any</SelectItem>
+                <SelectItem value="50">50%+</SelectItem>
+                <SelectItem value="70">70%+</SelectItem>
+                <SelectItem value="80">80%+</SelectItem>
+                <SelectItem value="90">90%+</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Sort</Label>
+            <Select value={sortFilter} onValueChange={(v) => setListFilter(setSearchParams, "sort", v)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest first</SelectItem>
+                <SelectItem value="title">Title A–Z</SelectItem>
+                <SelectItem value="confidence">Confidence</SelectItem>
+                <SelectItem value="ielts">IELTS (high)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-end gap-1">
+            <Button
+              size="icon"
+              variant={viewMode === "table" ? "secondary" : "outline"}
+              title="Table view"
+              onClick={() => setView("table")}
+            >
+              <LayoutList className="size-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant={viewMode === "cards" ? "secondary" : "outline"}
+              title="Card view"
+              onClick={() => setView("cards")}
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="outline" title="Choose columns">
+                  <SlidersHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Visible columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {COLUMN_DEFS.map((c) => (
+                  <DropdownMenuCheckboxItem
+                    key={c.id}
+                    checked={visibleColumns.has(c.id)}
+                    onCheckedChange={(on) => toggleColumn(c.id, !!on)}
+                  >
+                    {c.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {canEdit && (
+            <ImportProgramSheetButton institutions={institutions} canEdit={canEdit} onImported={load} />
+          )}
           <div className="flex-1" />
           {canEdit && selected.size > 0 && (
             <div className="flex gap-2">
@@ -381,147 +592,27 @@ export default function CourseReviewPage() {
           )}
         </Card>
 
-        <Card className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50">
-                <tr className="text-left">
-                  <th className="p-3 w-10">
-                    {canEdit && (
-                    <Checkbox
-                      checked={selected.size > 0 && selected.size === visibleRows.length}
-                      onCheckedChange={toggleAll}
-                    />
-                    )}
-                  </th>
-                  <th className="p-3">Course</th>
-                  <th className="p-3">Institution</th>
-                  <th className="p-3">Country</th>
-                  <th className="p-3">Level</th>
-                  <th className="p-3">Tuition</th>
-                  <th className="p-3">Intakes</th>
-                  <th className="p-3">IELTS</th>
-                  <th className="p-3">PGWP</th>
-                  <th className="p-3">Confidence</th>
-                  <th className="p-3">Source</th>
-                  <th className="p-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleRows.length === 0 && (
-                  <tr>
-                    <td colSpan={12} className="p-8 text-center text-muted-foreground">
-                      {loading
-                        ? "Loading courses…"
-                        : loadError
-                          ? "Could not load courses. Check permissions or try again."
-                          : searchText
-                            ? `No programs match "${searchText}".`
-                            : statusFilter === "published"
-                              ? 'Nothing published yet. Approve rows under "approved" status, then click Bulk Publish to push them to Course Finder.'
-                              : "No programs match the current filters. Try clearing Country / Level / Status or the search box."}
-                    </td>
-                  </tr>
-                )}
-                {visibleRows.map((r) => (
-                  <tr key={r.id} className="border-t hover:bg-accent/30">
-                    <td className="p-3">
-                      {canEdit && (
-                      <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} />
-                      )}
-                    </td>
-                    <td className="p-3 font-medium">{r.course_title}</td>
-                    <td className="p-3">{instName(r.institution_id)}</td>
-                    <td className="p-3">{instCountry(r.institution_id) ?? r.country_name ?? "—"}</td>
-                    <td className="p-3">{levelName(r.program_level_id)}</td>
-                    <td className="p-3 tabular-nums">{r.tuition_fee ? `${r.tuition_fee} ${r.currency ?? ""}` : "—"}</td>
-                    <td className="p-3">{Array.isArray(r.intake_months) ? r.intake_months.join(", ") : "—"}</td>
-                    <td className="p-3">{r.ielts_overall ?? "—"}</td>
-                    <td className="p-3">
-                      {r.is_pgwp_eligible === true ? (
-                        <Badge className="bg-success/15 text-success border-0">Yes</Badge>
-                      ) : r.is_pgwp_eligible === false ? (
-                        <Badge variant="secondary">No</Badge>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <ConfidenceBadge score={r.confidence_score} />
-                    </td>
-                    <td className="p-3">
-                      {r.source_url ? (
-                        <a
-                          className="text-primary inline-flex items-center gap-1"
-                          href={r.source_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          link <ExternalLink className="size-3" />
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="p-3">
-                      <div className="flex gap-1 justify-end">
-                        {canEdit ? (
-                        <>
-                        <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "approved")}>
-                          <Check className="size-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setStatus([r.id], "rejected")}>
-                          <X className="size-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setEditing(r)}>
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive hover:text-destructive"
-                          title="Delete program"
-                          onClick={() => deleteRows([r.id])}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                        {r.review_status === "published" && r.published_course_id ? (
-                          <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
-                            <Link to={`/course-finder?courseId=${r.published_course_id}`} target="_blank">
-                              <ExternalLink className="size-4" />
-                            </Link>
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            title={
-                              r.review_status === "approved" ? "Publish to Course Finder" : "Approve this row first"
-                            }
-                            disabled={r.review_status !== "approved" && r.review_status !== "needs_update"}
-                            onClick={() => publish([r.id])}
-                          >
-                            <Upload className="size-4" />
-                          </Button>
-                        )}
-                        </>
-                        ) : r.review_status === "published" && r.published_course_id ? (
-                          <Button asChild size="sm" variant="ghost" title="Open in Course Finder">
-                            <Link to={`/course-finder?courseId=${r.published_course_id}`} target="_blank">
-                              <ExternalLink className="size-4" />
-                            </Link>
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-muted-foreground px-2">View only</span>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+        <CourseReviewList
+          rows={visibleRows}
+          loading={loading}
+          loadError={loadError}
+          searchText={searchText}
+          statusFilter={statusFilter}
+          viewMode={viewMode}
+          visibleColumns={visibleColumns}
+          canEdit={canEdit}
+          selected={selected}
+          instName={instName}
+          instCountry={instCountry}
+          levelName={levelName}
+          onToggle={toggle}
+          onToggleAll={toggleAll}
+          onApprove={(id) => setStatus([id], "approved")}
+          onReject={(id) => setStatus([id], "rejected")}
+          onEdit={setEditing}
+          onDelete={(id) => deleteRows([id])}
+          onPublish={(id) => publish([id])}
+        />
       </div>
 
       <EditSheet
