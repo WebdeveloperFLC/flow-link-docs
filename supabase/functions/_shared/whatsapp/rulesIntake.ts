@@ -1,9 +1,11 @@
-export type IntakeStep = "welcome" | "country" | "level" | "name" | "confirm" | "done";
+export type IntakeStep = "welcome" | "country" | "level" | "branch" | "name" | "confirm" | "done";
 
 export interface IntakeData {
   step?: IntakeStep;
   country?: string;
   level?: string;
+  branch_preference?: string;
+  branch_id?: string;
   full_name?: string;
 }
 
@@ -123,6 +125,19 @@ export function nextRulesReply(
       return { intake: next, replies, confirmed };
     }
     next.level = level;
+    next.step = "branch";
+    replies.push(
+      "Which branch or city is most convenient for you? (e.g. your city name, branch name, or reply *Any*)",
+    );
+    return { intake: next, replies, confirmed };
+  }
+
+  if (step === "branch") {
+    if (!text || text.length < 2) {
+      replies.push("Please share your preferred branch or city (or reply *Any*).");
+      return { intake: next, replies, confirmed };
+    }
+    next.branch_preference = text.trim();
     next.step = "name";
     replies.push("Got it. Please share your full name (first and last).");
     return { intake: next, replies, confirmed };
@@ -136,8 +151,9 @@ export function nextRulesReply(
     }
     next.full_name = name;
     next.step = "confirm";
+    const branchLine = next.branch_preference ? `\n• Branch/city: ${next.branch_preference}` : "";
     replies.push(
-      `Please confirm:\n• Country: ${next.country}\n• Level: ${next.level}\n• Name: ${next.full_name}\n\nReply YES to confirm.`,
+      `Please confirm:\n• Country: ${next.country}\n• Level: ${next.level}${branchLine}\n• Name: ${next.full_name}\n\nReply YES to confirm.`,
     );
     return { intake: next, replies, confirmed };
   }
@@ -147,7 +163,7 @@ export function nextRulesReply(
       next.step = "done";
       confirmed = true;
       replies.push(
-        "Thank you! Your details are recorded. A counselor will contact you shortly on this number.",
+        "Thank you! Your details are recorded. We are connecting you with a counselor who will contact you shortly on this number.",
       );
       return { intake: next, replies, confirmed };
     }

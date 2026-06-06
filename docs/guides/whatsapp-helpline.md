@@ -117,10 +117,11 @@ Staff message stored in CRM
 ```flow
 study in Canada
 Postgraduate
+Ahmedabad
 Full Name
 YES
 Check Leads list
-Assign counselor
+Counselor auto-assigned (Phase 3)
 ```
 
 Send **RESTART** as client to clear a bad intake and start over.
@@ -141,7 +142,7 @@ closed
 
 | Status | Meaning |
 |--------|---------|
-| `unmatched_ai_intake` | Unknown number; rules bot asking country → level → name |
+| `unmatched_ai_intake` | Unknown number; rules bot asking country → level → branch → name |
 | `awaiting_assignment_confirm` | Client said YES; lead created; needs counselor |
 | `assigned_active` | Counselor owns thread |
 | `existing_client` | Phone matched a client record |
@@ -292,7 +293,7 @@ Optional Gemini intake
 | **1** | Meta send/receive + media | Done |
 | **2** | Production helpline + business lines + assignment log + 24h UX | **Live** |
 | **2b** | Meta message templates (after 24h) | **Live** |
-| **3** | Gemini intake (`WHATSAPP_AI_MODE=gemini_dev`) | Optional — set secret + redeploy webhook |
+| **3** | Branch intake + auto-assign counselor + Gemini + assign notification | **Live** |
 
 ### Phase 2 admin setup (one-time)
 
@@ -314,6 +315,37 @@ WhatsApp allows free text/files only within **24 hours** of the client’s last 
 5. Push code to GitHub and redeploy `whatsapp-send` (`./scripts/deploy-whatsapp.sh`).
 
 In CRM, when session is closed: choose template → fill client name + counselor name → **Send template**.
+
+### Phase 3 — Smarter intake & auto-assign
+
+**Intake flow (rules or Gemini):** country → level → **branch/city** → name → YES.
+
+| Feature | How |
+|---------|-----|
+| **Branch question** | Client replies city/branch name or *Any* |
+| **Auto-assign** | After YES, CRM picks a **counselor** (branch match → round-robin by open threads) |
+| **Counselor alert** | Bell notification: *WhatsApp helpline assigned* |
+| **Gemini intake** | `WHATSAPP_AI_MODE=gemini_dev` + `GEMINI_API_KEY` or `LOVABLE_API_KEY` |
+| **Disable auto-assign** | Secret `WHATSAPP_AUTO_ASSIGN=false` (telecaller assigns manually) |
+
+**Counselor routing:** matches `profiles.branch_id` to CRM **branches** (Masters → Branches). Ensure counselors have a branch set in **Users → Edit details**.
+
+**Deploy after code update:**
+
+```bash
+./scripts/deploy-whatsapp.sh   # redeploy whatsapp-webhook
+```
+
+**Test script (Simulate):**
+
+```text
+study in Canada
+Postgraduate
+Ahmedabad
+Full Name
+YES
+→ Lead created, counselor auto-assigned, notification sent
+```
 
 ---
 
