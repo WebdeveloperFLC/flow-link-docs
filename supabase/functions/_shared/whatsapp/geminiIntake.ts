@@ -1,5 +1,5 @@
 import type { IntakeData } from "./rulesIntake.ts";
-import { intakeReadyToConfirm, isIntakeYesConfirm, nextRulesReply } from "./rulesIntake.ts";
+import { intakeReadyToConfirm, isIntakeYesConfirm, nextRulesReply, normalizeIntakeFields, shouldForceIntakeConfirm } from "./rulesIntake.ts";
 import { callGeminiJson, geminiKeysAvailable } from "./geminiClient.ts";
 
 const INTAKE_SYSTEM = `You are the Future Link Consultants WhatsApp helpline assistant.
@@ -46,12 +46,11 @@ export async function nextGeminiReply(
 
     if (!parsed) return nextRulesReply(intake, userText);
 
-    let nextIntake: IntakeData = { ...intake, ...(parsed.intake || {}) };
+    let nextIntake: IntakeData = normalizeIntakeFields({ ...intake, ...(parsed.intake || {}) });
     let replies = Array.isArray(parsed.replies) ? parsed.replies.map(String).filter(Boolean) : [];
     let confirmed = !!parsed.confirmed;
 
-    // Gemini often omits confirmed:true or replies[] on YES — enforce locally
-    if (!confirmed && isIntakeYesConfirm(userText) && intakeReadyToConfirm(nextIntake)) {
+    if (!confirmed && shouldForceIntakeConfirm(intake, userText)) {
       confirmed = true;
       nextIntake.step = "done";
     }

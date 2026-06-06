@@ -21,7 +21,7 @@ import {
   notifyQueueUnassignedThread,
 } from "../_shared/whatsapp/whatsappNotifications.ts";
 import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
-import { intakeReadyToConfirm, isIntakeYesConfirm, nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
+import { nextRulesReply, normalizeIntakeFields, shouldForceIntakeConfirm, splitName, type IntakeData } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
 import {
   isMetaWebhookPayload,
@@ -386,7 +386,7 @@ Deno.serve(async (req) => {
   }).eq("id", conv.id);
 
   const replies: string[] = [];
-  const intake = (conv.intake_data || {}) as Record<string, unknown>;
+  const intake = normalizeIntakeFields((conv.intake_data || {}) as IntakeData);
   const intakeStep = intake?.step as string | undefined;
   const intakeInProgress = !!intakeStep && intakeStep !== "done";
 
@@ -499,8 +499,8 @@ Deno.serve(async (req) => {
     let { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
 
     // Belt-and-suspenders: YES at confirm must always complete intake
-    if (!confirmed && isIntakeYesConfirm(text) && intakeReadyToConfirm(intake as any)) {
-      const rules = nextRulesReply(intake as any, text);
+    if (!confirmed && shouldForceIntakeConfirm(intake, text)) {
+      const rules = nextRulesReply(intake, text);
       nextIntake = { ...intake, ...rules.intake, step: "done" };
       confirmed = rules.confirmed;
       if (!botReplies.length) botReplies = rules.replies;

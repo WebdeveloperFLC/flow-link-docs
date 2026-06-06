@@ -193,10 +193,26 @@ export function splitName(fullName: string): { first_name: string; last_name: st
 }
 
 export function isIntakeYesConfirm(text: string): boolean {
-  return /^(yes|y|confirm|ok|okay)$/i.test((text || "").trim());
+  return /^(yes|y|confirm|ok|okay)[.!?\s]*$/i.test((text || "").trim());
+}
+
+export function normalizeIntakeFields(intake: IntakeData): IntakeData {
+  const raw = intake as IntakeData & { name?: string; branch?: string };
+  return {
+    ...intake,
+    full_name: intake.full_name || raw.name,
+    branch_preference: intake.branch_preference || raw.branch,
+  };
 }
 
 export function intakeReadyToConfirm(intake: IntakeData): boolean {
-  return !!(intake.country && intake.level && intake.full_name
-    && (intake.step === "confirm" || intake.step === "done"));
+  const normalized = normalizeIntakeFields(intake);
+  if (normalized.step === "confirm" || normalized.step === "done") return true;
+  return !!(normalized.country && normalized.level && normalized.full_name);
+}
+
+export function shouldForceIntakeConfirm(intake: IntakeData, text: string): boolean {
+  if (!isIntakeYesConfirm(text)) return false;
+  const normalized = normalizeIntakeFields(intake);
+  return normalized.step === "confirm" || normalized.step === "done" || intakeReadyToConfirm(normalized);
 }
