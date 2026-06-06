@@ -89,6 +89,7 @@ Deno.serve(async (req) => {
     conversation_id?: string;
     text?: string;
     media_base64?: string;
+    media_storage_path?: string;
     mime_type?: string;
     message_type?: string;
     filename?: string;
@@ -105,6 +106,7 @@ Deno.serve(async (req) => {
   const conversationId = body.conversation_id;
   const text = (body.text || "").trim();
   const mediaBase64 = body.media_base64?.trim();
+  const mediaStoragePathInput = body.media_storage_path?.trim();
   const mimeType = (body.mime_type || "").trim().toLowerCase();
   const filename = (body.filename || "").trim() || undefined;
 
@@ -114,17 +116,79 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-  if (!text && !mediaBase64) {
+  if (!text && !mediaBase64 && !mediaStoragePathInput) {
     return new Response(JSON.stringify({ error: "text or media required" }), {
       status: 400,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
+  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+
+  const { data: canEdit } = await admin.rpc("whatsapp_can_edit_conversation", {
+    _uid: uid,
+    _conv_id: conversationId,
+  });
+  if (!canEdit) {
+    return new Response(JSON.stringify({ error: "forbidden" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   let mediaBytes: Uint8Array | null = null;
   let messageType: "text" | "image" | "document" = "text";
+  let preUploadedPath: string | null = null;
 
-  if (mediaBase64) {
+  if (mediaStoragePathInput) {
+    const prefix = `${conversationId}/`;
+    if (!mediaStoragePathInput.startsWith(prefix) || mediaStoragePathInput.includes("..")) {
+      return new Response(JSON.stringify({ error: "invalid media_storage_path" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (!mimeType) {
+      return new Response(JSON.stringify({ error: "mime_type required with media" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const resolved = resolveMessageType(mimeType);
+    if (!resolved) {
+      return new Response(JSON.stringify({ error: "unsupported file type (use JPG, PNG, WebP, or PDF)" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    messageType = resolved;
+    preUploadedPath = mediaStoragePathInput;
+
+    const { data: blob, error: dlErr } = await admin.storage
+      .from("whatsapp-media")
+      .download(mediaStoragePathInput);
+    if (dlErr || !blob) {
+      return new Response(JSON.stringify({ error: dlErr?.message || "media file not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    mediaBytes = new Uint8Array(await blob.arrayBuffer());
+    if (!mediaBytes.length) {
+      return new Response(JSON.stringify({ error: "empty media file" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const maxBytes = messageType === "image" ? MAX_IMAGE_BYTES : MAX_DOC_BYTES;
+    if (mediaBytes.length > maxBytes) {
+      const limitMb = messageType === "image" ? 5 : 16;
+      return new Response(JSON.stringify({ error: `file too large (max ${limitMb} MB)` }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  } else if (mediaBase64) {
     if (!mimeType) {
       return new Response(JSON.stringify({ error: "mime_type required with media" }), {
         status: 400,
@@ -154,19 +218,6 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-  }
-
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-
-  const { data: canEdit } = await admin.rpc("whatsapp_can_edit_conversation", {
-    _uid: uid,
-    _conv_id: conversationId,
-  });
-  if (!canEdit) {
-    return new Response(JSON.stringify({ error: "forbidden" }), {
-      status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
   }
 
   const { data: conv, error: convErr } = await admin
@@ -213,17 +264,21 @@ Deno.serve(async (req) => {
       providerMessageId = sent.messageId ?? null;
     }
 
-    const storageKey = providerMessageId || crypto.randomUUID();
-    mediaStoragePathValue = mediaStoragePath(conversationId, storageKey, mimeType);
-    const blob = new Blob([mediaBytes], { type: mimeType });
-    const { error: storageErr } = await admin.storage
-      .from("whatsapp-media")
-      .upload(mediaStoragePathValue, blob, { contentType: mimeType, upsert: true });
-    if (storageErr) {
-      return new Response(JSON.stringify({ error: `storage upload failed: ${storageErr.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (preUploadedPath) {
+      mediaStoragePathValue = preUploadedPath;
+    } else {
+      const storageKey = providerMessageId || crypto.randomUUID();
+      mediaStoragePathValue = mediaStoragePath(conversationId, storageKey, mimeType);
+      const blob = new Blob([mediaBytes], { type: mimeType });
+      const { error: storageErr } = await admin.storage
+        .from("whatsapp-media")
+        .upload(mediaStoragePathValue, blob, { contentType: mimeType, upsert: true });
+      if (storageErr) {
+        return new Response(JSON.stringify({ error: `storage upload failed: ${storageErr.message}` }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
   } else if (text) {
     if (metaSendEnabled()) {
