@@ -20,7 +20,7 @@ async function upsertNotif(
   },
 ): Promise<void> {
   try {
-    await admin.from("app_notifications").upsert({
+    const { error } = await admin.from("app_notifications").upsert({
       user_id: row.user_id,
       category: row.category,
       severity: row.severity ?? "info",
@@ -32,6 +32,7 @@ async function upsertNotif(
       dedupe_key: row.dedupe_key,
       is_read: false,
     }, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+    if (error) console.warn("[whatsappNotifications] upsert error:", error.message, error.details, error.hint, error.code);
   } catch (e) {
     console.warn("[whatsappNotifications]", e);
   }
