@@ -90,7 +90,12 @@ export function InstitutionLogoField({
     setBusy(true);
     const t = toast.loading("Fetching logo from website…");
     try {
-      const result = await fetchInstitutionLogo(institutionId, { force: !!logoUrl });
+      const result = await fetchInstitutionLogo(institutionId, {
+        force: !!logoUrl,
+        websiteUrl,
+        name: institutionName,
+        logoUrl: logoUrl,
+      });
       toast.dismiss(t);
       if (result.skipped) {
         toast.info("Logo already set — use Remove first to re-fetch");

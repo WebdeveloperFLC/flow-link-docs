@@ -59,9 +59,13 @@ export default function InstitutionsListPage() {
   const fetchMissingLogos = async () => {
     if (!canEdit || fetchingLogos) return;
     setFetchingLogos(true);
-    const t = toast.loading("Fetching missing logos…");
+    const t = toast.loading("Fetching missing logos… 0%");
     try {
-      const resp = await fetchMissingInstitutionLogos();
+      const resp = await fetchMissingInstitutionLogos({
+        onProgress: (done, total) => {
+          toast.loading(`Fetching missing logos… ${Math.round((done / total) * 100)}%`, { id: t });
+        },
+      });
       toast.dismiss(t);
       const fetched = resp.fetched ?? 0;
       const failed = resp.failed ?? 0;
