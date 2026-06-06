@@ -15035,6 +15035,45 @@ export type Database = {
           },
         ]
       }
+      whatsapp_message_templates: {
+        Row: {
+          active: boolean
+          body_preview: string | null
+          created_at: string
+          id: string
+          label: string
+          language_code: string
+          name: string
+          param_count: number
+          param_labels: Json
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          body_preview?: string | null
+          created_at?: string
+          id?: string
+          label: string
+          language_code?: string
+          name: string
+          param_count?: number
+          param_labels?: Json
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          body_preview?: string | null
+          created_at?: string
+          id?: string
+          label?: string
+          language_code?: string
+          name?: string
+          param_count?: number
+          param_labels?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       whatsapp_messages: {
         Row: {
           body: string
