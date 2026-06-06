@@ -150,7 +150,15 @@ async function logoCandidates(websiteUrl: string): Promise<string[]> {
   const base = normalizeWebsiteUrl(websiteUrl);
   if (!base) return [];
   const domain = domainFromUrl(base);
-  const out: string[] = [`https://logo.clearbit.com/${domain}`];
+  const out: string[] = [];
+  const logoDevToken = Deno.env.get("LOGO_DEV_TOKEN")?.trim();
+  if (logoDevToken) {
+    out.push(`https://img.logo.dev/${domain}?token=${encodeURIComponent(logoDevToken)}&size=128`);
+  }
+  out.push(
+    `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${encodeURIComponent(domain)}.ico`,
+  );
 
   const html = await fetchHomepageHtml(base);
   if (html) {

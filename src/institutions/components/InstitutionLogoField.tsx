@@ -90,7 +90,12 @@ export function InstitutionLogoField({
     setBusy(true);
     const t = toast.loading("Fetching logo from website…");
     try {
-      const result = await fetchInstitutionLogo(institutionId, { force: !!logoUrl });
+      const result = await fetchInstitutionLogo(institutionId, {
+        force: !!logoUrl,
+        websiteUrl,
+        name: institutionName,
+        logoUrl: logoUrl,
+      });
       toast.dismiss(t);
       if (result.skipped) {
         toast.info("Logo already set — use Remove first to re-fetch");
@@ -104,7 +109,8 @@ export function InstitutionLogoField({
       toast.error(describeLogoFetchError(result.error));
     } catch (e) {
       toast.dismiss(t);
-      toast.error(e instanceof Error ? e.message : "Fetch failed");
+      const msg = e instanceof Error ? e.message : "Fetch failed";
+      toast.error(msg.includes("Edge Function") ? "Could not find a logo — upload manually or paste a URL" : msg);
     } finally {
       setBusy(false);
     }
@@ -118,7 +124,7 @@ export function InstitutionLogoField({
         <div className="flex-1 space-y-2 min-w-0">
           <p className="text-xs text-muted-foreground">
             Shown on Course Review, institution pages, and Course Finder after publish.
-            {websiteUrl?.trim() ? " Auto-fetch tries Clearbit, then the site og:image and favicon." : ""}
+            {websiteUrl?.trim() ? " Auto-fetch uses favicon services (add VITE_LOGO_DEV_TOKEN for higher-quality logos)." : ""}
           </p>
           {canEdit && (
             <div className="flex flex-wrap gap-2">
