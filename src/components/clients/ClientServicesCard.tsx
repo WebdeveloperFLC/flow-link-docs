@@ -18,12 +18,16 @@ const EMPTY: ServiceSelection = {
   travel_services: [],
 };
 
-const GROUP_LABELS: { key: keyof ServiceSelection; label: string }[] = [
-  { key: "coaching_services", label: "Coaching" },
-  { key: "visa_services", label: "Visa & Immigration" },
-  { key: "admission_services", label: "Admission" },
-  { key: "allied_services", label: "Allied" },
-  { key: "travel_services", label: "Travel & Financial" },
+type DisplayGroup = {
+  label: string;
+  keys: (keyof ServiceSelection)[];
+};
+
+const DISPLAY_GROUPS: DisplayGroup[] = [
+  { label: "Coaching", keys: ["coaching_services"] },
+  { label: "Visa & Immigration", keys: ["visa_services"] },
+  { label: "Admission", keys: ["admission_services"] },
+  { label: "Allied & Travel", keys: ["allied_services", "travel_services"] },
 ];
 
 async function autoDraftInvoiceForServices(
@@ -242,10 +246,10 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        {GROUP_LABELS.map((g) => {
-          const codes = selection[g.key] ?? [];
+        {DISPLAY_GROUPS.map((g) => {
+          const codes = g.keys.flatMap((k) => selection[k] ?? []);
           return (
-            <div key={g.key} className="rounded-md border p-3">
+            <div key={g.label} className="rounded-md border p-3">
               <div className="text-xs uppercase tracking-wide text-muted-foreground mb-2">{g.label}</div>
               {codes.length === 0 ? (
                 <div className="text-xs text-muted-foreground">None selected</div>

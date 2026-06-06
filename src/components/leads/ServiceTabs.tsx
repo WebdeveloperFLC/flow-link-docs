@@ -15,17 +15,23 @@ export interface ServiceSelection {
   travel_services: string[];
 }
 
+type TabKey = keyof ServiceSelection | "allied_travel";
+
 interface Tab {
-  key: keyof ServiceSelection;
+  key: TabKey;
   label: string;
-  masterKey: string;
+  masterKeys: string[];
+  selectionKey?: keyof ServiceSelection;
 }
 
 const TABS: Tab[] = [
-  { key: "coaching_services", label: "Coaching", masterKey: "coaching_services" },
-  { key: "visa_services", label: "Visa & Immigration", masterKey: "visa_immigration" },
-  { key: "allied_services", label: "Allied", masterKey: "allied_services" },
-  { key: "travel_services", label: "Travel & Financial", masterKey: "travel_financial" },
+  { key: "coaching_services", label: "Coaching", masterKeys: ["coaching_services"], selectionKey: "coaching_services" },
+  { key: "visa_services", label: "Visa & Immigration", masterKeys: ["visa_immigration"], selectionKey: "visa_services" },
+  {
+    key: "allied_travel",
+    label: "Allied & Travel",
+    masterKeys: ["allied_services", "travel_financial"],
+  },
 ];
 
 export const ServiceTabs = ({
@@ -80,10 +86,13 @@ export const ServiceTabs = ({
   return (
     <Tabs defaultValue={TABS[0].key}>
       <TabsList className="w-full justify-start flex-wrap h-auto">
-        {TABS.map((t) => {
-          const count = value[t.key]?.length ?? 0;
-          const isVisa = t.key === "visa_services";
-          const locked = isVisa && visaLocked;
+      {TABS.map((t) => {
+        const count =
+          t.key === "allied_travel"
+            ? (value.allied_services?.length ?? 0) + (value.travel_services?.length ?? 0)
+            : (value[t.selectionKey!]?.length ?? 0);
+        const isVisa = t.key === "visa_services";
+        const locked = isVisa && visaLocked;
           return (
             <TabsTrigger key={t.key} value={t.key} className={cn("gap-1.5", locked && "opacity-60")}>
               {locked && <Lock className="h-3 w-3" />}
@@ -95,7 +104,7 @@ export const ServiceTabs = ({
       </TabsList>
 
       {TABS.map((t) => {
-        const list = byKey[t.masterKey] ?? [];
+        const list = t.masterKeys.flatMap((mk) => byKey[mk] ?? []);
         const isVisa = t.key === "visa_services";
         const filtered = isVisa
           ? (visaCountry !== "ALL"
@@ -106,6 +115,8 @@ export const ServiceTabs = ({
           : list;
         const locked = isVisa && visaLocked;
         const noCountriesPicked = isVisa && interestedCountries !== undefined && interestedCountries.length === 0;
+        const selectionKeyForItem = (s: ServiceCatalogueItem): keyof ServiceSelection =>
+          s.master_key === "travel_financial" ? "travel_services" : "allied_services";
 
         return (
           <TabsContent key={t.key} value={t.key} className="space-y-3">
@@ -140,7 +151,8 @@ export const ServiceTabs = ({
               )}
               {filtered.map((s) => {
                 const code = s.service_code || s.id;
-                const checked = (value[t.key] ?? []).includes(code);
+                const itemKey = t.selectionKey ?? selectionKeyForItem(s);
+                const checked = (value[itemKey] ?? []).includes(code);
                 const fee = s.fee_inr ? `₹${Number(s.fee_inr).toLocaleString("en-IN")}` :
                   s.pricing_type === "FREE" ? "Free" :
                   s.pricing_type === "ON_REQUEST" ? "On request" : "—";
@@ -155,7 +167,7 @@ export const ServiceTabs = ({
                         : "border-transparent hover:bg-muted/30",
                     )}
                   >
-                    <Checkbox checked={checked} onCheckedChange={() => toggle(t.key, code)} />
+                    <Checkbox checked={checked} onCheckedChange={() => toggle(itemKey, code)} />
                     <div className="flex-1 min-w-0">
                       <div className={cn(
                         "text-sm truncate flex items-center gap-1.5",

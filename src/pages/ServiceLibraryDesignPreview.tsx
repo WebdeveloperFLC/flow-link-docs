@@ -6,15 +6,13 @@ import { ServiceAcademyKpiRow } from "@/components/service-library/design/Servic
 import { ServiceLibraryTabs } from "@/components/service-library/design/ServiceLibraryTabs";
 import { ServiceLibraryRightRail } from "@/components/service-library/design/ServiceLibraryRightRail";
 import { buildMockAcademyViewModel } from "@/lib/service-library/mockAcademyView";
-import type { AcademyNavGroup } from "@/lib/service-library/academyNav";
+import type { AcademyCategoryFilter, AcademyNavGroup } from "@/lib/service-library/academyNav";
 
-const PREVIEW_NAV: AcademyNavGroup[] = [
-  {
-    key: "visa",
-    label: "Visa & Immigration",
-    items: [{ id: "preview", label: "Canada – Student Visa", countryBadge: "CA" }],
-  },
-];
+const PREVIEW_NAV: AcademyNavGroup = {
+  key: "visa",
+  label: "Visa & Immigration",
+  items: [{ id: "preview", label: "Canada – Student Visa", countryBadge: "CA" }],
+};
 
 /**
  * Service Library design preview (static mock).
@@ -22,16 +20,19 @@ const PREVIEW_NAV: AcademyNavGroup[] = [
 export default function ServiceLibraryDesignPreview() {
   const view = buildMockAcademyViewModel();
   const [activeTab, setActiveTab] = useState("redflags");
+  const [categoryFilter] = useState<AcademyCategoryFilter>("visa");
 
   return (
     <div className="flex min-h-screen bg-background">
       <ServiceAcademySidebar
-        groups={PREVIEW_NAV}
+        group={PREVIEW_NAV}
+        categoryFilter={categoryFilter}
+        onCategoryChange={() => {}}
         activeCount={1}
         reviewCount={0}
         selectedId="preview"
         onSelect={() => {}}
-        country="ALL"
+        country="Canada"
         onCountry={() => {}}
         statusFilter="all"
         onStatusFilter={() => {}}
@@ -40,7 +41,6 @@ export default function ServiceLibraryDesignPreview() {
         userName="Preview User"
         userRole="Counselor"
         userInitials="PU"
-        showCountryFilter={false}
       />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">

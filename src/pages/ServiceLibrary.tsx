@@ -10,12 +10,21 @@ import { ServiceAcademyKpiRow } from "@/components/service-library/design/Servic
 import { ServiceLibraryTabs } from "@/components/service-library/design/ServiceLibraryTabs";
 import { ServiceLibraryRightRail } from "@/components/service-library/design/ServiceLibraryRightRail";
 import { useServiceAcademyDetail } from "@/hooks/useServiceAcademyDetail";
-import { buildAcademyNav, flattenNavItemIds } from "@/lib/service-library/academyNav";
+import {
+  buildAcademyNav,
+  flattenNavItemIds,
+  type AcademyCategoryFilter,
+} from "@/lib/service-library/academyNav";
 import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
+
+function parseCategory(raw: string | null): AcademyCategoryFilter {
+  if (raw === "coaching" || raw === "allied_travel") return raw;
+  return "visa";
+}
 
 export default function ServiceLibrary() {
   const { user, hasRole, isAdmin } = useAuth();
@@ -23,7 +32,12 @@ export default function ServiceLibrary() {
   const qc = useQueryClient();
   const [params, setParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(params.get("id"));
-  const [countryFilter, setCountryFilter] = useState(params.get("country") || "Canada");
+  const [categoryFilter, setCategoryFilter] = useState<AcademyCategoryFilter>(
+    parseCategory(params.get("cat")),
+  );
+  const [countryFilter, setCountryFilter] = useState(
+    params.get("country") || (parseCategory(params.get("cat")) === "visa" ? "ALL" : "Canada"),
+  );
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
@@ -37,9 +51,10 @@ export default function ServiceLibrary() {
   useEffect(() => {
     const p = new URLSearchParams();
     if (selectedId) p.set("id", selectedId);
-    if (countryFilter && countryFilter !== "ALL") p.set("country", countryFilter);
+    if (categoryFilter !== "visa") p.set("cat", categoryFilter);
+    if (categoryFilter === "visa" && countryFilter) p.set("country", countryFilter);
     setParams(p, { replace: true });
-  }, [selectedId, countryFilter, setParams]);
+  }, [selectedId, categoryFilter, countryFilter, setParams]);
 
   const masters = useQuery({
     queryKey: ["sl-library-masters"],
@@ -54,32 +69,51 @@ export default function ServiceLibrary() {
     },
   });
 
-  const { groups, activeCount, reviewCount } = useMemo(
+  const { group, activeCount, reviewCount } = useMemo(
     () =>
       buildAcademyNav(masters.data ?? [], {
-        countryFilter,
+        categoryFilter,
+        countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
         search: treeSearch,
         statusFilter,
       }),
-    [masters.data, countryFilter, treeSearch, statusFilter],
+    [masters.data, categoryFilter, countryFilter, treeSearch, statusFilter],
   );
 
   useEffect(() => {
-    const ids = flattenNavItemIds(groups);
+    if (categoryFilter === "visa" && countryFilter === "ALL") {
+      setSelectedId(null);
+      return;
+    }
+    const ids = flattenNavItemIds(group);
     if (selectedId && ids.includes(selectedId)) return;
-    const first = ids[0];
-    if (first) setSelectedId(first);
-  }, [selectedId, groups, countryFilter]);
+    if (categoryFilter !== "visa") {
+      const first = ids[0];
+      if (first) setSelectedId(first);
+    }
+  }, [selectedId, group, categoryFilter, countryFilter]);
+
+  const handleCategoryChange = (cat: AcademyCategoryFilter) => {
+    setCategoryFilter(cat);
+    setSelectedId(null);
+    setTreeSearch("");
+    if (cat === "visa") {
+      setCountryFilter("ALL");
+    }
+  };
 
   const handleCountryChange = (c: string) => {
     setCountryFilter(c);
+    setSelectedId(null);
     if (c !== "ALL") setDetailCountry(c);
   };
 
-  const detail = useServiceAcademyDetail(
-    selectedId,
-    detailCountry || (countryFilter !== "ALL" ? countryFilter : null),
-  );
+  const detailCountryParam =
+    categoryFilter === "visa"
+      ? detailCountry || (countryFilter !== "ALL" ? countryFilter : null)
+      : null;
+
+  const detail = useServiceAcademyDetail(selectedId, detailCountryParam);
 
   useEffect(() => {
     if (!detail.data) return;
@@ -87,6 +121,27 @@ export default function ServiceLibrary() {
     if (dc) setDetailCountry(dc);
     else if (countries[0]) setDetailCountry(countries[0]);
   }, [detail.data?.master.id, detail.data?.detailCountry]);
+
+  const showPlaceholder = !selectedId || (categoryFilter === "visa" && countryFilter === "ALL");
+
+  const placeholderMessage = useMemo(() => {
+    if (categoryFilter === "visa" && countryFilter === "ALL") {
+      return {
+        title: "Select a country",
+        hint: "Step 1 — pick a country under Visa & Immigration to see visa services.",
+      };
+    }
+    if (categoryFilter === "visa" && countryFilter !== "ALL") {
+      return {
+        title: "Select a visa service",
+        hint: "Step 2 — choose a visa type from the sidebar. Details will appear here.",
+      };
+    }
+    return {
+      title: "Select a service",
+      hint: "Choose a service from the sidebar to view training content.",
+    };
+  }, [categoryFilter, countryFilter]);
 
   const toggleSub = async (itemId: string) => {
     if (!user?.id) {
@@ -138,7 +193,9 @@ export default function ServiceLibrary() {
   return (
     <div className="flex min-h-screen bg-background">
       <ServiceAcademySidebar
-        groups={groups}
+        group={group}
+        categoryFilter={categoryFilter}
+        onCategoryChange={handleCategoryChange}
         activeCount={activeCount}
         reviewCount={reviewCount}
         selectedId={selectedId}
@@ -152,13 +209,13 @@ export default function ServiceLibrary() {
         userName={userName}
         userRole="Counselor"
         userInitials={userInitials}
-        showCountryFilter
       />
 
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {!selectedId ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Select a service from the sidebar
+        {showPlaceholder ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground px-6 text-center gap-2">
+            <p className="text-sm font-medium text-foreground">{placeholderMessage.title}</p>
+            <p className="text-xs max-w-sm">{placeholderMessage.hint}</p>
           </div>
         ) : detail.isLoading ? (
           <div className="flex-1 flex items-center justify-center">
@@ -172,7 +229,7 @@ export default function ServiceLibrary() {
               <div className="px-4 md:px-6 pt-4 md:pt-6">
                 <ServiceAcademyHero
                   view={detail.data.view}
-                  onOpenTab={setActiveTab}
+                  onOpenTab={setActiveTab as (tab: string) => void}
                   onOpenResources={() => setActiveTab("downloads")}
                   onNewApplication={() => openClientDialog("application")}
                   policyDismissed={policyDismissed}
@@ -210,7 +267,7 @@ export default function ServiceLibrary() {
               </div>
             </div>
 
-            <div className="xl:border-l bg-muted/10 px-4 md:px-6 py-6 overflow-y-auto shrink-0">
+            <div className="xl:border-l bg-muted/10 px-4 md:px-6 py-6 overflow-y-auto shrink-0 xl:w-[320px]">
               <ServiceLibraryRightRail
                 view={detail.data.view}
                 onSelectRelated={(id) => setSelectedId(id)}

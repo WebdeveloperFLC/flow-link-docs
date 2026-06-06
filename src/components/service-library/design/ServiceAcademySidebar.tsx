@@ -3,37 +3,36 @@ import flcLogo from "@/assets/flc-logo.png";
 import {
   Plane,
   GraduationCap,
-  Wallet,
+  Briefcase,
   BookOpen,
   Trophy,
   BarChart3,
   Calculator,
   Download,
   ChevronLeft,
-  ChevronDown,
-  ChevronRight,
   Search,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
-import type { AcademyNavGroup, AcademyServiceItem } from "@/lib/service-library/academyNav";
+import {
+  ACADEMY_CATEGORY_TABS,
+  type AcademyCategoryFilter,
+  type AcademyNavGroup,
+  type AcademyServiceItem,
+} from "@/lib/service-library/academyNav";
 import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
-const iconMap: Record<string, typeof Plane> = {
+const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
-  education: GraduationCap,
-  financial: Wallet,
-  kb: BookOpen,
-  progress: BarChart3,
-  achievements: Trophy,
-  "fee-calc": Calculator,
-  downloads: Download,
+  coaching: GraduationCap,
+  allied_travel: Briefcase,
 };
 
 type Props = {
-  groups: AcademyNavGroup[];
+  group: AcademyNavGroup | null;
+  categoryFilter: AcademyCategoryFilter;
+  onCategoryChange: (c: AcademyCategoryFilter) => void;
   activeCount: number;
   reviewCount: number;
   selectedId: string | null;
@@ -47,19 +46,16 @@ type Props = {
   userName?: string;
   userRole?: string;
   userInitials?: string;
-  showCountryFilter?: boolean;
 };
 
 function NavItemButton({
   item,
   selectedId,
   onSelect,
-  showBadge,
 }: {
   item: AcademyServiceItem;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  showBadge?: boolean;
 }) {
   return (
     <button
@@ -73,9 +69,6 @@ function NavItemButton({
       )}
     >
       <span className="flex-1 truncate">{item.label}</span>
-      {showBadge && item.countryBadge && (
-        <span className="text-[10px] opacity-80">{item.countryBadge}</span>
-      )}
       {item.needsReview && (
         <span className="size-1.5 rounded-full bg-amber-400 shrink-0" />
       )}
@@ -83,13 +76,17 @@ function NavItemButton({
   );
 }
 
-function groupItemCount(group: AcademyNavGroup): number {
+function groupItemCount(group: AcademyNavGroup | null): number {
+  if (!group) return 0;
   if (group.items) return group.items.length;
-  return (group.countries ?? []).reduce((n, c) => n + c.items.length, 0);
+  if (group.countryPickers) return group.countryPickers.reduce((n, c) => n + c.count, 0);
+  return 0;
 }
 
 export function ServiceAcademySidebar({
-  groups,
+  group,
+  categoryFilter,
+  onCategoryChange,
   activeCount,
   reviewCount,
   selectedId,
@@ -103,14 +100,7 @@ export function ServiceAcademySidebar({
   userName = "Counselor",
   userRole = "Staff",
   userInitials = "FL",
-  showCountryFilter = true,
 }: Props) {
-  const [expandedCountries, setExpandedCountries] = useState<Record<string, boolean>>({});
-
-  const toggleCountry = (c: string) => {
-    setExpandedCountries((prev) => ({ ...prev, [c]: !prev[c] }));
-  };
-
   const initials =
     userInitials ||
     userName
@@ -120,8 +110,11 @@ export function ServiceAcademySidebar({
       .slice(0, 2)
       .toUpperCase();
 
+  const Icon = iconMap[categoryFilter] ?? BookOpen;
+  const count = groupItemCount(group);
+
   return (
-    <aside className="w-[240px] shrink-0 flex flex-col bg-slate-900 text-slate-100 min-h-screen">
+    <aside className="w-[260px] shrink-0 flex flex-col bg-slate-900 text-slate-100 min-h-screen">
       <div className="p-4 border-b border-slate-700/80">
         <Link to="/" className="flex items-center gap-2 text-slate-400 hover:text-slate-200 text-xs mb-3">
           <ChevronLeft className="size-3.5" />
@@ -143,7 +136,25 @@ export function ServiceAcademySidebar({
       </div>
 
       <div className="p-3 space-y-2 border-b border-slate-700/80">
-        {showCountryFilter && (
+        <div className="flex flex-col gap-1">
+          {ACADEMY_CATEGORY_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => onCategoryChange(tab.key)}
+              className={cn(
+                "w-full rounded-lg px-2.5 py-2 text-left text-xs font-medium transition-colors",
+                categoryFilter === tab.key
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {categoryFilter === "visa" && (
           <Select value={country} onValueChange={onCountry}>
             <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-100 text-xs">
               <SelectValue placeholder="Country" />
@@ -158,6 +169,7 @@ export function ServiceAcademySidebar({
             </SelectContent>
           </Select>
         )}
+
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-slate-500" />
           <Input
@@ -167,6 +179,7 @@ export function ServiceAcademySidebar({
             className="h-8 pl-8 text-xs bg-slate-800 border-slate-600 text-slate-100 placeholder:text-slate-500"
           />
         </div>
+
         <div className="flex gap-1.5">
           <button
             type="button"
@@ -195,86 +208,71 @@ export function ServiceAcademySidebar({
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-3 space-y-4">
-        {groups.map((group) => {
-          const Icon = iconMap[group.key] ?? BookOpen;
-          const count = groupItemCount(group);
-          return (
-            <div key={group.key}>
-              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 px-2 mb-1">
-                <Icon className="size-3" />
-                {group.label}
-                <span className="ml-auto tabular-nums">{count}</span>
-              </div>
+      <nav className="flex-1 overflow-y-auto p-3">
+        {group ? (
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 px-2 mb-2">
+              <Icon className="size-3" />
+              {group.label}
+              <span className="ml-auto tabular-nums">{count}</span>
+            </div>
 
-              {group.items && (
+            {categoryFilter === "visa" && country !== "ALL" && (
+              <button
+                type="button"
+                onClick={() => onCountry("ALL")}
+                className="mb-2 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+              >
+                ← All countries
+              </button>
+            )}
+
+            {group.items && (
+              <ul className="space-y-0.5">
+                {categoryFilter === "visa" && country !== "ALL" && (
+                  <li className="px-2 pb-1 text-[10px] text-slate-500">Step 2 — Select a visa service</li>
+                )}
+                {group.items.map((item) => (
+                  <li key={item.id}>
+                    <NavItemButton item={item} selectedId={selectedId} onSelect={onSelect} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {group.countryPickers && (
+              <div className="space-y-1">
+                <p className="px-2 pb-1 text-[10px] text-slate-500 leading-snug">
+                  Step 1 — Select a country
+                </p>
                 <ul className="space-y-0.5">
-                  {group.items.map((item) => (
-                    <li key={item.id}>
-                      <NavItemButton
-                        item={item}
-                        selectedId={selectedId}
-                        onSelect={onSelect}
-                        showBadge={country === "ALL"}
-                      />
+                  {group.countryPickers.map((picker) => (
+                    <li key={picker.country}>
+                      <button
+                        type="button"
+                        onClick={() => onCountry(picker.country)}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
+                          country === picker.country
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-slate-300 hover:bg-slate-800",
+                        )}
+                      >
+                        <span className="flex-1 truncate">{picker.country}</span>
+                        <span className="text-[10px] opacity-80">{picker.countryBadge}</span>
+                        <span className="text-[10px] tabular-nums opacity-80">{picker.count}</span>
+                      </button>
                     </li>
                   ))}
                 </ul>
-              )}
+              </div>
+            )}
 
-              {group.countries && (
-                <ul className="space-y-1">
-                  {group.countries.map((section) => {
-                    const open = expandedCountries[section.country] ?? section.country === "Canada";
-                    return (
-                      <li key={section.country}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            toggleCountry(section.country);
-                            onCountry(section.country);
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-left transition-colors",
-                            country === section.country
-                              ? "bg-slate-800 text-slate-100"
-                              : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200",
-                          )}
-                        >
-                          {open ? (
-                            <ChevronDown className="size-3 shrink-0" />
-                          ) : (
-                            <ChevronRight className="size-3 shrink-0" />
-                          )}
-                          <span className="flex-1 truncate">{section.country}</span>
-                          <span className="text-[10px] tabular-nums opacity-70">{section.countryBadge}</span>
-                          <span className="text-[10px] tabular-nums opacity-70">{section.items.length}</span>
-                        </button>
-                        {open && (
-                          <ul className="mt-0.5 ml-2 pl-2 border-l border-slate-700 space-y-0.5">
-                            {section.items.map((item) => (
-                              <li key={item.id}>
-                                <NavItemButton
-                                  item={item}
-                                  selectedId={selectedId}
-                                  onSelect={(id) => {
-                                    onCountry(section.country);
-                                    onSelect(id);
-                                  }}
-                                />
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          );
-        })}
-        {groups.length === 0 && (
+            {categoryFilter === "visa" && country !== "ALL" && group.items && group.items.length === 0 && (
+              <p className="px-2 text-xs text-slate-500">No visa services for this country.</p>
+            )}
+          </div>
+        ) : (
           <p className="text-xs text-slate-500 px-2">No services match filters.</p>
         )}
       </nav>

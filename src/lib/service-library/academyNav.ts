@@ -1,5 +1,7 @@
 import type { Master } from "@/lib/serviceLibrary";
-import { countryBadgeCode, sortVisaCountries } from "@/lib/service-library/countryBadges";
+import { countryBadgeCode, sortVisaCountries, VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
+
+export type AcademyCategoryFilter = "visa" | "coaching" | "allied_travel";
 
 export type AcademyServiceItem = {
   id: string;
@@ -8,36 +10,53 @@ export type AcademyServiceItem = {
   needsReview?: boolean;
 };
 
-export type AcademyNavCountrySection = {
+export type AcademyNavCountryPicker = {
   country: string;
   countryBadge: string;
-  items: AcademyServiceItem[];
+  count: number;
 };
 
 export type AcademyNavGroup = {
-  key: string;
+  key: AcademyCategoryFilter;
   label: string;
-  /** Flat list (education, financial, or visa when a country is selected). */
   items?: AcademyServiceItem[];
-  /** Country sections (visa only, when country filter is ALL). */
-  countries?: AcademyNavCountrySection[];
+  countryPickers?: AcademyNavCountryPicker[];
 };
 
-const GROUP_MAP: Record<string, { key: string; label: string }> = {
-  visa_immigration: { key: "visa", label: "Visa & Immigration" },
-  coaching_services: { key: "education", label: "Education Services" },
-  allied_services: { key: "education", label: "Education Services" },
-  travel_financial: { key: "financial", label: "Financial" },
-};
+export const ACADEMY_CATEGORY_TABS: { key: AcademyCategoryFilter; label: string }[] = [
+  { key: "visa", label: "Visa & Immigration" },
+  { key: "coaching", label: "Coaching" },
+  { key: "allied_travel", label: "Allied & Travel" },
+];
 
 type MasterRow = Master & {
   service_library_countries?: { country: string }[];
   academy_metadata?: unknown;
 };
 
-function itemLabel(m: MasterRow): string {
+const LEGACY_SUB_SERVICES = new Set(["application", "assessment"]);
+
+function isLegacyVisaRow(m: MasterRow): boolean {
+  const meta = m.academy_metadata as { displayName?: string } | null | undefined;
+  if (meta?.displayName) return false;
+
+  const sub = m.sub_service.trim().toLowerCase();
+  const svc = m.service.trim().toLowerCase();
+  if (LEGACY_SUB_SERVICES.has(sub)) return true;
+  if (sub === svc) return true;
+  if (VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === sub)) return true;
+
+  return false;
+}
+
+function itemLabel(m: MasterRow, activeCountry?: string): string {
   const meta = m.academy_metadata as { displayName?: string } | undefined;
   if (meta?.displayName) return meta.displayName;
+
+  if (activeCountry && activeCountry !== "ALL") {
+    return m.sub_service;
+  }
+
   const countries = (m.service_library_countries ?? []).map((c) => c.country);
   const country = countries.length === 1 ? countries[0] : m.service;
   if (m.service_category === "visa_immigration" && country) {
@@ -62,25 +81,34 @@ function matchesSearch(m: MasterRow, q: string): boolean {
   return hay.includes(q);
 }
 
-function toItem(m: MasterRow, needsReview: boolean, badge?: string): AcademyServiceItem {
+function toItem(m: MasterRow, needsReview: boolean, badge?: string, activeCountry?: string): AcademyServiceItem {
   return {
     id: m.id,
-    label: itemLabel(m),
+    label: itemLabel(m, activeCountry),
     countryBadge: badge,
     needsReview,
   };
 }
 
+function matchesCategory(m: MasterRow, category: AcademyCategoryFilter): boolean {
+  if (category === "visa") return m.service_category === "visa_immigration";
+  if (category === "coaching") return m.service_category === "coaching_services";
+  return m.service_category === "allied_services" || m.service_category === "travel_financial";
+}
+
 export function buildAcademyNav(
   masters: MasterRow[],
-  opts: { countryFilter: string; search: string; statusFilter: "all" | "active" | "review" },
-): { groups: AcademyNavGroup[]; activeCount: number; reviewCount: number } {
+  opts: {
+    categoryFilter: AcademyCategoryFilter;
+    countryFilter: string;
+    search: string;
+    statusFilter: "all" | "active" | "review";
+  },
+): { group: AcademyNavGroup | null; activeCount: number; reviewCount: number } {
   const q = opts.search.trim().toLowerCase();
 
-  const flatBuckets: Record<string, AcademyServiceItem[]> = {
-    education: [],
-    financial: [],
-  };
+  const coachingItems: AcademyServiceItem[] = [];
+  const alliedTravelItems: AcademyServiceItem[] = [];
   const visaByCountry: Record<string, AcademyServiceItem[]> = {};
   const visaFlat: AcademyServiceItem[] = [];
 
@@ -96,27 +124,33 @@ export function buildAcademyNav(
 
     if (opts.statusFilter === "review" && !needsReview) continue;
     if (!matchesSearch(m, q)) continue;
-
-    const g = GROUP_MAP[m.service_category];
-    if (!g) continue;
+    if (!matchesCategory(m, opts.categoryFilter)) continue;
 
     const countries = (m.service_library_countries ?? []).map((c) => c.country);
 
     if (m.service_category === "visa_immigration") {
+      if (isLegacyVisaRow(m)) continue;
+
       if (opts.countryFilter !== "ALL") {
         if (!countries.includes(opts.countryFilter)) continue;
-        visaFlat.push(toItem(m, needsReview, countryBadgeCode(opts.countryFilter)));
+        visaFlat.push(toItem(m, needsReview, countryBadgeCode(opts.countryFilter), opts.countryFilter));
         continue;
       }
       const buckets = countries.length > 0 ? countries : ["Unassigned"];
       for (const country of buckets) {
         visaByCountry[country] ??= [];
-        visaByCountry[country].push(toItem(m, needsReview, countryBadgeCode(country)));
+        if (!visaByCountry[country].some((i) => i.id === m.id)) {
+          visaByCountry[country].push(toItem(m, needsReview, countryBadgeCode(country), country));
+        }
       }
       continue;
     }
 
-    flatBuckets[g.key].push(toItem(m, needsReview));
+    if (m.service_category === "coaching_services") {
+      coachingItems.push(toItem(m, needsReview));
+    } else {
+      alliedTravelItems.push(toItem(m, needsReview));
+    }
   }
 
   const sortItems = (items: AcademyServiceItem[]) =>
@@ -126,59 +160,57 @@ export function buildAcademyNav(
     visaByCountry[key] = sortItems(visaByCountry[key]);
   }
 
-  const groups: AcademyNavGroup[] = [];
-
-  const visaCountryKeys = sortVisaCountries(Object.keys(visaByCountry));
-  if (visaCountryKeys.length > 0) {
+  if (opts.categoryFilter === "visa") {
+    const visaCountryKeys = sortVisaCountries(Object.keys(visaByCountry));
+    if (visaCountryKeys.length === 0) {
+      return { group: null, activeCount, reviewCount };
+    }
     if (opts.countryFilter !== "ALL") {
-      groups.push({
+      return {
+        group: {
+          key: "visa",
+          label: "Visa & Immigration",
+          items: sortItems(visaFlat),
+        },
+        activeCount,
+        reviewCount,
+      };
+    }
+    return {
+      group: {
         key: "visa",
         label: "Visa & Immigration",
-        items: sortItems(visaFlat),
-      });
-    } else {
-      groups.push({
-        key: "visa",
-        label: "Visa & Immigration",
-        countries: visaCountryKeys.map((country) => ({
+        countryPickers: visaCountryKeys.map((country) => ({
           country,
           countryBadge: countryBadgeCode(country),
-          items: visaByCountry[country],
+          count: visaByCountry[country].length,
         })),
-      });
-    }
+      },
+      activeCount,
+      reviewCount,
+    };
   }
 
-  if (flatBuckets.education.length > 0) {
-    groups.push({
-      key: "education",
-      label: "Education Services",
-      items: sortItems(flatBuckets.education),
-    });
-  }
-  if (flatBuckets.financial.length > 0) {
-    groups.push({
-      key: "financial",
-      label: "Financial",
-      items: sortItems(flatBuckets.financial),
-    });
+  if (opts.categoryFilter === "coaching") {
+    return {
+      group: coachingItems.length
+        ? { key: "coaching", label: "Coaching", items: sortItems(coachingItems) }
+        : null,
+      activeCount,
+      reviewCount,
+    };
   }
 
-  return { groups, activeCount, reviewCount };
+  return {
+    group: alliedTravelItems.length
+      ? { key: "allied_travel", label: "Allied & Travel", items: sortItems(alliedTravelItems) }
+      : null,
+    activeCount,
+    reviewCount,
+  };
 }
 
-/** Collect all selectable service ids from nav groups (depth-first). */
-export function flattenNavItemIds(groups: AcademyNavGroup[]): string[] {
-  const ids: string[] = [];
-  for (const g of groups) {
-    if (g.items) {
-      for (const item of g.items) ids.push(item.id);
-    }
-    if (g.countries) {
-      for (const section of g.countries) {
-        for (const item of section.items) ids.push(item.id);
-      }
-    }
-  }
-  return ids;
+export function flattenNavItemIds(group: AcademyNavGroup | null): string[] {
+  if (!group?.items) return [];
+  return group.items.map((i) => i.id);
 }
