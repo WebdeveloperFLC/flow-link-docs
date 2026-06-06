@@ -166,7 +166,7 @@ export default function CourseReviewPage() {
   };
   const loadAux = async () => {
     const [i, l] = await Promise.all([
-      supabase.from("upi_institutions").select("id,name,country_name,logo_url").order("name"),
+      supabase.from("upi_institutions").select("id,name,country_name,logo_url,website_url").order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
     ]);
     const err = i.error ?? l.error;

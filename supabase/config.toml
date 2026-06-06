@@ -86,3 +86,6 @@ verify_jwt = true
 
 [functions.admin-users]
 verify_jwt = true
+
+[functions.upi-fetch-institution-logo]
+verify_jwt = true

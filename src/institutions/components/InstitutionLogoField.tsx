@@ -3,24 +3,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, Trash2, Link2 } from "lucide-react";
+import { ImagePlus, Loader2, Trash2, Link2, Sparkles } from "lucide-react";
 import { InstitutionLogo } from "./InstitutionLogo";
 import {
   removeInstitutionLogo,
   setInstitutionLogoUrl,
   uploadInstitutionLogo,
 } from "../lib/institutionLogo";
+import { describeLogoFetchError, fetchInstitutionLogo } from "../lib/fetchInstitutionLogo";
 
 export function InstitutionLogoField({
   institutionId,
   institutionName,
   logoUrl,
+  websiteUrl,
   canEdit,
   onUpdated,
 }: {
   institutionId: string;
   institutionName: string;
   logoUrl: string | null;
+  websiteUrl?: string | null;
   canEdit: boolean;
   onUpdated: (logoUrl: string | null) => void;
 }) {
@@ -79,6 +82,34 @@ export function InstitutionLogoField({
     }
   };
 
+  const onFetchFromWebsite = async () => {
+    if (!canEdit) return;
+    if (!websiteUrl?.trim()) {
+      return toast.error("Add a website URL below, then try again");
+    }
+    setBusy(true);
+    const t = toast.loading("Fetching logo from website…");
+    try {
+      const result = await fetchInstitutionLogo(institutionId, { force: !!logoUrl });
+      toast.dismiss(t);
+      if (result.skipped) {
+        toast.info("Logo already set — use Remove first to re-fetch");
+        return;
+      }
+      if (result.ok && result.logo_url) {
+        onUpdated(result.logo_url);
+        toast.success("Logo fetched from website");
+        return;
+      }
+      toast.error(describeLogoFetchError(result.error));
+    } catch (e) {
+      toast.dismiss(t);
+      toast.error(e instanceof Error ? e.message : "Fetch failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-3 border rounded-lg p-4 bg-muted/20">
       <Label className="text-xs text-muted-foreground">Institution logo</Label>
@@ -87,6 +118,7 @@ export function InstitutionLogoField({
         <div className="flex-1 space-y-2 min-w-0">
           <p className="text-xs text-muted-foreground">
             Shown on Course Review, institution pages, and Course Finder after publish.
+            {websiteUrl?.trim() ? " Auto-fetch tries Clearbit, then the site og:image and favicon." : ""}
           </p>
           {canEdit && (
             <div className="flex flex-wrap gap-2">
@@ -109,6 +141,16 @@ export function InstitutionLogoField({
               >
                 {busy ? <Loader2 className="size-4 mr-1 animate-spin" /> : <ImagePlus className="size-4 mr-1" />}
                 Upload logo
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={busy || !websiteUrl?.trim()}
+                onClick={onFetchFromWebsite}
+              >
+                {busy ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Sparkles className="size-4 mr-1" />}
+                Fetch from website
               </Button>
               <Button
                 type="button"

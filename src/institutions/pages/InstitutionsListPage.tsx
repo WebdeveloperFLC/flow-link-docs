@@ -7,7 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Globe } from "lucide-react";
+import { Plus, Globe, Sparkles, Loader2 } from "lucide-react";
+import { fetchMissingInstitutionLogos } from "../lib/fetchInstitutionLogo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { UpiInstitution } from "../types/upi";
@@ -27,6 +28,9 @@ export default function InstitutionsListPage() {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("");
   const [website, setWebsite] = useState("");
+  const [fetchingLogos, setFetchingLogos] = useState(false);
+
+  const missingLogoCount = items.filter((i) => !i.logo_url && i.website_url?.trim()).length;
 
   const load = async () => {
     setLoading(true);
@@ -51,6 +55,31 @@ export default function InstitutionsListPage() {
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
+
+  const fetchMissingLogos = async () => {
+    if (!canEdit || fetchingLogos) return;
+    setFetchingLogos(true);
+    const t = toast.loading("Fetching missing logos…");
+    try {
+      const resp = await fetchMissingInstitutionLogos();
+      toast.dismiss(t);
+      const fetched = resp.fetched ?? 0;
+      const failed = resp.failed ?? 0;
+      if (fetched > 0) {
+        toast.success(`Fetched ${fetched} logo${fetched === 1 ? "" : "s"} from institution websites`);
+        load();
+      } else if (failed > 0) {
+        toast.warning(`No logos found for ${failed} institution${failed === 1 ? "" : "s"} — upload manually`);
+      } else {
+        toast.info("All institutions with websites already have logos");
+      }
+    } catch (e) {
+      toast.dismiss(t);
+      toast.error(e instanceof Error ? e.message : "Logo fetch failed");
+    } finally {
+      setFetchingLogos(false);
+    }
+  };
 
   const create = async () => {
     if (!name.trim()) return toast.error("Name required");
@@ -108,6 +137,12 @@ export default function InstitutionsListPage() {
             ))}
           </div>
           <div className="flex-1" />
+          {canEdit && missingLogoCount > 0 && (
+            <Button size="sm" variant="outline" disabled={fetchingLogos} onClick={fetchMissingLogos}>
+              {fetchingLogos ? <Loader2 className="size-4 mr-1 animate-spin" /> : <Sparkles className="size-4 mr-1" />}
+              Fetch missing logos ({missingLogoCount})
+            </Button>
+          )}
           {canEdit && <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button><Plus className="size-4" /> Add institution</Button></DialogTrigger>
             <DialogContent>
