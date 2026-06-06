@@ -50,19 +50,6 @@ const OUTBOUND_ACCEPT = "image/jpeg,image/png,image/webp,application/pdf";
 const MAX_OUTBOUND_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_OUTBOUND_DOC_BYTES = 16 * 1024 * 1024;
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64);
-    };
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
 function outboundMessageType(mime: string): "image" | "document" | null {
   if (mime.startsWith("image/")) return "image";
   if (mime === "application/pdf") return "document";
@@ -299,7 +286,7 @@ const WhatsAppInbox = () => {
         const message_type = outboundMessageType(mime);
         if (!message_type) throw new Error("Unsupported file type");
         media = {
-          base64: await fileToBase64(pendingFile),
+          file: pendingFile,
           mime_type: mime,
           message_type,
           filename: pendingFile.name,

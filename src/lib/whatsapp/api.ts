@@ -123,11 +123,26 @@ export async function markConversationRead(conversationId: string): Promise<void
 }
 
 export type StaffReplyMedia = {
-  base64: string;
+  file: File;
   mime_type: string;
   message_type: "image" | "document";
   filename?: string;
 };
+
+async function uploadOutboundWhatsAppMedia(conversationId: string, file: File): Promise<string> {
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_") || "attachment";
+  const path = `${conversationId}/outbound-${crypto.randomUUID()}-${safeName}`;
+  const { error } = await supabase.storage
+    .from("whatsapp-media")
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (error) {
+    if (error.message?.toLowerCase().includes("policy")) {
+      throw new Error("Upload blocked — run whatsapp_outbound_media_upload migration and redeploy");
+    }
+    throw new Error(error.message || "Failed to upload attachment");
+  }
+  return path;
+}
 
 export async function sendStaffReply(
   conversationId: string,
@@ -140,13 +155,20 @@ export async function sendStaffReply(
     text: body.trim(),
   };
   if (media) {
-    payload.media_base64 = media.base64;
+    const storagePath = await uploadOutboundWhatsAppMedia(conversationId, media.file);
+    payload.media_storage_path = storagePath;
     payload.mime_type = media.mime_type;
     payload.message_type = media.message_type;
     if (media.filename) payload.filename = media.filename;
   }
   const data = await postEdgeFunction("whatsapp-send", payload);
-  if (data?.error) throw new Error(String(data.error));
+  if (data?.error) {
+    const err = String(data.error);
+    if (err.includes("conversation_id and text required")) {
+      throw new Error("whatsapp-send needs redeploy — media attachments require the latest edge function");
+    }
+    throw new Error(err);
+  }
   return { meta_sent: !!data?.meta_sent };
 }
 
