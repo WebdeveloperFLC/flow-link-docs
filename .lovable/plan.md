@@ -1,60 +1,22 @@
-# Fix: counselor image/PDF send fails with "Upload blocked"
+## Diagnosis
 
-## Root cause
+The runtime error is `{"error":"conversation_id and text required"}` from `supabase/functions/whatsapp-send/index.ts`. That exact string does **not** exist in the current source — the local function now returns `"text or media required"` and fully supports media via `media_storage_path`. The client (`src/lib/whatsapp/api.ts`) even has a guard for this exact message: *"whatsapp-send needs redeploy — media attachments require the latest edge function"*.
 
-When a counselor attaches an image or PDF, the client first uploads the file to the `whatsapp-media` Storage bucket at `{conversation_id}/outbound-...`, then calls the `whatsapp-send` edge function with `media_storage_path`.
-
-The bucket currently has only two RLS policies on `storage.objects`:
-
-- `whatsapp_media_staff_read` (SELECT)
-- `whatsapp_media_admin_delete` (DELETE)
-
-There is **no INSERT policy**, so the upload is rejected by RLS. The client catches the "policy" error and shows the toast "Upload blocked — run whatsapp_outbound_media_upload migration and redeploy" (see `src/lib/whatsapp/api.ts:140`). Inbound media works because it is written by the edge function with the service role, which bypasses RLS.
+Translation: the deployed edge function on Lovable Cloud is the **old** version (text-only). The earlier "redeploy" round refreshed the others but this build is stale — likely because the boot timestamps in logs predate the recent media changes. The storage RLS migration was the right fix for the upload step, but the send step still hits an outdated function that rejects media-only payloads.
 
 ## Fix
 
-One migration that adds an INSERT (and a matching UPDATE, since the client uses `upsert: false` but we want safe re-tries) policy on `storage.objects` for the `whatsapp-media` bucket, scoped to staff who can edit the conversation in the first folder segment.
+Single action, no code changes:
 
-```sql
-create policy "whatsapp_media_staff_outbound_insert"
-on storage.objects
-for insert
-to authenticated
-with check (
-  bucket_id = 'whatsapp-media'
-  and public.whatsapp_can_edit_conversation(
-        auth.uid(),
-        ((storage.foldername(name))[1])::uuid
-      )
-);
-
-create policy "whatsapp_media_staff_outbound_update"
-on storage.objects
-for update
-to authenticated
-using (
-  bucket_id = 'whatsapp-media'
-  and public.whatsapp_can_edit_conversation(
-        auth.uid(),
-        ((storage.foldername(name))[1])::uuid
-      )
-)
-with check (
-  bucket_id = 'whatsapp-media'
-  and public.whatsapp_can_edit_conversation(
-        auth.uid(),
-        ((storage.foldername(name))[1])::uuid
-      )
-);
-```
-
-No frontend or edge function code changes are required. `whatsapp-send` already downloads from the path, forwards to Meta, and persists the message row.
+1. Redeploy `whatsapp-send` so the current source (which accepts `media_storage_path` + `mime_type` and downloads from the `whatsapp-media` bucket) goes live.
 
 ## Verification
 
-1. Run the migration (auto-applies once approved).
-2. As a counselor, open a WhatsApp thread, attach an image, send. Toast should switch from "Upload blocked…" to a successful send and the image should appear in the thread.
-3. Repeat with a PDF.
-4. Confirm the client receives both in WhatsApp.
+After redeploy:
 
-No redeploy of edge functions is needed (they were already redeployed earlier today and read from the bucket via service role).
+1. From counselor view, send an image attachment with no caption → should deliver (`meta_sent: true`).
+2. Send a PDF with a caption → should deliver as document with caption.
+3. Send a plain text reply → should still work (no regression).
+4. Tail `whatsapp-send` logs to confirm no 400s and the `[Image]` / `[Document: filename]` rows appear in the thread.
+
+No frontend, DB, or secrets changes are needed.
