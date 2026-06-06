@@ -21,7 +21,7 @@ import {
   notifyQueueUnassignedThread,
 } from "../_shared/whatsapp/whatsappNotifications.ts";
 import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
-import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
+import { intakeReadyToConfirm, isIntakeYesConfirm, nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
 import {
   isMetaWebhookPayload,
@@ -404,66 +404,107 @@ Deno.serve(async (req) => {
     && messageType === "text"
   ) {
     const intakeData = (conv.intake_data || {}) as Record<string, unknown>;
-    const { data: recentMsgs } = await admin
-      .from("whatsapp_messages")
-      .select("direction, body")
-      .eq("conversation_id", conv.id)
-      .order("created_at", { ascending: false })
-      .limit(8);
+    try {
+      const { data: recentMsgs } = await admin
+        .from("whatsapp_messages")
+        .select("direction, body")
+        .eq("conversation_id", conv.id)
+        .order("created_at", { ascending: false })
+        .limit(8);
 
-    const { replies: counselReplies, requestHandoff } = await nextGeminiCounseling(
-      admin,
-      intakeData as any,
-      text,
-      (recentMsgs ?? []).reverse(),
-    );
-
-    if (requestHandoff || clientRequestsCounselor(text)) {
-      const branchResolved = await resolveBranchFromPreference(
+      const { replies: counselReplies, requestHandoff } = await nextGeminiCounseling(
         admin,
-        intakeData.branch_preference as string | undefined,
+        intakeData as any,
+        text,
+        (recentMsgs ?? []).reverse(),
       );
-      const firstName = String(intakeData.full_name || "there").split(/\s+/)[0];
-      const assignResult = await assignCounselorAfterIntake(admin, {
-        conversationId: conv.id,
-        leadId: conv.lead_id,
-        branchId: branchResolved.branchId,
-        branchLabel: branchResolved.branchLabel,
-        contactName: String(intakeData.full_name || conv.phone_display || phoneE164),
-        firstName,
-        businessLineType: businessLine?.line_type,
-      });
 
-      if (assignResult.assigned) {
-        replies.push(
-          `Thank you! ${assignResult.counselorName} from Future Link will continue this chat with you shortly.`,
+      if (requestHandoff || clientRequestsCounselor(text)) {
+        const branchResolved = await resolveBranchFromPreference(
+          admin,
+          intakeData.branch_preference as string | undefined,
         );
-      } else {
-        await admin.from("whatsapp_conversations").update({
-          status: "awaiting_assignment_confirm",
-          updated_at: now,
-        }).eq("id", conv.id);
-        await notifyQueueUnassignedThread(admin, {
+        const firstName = String(intakeData.full_name || "there").split(/\s+/)[0];
+        const assignResult = await assignCounselorAfterIntake(admin, {
           conversationId: conv.id,
-          contactLabel: conv.phone_display || phoneE164,
-          reason: "intake_complete",
+          leadId: conv.lead_id,
+          branchId: branchResolved.branchId,
+          branchLabel: branchResolved.branchLabel,
+          contactName: String(intakeData.full_name || conv.phone_display || phoneE164),
+          firstName,
+          businessLineType: businessLine?.line_type,
         });
-        replies.push(
-          counselReplies[0]
-            || "Thank you! A Future Link counselor will respond on this chat shortly.",
-        );
+
+        if (assignResult.assigned) {
+          replies.push(
+            `Thank you! ${assignResult.counselorName} from Future Link will continue this chat with you shortly.`,
+          );
+        } else {
+          await admin.from("whatsapp_conversations").update({
+            status: "awaiting_assignment_confirm",
+            updated_at: now,
+          }).eq("id", conv.id);
+          await notifyQueueUnassignedThread(admin, {
+            conversationId: conv.id,
+            contactLabel: conv.phone_display || phoneE164,
+            reason: "intake_complete",
+          });
+          replies.push(
+            counselReplies[0]
+              || "Thank you! A Future Link counselor will respond on this chat shortly.",
+          );
+        }
+      } else {
+        replies.push(...counselReplies);
       }
-    } else {
+    } catch (e) {
+      console.error("[whatsapp-webhook] counseling:", e);
+      replies.push(
+        "Thanks for your message. Ask about documents, fees, or timelines — or reply COUNSELOR for our team.",
+      );
+    }
+  } else if (
+    aiMode !== "off"
+    && conv.status === "unmatched_ai_intake"
+    && intakeStep === "done"
+    && text.trim()
+    && messageType === "text"
+  ) {
+    // Recovery: intake marked done but status never advanced (failed YES handler)
+    try {
+      const { replies: counselReplies } = await nextGeminiCounseling(
+        admin,
+        intake as any,
+        text,
+      );
+      await admin.from("whatsapp_conversations").update({
+        status: "ai_counseling",
+        updated_at: now,
+      }).eq("id", conv.id);
       replies.push(...counselReplies);
+    } catch (e) {
+      console.error("[whatsapp-webhook] counseling recovery:", e);
+      replies.push(
+        "Thanks for your message. Reply COUNSELOR to connect with our team, or ask your question again.",
+      );
     }
   } else if (
     aiMode !== "off"
     && (conv.status === "unmatched_ai_intake" || intakeInProgress)
+    && intakeStep !== "done"
     && text.trim()
     && messageType === "text"
   ) {
     const intakeFn = useGemini ? nextGeminiReply : nextRulesReply;
-    const { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
+    let { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
+
+    // Belt-and-suspenders: YES at confirm must always complete intake
+    if (!confirmed && isIntakeYesConfirm(text) && intakeReadyToConfirm(intake as any)) {
+      const rules = nextRulesReply(intake as any, text);
+      nextIntake = { ...intake, ...rules.intake, step: "done" };
+      confirmed = rules.confirmed;
+      if (!botReplies.length) botReplies = rules.replies;
+    }
 
     if (confirmed) {
       const { first_name, last_name } = splitName(String(nextIntake.full_name || "WhatsApp Lead"));
@@ -554,6 +595,9 @@ Deno.serve(async (req) => {
         intake_data: nextIntake,
         updated_at: now,
       }).eq("id", conv.id);
+      if (!botReplies.length) {
+        botReplies.push("Please reply YES to confirm, or RESTART to begin again.");
+      }
     }
 
     replies.push(...botReplies);

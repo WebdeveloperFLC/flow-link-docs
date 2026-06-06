@@ -191,3 +191,12 @@ export function splitName(fullName: string): { first_name: string; last_name: st
   if (parts.length === 1) return { first_name: parts[0], last_name: "Lead" };
   return { first_name: parts[0], last_name: parts.slice(1).join(" ") };
 }
+
+export function isIntakeYesConfirm(text: string): boolean {
+  return /^(yes|y|confirm|ok|okay)$/i.test((text || "").trim());
+}
+
+export function intakeReadyToConfirm(intake: IntakeData): boolean {
+  return !!(intake.country && intake.level && intake.full_name
+    && (intake.step === "confirm" || intake.step === "done"));
+}

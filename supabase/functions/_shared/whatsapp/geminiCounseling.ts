@@ -47,7 +47,10 @@ export async function nextGeminiCounseling(
     };
   }
 
-  const context = await fetchServiceLibraryContext(admin, intake.country, intake.level);
+  const context = await fetchServiceLibraryContext(admin, intake.country, intake.level).catch((e) => {
+    console.warn("[geminiCounseling] service library:", e);
+    return "Service library temporarily unavailable.";
+  });
   const history = (recentMessages ?? [])
     .slice(-6)
     .map((m) => `${m.direction === "inbound" ? "Client" : "Assistant"}: ${m.body}`)
