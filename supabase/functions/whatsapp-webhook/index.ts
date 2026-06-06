@@ -6,10 +6,14 @@ import { DEFAULT_HELPLINE_LINE_ID, resolveBusinessLine } from "../_shared/whatsa
 import {
   applyWhatsAppAutoAssignment,
   autoAssignEnabled,
-  notifyCounselorWhatsAppAssigned,
   pickCounselorForAssignment,
   resolveBranchFromPreference,
 } from "../_shared/whatsapp/autoAssign.ts";
+import {
+  notifyCounselorInboundMessage,
+  notifyCounselorWhatsAppAssigned,
+  notifyQueueUnassignedThread,
+} from "../_shared/whatsapp/whatsappNotifications.ts";
 import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
 import { nextRulesReply, splitName } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
@@ -416,6 +420,14 @@ Deno.serve(async (req) => {
           status: finalStatus,
           updated_at: now,
         }).eq("id", conv.id);
+
+        if (finalStatus === "awaiting_assignment_confirm") {
+          await notifyQueueUnassignedThread(admin, {
+            conversationId: conv.id,
+            contactLabel: conv.phone_display || phoneE164,
+            reason: "intake_complete",
+          });
+        }
       } else {
         await admin.from("whatsapp_conversations").update({
           intake_data: nextIntake,
@@ -435,6 +447,35 @@ Deno.serve(async (req) => {
     // Known contact — counselor handles in CRM (intake already finished)
   } else if (conv.status === "awaiting_assignment_confirm") {
     replies.push("Thank you for your message. A counselor will respond shortly.");
+  }
+
+  const contactLabel = String(conv.phone_display || phoneE164);
+  const skipInboundNotify = conv.status === "unmatched_ai_intake" || intakeInProgress;
+
+  const { data: convNow } = await admin
+    .from("whatsapp_conversations")
+    .select("assigned_user_id, status")
+    .eq("id", conv.id)
+    .maybeSingle();
+  const current = convNow ?? conv;
+
+  if (!skipInboundNotify && current.assigned_user_id
+    && (current.status === "assigned_active" || current.status === "existing_client")) {
+    await notifyCounselorInboundMessage(admin, {
+      counselorId: current.assigned_user_id as string,
+      conversationId: conv.id,
+      contactLabel,
+      preview: displayBody,
+      providerMessageId,
+    });
+  }
+
+  if (current.status === "awaiting_assignment_confirm" && !current.assigned_user_id) {
+    await notifyQueueUnassignedThread(admin, {
+      conversationId: conv.id,
+      contactLabel,
+      reason: "new_message",
+    });
   }
 
   for (const reply of replies) {

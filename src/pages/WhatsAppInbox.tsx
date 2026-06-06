@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   assignConversation,
+  whatsAppSlaBadge,
   clearAllTestConversations,
   closeConversation,
   deleteConversation,
@@ -286,6 +287,11 @@ const WhatsAppInbox = () => {
     [businessLines, active?.business_line_id],
   );
 
+  const activeSla = useMemo(
+    () => (active ? whatsAppSlaBadge(active) : null),
+    [active],
+  );
+
   const sessionOpen = isWhatsAppSessionOpen(active?.last_inbound_at);
 
   const selectedTemplate = useMemo(
@@ -401,7 +407,13 @@ const WhatsAppInbox = () => {
   const handleAssign = async () => {
     if (!active || !assignTo) return;
     try {
-      await assignConversation(active.id, assignTo, active.lead_id, user?.id);
+      await assignConversation(
+        active.id,
+        assignTo,
+        active.lead_id,
+        user?.id,
+        active.phone_display || formatPhoneDisplay(active.phone_e164),
+      );
       await listAssignmentHistory(active.id).then(setAssignments);
       toast.success("Conversation assigned");
       await refreshConversations();
@@ -547,7 +559,9 @@ const WhatsAppInbox = () => {
                 No conversations yet. Use Simulate inbound to test.
               </div>
             )}
-            {conversations.map((c) => (
+            {conversations.map((c) => {
+              const sla = whatsAppSlaBadge(c);
+              return (
               <button
                 key={c.id}
                 type="button"
@@ -561,18 +575,28 @@ const WhatsAppInbox = () => {
                   <span className="font-medium text-sm truncate">
                     {c.phone_display || formatPhoneDisplay(c.phone_e164)}
                   </span>
-                  {c.unread_count_staff > 0 && (
-                    <Badge variant="default" className="text-[10px] px-1.5">
-                      {c.unread_count_staff}
-                    </Badge>
-                  )}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {sla && (
+                      <Badge
+                        variant={sla.tone === "destructive" ? "destructive" : "outline"}
+                        className="text-[10px] px-1.5 text-amber-700 border-amber-300"
+                      >
+                        {sla.text}
+                      </Badge>
+                    )}
+                    {c.unread_count_staff > 0 && (
+                      <Badge variant="default" className="text-[10px] px-1.5">
+                        {c.unread_count_staff}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                   <MessageCircle className="size-3" />
                   {STATUS_LABELS[c.status]}
                 </div>
               </button>
-            ))}
+            );})}
           </div>
         </Card>
 
@@ -597,6 +621,14 @@ const WhatsAppInbox = () => {
                     {activeLine && (
                       <Badge variant="secondary" className="text-[10px]">
                         {activeLine.label}
+                      </Badge>
+                    )}
+                    {activeSla && (
+                      <Badge
+                        variant={activeSla.tone === "destructive" ? "destructive" : "outline"}
+                        className="text-[10px] text-amber-700 border-amber-300"
+                      >
+                        {activeSla.text}
                       </Badge>
                     )}
                   </div>

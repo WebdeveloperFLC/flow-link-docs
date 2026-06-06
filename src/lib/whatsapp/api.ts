@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { notifyUsers } from "@/lib/appNotifications";
 import type {
   WhatsAppAssignment,
   WhatsAppBusinessLine,
@@ -234,11 +235,34 @@ export async function sendStaffTemplate(
   return { meta_sent: !!data?.meta_sent };
 }
 
+export function whatsAppSlaBadge(
+  c: WhatsAppConversation,
+): { text: string; tone: "warning" | "destructive" } | null {
+  const ref = c.last_inbound_at || c.created_at;
+  if (!ref) return null;
+  const hours = (Date.now() - new Date(ref).getTime()) / (60 * 60 * 1000);
+
+  if (c.status === "awaiting_assignment_confirm" && !c.assigned_user_id && hours >= 2) {
+    const h = Math.floor(hours);
+    return {
+      text: `Unassigned ${h}h`,
+      tone: hours >= 24 ? "destructive" : "warning",
+    };
+  }
+
+  if (c.status === "assigned_active" && (c.unread_count_staff ?? 0) > 0 && hours >= 4) {
+    return { text: `Waiting ${Math.floor(hours)}h`, tone: "warning" };
+  }
+
+  return null;
+}
+
 export async function assignConversation(
   conversationId: string,
   counselorId: string,
   leadId?: string | null,
   assignedByUserId?: string | null,
+  contactLabel?: string | null,
 ): Promise<void> {
   const patch: Record<string, unknown> = {
     assigned_user_id: counselorId,
@@ -264,6 +288,18 @@ export async function assignConversation(
       .update({ assigned_counselor_id: counselorId })
       .eq("id", leadId);
   }
+
+  const label = contactLabel?.trim() || "Helpline contact";
+  await notifyUsers({
+    userIds: [counselorId],
+    category: "client_assigned",
+    title: "WhatsApp thread assigned",
+    body: `${label} — assigned to you in the helpline inbox.`,
+    link: "/whatsapp",
+    entityType: "whatsapp_conversation",
+    entityId: conversationId,
+    dedupeKey: `wa_assign:${conversationId}:${counselorId}`,
+  });
 }
 
 export async function listAssignmentHistory(conversationId: string): Promise<WhatsAppAssignment[]> {

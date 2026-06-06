@@ -116,33 +116,3 @@ export async function applyWhatsAppAutoAssignment(
     await admin.from("leads").update({ assigned_counselor_id: opts.counselorId }).eq("id", opts.leadId);
   }
 }
-
-export async function notifyCounselorWhatsAppAssigned(
-  admin: SupabaseClient,
-  opts: {
-    counselorId: string;
-    conversationId: string;
-    contactName?: string | null;
-    branchLabel?: string | null;
-  },
-): Promise<void> {
-  const name = opts.contactName?.trim() || "New contact";
-  const branch = opts.branchLabel ? ` (${opts.branchLabel})` : "";
-
-  try {
-    await admin.from("app_notifications").upsert({
-      user_id: opts.counselorId,
-      category: "client_assigned",
-      severity: "info",
-      title: "WhatsApp helpline assigned",
-      body: `${name}${branch} — new WhatsApp thread assigned to you.`,
-      link: `/whatsapp`,
-      entity_type: "whatsapp_conversation",
-      entity_id: opts.conversationId,
-      dedupe_key: `wa_assign:${opts.conversationId}:${opts.counselorId}`,
-      is_read: false,
-    }, { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
-  } catch (e) {
-    console.warn("[autoAssign] notification:", e);
-  }
-}

@@ -294,6 +294,7 @@ Optional Gemini intake
 | **2** | Production helpline + business lines + assignment log + 24h UX | **Live** |
 | **2b** | Meta message templates (after 24h) | **Live** |
 | **3** | Branch intake + auto-assign counselor + Gemini + assign notification | **Live** |
+| **4** | Inbound alerts + queue alerts + manual assign notify + SLA badges | **Live** |
 
 ### Phase 2 admin setup (one-time)
 
@@ -346,6 +347,20 @@ Full Name
 YES
 → Lead created, counselor auto-assigned, notification sent
 ```
+
+### Phase 4 — Notifications & queue SLAs
+
+| Feature | Who gets notified |
+|---------|-------------------|
+| **New inbound message** | Assigned counselor (bell: *New WhatsApp message*) |
+| **Intake complete, no counselor** | Telecaller / admin queue (*WhatsApp lead needs assignment*) |
+| **Message on unassigned thread** | Telecaller / admin (*Unassigned WhatsApp message*) |
+| **Manual assign in inbox** | Selected counselor (*WhatsApp thread assigned*) |
+| **SLA badges** | Inbox list: *Unassigned 2h+*, *Waiting 4h+* (unread assigned) |
+
+Disable all WhatsApp notifications: secret `WHATSAPP_NOTIFY=false`.
+
+Redeploy **`whatsapp-webhook`** after code update (Lovable or `./scripts/deploy-whatsapp.sh`).
 
 ---
 
