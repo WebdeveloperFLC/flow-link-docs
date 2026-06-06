@@ -14,6 +14,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   assignConversation,
+  clearAllTestConversations,
+  closeConversation,
+  deleteConversation,
   listConversations,
   listCounselors,
   listMessages,
@@ -24,9 +27,20 @@ import {
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { STATUS_LABELS, type WhatsAppConversation, type WhatsAppMessage } from "@/lib/whatsapp/types";
-import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink } from "lucide-react";
+import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const WHATSAPP_ENABLED = import.meta.env.VITE_WHATSAPP_ENABLED !== "false";
 const WHATSAPP_PROVIDER = (import.meta.env.VITE_WHATSAPP_PROVIDER || "mock").toLowerCase();
@@ -115,6 +129,7 @@ const WhatsAppInbox = () => {
   const { user, isAdmin, hasRole } = useAuth();
   const canAssign = isAdmin || hasRole(["telecaller", "administrator"]);
   const canSimulate = isAdmin || hasRole(["telecaller", "administrator", "counselor"]);
+  const canDeleteTests = isAdmin || hasRole(["administrator"]);
 
   const [conversations, setConversations] = useState<WhatsAppConversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -127,6 +142,11 @@ const WhatsAppInbox = () => {
   const [simPhone, setSimPhone] = useState("9876543210");
   const [simText, setSimText] = useState("Hi, I want to study in Canada");
   const [clientSimText, setClientSimText] = useState("");
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteLeadToo, setDeleteLeadToo] = useState(true);
+  const [clearAllOpen, setClearAllOpen] = useState(false);
+  const [clearLeadsToo, setClearLeadsToo] = useState(true);
+  const [busyAction, setBusyAction] = useState(false);
 
   const refreshConversations = useCallback(async () => {
     const rows = await listConversations();
@@ -243,6 +263,58 @@ const WhatsAppInbox = () => {
     }
   };
 
+  const handleArchive = async () => {
+    if (!active) return;
+    setBusyAction(true);
+    try {
+      await closeConversation(active.id);
+      toast.success("Conversation archived");
+      setActiveId(null);
+      setMessages([]);
+      await refreshConversations();
+    } catch (e: any) {
+      toast.error(e.message || "Archive failed");
+    } finally {
+      setBusyAction(false);
+    }
+  };
+
+  const handleDeleteThread = async () => {
+    if (!active) return;
+    setBusyAction(true);
+    try {
+      await deleteConversation(active.id, {
+        deleteLinkedLead: deleteLeadToo,
+        leadId: active.lead_id,
+      });
+      toast.success("Test conversation deleted");
+      setDeleteOpen(false);
+      setActiveId(null);
+      setMessages([]);
+      await refreshConversations();
+    } catch (e: any) {
+      toast.error(e.message || "Delete failed — run migration 20260605230000_whatsapp_test_cleanup.sql if needed");
+    } finally {
+      setBusyAction(false);
+    }
+  };
+
+  const handleClearAll = async () => {
+    setBusyAction(true);
+    try {
+      const count = await clearAllTestConversations({ deleteLinkedLeads: clearLeadsToo });
+      toast.success(count ? `Deleted ${count} test conversation${count === 1 ? "" : "s"}` : "Inbox already empty");
+      setClearAllOpen(false);
+      setActiveId(null);
+      setMessages([]);
+      await refreshConversations();
+    } catch (e: any) {
+      toast.error(e.message || "Clear failed — run migration 20260605230000_whatsapp_test_cleanup.sql if needed");
+    } finally {
+      setBusyAction(false);
+    }
+  };
+
   if (!WHATSAPP_ENABLED) {
     return (
       <AppLayout>
@@ -264,12 +336,20 @@ const WhatsAppInbox = () => {
             : "Helpline — mock mode (Phase 0). Counselors see assigned threads; admins see all."
         }
         actions={
-          canSimulate ? (
-            <Button variant="outline" size="sm" onClick={() => setSimulateOpen(true)}>
-              <FlaskConical className="size-4 mr-1.5" />
-              Simulate inbound
-            </Button>
-          ) : null
+          <div className="flex flex-wrap gap-2">
+            {canDeleteTests && conversations.length > 0 && (
+              <Button variant="outline" size="sm" disabled={busyAction} onClick={() => setClearAllOpen(true)}>
+                <Trash2 className="size-4 mr-1.5" />
+                Clear test inbox
+              </Button>
+            )}
+            {canSimulate ? (
+              <Button variant="outline" size="sm" onClick={() => setSimulateOpen(true)}>
+                <FlaskConical className="size-4 mr-1.5" />
+                Simulate inbound
+              </Button>
+            ) : null}
+          </div>
         }
       />
 
@@ -335,6 +415,18 @@ const WhatsAppInbox = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {canAssign && (
+                    <Button variant="outline" size="sm" disabled={busyAction} onClick={handleArchive}>
+                      <Archive className="size-3 mr-1" />
+                      Archive
+                    </Button>
+                  )}
+                  {canDeleteTests && (
+                    <Button variant="outline" size="sm" disabled={busyAction} onClick={() => setDeleteOpen(true)}>
+                      <Trash2 className="size-3 mr-1 text-destructive" />
+                      Delete
+                    </Button>
+                  )}
                   {active.lead_id && (
                     <Button asChild variant="outline" size="sm">
                       <Link to={`/leads/${active.lead_id}`}>
@@ -475,6 +567,66 @@ const WhatsAppInbox = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Permanently removes all messages in this thread. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {active?.lead_id && isAdmin && (
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={deleteLeadToo} onCheckedChange={(v) => setDeleteLeadToo(!!v)} />
+              Also delete linked WhatsApp helpline lead
+            </label>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyAction}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busyAction}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteThread();
+              }}
+            >
+              Delete thread
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={clearAllOpen} onOpenChange={setClearAllOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all test conversations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deletes every open thread ({conversations.length}) and all their messages. Use while testing mock/simulate flows.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {isAdmin && (
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={clearLeadsToo} onCheckedChange={(v) => setClearLeadsToo(!!v)} />
+              Also delete linked WhatsApp helpline leads
+            </label>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={busyAction}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={busyAction}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                e.preventDefault();
+                handleClearAll();
+              }}
+            >
+              Clear inbox
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };

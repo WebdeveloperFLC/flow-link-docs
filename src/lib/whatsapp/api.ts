@@ -157,6 +157,80 @@ export async function assignConversation(
   }
 }
 
+async function removeConversationMedia(conversationId: string): Promise<void> {
+  const paths = new Set<string>();
+
+  const { data: msgs } = await supabase
+    .from("whatsapp_messages" as any)
+    .select("media_storage_path")
+    .eq("conversation_id", conversationId);
+  for (const row of msgs ?? []) {
+    const p = (row as { media_storage_path?: string | null }).media_storage_path;
+    if (p) paths.add(p);
+  }
+
+  const { data: listed } = await supabase.storage.from("whatsapp-media").list(conversationId);
+  for (const f of listed ?? []) {
+    if (f.name) paths.add(`${conversationId}/${f.name}`);
+  }
+
+  if (paths.size) {
+    await supabase.storage.from("whatsapp-media").remove([...paths]).catch(() => {});
+  }
+}
+
+/** Hide thread from inbox without deleting messages. */
+export async function closeConversation(conversationId: string): Promise<void> {
+  const { error } = await supabase
+    .from("whatsapp_conversations" as any)
+    .update({ status: "closed", updated_at: new Date().toISOString() })
+    .eq("id", conversationId);
+  if (error) throw error;
+}
+
+/** Permanently delete a conversation and its messages (admin). */
+export async function deleteConversation(
+  conversationId: string,
+  options?: { deleteLinkedLead?: boolean; leadId?: string | null },
+): Promise<void> {
+  await removeConversationMedia(conversationId);
+
+  if (options?.deleteLinkedLead && options.leadId) {
+    const { error: leadErr } = await supabase
+      .from("leads")
+      .delete()
+      .eq("id", options.leadId)
+      .eq("lead_source", "whatsapp_helpline");
+    if (leadErr) throw leadErr;
+  }
+
+  const { error } = await supabase
+    .from("whatsapp_conversations" as any)
+    .delete()
+    .eq("id", conversationId);
+  if (error) throw error;
+}
+
+/** Delete all open WhatsApp threads (admin test cleanup). */
+export async function clearAllTestConversations(
+  options?: { deleteLinkedLeads?: boolean },
+): Promise<number> {
+  const { data: convs, error: listErr } = await supabase
+    .from("whatsapp_conversations" as any)
+    .select("id, lead_id")
+    .neq("status", "closed");
+  if (listErr) throw listErr;
+
+  const rows = (convs ?? []) as { id: string; lead_id: string | null }[];
+  for (const row of rows) {
+    await deleteConversation(row.id, {
+      deleteLinkedLead: options?.deleteLinkedLeads,
+      leadId: row.lead_id,
+    });
+  }
+  return rows.length;
+}
+
 export async function simulateInbound(
   phone: string,
   text: string,
