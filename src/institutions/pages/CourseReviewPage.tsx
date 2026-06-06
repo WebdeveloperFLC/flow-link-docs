@@ -119,7 +119,9 @@ export default function CourseReviewPage() {
   const [viewMode, setViewMode] = useState<"table" | "cards">(loadViewMode);
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(loadVisibleColumns);
   const [rows, setRows] = useState<UpiCourseStaging[]>([]);
-  const [institutions, setInstitutions] = useState<{ id: string; name: string; country_name: string | null }[]>([]);
+  const [institutions, setInstitutions] = useState<
+    { id: string; name: string; country_name: string | null; logo_url: string | null }[]
+  >([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
@@ -164,7 +166,7 @@ export default function CourseReviewPage() {
   };
   const loadAux = async () => {
     const [i, l] = await Promise.all([
-      supabase.from("upi_institutions").select("id,name,country_name").order("name"),
+      supabase.from("upi_institutions").select("id,name,country_name,logo_url").order("name"),
       supabase.from("upi_program_levels").select("id,name").order("sort_order"),
     ]);
     const err = i.error ?? l.error;
@@ -177,7 +179,7 @@ export default function CourseReviewPage() {
       return;
     }
     setAuxError(null);
-    const insts = (i.data ?? []) as { id: string; name: string; country_name: string | null }[];
+    const insts = (i.data ?? []) as { id: string; name: string; country_name: string | null; logo_url: string | null }[];
     setInstitutions(insts);
     setLevels((l.data ?? []) as any);
     const uniq = Array.from(new Set(insts.map((r) => r.country_name).filter(Boolean) as string[])).sort();
@@ -226,6 +228,11 @@ export default function CourseReviewPage() {
     const m = new Map(levels.map((l) => [l.id, l.name]));
     return (id: string | null) => (id ? (m.get(id) ?? "—") : "—");
   }, [levels]);
+
+  const instLogo = useMemo(() => {
+    const m = new Map(institutions.map((i) => [i.id, i.logo_url]));
+    return (id: string | null) => (id ? (m.get(id) ?? null) : null);
+  }, [institutions]);
 
   const visibleRows = useMemo(() => {
     let list = rows;
@@ -604,6 +611,7 @@ export default function CourseReviewPage() {
           selected={selected}
           instName={instName}
           instCountry={instCountry}
+          instLogo={instLogo}
           levelName={levelName}
           onToggle={toggle}
           onToggleAll={toggleAll}

@@ -29,6 +29,8 @@ import { Lock } from "lucide-react";
 import { ALLOW_TEST_DELETIONS, CONFIDENTIAL_SOURCE_TYPES, isConfidentialDocKind } from "../config";
 import { isSupabaseNotFound } from "../lib/scope";
 import { ViewOnlyNotice } from "../components/ViewOnlyNotice";
+import { InstitutionLogoField } from "../components/InstitutionLogoField";
+import { InstitutionLogo } from "../components/InstitutionLogo";
 
 // Sanitize a filename for use as a Supabase Storage object key.
 // Storage path must round-trip through createSignedUrl, which percent-encodes the
@@ -472,7 +474,11 @@ export default function InstitutionDetailPage() {
 
   return (
     <AppLayout>
-      <PageHeader title={inst.name} description={`${inst.country_name ?? "—"} · ${inst.institution_type ?? "—"}`} />
+      <PageHeader
+        title={inst.name}
+        description={`${inst.country_name ?? "—"} · ${inst.institution_type ?? "—"}`}
+        actions={<InstitutionLogo url={inst.logo_url} name={inst.name} size="lg" />}
+      />
       <div className="p-8">
         {!canEdit && <div className="mb-6"><ViewOnlyNotice /></div>}
         <Tabs defaultValue="overview">
@@ -492,6 +498,13 @@ export default function InstitutionDetailPage() {
             <OverviewPanel institutionId={id} />
             <Card className="p-6 space-y-3 max-w-2xl">
               <div className="text-sm font-medium">Institution profile</div>
+              <InstitutionLogoField
+                institutionId={id}
+                institutionName={inst.name}
+                logoUrl={inst.logo_url}
+                canEdit={canEdit}
+                onUpdated={(logo_url) => setInst({ ...inst, logo_url })}
+              />
               <Input value={inst.name} disabled={!canEdit} onChange={(e) => setInst({ ...inst, name: e.target.value })} onBlur={(e) => canEdit && saveInst({ name: e.target.value })} />
               <Input placeholder="Country" disabled={!canEdit} value={inst.country_name ?? ""} onChange={(e) => setInst({ ...inst, country_name: e.target.value })} onBlur={(e) => canEdit && saveInst({ country_name: e.target.value })} />
               <Input placeholder="Website" disabled={!canEdit} value={inst.website_url ?? ""} onChange={(e) => setInst({ ...inst, website_url: e.target.value })} onBlur={(e) => canEdit && saveInst({ website_url: e.target.value })} />

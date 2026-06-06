@@ -7,11 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, School, Globe } from "lucide-react";
+import { Plus, Globe } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import type { UpiInstitution } from "../types/upi";
 import { useModulePermission } from "@/hooks/useModulePermission";
+import { InstitutionLogo } from "../components/InstitutionLogo";
 
 export default function InstitutionsListPage() {
   const navigate = useNavigate();
@@ -126,9 +127,7 @@ export default function InstitutionsListPage() {
             <Link key={i.id} to={`/institutions/${i.id}`}>
               <Card className="p-5 hover:shadow-elev-md transition-shadow h-full">
                 <div className="flex items-start gap-3">
-                  <div className="size-10 rounded-lg bg-accent flex items-center justify-center shrink-0">
-                    <School className="size-5 text-primary" />
-                  </div>
+                  <InstitutionLogo url={i.logo_url} name={i.name} size="md" />
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{i.country_name ?? "—"} · {i.institution_type ?? "—"}</div>
