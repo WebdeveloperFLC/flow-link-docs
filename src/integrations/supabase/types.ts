@@ -14874,10 +14874,82 @@ export type Database = {
           },
         ]
       }
+      whatsapp_business_lines: {
+        Row: {
+          active: boolean
+          assigned_user_id: string | null
+          created_at: string
+          display_phone: string | null
+          id: string
+          is_default: boolean
+          label: string
+          line_type: string
+          meta_phone_number_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          assigned_user_id?: string | null
+          created_at?: string
+          display_phone?: string | null
+          id?: string
+          is_default?: boolean
+          label: string
+          line_type?: string
+          meta_phone_number_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          assigned_user_id?: string | null
+          created_at?: string
+          display_phone?: string | null
+          id?: string
+          is_default?: boolean
+          label?: string
+          line_type?: string
+          meta_phone_number_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      whatsapp_conversation_assignments: {
+        Row: {
+          assigned_by_user_id: string | null
+          assigned_user_id: string
+          conversation_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          assigned_by_user_id?: string | null
+          assigned_user_id: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          assigned_by_user_id?: string | null
+          assigned_user_id?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversation_assignments_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_conversations: {
         Row: {
           ai_mode: string
           assigned_user_id: string | null
+          business_line_id: string | null
           client_id: string | null
           created_at: string
           id: string
@@ -14894,6 +14966,7 @@ export type Database = {
         Insert: {
           ai_mode?: string
           assigned_user_id?: string | null
+          business_line_id?: string | null
           client_id?: string | null
           created_at?: string
           id?: string
@@ -14910,6 +14983,7 @@ export type Database = {
         Update: {
           ai_mode?: string
           assigned_user_id?: string | null
+          business_line_id?: string | null
           client_id?: string | null
           created_at?: string
           id?: string
@@ -14924,6 +14998,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "whatsapp_conversations_business_line_id_fkey"
+            columns: ["business_line_id"]
+            isOneToOne: false
+            referencedRelation: "whatsapp_business_lines"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "whatsapp_conversations_client_id_fkey"
             columns: ["client_id"]
