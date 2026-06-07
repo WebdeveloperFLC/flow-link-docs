@@ -88,6 +88,17 @@ export async function fetchServiceLibraryContext(
       if (levelPref.includes("post") && svc.includes("student")) score += 3;
       if (levelPref.includes("under") && svc.includes("student")) score += 3;
       if (levelPref.includes("work") && (svc.includes("work") || svc.includes("visa"))) score += 3;
+      // FL menu intake service labels
+      if (levelPref.includes("student") && svc.includes("student")) score += 6;
+      if ((levelPref.includes("visitor") || levelPref.includes("tourist")) && (svc.includes("visitor") || svc.includes("tourist"))) score += 6;
+      if ((levelPref.includes("spouse") || levelPref.includes("dependent")) && (svc.includes("spouse") || svc.includes("dependent"))) score += 6;
+      if ((levelPref.includes("permanent") || /\bpr\b/.test(levelPref)) && (svc.includes("pr") || svc.includes("permanent"))) score += 6;
+      if (levelPref.includes("super") && svc.includes("super")) score += 6;
+      if ((levelPref.includes("pgwp") || levelPref.includes("extension") || levelPref.includes("status"))
+        && (svc.includes("pgwp") || svc.includes("extension") || svc.includes("permit"))) score += 6;
+      if (levelPref.includes("coaching") && (svc.includes("ielts") || svc.includes("coaching") || svc.includes("test"))) score += 4;
+      if (levelPref.includes("ielts") && svc.includes("ielts")) score += 5;
+      if (levelPref.includes("pte") && svc.includes("pte")) score += 5;
     }
     const meta = row.academy_metadata as Record<string, unknown> | null;
     if (meta && Object.keys(meta).length > 2) score += 2;

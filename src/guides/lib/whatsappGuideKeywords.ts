@@ -22,5 +22,10 @@ export const WHATSAPP_GUIDE_KEYWORDS = [
   "phase 1",
   "privacy",
   "forward",
-  "existing client",
-];
+  "fl menu",
+  "student visa",
+  "COUNSELOR",
+  "ai counseling",
+  "lead capture",
+  "EDIT",
+  "RESTART",

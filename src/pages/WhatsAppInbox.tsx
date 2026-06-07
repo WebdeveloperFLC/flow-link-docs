@@ -34,6 +34,7 @@ import {
   updateDefaultHelplineMetaId,
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
+import { formatIntakeSummary } from "@/lib/whatsapp/intakeDisplay";
 import {
   STATUS_LABELS,
   type WhatsAppAssignment,
@@ -307,6 +308,11 @@ const WhatsAppInbox = () => {
 
   const activeSla = useMemo(
     () => (active ? whatsAppSlaBadge(active) : null),
+    [active],
+  );
+
+  const intakeSummary = useMemo(
+    () => (active ? formatIntakeSummary(active.intake_data) : []),
     [active],
   );
 
@@ -650,9 +656,13 @@ const WhatsAppInbox = () => {
                       </Badge>
                     )}
                   </div>
-                  {typeof active.intake_data?.branch_preference === "string" && (
-                    <div className="text-[10px] text-muted-foreground mt-1">
-                      Branch/city: {active.intake_data.branch_preference}
+                  {intakeSummary.length > 0 && (
+                    <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                      {intakeSummary.map((line) => (
+                        <span key={line.label}>
+                          {line.label}: <span className="text-foreground/80">{line.value}</span>
+                        </span>
+                      ))}
                     </div>
                   )}
                   {assignments.length > 1 && (

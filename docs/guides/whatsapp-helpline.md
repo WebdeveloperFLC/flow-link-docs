@@ -308,6 +308,9 @@ Optional Gemini intake
 | **2b** | Meta message templates (after 24h) | **Live** |
 | **3** | Branch intake + auto-assign counselor + Gemini + assign notification | **Live** |
 | **4** | Inbound alerts + queue alerts + manual assign notify + SLA badges | **Live** |
+| **5** | Gemini AI counseling + Service Library Q&A before assign | **Live** |
+| **5.1** | FL scripted lead capture menu (8 services) + YES/EDIT/RESTART | **Live** |
+| **5.2** | CRM deep links (Lead/Client → inbox thread) | **Live** |
 
 ### Phase 2 admin setup (one-time)
 
@@ -457,3 +460,70 @@ Migrate chats to helpline number | Personal WA not official
 ```
 
 New counselors: **CRM inbox only** from day one.
+
+---
+
+## 11. Module sign-off checklist
+
+Use this once after redeploying `whatsapp-webhook` with Phase 5.1 (FL menu intake).
+
+### Prerequisites (one-time)
+
+| Item | Verify |
+|------|--------|
+| SQL migrations | `20260604150000` through `20260606230000` applied (inbox, media, templates, `ai_counseling`, notifications fix) |
+| Edge secrets | `WHATSAPP_PROVIDER=meta`, Meta tokens, `WHATSAPP_AI_MODE=gemini`, `WHATSAPP_COUNSELING_BEFORE_ASSIGN=true`, `WHATSAPP_AUTO_ASSIGN=true` |
+| Intake flow | `WHATSAPP_INTAKE_FLOW` unset or `fl_menu` (default) |
+| Meta webhook | Subscribed to **messages**; verify token matches |
+| CRM lines | Helpline Meta Phone number ID set under **WhatsApp → Lines** |
+
+### Simulate test (CRM → WhatsApp → Simulate inbound)
+
+```text
+Hi → 1 → Jane Doe → Canada → Bachelors / Sep 2026 / Ahmedabad → 1 (YES)
+→ Lead created (source whatsapp_helpline, notes include service + branch)
+→ Status: AI counseling
+→ "What documents for Canada student visa?" → Gemini reply
+→ COUNSELOR → counselor assigned + bell notification
+→ Thread header shows Name, Service, Country, Branch
+```
+
+### Production smoke (real phone)
+
+1. Message helpline from a **new** number not in Clients/Leads.
+2. Complete menu flow through YES.
+3. Confirm lead appears in **Leads** within 30 seconds.
+4. Reply *COUNSELOR* — assigned counselor sees thread in inbox.
+
+### Rollback (if needed)
+
+| Issue | Action |
+|-------|--------|
+| Menu flow problems | Set `WHATSAPP_INTAKE_FLOW=gemini` or `rules`; redeploy webhook |
+| AI cost / errors | Set `WHATSAPP_AI_MODE=rules` or `WHATSAPP_COUNSELING_BEFORE_ASSIGN=false` |
+| Notifications duplicate | Confirm migration `20260606230000_whatsapp_notifications_dedupe_fix.sql` ran |
+
+### Deploy commands
+
+**Edge (Lovable):** pull GitHub `main`, redeploy `whatsapp-webhook` only.
+
+**Frontend:** push to GitHub `main` — CI deploys CRM.
+
+**No new SQL** required for Phase 5.1.
+
+### Module scope — complete
+
+| Area | Delivered |
+|------|-----------|
+| Meta inbound/outbound + media | ✓ |
+| Business lines (helpline + counselor) | ✓ |
+| 24h session + approved templates | ✓ |
+| FL menu lead capture (8 services) | ✓ |
+| Lead creation + branch preference | ✓ |
+| AI counseling (Service Library) | ✓ |
+| COUNSELOR handoff + auto-assign | ✓ |
+| Staff notifications + SLA badges | ✓ |
+| CRM inbox + deep links | ✓ |
+| Unit tests (intake, handoff, phone, gemini) | ✓ |
+
+**Out of scope (future):** Meta template on counselor handoff, template admin UI beyond inbox picker, multi-language menus.

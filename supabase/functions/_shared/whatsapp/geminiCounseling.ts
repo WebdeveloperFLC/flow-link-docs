@@ -21,14 +21,14 @@ Reply ONLY with valid JSON (no markdown):
   "request_handoff": false
 }`;
 
-function fallbackCounselingReply(intake: IntakeData, userText: string): string[] {
+function fallbackCounselingReply(intake: IntakeData & { service_label?: string }, userText: string): string[] {
   const country = intake.country || "your destination";
-  const level = intake.level || "your program";
+  const service = intake.service_label || intake.level || "your inquiry";
   if (clientRequestsCounselor(userText)) {
     return ["Connecting you with a Future Link counselor now. Please wait a moment."];
   }
   return [
-    `Thanks for your question about ${country} (${level}). `
+    `Thanks for your question about ${country} (${service}). `
     + "Typical next steps: confirm eligibility, shortlist institutions, prepare documents (passport, academics, funds proof), and apply for the visa/study permit. "
     + "Ask about documents, fees, or timelines — or reply *COUNSELOR* to speak with our team.",
   ];
