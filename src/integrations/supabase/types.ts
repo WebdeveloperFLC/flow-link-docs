@@ -11551,6 +11551,71 @@ export type Database = {
           },
         ]
       }
+      service_library_visa_form_files: {
+        Row: {
+          country: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          form_code: string | null
+          id: string
+          is_current: boolean
+          library_id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          sort_order: number
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          form_code?: string | null
+          id?: string
+          is_current?: boolean
+          library_id: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          sort_order?: number
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          form_code?: string | null
+          id?: string
+          is_current?: boolean
+          library_id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          sort_order?: number
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_visa_form_files_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_offers: {
         Row: {
           applicable_branches: string[] | null
