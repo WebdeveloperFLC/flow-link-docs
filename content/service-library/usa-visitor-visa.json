@@ -17,58 +17,204 @@
     "body": "Every B1/B2 applicant must overcome immigrant intent presumption at interview. Ties to India and temporary purpose are decisive."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "214(b) critical", "variant": "warning" },
-    { "label": "1–4 weeks post-interview", "variant": "neutral" },
-    { "label": "Embassy – CGI Federal", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "214(b) critical",
+      "variant": "warning"
+    },
+    {
+      "label": "1–4 weeks post-interview",
+      "variant": "neutral"
+    },
+    {
+      "label": "Embassy – CGI Federal",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "Interview mandatory", "variant": "warning" },
-    { "label": "USD $185 MRV", "variant": "neutral" },
-    { "label": "Strong ties required", "variant": "warning" },
-    { "label": "DS-160 online", "variant": "success" }
+    {
+      "label": "Interview mandatory",
+      "variant": "warning"
+    },
+    {
+      "label": "USD $185 MRV",
+      "variant": "neutral"
+    },
+    {
+      "label": "Strong ties required",
+      "variant": "warning"
+    },
+    {
+      "label": "DS-160 online",
+      "variant": "success"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "1–4w", "sub": "After interview; slot wait extra", "tone": "primary" },
-    { "label": "Government fee", "value": "USD $185", "sub": "MRV non-refundable", "tone": "warning" },
-    { "label": "Our approval rate", "value": "72%", "sub": "~58% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "8", "sub": "+ purpose-specific", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt only", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "1–4w",
+      "sub": "After interview; slot wait extra",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "USD $185",
+      "sub": "MRV non-refundable",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "72%",
+      "sub": "~58% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "8",
+      "sub": "+ purpose-specific",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt only",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interview." },
-    { "label": "Eligible applicants", "value": "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160" },
-    { "label": "Interview reality", "value": "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone.", "warning": true },
-    { "label": "Key authority", "value": "US Department of State — Embassy/Consulate in India" },
-    { "label": "After approval", "value": "Visa foil in passport; officer at port of entry decides admission length (often up to 6 months). No work permitted." }
+    {
+      "label": "Description",
+      "value": "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interview."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160"
+    },
+    {
+      "label": "Interview reality",
+      "value": "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "US Department of State — Embassy/Consulate in India"
+    },
+    {
+      "label": "After approval",
+      "value": "Visa foil in passport; officer at port of entry decides admission length (often up to 6 months). No work permitted."
+    }
   ],
   "eligibility": [
-    { "criterion": "Valid passport", "met": true, "note": "6+ months validity recommended" },
-    { "criterion": "Clear temporary purpose", "met": true, "note": "Tourism, family, business meeting—not employment" },
-    { "criterion": "Strong ties to India", "met": true, "note": "Job, business, property, family" },
-    { "criterion": "Proof of funds for trip", "met": true, "note": "Bank statements, ITR, sponsor letter" },
-    { "criterion": "DS-160 completed accurately", "met": false, "note": "Must match interview answers" },
-    { "criterion": "No prior visa fraud", "met": true },
-    { "criterion": "Interview appointment booked", "met": false, "note": "Via ustraveldocs.com" }
+    {
+      "criterion": "Valid passport",
+      "met": true,
+      "note": "6+ months validity recommended"
+    },
+    {
+      "criterion": "Clear temporary purpose",
+      "met": true,
+      "note": "Tourism, family, business meeting—not employment"
+    },
+    {
+      "criterion": "Strong ties to India",
+      "met": true,
+      "note": "Job, business, property, family"
+    },
+    {
+      "criterion": "Proof of funds for trip",
+      "met": true,
+      "note": "Bank statements, ITR, sponsor letter"
+    },
+    {
+      "criterion": "DS-160 completed accurately",
+      "met": false,
+      "note": "Must match interview answers"
+    },
+    {
+      "criterion": "No prior visa fraud",
+      "met": true
+    },
+    {
+      "criterion": "Interview appointment booked",
+      "met": false,
+      "note": "Via ustraveldocs.com"
+    }
   ],
   "redFlagsBanner": "After 214(b) refusal, do not reapply immediately with unchanged profile. Strengthen ties evidence and visit purpose clarity first.",
   "redFlags": [
-    { "title": "Weak ties to India", "description": "Unemployed, no assets, young single applicant with vague purpose.", "fix": "Employment letter, business registration, property, family dependencies", "severity": "Very common" },
-    { "title": "214(b) — immigrant intent signals", "description": "Mentions working in USA, long stay without reason, or visiting fiancé without clear plan.", "fix": "Clear temporary purpose; return date; no employment intent", "severity": "Very common" },
-    { "title": "DS-160 inconsistencies", "description": "Travel history, employment, or relatives in US not matching interview.", "fix": "Review DS-160 line by line; practice consistent answers", "severity": "Common" },
-    { "title": "Prior refusals unchanged", "description": "Reapplying without material change in circumstances.", "fix": "Wait until ties strengthen; new purpose documentation", "severity": "High" },
-    { "title": "Insufficient funds", "description": "Cannot explain who pays for trip or recent large deposits.", "fix": "Sponsor ITR, bank history, trip budget breakdown", "severity": "Common" },
-    { "title": "Over-documented or fake papers", "description": "Fabricated invitation or employment letters detected.", "fix": "Only genuine documents; honest answers", "severity": "High" }
+    {
+      "title": "Weak ties to India",
+      "description": "Unemployed, no assets, young single applicant with vague purpose.",
+      "fix": "Employment letter, business registration, property, family dependencies",
+      "severity": "Very common"
+    },
+    {
+      "title": "214(b) — immigrant intent signals",
+      "description": "Mentions working in USA, long stay without reason, or visiting fiancé without clear plan.",
+      "fix": "Clear temporary purpose; return date; no employment intent",
+      "severity": "Very common"
+    },
+    {
+      "title": "DS-160 inconsistencies",
+      "description": "Travel history, employment, or relatives in US not matching interview.",
+      "fix": "Review DS-160 line by line; practice consistent answers",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals unchanged",
+      "description": "Reapplying without material change in circumstances.",
+      "fix": "Wait until ties strengthen; new purpose documentation",
+      "severity": "High"
+    },
+    {
+      "title": "Insufficient funds",
+      "description": "Cannot explain who pays for trip or recent large deposits.",
+      "fix": "Sponsor ITR, bank history, trip budget breakdown",
+      "severity": "Common"
+    },
+    {
+      "title": "Over-documented or fake papers",
+      "description": "Fabricated invitation or employment letters detected.",
+      "fix": "Only genuine documents; honest answers",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "Can we guarantee B1/B2 approval?", "a": "No. Consular officers decide at interview based on individual assessment." },
-    { "q": "What documents to carry to interview?", "a": "Passport, DS-160 confirmation, photo, appointment letter, plus supporting docs—employment, funds, invitation if applicable. Officer may not review all." },
-    { "q": "How to overcome 214(b)?", "a": "Demonstrate strong ties, clear temporary purpose, credible funds, and consistent honest answers—not memorised scripts." },
-    { "q": "Can refused applicant reapply?", "a": "Yes anytime, but success requires materially changed circumstances or stronger evidence." },
-    { "q": "Does B1/B2 allow work?", "a": "No. Employment requires appropriate work visa. B1 allows limited business activities—not US labour market work." },
-    { "q": "How long can visitor stay?", "a": "Admission period set at port of entry—often up to 6 months. Must not overstay." },
-    { "q": "Is invitation letter required?", "a": "Not mandatory but helpful for family visits. Host's status proof strengthens file." },
-    { "q": "Ten-year visa means 10-year stay?", "a": "No. Visa validity differs from permitted stay per entry. Each entry is subject to CBP admission." }
+    {
+      "q": "Can we guarantee B1/B2 approval?",
+      "a": "No. Consular officers decide at interview based on individual assessment."
+    },
+    {
+      "q": "What documents to carry to interview?",
+      "a": "Passport, DS-160 confirmation, photo, appointment letter, plus supporting docs—employment, funds, invitation if applicable. Officer may not review all."
+    },
+    {
+      "q": "How to overcome 214(b)?",
+      "a": "Demonstrate strong ties, clear temporary purpose, credible funds, and consistent honest answers—not memorised scripts."
+    },
+    {
+      "q": "Can refused applicant reapply?",
+      "a": "Yes anytime, but success requires materially changed circumstances or stronger evidence."
+    },
+    {
+      "q": "Does B1/B2 allow work?",
+      "a": "No. Employment requires appropriate work visa. B1 allows limited business activities—not US labour market work."
+    },
+    {
+      "q": "How long can visitor stay?",
+      "a": "Admission period set at port of entry—often up to 6 months. Must not overstay."
+    },
+    {
+      "q": "Is invitation letter required?",
+      "a": "Not mandatory but helpful for family visits. Host's status proof strengthens file."
+    },
+    {
+      "q": "Ten-year visa means 10-year stay?",
+      "a": "No. Visa validity differs from permitted stay per entry. Each entry is subject to CBP admission."
+    }
   ],
   "compliance": [
     "Client service agreement and consent on file before DS-160",
@@ -93,49 +239,181 @@
     "ourRate": 72,
     "industryRate": 58,
     "stats": [
-      { "label": "Files this year", "value": "134" },
-      { "label": "Approved", "value": "96" },
-      { "label": "Refused", "value": "32" },
-      { "label": "Withdrawn", "value": "6" }
+      {
+        "label": "Files this year",
+        "value": "134"
+      },
+      {
+        "label": "Approved",
+        "value": "96"
+      },
+      {
+        "label": "Refused",
+        "value": "32"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "6"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 72, "benchmark": 58 },
-    { "label": "Ties documentation", "ours": 70, "benchmark": 52 },
-    { "label": "Interview coaching", "ours": 75, "benchmark": 55 },
-    { "label": "DS-160 accuracy", "ours": 90, "benchmark": 72 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 72,
+      "benchmark": 58
+    },
+    {
+      "label": "Ties documentation",
+      "ours": 70,
+      "benchmark": 52
+    },
+    {
+      "label": "Interview coaching",
+      "ours": 75,
+      "benchmark": 55
+    },
+    {
+      "label": "DS-160 accuracy",
+      "ours": 90,
+      "benchmark": 72
+    }
   ],
   "timeline": [
-    { "weeks": "1", "title": "Counseling, purpose assessment, fee agreement" },
-    { "weeks": "1–2", "title": "DS-160, document prep, slot booking" },
-    { "weeks": "2–3", "title": "Mock interview & embassy appointment" },
-    { "weeks": "3–4", "title": "Passport return or admin processing" }
+    {
+      "weeks": "1",
+      "title": "Counseling, purpose assessment, fee agreement"
+    },
+    {
+      "weeks": "1–2",
+      "title": "DS-160, document prep, slot booking"
+    },
+    {
+      "weeks": "2–3",
+      "title": "Mock interview & embassy appointment"
+    },
+    {
+      "weeks": "3–4",
+      "title": "Passport return or admin processing"
+    }
   ],
   "relatedServices": [
-    { "label": "USA – Student Visa (F-1)", "libraryId": "" },
-    { "label": "USA – Spouse Visa", "libraryId": "" },
-    { "label": "USA – Green Card", "libraryId": "" }
+    {
+      "label": "USA – Student Visa (F-1)",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Spouse Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Green Card",
+      "libraryId": ""
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial B1/B2 counselor content with 214(b) focus." }
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial B1/B2 counselor content with 214(b) focus."
+    }
   ],
   "staffNotes": [
-    { "author": "Documentation team", "date": "6 Jun 2026", "text": "Clients visiting adult children in USA need clear return plan—property or business in India is critical." },
-    { "author": "Quality", "date": "6 Jun 2026", "text": "Flag any client with pending immigrant petition before B1/B2 counseling." }
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Clients visiting adult children in USA need clear return plan—property or business in India is critical."
+    },
+    {
+      "author": "Quality",
+      "date": "6 Jun 2026",
+      "text": "Flag any client with pending immigrant petition before B1/B2 counseling."
+    }
   ],
   "resources": [
-    { "title": "US State Dept — Visitor visa", "url": "https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html", "description": "Official B1/B2 information" },
-    { "title": "US State Dept — Visa fees", "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/fees/fees-visa-services.html", "description": "Current MRV fees" },
-    { "title": "US State Dept — DS-160", "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html", "description": "Online application form" },
-    { "title": "US State Dept — India visa information", "url": "https://travel.state.gov/content/travel/en/us-visas/Supplements/Supplements_by_Post/Mumbai.html", "description": "Embassy-specific guidance" },
-    { "title": "US State Dept — Ineligibilities", "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/waivers.html", "description": "Grounds of inadmissibility reference" }
+    {
+      "title": "US State Dept — Visitor visa",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/tourism-visit/visitor.html",
+      "description": "Official B1/B2 information"
+    },
+    {
+      "title": "US State Dept — Visa fees",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/fees/fees-visa-services.html",
+      "description": "Current MRV fees"
+    },
+    {
+      "title": "US State Dept — DS-160",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/forms/ds-160-online-nonimmigrant-visa-application.html",
+      "description": "Online application form"
+    },
+    {
+      "title": "US State Dept — India visa information",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/Supplements/Supplements_by_Post/Mumbai.html",
+      "description": "Embassy-specific guidance"
+    },
+    {
+      "title": "US State Dept — Ineligibilities",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/visa-information-resources/waivers.html",
+      "description": "Grounds of inadmissibility reference"
+    }
   ],
   "quiz": [
-    { "question": "B1/B2 MRV fee (2026) is approximately:", "options": ["USD $100", "USD $185", "USD $350", "USD $500"], "correctIndex": 1, "explanation": "Verify on travel.state.gov fee page." },
-    { "question": "Section 214(b) means:", "options": ["Automatic approval", "Presumption of immigrant intent applicant must overcome", "Medical requirement", "SEVIS payment rule"], "correctIndex": 1, "explanation": "Core legal hurdle for non-immigrant visas." },
-    { "question": "Can B1/B2 holders work in USA?", "options": ["Yes, full-time", "No", "Yes, if invited", "Only remote for Indian employer without limit"], "correctIndex": 1, "explanation": "Work requires appropriate visa category." },
-    { "question": "Best interview approach?", "options": ["Long memorised speech", "Short honest consistent answers", "Argue with officer", "Refuse to answer"], "correctIndex": 1, "explanation": "Officers prefer concise credible responses." },
-    { "question": "After 214(b) refusal, best next step?", "options": ["Reapply same week unchanged", "Strengthen ties and purpose before reapplying", "Guarantee approval next time", "Use fake invitation"], "correctIndex": 1, "explanation": "Material change needed for reapplication success." }
+    {
+      "question": "B1/B2 MRV fee (2026) is approximately:",
+      "options": [
+        "USD $100",
+        "USD $185",
+        "USD $350",
+        "USD $500"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify on travel.state.gov fee page."
+    },
+    {
+      "question": "Section 214(b) means:",
+      "options": [
+        "Automatic approval",
+        "Presumption of immigrant intent applicant must overcome",
+        "Medical requirement",
+        "SEVIS payment rule"
+      ],
+      "correctIndex": 1,
+      "explanation": "Core legal hurdle for non-immigrant visas."
+    },
+    {
+      "question": "Can B1/B2 holders work in USA?",
+      "options": [
+        "Yes, full-time",
+        "No",
+        "Yes, if invited",
+        "Only remote for Indian employer without limit"
+      ],
+      "correctIndex": 1,
+      "explanation": "Work requires appropriate visa category."
+    },
+    {
+      "question": "Best interview approach?",
+      "options": [
+        "Long memorised speech",
+        "Short honest consistent answers",
+        "Argue with officer",
+        "Refuse to answer"
+      ],
+      "correctIndex": 1,
+      "explanation": "Officers prefer concise credible responses."
+    },
+    {
+      "question": "After 214(b) refusal, best next step?",
+      "options": [
+        "Reapply same week unchanged",
+        "Strengthen ties and purpose before reapplying",
+        "Guarantee approval next time",
+        "Use fake invitation"
+      ],
+      "correctIndex": 1,
+      "explanation": "Material change needed for reapplication success."
+    }
   ],
   "donts": {
     "dos": [
@@ -159,5 +437,44 @@
       "Nervous over-talking at interview",
       "Recent unexplained large bank deposits"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample invitation / sponsor letter (mock)",
+      "description": "Host details, relationship, accommodation, and duration of stay.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample travel itinerary (mock)",
+      "description": "Flights, hotels, and day-wise plan for visitor visa credibility.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample employment / NOC letter (mock)",
+      "description": "Employer letter confirming leave, role, salary, and return to India.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample property / ties document (mock)",
+      "description": "Sale deed or tax receipt — explain home-country ties.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "visa"
 }

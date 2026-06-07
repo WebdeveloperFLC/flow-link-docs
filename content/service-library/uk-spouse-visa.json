@@ -17,58 +17,203 @@
     "body": "Both minimum income (or savings) and genuine relationship evidence must be met. Weak on either is a refusal risk."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "Income threshold", "variant": "warning" },
-    { "label": "12–24 weeks", "variant": "neutral" },
-    { "label": "Online – UKVI", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Income threshold",
+      "variant": "warning"
+    },
+    {
+      "label": "12–24 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – UKVI",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "12–24 weeks processing", "variant": "neutral" },
-    { "label": "£1,846 + IHS", "variant": "neutral" },
-    { "label": "Minimum income", "variant": "warning" },
-    { "label": "Relationship proof", "variant": "warning" }
+    {
+      "label": "12–24 weeks processing",
+      "variant": "neutral"
+    },
+    {
+      "label": "£1,846 + IHS",
+      "variant": "neutral"
+    },
+    {
+      "label": "Minimum income",
+      "variant": "warning"
+    },
+    {
+      "label": "Relationship proof",
+      "variant": "warning"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "12–24w", "sub": "Outside UK entry clearance", "tone": "primary" },
-    { "label": "Government fee", "value": "£1,846", "sub": "+ IHS (5 years typical)", "tone": "warning" },
-    { "label": "Our approval rate", "value": "90%", "sub": "~80% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "19", "sub": "+ financial & relationship", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & IHS", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "12–24w",
+      "sub": "Outside UK entry clearance",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "£1,846",
+      "sub": "+ IHS (5 years typical)",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "90%",
+      "sub": "~80% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "19",
+      "sub": "+ financial & relationship",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & IHS",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Family visa for spouse, civil partner, or unmarried partner of British citizen or person with settled/pre-settled status in UK. Leads to ILR pathway after qualifying period." },
-    { "label": "Eligible applicants", "value": "Valid marriage/civil partnership or 2+ years cohabitation · Sponsor meets financial requirement · Adequate accommodation · English A1 (entry) · Genuine relationship" },
-    { "label": "Financial requirement", "value": "Sponsor must meet minimum income threshold or qualify via savings. Rules updated periodically—verify current threshold on gov.uk.", "warning": true },
-    { "label": "Key authority", "value": "UK Visas and Immigration (UKVI) — Home Office" },
-    { "label": "After approval", "value": "Initial visa typically 33 months (if applying from outside UK); extension and ILR pathway. Maintain genuine relationship and comply with conditions." }
+    {
+      "label": "Description",
+      "value": "Family visa for spouse, civil partner, or unmarried partner of British citizen or person with settled/pre-settled status in UK. Leads to ILR pathway after qualifying period."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Valid marriage/civil partnership or 2+ years cohabitation · Sponsor meets financial requirement · Adequate accommodation · English A1 (entry) · Genuine relationship"
+    },
+    {
+      "label": "Financial requirement",
+      "value": "Sponsor must meet minimum income threshold or qualify via savings. Rules updated periodically—verify current threshold on gov.uk.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "UK Visas and Immigration (UKVI) — Home Office"
+    },
+    {
+      "label": "After approval",
+      "value": "Initial visa typically 33 months (if applying from outside UK); extension and ILR pathway. Maintain genuine relationship and comply with conditions."
+    }
   ],
   "eligibility": [
-    { "criterion": "Sponsor is British citizen or settled/pre-settled", "met": true },
-    { "criterion": "Valid marriage or qualifying relationship", "met": true, "note": "Marriage cert or 2+ years cohabitation proof" },
-    { "criterion": "Financial requirement met", "met": false, "note": "Income or savings per Appendix FM" },
-    { "criterion": "Adequate accommodation in UK", "met": true, "note": "Tenancy or ownership evidence" },
-    { "criterion": "English A1 (entry clearance)", "met": false, "note": "SELT or exempt nationality" },
-    { "criterion": "TB test (if from listed country)", "met": false, "note": "India requires approved clinic test" },
-    { "criterion": "Genuine relationship evidence", "met": true }
+    {
+      "criterion": "Sponsor is British citizen or settled/pre-settled",
+      "met": true
+    },
+    {
+      "criterion": "Valid marriage or qualifying relationship",
+      "met": true,
+      "note": "Marriage cert or 2+ years cohabitation proof"
+    },
+    {
+      "criterion": "Financial requirement met",
+      "met": false,
+      "note": "Income or savings per Appendix FM"
+    },
+    {
+      "criterion": "Adequate accommodation in UK",
+      "met": true,
+      "note": "Tenancy or ownership evidence"
+    },
+    {
+      "criterion": "English A1 (entry clearance)",
+      "met": false,
+      "note": "SELT or exempt nationality"
+    },
+    {
+      "criterion": "TB test (if from listed country)",
+      "met": false,
+      "note": "India requires approved clinic test"
+    },
+    {
+      "criterion": "Genuine relationship evidence",
+      "met": true
+    }
   ],
   "redFlagsBanner": "If refused on financial or relationship grounds, address specific refusal reasons before reapplication—do not resubmit same weak evidence.",
   "redFlags": [
-    { "title": "Financial requirement not met", "description": "Sponsor income below threshold without qualifying savings.", "fix": "Calculate on gov.uk; combine permitted income sources or use savings route", "severity": "Very common" },
-    { "title": "Weak relationship evidence", "description": "Few photos, no cohabitation proof, inconsistent timeline.", "fix": "Chronological relationship narrative; communication logs; visit evidence", "severity": "Common" },
-    { "title": "Wrong relationship category", "description": "Unmarried partner without 2 years cohabitation evidence.", "fix": "Verify FM requirements; marriage or sufficient cohabitation proof", "severity": "High" },
-    { "title": "Accommodation inadequate", "description": "Overcrowded housing or no proof of UK address.", "fix": "Tenancy agreement, council tax, photos of property", "severity": "Common" },
-    { "title": "English requirement missed", "description": "No A1 SELT when required.", "fix": "Book UKVI-approved SELT early", "severity": "Common" },
-    { "title": "Prior refusals undisclosed", "description": "Hidden UK or immigration refusals.", "fix": "Full disclosure with changed circumstances", "severity": "High" }
+    {
+      "title": "Financial requirement not met",
+      "description": "Sponsor income below threshold without qualifying savings.",
+      "fix": "Calculate on gov.uk; combine permitted income sources or use savings route",
+      "severity": "Very common"
+    },
+    {
+      "title": "Weak relationship evidence",
+      "description": "Few photos, no cohabitation proof, inconsistent timeline.",
+      "fix": "Chronological relationship narrative; communication logs; visit evidence",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong relationship category",
+      "description": "Unmarried partner without 2 years cohabitation evidence.",
+      "fix": "Verify FM requirements; marriage or sufficient cohabitation proof",
+      "severity": "High"
+    },
+    {
+      "title": "Accommodation inadequate",
+      "description": "Overcrowded housing or no proof of UK address.",
+      "fix": "Tenancy agreement, council tax, photos of property",
+      "severity": "Common"
+    },
+    {
+      "title": "English requirement missed",
+      "description": "No A1 SELT when required.",
+      "fix": "Book UKVI-approved SELT early",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals undisclosed",
+      "description": "Hidden UK or immigration refusals.",
+      "fix": "Full disclosure with changed circumstances",
+      "severity": "High"
+    }
   ],
   "faqs": [
-    { "q": "Can we guarantee spouse visa approval?", "a": "No. UKVI assesses financial, relationship, and eligibility criteria. Genuine marriages can still face refusals if evidence is weak." },
-    { "q": "What is minimum income requirement?", "a": "Threshold changes with policy—verify current amount on gov.uk Appendix FM. Can combine salaried/non-salaried income or use savings alternative." },
-    { "q": "Can savings substitute income?", "a": "Yes, if meeting specified savings amount held for required period. Calculate per gov.uk guidance." },
-    { "q": "How long until ILR?", "a": "Typically 5 years on spouse route (with extensions). Verify current ILR rules and English requirements at each stage." },
-    { "q": "Can spouse work in UK?", "a": "Yes, generally no work restrictions on spouse visa—verify conditions on grant letter." },
-    { "q": "Is marriage in India recognised?", "a": "Yes if legally valid. Provide marriage certificate; certified translation if not in English." },
-    { "q": "What if sponsor is on benefits?", "a": "Some benefits count toward income; others don't. Check permitted income sources on gov.uk." },
-    { "q": "TB test required?", "a": "Yes for Indian applicants from approved clinic before application." }
+    {
+      "q": "Can we guarantee spouse visa approval?",
+      "a": "No. UKVI assesses financial, relationship, and eligibility criteria. Genuine marriages can still face refusals if evidence is weak."
+    },
+    {
+      "q": "What is minimum income requirement?",
+      "a": "Threshold changes with policy—verify current amount on gov.uk Appendix FM. Can combine salaried/non-salaried income or use savings alternative."
+    },
+    {
+      "q": "Can savings substitute income?",
+      "a": "Yes, if meeting specified savings amount held for required period. Calculate per gov.uk guidance."
+    },
+    {
+      "q": "How long until ILR?",
+      "a": "Typically 5 years on spouse route (with extensions). Verify current ILR rules and English requirements at each stage."
+    },
+    {
+      "q": "Can spouse work in UK?",
+      "a": "Yes, generally no work restrictions on spouse visa—verify conditions on grant letter."
+    },
+    {
+      "q": "Is marriage in India recognised?",
+      "a": "Yes if legally valid. Provide marriage certificate; certified translation if not in English."
+    },
+    {
+      "q": "What if sponsor is on benefits?",
+      "a": "Some benefits count toward income; others don't. Check permitted income sources on gov.uk."
+    },
+    {
+      "q": "TB test required?",
+      "a": "Yes for Indian applicants from approved clinic before application."
+    }
   ],
   "compliance": [
     "Complex cases may need immigration solicitor—refer when appropriate",
@@ -93,54 +238,246 @@
     "ourRate": 90,
     "industryRate": 80,
     "stats": [
-      { "label": "Files this year", "value": "41" },
-      { "label": "Approved", "value": "37" },
-      { "label": "Refused", "value": "3" },
-      { "label": "Withdrawn", "value": "1" }
+      {
+        "label": "Files this year",
+        "value": "41"
+      },
+      {
+        "label": "Approved",
+        "value": "37"
+      },
+      {
+        "label": "Refused",
+        "value": "3"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "1"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 90, "benchmark": 80 },
-    { "label": "Financial compliance", "ours": 88, "benchmark": 72 },
-    { "label": "Relationship evidence", "ours": 86, "benchmark": 74 },
-    { "label": "First-submit completeness", "ours": 92, "benchmark": 76 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 90,
+      "benchmark": 80
+    },
+    {
+      "label": "Financial compliance",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "Relationship evidence",
+      "ours": 86,
+      "benchmark": 74
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 92,
+      "benchmark": 76
+    }
   ],
   "timeline": [
-    { "weeks": "1–2", "title": "Eligibility, financial calc, fee agreement" },
-    { "weeks": "2–6", "title": "Relationship & financial document collection" },
-    { "weeks": "6–8", "title": "TB test, SELT, IHS payment, submission" },
-    { "weeks": "8–10", "title": "Biometrics at VAC" },
-    { "weeks": "12–24", "title": "UKVI processing" }
+    {
+      "weeks": "1–2",
+      "title": "Eligibility, financial calc, fee agreement"
+    },
+    {
+      "weeks": "2–6",
+      "title": "Relationship & financial document collection"
+    },
+    {
+      "weeks": "6–8",
+      "title": "TB test, SELT, IHS payment, submission"
+    },
+    {
+      "weeks": "8–10",
+      "title": "Biometrics at VAC"
+    },
+    {
+      "weeks": "12–24",
+      "title": "UKVI processing"
+    }
   ],
   "relatedServices": [
-    { "label": "UK – Skilled Worker", "libraryId": "" },
-    { "label": "UK – Visitor Visa", "libraryId": "" },
-    { "label": "UK – Graduate Route", "libraryId": "" }
+    {
+      "label": "UK – Skilled Worker",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Graduate Route",
+      "libraryId": ""
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial UK spouse/partner visa counselor content." }
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial UK spouse/partner visa counselor content."
+    }
   ],
   "staffNotes": [
-    { "author": "Documentation team", "date": "6 Jun 2026", "text": "Always verify current minimum income threshold on gov.uk—policy changes affect quotes." },
-    { "author": "Quality", "date": "6 Jun 2026", "text": "Mandatory financial calculation worksheet sign-off before submission." }
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Always verify current minimum income threshold on gov.uk—policy changes affect quotes."
+    },
+    {
+      "author": "Quality",
+      "date": "6 Jun 2026",
+      "text": "Mandatory financial calculation worksheet sign-off before submission."
+    }
   ],
   "resources": [
-    { "title": "GOV.UK — Family visas", "url": "https://www.gov.uk/uk-family-visa", "description": "Official family visa overview" },
-    { "title": "GOV.UK — Join partner in UK", "url": "https://www.gov.uk/join-family-in-uk", "description": "Spouse/partner requirements" },
-    { "title": "GOV.UK — Financial requirement", "url": "https://www.gov.uk/uk-family-visa/prove-income", "description": "Minimum income and savings rules" },
-    { "title": "GOV.UK — Immigration Health Surcharge", "url": "https://www.gov.uk/healthcare-immigration-application", "description": "IHS payment guidance" },
-    { "title": "GOV.UK — TB test for UK visa", "url": "https://www.gov.uk/tb-test-visa", "description": "Approved clinics for India" }
+    {
+      "title": "GOV.UK — Family visas",
+      "url": "https://www.gov.uk/uk-family-visa",
+      "description": "Official family visa overview"
+    },
+    {
+      "title": "GOV.UK — Join partner in UK",
+      "url": "https://www.gov.uk/join-family-in-uk",
+      "description": "Spouse/partner requirements"
+    },
+    {
+      "title": "GOV.UK — Financial requirement",
+      "url": "https://www.gov.uk/uk-family-visa/prove-income",
+      "description": "Minimum income and savings rules"
+    },
+    {
+      "title": "GOV.UK — Immigration Health Surcharge",
+      "url": "https://www.gov.uk/healthcare-immigration-application",
+      "description": "IHS payment guidance"
+    },
+    {
+      "title": "GOV.UK — TB test for UK visa",
+      "url": "https://www.gov.uk/tb-test-visa",
+      "description": "Approved clinics for India"
+    }
   ],
   "quiz": [
-    { "question": "Spouse visa entry clearance fee approx (2026)?", "options": ["£115", "£524", "£1,846", "£50"], "correctIndex": 2, "explanation": "Verify on gov.uk visa fees." },
-    { "question": "Financial requirement can be met via:", "options": ["Only lottery winnings", "Sponsor income or qualifying savings", "No proof needed", "Visitor visa funds"], "correctIndex": 1, "explanation": "Appendix FM income or savings routes." },
-    { "question": "Unmarried partners generally need:", "options": ["1 week dating", "2+ years cohabitation evidence", "No proof", "Only photos"], "correctIndex": 1, "explanation": "Cohabitation requirement for unmarried route." },
-    { "question": "Indian applicants need TB test from:", "options": ["Any clinic", "UKVI-approved clinic", "No test", "US embassy"], "correctIndex": 1, "explanation": "Approved clinic list on gov.uk." },
-    { "question": "Counselors must never:", "options": ["Calculate financial requirement", "Guarantee spouse visa approval", "Collect relationship evidence", "Verify IHS"], "correctIndex": 1, "explanation": "No approval guarantees permitted." }
+    {
+      "question": "Spouse visa entry clearance fee approx (2026)?",
+      "options": [
+        "£115",
+        "£524",
+        "£1,846",
+        "£50"
+      ],
+      "correctIndex": 2,
+      "explanation": "Verify on gov.uk visa fees."
+    },
+    {
+      "question": "Financial requirement can be met via:",
+      "options": [
+        "Only lottery winnings",
+        "Sponsor income or qualifying savings",
+        "No proof needed",
+        "Visitor visa funds"
+      ],
+      "correctIndex": 1,
+      "explanation": "Appendix FM income or savings routes."
+    },
+    {
+      "question": "Unmarried partners generally need:",
+      "options": [
+        "1 week dating",
+        "2+ years cohabitation evidence",
+        "No proof",
+        "Only photos"
+      ],
+      "correctIndex": 1,
+      "explanation": "Cohabitation requirement for unmarried route."
+    },
+    {
+      "question": "Indian applicants need TB test from:",
+      "options": [
+        "Any clinic",
+        "UKVI-approved clinic",
+        "No test",
+        "US embassy"
+      ],
+      "correctIndex": 1,
+      "explanation": "Approved clinic list on gov.uk."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Calculate financial requirement",
+        "Guarantee spouse visa approval",
+        "Collect relationship evidence",
+        "Verify IHS"
+      ],
+      "correctIndex": 1,
+      "explanation": "No approval guarantees permitted."
+    }
   ],
   "donts": {
-    "dos": ["Calculate financial requirement at intake", "Build relationship timeline with evidence", "Verify accommodation adequacy", "Book TB test and SELT early", "Pay correct IHS before applying"],
-    "donts": ["Do not guarantee spouse visa approval", "Do not apply if financial requirement clearly unmet", "Do not hide prior refusals", "Do not use non-UKVI SELT when required", "Do not quote outdated income threshold"],
-    "mistakes": ["Sponsor income calculated incorrectly", "Missing cohabitation proof for unmarried route", "Insufficient relationship photos with context", "Wrong IHS duration payment", "Accommodation evidence missing"]
-  }
+    "dos": [
+      "Calculate financial requirement at intake",
+      "Build relationship timeline with evidence",
+      "Verify accommodation adequacy",
+      "Book TB test and SELT early",
+      "Pay correct IHS before applying"
+    ],
+    "donts": [
+      "Do not guarantee spouse visa approval",
+      "Do not apply if financial requirement clearly unmet",
+      "Do not hide prior refusals",
+      "Do not use non-UKVI SELT when required",
+      "Do not quote outdated income threshold"
+    ],
+    "mistakes": [
+      "Sponsor income calculated incorrectly",
+      "Missing cohabitation proof for unmarried route",
+      "Insufficient relationship photos with context",
+      "Wrong IHS duration payment",
+      "Accommodation evidence missing"
+    ]
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample marriage certificate (mock)",
+      "description": "Registered marriage proof — explain translation and notarization if needed.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample relationship timeline & photos guide (mock)",
+      "description": "Collage layout for chat logs, travel photos, and ceremony pictures.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample sponsor / undertaking letter (mock)",
+      "description": "Sponsor income, accommodation, and maintenance commitment.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample chat / communication evidence (mock)",
+      "description": "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+      "mimeType": "image/jpeg",
+      "docKind": "relationship"
+    }
+  ],
+  "navBucket": "visa"
 }

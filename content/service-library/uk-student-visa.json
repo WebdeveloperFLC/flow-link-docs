@@ -17,58 +17,203 @@
     "body": "No CAS from licensed sponsor = no application. Verify sponsor licence status before promising timelines."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "CAS required", "variant": "warning" },
-    { "label": "3–8 weeks", "variant": "neutral" },
-    { "label": "Online – UKVI", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "CAS required",
+      "variant": "warning"
+    },
+    {
+      "label": "3–8 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – UKVI",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "3–8 weeks processing", "variant": "neutral" },
-    { "label": "£524 + IHS", "variant": "neutral" },
-    { "label": "CAS mandatory", "variant": "success" },
-    { "label": "Genuine student", "variant": "warning" }
+    {
+      "label": "3–8 weeks processing",
+      "variant": "neutral"
+    },
+    {
+      "label": "£524 + IHS",
+      "variant": "neutral"
+    },
+    {
+      "label": "CAS mandatory",
+      "variant": "success"
+    },
+    {
+      "label": "Genuine student",
+      "variant": "warning"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "3–8w", "sub": "Outside UK standard", "tone": "primary" },
-    { "label": "Government fee", "value": "£524", "sub": "+ IHS per year of course", "tone": "warning" },
-    { "label": "Our approval rate", "value": "89%", "sub": "~76% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "13", "sub": "+ financial evidence", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & IHS", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "3–8w",
+      "sub": "Outside UK standard",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "£524",
+      "sub": "+ IHS per year of course",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "89%",
+      "sub": "~76% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "13",
+      "sub": "+ financial evidence",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & IHS",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI application." },
-    { "label": "Eligible applicants", "value": "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country" },
-    { "label": "Financial requirement", "value": "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies.", "warning": true },
-    { "label": "Key authority", "value": "UK Visas and Immigration (UKVI) — Home Office" },
-    { "label": "After approval", "value": "BRP or digital status; maintain attendance, sponsor reporting, and work hour limits." }
+    {
+      "label": "Description",
+      "value": "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI application."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country"
+    },
+    {
+      "label": "Financial requirement",
+      "value": "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "UK Visas and Immigration (UKVI) — Home Office"
+    },
+    {
+      "label": "After approval",
+      "value": "BRP or digital status; maintain attendance, sponsor reporting, and work hour limits."
+    }
   ],
   "eligibility": [
-    { "criterion": "CAS from licensed UK sponsor", "met": true, "note": "CAS number valid and unused" },
-    { "criterion": "Financial requirement met (28-day rule)", "met": true, "note": "Funds held 28 consecutive days" },
-    { "criterion": "English language at SELT level (if required)", "met": true, "note": "IELTS UKVI or exempt pathway" },
-    { "criterion": "TB test certificate (if applicable)", "met": false, "note": "Required for Indian nationals" },
-    { "criterion": "ATAS certificate (if course requires)", "met": false, "note": "Check CAS and course code" },
-    { "criterion": "Genuine student / credible study plan", "met": true },
-    { "criterion": "Immigration history disclosed", "met": true }
+    {
+      "criterion": "CAS from licensed UK sponsor",
+      "met": true,
+      "note": "CAS number valid and unused"
+    },
+    {
+      "criterion": "Financial requirement met (28-day rule)",
+      "met": true,
+      "note": "Funds held 28 consecutive days"
+    },
+    {
+      "criterion": "English language at SELT level (if required)",
+      "met": true,
+      "note": "IELTS UKVI or exempt pathway"
+    },
+    {
+      "criterion": "TB test certificate (if applicable)",
+      "met": false,
+      "note": "Required for Indian nationals"
+    },
+    {
+      "criterion": "ATAS certificate (if course requires)",
+      "met": false,
+      "note": "Check CAS and course code"
+    },
+    {
+      "criterion": "Genuine student / credible study plan",
+      "met": true
+    },
+    {
+      "criterion": "Immigration history disclosed",
+      "met": true
+    }
   ],
   "redFlagsBanner": "After refusal, analyse refusal letter and address specific grounds before reapplication with new CAS if needed.",
   "redFlags": [
-    { "title": "28-day funds rule breach", "description": "Funds not held continuously for 28 days or balance drops below threshold.", "fix": "Maintain required balance 28 days; use dated bank statements", "severity": "Very common" },
-    { "title": "CAS / course mismatch", "description": "Course level inconsistent with prior study or career plan.", "fix": "Align CAS course with academic progression; strong personal statement", "severity": "Common" },
-    { "title": "Wrong IHS payment", "description": "Incorrect IHS amount or course duration entered.", "fix": "Calculate IHS on gov.uk calculator before payment", "severity": "Common" },
-    { "title": "TB test issues", "description": "Wrong clinic, expired certificate, or missing for India.", "fix": "Use UKVI-approved clinic; certificate valid 6 months", "severity": "Common" },
-    { "title": "Prior refusals not addressed", "description": "UK or other refusals hidden in application.", "fix": "Disclose and explain changed circumstances", "severity": "High" },
-    { "title": "Document quality", "description": "Blurry scans, wrong translations, or inconsistent names.", "fix": "Certified translations; consistent naming across docs", "severity": "Medium" }
+    {
+      "title": "28-day funds rule breach",
+      "description": "Funds not held continuously for 28 days or balance drops below threshold.",
+      "fix": "Maintain required balance 28 days; use dated bank statements",
+      "severity": "Very common"
+    },
+    {
+      "title": "CAS / course mismatch",
+      "description": "Course level inconsistent with prior study or career plan.",
+      "fix": "Align CAS course with academic progression; strong personal statement",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong IHS payment",
+      "description": "Incorrect IHS amount or course duration entered.",
+      "fix": "Calculate IHS on gov.uk calculator before payment",
+      "severity": "Common"
+    },
+    {
+      "title": "TB test issues",
+      "description": "Wrong clinic, expired certificate, or missing for India.",
+      "fix": "Use UKVI-approved clinic; certificate valid 6 months",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals not addressed",
+      "description": "UK or other refusals hidden in application.",
+      "fix": "Disclose and explain changed circumstances",
+      "severity": "High"
+    },
+    {
+      "title": "Document quality",
+      "description": "Blurry scans, wrong translations, or inconsistent names.",
+      "fix": "Certified translations; consistent naming across docs",
+      "severity": "Medium"
+    }
   ],
   "faqs": [
-    { "q": "Can we guarantee Student visa approval?", "a": "No. UKVI assesses each application. Strong CAS and funds help but approval is never guaranteed." },
-    { "q": "How much funds for London vs outside London?", "a": "Living costs differ—verify current amounts on gov.uk. Plus remaining tuition after deposit shown on CAS." },
-    { "q": "What is the 28-day rule?", "a": "Funds must remain at or above required amount for 28 consecutive days ending no more than 31 days before application." },
-    { "q": "Can spouse join on Student visa?", "a": "Dependants allowed only if course meets specific criteria (e.g., postgraduate level certain duration). Check current rules." },
-    { "q": "Is IELTS UKVI mandatory?", "a": "If SELT required, must be UKVI-approved test from approved centre. Some nationals/courses may be exempt." },
-    { "q": "When to apply?", "a": "Up to 6 months before course start if applying from outside UK. Do not apply without valid CAS." },
-    { "q": "Can student work?", "a": "Limited hours during term; rules on gov.uk. Cannot work as professional sportsperson or doctor in training." },
-    { "q": "What after course completion?", "a": "Discuss Graduate Route eligibility separately—requires successful completion at eligible institution." }
+    {
+      "q": "Can we guarantee Student visa approval?",
+      "a": "No. UKVI assesses each application. Strong CAS and funds help but approval is never guaranteed."
+    },
+    {
+      "q": "How much funds for London vs outside London?",
+      "a": "Living costs differ—verify current amounts on gov.uk. Plus remaining tuition after deposit shown on CAS."
+    },
+    {
+      "q": "What is the 28-day rule?",
+      "a": "Funds must remain at or above required amount for 28 consecutive days ending no more than 31 days before application."
+    },
+    {
+      "q": "Can spouse join on Student visa?",
+      "a": "Dependants allowed only if course meets specific criteria (e.g., postgraduate level certain duration). Check current rules."
+    },
+    {
+      "q": "Is IELTS UKVI mandatory?",
+      "a": "If SELT required, must be UKVI-approved test from approved centre. Some nationals/courses may be exempt."
+    },
+    {
+      "q": "When to apply?",
+      "a": "Up to 6 months before course start if applying from outside UK. Do not apply without valid CAS."
+    },
+    {
+      "q": "Can student work?",
+      "a": "Limited hours during term; rules on gov.uk. Cannot work as professional sportsperson or doctor in training."
+    },
+    {
+      "q": "What after course completion?",
+      "a": "Discuss Graduate Route eligibility separately—requires successful completion at eligible institution."
+    }
   ],
   "compliance": [
     "Client service agreement and consent must be on file before submission",
@@ -93,54 +238,252 @@
     "ourRate": 89,
     "industryRate": 76,
     "stats": [
-      { "label": "Files this year", "value": "167" },
-      { "label": "Approved", "value": "149" },
-      { "label": "Refused", "value": "12" },
-      { "label": "Withdrawn", "value": "6" }
+      {
+        "label": "Files this year",
+        "value": "167"
+      },
+      {
+        "label": "Approved",
+        "value": "149"
+      },
+      {
+        "label": "Refused",
+        "value": "12"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "6"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 89, "benchmark": 76 },
-    { "label": "Financial compliance", "ours": 86, "benchmark": 70 },
-    { "label": "CAS accuracy", "ours": 93, "benchmark": 80 },
-    { "label": "First-submit completeness", "ours": 90, "benchmark": 72 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 89,
+      "benchmark": 76
+    },
+    {
+      "label": "Financial compliance",
+      "ours": 86,
+      "benchmark": 70
+    },
+    {
+      "label": "CAS accuracy",
+      "ours": 93,
+      "benchmark": 80
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 90,
+      "benchmark": 72
+    }
   ],
   "timeline": [
-    { "weeks": "1–2", "title": "Counseling, CAS review, fee agreement" },
-    { "weeks": "2–3", "title": "Funds seasoning, TB test, documents" },
-    { "weeks": "3–4", "title": "IHS payment & UKVI submission" },
-    { "weeks": "4–5", "title": "Biometrics at VAC" },
-    { "weeks": "3–8", "title": "UKVI processing" }
+    {
+      "weeks": "1–2",
+      "title": "Counseling, CAS review, fee agreement"
+    },
+    {
+      "weeks": "2–3",
+      "title": "Funds seasoning, TB test, documents"
+    },
+    {
+      "weeks": "3–4",
+      "title": "IHS payment & UKVI submission"
+    },
+    {
+      "weeks": "4–5",
+      "title": "Biometrics at VAC"
+    },
+    {
+      "weeks": "3–8",
+      "title": "UKVI processing"
+    }
   ],
   "relatedServices": [
-    { "label": "UK – Graduate Route", "libraryId": "" },
-    { "label": "UK – Visitor Visa", "libraryId": "" },
-    { "label": "UK – Spouse Visa", "libraryId": "" }
+    {
+      "label": "UK – Graduate Route",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "UK – Spouse Visa",
+      "libraryId": ""
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial UK Student Route counselor content with 2026 fee and IHS notes." }
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial UK Student Route counselor content with 2026 fee and IHS notes."
+    }
   ],
   "staffNotes": [
-    { "author": "Documentation team", "date": "6 Jun 2026", "text": "28-day funds rule is top internal QA failure—always verify statement dates against application date." },
-    { "author": "Quality", "date": "6 Jun 2026", "text": "Second review for all files with prior UK refusal." }
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "28-day funds rule is top internal QA failure—always verify statement dates against application date."
+    },
+    {
+      "author": "Quality",
+      "date": "6 Jun 2026",
+      "text": "Second review for all files with prior UK refusal."
+    }
   ],
   "resources": [
-    { "title": "GOV.UK — Student visa", "url": "https://www.gov.uk/student-visa", "description": "Official requirements and apply" },
-    { "title": "GOV.UK — Register of licensed sponsors", "url": "https://www.gov.uk/government/publications/register-of-licensed-sponsors-students", "description": "Verify institution sponsor licence" },
-    { "title": "GOV.UK — Immigration Health Surcharge", "url": "https://www.gov.uk/healthcare-immigration-application", "description": "IHS payment and calculator" },
-    { "title": "GOV.UK — TB tests for UK visas", "url": "https://www.gov.uk/tb-test-visa", "description": "Approved clinics for Indian applicants" },
-    { "title": "GOV.UK — Visa processing times", "url": "https://www.gov.uk/visa-processing-times", "description": "Current UKVI processing estimates" }
+    {
+      "title": "GOV.UK — Student visa",
+      "url": "https://www.gov.uk/student-visa",
+      "description": "Official requirements and apply"
+    },
+    {
+      "title": "GOV.UK — Register of licensed sponsors",
+      "url": "https://www.gov.uk/government/publications/register-of-licensed-sponsors-students",
+      "description": "Verify institution sponsor licence"
+    },
+    {
+      "title": "GOV.UK — Immigration Health Surcharge",
+      "url": "https://www.gov.uk/healthcare-immigration-application",
+      "description": "IHS payment and calculator"
+    },
+    {
+      "title": "GOV.UK — TB tests for UK visas",
+      "url": "https://www.gov.uk/tb-test-visa",
+      "description": "Approved clinics for Indian applicants"
+    },
+    {
+      "title": "GOV.UK — Visa processing times",
+      "url": "https://www.gov.uk/visa-processing-times",
+      "description": "Current UKVI processing estimates"
+    }
   ],
   "quiz": [
-    { "question": "Mandatory document from UK institution?", "options": ["LOA only", "CAS", "LMIA", "CoS"], "correctIndex": 1, "explanation": "CAS is required for Student Route application." },
-    { "question": "28-day funds rule means:", "options": ["Funds for 7 days", "Funds at required level for 28 consecutive days", "No bank statement needed", "Loan letter only"], "correctIndex": 1, "explanation": "Core financial requirement for UK student visa." },
-    { "question": "Indian applicants generally need:", "options": ["No medical tests", "TB test from approved clinic", "Only police cert", "US medical"], "correctIndex": 1, "explanation": "TB test required for India." },
-    { "question": "IHS is:", "options": ["Optional tip", "Immigration Health Surcharge for NHS access", "University tuition", "CAS fee"], "correctIndex": 1, "explanation": "Mandatory payment for most UK visa routes." },
-    { "question": "Counselors must never:", "options": ["Check CAS details", "Guarantee visa approval", "Verify IHS amount", "Track TB test"], "correctIndex": 1, "explanation": "Firm policy prohibits guarantees." }
+    {
+      "question": "Mandatory document from UK institution?",
+      "options": [
+        "LOA only",
+        "CAS",
+        "LMIA",
+        "CoS"
+      ],
+      "correctIndex": 1,
+      "explanation": "CAS is required for Student Route application."
+    },
+    {
+      "question": "28-day funds rule means:",
+      "options": [
+        "Funds for 7 days",
+        "Funds at required level for 28 consecutive days",
+        "No bank statement needed",
+        "Loan letter only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Core financial requirement for UK student visa."
+    },
+    {
+      "question": "Indian applicants generally need:",
+      "options": [
+        "No medical tests",
+        "TB test from approved clinic",
+        "Only police cert",
+        "US medical"
+      ],
+      "correctIndex": 1,
+      "explanation": "TB test required for India."
+    },
+    {
+      "question": "IHS is:",
+      "options": [
+        "Optional tip",
+        "Immigration Health Surcharge for NHS access",
+        "University tuition",
+        "CAS fee"
+      ],
+      "correctIndex": 1,
+      "explanation": "Mandatory payment for most UK visa routes."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Check CAS details",
+        "Guarantee visa approval",
+        "Verify IHS amount",
+        "Track TB test"
+      ],
+      "correctIndex": 1,
+      "explanation": "Firm policy prohibits guarantees."
+    }
   ],
   "donts": {
-    "dos": ["Verify CAS and sponsor licence before submission", "Ensure 28-day funds rule compliance", "Pay correct IHS before applying", "Complete TB test at approved clinic", "Disclose all prior refusals"],
-    "donts": ["Do not guarantee Student visa approval", "Do not apply without valid unused CAS", "Do not use funds that drop below threshold in 28-day window", "Do not hide UK immigration history", "Do not quote fees without checking gov.uk"],
-    "mistakes": ["Funds deposited 2 days before application", "Wrong London/outside London living cost amount", "CAS course start date passed", "Non-UKVI IELTS when SELT required", "Blurry bank statements"]
-  }
+    "dos": [
+      "Verify CAS and sponsor licence before submission",
+      "Ensure 28-day funds rule compliance",
+      "Pay correct IHS before applying",
+      "Complete TB test at approved clinic",
+      "Disclose all prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee Student visa approval",
+      "Do not apply without valid unused CAS",
+      "Do not use funds that drop below threshold in 28-day window",
+      "Do not hide UK immigration history",
+      "Do not quote fees without checking gov.uk"
+    ],
+    "mistakes": [
+      "Funds deposited 2 days before application",
+      "Wrong London/outside London living cost amount",
+      "CAS course start date passed",
+      "Non-UKVI IELTS when SELT required",
+      "Blurry bank statements"
+    ]
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample CAS letter (mock)",
+      "description": "Confirmation of Acceptance for Studies — UKVI reference.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample IELTS UKVI TRF (mock)",
+      "description": "Secure English language test for Student Route.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    },
+    {
+      "title": "Sample TB test certificate (mock)",
+      "description": "IOM clinic certificate if applicable.",
+      "mimeType": "application/pdf",
+      "docKind": "medical"
+    },
+    {
+      "title": "Sample bank statement / 28-day rule (mock)",
+      "description": "Funds held 28 consecutive days — explain UKVI rule.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample academic transcripts (mock)",
+      "description": "Degree marks and backlogs cover note.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample consent / parental letter (mock)",
+      "description": "For students under 18 or sponsored minors.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    }
+  ],
+  "navBucket": "visa"
 }

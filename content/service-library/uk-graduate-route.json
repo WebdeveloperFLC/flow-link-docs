@@ -427,5 +427,38 @@
       "No plan for visa after 2 years",
       "IHS payment incomplete"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample completion / graduation letter (mock)",
+      "description": "Confirms program completion date for PGWP / 485 / Graduate Route.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample final transcript (mock)",
+      "description": "Official transcript with degree conferred date.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample study permit / visa copy (mock)",
+      "description": "Prior student visa evidence required for post-study pathways.",
+      "mimeType": "application/pdf",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "immigration"
 }

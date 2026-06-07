@@ -424,5 +424,44 @@
       "Vague itinerary",
       "Prior refusal not disclosed"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample invitation / sponsor letter (mock)",
+      "description": "Host details, relationship, accommodation, and duration of stay.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample travel itinerary (mock)",
+      "description": "Flights, hotels, and day-wise plan for visitor visa credibility.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample employment / NOC letter (mock)",
+      "description": "Employer letter confirming leave, role, salary, and return to India.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample property / ties document (mock)",
+      "description": "Sale deed or tax receipt — explain home-country ties.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "visa"
 }

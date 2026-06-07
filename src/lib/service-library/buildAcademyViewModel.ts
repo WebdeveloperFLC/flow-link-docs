@@ -65,6 +65,7 @@ export type AcademyViewModel = {
     filePath?: string;
     url?: string;
     mimeType?: string;
+    docKind?: string;
     isImage: boolean;
   }[];
   quiz: {
@@ -275,6 +276,7 @@ export function buildAcademyViewModel(args: {
         filePath: d.filePath,
         url: d.url,
         mimeType: d.mimeType,
+        docKind: d.docKind,
         isImage: !!d.mimeType?.startsWith("image/"),
       })),
       ...(args.attachments ?? [])

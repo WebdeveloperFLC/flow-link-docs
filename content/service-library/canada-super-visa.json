@@ -428,5 +428,38 @@
       "Missing sponsor NOA years",
       "Birth certificate name mismatch"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample Super Visa insurance policy (mock)",
+      "description": "1-year minimum coverage from Canadian insurer — explain to parents.",
+      "mimeType": "application/pdf",
+      "docKind": "insurance"
+    },
+    {
+      "title": "Sample invitation letter from child (mock)",
+      "description": "Canadian child PR/citizen invitation with household details.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample child income proof (mock)",
+      "description": "NOA or employment letter showing LICO threshold met.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "visa"
 }

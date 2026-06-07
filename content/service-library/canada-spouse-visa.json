@@ -17,23 +17,72 @@
     "body": "Officers scrutinise relationship genuineness. Weak or inconsistent evidence is a leading refusal factor—build a chronological, document-backed story."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "Relationship proof critical", "variant": "warning" },
-    { "label": "12–18 months", "variant": "neutral" },
-    { "label": "Online – IRCC", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Relationship proof critical",
+      "variant": "warning"
+    },
+    {
+      "label": "12–18 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – IRCC",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "12–18 months processing", "variant": "neutral" },
-    { "label": "CAD $1,150+ fees", "variant": "neutral" },
-    { "label": "Genuine relationship", "variant": "warning" },
-    { "label": "Inland or outland", "variant": "success" }
+    {
+      "label": "12–18 months processing",
+      "variant": "neutral"
+    },
+    {
+      "label": "CAD $1,150+ fees",
+      "variant": "neutral"
+    },
+    {
+      "label": "Genuine relationship",
+      "variant": "warning"
+    },
+    {
+      "label": "Inland or outland",
+      "variant": "success"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "12–18m", "sub": "Varies by stream and office", "tone": "primary" },
-    { "label": "Government fee", "value": "CAD $1,150+", "sub": "+ biometrics, medical", "tone": "warning" },
-    { "label": "Our approval rate", "value": "91%", "sub": "~82% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "18", "sub": "+ relationship evidence", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & third-party", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "12–18m",
+      "sub": "Varies by stream and office",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "CAD $1,150+",
+      "sub": "+ biometrics, medical",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "91%",
+      "sub": "~82% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "18",
+      "sub": "+ relationship evidence",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & third-party",
+      "tone": "primary"
+    }
   ],
   "about": [
     {
@@ -59,13 +108,40 @@
     }
   ],
   "eligibility": [
-    { "criterion": "Sponsor is Canadian citizen or PR aged 18+", "met": true, "note": "Verify sponsor status and residency obligations" },
-    { "criterion": "Legally valid marriage or qualifying relationship", "met": true, "note": "Marriage certificate; common-law needs 12+ months cohabitation proof" },
-    { "criterion": "Genuine relationship evidence", "met": true, "note": "Photos, communication, financial mingling, visits" },
-    { "criterion": "Sponsor not in default of prior sponsorship undertakings", "met": true },
-    { "criterion": "Medical exam completed", "met": false, "note": "Panel physician after instructions" },
-    { "criterion": "Police certificates as required", "met": false, "note": "Based on residence history" },
-    { "criterion": "Biometrics completed", "met": false, "note": "Both sponsor and applicant if required" }
+    {
+      "criterion": "Sponsor is Canadian citizen or PR aged 18+",
+      "met": true,
+      "note": "Verify sponsor status and residency obligations"
+    },
+    {
+      "criterion": "Legally valid marriage or qualifying relationship",
+      "met": true,
+      "note": "Marriage certificate; common-law needs 12+ months cohabitation proof"
+    },
+    {
+      "criterion": "Genuine relationship evidence",
+      "met": true,
+      "note": "Photos, communication, financial mingling, visits"
+    },
+    {
+      "criterion": "Sponsor not in default of prior sponsorship undertakings",
+      "met": true
+    },
+    {
+      "criterion": "Medical exam completed",
+      "met": false,
+      "note": "Panel physician after instructions"
+    },
+    {
+      "criterion": "Police certificates as required",
+      "met": false,
+      "note": "Based on residence history"
+    },
+    {
+      "criterion": "Biometrics completed",
+      "met": false,
+      "note": "Both sponsor and applicant if required"
+    }
   ],
   "redFlagsBanner": "If refused for relationship genuineness, do not reapply with the same weak evidence. Rebuild a chronological, verifiable relationship narrative first.",
   "redFlags": [
@@ -163,29 +239,81 @@
     "ourRate": 91,
     "industryRate": 82,
     "stats": [
-      { "label": "Files this year", "value": "47" },
-      { "label": "Approved", "value": "43" },
-      { "label": "Refused", "value": "3" },
-      { "label": "Withdrawn", "value": "1" }
+      {
+        "label": "Files this year",
+        "value": "47"
+      },
+      {
+        "label": "Approved",
+        "value": "43"
+      },
+      {
+        "label": "Refused",
+        "value": "3"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "1"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 91, "benchmark": 82 },
-    { "label": "Relationship evidence quality", "ours": 88, "benchmark": 72 },
-    { "label": "Form accuracy", "ours": 94, "benchmark": 78 },
-    { "label": "Complete checklist first submit", "ours": 90, "benchmark": 75 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 91,
+      "benchmark": 82
+    },
+    {
+      "label": "Relationship evidence quality",
+      "ours": 88,
+      "benchmark": 72
+    },
+    {
+      "label": "Form accuracy",
+      "ours": 94,
+      "benchmark": 78
+    },
+    {
+      "label": "Complete checklist first submit",
+      "ours": 90,
+      "benchmark": 75
+    }
   ],
   "timeline": [
-    { "weeks": "1–2", "title": "Counseling, sponsor eligibility check, fee agreement" },
-    { "weeks": "2–6", "title": "Relationship evidence collection, forms, medical/police" },
-    { "weeks": "6–8", "title": "Quality review & IRCC submission" },
-    { "weeks": "8–12", "title": "Acknowledgement of receipt (AOR)" },
-    { "weeks": "12–18m", "title": "Processing to decision (varies)" }
+    {
+      "weeks": "1–2",
+      "title": "Counseling, sponsor eligibility check, fee agreement"
+    },
+    {
+      "weeks": "2–6",
+      "title": "Relationship evidence collection, forms, medical/police"
+    },
+    {
+      "weeks": "6–8",
+      "title": "Quality review & IRCC submission"
+    },
+    {
+      "weeks": "8–12",
+      "title": "Acknowledgement of receipt (AOR)"
+    },
+    {
+      "weeks": "12–18m",
+      "title": "Processing to decision (varies)"
+    }
   ],
   "relatedServices": [
-    { "label": "Canada – Visitor Visa (TRV)", "libraryId": "" },
-    { "label": "Canada – Express Entry PR", "libraryId": "" },
-    { "label": "Canada – Work Permit", "libraryId": "" }
+    {
+      "label": "Canada – Visitor Visa (TRV)",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Express Entry PR",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Work Permit",
+      "libraryId": ""
+    }
   ],
   "changelog": [
     {
@@ -259,7 +387,12 @@
     },
     {
       "question": "Can counselors guarantee PR for genuine marriages?",
-      "options": ["Yes, always", "No, never guarantee approval", "Yes, if married 5+ years", "Yes, if sponsor is citizen"],
+      "options": [
+        "Yes, always",
+        "No, never guarantee approval",
+        "Yes, if married 5+ years",
+        "Yes, if sponsor is citizen"
+      ],
       "correctIndex": 1,
       "explanation": "Firm policy: never guarantee immigration outcomes."
     },
@@ -308,5 +441,44 @@
       "Sponsor on social assistance without eligibility check",
       "Generic relationship letter not matching actual timeline"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample marriage certificate (mock)",
+      "description": "Registered marriage proof — explain translation and notarization if needed.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample relationship timeline & photos guide (mock)",
+      "description": "Collage layout for chat logs, travel photos, and ceremony pictures.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample sponsor / undertaking letter (mock)",
+      "description": "Sponsor income, accommodation, and maintenance commitment.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample chat / communication evidence (mock)",
+      "description": "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+      "mimeType": "image/jpeg",
+      "docKind": "relationship"
+    }
+  ],
+  "navBucket": "visa"
 }

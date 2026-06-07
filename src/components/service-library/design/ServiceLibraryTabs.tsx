@@ -424,53 +424,64 @@ export function ServiceLibraryTabs({
       <TabsContent value="sampledocs" className="mt-0 space-y-4">
         <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
           <p className="text-sm text-muted-foreground">
-            Sample mock documents for client conversations. Upload PDF or JPG files in Service Library Admin
-            (attachments labelled &quot;sample&quot;) or add entries in JSON <span className="font-mono">sampleDocs</span>.
+            Specimen documents for client conversations. Entries below are labelled mock specimens — upload real
+            PDF/JPG files in Admin (attachments labelled &quot;sample&quot;) to enable View.
           </p>
         </Card>
         {view.sampleDocs.length > 0 ? (
-          view.sampleDocs.map((doc) => (
-            <Card key={doc.title + (doc.filePath ?? doc.url ?? "")} className="p-4 shadow-elev-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3 min-w-0">
+          <div className="grid sm:grid-cols-2 gap-3">
+            {view.sampleDocs.map((doc) => (
+              <Card key={doc.title + (doc.filePath ?? doc.url ?? "")} className="p-4 shadow-elev-sm flex flex-col">
+                <div className="flex items-start gap-3 min-w-0 flex-1">
                   {doc.isImage ? (
                     <ImageIcon className="size-5 text-primary shrink-0 mt-0.5" />
                   ) : (
                     <FileText className="size-5 text-primary shrink-0 mt-0.5" />
                   )}
-                  <div className="min-w-0">
-                    <div className="font-medium text-sm">{doc.title}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                      {doc.docKind && (
+                        <Badge variant="secondary" className="text-[10px] capitalize font-normal">
+                          {doc.docKind.replace(/_/g, " ")}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-[10px] font-normal">
+                        Specimen
+                      </Badge>
+                    </div>
+                    <div className="font-medium text-sm leading-snug">{doc.title}</div>
                     {doc.description && (
-                      <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>
-                    )}
-                    {doc.mimeType && (
-                      <p className="text-[10px] text-muted-foreground mt-1 uppercase">{doc.mimeType}</p>
+                      <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{doc.description}</p>
                     )}
                   </div>
                 </div>
-                <div className="flex gap-2 shrink-0">
-                  {doc.url && (
-                    <Button variant="outline" size="sm" asChild>
+                <div className="flex gap-2 mt-3 pt-3 border-t">
+                  {doc.url ? (
+                    <Button variant="outline" size="sm" className="flex-1" asChild>
                       <a href={doc.url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="size-4 mr-1" />
                         Open
                       </a>
                     </Button>
-                  )}
-                  {doc.filePath && onOpenSampleDoc && (
+                  ) : doc.filePath && onOpenSampleDoc ? (
                     <Button
                       variant="outline"
                       size="sm"
+                      className="flex-1"
                       onClick={() => onOpenSampleDoc(doc.filePath!, doc.title)}
                     >
                       <Download className="size-4 mr-1" />
-                      View
+                      View file
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" size="sm" className="flex-1" disabled>
+                      Upload file in Admin
                     </Button>
                   )}
                 </div>
-              </div>
-            </Card>
-          ))
+              </Card>
+            ))}
+          </div>
         ) : (
           <Card className="p-5 text-sm text-muted-foreground">
             No sample documents yet for this service. Add mock bank statements, LOA samples, or TRF examples here.
