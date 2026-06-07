@@ -12,6 +12,7 @@ import { Plus, Pencil, Trash2, Search, ExternalLink, BookOpen } from "lucide-rea
 import { toast } from "sonner";
 import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
+import { isAcademyVisaServiceRow } from "@/lib/service-library/academyNav";
 
 type LibraryRow = {
   id: string;
@@ -93,6 +94,13 @@ export function ServiceLibraryMastersSection() {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (filterKey !== "all" && r.service_category !== filterKey) return false;
+      if (
+        (filterKey === "all" || filterKey === "visa_immigration") &&
+        r.service_category === "visa_immigration" &&
+        !isAcademyVisaServiceRow(r)
+      ) {
+        return false;
+      }
       if (!rowMatchesCountry(r, countryFilter)) return false;
       if (!q) return true;
       return (

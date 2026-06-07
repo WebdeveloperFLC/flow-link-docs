@@ -25,6 +25,7 @@ export type AcademyServiceItem = {
   label: string;
   countryBadge?: string;
   needsReview?: boolean;
+  inactive?: boolean;
 };
 
 export type AcademyNavCountryPicker = {
@@ -89,7 +90,8 @@ const NON_VISA_SERVICE_FIELDS = new Set([
   "european languages",
 ]);
 
-function isAcademyVisaServiceRow(m: MasterRow): boolean {
+/** True when row belongs in counselor Visa & Immigration nav (excludes admission junk). */
+export function isAcademyVisaServiceRow(m: MasterRow): boolean {
   if (isLegacyVisaRow(m)) return false;
 
   if (
@@ -174,17 +176,29 @@ function matchesSearch(m: MasterRow, q: string): boolean {
   return hay.includes(q);
 }
 
-function toItem(m: MasterRow, needsReview: boolean, badge?: string, activeCountry?: string): AcademyServiceItem {
+function toItem(
+  m: MasterRow,
+  needsReview: boolean,
+  badge?: string,
+  activeCountry?: string,
+  includeInactive?: boolean,
+): AcademyServiceItem {
   return {
     id: m.id,
     label: itemLabel(m, activeCountry),
     countryBadge: badge,
     needsReview,
+    inactive: includeInactive && !m.is_active ? true : undefined,
   };
 }
 
 function sortItems(items: AcademyServiceItem[]) {
   return [...items].sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** Counselor-facing label for a master row. */
+export function masterDisplayLabel(m: MasterRow, activeCountry?: string): string {
+  return itemLabel(m, activeCountry);
 }
 
 export function buildAcademyNav(
@@ -197,6 +211,8 @@ export function buildAcademyNav(
     coachingVariant: CoachingVariant | null;
     search: string;
     statusFilter: "all" | "active" | "review";
+    /** Admin: include inactive rows in lists (marked with inactive flag). */
+    includeInactive?: boolean;
   },
 ): { group: AcademyNavGroup | null; activeCount: number; reviewCount: number } {
   const q = opts.search.trim().toLowerCase();
@@ -207,13 +223,19 @@ export function buildAcademyNav(
   const visaByCountry: Record<string, MasterRow[]> = {};
   const coachingRows: MasterRow[] = [];
 
+  const includeInactive = !!opts.includeInactive;
+
   for (const m of masters) {
-    if (!m.is_active) continue;
-    activeCount++;
+    if (!m.is_active && !includeInactive) continue;
+    if (m.is_active) {
+      activeCount++;
+      const meta = metaOf(m);
+      const needsReview = meta?.reviewStatus === "needs_review";
+      if (needsReview) reviewCount++;
+    }
+
     const meta = metaOf(m);
     const needsReview = meta?.reviewStatus === "needs_review";
-    if (needsReview) reviewCount++;
-
     if (opts.statusFilter === "review" && !needsReview) continue;
     if (!matchesSearch(m, q)) continue;
 
@@ -316,6 +338,7 @@ export function buildAcademyNav(
               metaOf(m)?.reviewStatus === "needs_review",
               countryBadgeCode(opts.countryFilter),
               opts.countryFilter,
+              includeInactive,
             ),
           ),
         ),
@@ -402,7 +425,9 @@ export function buildAcademyNav(
       label: coachingFamilyLabel(opts.coachingFamily),
       step: "services",
       items: sortItems(
-        serviceRows.map((m) => toItem(m, metaOf(m)?.reviewStatus === "needs_review")),
+        serviceRows.map((m) =>
+          toItem(m, metaOf(m)?.reviewStatus === "needs_review", undefined, undefined, includeInactive),
+        ),
       ),
     },
     activeCount,
