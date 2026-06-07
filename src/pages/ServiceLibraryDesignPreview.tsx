@@ -10,7 +10,8 @@ import type { AcademyCategoryFilter, AcademyNavGroup } from "@/lib/service-libra
 
 const PREVIEW_NAV: AcademyNavGroup = {
   key: "visa",
-  label: "Visa & Immigration",
+  label: "Visa",
+  step: "services",
   items: [{ id: "preview", label: "Canada – Student Visa", countryBadge: "CA" }],
 };
 
@@ -28,12 +29,18 @@ export default function ServiceLibraryDesignPreview() {
         group={PREVIEW_NAV}
         categoryFilter={categoryFilter}
         onCategoryChange={() => {}}
+        country="Canada"
+        onCountry={() => {}}
+        visaBucket="visa"
+        onVisaBucket={() => {}}
+        coachingFamily={null}
+        onCoachingFamily={() => {}}
+        coachingVariant={null}
+        onCoachingVariant={() => {}}
         activeCount={1}
         reviewCount={0}
         selectedId="preview"
         onSelect={() => {}}
-        country="Canada"
-        onCountry={() => {}}
         statusFilter="all"
         onStatusFilter={() => {}}
         search=""

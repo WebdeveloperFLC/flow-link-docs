@@ -297,6 +297,24 @@
       "explanation": "Compliance: consent, checklist sign-off, honest disclosure."
     }
   ],
+  "sampleDocs": [
+    {
+      "title": "Sample GIC certificate (mock)",
+      "description": "Use when explaining SDS financial requirement to clients.",
+      "mimeType": "application/pdf"
+    },
+    {
+      "title": "Sample LOA letter (mock)",
+      "description": "Example DLI acceptance format — blur client name before sharing in office.",
+      "mimeType": "application/pdf"
+    },
+    {
+      "title": "Sample IELTS TRF (mock)",
+      "description": "Reference layout when discussing language scores with students.",
+      "mimeType": "image/jpeg"
+    }
+  ],
+  "navBucket": "visa",
   "donts": {
     "dos": [
       "Confirm DLI and program details match LOA before submission",

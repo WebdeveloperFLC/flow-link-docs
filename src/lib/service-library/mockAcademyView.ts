@@ -30,6 +30,7 @@ export function buildMockAcademyViewModel(): AcademyViewModel {
     feeItems: [],
     submissionItems: [],
     checklistFiles: [],
+    attachments: [],
     sopTasks: [],
     submissionCompletedIds: new Set(),
     relatedMasters: [

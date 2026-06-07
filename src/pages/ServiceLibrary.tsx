@@ -15,6 +15,7 @@ import {
   flattenNavItemIds,
   type AcademyCategoryFilter,
 } from "@/lib/service-library/academyNav";
+import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
 import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
@@ -22,8 +23,15 @@ import { ServiceLibraryClientDialog } from "@/components/service-library/Service
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
 function parseCategory(raw: string | null): AcademyCategoryFilter {
-  if (raw === "coaching" || raw === "allied_travel") return raw;
-  return "visa";
+  return raw === "coaching" ? "coaching" : "visa";
+}
+
+function parseVisaBucket(raw: string | null): VisaImmigrationBucket | null {
+  return raw === "visa" || raw === "immigration" ? raw : null;
+}
+
+function parseCoachingVariant(raw: string | null): CoachingVariant | null {
+  return raw === "general" || raw === "academic" || raw === "other" ? raw : null;
 }
 
 export default function ServiceLibrary() {
@@ -35,14 +43,31 @@ export default function ServiceLibrary() {
   const [categoryFilter, setCategoryFilter] = useState<AcademyCategoryFilter>(
     parseCategory(params.get("cat")),
   );
-  const [countryFilter, setCountryFilter] = useState(
-    params.get("country") || (parseCategory(params.get("cat")) === "visa" ? "ALL" : "Canada"),
+  const [countryFilter, setCountryFilter] = useState(params.get("country") || "ALL");
+  const [visaBucket, setVisaBucket] = useState<VisaImmigrationBucket | null>(
+    parseVisaBucket(params.get("bucket")),
+  );
+  const [coachingFamily, setCoachingFamily] = useState<string | null>(params.get("family"));
+  const [coachingVariant, setCoachingVariant] = useState<CoachingVariant | null>(
+    parseCoachingVariant(params.get("variant")),
   );
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
   const [activeTab, setActiveTab] = useState<
-    "overview" | "eligibility" | "checklist" | "process" | "dos" | "redflags" | "faqs" | "compliance" | "downloads" | "quiz" | "notes" | "changelog"
+    | "overview"
+    | "eligibility"
+    | "checklist"
+    | "process"
+    | "dos"
+    | "redflags"
+    | "faqs"
+    | "compliance"
+    | "downloads"
+    | "sampledocs"
+    | "quiz"
+    | "notes"
+    | "changelog"
   >("redflags");
   const [policyDismissed] = useState(false);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
@@ -53,8 +78,11 @@ export default function ServiceLibrary() {
     if (selectedId) p.set("id", selectedId);
     if (categoryFilter !== "visa") p.set("cat", categoryFilter);
     if (categoryFilter === "visa" && countryFilter) p.set("country", countryFilter);
+    if (visaBucket) p.set("bucket", visaBucket);
+    if (coachingFamily) p.set("family", coachingFamily);
+    if (coachingVariant) p.set("variant", coachingVariant);
     setParams(p, { replace: true });
-  }, [selectedId, categoryFilter, countryFilter, setParams]);
+  }, [selectedId, categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, setParams]);
 
   const masters = useQuery({
     queryKey: ["sl-library-masters"],
@@ -74,38 +102,57 @@ export default function ServiceLibrary() {
       buildAcademyNav(masters.data ?? [], {
         categoryFilter,
         countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
+        visaBucket,
+        coachingFamily,
+        coachingVariant,
         search: treeSearch,
         statusFilter,
       }),
-    [masters.data, categoryFilter, countryFilter, treeSearch, statusFilter],
+    [masters.data, categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, treeSearch, statusFilter],
   );
 
+  const navReadyForSelection = group?.step === "services";
+
   useEffect(() => {
-    if (categoryFilter === "visa" && countryFilter === "ALL") {
+    if (!navReadyForSelection) {
       setSelectedId(null);
       return;
     }
     const ids = flattenNavItemIds(group);
     if (selectedId && ids.includes(selectedId)) return;
-    if (categoryFilter !== "visa") {
-      const first = ids[0];
-      if (first) setSelectedId(first);
-    }
-  }, [selectedId, group, categoryFilter, countryFilter]);
+  }, [selectedId, group, navReadyForSelection]);
 
   const handleCategoryChange = (cat: AcademyCategoryFilter) => {
     setCategoryFilter(cat);
     setSelectedId(null);
     setTreeSearch("");
-    if (cat === "visa") {
-      setCountryFilter("ALL");
-    }
+    setVisaBucket(null);
+    setCoachingFamily(null);
+    setCoachingVariant(null);
+    if (cat === "visa") setCountryFilter("ALL");
   };
 
   const handleCountryChange = (c: string) => {
     setCountryFilter(c);
     setSelectedId(null);
+    setVisaBucket(null);
     if (c !== "ALL") setDetailCountry(c);
+  };
+
+  const handleVisaBucketChange = (b: VisaImmigrationBucket | null) => {
+    setVisaBucket(b);
+    setSelectedId(null);
+  };
+
+  const handleCoachingFamilyChange = (f: string | null) => {
+    setCoachingFamily(f);
+    setCoachingVariant(null);
+    setSelectedId(null);
+  };
+
+  const handleCoachingVariantChange = (v: CoachingVariant | null) => {
+    setCoachingVariant(v);
+    setSelectedId(null);
   };
 
   const detailCountryParam =
@@ -122,26 +169,44 @@ export default function ServiceLibrary() {
     else if (countries[0]) setDetailCountry(countries[0]);
   }, [detail.data?.master.id, detail.data?.detailCountry]);
 
-  const showPlaceholder = !selectedId || (categoryFilter === "visa" && countryFilter === "ALL");
+  const showPlaceholder = !selectedId || !navReadyForSelection;
 
   const placeholderMessage = useMemo(() => {
     if (categoryFilter === "visa" && countryFilter === "ALL") {
       return {
         title: "Select a country",
-        hint: "Step 1 — pick a country under Visa & Immigration to see visa services.",
+        hint: "Step 1 — pick a country under All countries, then choose Visa or Immigration.",
       };
     }
-    if (categoryFilter === "visa" && countryFilter !== "ALL") {
+    if (categoryFilter === "visa" && !visaBucket) {
       return {
-        title: "Select a visa service",
-        hint: "Step 2 — choose a visa type from the sidebar. Details will appear here.",
+        title: "Select Visa or Immigration",
+        hint: `Step 3 — for ${countryFilter}, choose whether the client needs a temporary visa or an immigration pathway.`,
+      };
+    }
+    if (categoryFilter === "visa" && visaBucket && !selectedId) {
+      return {
+        title: "Select a service",
+        hint: `Step 4 — choose a ${visaBucket === "visa" ? "visa" : "immigration"} service for ${countryFilter}. Details appear here and in the right panel.`,
+      };
+    }
+    if (categoryFilter === "coaching" && !coachingFamily) {
+      return {
+        title: "Select a coaching program",
+        hint: "Step 2 — e.g. IELTS, PTE, GRE. For IELTS you will then pick General or Academic.",
+      };
+    }
+    if (categoryFilter === "coaching" && coachingFamily && !coachingVariant && group?.step === "coaching_variants") {
+      return {
+        title: "Select General or Academic",
+        hint: `Step 3 — choose the ${coachingFamily} format before opening training content.`,
       };
     }
     return {
       title: "Select a service",
-      hint: "Choose a service from the sidebar to view training content.",
+      hint: "Choose a service from the sidebar to view counselor training content.",
     };
-  }, [categoryFilter, countryFilter]);
+  }, [categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, selectedId, group?.step]);
 
   const toggleSub = async (itemId: string) => {
     if (!user?.id) {
@@ -176,6 +241,12 @@ export default function ServiceLibrary() {
     else toast.error(`Could not download ${fileName}`);
   };
 
+  const openSampleDoc = async (filePath: string, fileName: string) => {
+    const { data } = await supabase.storage.from("service-library-files").createSignedUrl(filePath, 600);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+    else toast.error(`Could not open ${fileName}`);
+  };
+
   const downloadFirstChecklist = async () => {
     const first = detail.data?.view.downloads[0];
     if (first) await downloadFile(first.fileId, first.name);
@@ -196,12 +267,18 @@ export default function ServiceLibrary() {
         group={group}
         categoryFilter={categoryFilter}
         onCategoryChange={handleCategoryChange}
+        country={countryFilter}
+        onCountry={handleCountryChange}
+        visaBucket={visaBucket}
+        onVisaBucket={handleVisaBucketChange}
+        coachingFamily={coachingFamily}
+        onCoachingFamily={handleCoachingFamilyChange}
+        coachingVariant={coachingVariant}
+        onCoachingVariant={handleCoachingVariantChange}
         activeCount={activeCount}
         reviewCount={reviewCount}
         selectedId={selectedId}
         onSelect={setSelectedId}
-        country={countryFilter}
-        onCountry={handleCountryChange}
         statusFilter={statusFilter}
         onStatusFilter={setStatusFilter}
         search={treeSearch}
@@ -263,6 +340,7 @@ export default function ServiceLibrary() {
                   onToggleChecklistItem={toggleSub}
                   onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}
+                  onOpenSampleDoc={openSampleDoc}
                 />
               </div>
             </div>
