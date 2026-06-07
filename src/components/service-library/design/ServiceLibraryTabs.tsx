@@ -17,6 +17,7 @@ import {
   Brain,
   StickyNote,
   History,
+  Eye,
   ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewMod
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
+import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
 
 const TAB_IDS = [
   "overview",
@@ -63,6 +65,7 @@ export function ServiceLibraryTabs({
   onOpenSampleDoc,
 }: Props) {
   const [internalTab, setInternalTab] = useState<TabId>("redflags");
+  const [specimenDoc, setSpecimenDoc] = useState<(typeof view.sampleDocs)[number] | null>(null);
   const activeTab = controlledTab ?? internalTab;
   const setTab = (t: TabId) => {
     setInternalTab(t);
@@ -424,8 +427,8 @@ export function ServiceLibraryTabs({
       <TabsContent value="sampledocs" className="mt-0 space-y-4">
         <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
           <p className="text-sm text-muted-foreground">
-            Specimen documents for client conversations. Entries below are labelled mock specimens — upload real
-            PDF/JPG files in Admin (attachments labelled &quot;sample&quot;) to enable View.
+            Specimen documents for client conversations. Click <strong>View specimen</strong> for mock previews, or
+            upload real redacted PDF/JPG files in Admin to replace with client-ready examples.
           </p>
         </Card>
         {view.sampleDocs.length > 0 ? (
@@ -474,8 +477,14 @@ export function ServiceLibraryTabs({
                       View file
                     </Button>
                   ) : (
-                    <Button variant="secondary" size="sm" className="flex-1" disabled>
-                      Upload file in Admin
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => setSpecimenDoc(doc)}
+                    >
+                      <Eye className="size-4 mr-1" />
+                      View specimen
                     </Button>
                   )}
                 </div>
@@ -487,6 +496,11 @@ export function ServiceLibraryTabs({
             No sample documents yet for this service. Add mock bank statements, LOA samples, or TRF examples here.
           </Card>
         )}
+        <SampleDocSpecimenDialog
+          doc={specimenDoc}
+          open={!!specimenDoc}
+          onOpenChange={(o) => !o && setSpecimenDoc(null)}
+        />
       </TabsContent>
 
       <TabsContent value="quiz" className="mt-0">
