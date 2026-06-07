@@ -1423,6 +1423,13 @@
       "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
       "mimeType": "application/pdf",
       "docKind": "financial"
+    },
+    {
+      "title": "Document checklist — outside Canada (specimen)",
+      "description": "Future Link branded study permit submission checklist (30 items). Print from HTML or open PDF.",
+      "mimeType": "application/pdf",
+      "docKind": "checklist",
+      "url": "/specimens/checklists/canada-student-visa.html"
     }
   ],
   "navBucket": "visa",

@@ -184,6 +184,10 @@ export default function ServiceLibrary() {
       toast.error("File not found");
       return;
     }
+    if (row.file_path.startsWith("/specimens/")) {
+      window.open(row.file_path, "_blank");
+      return;
+    }
     const { data } = await supabase.storage.from("service-library-files").createSignedUrl(row.file_path, 600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
     else toast.error(`Could not download ${fileName}`);

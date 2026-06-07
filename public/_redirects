@@ -1,0 +1,4 @@
+# Static checklist specimens (SPA hosts must not swallow these paths)
+/specimens/checklists           /specimens/checklists/index.html 200
+/specimens/checklists/          /specimens/checklists/index.html 200
+/specimens/checklists/:slug     /specimens/checklists/:slug.html 200

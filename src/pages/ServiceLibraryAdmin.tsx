@@ -999,6 +999,10 @@ function ChecklistTab({ master, onChanged }: { master: Master; onChanged: () => 
   };
 
   const download = async (f: ChecklistFile) => {
+    if (f.file_path.startsWith("/specimens/")) {
+      window.open(f.file_path, "_blank", "noopener");
+      return;
+    }
     const { data } = await supabase.storage.from("service-library-files").createSignedUrl(f.file_path, 600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
   };
@@ -1027,7 +1031,7 @@ function ChecklistTab({ master, onChanged }: { master: Master; onChanged: () => 
             <label className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50 cursor-pointer">
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               Upload
-              <input type="file" hidden accept=".pdf,.doc,.docx,.xls,.xlsx"
+              <input type="file" hidden accept=".pdf,.html,.htm,.doc,.docx,.xls,.xlsx"
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }}
               />
             </label>

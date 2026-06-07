@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import flcLogo from "@/assets/flc-logo.png";
 
 export type SpecimenDoc = {
   title: string;
@@ -143,6 +144,98 @@ function TrfSpecimen() {
   );
 }
 
+function CanadaStudentChecklistSpecimen() {
+  const sections: { title: string; items: string[] }[] = [
+    {
+      title: "A · Identity & travel",
+      items: [
+        "Valid passport (bio + visa pages if requested)",
+        "Digital photo — IRCC specs",
+        "IMM 5257 / online profile complete",
+        "Family info form IMM 5707 or 5645",
+      ],
+    },
+    {
+      title: "B · LOA & DLI",
+      items: [
+        "Letter of acceptance from DLI",
+        "DLI number verified on IRCC list",
+        "Realistic program start date",
+      ],
+    },
+    {
+      title: "C · Financial proof",
+      items: [
+        "[SDS] GIC + upfront tuition payment",
+        "[Non-SDS] 4–6 month bank history + LICO calc",
+        "[If sponsored] Sponsor letter, ITR, income proof",
+      ],
+    },
+    {
+      title: "D · Language & academics",
+      items: ["Language TRF (IELTS/PTE/etc.)", "Transcripts & degrees", "SOP / study plan"],
+    },
+    {
+      title: "E · Medical & biometrics",
+      items: ["Upfront medical (SDS if required)", "Biometrics within 30 days of BIL", "Police certificate if required"],
+    },
+    {
+      title: "F · Submission",
+      items: ["Fees paid · client sign-off · QA review · IRCC upload confirmed"],
+    },
+  ];
+
+  return (
+    <div className="relative rounded-lg border overflow-hidden bg-white text-slate-900 shadow-inner">
+      <Watermark />
+      <div className="relative">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-[#1a4f8c] px-4 py-3 text-center">
+          <img src={flcLogo} alt="Future Link Consultants" className="mx-auto h-12 w-auto max-w-full object-contain" />
+        </div>
+        <div className="bg-gradient-to-r from-[#1a4f8c] to-violet-700 px-4 py-3 text-white">
+          <div className="font-bold text-sm">Study Permit — Document Checklist</div>
+          <div className="text-[10px] opacity-90 mt-0.5">Outside Canada · SDS & Non-SDS</div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 p-3 bg-sky-50 border-b text-[10px]">
+          {["Client name", "File ID", "Residence", "Pathway ☐ SDS ☐ Non-SDS"].map((label) => (
+            <div key={label}>
+              <div className="text-[#1a4f8c] font-bold uppercase tracking-wide text-[9px]">{label}</div>
+              <div className="border-b border-[#1a4f8c]/40 h-5 mt-1 text-slate-400 italic text-[9px]">
+                {label === "Client name" ? "Auto-filled when linked to client" : ""}
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-[9px] text-blue-800 bg-blue-50 px-3 py-2 border-b leading-snug">
+          <strong>Note:</strong> When attached to a client file, name, file ID, country, pathway, and dates fill automatically from the applicant profile.
+        </p>
+        <div className="p-3 space-y-3 max-h-[320px] overflow-y-auto">
+          {sections.map((sec) => (
+            <div key={sec.title}>
+              <div className="text-[10px] font-bold uppercase tracking-wide text-[#1a4f8c] border-l-2 border-red-600 pl-2 mb-1.5">
+                {sec.title}
+              </div>
+              <ul className="space-y-1">
+                {sec.items.map((line) => (
+                  <li key={line} className="flex gap-2 text-[10px] leading-snug">
+                    <span className="size-3 border-2 border-[#1a4f8c] rounded-sm shrink-0 mt-0.5" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <div className="bg-slate-900 text-slate-400 text-[8px] text-center py-2.5 px-3 leading-relaxed">
+          <div className="text-slate-300 font-medium mb-1">Future Link Consultants · Internal checklist · Not an official government form</div>
+          Regulated Canadian Immigration Consultants | 25+ Years in Study Abroad &amp; Immigration | 19+ Countries Option |
+          Expertise in Student | Visitor | Spouse | Immigration | Refusal Cases.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GenericDocSpecimen({ doc }: { doc: SpecimenDoc }) {
   return (
     <Frame>
@@ -159,6 +252,13 @@ function GenericDocSpecimen({ doc }: { doc: SpecimenDoc }) {
 
 export function SampleDocSpecimenContent({ doc }: { doc: SpecimenDoc }) {
   const t = doc.title.toLowerCase();
+
+  if (
+    (t.includes("checklist") || doc.docKind === "checklist") &&
+    (t.includes("student") || t.includes("study permit") || t.includes("outside canada"))
+  ) {
+    return <CanadaStudentChecklistSpecimen />;
+  }
 
   if (t.includes("passport")) return <PassportSpecimen />;
   if (t.includes("bank") || doc.docKind === "financial") return <BankStatementSpecimen />;
