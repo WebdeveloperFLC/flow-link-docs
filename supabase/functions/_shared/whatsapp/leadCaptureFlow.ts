@@ -10,18 +10,26 @@ export type LeadCaptureStep =
   | "service_menu"
   | "full_name"
   | "student_country"
-  | "student_details"
+  | "student_qualification"
+  | "student_intake"
+  | "student_branch"
   | "visitor_country"
-  | "visitor_details"
+  | "visitor_purpose"
+  | "visitor_branch"
   | "spouse_country"
-  | "spouse_details"
+  | "spouse_status"
+  | "spouse_branch"
   | "pr_country"
-  | "pr_details"
-  | "super_details"
+  | "pr_qualification"
+  | "pr_branch"
+  | "super_sponsor"
+  | "super_branch"
   | "pgwp_submenu"
-  | "pgwp_details"
+  | "pgwp_in_canada"
+  | "pgwp_branch"
   | "coaching_course"
-  | "coaching_details"
+  | "coaching_mode"
+  | "coaching_branch"
   | "other_inquiry"
   | "confirm"
   | "edit_pick"
@@ -186,13 +194,8 @@ function routeAfterName(service: string): { step: LeadCaptureStep; reply: string
       return { step: "pr_country", reply: "Which country are you interested in for Permanent Residency?" };
     case "super_visa":
       return {
-        step: "super_details",
-        reply: [
-          "Please share:",
-          "• Child / Grandchild Status (Canadian Citizen or Permanent Resident)",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ].join("\n"),
+        step: "super_sponsor",
+        reply: "Child / Grandchild Status (Canadian Citizen or Permanent Resident)?",
       };
     case "pgwp_extension":
       return {
@@ -222,41 +225,17 @@ function routeAfterName(service: string): { step: LeadCaptureStep; reply: string
   }
 }
 
-function parseBulletFields(text: string): Record<string, string> {
-  const out: Record<string, string> = {};
-  const lines = text.split(/\n/).map((l) => l.trim()).filter(Boolean);
-  for (const line of lines) {
-    const m = line.replace(/^[•\-*]\s*/, "").match(/^([^:]+):\s*(.+)$/);
-    if (m) {
-      const key = m[1].toLowerCase();
-      const val = m[2].trim();
-      if (key.includes("qualification")) out.highest_qualification = val;
-      else if (key.includes("intake")) out.preferred_intake = val;
-      else if (key.includes("branch") || key.includes("city")) out.branch_preference = val;
-      else if (key.includes("purpose")) out.purpose_of_travel = val;
-      else if (key.includes("spouse")) out.spouse_status = val;
-      else if (key.includes("child") || key.includes("grandchild")) out.super_visa_sponsor_status = val;
-      else if (key.includes("canada")) out.in_canada = val;
-      else if (key.includes("online") || key.includes("classroom")) out.coaching_mode = val;
-    }
-  }
-  if (!out.branch_preference && lines.length === 1 && !lines[0].includes(":")) {
-    out.branch_preference = lines[0].replace(/^[•\-*]\s*/, "");
-  }
-  return out;
-}
-
-function mergeDetails(intake: LeadCaptureData, text: string): LeadCaptureData {
-  const parsed = parseBulletFields(text);
-  const next = { ...intake, ...parsed };
-  if (!next.branch_preference) {
-    const branchLine = text.split(/\n/).find((l) => /branch|city/i.test(l));
-    if (branchLine) {
-      const val = branchLine.replace(/^[•\-*]\s*/, "").replace(/^[^:]+:\s*/, "").trim();
-      if (val) next.branch_preference = val;
-    }
-  }
-  return next;
+function migrateLegacyStep(step: string): LeadCaptureStep {
+  const legacy: Record<string, LeadCaptureStep> = {
+    student_details: "student_qualification",
+    visitor_details: "visitor_purpose",
+    spouse_details: "spouse_status",
+    pr_details: "pr_qualification",
+    super_details: "super_sponsor",
+    pgwp_details: "pgwp_in_canada",
+    coaching_details: "coaching_mode",
+  };
+  return (legacy[step] ?? step) as LeadCaptureStep;
 }
 
 function looksLikeName(text: string): boolean {
@@ -268,19 +247,37 @@ function looksLikeName(text: string): boolean {
 }
 
 function buildConfirmSummary(intake: LeadCaptureData): string {
-  return [
+  const lines = [
     "Please confirm your details:",
     `• Full Name: ${intake.full_name || "—"}`,
     `• Service: ${intake.service_label || "—"}`,
-    `• Country: ${intake.country || "—"}`,
-    `• Branch/City: ${intake.branch_preference || "—"}`,
+  ];
+  const optional: [string, string | undefined][] = [
+    ["Country", intake.country],
+    ["Qualification", intake.highest_qualification],
+    ["Preferred Intake", intake.preferred_intake],
+    ["Purpose", intake.purpose_of_travel],
+    ["Spouse Status", intake.spouse_status],
+    ["Sponsor Status", intake.super_visa_sponsor_status],
+    ["PGWP / Status", intake.pgwp_sub_type],
+    ["In Canada", intake.in_canada],
+    ["Course", intake.coaching_course],
+    ["Mode", intake.coaching_mode],
+    ["Inquiry", intake.other_inquiry],
+    ["Branch/City", intake.branch_preference],
+  ];
+  for (const [label, value] of optional) {
+    if (value?.trim()) lines.push(`• ${label}: ${value.trim()}`);
+  }
+  lines.push(
     "",
     "Reply with one of the following:",
     "1.\tYES – Confirm & Submit Inquiry",
     "2.\tEDIT – Update Details",
     "3.\tRESTART – Start Over",
     DIVIDER,
-  ].join("\n");
+  );
+  return lines.join("\n");
 }
 
 function readyToConfirm(intake: LeadCaptureData): boolean {
@@ -404,7 +401,7 @@ export function nextLeadCaptureReply(
 ): LeadCaptureResult {
   const intake = normalizeLeadCaptureFields(rawIntake);
   const trimmed = text.trim();
-  const step = intake.step || "welcome";
+  const step = migrateLegacyStep(intake.step || "welcome");
 
   if (/^restart$/i.test(trimmed) && step !== "welcome") {
     return leadCaptureRestart(intake);
@@ -476,57 +473,92 @@ export function nextLeadCaptureReply(
         return { intake, replies: ["Which country are you interested in studying in?"], confirmed: false };
       }
       return {
-        intake: { ...intake, country: trimmed, step: "student_details" },
-        replies: [
-          "Please share:",
-          "• Highest Qualification",
-          "• Preferred Intake",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ],
+        intake: { ...intake, country: trimmed, step: "student_qualification" },
+        replies: ["What is your highest qualification?"],
         confirmed: false,
       };
 
-    case "student_details": {
-      const next = mergeDetails(intake, trimmed);
-      return goConfirm({ ...next, step: "student_details" });
-    }
+    case "student_qualification":
+      if (!trimmed) {
+        return { intake, replies: ["What is your highest qualification?"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, highest_qualification: trimmed, step: "student_intake" },
+        replies: ["What is your preferred intake? (e.g. Jan 2027, Sep 2026)"],
+        confirmed: false,
+      };
+
+    case "student_intake":
+      if (!trimmed) {
+        return { intake, replies: ["What is your preferred intake? (e.g. Jan 2027, Sep 2026)"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, preferred_intake: trimmed, step: "student_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
+
+    case "student_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "visitor_country":
       if (!trimmed) {
         return { intake, replies: ["Which country would you like to visit?"], confirmed: false };
       }
       return {
-        intake: { ...intake, country: trimmed, step: "visitor_details" },
-        replies: [
-          "Please share:",
-          "• Purpose of Travel",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ],
+        intake: { ...intake, country: trimmed, step: "visitor_purpose" },
+        replies: ["What is the purpose of your travel?"],
         confirmed: false,
       };
 
-    case "visitor_details":
-      return goConfirm(mergeDetails({ ...intake, step: "visitor_details" }, trimmed));
+    case "visitor_purpose":
+      if (!trimmed) {
+        return { intake, replies: ["What is the purpose of your travel?"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, purpose_of_travel: trimmed, step: "visitor_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
+
+    case "visitor_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "spouse_country":
       if (!trimmed) {
         return { intake, replies: ["Which country is your spouse currently in?"], confirmed: false };
       }
       return {
-        intake: { ...intake, country: trimmed, step: "spouse_details" },
-        replies: [
-          "Please share:",
-          "• Spouse Status (Student / Worker / PR Holder / Citizen)",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ],
+        intake: { ...intake, country: trimmed, step: "spouse_status" },
+        replies: ["Spouse Status? (Student / Worker / PR Holder / Citizen)"],
         confirmed: false,
       };
 
-    case "spouse_details":
-      return goConfirm(mergeDetails({ ...intake, step: "spouse_details" }, trimmed));
+    case "spouse_status":
+      if (!trimmed) {
+        return {
+          intake,
+          replies: ["Spouse Status? (Student / Worker / PR Holder / Citizen)"],
+          confirmed: false,
+        };
+      }
+      return {
+        intake: { ...intake, spouse_status: trimmed, step: "spouse_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
+
+    case "spouse_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "pr_country":
       if (!trimmed) {
@@ -537,21 +569,46 @@ export function nextLeadCaptureReply(
         };
       }
       return {
-        intake: { ...intake, country: trimmed, step: "pr_details" },
-        replies: [
-          "Please share:",
-          "• Highest Qualification",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ],
+        intake: { ...intake, country: trimmed, step: "pr_qualification" },
+        replies: ["What is your highest qualification?"],
         confirmed: false,
       };
 
-    case "pr_details":
-      return goConfirm(mergeDetails({ ...intake, step: "pr_details" }, trimmed));
+    case "pr_qualification":
+      if (!trimmed) {
+        return { intake, replies: ["What is your highest qualification?"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, highest_qualification: trimmed, step: "pr_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
 
-    case "super_details":
-      return goConfirm(mergeDetails({ ...intake, step: "super_details" }, trimmed));
+    case "pr_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
+
+    case "super_sponsor":
+      if (!trimmed) {
+        return {
+          intake,
+          replies: ["Child / Grandchild Status (Canadian Citizen or Permanent Resident)?"],
+          confirmed: false,
+        };
+      }
+      return {
+        intake: { ...intake, super_visa_sponsor_status: trimmed, step: "super_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
+
+    case "super_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "pgwp_submenu": {
       const choice = parseMenuChoice(trimmed, 6);
@@ -570,20 +627,28 @@ export function nextLeadCaptureReply(
           ...intake,
           pgwp_sub_type: PGWP_OPTIONS[choice - 1].label,
           country: "Canada",
-          step: "pgwp_details",
+          step: "pgwp_in_canada",
         },
-        replies: [
-          "Please share:",
-          "• Are you currently in Canada? (Yes/No)",
-          "• Preferred Branch/City",
-          DIVIDER,
-        ],
+        replies: ["Are you currently in Canada? (Yes/No)"],
         confirmed: false,
       };
     }
 
-    case "pgwp_details":
-      return goConfirm(mergeDetails({ ...intake, step: "pgwp_details" }, trimmed));
+    case "pgwp_in_canada":
+      if (!trimmed) {
+        return { intake, replies: ["Are you currently in Canada? (Yes/No)"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, in_canada: trimmed, step: "pgwp_branch" },
+        replies: ["Preferred Branch/City?"],
+        confirmed: false,
+      };
+
+    case "pgwp_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch/City?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "coaching_course": {
       const choice = parseMenuChoice(trimmed, 11);
@@ -601,20 +666,28 @@ export function nextLeadCaptureReply(
         intake: {
           ...intake,
           coaching_course: COACHING_COURSES[choice - 1].label,
-          step: "coaching_details",
+          step: "coaching_mode",
         },
-        replies: [
-          "Please share:",
-          "• Online or Classroom",
-          "• Preferred Branch",
-          DIVIDER,
-        ],
+        replies: ["Online or Classroom?"],
         confirmed: false,
       };
     }
 
-    case "coaching_details":
-      return goConfirm(mergeDetails({ ...intake, step: "coaching_details" }, trimmed));
+    case "coaching_mode":
+      if (!trimmed) {
+        return { intake, replies: ["Online or Classroom?"], confirmed: false };
+      }
+      return {
+        intake: { ...intake, coaching_mode: trimmed, step: "coaching_branch" },
+        replies: ["Preferred Branch?"],
+        confirmed: false,
+      };
+
+    case "coaching_branch":
+      if (!trimmed) {
+        return { intake, replies: ["Preferred Branch?"], confirmed: false };
+      }
+      return goConfirm({ ...intake, branch_preference: trimmed });
 
     case "other_inquiry":
       if (!trimmed || trimmed.length < 5) {

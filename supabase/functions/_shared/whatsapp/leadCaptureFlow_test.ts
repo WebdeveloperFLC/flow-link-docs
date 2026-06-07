@@ -30,12 +30,24 @@ Deno.test("student visa full flow to confirm", () => {
   assertEquals(intake.step, "student_country");
   r = nextLeadCaptureReply(intake, "Canada");
   intake = r.intake;
-  r = nextLeadCaptureReply(intake, "Highest Qualification: Bachelors\nPreferred Intake: Sep 2026\nPreferred Branch/City: Ahmedabad");
+  assertEquals(intake.step, "student_qualification");
+  r = nextLeadCaptureReply(intake, "Bachelors");
+  intake = r.intake;
+  assertEquals(intake.step, "student_intake");
+  r = nextLeadCaptureReply(intake, "Jan 2027");
+  intake = r.intake;
+  assertEquals(intake.step, "student_branch");
+  r = nextLeadCaptureReply(intake, "Vadodara");
   intake = r.intake;
   assertEquals(intake.step, "confirm");
+  assertEquals(intake.highest_qualification, "Bachelors");
+  assertEquals(intake.preferred_intake, "Jan 2027");
+  assertEquals(intake.branch_preference, "Vadodara");
   assert(intake.full_name?.includes("Jane"));
   assertEquals(intake.country, "Canada");
-  assert(r.replies[0].includes("Please confirm your details"));
+  assert(r.replies[0].includes("Qualification"));
+  assert(r.replies[0].includes("Preferred Intake"));
+  assert(r.replies[0].includes("Vadodara"));
 });
 
 Deno.test("confirm YES completes intake", () => {
@@ -96,7 +108,7 @@ Deno.test("coaching course 1 -> details", () => {
   };
   const r = nextLeadCaptureReply(intake, "1");
   assertEquals(r.intake.coaching_course, "IELTS");
-  assertEquals(r.intake.step, "coaching_details");
+  assertEquals(r.intake.step, "coaching_mode");
 });
 
 Deno.test("buildLeadCaptureNotes includes service fields", () => {

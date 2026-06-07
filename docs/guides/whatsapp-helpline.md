@@ -119,7 +119,9 @@ Hi
 1 (Student Visa)
 Jane Doe
 Canada
-Qualification: Bachelors / Intake: Sep 2026 / Branch: Ahmedabad
+Qualification step: Bachelors
+Intake step: Sep 2026
+Branch step: Ahmedabad
 1 (YES)
 Check Leads list
 Optional: ask documents → COUNSELOR → counselor assigned
@@ -412,8 +414,8 @@ New helpline numbers use a **fixed menu flow** (8 services, service-specific que
 **Test script (Simulate):**
 
 ```text
-Hi → 1 → Jane Doe → Canada → Bachelors, Sep 2026, Ahmedabad → 1 (YES)
-→ Lead notes include service + branch
+Hi → 1 → Jane Doe → Canada → Bachelors → Jan 2027 → Vadodara → 1 (YES)
+→ Lead notes include qualification, intake, branch
 → "What documents for Canada student visa?" → Gemini
 → COUNSELOR → counselor assigned
 ```
@@ -480,7 +482,7 @@ Use this once after redeploying `whatsapp-webhook` with Phase 5.1 (FL menu intak
 ### Simulate test (CRM → WhatsApp → Simulate inbound)
 
 ```text
-Hi → 1 → Jane Doe → Canada → Bachelors / Sep 2026 / Ahmedabad → 1 (YES)
+Hi → 1 → Jane Doe → Canada → Bachelors → Sep 2026 → Ahmedabad → 1 (YES)
 → Lead created (source whatsapp_helpline, notes include service + branch)
 → Status: AI counseling
 → "What documents for Canada student visa?" → Gemini reply
