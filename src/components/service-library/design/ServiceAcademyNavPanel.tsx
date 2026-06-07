@@ -3,8 +3,6 @@ import {
   ChevronRight,
   Globe2,
   GraduationCap,
-  Landmark,
-  Plane,
   Stamp,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -15,38 +13,18 @@ import type {
   AcademyNavGroup,
   AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
-import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
+import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
 
 type Props = {
   group: AcademyNavGroup | null;
   categoryFilter: AcademyCategoryFilter;
   country: string;
-  visaBucket: VisaImmigrationBucket | null;
   coachingFamily: string | null;
   coachingVariant: CoachingVariant | null;
   onCountry: (c: string) => void;
-  onVisaBucket: (b: VisaImmigrationBucket | null) => void;
   onCoachingFamily: (f: string | null) => void;
   onCoachingVariant: (v: CoachingVariant | null) => void;
   onSelectService: (id: string) => void;
-};
-
-const BUCKET_COPY: Record<
-  VisaImmigrationBucket,
-  { title: string; description: string; examples: string; icon: typeof Plane }
-> = {
-  visa: {
-    title: "Temporary visa",
-    description: "Short-term entry — tourism, study, visits, and super visa for parents.",
-    examples: "Visitor TRV · Study permit · Super visa",
-    icon: Plane,
-  },
-  immigration: {
-    title: "Immigration pathway",
-    description: "Work, PR, and status bridges while the client builds a long-term pathway.",
-    examples: "Express Entry · PGWP · Work permit · BOWP",
-    icon: Landmark,
-  },
 };
 
 function Breadcrumb({
@@ -125,36 +103,6 @@ function CountryCard({
   );
 }
 
-function BucketCard({
-  bucket,
-  count,
-  onClick,
-}: {
-  bucket: VisaImmigrationBucket;
-  count: number;
-  onClick: () => void;
-}) {
-  const copy = BUCKET_COPY[bucket];
-  const Icon = copy.icon;
-  return (
-    <button type="button" onClick={onClick} className="text-left group">
-      <Card className="p-6 h-full shadow-elev-sm hover:border-primary/40 hover:shadow-md transition-all group-hover:bg-primary/[0.02]">
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center">
-            <Icon className="size-6 text-primary" />
-          </div>
-          <Badge variant="secondary" className="tabular-nums">
-            {count} services
-          </Badge>
-        </div>
-        <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">{copy.title}</h3>
-        <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{copy.description}</p>
-        <p className="text-xs text-muted-foreground/80 mt-3 pt-3 border-t">{copy.examples}</p>
-      </Card>
-    </button>
-  );
-}
-
 function ServiceCard({ item, onClick }: { item: AcademyServiceItem; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="text-left group w-full">
@@ -216,11 +164,9 @@ export function ServiceAcademyNavPanel({
   group,
   categoryFilter,
   country,
-  visaBucket,
   coachingFamily,
   coachingVariant,
   onCountry,
-  onVisaBucket,
   onCoachingFamily,
   onCoachingVariant,
   onSelectService,
@@ -236,22 +182,21 @@ export function ServiceAcademyNavPanel({
   }
 
   const resetCountry = () => onCountry("ALL");
-  const resetBucket = () => onVisaBucket(null);
   const resetFamily = () => onCoachingFamily(null);
 
   if (categoryFilter === "visa" && step === "countries" && group.countryPickers) {
     return (
       <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 md:py-10 max-w-5xl mx-auto w-full">
         <Breadcrumb items={[{ label: "All countries" }]} />
-        <StepPills steps={["Country", "Pathway", "Service"]} active={0} />
+        <StepPills steps={["Country", "Service"]} active={0} />
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
             <Globe2 className="size-5 text-primary" />
             <h1 className="text-2xl font-bold tracking-tight">Choose a destination</h1>
           </div>
           <p className="text-sm text-muted-foreground max-w-xl">
-            Pick the country your client is applying for. You&apos;ll then choose Visa or Immigration and open
-            counselor training for that service.
+            Pick the country your client is applying for, then open counselor training for that visa or
+            immigration service.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -269,46 +214,9 @@ export function ServiceAcademyNavPanel({
     );
   }
 
-  if (categoryFilter === "visa" && step === "visa_buckets" && group.subBuckets) {
-    return (
-      <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 md:py-10 max-w-4xl mx-auto w-full">
-        <Breadcrumb
-          items={[
-            { label: "All countries", onClick: resetCountry },
-            { label: country },
-          ]}
-        />
-        <StepPills steps={["Country", "Pathway", "Service"]} active={1} />
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold tracking-tight mb-2">
-            {country} — Visa or Immigration?
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-xl">
-            Temporary visas cover visits and study. Immigration covers work permits, PR pathways, and bridging
-            options. Pick the pathway that matches your client&apos;s goal.
-          </p>
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          {group.subBuckets.map((b) => (
-            <BucketCard
-              key={b.key}
-              bucket={b.key}
-              count={b.count}
-              onClick={() => onVisaBucket(b.key)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (step === "services" && group.items) {
-    const pathwayLabel =
-      categoryFilter === "visa"
-        ? visaBucket === "visa"
-          ? "Temporary visa"
-          : "Immigration"
-        : coachingFamily ?? "Coaching";
+    const sectionLabel =
+      categoryFilter === "visa" ? "Visa & Immigration" : coachingFamily ?? "Coaching";
 
     return (
       <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 md:py-10 max-w-4xl mx-auto w-full">
@@ -317,23 +225,22 @@ export function ServiceAcademyNavPanel({
             categoryFilter === "visa"
               ? [
                   { label: "All countries", onClick: resetCountry },
-                  { label: country, onClick: resetBucket },
-                  { label: pathwayLabel },
+                  { label: `${country} · ${sectionLabel}` },
                 ]
-              : [{ label: "Coaching", onClick: resetFamily }, { label: pathwayLabel }]
+              : [{ label: "Coaching", onClick: resetFamily }, { label: sectionLabel }]
           }
         />
         <StepPills
           steps={
             categoryFilter === "visa"
-              ? ["Country", "Pathway", "Service"]
+              ? ["Country", "Service"]
               : ["Program", "Format", "Service"]
           }
-          active={categoryFilter === "visa" ? 2 : 2}
+          active={categoryFilter === "visa" ? 1 : 2}
         />
         <div className="mb-6">
           <h1 className="text-xl font-bold tracking-tight mb-1">
-            {categoryFilter === "visa" ? `${country} · ${pathwayLabel}` : pathwayLabel}
+            {categoryFilter === "visa" ? `${country} · Visa & Immigration` : sectionLabel}
           </h1>
           <p className="text-sm text-muted-foreground">
             Select a service to open checklists, sample docs, quizzes, and counselor notes.

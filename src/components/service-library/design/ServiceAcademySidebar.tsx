@@ -10,7 +10,7 @@ import {
   type AcademyNavGroup,
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
-import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
+import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
 
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
@@ -23,8 +23,6 @@ type Props = {
   onCategoryChange: (c: AcademyCategoryFilter) => void;
   country: string;
   onCountry: (c: string) => void;
-  visaBucket: VisaImmigrationBucket | null;
-  onVisaBucket: (b: VisaImmigrationBucket | null) => void;
   coachingFamily: string | null;
   onCoachingFamily: (f: string | null) => void;
   coachingVariant: CoachingVariant | null;
@@ -78,8 +76,6 @@ export function ServiceAcademySidebar({
   onCategoryChange,
   country,
   onCountry,
-  visaBucket,
-  onVisaBucket,
   coachingFamily,
   onCoachingFamily,
   coachingVariant,
@@ -111,13 +107,8 @@ export function ServiceAcademySidebar({
 
   const resetToCountries = () => {
     onCountry("ALL");
-    onVisaBucket(null);
     onCoachingFamily(null);
     onCoachingVariant(null);
-  };
-
-  const resetToVisaBuckets = () => {
-    onVisaBucket(null);
   };
 
   const resetToCoachingFamilies = () => {
@@ -182,8 +173,7 @@ export function ServiceAcademySidebar({
 
         {categoryFilter === "visa" && country !== "ALL" && (
           <div className="rounded-md bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-300">
-            {country}
-            {visaBucket ? ` · ${visaBucket === "visa" ? "Visa" : "Immigration"}` : ""}
+            {country} · Visa & Immigration
           </div>
         )}
 
@@ -267,39 +257,6 @@ export function ServiceAcademySidebar({
               </div>
             )}
 
-            {step === "visa_buckets" && group.subBuckets && (
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={resetToCountries}
-                  className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
-                >
-                  ← {country}
-                </button>
-                <StepHint>Visa or Immigration pathway</StepHint>
-                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Pathway</p>
-                <ul className="space-y-0.5">
-                  {group.subBuckets.map((bucket) => (
-                    <li key={bucket.key}>
-                      <button
-                        type="button"
-                        onClick={() => onVisaBucket(bucket.key)}
-                        className={cn(
-                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
-                          visaBucket === bucket.key
-                            ? "bg-primary text-primary-foreground font-medium"
-                            : "text-slate-300 hover:bg-slate-800",
-                        )}
-                      >
-                        <span className="flex-1 truncate">{bucket.label}</span>
-                        <span className="text-[10px] tabular-nums opacity-80">{bucket.count}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
             {step === "coaching_families" && group.coachingFamilies && (
               <div className="space-y-1">
                 <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Programs</p>
@@ -363,10 +320,10 @@ export function ServiceAcademySidebar({
                 {categoryFilter === "visa" && (
                   <button
                     type="button"
-                    onClick={resetToVisaBuckets}
+                    onClick={resetToCountries}
                     className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
                   >
-                    ← {visaBucket === "visa" ? "Visa" : "Immigration"}
+                    ← All countries
                   </button>
                 )}
                 {categoryFilter === "coaching" && coachingVariant && (

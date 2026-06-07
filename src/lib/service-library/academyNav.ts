@@ -2,12 +2,10 @@ import type { Master } from "@/lib/serviceLibrary";
 import { countryBadgeCode, sortVisaCountries, VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
 import {
   classifyCoachingVariant,
-  classifyVisaImmigration,
   coachingFamilyLabel,
   coachingVariantLabel,
   resolveServiceCountries,
   type CoachingVariant,
-  type VisaImmigrationBucket,
 } from "@/lib/service-library/serviceNavClassification";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 
@@ -15,7 +13,6 @@ export type AcademyCategoryFilter = "visa" | "coaching";
 
 export type AcademyNavStep =
   | "countries"
-  | "visa_buckets"
   | "coaching_families"
   | "coaching_variants"
   | "services";
@@ -35,7 +32,7 @@ export type AcademyNavCountryPicker = {
 };
 
 export type AcademyNavSubBucket = {
-  key: VisaImmigrationBucket;
+  key: string;
   label: string;
   count: number;
 };
@@ -137,7 +134,6 @@ function metaOf(m: MasterRow) {
     displayName?: string;
     shortDescription?: string;
     reviewStatus?: string;
-    navBucket?: VisaImmigrationBucket;
   } | undefined;
 }
 
@@ -206,7 +202,6 @@ export function buildAcademyNav(
   opts: {
     categoryFilter: AcademyCategoryFilter;
     countryFilter: string;
-    visaBucket: VisaImmigrationBucket | null;
     coachingFamily: string | null;
     coachingVariant: CoachingVariant | null;
     search: string;
@@ -291,48 +286,13 @@ export function buildAcademyNav(
       return { group: null, activeCount, reviewCount };
     }
 
-    if (!opts.visaBucket) {
-      const visaCount = countryRows.filter(
-        (m) =>
-          classifyVisaImmigration({
-            subService: m.sub_service,
-            displayName: metaOf(m)?.displayName,
-            navBucket: metaOf(m)?.navBucket,
-          }) === "visa",
-      ).length;
-      const immigrationCount = countryRows.length - visaCount;
-
-      return {
-        group: {
-          key: "visa",
-          label: "Visa & Immigration",
-          step: "visa_buckets",
-          subBuckets: [
-            { key: "visa", label: "Visa", count: visaCount },
-            { key: "immigration", label: "Immigration", count: immigrationCount },
-          ].filter((b) => b.count > 0),
-        },
-        activeCount,
-        reviewCount,
-      };
-    }
-
-    const filtered = countryRows.filter(
-      (m) =>
-        classifyVisaImmigration({
-          subService: m.sub_service,
-          displayName: metaOf(m)?.displayName,
-          navBucket: metaOf(m)?.navBucket,
-        }) === opts.visaBucket,
-    );
-
     return {
       group: {
         key: "visa",
-        label: opts.visaBucket === "visa" ? "Visa" : "Immigration",
+        label: "Visa & Immigration",
         step: "services",
         items: sortItems(
-          filtered.map((m) =>
+          countryRows.map((m) =>
             toItem(
               m,
               metaOf(m)?.reviewStatus === "needs_review",

@@ -28,12 +28,6 @@ function buildChecks(meta: ServiceAcademyMetadata, master: Props["master"]): Che
       detail: meta.displayName ? meta.displayName : "Missing displayName",
     },
     {
-      id: "nav",
-      label: "Visa / Immigration bucket",
-      ok: !!meta.navBucket,
-      detail: meta.navBucket ?? "Set navBucket for sidebar grouping",
-    },
-    {
       id: "countries",
       label: "Country mapping",
       ok: master.service_category !== "visa_immigration" || countries.length > 0,
