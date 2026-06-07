@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
+import { resolveServiceCountries } from "@/lib/service-library/serviceNavClassification";
+import { VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
 
 export type LeadType = "warm" | "hot" | "cold";
 export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "unqualified" | "lost";

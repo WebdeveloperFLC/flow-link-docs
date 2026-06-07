@@ -21,6 +21,14 @@ import {
   notifyQueueUnassignedThread,
 } from "../_shared/whatsapp/whatsappNotifications.ts";
 import { nextGeminiReply } from "../_shared/whatsapp/geminiIntake.ts";
+import {
+  buildLeadCaptureNotes,
+  initialFlMenuIntake,
+  isFlMenuFlow,
+  leadCaptureRestart,
+  nextLeadCaptureReply,
+  shouldForceLeadCaptureConfirm,
+} from "../_shared/whatsapp/leadCaptureFlow.ts";
 import { nextRulesReply, normalizeIntakeFields, shouldForceIntakeConfirm, splitName, type IntakeData } from "../_shared/whatsapp/rulesIntake.ts";
 import { ensureWhatsAppMediaStored } from "../_shared/whatsapp/mediaStorage.ts";
 import {
@@ -54,6 +62,15 @@ function resolveAiMode(): string {
   const configured = Deno.env.get("WHATSAPP_AI_MODE")?.trim();
   if (configured) return configured;
   return geminiKeysAvailable() ? "gemini" : "rules";
+}
+
+/** Scripted FL menu intake (default) | legacy gemini/rules free-form intake */
+function resolveIntakeFlow(): "fl_menu" | "gemini" | "rules" {
+  const flow = Deno.env.get("WHATSAPP_INTAKE_FLOW")?.trim().toLowerCase();
+  if (flow === "fl_menu" || flow === "menu") return "fl_menu";
+  if (flow === "gemini") return "gemini";
+  if (flow === "rules") return "rules";
+  return "fl_menu";
 }
 
 async function assignCounselorAfterIntake(
@@ -310,7 +327,9 @@ Deno.serve(async (req) => {
 
   const now = new Date().toISOString();
   const aiMode = resolveAiMode();
-  const useGemini = isGeminiAiMode(aiMode);
+  const intakeFlow = resolveIntakeFlow();
+  const useFlMenu = intakeFlow === "fl_menu";
+  const useGemini = !useFlMenu && isGeminiAiMode(aiMode);
   const deferAssign = counselingBeforeAssignEnabled(aiMode);
 
   const businessLine = await resolveBusinessLine(admin, metaPhoneNumberId);
@@ -356,7 +375,7 @@ Deno.serve(async (req) => {
       base.status = match.record.assigned_counselor_id ? "assigned_active" : "awaiting_assignment_confirm";
     } else {
       base.status = "unmatched_ai_intake";
-      base.intake_data = { step: "welcome" };
+      base.intake_data = useFlMenu ? initialFlMenuIntake() : { step: "welcome" };
     }
 
     const { data: created, error: createErr } = await admin
@@ -411,17 +430,30 @@ Deno.serve(async (req) => {
   }).eq("id", conv.id);
 
   const replies: string[] = [];
-  const intake = normalizeIntakeFields((conv.intake_data || {}) as IntakeData);
+  const rawIntake = (conv.intake_data || {}) as IntakeData;
+  const intake = isFlMenuFlow(rawIntake)
+    ? rawIntake
+    : normalizeIntakeFields(rawIntake);
   const intakeStep = intake?.step as string | undefined;
   const intakeInProgress = !!intakeStep && intakeStep !== "done";
 
   if (/^restart$/i.test(text.trim())) {
-    await admin.from("whatsapp_conversations").update({
-      status: "unmatched_ai_intake",
-      intake_data: { step: "country" },
-      updated_at: now,
-    }).eq("id", conv.id);
-    replies.push("Starting over. Which country are you interested in? (e.g. Canada, UK)");
+    if (isFlMenuFlow(intake)) {
+      const restarted = leadCaptureRestart(intake as any);
+      await admin.from("whatsapp_conversations").update({
+        status: "unmatched_ai_intake",
+        intake_data: restarted.intake,
+        updated_at: now,
+      }).eq("id", conv.id);
+      replies.push(...restarted.replies);
+    } else {
+      await admin.from("whatsapp_conversations").update({
+        status: "unmatched_ai_intake",
+        intake_data: { step: "country" },
+        updated_at: now,
+      }).eq("id", conv.id);
+      replies.push("Starting over. Which country are you interested in? (e.g. Canada, UK)");
+    }
   } else if (
     aiMode !== "off"
     && conv.status === "ai_counseling"
@@ -520,15 +552,35 @@ Deno.serve(async (req) => {
     && text.trim()
     && messageType === "text"
   ) {
-    const intakeFn = useGemini ? nextGeminiReply : nextRulesReply;
-    let { intake: nextIntake, replies: botReplies, confirmed } = await intakeFn(intake as any, text);
+    let nextIntake = intake as any;
+    let botReplies: string[] = [];
+    let confirmed = false;
 
-    // Belt-and-suspenders: YES at confirm must always complete intake
-    if (!confirmed && shouldForceIntakeConfirm(intake, text)) {
-      const rules = nextRulesReply(intake, text);
-      nextIntake = { ...intake, ...rules.intake, step: "done" };
-      confirmed = rules.confirmed;
-      if (!botReplies.length) botReplies = rules.replies;
+    if (isFlMenuFlow(intake as any)) {
+      const capture = nextLeadCaptureReply(intake as any, text);
+      nextIntake = capture.intake;
+      botReplies = capture.replies;
+      confirmed = capture.confirmed;
+
+      if (!confirmed && shouldForceLeadCaptureConfirm(intake as any, text)) {
+        const forced = nextLeadCaptureReply({ ...intake, step: "confirm" } as any, text);
+        nextIntake = forced.intake;
+        confirmed = forced.confirmed;
+        if (!botReplies.length) botReplies = forced.replies;
+      }
+    } else {
+      const intakeFn = useGemini ? nextGeminiReply : nextRulesReply;
+      const result = await intakeFn(intake as any, text);
+      nextIntake = { ...intake, ...result.intake, step: result.intake.step };
+      botReplies = result.replies;
+      confirmed = result.confirmed;
+
+      if (!confirmed && shouldForceIntakeConfirm(intake, text)) {
+        const rules = nextRulesReply(intake, text);
+        nextIntake = { ...intake, ...rules.intake, step: "done" };
+        confirmed = rules.confirmed;
+        if (!botReplies.length) botReplies = rules.replies;
+      }
     }
 
     if (confirmed) {
@@ -539,9 +591,10 @@ Deno.serve(async (req) => {
       );
       if (branchResolved.branchId) nextIntake.branch_id = branchResolved.branchId;
 
-      const branchNote = nextIntake.branch_preference
-        ? `; branch: ${nextIntake.branch_preference}`
-        : "";
+      const leadNotes = isFlMenuFlow(nextIntake)
+        ? buildLeadCaptureNotes(nextIntake)
+        : `WhatsApp intake — level: ${nextIntake.level ?? "n/a"}${nextIntake.branch_preference ? `; branch: ${nextIntake.branch_preference}` : ""}`;
+
       const { data: lead, error: leadErr } = await admin
         .from("leads")
         .insert({
@@ -552,7 +605,7 @@ Deno.serve(async (req) => {
           lead_temperature: "warm",
           lead_source: "whatsapp_helpline",
           interested_countries: nextIntake.country ? [nextIntake.country] : [],
-          notes: `WhatsApp intake — level: ${nextIntake.level ?? "n/a"}${branchNote}`,
+          notes: leadNotes,
           status: "new",
         })
         .select("id")
@@ -561,7 +614,9 @@ Deno.serve(async (req) => {
 
       nextIntake.step = "done";
 
-      if (deferAssign && useGemini) {
+      const counselingAfterSubmit = deferAssign && (useGemini || isFlMenuFlow(nextIntake));
+
+      if (counselingAfterSubmit) {
         await admin.from("whatsapp_conversations").update({
           intake_data: nextIntake,
           lead_id: lead?.id ?? null,
@@ -569,8 +624,15 @@ Deno.serve(async (req) => {
           updated_at: now,
         }).eq("id", conv.id);
 
-        botReplies.length = 0;
-        botReplies.push(counselingWelcomeMessage(nextIntake));
+        if (isFlMenuFlow(nextIntake)) {
+          // Success message already in botReplies from lead capture YES handler
+          botReplies.push(
+            "You can ask about documents, fees, or timelines while you wait — or reply *COUNSELOR* for our team.",
+          );
+        } else {
+          botReplies.length = 0;
+          botReplies.push(counselingWelcomeMessage(nextIntake));
+        }
       } else {
         let finalStatus = "awaiting_assignment_confirm";
 

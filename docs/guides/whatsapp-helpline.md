@@ -112,7 +112,20 @@ Staff message stored in CRM
 
 > **WARNING:** Typing in the **counselor** box does **not** trigger the AI. Use **As client** for `Postgraduate`, name, `YES`.
 
-### Recommended test script
+### Recommended test script (FL menu intake — default)
+
+```flow
+Hi
+1 (Student Visa)
+Jane Doe
+Canada
+Qualification: Bachelors / Intake: Sep 2026 / Branch: Ahmedabad
+1 (YES)
+Check Leads list
+Optional: ask documents → COUNSELOR → counselor assigned
+```
+
+Legacy rules/Gemini free-form test (set `WHATSAPP_INTAKE_FLOW=gemini` or `rules`):
 
 ```flow
 study in Canada
@@ -142,7 +155,7 @@ closed
 
 | Status | Meaning |
 |--------|---------|
-| `unmatched_ai_intake` | Unknown number; rules bot asking country → level → branch → name |
+| `unmatched_ai_intake` | Unknown number; FL menu bot (default) or legacy country → level → branch → name |
 | `awaiting_assignment_confirm` | Client said YES; lead created; needs counselor |
 | `assigned_active` | Counselor owns thread |
 | `existing_client` | Phone matched a client record |
@@ -372,6 +385,37 @@ study in Canada → Postgraduate → Ahmedabad → Test Name → YES
 → "What documents do I need?" → Gemini answers from service library
 → COUNSELOR → counselor auto-assigned + notification
 ```
+
+### Phase 5.1 — FL scripted lead capture menu (default intake)
+
+New helpline numbers use a **fixed menu flow** (8 services, service-specific questions, YES / EDIT / RESTART confirm). Gemini is used **after submit** for Q&A when `WHATSAPP_COUNSELING_BEFORE_ASSIGN=true`, not during menu steps.
+
+| Step | Client sees |
+|------|-------------|
+| First message | Welcome + service menu (1–8) |
+| After service | Full name |
+| Service branch | Country / PGWP sub-menu / coaching course / etc. |
+| Details | Qualification, branch, purpose — per service |
+| Confirm | Summary + 1 YES / 2 EDIT / 3 RESTART |
+| YES | Thank-you + lead created; optional AI Q&A until *COUNSELOR* |
+
+| Secret | Value |
+|--------|--------|
+| `WHATSAPP_INTAKE_FLOW` | `fl_menu` (**default**) — set `gemini` or `rules` for legacy free-form intake |
+| `WHATSAPP_AI_MODE` | `gemini` — enables post-submit counseling |
+| `WHATSAPP_COUNSELING_BEFORE_ASSIGN` | `true` — AI Q&A after YES; assign on *COUNSELOR* |
+| `WHATSAPP_AUTO_ASSIGN` | `true` — assign on handoff |
+
+**Test script (Simulate):**
+
+```text
+Hi → 1 → Jane Doe → Canada → Bachelors, Sep 2026, Ahmedabad → 1 (YES)
+→ Lead notes include service + branch
+→ "What documents for Canada student visa?" → Gemini
+→ COUNSELOR → counselor assigned
+```
+
+**Redeploy:** `whatsapp-webhook` only (no new SQL).
 
 ### Phase 4 — Notifications & queue SLAs
 
