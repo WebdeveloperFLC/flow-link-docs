@@ -31,6 +31,7 @@ import {
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
 import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
+import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   type Master, type Override,
@@ -765,7 +766,7 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
 
 function MasterDetail({
   master, onChanged, onDeleted,
-}: { master: Master; onChanged: () => void; onDeleted: () => void }) {
+}: { master: Master & { service_library_countries?: { country: string }[] }; onChanged: () => void; onDeleted: () => void }) {
   return (
     <div className="rounded-2xl border bg-white shadow-sm">
       <header className="flex items-center justify-between gap-2 border-b p-4">
@@ -773,9 +774,8 @@ function MasterDetail({
           <div className="text-xs uppercase tracking-wide text-muted-foreground">
             {CATEGORY_OPTIONS.find((c) => c.key === master.service_category)?.label ?? master.service_category}
           </div>
-          <h2 className="text-lg font-semibold">
-            {masterDisplayLabel(master as Master & { service_library_countries?: { country: string }[] })}
-          </h2>
+          <h2 className="text-lg font-semibold">{masterDisplayLabel(master)}</h2>
+          <ContentSetupSummary master={master} compact />
         </div>
         <Button
           variant="ghost" size="sm"
@@ -791,22 +791,25 @@ function MasterDetail({
         </Button>
       </header>
 
-      <Tabs defaultValue="overview" className="p-4">
+      <Tabs defaultValue="content" className="p-4">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="overview"><Settings2 className="h-3.5 w-3.5 mr-1" />Overview</TabsTrigger>
-          <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
+          <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
           <TabsTrigger value="countries"><Globe className="h-3.5 w-3.5 mr-1" />Countries</TabsTrigger>
           <TabsTrigger value="checklist"><ClipboardCheck className="h-3.5 w-3.5 mr-1" />Checklist</TabsTrigger>
           <TabsTrigger value="submission"><ListChecks className="h-3.5 w-3.5 mr-1" />Submission</TabsTrigger>
+          <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
           <TabsTrigger value="fees"><Coins className="h-3.5 w-3.5 mr-1" />Fees</TabsTrigger>
           <TabsTrigger value="cost"><FileText className="h-3.5 w-3.5 mr-1" />Cost Summary</TabsTrigger>
           <TabsTrigger value="process"><ChevronRight className="h-3.5 w-3.5 mr-1" />Process Flow</TabsTrigger>
           <TabsTrigger value="sop"><BookOpen className="h-3.5 w-3.5 mr-1" />Internal SOP</TabsTrigger>
           <TabsTrigger value="overrides"><Globe className="h-3.5 w-3.5 mr-1" />Overrides</TabsTrigger>
-          <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="content">
+          <AcademyContentEditor master={master} onChanged={onChanged} />
+        </TabsContent>
         <TabsContent value="quickguide"><QuickGuideTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="countries"><CountriesTab master={master} /></TabsContent>
         <TabsContent value="checklist"><ChecklistTab master={master} onChanged={onChanged} /></TabsContent>
@@ -816,15 +819,18 @@ function MasterDetail({
         <TabsContent value="process"><ProcessFlowTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="sop"><InternalSopTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="overrides"><OverridesTab master={master} /></TabsContent>
-        <TabsContent value="content">
-          <AcademyContentEditor master={master} onChanged={onChanged} />
-        </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function OverviewTab({ master, onChanged }: { master: Master; onChanged: () => void }) {
+function OverviewTab({
+  master,
+  onChanged,
+}: {
+  master: Master & { service_library_countries?: { country: string }[] };
+  onChanged: () => void;
+}) {
   const [order, setOrder] = useState(master.display_order);
   const [active, setActive] = useState(master.is_active);
   const save = async () => {
@@ -837,19 +843,23 @@ function OverviewTab({ master, onChanged }: { master: Master; onChanged: () => v
     onChanged();
   };
   return (
-    <div className="space-y-3 max-w-md">
-      <div>
-        <Label>Display order</Label>
-        <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} />
-      </div>
-      <div className="flex items-center justify-between rounded-lg border p-3">
+    <div className="space-y-4 max-w-2xl">
+      <ContentSetupSummary master={master} />
+      <div className="space-y-3 rounded-xl border p-4">
+        <h3 className="text-sm font-semibold">Record settings</h3>
         <div>
-          <div className="font-medium">Active</div>
-          <div className="text-xs text-muted-foreground">Inactive records are hidden from counselor view.</div>
+          <Label>Display order</Label>
+          <Input type="number" value={order} onChange={(e) => setOrder(Number(e.target.value))} />
         </div>
-        <Switch checked={active} onCheckedChange={setActive} />
+        <div className="flex items-center justify-between rounded-lg border p-3">
+          <div>
+            <div className="font-medium">Active</div>
+            <div className="text-xs text-muted-foreground">Inactive records are hidden from counselor view.</div>
+          </div>
+          <Switch checked={active} onCheckedChange={setActive} />
+        </div>
+        <Button onClick={save}>Save</Button>
       </div>
-      <Button onClick={save}>Save</Button>
     </div>
   );
 }

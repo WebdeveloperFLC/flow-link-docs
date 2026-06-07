@@ -36,6 +36,9 @@ import {
   type ServiceAcademyMetadata,
 } from "@/lib/service-library/academyTypes";
 import type { Master } from "@/lib/serviceLibrary";
+import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
+import { QuizQuestionsEditor } from "@/components/service-library/admin/QuizQuestionsEditor";
+import { SampleDocsEditor } from "@/components/service-library/admin/SampleDocsEditor";
 
 type Props = {
   master: Master & { service_library_countries?: { country: string }[] };
@@ -186,6 +189,8 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
 
   return (
     <div className="space-y-4">
+      <ContentSetupSummary master={master} />
+
       <div className="flex flex-wrap items-center gap-3 justify-between rounded-lg border bg-muted/20 p-3">
         <div className="flex flex-wrap items-center gap-2">
           <Label className="text-xs uppercase text-muted-foreground shrink-0">Edit scope</Label>
@@ -230,8 +235,11 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
             Bulk JSON
           </TabsTrigger>
           <TabsTrigger value="header">Header & KPIs</TabsTrigger>
+          <TabsTrigger value="quiz">Quiz</TabsTrigger>
+          <TabsTrigger value="sampledocs">Sample docs</TabsTrigger>
           <TabsTrigger value="about">About & eligibility</TabsTrigger>
           <TabsTrigger value="flags">Red flags & FAQs</TabsTrigger>
+          <TabsTrigger value="process">Process & resources</TabsTrigger>
           <TabsTrigger value="lists">Lists & performance</TabsTrigger>
           <TabsTrigger value="changelog">Changelog & notes</TabsTrigger>
         </TabsList>
@@ -317,6 +325,40 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
               </SelectContent>
             </Select>
           </div>
+          {countryScoped && (
+            <div>
+              <Label>Nav bucket (Visa vs Immigration)</Label>
+              <Select
+                value={meta.navBucket ?? "__unset"}
+                onValueChange={(v) =>
+                  patch((m) => ({
+                    ...m,
+                    navBucket: v === "__unset" ? undefined : (v as "visa" | "immigration"),
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Auto-classify from title" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__unset">Auto from title</SelectItem>
+                  <SelectItem value="visa">Temporary visa</SelectItem>
+                  <SelectItem value="immigration">Immigration pathway</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <Field
+            label="Learning level"
+            value={meta.learningLevel ?? ""}
+            onChange={(v) => patch((m) => ({ ...m, learningLevel: v }))}
+          />
+          <Field
+            label="Learning minutes (quiz tab)"
+            type="number"
+            value={String(meta.learningMinutes ?? "")}
+            onChange={(v) => patch((m) => ({ ...m, learningMinutes: Number(v) || undefined }))}
+          />
           <div className="md:col-span-2">
             <Label>Policy alert summary</Label>
             <Textarea
@@ -351,6 +393,50 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
               }}
             />
           </div>
+          <div className="md:col-span-2">
+            <Label>Hero tags (JSON — label + variant: success|warning|neutral)</Label>
+            <Textarea
+              className="font-mono text-xs"
+              rows={4}
+              value={JSON.stringify(meta.tags ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  patch((m) => ({ ...m, tags: JSON.parse(e.target.value) }));
+                } catch {
+                  /* ignore */
+                }
+              }}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label>Chips row (JSON)</Label>
+            <Textarea
+              className="font-mono text-xs"
+              rows={3}
+              value={JSON.stringify(meta.chips ?? [], null, 2)}
+              onChange={(e) => {
+                try {
+                  patch((m) => ({ ...m, chips: JSON.parse(e.target.value) }));
+                } catch {
+                  /* ignore */
+                }
+              }}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="quiz" className="mt-4">
+          <QuizQuestionsEditor
+            items={meta.quiz ?? []}
+            onChange={(quiz) => patch((m) => ({ ...m, quiz }))}
+          />
+        </TabsContent>
+
+        <TabsContent value="sampledocs" className="mt-4">
+          <SampleDocsEditor
+            items={meta.sampleDocs ?? []}
+            onChange={(sampleDocs) => patch((m) => ({ ...m, sampleDocs }))}
+          />
         </TabsContent>
 
         <TabsContent value="about" className="space-y-4 mt-4">
@@ -409,6 +495,19 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
             onChange={(redFlags) => patch((m) => ({ ...m, redFlags }))}
           />
           <FaqsEditor items={meta.faqs ?? []} onChange={(faqs) => patch((m) => ({ ...m, faqs }))} />
+        </TabsContent>
+
+        <TabsContent value="process" className="space-y-4 mt-4">
+          <p className="text-sm text-muted-foreground">
+            <strong>Process tab</strong> in counselor view uses <code>timeline</code> below, or the legacy{" "}
+            <strong>Process Flow</strong> tab on this record if timeline is empty.
+          </p>
+          <TimelineEditor items={meta.timeline ?? []} onChange={(timeline) => patch((m) => ({ ...m, timeline }))} />
+          <ResourcesEditor items={meta.resources ?? []} onChange={(resources) => patch((m) => ({ ...m, resources }))} />
+          <RelatedServicesEditor
+            items={meta.relatedServices ?? []}
+            onChange={(relatedServices) => patch((m) => ({ ...m, relatedServices }))}
+          />
         </TabsContent>
 
         <TabsContent value="lists" className="space-y-4 mt-4">
@@ -611,6 +710,98 @@ function StaffNotesEditor({
             <Input placeholder="Date" value={n.date} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, date: e.target.value } : x)))} />
           </div>
           <Textarea placeholder="Note" rows={3} value={n.text} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)))} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function TimelineEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["timeline"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["timeline"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Process timeline (weeks | title per row)</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { weeks: "", title: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add step
+        </Button>
+      </div>
+      {items.map((t, i) => (
+        <div key={i} className="grid md:grid-cols-[120px_1fr_40px] gap-2 items-center">
+          <Input placeholder="1–2 wks" value={t.weeks} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, weeks: e.target.value } : x)))} />
+          <Input placeholder="Step title" value={t.title} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
+          <Button type="button" variant="ghost" size="icon" onClick={() => onChange(items.filter((_, j) => j !== i))}>
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ResourcesEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["resources"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["resources"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Official resources (Downloads tab links)</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { title: "", url: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add link
+        </Button>
+      </div>
+      {items.map((r, i) => (
+        <div key={i} className="grid md:grid-cols-2 gap-2 rounded-lg border p-3">
+          <Input placeholder="Title" value={r.title} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)))} />
+          <Input placeholder="URL" value={r.url} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))} />
+          <Input
+            className="md:col-span-2"
+            placeholder="Description (optional)"
+            value={r.description ?? ""}
+            onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, description: e.target.value } : x)))}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RelatedServicesEditor({
+  items,
+  onChange,
+}: {
+  items: NonNullable<ServiceAcademyMetadata["relatedServices"]>;
+  onChange: (items: NonNullable<ServiceAcademyMetadata["relatedServices"]>) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Related services (right rail links)</Label>
+        <Button type="button" variant="outline" size="sm" onClick={() => onChange([...items, { label: "", libraryId: "" }])}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add related
+        </Button>
+      </div>
+      {items.map((r, i) => (
+        <div key={i} className="grid md:grid-cols-2 gap-2 rounded-lg border p-3">
+          <Input placeholder="Label" value={r.label} onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} />
+          <Input
+            placeholder="Library UUID (optional)"
+            value={r.libraryId ?? ""}
+            onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, libraryId: e.target.value || undefined } : x)))}
+            className="font-mono text-xs"
+          />
         </div>
       ))}
     </div>
