@@ -29,3 +29,4 @@ export const WHATSAPP_GUIDE_KEYWORDS = [
   "lead capture",
   "EDIT",
   "RESTART",
+];
