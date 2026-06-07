@@ -69,7 +69,7 @@ function NavItemButton({
 }
 
 function StepHint({ children }: { children: React.ReactNode }) {
-  return <p className="px-2 pb-1.5 text-[10px] text-slate-500 leading-snug">{children}</p>;
+  return <p className="px-2 pb-1 text-[10px] text-slate-500 leading-snug sr-only">{children}</p>;
 }
 
 export function ServiceAcademySidebar({
@@ -152,7 +152,6 @@ export function ServiceAcademySidebar({
       </div>
 
       <div className="p-3 space-y-2 border-b border-slate-700/80">
-        <StepHint>Step 1 — All countries</StepHint>
         {country !== "ALL" && categoryFilter === "visa" && (
           <button
             type="button"
@@ -244,7 +243,7 @@ export function ServiceAcademySidebar({
 
             {step === "countries" && group.countryPickers && (
               <div className="space-y-1">
-                <StepHint>Step 2 — Select a country, then Visa or Immigration</StepHint>
+                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Countries</p>
                 <ul className="space-y-0.5">
                   {group.countryPickers.map((picker) => (
                     <li key={picker.country}>
@@ -277,7 +276,8 @@ export function ServiceAcademySidebar({
                 >
                   ← {country}
                 </button>
-                <StepHint>Step 3 — Visa or Immigration pathway</StepHint>
+                <StepHint>Visa or Immigration pathway</StepHint>
+                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Pathway</p>
                 <ul className="space-y-0.5">
                   {group.subBuckets.map((bucket) => (
                     <li key={bucket.key}>
@@ -302,7 +302,7 @@ export function ServiceAcademySidebar({
 
             {step === "coaching_families" && group.coachingFamilies && (
               <div className="space-y-1">
-                <StepHint>Step 2 — Select coaching program</StepHint>
+                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Programs</p>
                 <ul className="space-y-0.5">
                   {group.coachingFamilies.map((family) => (
                     <li key={family.key}>
@@ -334,7 +334,8 @@ export function ServiceAcademySidebar({
                 >
                   ← {coachingFamily}
                 </button>
-                <StepHint>Step 3 — General or Academic</StepHint>
+                <StepHint>General or Academic</StepHint>
+                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Format</p>
                 <ul className="space-y-0.5">
                   {group.coachingVariants.map((variant) => (
                     <li key={variant.key}>
@@ -377,7 +378,7 @@ export function ServiceAcademySidebar({
                     ← {coachingVariant === "general" ? "General" : coachingVariant === "academic" ? "Academic" : "Formats"}
                   </button>
                 )}
-                <StepHint>Step 4 — Select a service</StepHint>
+                <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-slate-500">Services</p>
                 {group.items.map((item) => (
                   <li key={item.id}>
                     <NavItemButton item={item} selectedId={selectedId} onSelect={onSelect} />

@@ -5,6 +5,7 @@ import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ServiceAcademySidebar } from "@/components/service-library/design/ServiceAcademySidebar";
+import { ServiceAcademyNavPanel } from "@/components/service-library/design/ServiceAcademyNavPanel";
 import { ServiceAcademyHero } from "@/components/service-library/design/ServiceAcademyHero";
 import { ServiceAcademyKpiRow } from "@/components/service-library/design/ServiceAcademyKpiRow";
 import { ServiceLibraryTabs } from "@/components/service-library/design/ServiceLibraryTabs";
@@ -169,44 +170,7 @@ export default function ServiceLibrary() {
     else if (countries[0]) setDetailCountry(countries[0]);
   }, [detail.data?.master.id, detail.data?.detailCountry]);
 
-  const showPlaceholder = !selectedId || !navReadyForSelection;
-
-  const placeholderMessage = useMemo(() => {
-    if (categoryFilter === "visa" && countryFilter === "ALL") {
-      return {
-        title: "Select a country",
-        hint: "Step 1 — pick a country under All countries, then choose Visa or Immigration.",
-      };
-    }
-    if (categoryFilter === "visa" && !visaBucket) {
-      return {
-        title: "Select Visa or Immigration",
-        hint: `Step 3 — for ${countryFilter}, choose whether the client needs a temporary visa or an immigration pathway.`,
-      };
-    }
-    if (categoryFilter === "visa" && visaBucket && !selectedId) {
-      return {
-        title: "Select a service",
-        hint: `Step 4 — choose a ${visaBucket === "visa" ? "visa" : "immigration"} service for ${countryFilter}. Details appear here and in the right panel.`,
-      };
-    }
-    if (categoryFilter === "coaching" && !coachingFamily) {
-      return {
-        title: "Select a coaching program",
-        hint: "Step 2 — e.g. IELTS, PTE, GRE. For IELTS you will then pick General or Academic.",
-      };
-    }
-    if (categoryFilter === "coaching" && coachingFamily && !coachingVariant && group?.step === "coaching_variants") {
-      return {
-        title: "Select General or Academic",
-        hint: `Step 3 — choose the ${coachingFamily} format before opening training content.`,
-      };
-    }
-    return {
-      title: "Select a service",
-      hint: "Choose a service from the sidebar to view counselor training content.",
-    };
-  }, [categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, selectedId, group?.step]);
+  const showNavPanel = !selectedId || !navReadyForSelection;
 
   const toggleSub = async (itemId: string) => {
     if (!user?.id) {
@@ -288,12 +252,21 @@ export default function ServiceLibrary() {
         userInitials={userInitials}
       />
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {showPlaceholder ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground px-6 text-center gap-2">
-            <p className="text-sm font-medium text-foreground">{placeholderMessage.title}</p>
-            <p className="text-xs max-w-sm">{placeholderMessage.hint}</p>
-          </div>
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen bg-muted/20">
+        {showNavPanel ? (
+          <ServiceAcademyNavPanel
+            group={group}
+            categoryFilter={categoryFilter}
+            country={countryFilter}
+            visaBucket={visaBucket}
+            coachingFamily={coachingFamily}
+            coachingVariant={coachingVariant}
+            onCountry={handleCountryChange}
+            onVisaBucket={handleVisaBucketChange}
+            onCoachingFamily={handleCoachingFamilyChange}
+            onCoachingVariant={handleCoachingVariantChange}
+            onSelectService={setSelectedId}
+          />
         ) : detail.isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
