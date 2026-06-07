@@ -1,7 +1,7 @@
 {
   "displayName": "Germany – Student Visa (National Visa)",
   "shortDescription": "German Embassy · National D visa · Admission + blocked account · APS for India",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -310,6 +310,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -360,7 +366,8 @@
         "EU citizenship"
       ],
       "correctIndex": 1,
-      "explanation": "APS mandatory for India."
+      "explanation": "APS mandatory for India.",
+      "level": 1
     },
     {
       "question": "Blocked account 2026 amount approx:",
@@ -371,7 +378,8 @@
         "€500"
       ],
       "correctIndex": 1,
-      "explanation": "12 × €992 monthly requirement."
+      "explanation": "12 × €992 monthly requirement.",
+      "level": 1
     },
     {
       "question": "National visa fee approx:",
@@ -382,7 +390,8 @@
         "Free"
       ],
       "correctIndex": 1,
-      "explanation": "Embassy national visa fee."
+      "explanation": "Embassy national visa fee.",
+      "level": 1
     },
     {
       "question": "After arrival student must:",
@@ -393,7 +402,8 @@
         "Leave in 1 week"
       ],
       "correctIndex": 1,
-      "explanation": "Anmeldung and Ausländerbehörde required."
+      "explanation": "Anmeldung and Ausländerbehörde required.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -404,7 +414,848 @@
         "Check blocked account"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about Description is correct?",
+      "options": [
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+        "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde."
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding Eligible applicants?",
+      "options": [
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+        "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about Blocked account:",
+      "options": [
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+      ],
+      "correctIndex": 0,
+      "explanation": "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about Key authority is correct?",
+      "options": [
+        "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "German Embassy/Consulate in India · Federal Foreign Office · Local Ausländerbehörde after arrival"
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding After approval?",
+      "options": [
+        "Enter Germany; register address; apply for residence permit at Ausländerbehörde within visa validity.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enter Germany; register address; apply for residence permit at Ausländerbehörde within visa validity."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about Admission from recognised German institution:",
+      "options": [
+        "Admission from recognised German institution is a core requirement for this service.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Admission from recognised German institution"
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about APS certificate (India) is correct?",
+      "options": [
+        "APS certificate (India) is often required or assessed for this service. Note: Apply early—processing takes weeks",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Apply early—processing takes weeks"
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding Blocked account or financial proof?",
+      "options": [
+        "Blocked account or financial proof is often required or assessed for this service. Note: €11,904 for 2026 or equivalent",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "€11,904 for 2026 or equivalent"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about Health insurance (travel + statutory):",
+      "options": [
+        "Health insurance (travel + statutory) is often required or assessed for this service.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Health insurance (travel + statutory)"
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about Motivation letter and CV is correct?",
+      "options": [
+        "Motivation letter and CV is a core requirement for this service.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Motivation letter and CV"
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding Language proficiency (as required)?",
+      "options": [
+        "Language proficiency (as required) is a core requirement for this service. Note: German or English per program",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "German or English per program"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about Valid passport:",
+      "options": [
+        "Valid passport is a core requirement for this service.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid passport"
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 6–12w — After complete file + APS",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "After complete file + APS"
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding Government fee?",
+      "options": [
+        "Government fee: €75 — + blocked account €11,904",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ blocked account €11,904"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 88% — ~74% benchmark",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "~74% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 15 — + APS & blocked account",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ APS & blocked account"
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & third-party",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & third-party"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Germany – Student Visa (National Visa) should state correctly about service summary:",
+      "options": [
+        "German Embassy · National D visa · Admission + blocked account · APS for India",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "German Embassy · National D visa · Admission + blocked account · APS for India"
+    },
+    {
+      "level": 1,
+      "question": "For Germany – Student Visa (National Visa), which statement about APS certificate for India is correct?",
+      "options": [
+        "Indian students generally need APS certificate before visa appointment. Verify current APS processing time before promising intake dates.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Indian students generally need APS certificate before visa appointment. Verify current APS processing time before promising intake dates."
+    },
+    {
+      "level": 1,
+      "question": "Germany – Student Visa (National Visa): what is true regarding policy update?",
+      "options": [
+        "Confirm current national visa fee (€75 approx) and blocked account amount (€11,904 for 2026) on auswaertiges-amt.de and deutsche-bank.de before quoting.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current national visa fee (€75 approx) and blocked account amount (€11,904 for 2026) on auswaertiges-amt.de and deutsche-bank.de before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to client question: Can we guarantee student visa approval?",
+      "options": [
+        "No. Embassy decides based on admission, funds, and credibility. Never promise approval.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Embassy decides based on admission, funds, and credibility. Never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during client question: What is APS?",
+      "options": [
+        "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic Evaluation Centre verification for Indian academic documents—mandatory for most Indian student visa applicants."
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for client question: Blocked account amount for 2026:",
+      "options": [
+        "Typically €11,904 (12 months × €992). Verify current amount before opening account.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically €11,904 (12 months × €992). Verify current amount before opening account."
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to client question: Can spouse accompany?",
+      "options": [
+        "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dependants may apply separately; prove additional funds and accommodation. Assess case-by-case."
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during client question: English-taught programs need German?",
+      "options": [
+        "Depends on program—follow admission and embassy requirements.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Depends on program—follow admission and embassy requirements."
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for client question: How long to convert to residence permit:",
+      "options": [
+        "Apply at Ausländerbehörde soon after arrival and registration.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Apply at Ausländerbehörde soon after arrival and registration."
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to client question: Can I work on student visa?",
+      "options": [
+        "Limited working hours permitted—verify current rules for students in Germany.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Limited working hours permitted—verify current rules for students in Germany."
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during client question: What after graduation?",
+      "options": [
+        "Discuss 18-month job-seeker residence permit or Opportunity Card separately.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Discuss 18-month job-seeker residence permit or Opportunity Card separately."
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for timeline (1–2):",
+      "options": [
+        "Counseling, admission review, APS initiation",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Counseling, admission review, APS initiation"
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to timeline (2–8)?",
+      "options": [
+        "APS processing, blocked account, documents",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–8: APS processing, blocked account, documents"
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during timeline (8–10)?",
+      "options": [
+        "Embassy appointment & submission",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–10: Embassy appointment & submission"
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for timeline (6–12):",
+      "options": [
+        "Embassy processing",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–12: Embassy processing"
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Start APS 3–4 months before intended intake",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Start APS 3–4 months before intended intake"
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during counselor tip?",
+      "options": [
+        "Open blocked account only after admission confirmed",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Open blocked account only after admission confirmed"
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for counselor tip:",
+      "options": [
+        "Book embassy slot when file 90% ready",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book embassy slot when file 90% ready"
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain address registration (Anmeldung) within deadline",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain address registration (Anmeldung) within deadline"
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Guide on Ausländerbehörde appointment after arrival",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guide on Ausländerbehörde appointment after arrival"
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during post-approval step?",
+      "options": [
+        "Remind blocked account monthly withdrawal rules",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind blocked account monthly withdrawal rules"
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during Sample university admission letter (mock)?",
+      "options": [
+        "German Hochschule Zulassung for national visa.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "German Hochschule Zulassung for national visa."
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for Sample APS certificate (mock):",
+      "options": [
+        "Academic Evaluation Centre certificate for India.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic Evaluation Centre certificate for India."
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to Sample blocked account confirmation (mock)?",
+      "options": [
+        "Sperrkonto €11,904+ — explain to clients.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sperrkonto €11,904+ — explain to clients."
+    },
+    {
+      "level": 2,
+      "question": "For Germany – Student Visa (National Visa), what should happen during Sample IELTS / TestDaF certificate (mock)?",
+      "options": [
+        "Language proof for degree program.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Language proof for degree program."
+    },
+    {
+      "level": 2,
+      "question": "Germany – Student Visa (National Visa) workflow — best practice for Sample CV & motivation letter (mock):",
+      "options": [
+        "German embassy standard application packet.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "German embassy standard application packet."
+    },
+    {
+      "level": 2,
+      "question": "In the Germany – Student Visa (National Visa) process, what is the correct approach to Sample travel health insurance (mock)?",
+      "options": [
+        "Coverage from arrival until enrollment.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Coverage from arrival until enrollment."
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with APS not completed?",
+      "options": [
+        "Complete APS before embassy slot; track processing on APS website",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visa appointment booked without APS certificate."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with APS not completed (detail):",
+      "options": [
+        "Visa appointment booked without APS certificate.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete APS before embassy slot; track processing on APS website"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to Insufficient blocked account:",
+      "options": [
+        "Open blocked account at approved bank for full required amount",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Amount below required monthly sum or not from recognised provider."
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with Insufficient blocked account (detail)?",
+      "options": [
+        "Amount below required monthly sum or not from recognised provider.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Open blocked account at approved bank for full required amount"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with Admission not from recognised institution:",
+      "options": [
+        "Verify Anabin/institution recognition before fees",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Private unrecognised college or expired Zulassung."
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to Admission not from recognised institution (detail):",
+      "options": [
+        "Private unrecognised college or expired Zulassung.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify Anabin/institution recognition before fees"
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with Weak motivation letter?",
+      "options": [
+        "Course-specific motivation linking prior study to German program",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generic letter not explaining study plan and Germany choice."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with Weak motivation letter (detail):",
+      "options": [
+        "Generic letter not explaining study plan and Germany choice.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course-specific motivation linking prior study to German program"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to Language proof missing:",
+      "options": [
+        "Obtain required TestDaF/IELTS/Goethe per admission",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Program requires German/English certificate not provided."
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with Language proof missing (detail)?",
+      "options": [
+        "Program requires German/English certificate not provided.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Obtain required TestDaF/IELTS/Goethe per admission"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with Prior refusals not addressed:",
+      "options": [
+        "Disclose and explain changed circumstances",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Schengen or German refusals hidden."
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to Prior refusals not addressed (detail):",
+      "options": [
+        "Schengen or German refusals hidden.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Disclose and explain changed circumstances"
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with counselor don't:",
+      "options": [
+        "Do not book embassy without APS",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not book embassy without APS"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not use unrecognised institutions",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not use unrecognised institutions"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "APS applied too late for intake",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: APS applied too late for intake"
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with common mistake?",
+      "options": [
+        "Blocked account short by even €1",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Blocked account short by even €1"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with common mistake:",
+      "options": [
+        "Generic motivation letter",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Generic motivation letter"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "After refusal, address embassy feedback before rebooking—blocked account and APS cannot be rushed last minute.",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "After refusal, address embassy feedback before rebooking—blocked account and APS cannot be rushed last minute."
+    },
+    {
+      "level": 3,
+      "question": "Germany – Student Visa (National Visa): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 88% vs benchmark 74%",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Germany – Student Visa (National Visa) — key issue with APS timing:",
+      "options": [
+        "Our target: 85% vs benchmark 68%",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "APS timing"
+    },
+    {
+      "level": 3,
+      "question": "For Germany – Student Visa (National Visa), counselors must avoid this mistake related to Financial docs:",
+      "options": [
+        "Our target: 87% vs benchmark 72%",
+        "National visa (Type D) for study at a recognised German university or preparatory course. After entry, convert to residence permit at local Ausländerbehörde.",
+        "University admission (Zulassung) or conditional admission · Blocked account or scholarship · APS certificate (India) · Health insurance · Motivation letter",
+        "€11,904 for 2026 (12 × €992/month) typically required unless scholarship or sponsor alternative applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial docs"
     }
   ],
   "donts": {

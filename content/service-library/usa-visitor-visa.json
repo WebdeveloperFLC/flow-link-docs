@@ -1,7 +1,7 @@
 {
   "displayName": "USA – Visitor Visa (B1/B2)",
   "shortDescription": "US Embassy B1/B2 · Tourism, family, business · 214(b) interview",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -313,6 +313,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -368,7 +374,8 @@
         "USD $500"
       ],
       "correctIndex": 1,
-      "explanation": "Verify on travel.state.gov fee page."
+      "explanation": "Verify on travel.state.gov fee page.",
+      "level": 1
     },
     {
       "question": "Section 214(b) means:",
@@ -379,7 +386,8 @@
         "SEVIS payment rule"
       ],
       "correctIndex": 1,
-      "explanation": "Core legal hurdle for non-immigrant visas."
+      "explanation": "Core legal hurdle for non-immigrant visas.",
+      "level": 1
     },
     {
       "question": "Can B1/B2 holders work in USA?",
@@ -390,7 +398,8 @@
         "Only remote for Indian employer without limit"
       ],
       "correctIndex": 1,
-      "explanation": "Work requires appropriate visa category."
+      "explanation": "Work requires appropriate visa category.",
+      "level": 1
     },
     {
       "question": "Best interview approach?",
@@ -401,7 +410,8 @@
         "Refuse to answer"
       ],
       "correctIndex": 1,
-      "explanation": "Officers prefer concise credible responses."
+      "explanation": "Officers prefer concise credible responses.",
+      "level": 1
     },
     {
       "question": "After 214(b) refusal, best next step?",
@@ -412,7 +422,848 @@
         "Use fake invitation"
       ],
       "correctIndex": 1,
-      "explanation": "Material change needed for reapplication success."
+      "explanation": "Material change needed for reapplication success.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about Description is correct?",
+      "options": [
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone.",
+        "US Department of State — Embassy/Consulate in India"
+      ],
+      "correctIndex": 0,
+      "explanation": "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interview."
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding Eligible applicants?",
+      "options": [
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone.",
+        "US Department of State — Embassy/Consulate in India"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about Interview reality:",
+      "options": [
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "US Department of State — Embassy/Consulate in India"
+      ],
+      "correctIndex": 0,
+      "explanation": "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about Key authority is correct?",
+      "options": [
+        "US Department of State — Embassy/Consulate in India",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "US Department of State — Embassy/Consulate in India"
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding After approval?",
+      "options": [
+        "Visa foil in passport; officer at port of entry decides admission length (often up to 6 months). No work permitted.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visa foil in passport; officer at port of entry decides admission length (often up to 6 months). No work permitted."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about Valid passport:",
+      "options": [
+        "Valid passport is a core requirement for this service. Note: 6+ months validity recommended",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "6+ months validity recommended"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about Clear temporary purpose is correct?",
+      "options": [
+        "Clear temporary purpose is a core requirement for this service. Note: Tourism, family, business meeting—not employment",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Tourism, family, business meeting—not employment"
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding Strong ties to India?",
+      "options": [
+        "Strong ties to India is a core requirement for this service. Note: Job, business, property, family",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Job, business, property, family"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about Proof of funds for trip:",
+      "options": [
+        "Proof of funds for trip is a core requirement for this service. Note: Bank statements, ITR, sponsor letter",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Bank statements, ITR, sponsor letter"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about DS-160 completed accurately is correct?",
+      "options": [
+        "DS-160 completed accurately is often required or assessed for this service. Note: Must match interview answers",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Must match interview answers"
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding No prior visa fraud?",
+      "options": [
+        "No prior visa fraud is a core requirement for this service.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "No prior visa fraud"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about Interview appointment booked:",
+      "options": [
+        "Interview appointment booked is often required or assessed for this service. Note: Via ustraveldocs.com",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Via ustraveldocs.com"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 1–4w — After interview; slot wait extra",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "After interview; slot wait extra"
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding Government fee?",
+      "options": [
+        "Government fee: USD $185 — MRV non-refundable",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "MRV non-refundable"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 72% — ~58% industry benchmark",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "~58% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 8 — + purpose-specific",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ purpose-specific"
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt only",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt only"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Visitor Visa (B1/B2) should state correctly about service summary:",
+      "options": [
+        "US Embassy B1/B2 · Tourism, family, business · 214(b) interview",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "US Embassy B1/B2 · Tourism, family, business · 214(b) interview"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Visitor Visa (B1/B2), which statement about 214(b) presumption is correct?",
+      "options": [
+        "Every B1/B2 applicant must overcome immigrant intent presumption at interview. Ties to India and temporary purpose are decisive.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Every B1/B2 applicant must overcome immigrant intent presumption at interview. Ties to India and temporary purpose are decisive."
+    },
+    {
+      "level": 1,
+      "question": "USA – Visitor Visa (B1/B2): what is true regarding policy update?",
+      "options": [
+        "Confirm current B1/B2 MRV fee (USD $185) on travel.state.gov before quoting clients.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current B1/B2 MRV fee (USD $185) on travel.state.gov before quoting clients."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to client question: Can we guarantee B1/B2 approval?",
+      "options": [
+        "No. Consular officers decide at interview based on individual assessment.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Consular officers decide at interview based on individual assessment."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during client question: What documents to carry to interview?",
+      "options": [
+        "Passport, DS-160 confirmation, photo, appointment letter, plus supporting docs—employment, funds, invitation if applicable. Officer may not review all.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport, DS-160 confirmation, photo, appointment letter, plus supporting docs—employment, funds, invitation if applicable. Officer may not review all."
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for client question: How to overcome 214(b):",
+      "options": [
+        "Demonstrate strong ties, clear temporary purpose, credible funds, and consistent honest answers—not memorised scripts.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Demonstrate strong ties, clear temporary purpose, credible funds, and consistent honest answers—not memorised scripts."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to client question: Can refused applicant reapply?",
+      "options": [
+        "Yes anytime, but success requires materially changed circumstances or stronger evidence.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes anytime, but success requires materially changed circumstances or stronger evidence."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during client question: Does B1/B2 allow work?",
+      "options": [
+        "No. Employment requires appropriate work visa. B1 allows limited business activities—not US labour market work.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Employment requires appropriate work visa. B1 allows limited business activities—not US labour market work."
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for client question: How long can visitor stay:",
+      "options": [
+        "Admission period set at port of entry—often up to 6 months. Must not overstay.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Admission period set at port of entry—often up to 6 months. Must not overstay."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to client question: Is invitation letter required?",
+      "options": [
+        "Not mandatory but helpful for family visits. Host's status proof strengthens file.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Not mandatory but helpful for family visits. Host's status proof strengthens file."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during client question: Ten-year visa means 10-year stay?",
+      "options": [
+        "No. Visa validity differs from permitted stay per entry. Each entry is subject to CBP admission.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Visa validity differs from permitted stay per entry. Each entry is subject to CBP admission."
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for timeline (1):",
+      "options": [
+        "Counseling, purpose assessment, fee agreement",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Counseling, purpose assessment, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to timeline (1–2)?",
+      "options": [
+        "DS-160, document prep, slot booking",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: DS-160, document prep, slot booking"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during timeline (2–3)?",
+      "options": [
+        "Mock interview & embassy appointment",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: Mock interview & embassy appointment"
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for timeline (3–4):",
+      "options": [
+        "Passport return or admin processing",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–4: Passport return or admin processing"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Keep interview answers under 30 seconds—officer controls pace",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Keep interview answers under 30 seconds—officer controls pace"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during counselor tip?",
+      "options": [
+        "Bring ties evidence even if officer doesn't ask",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Bring ties evidence even if officer doesn't ask"
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for counselor tip:",
+      "options": [
+        "For family visits, know host's name, status, and address",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "For family visits, know host's name, status, and address"
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain visa validity vs admission period to client",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain visa validity vs admission period to client"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Remind no work rule and I-94 compliance",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind no work rule and I-94 compliance"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during post-approval step?",
+      "options": [
+        "Advise travel insurance and port-of-entry documents",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Advise travel insurance and port-of-entry documents"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for Sample invitation / sponsor letter (mock):",
+      "options": [
+        "Host details, relationship, accommodation, and duration of stay.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host details, relationship, accommodation, and duration of stay."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to Sample travel itinerary (mock)?",
+      "options": [
+        "Flights, hotels, and day-wise plan for visitor visa credibility.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Flights, hotels, and day-wise plan for visitor visa credibility."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Visitor Visa (B1/B2), what should happen during Sample employment / NOC letter (mock)?",
+      "options": [
+        "Employer letter confirming leave, role, salary, and return to India.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer letter confirming leave, role, salary, and return to India."
+    },
+    {
+      "level": 2,
+      "question": "USA – Visitor Visa (B1/B2) workflow — best practice for Sample property / ties document (mock):",
+      "options": [
+        "Sale deed or tax receipt — explain home-country ties.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sale deed or tax receipt — explain home-country ties."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Visitor Visa (B1/B2) process, what is the correct approach to recommended practice?",
+      "options": [
+        "Prepare strong ties evidence—employment, property, family",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Prepare strong ties evidence—employment, property, family"
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with Weak ties to India?",
+      "options": [
+        "Employment letter, business registration, property, family dependencies",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unemployed, no assets, young single applicant with vague purpose."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with Weak ties to India (detail):",
+      "options": [
+        "Unemployed, no assets, young single applicant with vague purpose.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment letter, business registration, property, family dependencies"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to 214(b) — immigrant intent signals:",
+      "options": [
+        "Clear temporary purpose; return date; no employment intent",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mentions working in USA, long stay without reason, or visiting fiancé without clear plan."
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with 214(b) — immigrant intent signals (detail)?",
+      "options": [
+        "Mentions working in USA, long stay without reason, or visiting fiancé without clear plan.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Clear temporary purpose; return date; no employment intent"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with DS-160 inconsistencies:",
+      "options": [
+        "Review DS-160 line by line; practice consistent answers",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Travel history, employment, or relatives in US not matching interview."
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to DS-160 inconsistencies (detail):",
+      "options": [
+        "Travel history, employment, or relatives in US not matching interview.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Review DS-160 line by line; practice consistent answers"
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with Prior refusals unchanged?",
+      "options": [
+        "Wait until ties strengthen; new purpose documentation",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Reapplying without material change in circumstances."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with Prior refusals unchanged (detail):",
+      "options": [
+        "Reapplying without material change in circumstances.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Wait until ties strengthen; new purpose documentation"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to Insufficient funds:",
+      "options": [
+        "Sponsor ITR, bank history, trip budget breakdown",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cannot explain who pays for trip or recent large deposits."
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with Insufficient funds (detail)?",
+      "options": [
+        "Cannot explain who pays for trip or recent large deposits.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor ITR, bank history, trip budget breakdown"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with Over-documented or fake papers:",
+      "options": [
+        "Only genuine documents; honest answers",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fabricated invitation or employment letters detected."
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to Over-documented or fake papers (detail):",
+      "options": [
+        "Fabricated invitation or employment letters detected.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Only genuine documents; honest answers"
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee B1/B2 approval",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee B1/B2 approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with counselor don't:",
+      "options": [
+        "Do not coach client to hide US relatives or prior refusals",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not coach client to hide US relatives or prior refusals"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not suggest working or long-term stay on visitor visa",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not suggest working or long-term stay on visitor visa"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Vague purpose—'just visiting' without specifics",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Vague purpose—'just visiting' without specifics"
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with common mistake?",
+      "options": [
+        "Unemployed applicant with no ties documentation",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Unemployed applicant with no ties documentation"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with common mistake:",
+      "options": [
+        "DS-160 travel history not matching passport",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: DS-160 travel history not matching passport"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent on file before DS-160",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent on file before DS-160"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa approval",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa approval"
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with compliance rule?",
+      "options": [
+        "Do not fabricate documents or coach false statements",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not fabricate documents or coach false statements"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "After 214(b) refusal, do not reapply immediately with unchanged profile. Strengthen ties evidence and visit purpose clarity first.",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "After 214(b) refusal, do not reapply immediately with unchanged profile. Strengthen ties evidence and visit purpose clarity first."
+    },
+    {
+      "level": 3,
+      "question": "USA – Visitor Visa (B1/B2): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 72% vs benchmark 58%",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Visitor Visa (B1/B2) — key issue with Ties documentation:",
+      "options": [
+        "Our target: 70% vs benchmark 52%",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Ties documentation"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Visitor Visa (B1/B2), counselors must avoid this mistake related to Interview coaching:",
+      "options": [
+        "Our target: 75% vs benchmark 55%",
+        "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interv…",
+        "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160",
+        "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+      ],
+      "correctIndex": 0,
+      "explanation": "Interview coaching"
     }
   ],
   "donts": {

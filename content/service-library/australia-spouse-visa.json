@@ -1,7 +1,7 @@
 {
   "displayName": "Australia – Partner Visa (Subclass 820/801 or 309/100)",
   "shortDescription": "Home Affairs · Partner visa · Onshore/offshore · Relationship & health",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -308,6 +308,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -358,7 +364,8 @@
         "Student visa"
       ],
       "correctIndex": 1,
-      "explanation": "Two-stage process."
+      "explanation": "Two-stage process.",
+      "level": 1
     },
     {
       "question": "De facto partners need:",
@@ -369,7 +376,8 @@
         "Job offer"
       ],
       "correctIndex": 1,
-      "explanation": "De facto requires 12+ months cohabitation."
+      "explanation": "De facto requires 12+ months cohabitation.",
+      "level": 1
     },
     {
       "question": "820/801 is for partners:",
@@ -380,7 +388,8 @@
         "Students only"
       ],
       "correctIndex": 1,
-      "explanation": "Onshore pathway."
+      "explanation": "Onshore pathway.",
+      "level": 1
     },
     {
       "question": "Top refusal reason often:",
@@ -391,7 +400,8 @@
         "Airline"
       ],
       "correctIndex": 1,
-      "explanation": "Genuine relationship proof critical."
+      "explanation": "Genuine relationship proof critical.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -402,7 +412,848 @@
         "Check fees"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Description is correct?",
+      "options": [
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/801) after relationship assessment period."
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding Eligible applicants?",
+      "options": [
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about Onshore vs offshore:",
+      "options": [
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Key authority is correct?",
+      "options": [
+        "Department of Home Affairs (Australia)",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Department of Home Affairs (Australia)"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding After approval?",
+      "options": [
+        "Stage 1 provisional visa; Stage 2 permanent after waiting period and continued relationship evidence.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Stage 1 provisional visa; Stage 2 permanent after waiting period and continued relationship evidence."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about Qualifying relationship (marriage or 12+ months de facto):",
+      "options": [
+        "Qualifying relationship (marriage or 12+ months de facto) is a core requirement for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Qualifying relationship (marriage or 12+ months de facto)"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Sponsor is eligible Australian citizen/PR/eligible NZ citizen is correct?",
+      "options": [
+        "Sponsor is eligible Australian citizen/PR/eligible NZ citizen is a core requirement for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor is eligible Australian citizen/PR/eligible NZ citizen"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding Genuine and continuing relationship evidence?",
+      "options": [
+        "Genuine and continuing relationship evidence is a core requirement for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Genuine and continuing relationship evidence"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about Health requirements met:",
+      "options": [
+        "Health requirements met is often required or assessed for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Health requirements met"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Character requirements (police certs) is correct?",
+      "options": [
+        "Character requirements (police certs) is often required or assessed for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Character requirements (police certs)"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding Sponsorship obligations understood?",
+      "options": [
+        "Sponsorship obligations understood is a core requirement for this service.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsorship obligations understood"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about Correct onshore/offshore pathway:",
+      "options": [
+        "Correct onshore/offshore pathway is a core requirement for this service. Note: Assess partner location and visa status",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Assess partner location and visa status"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 12–24m — Stage 1 provisional",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Stage 1 provisional"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding Government fee?",
+      "options": [
+        "Government fee: AUD ,850+ — Primary applicant approx",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Primary applicant approx"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 89% — ~79% benchmark",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "~79% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 20 — + relationship evidence",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ relationship evidence"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & medical",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & medical"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Partner Visa (Subclass 820/801 or 309/100) should state correctly about service summary:",
+      "options": [
+        "Home Affairs · Partner visa · Onshore/offshore · Relationship & health",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Home Affairs · Partner visa · Onshore/offshore · Relationship & health"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), which statement about Two-stage partner visa is correct?",
+      "options": [
+        "Subclass 309/100 (offshore) or 820/801 (onshore) are two-stage processes. Choose pathway based on where applicant is at time of application.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Subclass 309/100 (offshore) or 820/801 (onshore) are two-stage processes. Choose pathway based on where applicant is at time of application."
+    },
+    {
+      "level": 1,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is true regarding policy update?",
+      "options": [
+        "Confirm current partner visa fees (AUD ,850+ approx for primary applicant) on homeaffairs.gov.au before quoting.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current partner visa fees (AUD ,850+ approx for primary applicant) on homeaffairs.gov.au before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to client question: Can we guarantee partner visa approval?",
+      "options": [
+        "No. Genuine relationships can still face refusals if evidence is insufficient.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Genuine relationships can still face refusals if evidence is insufficient."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during client question: 309/100 vs 820/801?",
+      "options": [
+        "309/100 offshore; 820/801 onshore when partner holds eligible visa in Australia.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "309/100 offshore; 820/801 onshore when partner holds eligible visa in Australia."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for client question: Can partner work on provisional visa:",
+      "options": [
+        "Generally full work rights on stage 1—verify grant conditions.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally full work rights on stage 1—verify grant conditions."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to client question: How long until permanent visa?",
+      "options": [
+        "Typically 2 years on provisional before stage 2 assessment—verify current processing.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically 2 years on provisional before stage 2 assessment—verify current processing."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during client question: Is marriage in India valid?",
+      "options": [
+        "Yes if legally registered; provide certified translation if needed.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes if legally registered; provide certified translation if needed."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for client question: What if relationship is recent:",
+      "options": [
+        "Recent relationships need stronger evidence of development before marriage/de facto.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recent relationships need stronger evidence of development before marriage/de facto."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to client question: Does prior student refusal matter?",
+      "options": [
+        "Must disclose all immigration history.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Must disclose all immigration history."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during client question: Sponsorship obligations?",
+      "options": [
+        "Sponsor provides assurance of support; explain obligations to client.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor provides assurance of support; explain obligations to client."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for timeline (1–2):",
+      "options": [
+        "Pathway assessment, fee agreement",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Pathway assessment, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to timeline (2–8)?",
+      "options": [
+        "Relationship & health document collection",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–8: Relationship & health document collection"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during timeline (8–10)?",
+      "options": [
+        "ImmiAccount lodgement",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–10: ImmiAccount lodgement"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for timeline (12–24m):",
+      "options": [
+        "Stage 1 processing (varies)",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "12–24m: Stage 1 processing (varies)"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Confirm onshore/offshore pathway at intake",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm onshore/offshore pathway at intake"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during counselor tip?",
+      "options": [
+        "Build relationship timeline from first meeting",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Build relationship timeline from first meeting"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for counselor tip:",
+      "options": [
+        "Complete health exams early",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete health exams early"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain two-stage process and timeline",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain two-stage process and timeline"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Remind on ongoing relationship evidence duty",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind on ongoing relationship evidence duty"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during post-approval step?",
+      "options": [
+        "Guide on stage 2 application timing",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guide on stage 2 application timing"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during Sample marriage certificate (mock)?",
+      "options": [
+        "Registered marriage proof — explain translation and notarization if needed.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Registered marriage proof — explain translation and notarization if needed."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for Sample relationship timeline & photos guide (mock):",
+      "options": [
+        "Collage layout for chat logs, travel photos, and ceremony pictures.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collage layout for chat logs, travel photos, and ceremony pictures."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to Sample sponsor / undertaking letter (mock)?",
+      "options": [
+        "Sponsor income, accommodation, and maintenance commitment.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor income, accommodation, and maintenance commitment."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), what should happen during Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100) workflow — best practice for Sample chat / communication evidence (mock):",
+      "options": [
+        "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Redacted WhatsApp or email excerpts — privacy-safe specimen."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Partner Visa (Subclass 820/801 or 309/100) process, what is the correct approach to recommended practice?",
+      "options": [
+        "Confirm onshore/offshore at intake",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm onshore/offshore at intake"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with Weak relationship evidence?",
+      "options": [
+        "Chronological narrative; communication logs; joint finances; visit evidence",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Few photos, no cohabitation proof, inconsistent timeline."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with Weak relationship evidence (detail):",
+      "options": [
+        "Few photos, no cohabitation proof, inconsistent timeline.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Chronological narrative; communication logs; joint finances; visit evidence"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to Wrong pathway (onshore/offshore):",
+      "options": [
+        "Verify partner visa and location before lodgement",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applied onshore without eligible visa status."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with Wrong pathway (onshore/offshore) (detail)?",
+      "options": [
+        "Applied onshore without eligible visa status.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify partner visa and location before lodgement"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with De facto without 12 months cohabitation:",
+      "options": [
+        "Marriage registration or 12+ months shared residence proof",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unmarried without sufficient cohabitation evidence."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to De facto without 12 months cohabitation (detail):",
+      "options": [
+        "Unmarried without sufficient cohabitation evidence.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Marriage registration or 12+ months shared residence proof"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with Health/character issues?",
+      "options": [
+        "Complete health exam early; disclose all history",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical conditions or undisclosed criminal history."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with Health/character issues (detail):",
+      "options": [
+        "Medical conditions or undisclosed criminal history.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete health exam early; disclose all history"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to Prior refusals not addressed:",
+      "options": [
+        "Full disclosure with changed circumstances",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Hidden visa refusals or cancellations."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with Prior refusals not addressed (detail)?",
+      "options": [
+        "Hidden visa refusals or cancellations.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Full disclosure with changed circumstances"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with Sponsor ineligible:",
+      "options": [
+        "Verify sponsor eligibility on Home Affairs website",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor has prior sponsorship debt or ineligible status."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to Sponsor ineligible (detail):",
+      "options": [
+        "Sponsor has prior sponsorship debt or ineligible status.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify sponsor eligibility on Home Affairs website"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with counselor don't:",
+      "options": [
+        "Do not lodge wrong pathway",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not lodge wrong pathway"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not hide refusals",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not hide refusals"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Insufficient cohabitation proof for de facto",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Insufficient cohabitation proof for de facto"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with common mistake?",
+      "options": [
+        "Wrong onshore/offshore choice",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Wrong onshore/offshore choice"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with common mistake:",
+      "options": [
+        "Missing police certificates",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Missing police certificates"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "If refused on relationship grounds, rebuild chronological evidence before reapplication—do not resubmit same weak package.",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "If refused on relationship grounds, rebuild chronological evidence before reapplication—do not resubmit same weak package."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Partner Visa (Subclass 820/801 or 309/100): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 89% vs benchmark 79%",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Partner Visa (Subclass 820/801 or 309/100) — key issue with Relationship evidence:",
+      "options": [
+        "Our target: 87% vs benchmark 73%",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Relationship evidence"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Partner Visa (Subclass 820/801 or 309/100), counselors must avoid this mistake related to Pathway accuracy:",
+      "options": [
+        "Our target: 93% vs benchmark 78%",
+        "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/8…",
+        "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment",
+        "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pathway accuracy"
     }
   ],
   "donts": {

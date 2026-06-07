@@ -1,7 +1,7 @@
 {
   "displayName": "USA – Student Visa (F-1)",
   "shortDescription": "US Embassy F-1 · SEVIS · I-20 from SEVP school required",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -317,6 +317,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -372,7 +378,8 @@
         "EAD card"
       ],
       "correctIndex": 1,
-      "explanation": "I-20 is issued by SEVP-certified school."
+      "explanation": "I-20 is issued by SEVP-certified school.",
+      "level": 1
     },
     {
       "question": "Most common refusal ground for Indian F-1 applicants?",
@@ -383,7 +390,8 @@
         "SEVIS school location"
       ],
       "correctIndex": 1,
-      "explanation": "Officers must be satisfied applicant will return after studies."
+      "explanation": "Officers must be satisfied applicant will return after studies.",
+      "level": 1
     },
     {
       "question": "SEVIS I-901 fee for F-1 (2026) is approximately:",
@@ -394,7 +402,8 @@
         "USD $85"
       ],
       "correctIndex": 1,
-      "explanation": "Verify current fee on ice.gov—F-1 SEVIS is USD $350."
+      "explanation": "Verify current fee on ice.gov—F-1 SEVIS is USD $350.",
+      "level": 1
     },
     {
       "question": "Client can enter USA on F-1 no earlier than:",
@@ -405,7 +414,8 @@
         "Any time after DS-160"
       ],
       "correctIndex": 1,
-      "explanation": "30-day early entry rule applies to F-1."
+      "explanation": "30-day early entry rule applies to F-1.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -416,7 +426,848 @@
         "Collect financial documents"
       ],
       "correctIndex": 1,
-      "explanation": "Firm policy prohibits approval guarantees."
+      "explanation": "Firm policy prohibits approval guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about Description is correct?",
+      "options": [
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts.",
+        "US Department of State (embassy/consulate) · SEVIS/ICE for I-901"
+      ],
+      "correctIndex": 0,
+      "explanation": "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview."
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding Eligible applicants?",
+      "options": [
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts.",
+        "US Department of State (embassy/consulate) · SEVIS/ICE for I-901"
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about Interview focus:",
+      "options": [
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "US Department of State (embassy/consulate) · SEVIS/ICE for I-901"
+      ],
+      "correctIndex": 0,
+      "explanation": "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about Key authority is correct?",
+      "options": [
+        "US Department of State (embassy/consulate) · SEVIS/ICE for I-901",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "US Department of State (embassy/consulate) · SEVIS/ICE for I-901"
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding After approval?",
+      "options": [
+        "F-1 visa foil in passport; enter US no earlier than 30 days before I-20 start. Maintain full-time enrollment and SEVIS compliance.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "F-1 visa foil in passport; enter US no earlier than 30 days before I-20 start. Maintain full-time enrollment and SEVIS compliance."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about Form I-20 from SEVP-certified school:",
+      "options": [
+        "Form I-20 from SEVP-certified school is a core requirement for this service. Note: Program and start date must be realistic",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Program and start date must be realistic"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about SEVIS I-901 fee paid is correct?",
+      "options": [
+        "SEVIS I-901 fee paid is often required or assessed for this service. Note: Receipt required for interview",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Receipt required for interview"
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding DS-160 completed accurately?",
+      "options": [
+        "DS-160 completed accurately is often required or assessed for this service. Note: Must match I-20 and documents",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Must match I-20 and documents"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about Proof of financial support:",
+      "options": [
+        "Proof of financial support is a core requirement for this service. Note: Covers tuition + living for at least first year",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Covers tuition + living for at least first year"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about English proficiency (as required by school) is correct?",
+      "options": [
+        "English proficiency (as required by school) is a core requirement for this service. Note: TOEFL/IELTS/Duolingo per I-20",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "TOEFL/IELTS/Duolingo per I-20"
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding Non-immigrant intent / ties to India?",
+      "options": [
+        "Non-immigrant intent / ties to India is a core requirement for this service. Note: Critical for 214(b) interview",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Critical for 214(b) interview"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about No prior visa fraud or serious inadmissibility:",
+      "options": [
+        "No prior visa fraud or serious inadmissibility is a core requirement for this service.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "No prior visa fraud or serious inadmissibility"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 2–8w — Post-interview; slot wait extra",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Post-interview; slot wait extra"
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding Government fee?",
+      "options": [
+        "Government fee: USD $535 — MRV $185 + SEVIS $350",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "MRV $185 + SEVIS $350"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 84% — ~70% industry benchmark",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "~70% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 12 — + financial evidence",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ financial evidence"
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & third-party",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & third-party"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining USA – Student Visa (F-1) should state correctly about service summary:",
+      "options": [
+        "US Embassy F-1 · SEVIS · I-20 from SEVP school required",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "US Embassy F-1 · SEVIS · I-20 from SEVP school required"
+    },
+    {
+      "level": 1,
+      "question": "For USA – Student Visa (F-1), which statement about 214(b) ties at interview is correct?",
+      "options": [
+        "Most Indian refusals cite Section 214(b)—non-immigrant intent. Prepare client for concise, honest answers on ties, funds, and study plan.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Most Indian refusals cite Section 214(b)—non-immigrant intent. Prepare client for concise, honest answers on ties, funds, and study plan."
+    },
+    {
+      "level": 1,
+      "question": "USA – Student Visa (F-1): what is true regarding policy update?",
+      "options": [
+        "Confirm current MRV fee (USD $185) and SEVIS I-901 fee (USD $350 for F-1) on travel.state.gov and ice.gov before quoting.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current MRV fee (USD $185) and SEVIS I-901 fee (USD $350 for F-1) on travel.state.gov and ice.gov before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to client question: Can we guarantee F-1 approval?",
+      "options": [
+        "No. Consular officers decide at interview. We prepare the file and coach for interview but never promise approval.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Consular officers decide at interview. We prepare the file and coach for interview but never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during client question: How much funds to show?",
+      "options": [
+        "Typically tuition + living per I-20 for first year. Verify amount on I-20 financial page; include credible sponsor or loan evidence.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically tuition + living per I-20 for first year. Verify amount on I-20 financial page; include credible sponsor or loan evidence."
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for client question: What is 214(b):",
+      "options": [
+        "Immigration law presumes immigrant intent. F-1 applicants must convince officer they will return after studies—ties, funds, and credible study plan matter.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration law presumes immigrant intent. F-1 applicants must convince officer they will return after studies—ties, funds, and credible study plan matter."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to client question: Can spouse accompany on F-2?",
+      "options": [
+        "F-2 dependants may apply separately. F-2 cannot work. Assess funds for entire family.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "F-2 dependants may apply separately. F-2 cannot work. Assess funds for entire family."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during client question: When to pay SEVIS fee?",
+      "options": [
+        "Before interview, at least 3 days prior recommended. Bring I-901 receipt to embassy.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Before interview, at least 3 days prior recommended. Bring I-901 receipt to embassy."
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for client question: How soon can client enter USA:",
+      "options": [
+        "No earlier than 30 days before I-20 program start date on valid F-1 visa.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "No earlier than 30 days before I-20 program start date on valid F-1 visa."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to client question: What if refused under 214(b)?",
+      "options": [
+        "No appeal. Reapply when circumstances materially improve—stronger ties, different program, or better funds.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "No appeal. Reapply when circumstances materially improve—stronger ties, different program, or better funds."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during client question: Is interview mandatory for renewals?",
+      "options": [
+        "Most Indian applicants attend interview. Check embassy guidance for specific renewal rules.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Most Indian applicants attend interview. Check embassy guidance for specific renewal rules."
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for timeline (1–2):",
+      "options": [
+        "Counseling, I-20 review, fee agreement",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Counseling, I-20 review, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to timeline (2–3)?",
+      "options": [
+        "SEVIS payment, DS-160, document prep",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: SEVIS payment, DS-160, document prep"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during timeline (3–4)?",
+      "options": [
+        "Interview slot booking & mock interview",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–4: Interview slot booking & mock interview"
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for timeline (4–5):",
+      "options": [
+        "Consular interview",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–5: Consular interview"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to timeline (5–8)?",
+      "options": [
+        "Passport return / administrative processing if any",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "5–8: Passport return / administrative processing if any"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during counselor tip?",
+      "options": [
+        "Mock interview focusing on 214(b)—why this school, why USA, who pays, what after graduation",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mock interview focusing on 214(b)—why this school, why USA, who pays, what after graduation"
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for counselor tip:",
+      "options": [
+        "Cross-check DS-160 against I-20 line by line before submit",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check DS-160 against I-20 line by line before submit"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Book earliest available slot after I-20 and funds are ready",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Book earliest available slot after I-20 and funds are ready"
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Send visa foil photo and entry date rules (30-day rule) in writing",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send visa foil photo and entry date rules (30-day rule) in writing"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during post-approval step?",
+      "options": [
+        "Remind client to carry I-20, I-901 receipt, and financials to port of entry",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind client to carry I-20, I-901 receipt, and financials to port of entry"
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain SEVIS reporting and full-time enrollment obligations",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain SEVIS reporting and full-time enrollment obligations"
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for Sample I-20 (mock):",
+      "options": [
+        "SEVP school document — SEVIS ID and program dates.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "SEVP school document — SEVIS ID and program dates."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to Sample DS-160 confirmation (mock)?",
+      "options": [
+        "Barcode page printout for interview.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Barcode page printout for interview."
+    },
+    {
+      "level": 2,
+      "question": "For USA – Student Visa (F-1), what should happen during Sample IELTS / TOEFL score report (mock)?",
+      "options": [
+        "English proficiency for F-1 interview prep.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "English proficiency for F-1 interview prep."
+    },
+    {
+      "level": 2,
+      "question": "USA – Student Visa (F-1) workflow — best practice for Sample financial affidavit / I-134 (mock):",
+      "options": [
+        "Sponsor form  I-134 or bank proof for tuition + living.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor form  I-134 or bank proof for tuition + living."
+    },
+    {
+      "level": 2,
+      "question": "In the USA – Student Visa (F-1) process, what is the correct approach to Sample academic transcripts (mock)?",
+      "options": [
+        "SEVIS-ready transcript packet.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "SEVIS-ready transcript packet."
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with Weak non-immigrant intent (214(b))?",
+      "options": [
+        "Course-specific study plan; tie program to India career; practice concise interview answers",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Vague return plan, course mismatch, or answers suggesting permanent stay intent."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with Weak non-immigrant intent (214(b)) (detail):",
+      "options": [
+        "Vague return plan, course mismatch, or answers suggesting permanent stay intent.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course-specific study plan; tie program to India career; practice concise interview answers"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to Insufficient or unseasoned funds:",
+      "options": [
+        "4–6 month bank history; sponsor ITR + CA statement; education loan sanction letter",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large recent deposits, sponsor income not matching funds, or weak loan documentation."
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with Insufficient or unseasoned funds (detail)?",
+      "options": [
+        "Large recent deposits, sponsor income not matching funds, or weak loan documentation.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–6 month bank history; sponsor ITR + CA statement; education loan sanction letter"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with I-20 / school credibility issues:",
+      "options": [
+        "Verify SEVP certification; align program with academic background",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unknown institution, course downgrade pattern, or start date passed."
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to I-20 / school credibility issues (detail):",
+      "options": [
+        "Unknown institution, course downgrade pattern, or start date passed.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify SEVP certification; align program with academic background"
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with DS-160 inconsistencies?",
+      "options": [
+        "Cross-check DS-160 against passport, I-20, and resume before submit",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dates, employment, or travel history mismatch with documents or prior applications."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with DS-160 inconsistencies (detail):",
+      "options": [
+        "Dates, employment, or travel history mismatch with documents or prior applications.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check DS-160 against passport, I-20, and resume before submit"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to Previous refusals not addressed:",
+      "options": [
+        "Disclose honestly; explain what changed—stronger funds, clearer plan",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Prior US or other country refusals hidden or unchanged circumstances."
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with Previous refusals not addressed (detail)?",
+      "options": [
+        "Prior US or other country refusals hidden or unchanged circumstances.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Disclose honestly; explain what changed—stronger funds, clearer plan"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with Over-rehearsed or argumentative interview:",
+      "options": [
+        "Mock interview with natural answers; listen and respond briefly",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client memorises script or argues with officer."
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to Over-rehearsed or argumentative interview (detail):",
+      "options": [
+        "Client memorises script or argues with officer.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Mock interview with natural answers; listen and respond briefly"
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee F-1 approval",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee F-1 approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with counselor don't:",
+      "options": [
+        "Do not coach client to lie about intent to return",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not coach client to lie about intent to return"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not submit DS-160 with inconsistent travel or employment history",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not submit DS-160 with inconsistent travel or employment history"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Memorised long answers sounding scripted at interview",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Memorised long answers sounding scripted at interview"
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with common mistake?",
+      "options": [
+        "Large unexplained recent bank deposits",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Large unexplained recent bank deposits"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with common mistake:",
+      "options": [
+        "Course unrelated to prior education without explanation",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Course unrelated to prior education without explanation"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before DS-160 submission",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before DS-160 submission"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa approval; avoid 'visa assured' marketing language",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa approval; avoid 'visa assured' marketing language"
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, MRV, SEVIS, and third-party costs",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, MRV, SEVIS, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "After 214(b) refusal, do not reapply with the same weak ties story. Strengthen funds evidence and study rationale before booking a new slot.",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "After 214(b) refusal, do not reapply with the same weak ties story. Strengthen funds evidence and study rationale before booking a new slot."
+    },
+    {
+      "level": 3,
+      "question": "USA – Student Visa (F-1): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 84% vs benchmark 70%",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on USA – Student Visa (F-1) — key issue with Interview preparation:",
+      "options": [
+        "Our target: 86% vs benchmark 68%",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Interview preparation"
+    },
+    {
+      "level": 3,
+      "question": "For USA – Student Visa (F-1), counselors must avoid this mistake related to Financial documentation:",
+      "options": [
+        "Our target: 81% vs benchmark 65%",
+        "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview.",
+        "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history",
+        "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial documentation"
     }
   ],
   "donts": {

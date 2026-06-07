@@ -1,7 +1,7 @@
 {
   "displayName": "UK – Graduate Route Visa",
   "shortDescription": "UKVI · Post-study work · 2–3 years · UK degree required",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -308,6 +308,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -358,7 +364,8 @@
         "Online only from India"
       ],
       "correctIndex": 1,
-      "explanation": "In-country application required."
+      "explanation": "In-country application required.",
+      "level": 1
     },
     {
       "question": "Graduate Route duration (bachelors/masters):",
@@ -369,7 +376,8 @@
         "Permanent"
       ],
       "correctIndex": 1,
-      "explanation": "2 years for most graduates."
+      "explanation": "2 years for most graduates.",
+      "level": 1
     },
     {
       "question": "Work restrictions:",
@@ -380,7 +388,8 @@
         "Employer sponsor only"
       ],
       "correctIndex": 1,
-      "explanation": "Open work permit."
+      "explanation": "Open work permit.",
+      "level": 1
     },
     {
       "question": "Must apply:",
@@ -391,7 +400,8 @@
         "From home country only"
       ],
       "correctIndex": 1,
-      "explanation": "Before expiry critical."
+      "explanation": "Before expiry critical.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -402,7 +412,848 @@
         "Pay IHS"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Description is correct?",
+      "options": [
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry.",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor."
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding Eligible applicants?",
+      "options": [
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry.",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about One-time route:",
+      "options": [
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Key authority is correct?",
+      "options": [
+        "UK Visas and Immigration (UKVI)",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "UK Visas and Immigration (UKVI)"
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding After approval?",
+      "options": [
+        "Work freely in UK. Transition to Skilled Worker or other visa before Graduate Route expires.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Work freely in UK. Transition to Skilled Worker or other visa before Graduate Route expires."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about Completed eligible UK degree:",
+      "options": [
+        "Completed eligible UK degree is a core requirement for this service. Note: University confirms completion to UKVI",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "University confirms completion to UKVI"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Valid Student visa at application is correct?",
+      "options": [
+        "Valid Student visa at application is a core requirement for this service.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid Student visa at application"
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding Applied before Student visa expiry?",
+      "options": [
+        "Applied before Student visa expiry is a core requirement for this service. Note: Critical deadline",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Critical deadline"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about Studied in UK required duration:",
+      "options": [
+        "Studied in UK required duration is a core requirement for this service.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Studied in UK required duration"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Passport valid is correct?",
+      "options": [
+        "Passport valid is a core requirement for this service.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport valid"
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding IHS paid?",
+      "options": [
+        "IHS paid is often required or assessed for this service.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "IHS paid"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about Not previously held Graduate Route:",
+      "options": [
+        "Not previously held Graduate Route is a core requirement for this service.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Not previously held Graduate Route"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 8–12w — In-country application",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "In-country application"
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding Government fee?",
+      "options": [
+        "Government fee: £822 — + IHS",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ IHS"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 95% — ~90% benchmark",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "~90% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 6 — + completion proof",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ completion proof"
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & IHS",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & IHS"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Graduate Route Visa should state correctly about service summary:",
+      "options": [
+        "UKVI · Post-study work · 2–3 years · UK degree required",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "UKVI · Post-study work · 2–3 years · UK degree required"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Graduate Route Visa, which statement about Apply before visa expiry is correct?",
+      "options": [
+        "Graduate Route must be applied from within UK while Student visa still valid. Missing deadline loses eligibility.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Graduate Route must be applied from within UK while Student visa still valid. Missing deadline loses eligibility."
+    },
+    {
+      "level": 1,
+      "question": "UK – Graduate Route Visa: what is true regarding policy update?",
+      "options": [
+        "Confirm current Graduate Route fee (£822) and IHS on gov.uk. Must apply before student visa expires.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current Graduate Route fee (£822) and IHS on gov.uk. Must apply before student visa expires."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to client question: Can we guarantee Graduate Route approval?",
+      "options": [
+        "No. Most eligible graduates are approved but we never guarantee.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Most eligible graduates are approved but we never guarantee."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during client question: How long is Graduate Route?",
+      "options": [
+        "2 years (3 years for PhD graduates)—verify current rules.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "2 years (3 years for PhD graduates)—verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for client question: Can apply from India:",
+      "options": [
+        "No. Must apply from within UK on valid Student visa.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Must apply from within UK on valid Student visa."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to client question: Can work any job?",
+      "options": [
+        "Yes—open work at any skill level during Graduate Route.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes—open work at any skill level during Graduate Route."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during client question: Can extend Graduate Route?",
+      "options": [
+        "Generally no extension—plan next visa before expiry.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally no extension—plan next visa before expiry."
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for client question: Path to Skilled Worker:",
+      "options": [
+        "Common transition—need job offer from licensed sponsor before Graduate Route ends.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Common transition—need job offer from licensed sponsor before Graduate Route ends."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to client question: Dependants?",
+      "options": [
+        "Dependants who were on Student visa as dependants may extend—verify rules.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dependants who were on Student visa as dependants may extend—verify rules."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during client question: When to apply?",
+      "options": [
+        "After degree completion confirmed; before Student visa expires.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "After degree completion confirmed; before Student visa expires."
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for timeline (1):",
+      "options": [
+        "Completion confirmation from university",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Completion confirmation from university"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to timeline (1–2)?",
+      "options": [
+        "IHS payment, online application",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: IHS payment, online application"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during timeline (2–3)?",
+      "options": [
+        "Biometrics if requested",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: Biometrics if requested"
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for timeline (8–12):",
+      "options": [
+        "UKVI processing",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–12: UKVI processing"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to counselor tip?",
+      "options": [
+        "Track Student visa expiry from enrolment",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Track Student visa expiry from enrolment"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during counselor tip?",
+      "options": [
+        "Apply as soon as completion confirmed",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Apply as soon as completion confirmed"
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for counselor tip:",
+      "options": [
+        "Pay IHS before submission",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pay IHS before submission"
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for post-approval step:",
+      "options": [
+        "Send Graduate Route grant and expiry",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send Graduate Route grant and expiry"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to post-approval step?",
+      "options": [
+        "Explain open work rights",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain open work rights"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during post-approval step?",
+      "options": [
+        "Plan next visa route before expiry",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Plan next visa route before expiry"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during Sample completion / graduation letter (mock)?",
+      "options": [
+        "Confirms program completion date for PGWP / 485 / Graduate Route.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirms program completion date for PGWP / 485 / Graduate Route."
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for Sample final transcript (mock):",
+      "options": [
+        "Official transcript with degree conferred date.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Official transcript with degree conferred date."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to Sample study permit / visa copy (mock)?",
+      "options": [
+        "Prior student visa evidence required for post-study pathways.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Prior student visa evidence required for post-study pathways."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Graduate Route Visa, what should happen during Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "UK – Graduate Route Visa workflow — best practice for recommended practice:",
+      "options": [
+        "Track Student visa expiry",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Track Student visa expiry"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Graduate Route Visa process, what is the correct approach to recommended practice?",
+      "options": [
+        "Apply immediately after completion confirmed",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Apply immediately after completion confirmed"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with Applied after Student visa expired?",
+      "options": [
+        "Apply before expiry; track visa end date from day one",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Missed in-country application window."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with Applied after Student visa expired (detail):",
+      "options": [
+        "Missed in-country application window.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Apply before expiry; track visa end date from day one"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to Degree not eligible:",
+      "options": [
+        "Verify eligibility at enrolment—not at graduation",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course or institution not eligible for Graduate Route."
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with Degree not eligible (detail)?",
+      "options": [
+        "Course or institution not eligible for Graduate Route.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify eligibility at enrolment—not at graduation"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with Insufficient UK study period:",
+      "options": [
+        "Verify attendance and UK study duration requirements",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Did not complete required time physically in UK."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to Insufficient UK study period (detail):",
+      "options": [
+        "Did not complete required time physically in UK.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify attendance and UK study duration requirements"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with University confirmation delay?",
+      "options": [
+        "Follow up with university registry early",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "UKVI waiting for university to confirm completion."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with University confirmation delay (detail):",
+      "options": [
+        "UKVI waiting for university to confirm completion.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Follow up with university registry early"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to IHS not paid:",
+      "options": [
+        "Pay IHS via gov.uk before submit",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Application incomplete without IHS."
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with IHS not paid (detail)?",
+      "options": [
+        "Application incomplete without IHS.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Pay IHS via gov.uk before submit"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with Passport expiring soon:",
+      "options": [
+        "Renew passport before application if needed",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Short passport limits visa grant length."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to Passport expiring soon (detail):",
+      "options": [
+        "Short passport limits visa grant length.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Renew passport before application if needed"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with counselor don't:",
+      "options": [
+        "Do not miss in-country deadline",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not miss in-country deadline"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not assume extension possible",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not assume extension possible"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Applied day after Student visa expired",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Applied day after Student visa expired"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with common mistake?",
+      "options": [
+        "Degree course not Graduate Route eligible",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Degree course not Graduate Route eligible"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with common mistake:",
+      "options": [
+        "University confirmation delayed",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: University confirmation delayed"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with refusal handling:",
+      "options": [
+        "If Student visa expiring soon, prioritise Graduate Route application immediately—no in-country application after expiry.",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "If Student visa expiring soon, prioritise Graduate Route application immediately—no in-country application after expiry."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Graduate Route Visa, counselors must avoid this mistake related to Our rate vs industry:",
+      "options": [
+        "Our target: 95% vs benchmark 90%",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "UK – Graduate Route Visa: what is the compliance risk with Deadline compliance?",
+      "options": [
+        "Our target: 97% vs benchmark 85%",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Deadline compliance"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Graduate Route Visa — key issue with Application timing:",
+      "options": [
+        "Our target: 94% vs benchmark 88%",
+        "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor.",
+        "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period",
+        "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+      ],
+      "correctIndex": 0,
+      "explanation": "Application timing"
     }
   ],
   "donts": {

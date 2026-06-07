@@ -1,7 +1,7 @@
 {
   "displayName": "UK – Skilled Worker Visa",
   "shortDescription": "UKVI · Skilled Worker · CoS from licensed sponsor · 70 points",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -306,6 +306,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -356,7 +362,8 @@
         "0"
       ],
       "correctIndex": 1,
-      "explanation": "70-point system."
+      "explanation": "70-point system.",
+      "level": 1
     },
     {
       "question": "CoS issued by:",
@@ -367,7 +374,8 @@
         "Embassy"
       ],
       "correctIndex": 1,
-      "explanation": "Sponsor licence required."
+      "explanation": "Sponsor licence required.",
+      "level": 1
     },
     {
       "question": "Salary must meet:",
@@ -378,7 +386,8 @@
         "Employer choice only"
       ],
       "correctIndex": 1,
-      "explanation": "Salary compliance critical."
+      "explanation": "Salary compliance critical.",
+      "level": 1
     },
     {
       "question": "Indian applicants need TB test:",
@@ -389,7 +398,8 @@
         "US clinic only"
       ],
       "correctIndex": 1,
-      "explanation": "TB test required for India."
+      "explanation": "TB test required for India.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -400,7 +410,848 @@
         "Review CoS"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about Description is correct?",
+      "options": [
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026.",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including salary threshold."
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding Eligible applicants?",
+      "options": [
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026.",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about Salary threshold:",
+      "options": [
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "UK Visas and Immigration (UKVI)"
+      ],
+      "correctIndex": 0,
+      "explanation": "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about Key authority is correct?",
+      "options": [
+        "UK Visas and Immigration (UKVI)",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "UK Visas and Immigration (UKVI)"
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding After approval?",
+      "options": [
+        "Work for sponsoring employer; visa tied to CoS. Pathway to ILR after 5 years typically.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Work for sponsoring employer; visa tied to CoS. Pathway to ILR after 5 years typically."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about Certificate of Sponsorship from licensed sponsor:",
+      "options": [
+        "Certificate of Sponsorship from licensed sponsor is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Certificate of Sponsorship from licensed sponsor"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about Job at RQF Level 3+ (eligible SOC code) is correct?",
+      "options": [
+        "Job at RQF Level 3+ (eligible SOC code) is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Job at RQF Level 3+ (eligible SOC code)"
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding Salary meets threshold/going rate?",
+      "options": [
+        "Salary meets threshold/going rate is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Salary meets threshold/going rate"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about English B1 (SELT or exempt):",
+      "options": [
+        "English B1 (SELT or exempt) is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "English B1 (SELT or exempt)"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about TB test (India) is correct?",
+      "options": [
+        "TB test (India) is often required or assessed for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "TB test (India)"
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding Maintenance funds (if applicable)?",
+      "options": [
+        "Maintenance funds (if applicable) is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Maintenance funds (if applicable)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about 70 points total achieved:",
+      "options": [
+        "70 points total achieved is a core requirement for this service.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "70 points total achieved"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 3–8w — Outside UK",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Outside UK"
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding Government fee?",
+      "options": [
+        "Government fee: £719+ — + IHS per year",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ IHS per year"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 91% — ~83% benchmark",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "~83% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 14 — + CoS & TB test",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ CoS & TB test"
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & IHS",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & IHS"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Skilled Worker Visa should state correctly about service summary:",
+      "options": [
+        "UKVI · Skilled Worker · CoS from licensed sponsor · 70 points",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "UKVI · Skilled Worker · CoS from licensed sponsor · 70 points"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Skilled Worker Visa, which statement about 70-point requirement is correct?",
+      "options": [
+        "Applicant needs 70 points: job offer from licensed sponsor, skill level, English, and salary threshold. Missing any element fails eligibility.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicant needs 70 points: job offer from licensed sponsor, skill level, English, and salary threshold. Missing any element fails eligibility."
+    },
+    {
+      "level": 1,
+      "question": "UK – Skilled Worker Visa: what is true regarding policy update?",
+      "options": [
+        "Confirm current Skilled Worker visa fee (£719+ for 3 years) and IHS on gov.uk. Salary must meet going rate for SOC code.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current Skilled Worker visa fee (£719+ for 3 years) and IHS on gov.uk. Salary must meet going rate for SOC code."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to client question: Can we guarantee Skilled Worker visa?",
+      "options": [
+        "No. UKVI verifies sponsor, salary, and points. Never promise approval.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. UKVI verifies sponsor, salary, and points. Never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during client question: What is CoS?",
+      "options": [
+        "Certificate of Sponsorship—electronic record from licensed employer assigning sponsorship.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Certificate of Sponsorship—electronic record from licensed employer assigning sponsorship."
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for client question: Salary threshold 2026:",
+      "options": [
+        "Verify current general threshold and going rates on gov.uk—rules updated in 2024.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current general threshold and going rates on gov.uk—rules updated in 2024."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to client question: Can switch employers?",
+      "options": [
+        "New CoS and application generally required for new employer.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "New CoS and application generally required for new employer."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during client question: Spouse can work?",
+      "options": [
+        "Partner dependants typically can work—verify dependant visa conditions.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Partner dependants typically can work—verify dependant visa conditions."
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for client question: Path to ILR:",
+      "options": [
+        "Generally 5 years on Skilled Worker route—verify current ILR requirements.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally 5 years on Skilled Worker route—verify current ILR requirements."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to client question: Healthcare surcharge?",
+      "options": [
+        "IHS payable for visa duration—use gov.uk calculator.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "IHS payable for visa duration—use gov.uk calculator."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during client question: Can apply from India?",
+      "options": [
+        "Yes, entry clearance from outside UK with CoS and job offer.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes, entry clearance from outside UK with CoS and job offer."
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for timeline (1–2):",
+      "options": [
+        "Job offer, sponsor verification",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Job offer, sponsor verification"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to timeline (2–4)?",
+      "options": [
+        "CoS assignment, TB test, documents",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–4: CoS assignment, TB test, documents"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during timeline (4–5)?",
+      "options": [
+        "IHS payment & UKVI submission",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–5: IHS payment & UKVI submission"
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for timeline (3–8):",
+      "options": [
+        "UKVI processing",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–8: UKVI processing"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to counselor tip?",
+      "options": [
+        "Verify sponsor on register before client fees",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify sponsor on register before client fees"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during counselor tip?",
+      "options": [
+        "Check going rate for SOC code on gov.uk",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check going rate for SOC code on gov.uk"
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for counselor tip:",
+      "options": [
+        "Cross-check CoS details meticulously",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check CoS details meticulously"
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for post-approval step:",
+      "options": [
+        "Send visa vignette and work conditions",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send visa vignette and work conditions"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to post-approval step?",
+      "options": [
+        "Explain employer-tied visa rules",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain employer-tied visa rules"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during post-approval step?",
+      "options": [
+        "Guide on NI number and HMRC",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guide on NI number and HMRC"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during Sample language test TRF (mock)?",
+      "options": [
+        "IELTS / PTE / TOEFL layout — explain CLB or points mapping.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "IELTS / PTE / TOEFL layout — explain CLB or points mapping."
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for Sample ECA report (mock):",
+      "options": [
+        "WES / IQAS / ICAS credential assessment — degree equivalency page.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "WES / IQAS / ICAS credential assessment — degree equivalency page."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to Sample employment reference letter (mock)?",
+      "options": [
+        "Duties, NOC code, dates, and full-time hours on company letterhead.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Duties, NOC code, dates, and full-time hours on company letterhead."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Skilled Worker Visa, what should happen during Sample resume / CV (mock)?",
+      "options": [
+        "Skilled migration format — chronological roles and NOC alignment.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled migration format — chronological roles and NOC alignment."
+    },
+    {
+      "level": 2,
+      "question": "UK – Skilled Worker Visa workflow — best practice for Sample nomination / job offer letter (mock):",
+      "options": [
+        "PNP nomination or employer-backed offer where applicable.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "PNP nomination or employer-backed offer where applicable."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Skilled Worker Visa process, what is the correct approach to Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with Salary below going rate?",
+      "options": [
+        "Verify going rate for SOC code; negotiate salary with employer",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Offered salary below SOC-specific or general threshold."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with Salary below going rate (detail):",
+      "options": [
+        "Offered salary below SOC-specific or general threshold.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify going rate for SOC code; negotiate salary with employer"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to Unlicensed or suspended sponsor:",
+      "options": [
+        "Check sponsor register before CoS assignment",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer sponsor licence expired or revoked."
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with Unlicensed or suspended sponsor (detail)?",
+      "options": [
+        "Employer sponsor licence expired or revoked.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check sponsor register before CoS assignment"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with Wrong SOC code:",
+      "options": [
+        "Align SOC with actual role; detailed job description",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Job duties do not match assigned SOC code."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to Wrong SOC code (detail):",
+      "options": [
+        "Job duties do not match assigned SOC code.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Align SOC with actual role; detailed job description"
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with English B1 not met?",
+      "options": [
+        "Complete UKVI-approved B1 test",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Missing SELT when required."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with English B1 not met (detail):",
+      "options": [
+        "Missing SELT when required.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete UKVI-approved B1 test"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to CoS errors:",
+      "options": [
+        "Cross-check CoS against passport and offer letter",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incorrect details on CoS vs application."
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with CoS errors (detail)?",
+      "options": [
+        "Incorrect details on CoS vs application.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check CoS against passport and offer letter"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with TB test issues:",
+      "options": [
+        "Approved clinic TB test valid 6 months",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Missing or expired TB certificate for India."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to TB test issues (detail):",
+      "options": [
+        "Missing or expired TB certificate for India.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Approved clinic TB test valid 6 months"
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with counselor don't:",
+      "options": [
+        "Do not apply with unlicensed sponsor",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not apply with unlicensed sponsor"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not ignore salary threshold",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not ignore salary threshold"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Salary below going rate",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Salary below going rate"
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with common mistake?",
+      "options": [
+        "Expired sponsor licence",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Expired sponsor licence"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with common mistake:",
+      "options": [
+        "SOC code mismatch",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: SOC code mismatch"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with refusal handling:",
+      "options": [
+        "If refused on salary or SOC code, verify going rate on gov.uk before resubmitting with corrected CoS.",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "If refused on salary or SOC code, verify going rate on gov.uk before resubmitting with corrected CoS."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Skilled Worker Visa, counselors must avoid this mistake related to Our rate vs industry:",
+      "options": [
+        "Our target: 91% vs benchmark 83%",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "UK – Skilled Worker Visa: what is the compliance risk with CoS accuracy?",
+      "options": [
+        "Our target: 94% vs benchmark 80%",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "CoS accuracy"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Skilled Worker Visa — key issue with Salary compliance:",
+      "options": [
+        "Our target: 89% vs benchmark 75%",
+        "Work visa for skilled job offer from UK employer with valid sponsor licence. Requires Certificate of Sponsorship (CoS) and meeting 70-point criteria including …",
+        "Job offer from licensed sponsor · CoS reference · RQF Level 3+ skilled occupation · English B1 · Salary at going rate or minimum threshold",
+        "General threshold £38,700 (2024+) or occupation-specific going rate—whichever is higher. Verify current rules for 2026."
+      ],
+      "correctIndex": 0,
+      "explanation": "Salary compliance"
     }
   ],
   "donts": {

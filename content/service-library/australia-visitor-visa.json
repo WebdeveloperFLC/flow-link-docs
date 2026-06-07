@@ -1,7 +1,7 @@
 {
   "displayName": "Australia – Visitor Visa (Subclass 600)",
   "shortDescription": "Home Affairs · Subclass 600 · Tourism, family, business · Genuine visitor",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -309,6 +309,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -359,7 +365,8 @@
         "Employer sponsorship"
       ],
       "correctIndex": 1,
-      "explanation": "Visitor visa for temporary stays."
+      "explanation": "Visitor visa for temporary stays.",
+      "level": 1
     },
     {
       "question": "Top refusal reason for Indian visitors:",
@@ -370,7 +377,8 @@
         "Photo background"
       ],
       "correctIndex": 1,
-      "explanation": "Must satisfy officer of temporary intent."
+      "explanation": "Must satisfy officer of temporary intent.",
+      "level": 1
     },
     {
       "question": "Visitor visa holders generally:",
@@ -381,7 +389,8 @@
         "Need CoE"
       ],
       "correctIndex": 1,
-      "explanation": "Work not permitted on visitor visa."
+      "explanation": "Work not permitted on visitor visa.",
+      "level": 1
     },
     {
       "question": "Family visits may use:",
@@ -392,7 +401,8 @@
         "No visa needed"
       ],
       "correctIndex": 1,
-      "explanation": "Stream depends on sponsor eligibility."
+      "explanation": "Stream depends on sponsor eligibility.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -403,7 +413,848 @@
         "Check fees"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees permitted."
+      "explanation": "No guarantees permitted.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Description is correct?",
+      "options": [
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection."
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding Eligible applicants?",
+      "options": [
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about Stream selection:",
+      "options": [
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Key authority is correct?",
+      "options": [
+        "Department of Home Affairs (Australia)",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Department of Home Affairs (Australia)"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding After approval?",
+      "options": [
+        "Respect stay period and visa conditions. No work except limited business visitor activities. Overstay affects future visas.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Respect stay period and visa conditions. No work except limited business visitor activities. Overstay affects future visas."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about Valid passport:",
+      "options": [
+        "Valid passport is a core requirement for this service.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid passport"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Clear temporary visit purpose is correct?",
+      "options": [
+        "Clear temporary visit purpose is a core requirement for this service.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Clear temporary visit purpose"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding Proof of funds?",
+      "options": [
+        "Proof of funds is a core requirement for this service. Note: Cover trip and stay costs",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cover trip and stay costs"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about Strong ties to India:",
+      "options": [
+        "Strong ties to India is a core requirement for this service. Note: Employment, business, family, property",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment, business, family, property"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Health insurance recommended is correct?",
+      "options": [
+        "Health insurance recommended is a core requirement for this service.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Health insurance recommended"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding Biometrics (if requested)?",
+      "options": [
+        "Biometrics (if requested) is often required or assessed for this service.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Biometrics (if requested)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about Immigration history disclosed:",
+      "options": [
+        "Immigration history disclosed is a core requirement for this service.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration history disclosed"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 2–6w — Stream-dependent",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Stream-dependent"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding Government fee?",
+      "options": [
+        "Government fee: AUD $195 — Tourist stream approx",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Tourist stream approx"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 71% — ~59% industry benchmark",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "~59% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 9 — + invitation if applicable",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ invitation if applicable"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt only",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt only"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Visitor Visa (Subclass 600) should state correctly about service summary:",
+      "options": [
+        "Home Affairs · Subclass 600 · Tourism, family, business · Genuine visitor",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Home Affairs · Subclass 600 · Tourism, family, business · Genuine visitor"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Visitor Visa (Subclass 600), which statement about Genuine temporary entrant is correct?",
+      "options": [
+        "Officers must be satisfied applicant will leave Australia after visit. Weak ties to India remain the top refusal reason.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers must be satisfied applicant will leave Australia after visit. Weak ties to India remain the top refusal reason."
+    },
+    {
+      "level": 1,
+      "question": "Australia – Visitor Visa (Subclass 600): what is true regarding policy update?",
+      "options": [
+        "Confirm current Subclass 600 visa fee (AUD $195 approx for Tourist stream) on homeaffairs.gov.au before quoting.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current Subclass 600 visa fee (AUD $195 approx for Tourist stream) on homeaffairs.gov.au before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to client question: Can we guarantee visitor visa approval?",
+      "options": [
+        "No. Home Affairs decides each case. We improve documentation but never promise approval.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Home Affairs decides each case. We improve documentation but never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during client question: Which stream for family visit?",
+      "options": [
+        "Sponsored Family stream if eligible with eligible sponsor in Australia; otherwise Tourist stream with invitation.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsored Family stream if eligible with eligible sponsor in Australia; otherwise Tourist stream with invitation."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for client question: How much funds to show:",
+      "options": [
+        "Enough for flights, accommodation, and daily expenses for planned stay. No fixed amount—must be credible.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enough for flights, accommodation, and daily expenses for planned stay. No fixed amount—must be credible."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to client question: Can visitor work?",
+      "options": [
+        "No paid work. Limited business visitor activities only on appropriate stream.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "No paid work. Limited business visitor activities only on appropriate stream."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during client question: Can visitor switch to student visa in Australia?",
+      "options": [
+        "Generally must apply from outside Australia for student visa—verify current rules.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally must apply from outside Australia for student visa—verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for client question: Does prior refusal affect reapplication:",
+      "options": [
+        "Must disclose. Success requires materially improved circumstances.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Must disclose. Success requires materially improved circumstances."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to client question: Is health exam required?",
+      "options": [
+        "Depends on profile and stay—follow Home Affairs health requirements.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Depends on profile and stay—follow Home Affairs health requirements."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during client question: How long can visitor stay?",
+      "options": [
+        "Officer grants stay period—often up to 3, 6, or 12 months depending on stream and case.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officer grants stay period—often up to 3, 6, or 12 months depending on stream and case."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for timeline (1):",
+      "options": [
+        "Counseling, stream selection, fee agreement",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Counseling, stream selection, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to timeline (1–2)?",
+      "options": [
+        "Documents and cover letter",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Documents and cover letter"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during timeline (2–3)?",
+      "options": [
+        "ImmiAccount submission",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: ImmiAccount submission"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for timeline (2–6):",
+      "options": [
+        "Home Affairs processing",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–6: Home Affairs processing"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Select correct stream at application",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Select correct stream at application"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during counselor tip?",
+      "options": [
+        "Personalise cover letter to visit purpose",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Personalise cover letter to visit purpose"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for counselor tip:",
+      "options": [
+        "For family visits, collect sponsor Form 1149 if Sponsored Family stream",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "For family visits, collect sponsor Form 1149 if Sponsored Family stream"
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain granted stay period and conditions",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain granted stay period and conditions"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Remind no-work rule",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind no-work rule"
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during post-approval step?",
+      "options": [
+        "Advise travel insurance",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Advise travel insurance"
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for Sample invitation / sponsor letter (mock):",
+      "options": [
+        "Host details, relationship, accommodation, and duration of stay.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host details, relationship, accommodation, and duration of stay."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to Sample travel itinerary (mock)?",
+      "options": [
+        "Flights, hotels, and day-wise plan for visitor visa credibility.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Flights, hotels, and day-wise plan for visitor visa credibility."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Visitor Visa (Subclass 600), what should happen during Sample employment / NOC letter (mock)?",
+      "options": [
+        "Employer letter confirming leave, role, salary, and return to India.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer letter confirming leave, role, salary, and return to India."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Visitor Visa (Subclass 600) workflow — best practice for Sample property / ties document (mock):",
+      "options": [
+        "Sale deed or tax receipt — explain home-country ties.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sale deed or tax receipt — explain home-country ties."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Visitor Visa (Subclass 600) process, what is the correct approach to recommended practice?",
+      "options": [
+        "Select correct stream for visit purpose",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Select correct stream for visit purpose"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with Weak ties to India?",
+      "options": [
+        "Employment letter, business proof, property, family dependencies",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "No employment, assets, or family obligations documented."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with Weak ties to India (detail):",
+      "options": [
+        "No employment, assets, or family obligations documented.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment letter, business proof, property, family dependencies"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to Insufficient funds:",
+      "options": [
+        "Bank history, ITR, sponsor letter with host support",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cannot credibly fund trip or recent large deposits unexplained."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with Insufficient funds (detail)?",
+      "options": [
+        "Cannot credibly fund trip or recent large deposits unexplained.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Bank history, ITR, sponsor letter with host support"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with Wrong stream selected:",
+      "options": [
+        "Match stream to purpose; Sponsored Family if applicable",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Family visit applied as tourist without invitation."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to Wrong stream selected (detail):",
+      "options": [
+        "Family visit applied as tourist without invitation.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Match stream to purpose; Sponsored Family if applicable"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with Prior refusals hidden?",
+      "options": [
+        "Disclose and explain changed circumstances",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Australia or other refusals not disclosed."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with Prior refusals hidden (detail):",
+      "options": [
+        "Australia or other refusals not disclosed.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Disclose and explain changed circumstances"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to Long stay without reason:",
+      "options": [
+        "Realistic itinerary; explain duration; strong return evidence",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "3-month tourism with weak ties raises concern."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with Long stay without reason (detail)?",
+      "options": [
+        "3-month tourism with weak ties raises concern.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Realistic itinerary; explain duration; strong return evidence"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with Generic cover letter:",
+      "options": [
+        "Personalised statement with dates, purpose, ties",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Template not matching client profile."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to Generic cover letter (detail):",
+      "options": [
+        "Template not matching client profile.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Personalised statement with dates, purpose, ties"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with counselor don't:",
+      "options": [
+        "Do not advise working in Australia",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not advise working in Australia"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not hide refusals",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not hide refusals"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Wrong stream for family visit",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Wrong stream for family visit"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with common mistake?",
+      "options": [
+        "Unemployed with no ties docs",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Unemployed with no ties docs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with common mistake:",
+      "options": [
+        "Large unexplained deposits",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Large unexplained deposits"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement on file before submission",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa approval",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa approval"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with compliance rule?",
+      "options": [
+        "Separate consultancy and visa fees",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Separate consultancy and visa fees"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "After refusal, review grounds and strengthen ties evidence before reapplication—do not resubmit unchanged profile.",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "After refusal, review grounds and strengthen ties evidence before reapplication—do not resubmit unchanged profile."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Visitor Visa (Subclass 600): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 71% vs benchmark 59%",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Visitor Visa (Subclass 600) — key issue with Ties documentation:",
+      "options": [
+        "Our target: 68% vs benchmark 52%",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Ties documentation"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Visitor Visa (Subclass 600), counselors must avoid this mistake related to Stream selection:",
+      "options": [
+        "Our target: 82% vs benchmark 65%",
+        "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection.",
+        "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements",
+        "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+      ],
+      "correctIndex": 0,
+      "explanation": "Stream selection"
     }
   ],
   "donts": {

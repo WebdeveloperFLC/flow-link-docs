@@ -1,0 +1,15 @@
+-- International visa services — 75 quiz questions each (25 per level)
+-- Generated: node scripts/expand-service-quizzes.mjs && node scripts/generate-international-quiz-sql.mjs
+--
+-- Run ONE file at a time in Supabase SQL Editor if timeouts occur.
+-- Verify after each run:
+--   SELECT id, jsonb_array_length(academy_metadata->'quiz') AS quiz_count
+--   FROM service_library WHERE id = '<uuid>';
+--
+-- Folders:
+--   uk/     — 5 services (000021–000025)
+--   usa/    — 4 services (000031–000034)
+--   au/     — 5 services (000041–000045)
+--   de/     — 5 services (000051–000055)  ← Germany Opportunity Card = de-04-opportunity-card.sql
+--   nz/     — 5 services (000061–000065)
+--   canada/ — spouse sponsorship only (000012) if not yet applied

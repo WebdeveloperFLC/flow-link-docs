@@ -1,7 +1,7 @@
 {
   "displayName": "Canada – Spouse / Partner Sponsorship",
   "shortDescription": "IRCC family sponsorship · Inland & outland · PR pathway for spouses",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -317,6 +317,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -372,7 +378,8 @@
         "Language test scores"
       ],
       "correctIndex": 1,
-      "explanation": "Officers must be satisfied the relationship is genuine."
+      "explanation": "Officers must be satisfied the relationship is genuine.",
+      "level": 1
     },
     {
       "question": "Common-law partners must generally show:",
@@ -383,7 +390,8 @@
         "Only wedding photos"
       ],
       "correctIndex": 1,
-      "explanation": "IRCC requires at least 12 months of continuous cohabitation for common-law."
+      "explanation": "IRCC requires at least 12 months of continuous cohabitation for common-law.",
+      "level": 1
     },
     {
       "question": "Can counselors guarantee PR for genuine marriages?",
@@ -394,7 +402,8 @@
         "Yes, if sponsor is citizen"
       ],
       "correctIndex": 1,
-      "explanation": "Firm policy: never guarantee immigration outcomes."
+      "explanation": "Firm policy: never guarantee immigration outcomes.",
+      "level": 1
     },
     {
       "question": "Inland sponsorship may allow the partner to:",
@@ -405,7 +414,8 @@
         "Leave Canada permanently without impact"
       ],
       "correctIndex": 1,
-      "explanation": "Inland stream has specific work permit options—verify current rules."
+      "explanation": "Inland stream has specific work permit options—verify current rules.",
+      "level": 1
     },
     {
       "question": "Before submission, counselors must verify:",
@@ -416,7 +426,848 @@
         "Hotel reservations in Canada"
       ],
       "correctIndex": 0,
-      "explanation": "Sponsor eligibility and relationship narrative are foundational."
+      "explanation": "Sponsor eligibility and relationship narrative are foundational.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Description is correct?",
+      "options": [
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision.",
+        "Immigration, Refugees and Citizenship Canada (IRCC)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outland applications processed from abroad; inland if partner is i…"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding Eligible applicants?",
+      "options": [
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision.",
+        "Immigration, Refugees and Citizenship Canada (IRCC)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clearances"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about Inland vs outland:",
+      "options": [
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Immigration, Refugees and Citizenship Canada (IRCC)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Key authority is correct?",
+      "options": [
+        "Immigration, Refugees and Citizenship Canada (IRCC)",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding After approval?",
+      "options": [
+        "Partner receives COPR and completes landing. Maintain relationship genuineness obligations; misrepresentation has serious consequences.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Partner receives COPR and completes landing. Maintain relationship genuineness obligations; misrepresentation has serious consequences."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about Sponsor is Canadian citizen or PR aged 18+:",
+      "options": [
+        "Sponsor is Canadian citizen or PR aged 18+ is a core requirement for this service. Note: Verify sponsor status and residency obligations",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify sponsor status and residency obligations"
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Legally valid marriage or qualifying relationship is correct?",
+      "options": [
+        "Legally valid marriage or qualifying relationship is a core requirement for this service. Note: Marriage certificate; common-law needs 12+ months cohabitation …",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Marriage certificate; common-law needs 12+ months cohabitation proof"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding Genuine relationship evidence?",
+      "options": [
+        "Genuine relationship evidence is a core requirement for this service. Note: Photos, communication, financial mingling, visits",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Photos, communication, financial mingling, visits"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about Sponsor not in default of prior sponsorship undertakings:",
+      "options": [
+        "Sponsor not in default of prior sponsorship undertakings is a core requirement for this service.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor not in default of prior sponsorship undertakings"
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Medical exam completed is correct?",
+      "options": [
+        "Medical exam completed is often required or assessed for this service. Note: Panel physician after instructions",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Panel physician after instructions"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding Police certificates as required?",
+      "options": [
+        "Police certificates as required is often required or assessed for this service. Note: Based on residence history",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Based on residence history"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about Biometrics completed:",
+      "options": [
+        "Biometrics completed is often required or assessed for this service. Note: Both sponsor and applicant if required",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Both sponsor and applicant if required"
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 12–18m — Varies by stream and office",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Varies by stream and office"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding Government fee?",
+      "options": [
+        "Government fee: CAD $1,150+ — + biometrics, medical",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ biometrics, medical"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 91% — ~82% industry benchmark",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "~82% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 18 — + relationship evidence",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ relationship evidence"
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & third-party",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & third-party"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Canada – Spouse / Partner Sponsorship should state correctly about service summary:",
+      "options": [
+        "IRCC family sponsorship · Inland & outland · PR pathway for spouses",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC family sponsorship · Inland & outland · PR pathway for spouses"
+    },
+    {
+      "level": 1,
+      "question": "For Canada – Spouse / Partner Sponsorship, which statement about Genuine relationship evidence is correct?",
+      "options": [
+        "Officers scrutinise relationship genuineness. Weak or inconsistent evidence is a leading refusal factor—build a chronological, document-backed story.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers scrutinise relationship genuineness. Weak or inconsistent evidence is a leading refusal factor—build a chronological, document-backed story."
+    },
+    {
+      "level": 1,
+      "question": "Canada – Spouse / Partner Sponsorship: what is true regarding policy update?",
+      "options": [
+        "Confirm current IRCC spousal sponsorship fees (principal + right of permanent residence fee) on canada.ca before quoting.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current IRCC spousal sponsorship fees (principal + right of permanent residence fee) on canada.ca before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to client question: Can we guarantee PR approval for a genuine marriage?",
+      "options": [
+        "No. Even genuine couples can face requests for additional evidence or refusal if documentation is weak. We improve file quality but never promise approval.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Even genuine couples can face requests for additional evidence or refusal if documentation is weak. We improve file quality but never promise approval."
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during client question: Inland or outland—which is faster?",
+      "options": [
+        "Timelines vary and change. Outland may allow partner to visit during processing; inland may offer open work permit eligibility. Assess case-by-case.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Timelines vary and change. Outland may allow partner to visit during processing; inland may offer open work permit eligibility. Assess case-by-case."
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for client question: How much relationship evidence is enough:",
+      "options": [
+        "No fixed amount—officers want a credible chronological story: how you met, communication, visits, marriage, shared life plans. Quality over quantity.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "No fixed amount—officers want a credible chronological story: how you met, communication, visits, marriage, shared life plans. Quality over quantity."
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to client question: Can a sponsored spouse work while waiting?",
+      "options": [
+        "Inland applicants may apply for open work permit after AIP stage in many cases. Verify current IRCC rules at time of counseling.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Inland applicants may apply for open work permit after AIP stage in many cases. Verify current IRCC rules at time of counseling."
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during client question: What if marriage is recent?",
+      "options": [
+        "Recent marriages need stronger evidence—communication history before marriage, visit records, photos, and explanation of relationship development.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recent marriages need stronger evidence—communication history before marriage, visit records, photos, and explanation of relationship development."
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for client question: Does sponsor need minimum income:",
+      "options": [
+        "Spousal sponsorship generally has no LICO requirement for spouse/partner/child, but sponsor must not be on social assistance (except disability) and must meet …",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Spousal sponsorship generally has no LICO requirement for spouse/partner/child, but sponsor must not be on social assistance (except disability) and must meet undertaking obligations."
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to client question: What happens after refusal?",
+      "options": [
+        "Review refusal letter carefully. Options may include appeal (IAD) for in-Canada refusals in some cases, or reapplication with stronger evidence.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Review refusal letter carefully. Options may include appeal (IAD) for in-Canada refusals in some cases, or reapplication with stronger evidence."
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during client question: Are common-law partners eligible?",
+      "options": [
+        "Yes, if they have cohabited continuously for at least 12 months. Evidence of shared residence is essential.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes, if they have cohabited continuously for at least 12 months. Evidence of shared residence is essential."
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for timeline (1–2):",
+      "options": [
+        "Counseling, sponsor eligibility check, fee agreement",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Counseling, sponsor eligibility check, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to timeline (2–6)?",
+      "options": [
+        "Relationship evidence collection, forms, medical/police",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–6: Relationship evidence collection, forms, medical/police"
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during timeline (6–8)?",
+      "options": [
+        "Quality review & IRCC submission",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–8: Quality review & IRCC submission"
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for timeline (8–12):",
+      "options": [
+        "Acknowledgement of receipt (AOR)",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "8–12: Acknowledgement of receipt (AOR)"
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to timeline (12–18m)?",
+      "options": [
+        "Processing to decision (varies)",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "12–18m: Processing to decision (varies)"
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during counselor tip?",
+      "options": [
+        "Build a relationship timeline document before collecting forms",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Build a relationship timeline document before collecting forms"
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for counselor tip:",
+      "options": [
+        "Cross-check every date across marriage cert, photos, and travel history",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check every date across marriage cert, photos, and travel history"
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to counselor tip?",
+      "options": [
+        "For recent marriages, include pre-marriage communication evidence",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "For recent marriages, include pre-marriage communication evidence"
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to post-approval step?",
+      "options": [
+        "Send COPR and landing instructions to client in writing",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send COPR and landing instructions to client in writing"
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during post-approval step?",
+      "options": [
+        "Remind client of PR card application after landing",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind client of PR card application after landing"
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for post-approval step:",
+      "options": [
+        "Explain sponsor undertaking period (typically 3 years for spouse)",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain sponsor undertaking period (typically 3 years for spouse)"
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for Sample marriage certificate (mock):",
+      "options": [
+        "Registered marriage proof — explain translation and notarization if needed.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Registered marriage proof — explain translation and notarization if needed."
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to Sample relationship timeline & photos guide (mock)?",
+      "options": [
+        "Collage layout for chat logs, travel photos, and ceremony pictures.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Collage layout for chat logs, travel photos, and ceremony pictures."
+    },
+    {
+      "level": 2,
+      "question": "For Canada – Spouse / Partner Sponsorship, what should happen during Sample sponsor / undertaking letter (mock)?",
+      "options": [
+        "Sponsor income, accommodation, and maintenance commitment.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor income, accommodation, and maintenance commitment."
+    },
+    {
+      "level": 2,
+      "question": "Canada – Spouse / Partner Sponsorship workflow — best practice for Sample bank statement (mock):",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "In the Canada – Spouse / Partner Sponsorship process, what is the correct approach to Sample chat / communication evidence (mock)?",
+      "options": [
+        "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Redacted WhatsApp or email excerpts — privacy-safe specimen."
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with Weak relationship evidence?",
+      "options": [
+        "Chronological timeline; chat/call logs; joint finances; visit stamps; affidavits from family",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Few photos, no communication logs, short relationship timeline, or inconsistent stories."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with Weak relationship evidence (detail):",
+      "options": [
+        "Few photos, no communication logs, short relationship timeline, or inconsistent stories.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Chronological timeline; chat/call logs; joint finances; visit stamps; affidavits from family"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to Marriage of convenience suspicion:",
+      "options": [
+        "Honest narrative; explain how relationship developed; strong third-party support",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large age gap without explanation, met only days before marriage, or prior failed sponsorships."
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with Marriage of convenience suspicion (detail)?",
+      "options": [
+        "Large age gap without explanation, met only days before marriage, or prior failed sponsorships.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Honest narrative; explain how relationship developed; strong third-party support"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with Incomplete sponsor eligibility:",
+      "options": [
+        "Verify sponsor eligibility checklist on canada.ca before fee collection",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor on social assistance, prior undertaking default, or not meeting residency for PR sponsors."
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to Incomplete sponsor eligibility (detail):",
+      "options": [
+        "Sponsor on social assistance, prior undertaking default, or not meeting residency for PR sponsors.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify sponsor eligibility checklist on canada.ca before fee collection"
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with Wrong stream (inland vs outland)?",
+      "options": [
+        "Assess partner's current status; choose stream with legal counsel if complex",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applied inland when partner cannot remain legally in Canada, or outland without travel plan clarity."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with Wrong stream (inland vs outland) (detail):",
+      "options": [
+        "Applied inland when partner cannot remain legally in Canada, or outland without travel plan clarity.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Assess partner's current status; choose stream with legal counsel if complex"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to Missing or inconsistent forms:",
+      "options": [
+        "Cross-check all dates; dual review before upload",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "IMM forms incomplete, dates mismatch across documents, or unsigned declarations."
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with Missing or inconsistent forms (detail)?",
+      "options": [
+        "IMM forms incomplete, dates mismatch across documents, or unsigned declarations.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cross-check all dates; dual review before upload"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with Undisclosed prior relationships or refusals:",
+      "options": [
+        "Full disclosure; address changed circumstances in cover letter",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Hidden prior marriages, refusals, or misrepresentation history."
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to Undisclosed prior relationships or refusals (detail):",
+      "options": [
+        "Hidden prior marriages, refusals, or misrepresentation history.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Full disclosure; address changed circumstances in cover letter"
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee PR approval for any relationship type",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee PR approval for any relationship type"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with counselor don't:",
+      "options": [
+        "Do not submit fabricated photos or communication logs",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not submit fabricated photos or communication logs"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not hide prior failed sponsorships or refusals",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not hide prior failed sponsorships or refusals"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Few relationship photos with no context or dates",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Few relationship photos with no context or dates"
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with common mistake?",
+      "options": [
+        "Date mismatches between marriage cert and application forms",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Date mismatches between marriage cert and application forms"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with common mistake:",
+      "options": [
+        "Missing police certificates for required countries",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Missing police certificates for required countries"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with compliance rule:",
+      "options": [
+        "Spousal sponsorship requires licensed RCIC or lawyer for paid representation in Canada—confirm credentials",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Spousal sponsorship requires licensed RCIC or lawyer for paid representation in Canada—confirm credentials"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with compliance rule?",
+      "options": [
+        "Never guarantee PR approval; marriage alone does not ensure success",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee PR approval; marriage alone does not ensure success"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "If refused for relationship genuineness, do not reapply with the same weak evidence. Rebuild a chronological, verifiable relationship narrative first.",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "If refused for relationship genuineness, do not reapply with the same weak evidence. Rebuild a chronological, verifiable relationship narrative first."
+    },
+    {
+      "level": 3,
+      "question": "Canada – Spouse / Partner Sponsorship: what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 91% vs benchmark 82%",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Canada – Spouse / Partner Sponsorship — key issue with Relationship evidence quality:",
+      "options": [
+        "Our target: 88% vs benchmark 72%",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Relationship evidence quality"
+    },
+    {
+      "level": 3,
+      "question": "For Canada – Spouse / Partner Sponsorship, counselors must avoid this mistake related to Form accuracy:",
+      "options": [
+        "Our target: 94% vs benchmark 78%",
+        "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outlan…",
+        "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clea…",
+        "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+      ],
+      "correctIndex": 0,
+      "explanation": "Form accuracy"
     }
   ],
   "donts": {
