@@ -134,7 +134,7 @@ export function ServiceLibraryMastersSection() {
           <p className="text-sm text-muted-foreground max-w-2xl">
             Services shown on lead and client forms. Toggle active to hide without deleting. For training content,
             checklists, and sample docs use{" "}
-            <Link to="/service-library/admin" className="text-primary underline inline-flex items-center gap-1">
+            <Link to="/service-library-admin" className="text-primary underline inline-flex items-center gap-1">
               Service Library Admin <ExternalLink className="size-3" />
             </Link>
             .
@@ -228,10 +228,16 @@ export function ServiceLibraryMastersSection() {
                   <Switch checked={r.is_active} onCheckedChange={() => toggleActive(r)} />
                 </div>
                 <div className="col-span-3 text-right flex justify-end gap-1">
-                  <Button size="icon" variant="ghost" className="size-7" asChild>
-                    <Link to={`/service-library/admin?id=${r.id}`}>
-                      <Pencil className="size-3.5" />
-                    </Link>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7"
+                    onClick={() => {
+                      setEditing(r);
+                      setOpen(true);
+                    }}
+                  >
+                    <Pencil className="size-3.5" />
                   </Button>
                   <Button
                     size="icon"

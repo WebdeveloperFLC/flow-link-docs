@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
@@ -53,7 +53,8 @@ export default function ServiceLibraryAdmin() {
   const { hasRole, isAdmin } = useAuth();
   const canManage = isAdmin || hasRole(["administrator", "documentation"]);
   const qc = useQueryClient();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("id"));
   const [showNew, setShowNew] = useState(false);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [treeSearch, setTreeSearch] = useState("");
@@ -177,6 +178,13 @@ export default function ServiceLibraryAdmin() {
     () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
     [masters.data, selectedId],
   );
+
+  useEffect(() => {
+    const id = searchParams.get("id");
+    if (id && masters.data?.some((m) => m.id === id)) {
+      setSelectedId(id);
+    }
+  }, [searchParams, masters.data]);
 
   if (!canManage) {
     return (
