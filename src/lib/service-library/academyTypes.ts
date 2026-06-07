@@ -152,6 +152,21 @@ export const SERVICE_LIBRARY_METADATA_TEMPLATE: ServiceAcademyMetadata = {
     donts: ["Do not promise SDS timelines while paused"],
     mistakes: ["Insufficient funds documentation"],
   },
+  sampleDocs: [
+    { title: "Passport (bio page)", description: "Valid passport · 6+ months validity", docKind: "passport" },
+    { title: "Bank statement (4–6 months)", description: "Seasoned funds proof", docKind: "financial" },
+  ],
+  quiz: [
+    {
+      question: "What is required before applying for a study permit?",
+      options: ["LOA from a DLI", "Job offer in Canada", "Provincial nomination", "LMIA"],
+      correctIndex: 0,
+      explanation: "A letter of acceptance from a designated learning institution is mandatory.",
+      level: 1,
+    },
+  ],
+  navBucket: "visa",
+  resources: [{ title: "IRCC study permit guide", url: "https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada.html" }],
 };
 
 /** @deprecated Use SERVICE_LIBRARY_METADATA_TEMPLATE */
