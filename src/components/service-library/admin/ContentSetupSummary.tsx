@@ -76,8 +76,8 @@ function buildChecks(meta: ServiceAcademyMetadata, master: Props["master"]): Che
     {
       id: "faqs",
       label: "FAQs",
-      ok: (meta.faqs?.length ?? 0) > 0,
-      detail: `${meta.faqs?.length ?? 0} FAQs`,
+      ok: (meta.faqs?.length ?? 0) >= 30,
+      detail: `${meta.faqs?.length ?? 0} FAQs (target 30)`,
     },
     {
       id: "resources",

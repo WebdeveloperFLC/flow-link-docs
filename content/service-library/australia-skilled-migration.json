@@ -210,6 +210,94 @@
     {
       "q": "Partner points?",
       "a": "Skilled partner adds points; partner English and skills assessment may help."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Permanent residence via points-tested skilled migration. Subclass 189 (independent), 190 (state nominated), 491 (regional provisional). Requires skills assessment, EOI, and invitation."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Occupation on relevant skilled list · Positive skills assessment · 65+ points (competitive higher) · Age under 45 · Competent English · Health and character"
+    },
+    {
+      "q": "What is Invitation not guaranteed for this service?",
+      "a": "Minimum 65 points does not guarantee invitation. Competitive scores often 80–90+ for popular occupations."
+    },
+    {
+      "q": "Important note on Invitation not guaranteed?",
+      "a": "Minimum 65 points does not guarantee invitation. Competitive scores often 80–90+ for popular occupations."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Department of Home Affairs · Skills assessing authorities · State/territory governments (190/491)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Permanent visa (189/190) or provisional 491 leading to 191 PR. Meet residence conditions for regional visas."
+    },
+    {
+      "q": "Is Occupation on skilled occupation list required?",
+      "a": "Occupation on skilled occupation list is typically required."
+    },
+    {
+      "q": "Is Positive skills assessment required?",
+      "a": "Assessing authority specific"
+    },
+    {
+      "q": "Is 65+ points (competitive score) required?",
+      "a": "Check recent invitation rounds"
+    },
+    {
+      "q": "Is Age under 45 at invitation required?",
+      "a": "Age under 45 at invitation is typically required."
+    },
+    {
+      "q": "Is Competent English (IELTS 6 each band min) required?",
+      "a": "Competent English (IELTS 6 each band min) is typically required."
+    },
+    {
+      "q": "Is EOI submitted in SkillSelect required?",
+      "a": "Assess whether EOI submitted in SkillSelect is satisfied for this case."
+    },
+    {
+      "q": "Is Invitation received required?",
+      "a": "Assess whether Invitation received is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "6–18m — After invitation"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "AUD $4,640+ — Primary applicant approx"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "88% — ~80% post-invite benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "18 — + skills assessment"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & assessing body"
+    },
+    {
+      "q": "What if the client has Points below competitive threshold?",
+      "a": "Improve English to superior; partner skills; state nomination 190/491"
+    },
+    {
+      "q": "Why is Points below competitive threshold a problem?",
+      "a": "Client has 65 points but occupation invites at 85+."
+    },
+    {
+      "q": "What if the client has Skills assessment delayed or negative?",
+      "a": "Match ANZSCO duties; detailed reference letters before assessment"
+    },
+    {
+      "q": "Why is Skills assessment delayed or negative a problem?",
+      "a": "Assessing body finds insufficient experience or wrong ANZSCO."
     }
   ],
   "compliance": [
@@ -307,6 +395,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

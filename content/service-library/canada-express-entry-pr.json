@@ -210,6 +210,94 @@
     {
       "q": "What if ITA declined?",
       "a": "Profile may re-enter pool if valid—assess options carefully."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Federal economic immigration system managing FSW, CEC, and FST programs. Candidates create profile, receive CRS score, and apply for PR if invited (ITA)."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Meet FSW/CEC/FST criteria · Valid language tests · ECA for foreign education · Sufficient CRS score · Medical and police clearances"
+    },
+    {
+      "q": "What is ITA not guaranteed for this service?",
+      "a": "Profile in pool does not guarantee invitation. CRS cutoffs vary per draw. PNP can add 600 points."
+    },
+    {
+      "q": "Important note on ITA not guaranteed?",
+      "a": "Profile in pool does not guarantee invitation. CRS cutoffs vary per draw. PNP can add 600 points."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "COPR issued; complete landing; apply for PR card. Meet residency obligations for citizenship pathway."
+    },
+    {
+      "q": "Is Eligible program (FSW/CEC/FST) required?",
+      "a": "Eligible program (FSW/CEC/FST) is typically required."
+    },
+    {
+      "q": "Is Language test (CLB minimum per program) required?",
+      "a": "Language test (CLB minimum per program) is typically required."
+    },
+    {
+      "q": "Is ECA for foreign credentials (FSW) required?",
+      "a": "WES/IQAS etc."
+    },
+    {
+      "q": "Is CRS score competitive for recent draws required?",
+      "a": "Assess against recent cutoffs"
+    },
+    {
+      "q": "Is Work experience documented (NOC/TEER) required?",
+      "a": "Work experience documented (NOC/TEER) is typically required."
+    },
+    {
+      "q": "Is Proof of funds (FSW/ FST if applicable) required?",
+      "a": "Proof of funds (FSW/ FST if applicable) is typically required."
+    },
+    {
+      "q": "Is Medical and police completed after ITA required?",
+      "a": "Assess whether Medical and police completed after ITA is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "6–12m — After ITA received"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $1,525+ — PR application after ITA"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "94% — ~88% post-ITA benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "16 — + ECA, language, work ref"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & ECA/tests"
+    },
+    {
+      "q": "What if the client has CRS below recent draw cutoffs?",
+      "a": "Retake language for higher CLB; pursue PNP; gain Canadian work experience"
+    },
+    {
+      "q": "Why is CRS below recent draw cutoffs a problem?",
+      "a": "Client expects ITA with non-competitive score."
+    },
+    {
+      "q": "What if the client has Wrong NOC/TEER code?",
+      "a": "Verify TEER category against official duties and reference letters"
+    },
+    {
+      "q": "Why is Wrong NOC/TEER code a problem?",
+      "a": "Work experience coded incorrectly affecting points."
     }
   ],
   "compliance": [
@@ -308,6 +396,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

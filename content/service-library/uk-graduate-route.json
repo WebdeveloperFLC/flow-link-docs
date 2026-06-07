@@ -210,6 +210,94 @@
     {
       "q": "When to apply?",
       "a": "After degree completion confirmed; before Student visa expires."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Post-study work visa for international graduates who completed eligible UK degree. Allows 2 years work (3 years for PhD) at any skill level without sponsor."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Completed eligible UK degree at licensed sponsor · Valid Student visa at application · Applied before Student visa expires · Studied in UK minimum period"
+    },
+    {
+      "q": "What is One-time route for this service?",
+      "a": "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+    },
+    {
+      "q": "Important note on One-time route?",
+      "a": "Graduate Route cannot be extended beyond initial grant. Plan Skilled Worker or other route before expiry."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "UK Visas and Immigration (UKVI)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Work freely in UK. Transition to Skilled Worker or other visa before Graduate Route expires."
+    },
+    {
+      "q": "Is Completed eligible UK degree required?",
+      "a": "University confirms completion to UKVI"
+    },
+    {
+      "q": "Is Valid Student visa at application required?",
+      "a": "Valid Student visa at application is typically required."
+    },
+    {
+      "q": "Is Applied before Student visa expiry required?",
+      "a": "Critical deadline"
+    },
+    {
+      "q": "Is Studied in UK required duration required?",
+      "a": "Studied in UK required duration is typically required."
+    },
+    {
+      "q": "Is Passport valid required?",
+      "a": "Passport valid is typically required."
+    },
+    {
+      "q": "Is IHS paid required?",
+      "a": "Assess whether IHS paid is satisfied for this case."
+    },
+    {
+      "q": "Is Not previously held Graduate Route required?",
+      "a": "Not previously held Graduate Route is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "8–12w — In-country application"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "£822 — + IHS"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "95% — ~90% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "6 — + completion proof"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & IHS"
+    },
+    {
+      "q": "What if the client has Applied after Student visa expired?",
+      "a": "Apply before expiry; track visa end date from day one"
+    },
+    {
+      "q": "Why is Applied after Student visa expired a problem?",
+      "a": "Missed in-country application window."
+    },
+    {
+      "q": "What if the client has Degree not eligible?",
+      "a": "Verify eligibility at enrolment—not at graduation"
+    },
+    {
+      "q": "Why is Degree not eligible a problem?",
+      "a": "Course or institution not eligible for Graduate Route."
     }
   ],
   "compliance": [
@@ -307,6 +395,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

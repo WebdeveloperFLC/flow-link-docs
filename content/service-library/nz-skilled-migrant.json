@@ -209,6 +209,94 @@
     {
       "q": "NZQA assessment required?",
       "a": "For many overseas qualifications—verify if needed for points claim."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with periodic selection."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications assessment if required"
+    },
+    {
+      "q": "What is Selection threshold varies for this service?",
+      "a": "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+    },
+    {
+      "q": "Important note on Selection threshold varies?",
+      "a": "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration New Zealand (INZ)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Permanent residence visa; live and work in New Zealand indefinitely subject to travel conditions on initial visa."
+    },
+    {
+      "q": "Is Skilled job offer or current skilled employment in NZ required?",
+      "a": "Skilled job offer or current skilled employment in NZ is typically required."
+    },
+    {
+      "q": "Is Points meet or exceed recent selection threshold required?",
+      "a": "Check recent ballots"
+    },
+    {
+      "q": "Is Age under 55 (for maximum points) required?",
+      "a": "Age under 55 (for maximum points) is typically required."
+    },
+    {
+      "q": "Is English competency (IELTS 6.5 avg or equivalent) required?",
+      "a": "English competency (IELTS 6.5 avg or equivalent) is typically required."
+    },
+    {
+      "q": "Is Qualification assessment (if required) required?",
+      "a": "Assess whether Qualification assessment (if required) is satisfied for this case."
+    },
+    {
+      "q": "Is EOI submitted and selected required?",
+      "a": "Assess whether EOI submitted and selected is satisfied for this case."
+    },
+    {
+      "q": "Is Health and character clearances required?",
+      "a": "Assess whether Health and character clearances is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "6–18m — After ITA"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "NZD $4,890 — Residence approx—verify"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "86% — ~78% post-ITA benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "17 — + qualifications & experience"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & assessments"
+    },
+    {
+      "q": "What if the client has Points below selection threshold?",
+      "a": "Gain NZ skilled work experience; improve English; partner qualifications"
+    },
+    {
+      "q": "Why is Points below selection threshold a problem?",
+      "a": "EOI submitted but recent selections at higher points."
+    },
+    {
+      "q": "What if the client has Job not skilled (ANZSCO)?",
+      "a": "Verify ANZSCO skill level and green list eligibility"
+    },
+    {
+      "q": "Why is Job not skilled (ANZSCO) a problem?",
+      "a": "Occupation below skill level 1–3 or not on green list."
     }
   ],
   "compliance": [
@@ -306,6 +394,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

@@ -231,6 +231,86 @@
     {
       "q": "Can family members sign for the applicant?",
       "a": "Only if legally authorized. Otherwise each adult applicant generally signs their own consent."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Access to Information and Privacy request for CAIPS/GCMS notes, used to review officer notes, refusal rationale, application status, and case history for Canadian immigration files."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Applicant with signed consent · Eligible requester in Canada where required · Correct IRCC application identifiers · Identity proof"
+    },
+    {
+      "q": "What is Service scope for this service?",
+      "a": "GCMS notes provide records and officer comments but do not overturn a refusal or speed up processing."
+    },
+    {
+      "q": "Important note on Service scope?",
+      "a": "GCMS notes provide records and officer comments but do not overturn a refusal or speed up processing."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC) and Government of Canada ATIP Online Request Service"
+    },
+    {
+      "q": "What is After release for this service?",
+      "a": "Counselor reviews notes for refusal reasons, missing evidence, credibility concerns, and next application strategy."
+    },
+    {
+      "q": "Is Signed consent from applicant or authorized person required?",
+      "a": "Use current consent form"
+    },
+    {
+      "q": "Is Requester eligibility confirmed for ATIP submission required?",
+      "a": "Requester eligibility confirmed for ATIP submission is typically required."
+    },
+    {
+      "q": "Is Applicant identity details match IRCC records required?",
+      "a": "Applicant identity details match IRCC records is typically required."
+    },
+    {
+      "q": "Is Application number, UCI, or file details available required?",
+      "a": "Application number, UCI, or file details available is typically required."
+    },
+    {
+      "q": "Is Refusal letter or application history collected where relevant required?",
+      "a": "Refusal letter or application history collected where relevant is typically required."
+    },
+    {
+      "q": "Is Applicant understands notes are not an appeal required?",
+      "a": "Applicant understands notes are not an appeal is typically required."
+    },
+    {
+      "q": "Is Privacy authorization and service agreement on file required?",
+      "a": "Privacy authorization and service agreement on file is typically required."
+    },
+    {
+      "q": "Is Correct department and record type selected in ATIP portal required?",
+      "a": "Correct department and record type selected in ATIP portal is typically required."
+    },
+    {
+      "q": "Is Delivery email and client contact details verified required?",
+      "a": "Delivery email and client contact details verified is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "30d+ — ATIP timelines vary"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $5 — Verify on canada.ca"
+    },
+    {
+      "q": "What is the Our completion rate?",
+      "a": "98% — Consent-driven service"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "8 — + consent form"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
     }
   ],
   "compliance": [
@@ -331,6 +411,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

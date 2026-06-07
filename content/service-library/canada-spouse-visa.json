@@ -214,6 +214,94 @@
     {
       "q": "Are common-law partners eligible?",
       "a": "Yes, if they have cohabited continuously for at least 12 months. Evidence of shared residence is essential."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Family class sponsorship allowing a Canadian citizen or permanent resident to sponsor a spouse, common-law, or conjugal partner for permanent residence. Outland applications processed from abroad; inland if partner is in Canada."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Legally married or qualifying common-law/conjugal relationship · Sponsor meets income/residency requirements · Genuine relationship · Medical and security clearances"
+    },
+    {
+      "q": "What is Inland vs outland for this service?",
+      "a": "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+    },
+    {
+      "q": "Important note on Inland vs outland?",
+      "a": "Outland: partner outside Canada, can visit during processing. Inland: partner in Canada; may qualify for open work permit while awaiting decision."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Partner receives COPR and completes landing. Maintain relationship genuineness obligations; misrepresentation has serious consequences."
+    },
+    {
+      "q": "Is Sponsor is Canadian citizen or PR aged 18+ required?",
+      "a": "Verify sponsor status and residency obligations"
+    },
+    {
+      "q": "Is Legally valid marriage or qualifying relationship required?",
+      "a": "Marriage certificate; common-law needs 12+ months cohabitation proof"
+    },
+    {
+      "q": "Is Genuine relationship evidence required?",
+      "a": "Photos, communication, financial mingling, visits"
+    },
+    {
+      "q": "Is Sponsor not in default of prior sponsorship undertakings required?",
+      "a": "Sponsor not in default of prior sponsorship undertakings is typically required."
+    },
+    {
+      "q": "Is Medical exam completed required?",
+      "a": "Panel physician after instructions"
+    },
+    {
+      "q": "Is Police certificates as required required?",
+      "a": "Based on residence history"
+    },
+    {
+      "q": "Is Biometrics completed required?",
+      "a": "Both sponsor and applicant if required"
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "12–18m — Varies by stream and office"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $1,150+ — + biometrics, medical"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "91% — ~82% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "18 — + relationship evidence"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & third-party"
+    },
+    {
+      "q": "What if the client has Weak relationship evidence?",
+      "a": "Chronological timeline; chat/call logs; joint finances; visit stamps; affidavits from family"
+    },
+    {
+      "q": "Why is Weak relationship evidence a problem?",
+      "a": "Few photos, no communication logs, short relationship timeline, or inconsistent stories."
+    },
+    {
+      "q": "What if the client has Marriage of convenience suspicion?",
+      "a": "Honest narrative; explain how relationship developed; strong third-party support"
+    },
+    {
+      "q": "Why is Marriage of convenience suspicion a problem?",
+      "a": "Large age gap without explanation, met only days before marriage, or prior failed sponsorships."
     }
   ],
   "compliance": [
@@ -316,6 +404,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

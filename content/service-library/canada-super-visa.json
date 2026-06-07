@@ -211,6 +211,94 @@
     {
       "q": "Can Super Visa holder work?",
       "a": "No. Visit and family time only—not employment."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Multi-entry visa allowing parents and grandparents of Canadian citizens/PRs to visit for up to 5 years per entry without renewing status."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Parent/grandparent of Canadian citizen or PR · Child/grandchild meets LICO income threshold · Medical exam · Canadian medical insurance · Ties to home country"
+    },
+    {
+      "q": "What is Insurance requirement for this service?",
+      "a": "Private medical insurance from Canadian company valid minimum 1 year from entry, $100,000 minimum coverage."
+    },
+    {
+      "q": "Important note on Insurance requirement?",
+      "a": "Private medical insurance from Canadian company valid minimum 1 year from entry, $100,000 minimum coverage."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Multi-entry visa; maintain valid insurance on each visit; respect super visa conditions."
+    },
+    {
+      "q": "Is Child/grandchild is Canadian citizen or PR required?",
+      "a": "Child/grandchild is Canadian citizen or PR is typically required."
+    },
+    {
+      "q": "Is Sponsor meets LICO minimum income required?",
+      "a": "3 years Notice of Assessment"
+    },
+    {
+      "q": "Is Medical exam completed required?",
+      "a": "Required for Super Visa"
+    },
+    {
+      "q": "Is Canadian medical insurance arranged required?",
+      "a": "$100,000 min, 1 year validity"
+    },
+    {
+      "q": "Is Invitation letter from child/grandchild required?",
+      "a": "Invitation letter from child/grandchild is typically required."
+    },
+    {
+      "q": "Is Biometrics completed required?",
+      "a": "Assess whether Biometrics completed is satisfied for this case."
+    },
+    {
+      "q": "Is Ties to home country (India) required?",
+      "a": "Ties to home country (India) is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "3–8m — Varies by office"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $100 — + biometrics + insurance"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "81% — ~70% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "12 — + insurance policy"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & insurance"
+    },
+    {
+      "q": "What if the client has Insurance non-compliant?",
+      "a": "Purchase IRCC-compliant Super Visa insurance before apply"
+    },
+    {
+      "q": "Why is Insurance non-compliant a problem?",
+      "a": "Coverage below $100,000 or not from Canadian insurer."
+    },
+    {
+      "q": "What if the client has LICO income not met?",
+      "a": "Verify LICO table; combine spouse income if applicable"
+    },
+    {
+      "q": "Why is LICO income not met a problem?",
+      "a": "Sponsor income below minimum for family size."
     }
   ],
   "compliance": [
@@ -308,6 +396,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

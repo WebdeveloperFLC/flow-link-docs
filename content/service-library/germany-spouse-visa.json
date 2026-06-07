@@ -212,6 +212,94 @@
     {
       "q": "Prior Schengen refusal impact?",
       "a": "Must disclose; may affect assessment."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "National visa for spouse reunion with German citizen or foreign national holding qualifying residence permit in Germany. Leads to residence permit after entry."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid marriage · Sponsor with adequate housing and income · Basic German A1 (generally) · Genuine relationship · Health insurance"
+    },
+    {
+      "q": "What is Language requirement for this service?",
+      "a": "Spouses generally need German A1 certificate unless exempt (e.g., certain qualifications or EU nationals). Verify exemptions."
+    },
+    {
+      "q": "Important note on Language requirement?",
+      "a": "Spouses generally need German A1 certificate unless exempt (e.g., certain qualifications or EU nationals). Verify exemptions."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "German Embassy in India · Ausländerbehörde in Germany after arrival"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Enter Germany; register address; obtain residence permit at local Ausländerbehörde."
+    },
+    {
+      "q": "Is Legally valid marriage recognised in Germany required?",
+      "a": "Legally valid marriage recognised in Germany is typically required."
+    },
+    {
+      "q": "Is Sponsor is German citizen or qualifying resident required?",
+      "a": "Verify residence permit type"
+    },
+    {
+      "q": "Is Adequate housing in Germany required?",
+      "a": "Sponsor lease/ownership proof"
+    },
+    {
+      "q": "Is Sponsor income/solvency required?",
+      "a": "Per German requirements"
+    },
+    {
+      "q": "Is German A1 certificate (if required) required?",
+      "a": "Goethe/ÖSD/TELC A1"
+    },
+    {
+      "q": "Is Genuine relationship evidence required?",
+      "a": "Genuine relationship evidence is typically required."
+    },
+    {
+      "q": "Is Health insurance arrangement required?",
+      "a": "Assess whether Health insurance arrangement is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "8–16w — After complete file"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "€75 — National visa approx"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "87% — ~76% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "18 — + relationship & sponsor"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & language test"
+    },
+    {
+      "q": "What if the client has Sponsor income/housing insufficient?",
+      "a": "Collect sponsor employment contract, salary slips, lease with square metres"
+    },
+    {
+      "q": "Why is Sponsor income/housing insufficient a problem?",
+      "a": "Sponsor cannot prove adequate apartment size or income."
+    },
+    {
+      "q": "What if the client has Missing A1 German certificate?",
+      "a": "Complete Goethe A1 or verify exemption applies"
+    },
+    {
+      "q": "Why is Missing A1 German certificate a problem?",
+      "a": "Spouse applied without required basic German."
     }
   ],
   "compliance": [
@@ -310,6 +398,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

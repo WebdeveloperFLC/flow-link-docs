@@ -209,6 +209,94 @@
     {
       "q": "Reapply after refusal?",
       "a": "Yes when circumstances improve; address prior refusal grounds."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Schengen Type C short-stay visa for tourism, family visits, or business trips to Germany up to 90 days per 180-day period."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Temporary visit purpose · Travel insurance €30,000+ · Funds for trip · Strong ties to India · Clean Schengen history"
+    },
+    {
+      "q": "What is Main destination rule for this service?",
+      "a": "Apply at embassy of main Schengen destination. If Germany is primary stay, apply via German mission."
+    },
+    {
+      "q": "Important note on Main destination rule?",
+      "a": "Apply at embassy of main Schengen destination. If Germany is primary stay, apply via German mission."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "German Embassy/Consulate · VFS Global (appointment partner in India)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Respect visa validity and 90/180 rule. Overstay affects future Schengen applications."
+    },
+    {
+      "q": "Is Valid passport (3+ months beyond stay) required?",
+      "a": "Valid passport (3+ months beyond stay) is typically required."
+    },
+    {
+      "q": "Is Travel medical insurance €30,000+ required?",
+      "a": "Valid for entire Schengen stay"
+    },
+    {
+      "q": "Is Proof of accommodation and itinerary required?",
+      "a": "Proof of accommodation and itinerary is typically required."
+    },
+    {
+      "q": "Is Proof of funds required?",
+      "a": "Proof of funds is typically required."
+    },
+    {
+      "q": "Is Strong ties to India required?",
+      "a": "Strong ties to India is typically required."
+    },
+    {
+      "q": "Is Cover letter explaining purpose required?",
+      "a": "Cover letter explaining purpose is typically required."
+    },
+    {
+      "q": "Is Biometrics (if not in VIS) required?",
+      "a": "Assess whether Biometrics (if not in VIS) is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "2–4w — Schengen standard"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "€90 — Adult Schengen visa"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "76% — ~64% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "10 — + travel insurance"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & insurance"
+    },
+    {
+      "q": "What if the client has Weak ties to India?",
+      "a": "Employment letter, business proof, property, family obligations"
+    },
+    {
+      "q": "Why is Weak ties to India a problem?",
+      "a": "Unemployed, no assets, vague return plan."
+    },
+    {
+      "q": "What if the client has Insufficient travel insurance?",
+      "a": "Purchase Schengen-compliant insurance for full trip dates"
+    },
+    {
+      "q": "Why is Insufficient travel insurance a problem?",
+      "a": "Coverage below €30,000 or wrong dates."
     }
   ],
   "compliance": [
@@ -306,6 +394,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

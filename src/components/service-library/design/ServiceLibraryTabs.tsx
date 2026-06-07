@@ -194,7 +194,7 @@ export function ServiceLibraryTabs({
             <div>
               <h3 className="font-semibold">Submission checklist</h3>
               <p className="text-sm text-muted-foreground">
-                {doneCount} of {total} complete
+                {total > 0 ? `${doneCount} of ${total} complete` : "No checklist items yet"}
               </p>
             </div>
             <div className="flex gap-2">

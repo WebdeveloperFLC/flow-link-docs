@@ -214,6 +214,94 @@
     {
       "q": "Can TRV be used to join a spouse studying in Canada?",
       "a": "Sometimes, but assess whether visitor visa or dependant permit is more appropriate. Separate pathways may apply."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Temporary Resident Visa (TRV) allowing Indian nationals to visit Canada for tourism, family visits, or short business trips. Most applications are submitted online through the IRCC portal."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid passport · Genuine temporary purpose · Strong ties to India · Sufficient funds · Clean immigration history"
+    },
+    {
+      "q": "What is Single vs multiple entry for this service?",
+      "a": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it."
+    },
+    {
+      "q": "Important note on Single vs multiple entry?",
+      "a": "Officer decides entry type and validity at approval. Do not promise multiple-entry unless client profile supports it."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "TRV counterfoil in passport; client must respect stay duration and purpose. Overstay affects future Canada applications."
+    },
+    {
+      "q": "Is Valid passport (6+ months validity recommended) required?",
+      "a": "Check expiry before booking VAC appointment"
+    },
+    {
+      "q": "Is Proof of purpose (tourism / family / business) required?",
+      "a": "Itinerary, invitation letter, or business documents as applicable"
+    },
+    {
+      "q": "Is Proof of funds for trip duration required?",
+      "a": "Bank statements, ITR, sponsor letter if applicable"
+    },
+    {
+      "q": "Is Strong ties to home country required?",
+      "a": "Employment, property, family, business—document clearly"
+    },
+    {
+      "q": "Is Biometrics completed required?",
+      "a": "Book within 30 days of BIL if required"
+    },
+    {
+      "q": "Is Medical exam (if required) required?",
+      "a": "Based on residence history and stay plans"
+    },
+    {
+      "q": "Is No prior misrepresentation or serious inadmissibility required?",
+      "a": "No prior misrepresentation or serious inadmissibility is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "2–8w — Varies by country of residence"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $100 — + biometrics CAD $85 if required"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "78% — ~65% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "10 — + invitation if applicable"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & third-party"
+    },
+    {
+      "q": "What if the client has Weak home-country ties?",
+      "a": "Document employment, business, property, family obligations; employer leave letter"
+    },
+    {
+      "q": "Why is Weak home-country ties a problem?",
+      "a": "Unemployed applicant with no property, family, or business ties; vague return plan."
+    },
+    {
+      "q": "What if the client has Insufficient or unseasoned funds?",
+      "a": "4–6 month bank history; sponsor ITR + employment letter; explain large credits"
+    },
+    {
+      "q": "Why is Insufficient or unseasoned funds a problem?",
+      "a": "Large recent deposits, funds not matching income, or no sponsor proof."
     }
   ],
   "compliance": [
@@ -316,6 +404,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

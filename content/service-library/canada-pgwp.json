@@ -210,6 +210,94 @@
     {
       "q": "Spouse work permit?",
       "a": "Spouse may qualify for open work permit if PGWP holder meets skill level—verify current rules."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Open work permit allowing international graduates of eligible DLIs to work in Canada after completing program. Duration linked to program length."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Completed eligible program at DLI · Valid study permit · Graduation confirmation · Applied within 180 days of completion letter"
+    },
+    {
+      "q": "What is Duration rules for this service?",
+      "a": "Program 8 months–2 years: PGWP may match program length. 2+ years: up to 3 years. Verify current IRCC rules."
+    },
+    {
+      "q": "Important note on Duration rules?",
+      "a": "Program 8 months–2 years: PGWP may match program length. 2+ years: up to 3 years. Verify current IRCC rules."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Work anywhere in Canada. PGWP time supports CEC pathway to PR via Express Entry."
+    },
+    {
+      "q": "Is Graduated from eligible DLI program required?",
+      "a": "Graduated from eligible DLI program is typically required."
+    },
+    {
+      "q": "Is Valid study permit at completion required?",
+      "a": "Valid study permit at completion is typically required."
+    },
+    {
+      "q": "Is Completion letter / transcript required?",
+      "a": "Completion letter / transcript is typically required."
+    },
+    {
+      "q": "Is Applied within 180 days of completion required?",
+      "a": "Critical deadline"
+    },
+    {
+      "q": "Is Full-time student status maintained required?",
+      "a": "Full-time student status maintained is typically required."
+    },
+    {
+      "q": "Is Passport valid through desired PGWP period required?",
+      "a": "Passport valid through desired PGWP period is typically required."
+    },
+    {
+      "q": "Is Not previously received PGWP required?",
+      "a": "One-time rule"
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "3–5m — Online application"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $255 — Verify on canada.ca"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "92% — ~85% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "8 — + completion letter"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
+    },
+    {
+      "q": "What if the client has Applied after 180-day deadline?",
+      "a": "Apply within 180 days or restore status if eligible"
+    },
+    {
+      "q": "Why is Applied after 180-day deadline a problem?",
+      "a": "Completion letter date exceeded 180 days."
+    },
+    {
+      "q": "What if the client has Program too short?",
+      "a": "Verify eligibility before completion; plan alternative"
+    },
+    {
+      "q": "Why is Program too short a problem?",
+      "a": "Program under 8 months generally ineligible."
     }
   ],
   "compliance": [
@@ -307,6 +395,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

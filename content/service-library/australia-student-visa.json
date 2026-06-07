@@ -213,6 +213,94 @@
     {
       "q": "What after graduation?",
       "a": "Discuss Subclass 485 Temporary Graduate visa eligibility separately."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Subclass 500 student visa for full-time study at an Australian CRICOS-registered institution. Requires Confirmation of Enrolment (CoE) and online ImmiAccount application."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid CoE · Genuine Student requirement · Financial capacity · English proficiency · OSHC · Health and character requirements"
+    },
+    {
+      "q": "What is Financial evidence for this service?",
+      "a": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+    },
+    {
+      "q": "Important note on Financial evidence?",
+      "a": "Funds for tuition, travel, and living costs per Home Affairs guidelines. Amounts update periodically—verify before quoting."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Department of Home Affairs (Australia)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Maintain enrolment, OSHC, and visa conditions. Work limits apply during study period."
+    },
+    {
+      "q": "Is CoE from CRICOS provider required?",
+      "a": "Must match intended course"
+    },
+    {
+      "q": "Is Genuine Student (GS) requirement required?",
+      "a": "Study rationale and home ties"
+    },
+    {
+      "q": "Is Financial capacity required?",
+      "a": "Per Home Affairs amounts"
+    },
+    {
+      "q": "Is English proficiency required?",
+      "a": "IELTS/PTE per course level"
+    },
+    {
+      "q": "Is OSHC for study duration required?",
+      "a": "Mandatory health cover"
+    },
+    {
+      "q": "Is Health exam (if required) required?",
+      "a": "Assess whether Health exam (if required) is satisfied for this case."
+    },
+    {
+      "q": "Is Police certificates (if required) required?",
+      "a": "Assess whether Police certificates (if required) is satisfied for this case."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "4–8w — Varies by sector"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "AUD $2,000 — Verify on homeaffairs.gov.au"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "86% — ~73% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "14 — + OSHC & funds"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & OSHC"
+    },
+    {
+      "q": "What if the client has Weak Genuine Student statement?",
+      "a": "Course-specific GS linking prior study/work to Australia program"
+    },
+    {
+      "q": "Why is Weak Genuine Student statement a problem?",
+      "a": "Generic GS, course mismatch with background, unclear career plan."
+    },
+    {
+      "q": "What if the client has Insufficient financial evidence?",
+      "a": "12-month funds per guidelines; sponsor ITR; loan evidence"
+    },
+    {
+      "q": "Why is Insufficient financial evidence a problem?",
+      "a": "Unseasoned funds or amount below Home Affairs threshold."
     }
   ],
   "compliance": [
@@ -311,6 +399,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

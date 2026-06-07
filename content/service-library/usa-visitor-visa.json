@@ -214,6 +214,94 @@
     {
       "q": "Ten-year visa means 10-year stay?",
       "a": "No. Visa validity differs from permitted stay per entry. Each entry is subject to CBP admission."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "B1 (business) and B2 (tourism/medical) combined visa for temporary visits to the United States. Indian nationals apply via DS-160 and mandatory consular interview."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Temporary visit purpose · Strong ties to India · Sufficient funds · Clean immigration history · Honest DS-160"
+    },
+    {
+      "q": "What is Interview reality for this service?",
+      "a": "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+    },
+    {
+      "q": "Important note on Interview reality?",
+      "a": "Most decisions made in short interview. Officer assesses intent, ties, and credibility—not document volume alone."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "US Department of State — Embassy/Consulate in India"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Visa foil in passport; officer at port of entry decides admission length (often up to 6 months). No work permitted."
+    },
+    {
+      "q": "Is Valid passport required?",
+      "a": "6+ months validity recommended"
+    },
+    {
+      "q": "Is Clear temporary purpose required?",
+      "a": "Tourism, family, business meeting—not employment"
+    },
+    {
+      "q": "Is Strong ties to India required?",
+      "a": "Job, business, property, family"
+    },
+    {
+      "q": "Is Proof of funds for trip required?",
+      "a": "Bank statements, ITR, sponsor letter"
+    },
+    {
+      "q": "Is DS-160 completed accurately required?",
+      "a": "Must match interview answers"
+    },
+    {
+      "q": "Is No prior visa fraud required?",
+      "a": "No prior visa fraud is typically required."
+    },
+    {
+      "q": "Is Interview appointment booked required?",
+      "a": "Via ustraveldocs.com"
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "1–4w — After interview; slot wait extra"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "USD $185 — MRV non-refundable"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "72% — ~58% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "8 — + purpose-specific"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
+    },
+    {
+      "q": "What if the client has Weak ties to India?",
+      "a": "Employment letter, business registration, property, family dependencies"
+    },
+    {
+      "q": "Why is Weak ties to India a problem?",
+      "a": "Unemployed, no assets, young single applicant with vague purpose."
+    },
+    {
+      "q": "What if the client has 214(b) — immigrant intent signals?",
+      "a": "Clear temporary purpose; return date; no employment intent"
+    },
+    {
+      "q": "Why is 214(b) — immigrant intent signals a problem?",
+      "a": "Mentions working in USA, long stay without reason, or visiting fiancé without clear plan."
     }
   ],
   "compliance": [
@@ -312,6 +400,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

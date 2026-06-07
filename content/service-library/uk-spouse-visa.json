@@ -213,6 +213,94 @@
     {
       "q": "TB test required?",
       "a": "Yes for Indian applicants from approved clinic before application."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Family visa for spouse, civil partner, or unmarried partner of British citizen or person with settled/pre-settled status in UK. Leads to ILR pathway after qualifying period."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid marriage/civil partnership or 2+ years cohabitation · Sponsor meets financial requirement · Adequate accommodation · English A1 (entry) · Genuine relationship"
+    },
+    {
+      "q": "What is Financial requirement for this service?",
+      "a": "Sponsor must meet minimum income threshold or qualify via savings. Rules updated periodically—verify current threshold on gov.uk."
+    },
+    {
+      "q": "Important note on Financial requirement?",
+      "a": "Sponsor must meet minimum income threshold or qualify via savings. Rules updated periodically—verify current threshold on gov.uk."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "UK Visas and Immigration (UKVI) — Home Office"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Initial visa typically 33 months (if applying from outside UK); extension and ILR pathway. Maintain genuine relationship and comply with conditions."
+    },
+    {
+      "q": "Is Sponsor is British citizen or settled/pre-settled required?",
+      "a": "Sponsor is British citizen or settled/pre-settled is typically required."
+    },
+    {
+      "q": "Is Valid marriage or qualifying relationship required?",
+      "a": "Marriage cert or 2+ years cohabitation proof"
+    },
+    {
+      "q": "Is Financial requirement met required?",
+      "a": "Income or savings per Appendix FM"
+    },
+    {
+      "q": "Is Adequate accommodation in UK required?",
+      "a": "Tenancy or ownership evidence"
+    },
+    {
+      "q": "Is English A1 (entry clearance) required?",
+      "a": "SELT or exempt nationality"
+    },
+    {
+      "q": "Is TB test (if from listed country) required?",
+      "a": "India requires approved clinic test"
+    },
+    {
+      "q": "Is Genuine relationship evidence required?",
+      "a": "Genuine relationship evidence is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "12–24w — Outside UK entry clearance"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "£1,846 — + IHS (5 years typical)"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "90% — ~80% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "19 — + financial & relationship"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & IHS"
+    },
+    {
+      "q": "What if the client has Financial requirement not met?",
+      "a": "Calculate on gov.uk; combine permitted income sources or use savings route"
+    },
+    {
+      "q": "Why is Financial requirement not met a problem?",
+      "a": "Sponsor income below threshold without qualifying savings."
+    },
+    {
+      "q": "What if the client has Weak relationship evidence?",
+      "a": "Chronological relationship narrative; communication logs; visit evidence"
+    },
+    {
+      "q": "Why is Weak relationship evidence a problem?",
+      "a": "Few photos, no cohabitation proof, inconsistent timeline."
     }
   ],
   "compliance": [
@@ -315,6 +403,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",
