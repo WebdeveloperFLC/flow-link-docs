@@ -1,0 +1,212 @@
+{
+  "slug": "canada-student-visa",
+  "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
+  "title": "Document Checklist",
+  "subtitle": "Outside Canada · Study Permit Application",
+  "streamLabel": "Regular Stream (Post-SDS)",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "canada.ca",
+  "website": "futurelinkconsultants.com",
+  "policyBanner": "SDS & NSE streams officially closed Nov 8, 2024. All applicants now apply through the Regular Study Permit Stream only. Master's / PhD at public DLIs are exempt from the PAL/TAL requirement as of Jan 1, 2026.",
+  "metaFields": [
+    { "key": "client_name", "label": "Client name", "placeholder": "Full name as on passport" },
+    { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
+    { "key": "country_of_residence", "label": "Country of residence", "placeholder": "e.g. India, Philippines…" },
+    { "key": "program_level", "label": "Program level", "placeholder": "Select level…" },
+    { "key": "dli_type", "label": "DLI type", "placeholder": "Select…" },
+    { "key": "submission_date", "label": "Submission date", "placeholder": "yyyy-mm-dd" }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Identity & travel documents",
+      "items": [
+        {
+          "title": "Valid passport — bio data page + any previously issued Canadian visa pages",
+          "note": "Must be valid for at least 6 months beyond intended stay; upload colour scan.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Digital photo — IRCC specifications (420 × 540 px, white background, neutral expression)",
+          "note": "File must be a recent photo, ≤ 4 MB, JPEG format. Check IRCC photo tool at canada.ca.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "IRCC online profile complete — IMM 5257 / online application signed & reviewed",
+          "note": "All questions answered, no blanks; use \"NA\" where applicable. Review for consistency with supporting documents.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Family information form IMM 5707 (or IMM 5645 if applicable)",
+          "note": "Required for all family members. IMM 5645 used for clients with common-law partner or children.",
+          "badge": "IF APPLICABLE"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Letter of acceptance, DLI & PAL/TAL",
+      "items": [
+        {
+          "title": "Original Letter of Acceptance (LOA) — program name, start/end dates, tuition amount",
+          "note": "LOA must be from a Designated Learning Institution (DLI). Conditional acceptance requires conditions met before travel.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "DLI number verified against IRCC's official DLI list at canada.ca",
+          "note": "DLI status can change; confirm the institution remains active at time of submission.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Program start date allows realistic IRCC processing time",
+          "note": "Current processing times vary by visa office. Plan for 8–16 weeks. Defer intake if needed.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Provincial / Territorial Attestation Letter (PAL/TAL) — 2026 rules",
+          "note": "Required for undergraduate and PG diploma/certificate students. Obtain from institution. Quebec CAQ attestation from MIFI acts as PAL/TAL.",
+          "badge": "2024 RULE"
+        },
+        {
+          "title": "PAL/TAL exemption confirmed (Master's or PhD at public DLI, K–12, extension at same DLI)",
+          "note": "As of Jan 1 2026, master's and doctoral students at public DLIs are PAL-exempt. Include note confirming exemption category.",
+          "badge": "EXEMPT (2026)"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Financial proof",
+      "items": [
+        {
+          "title": "Proof of living funds: at least CAD $22,895 (Sep 2025 threshold) + first-year tuition + travel",
+          "note": "Updated threshold effective Sept 1 2025. Add ~$4,000/dependent if bringing family.",
+          "badge": "UPDATED 2025"
+        },
+        {
+          "title": "Bank statements — minimum 4–6 months showing consistent balance & account holder name",
+          "note": "Officially certified/stamped by bank. Sudden large deposits require explanation letters.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "GIC from participating Canadian financial institution — verify current amount",
+          "note": "GIC still accepted as proof of funds. Confirm amount with institution at purchase.",
+          "badge": "RECOMMENDED"
+        },
+        {
+          "title": "Proof of first-year tuition payment (or payment arrangement with institution)",
+          "note": "Receipt from institution or bank transfer record required.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Sponsor's letter of financial support — signed, notarized",
+          "note": "Include explanation of relationship to applicant.",
+          "badge": "IF SPONSORED"
+        },
+        {
+          "title": "Sponsor's supporting documents — ID, ITR (2–3 years), salary slips, employment letter",
+          "note": "Certified English/French translation if in another language.",
+          "badge": "IF SPONSORED"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Language & academic documents",
+      "items": [
+        {
+          "title": "Language test result (TRF) — IELTS / CELPIP / PTE / TEF / DALF as required by institution",
+          "note": "Confirm required test & score with institution. IELTS/TEF also required for PGWP at post-graduation stage.",
+          "badge": "IF REQUIRED BY DLI"
+        },
+        {
+          "title": "Academic transcripts — all levels completed, official sealed copies",
+          "note": "Include mark sheets and certificates. Certified translations if not in English or French.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Degrees / diplomas — originals and copies; certified translations where applicable",
+          "note": "Credential evaluations (e.g. WES) may be required by institution, not IRCC.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Statement of Purpose (SOP) / Study Plan — genuine student intent & career pathway",
+          "note": "Address why Canada, why this program, ties to home country. Must be original, not a template.",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "PGWP eligibility check (post-graduation work permit)",
+      "items": [
+        {
+          "title": "Confirm program is PGWP-eligible — verify on IRCC list at canada.ca",
+          "note": "Bachelor's, Master's, PhD remain eligible. Private colleges licensing public curriculum are NOT PGWP-eligible.",
+          "badge": "UPDATED 2025"
+        },
+        {
+          "title": "Confirm institution type for PGWP — must be public DLI where applicable",
+          "note": "If client intends to work post-graduation, confirm DLI type before enrollment.",
+          "badge": "REQUIRED CHECK"
+        },
+        {
+          "title": "Spouse/partner OWP eligibility noted — limited to spouses of Master's and PhD students",
+          "note": "As of 2024, spouses of undergraduate or diploma students are no longer eligible for OWP.",
+          "badge": "2024 RULE"
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "title": "Medical, biometrics & police certificates",
+      "items": [
+        {
+          "title": "Upfront medical examination — IRCC-designated panel physician where required",
+          "note": "Required if studying 6+ months AND from/residing 6+ months in a designated country.",
+          "badge": "IF REQUIRED"
+        },
+        {
+          "title": "Biometrics — booked within 30 days of Biometric Instruction Letter (BIL)",
+          "note": "CAD $85 per person, $170 family max. Confirm 10-year validity exemption in IRCC account.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Police certificate(s) — each country lived 6+ months since age 18",
+          "note": "Requirements vary by visa office. Certificates must be less than 3 months old at submission.",
+          "badge": "PER VISA OFFICE"
+        }
+      ]
+    },
+    {
+      "id": "G",
+      "title": "Fees & submission",
+      "items": [
+        {
+          "title": "Study permit application fee paid — CAD $150; receipt saved",
+          "note": "Pay via IRCC secure payment portal. Save transaction ID.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Biometrics fee paid — CAD $85 / $170 family; receipt saved",
+          "note": "Confirm exemption in IRCC account before paying if biometrics on file.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client reviewed, signed, and dated this checklist",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Quality review / QA sign-off — documents cross-checked against IRCC requirements",
+          "note": "Verify no expired documents, certified translations, form consistency.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Application submitted via IRCC online account; confirmation saved",
+          "note": "Save screenshot, UCI, and application number for tracking.",
+          "badge": "REQUIRED"
+        }
+      ]
+    }
+  ]
+}
