@@ -73,6 +73,39 @@ type MasterRow = Master & {
 
 const LEGACY_SUB_SERVICES = new Set(["application", "assessment"]);
 
+/** Admission / workflow labels wrongly stored under visa_immigration — not country visa services. */
+const NON_VISA_SERVICE_FIELDS = new Set([
+  "documents",
+  "shortlisting",
+  "offer management",
+  "application",
+  "financial",
+  "general",
+  "other",
+  "admission",
+  "english proficiency",
+  "graduate admissions",
+  "european languages",
+]);
+
+function isAcademyVisaServiceRow(m: MasterRow): boolean {
+  if (isLegacyVisaRow(m)) return false;
+
+  const meta = metaOf(m);
+  if (meta?.displayName) return true;
+
+  const serviceNorm = m.service.trim().toLowerCase();
+  if (NON_VISA_SERVICE_FIELDS.has(serviceNorm)) return false;
+
+  if (VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm)) return true;
+
+  const countries = resolveServiceCountries(
+    m.service,
+    (m.service_library_countries ?? []).map((c) => c.country),
+  );
+  return countries.some((c) => c.toLowerCase() === serviceNorm);
+}
+
 function isLegacyVisaRow(m: MasterRow): boolean {
   const meta = m.academy_metadata as { displayName?: string } | null | undefined;
   if (meta?.displayName) return false;
@@ -174,7 +207,7 @@ export function buildAcademyNav(
     if (!matchesSearch(m, q)) continue;
 
     if (m.service_category === "visa_immigration") {
-      if (isLegacyVisaRow(m)) continue;
+      if (!isAcademyVisaServiceRow(m)) continue;
       if (opts.categoryFilter !== "visa") continue;
 
       const countries = resolveServiceCountries(
