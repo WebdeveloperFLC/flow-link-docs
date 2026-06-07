@@ -1,7 +1,7 @@
 {
   "displayName": "New Zealand – Skilled Migrant Category (SMC)",
   "shortDescription": "Immigration NZ · Points-based PR · EOI · Job offer or skilled employment",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -307,6 +307,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -357,7 +363,8 @@
         "Employer choice only"
       ],
       "correctIndex": 1,
-      "explanation": "Points-based system."
+      "explanation": "Points-based system.",
+      "level": 1
     },
     {
       "question": "EOI selection guaranteed at minimum points:",
@@ -368,7 +375,8 @@
         "Automatic"
       ],
       "correctIndex": 1,
-      "explanation": "Selection not guaranteed."
+      "explanation": "Selection not guaranteed.",
+      "level": 1
     },
     {
       "question": "Skilled occupation must meet:",
@@ -379,7 +387,8 @@
         "Volunteer only"
       ],
       "correctIndex": 1,
-      "explanation": "Skilled employment required."
+      "explanation": "Skilled employment required.",
+      "level": 1
     },
     {
       "question": "Age over 55 typically:",
@@ -390,7 +399,8 @@
         "No effect"
       ],
       "correctIndex": 1,
-      "explanation": "Age points reduce/disappear."
+      "explanation": "Age points reduce/disappear.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -401,7 +411,848 @@
         "Monitor ballots"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Description is correct?",
+      "options": [
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections.",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with periodic selection."
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding Eligible applicants?",
+      "options": [
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections.",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications assessment if required"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about Selection threshold varies:",
+      "options": [
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Key authority is correct?",
+      "options": [
+        "Immigration New Zealand (INZ)",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration New Zealand (INZ)"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding After approval?",
+      "options": [
+        "Permanent residence visa; live and work in New Zealand indefinitely subject to travel conditions on initial visa.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Permanent residence visa; live and work in New Zealand indefinitely subject to travel conditions on initial visa."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about Skilled job offer or current skilled employment in NZ:",
+      "options": [
+        "Skilled job offer or current skilled employment in NZ is a core requirement for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled job offer or current skilled employment in NZ"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Points meet or exceed recent selection threshold is correct?",
+      "options": [
+        "Points meet or exceed recent selection threshold is often required or assessed for this service. Note: Check recent ballots",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check recent ballots"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding Age under 55 (for maximum points)?",
+      "options": [
+        "Age under 55 (for maximum points) is a core requirement for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Age under 55 (for maximum points)"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about English competency (IELTS 6.5 avg or equivalent):",
+      "options": [
+        "English competency (IELTS 6.5 avg or equivalent) is a core requirement for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "English competency (IELTS 6.5 avg or equivalent)"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Qualification assessment (if required) is correct?",
+      "options": [
+        "Qualification assessment (if required) is often required or assessed for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Qualification assessment (if required)"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding EOI submitted and selected?",
+      "options": [
+        "EOI submitted and selected is often required or assessed for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "EOI submitted and selected"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about Health and character clearances:",
+      "options": [
+        "Health and character clearances is often required or assessed for this service.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Health and character clearances"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 6–18m — After ITA",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "After ITA"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding Government fee?",
+      "options": [
+        "Government fee: NZD $4,890 — Residence approx—verify",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Residence approx—verify"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 86% — ~78% post-ITA benchmark",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "~78% post-ITA benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 17 — + qualifications & experience",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ qualifications & experience"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & assessments",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & assessments"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Skilled Migrant Category (SMC) should state correctly about service summary:",
+      "options": [
+        "Immigration NZ · Points-based PR · EOI · Job offer or skilled employment",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration NZ · Points-based PR · EOI · Job offer or skilled employment"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), which statement about EOI selection not guaranteed is correct?",
+      "options": [
+        "Submitting Expression of Interest does not guarantee selection. Points threshold varies each ballot—counsel on realistic points before fees.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Submitting Expression of Interest does not guarantee selection. Points threshold varies each ballot—counsel on realistic points before fees."
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is true regarding policy update?",
+      "options": [
+        "Confirm current SMC points requirements and fees on immigration.govt.nz. Expression of Interest selection depends on points threshold—never promise selection.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current SMC points requirements and fees on immigration.govt.nz. Expression of Interest selection depends on points threshold—never promise selection."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to client question: Can we guarantee SMC selection or PR?",
+      "options": [
+        "No. EOI selection depends on points and INZ ballot. Never promise selection or approval.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. EOI selection depends on points and INZ ballot. Never promise selection or approval."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during client question: How many points needed?",
+      "options": [
+        "Check recent INZ selection announcements—threshold varies each ballot.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check recent INZ selection announcements—threshold varies each ballot."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for client question: Need job offer:",
+      "options": [
+        "Skilled employment in NZ or job offer typically required—verify current SMC rules.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled employment in NZ or job offer typically required—verify current SMC rules."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to client question: Green List fast track?",
+      "options": [
+        "Some occupations on Green List have simplified residence pathways—assess separately.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Some occupations on Green List have simplified residence pathways—assess separately."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during client question: Partner points?",
+      "options": [
+        "Partner qualifications and skilled employment may add points.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Partner qualifications and skilled employment may add points."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for client question: Processing after ITA:",
+      "options": [
+        "Typically several months—verify current INZ processing times.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically several months—verify current INZ processing times."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to client question: Can apply from India?",
+      "options": [
+        "Generally need NZ job offer or be in NZ on eligible visa—verify current rules.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally need NZ job offer or be in NZ on eligible visa—verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during client question: NZQA assessment required?",
+      "options": [
+        "For many overseas qualifications—verify if needed for points claim.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "For many overseas qualifications—verify if needed for points claim."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for timeline (1–4):",
+      "options": [
+        "Points assessment, job/qualification verification",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–4: Points assessment, job/qualification verification"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to timeline (4–8)?",
+      "options": [
+        "NZQA assessment if needed, EOI submission",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–8: NZQA assessment if needed, EOI submission"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during timeline (Variable)?",
+      "options": [
+        "Wait for EOI selection",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Variable: Wait for EOI selection"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for timeline (6–18m):",
+      "options": [
+        "Residence processing after ITA",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "6–18m: Residence processing after ITA"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to counselor tip?",
+      "options": [
+        "Calculate points with official INZ calculator",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Calculate points with official INZ calculator"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during counselor tip?",
+      "options": [
+        "Monitor selection ballot results",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Monitor selection ballot results"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for counselor tip:",
+      "options": [
+        "Verify ANZSCO skill level for occupation",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify ANZSCO skill level for occupation"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for post-approval step:",
+      "options": [
+        "Send residence visa grant",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send residence visa grant"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Explain travel conditions on initial visa",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain travel conditions on initial visa"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during post-approval step?",
+      "options": [
+        "Guide on IRD registration",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Guide on IRD registration"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during Sample language test TRF (mock)?",
+      "options": [
+        "IELTS / PTE / TOEFL layout — explain CLB or points mapping.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "IELTS / PTE / TOEFL layout — explain CLB or points mapping."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for Sample ECA report (mock):",
+      "options": [
+        "WES / IQAS / ICAS credential assessment — degree equivalency page.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "WES / IQAS / ICAS credential assessment — degree equivalency page."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to Sample employment reference letter (mock)?",
+      "options": [
+        "Duties, NOC code, dates, and full-time hours on company letterhead.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Duties, NOC code, dates, and full-time hours on company letterhead."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), what should happen during Sample resume / CV (mock)?",
+      "options": [
+        "Skilled migration format — chronological roles and NOC alignment.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Skilled migration format — chronological roles and NOC alignment."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Skilled Migrant Category (SMC) workflow — best practice for Sample nomination / job offer letter (mock):",
+      "options": [
+        "PNP nomination or employer-backed offer where applicable.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "PNP nomination or employer-backed offer where applicable."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Skilled Migrant Category (SMC) process, what is the correct approach to Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with Points below selection threshold?",
+      "options": [
+        "Gain NZ skilled work experience; improve English; partner qualifications",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "EOI submitted but recent selections at higher points."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with Points below selection threshold (detail):",
+      "options": [
+        "EOI submitted but recent selections at higher points.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Gain NZ skilled work experience; improve English; partner qualifications"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to Job not skilled (ANZSCO):",
+      "options": [
+        "Verify ANZSCO skill level and green list eligibility",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Occupation below skill level 1–3 or not on green list."
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with Job not skilled (ANZSCO) (detail)?",
+      "options": [
+        "Occupation below skill level 1–3 or not on green list.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify ANZSCO skill level and green list eligibility"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with Qualification not recognised:",
+      "options": [
+        "Complete NZQA International Qualification Assessment",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Overseas qualification not assessed or equivalent."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to Qualification not recognised (detail):",
+      "options": [
+        "Overseas qualification not assessed or equivalent.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Complete NZQA International Qualification Assessment"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with Age over 55?",
+      "options": [
+        "Assess alternative visa pathways",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Zero age points; difficult to reach threshold."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with Age over 55 (detail):",
+      "options": [
+        "Zero age points; difficult to reach threshold.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Assess alternative visa pathways"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to English below requirement:",
+      "options": [
+        "Retake for higher scores",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "IELTS scores below 6.5 average."
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with English below requirement (detail)?",
+      "options": [
+        "IELTS scores below 6.5 average.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Retake for higher scores"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with EOI selected but docs not ready:",
+      "options": [
+        "Prepare document templates while EOI in pool",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Missed invitation to apply deadline."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to EOI selected but docs not ready (detail):",
+      "options": [
+        "Missed invitation to apply deadline.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Prepare document templates while EOI in pool"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee selection or PR",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee selection or PR"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with counselor don't:",
+      "options": [
+        "Do not collect full residence fee before ITA",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not collect full residence fee before ITA"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not claim wrong skill level",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not claim wrong skill level"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Points below recent selection threshold",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Points below recent selection threshold"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with common mistake?",
+      "options": [
+        "Job not at skilled level",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Job not at skilled level"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with common mistake:",
+      "options": [
+        "NZQA assessment delayed",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: NZQA assessment delayed"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with refusal handling:",
+      "options": [
+        "Without EOI selection, do not lodge residence application. Improve points via NZ employment, qualification level, or work experience before expecting selection.",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Without EOI selection, do not lodge residence application. Improve points via NZ employment, qualification level, or work experience before expecting selection."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Skilled Migrant Category (SMC), counselors must avoid this mistake related to Post-ITA approval:",
+      "options": [
+        "Our target: 86% vs benchmark 78%",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Post-ITA approval"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Skilled Migrant Category (SMC): what is the compliance risk with Points accuracy?",
+      "options": [
+        "Our target: 88% vs benchmark 72%",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "Points accuracy"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Skilled Migrant Category (SMC) — key issue with ANZSCO verification:",
+      "options": [
+        "Our target: 85% vs benchmark 70%",
+        "Permanent residence pathway for skilled workers with qualifications and experience needed in New Zealand. Points-based Expression of Interest (EOI) system with…",
+        "Skilled employment or job offer · Points meeting selection threshold · Age typically under 55 · English competency · Health and character · Qualifications asse…",
+        "INZ selects EOIs above certain points at each ballot. Threshold changes—verify recent selections."
+      ],
+      "correctIndex": 0,
+      "explanation": "ANZSCO verification"
     }
   ],
   "donts": {

@@ -1,7 +1,7 @@
 {
   "displayName": "UK – Student Visa (Student Route)",
   "shortDescription": "UKVI Student Route · CAS required · IHS healthcare surcharge",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -316,6 +316,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -371,7 +377,8 @@
         "CoS"
       ],
       "correctIndex": 1,
-      "explanation": "CAS is required for Student Route application."
+      "explanation": "CAS is required for Student Route application.",
+      "level": 1
     },
     {
       "question": "28-day funds rule means:",
@@ -382,7 +389,8 @@
         "Loan letter only"
       ],
       "correctIndex": 1,
-      "explanation": "Core financial requirement for UK student visa."
+      "explanation": "Core financial requirement for UK student visa.",
+      "level": 1
     },
     {
       "question": "Indian applicants generally need:",
@@ -393,7 +401,8 @@
         "US medical"
       ],
       "correctIndex": 1,
-      "explanation": "TB test required for India."
+      "explanation": "TB test required for India.",
+      "level": 1
     },
     {
       "question": "IHS is:",
@@ -404,7 +413,8 @@
         "CAS fee"
       ],
       "correctIndex": 1,
-      "explanation": "Mandatory payment for most UK visa routes."
+      "explanation": "Mandatory payment for most UK visa routes.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -415,7 +425,848 @@
         "Track TB test"
       ],
       "correctIndex": 1,
-      "explanation": "Firm policy prohibits guarantees."
+      "explanation": "Firm policy prohibits guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about Description is correct?",
+      "options": [
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies.",
+        "UK Visas and Immigration (UKVI) — Home Office"
+      ],
+      "correctIndex": 0,
+      "explanation": "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI application."
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding Eligible applicants?",
+      "options": [
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies.",
+        "UK Visas and Immigration (UKVI) — Home Office"
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about Financial requirement:",
+      "options": [
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "UK Visas and Immigration (UKVI) — Home Office"
+      ],
+      "correctIndex": 0,
+      "explanation": "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about Key authority is correct?",
+      "options": [
+        "UK Visas and Immigration (UKVI) — Home Office",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "UK Visas and Immigration (UKVI) — Home Office"
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding After approval?",
+      "options": [
+        "BRP or digital status; maintain attendance, sponsor reporting, and work hour limits.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "BRP or digital status; maintain attendance, sponsor reporting, and work hour limits."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about CAS from licensed UK sponsor:",
+      "options": [
+        "CAS from licensed UK sponsor is a core requirement for this service. Note: CAS number valid and unused",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "CAS number valid and unused"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about Financial requirement met (28-day rule) is correct?",
+      "options": [
+        "Financial requirement met (28-day rule) is a core requirement for this service. Note: Funds held 28 consecutive days",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds held 28 consecutive days"
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding English language at SELT level (if required)?",
+      "options": [
+        "English language at SELT level (if required) is a core requirement for this service. Note: IELTS UKVI or exempt pathway",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "IELTS UKVI or exempt pathway"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about TB test certificate (if applicable):",
+      "options": [
+        "TB test certificate (if applicable) is often required or assessed for this service. Note: Required for Indian nationals",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Required for Indian nationals"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about ATAS certificate (if course requires) is correct?",
+      "options": [
+        "ATAS certificate (if course requires) is often required or assessed for this service. Note: Check CAS and course code",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check CAS and course code"
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding Genuine student / credible study plan?",
+      "options": [
+        "Genuine student / credible study plan is a core requirement for this service.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Genuine student / credible study plan"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about Immigration history disclosed:",
+      "options": [
+        "Immigration history disclosed is a core requirement for this service.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration history disclosed"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 3–8w — Outside UK standard",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Outside UK standard"
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding Government fee?",
+      "options": [
+        "Government fee: £524 — + IHS per year of course",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ IHS per year of course"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 89% — ~76% industry benchmark",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "~76% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 13 — + financial evidence",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ financial evidence"
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & IHS",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & IHS"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining UK – Student Visa (Student Route) should state correctly about service summary:",
+      "options": [
+        "UKVI Student Route · CAS required · IHS healthcare surcharge",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "UKVI Student Route · CAS required · IHS healthcare surcharge"
+    },
+    {
+      "level": 1,
+      "question": "For UK – Student Visa (Student Route), which statement about CAS is mandatory is correct?",
+      "options": [
+        "No CAS from licensed sponsor = no application. Verify sponsor licence status before promising timelines.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "No CAS from licensed sponsor = no application. Verify sponsor licence status before promising timelines."
+    },
+    {
+      "level": 1,
+      "question": "UK – Student Visa (Student Route): what is true regarding policy update?",
+      "options": [
+        "Confirm current Student visa fee (£524) and Immigration Health Surcharge (IHS) rates on gov.uk before quoting.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current Student visa fee (£524) and Immigration Health Surcharge (IHS) rates on gov.uk before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to client question: Can we guarantee Student visa approval?",
+      "options": [
+        "No. UKVI assesses each application. Strong CAS and funds help but approval is never guaranteed.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. UKVI assesses each application. Strong CAS and funds help but approval is never guaranteed."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during client question: How much funds for London vs outside London?",
+      "options": [
+        "Living costs differ—verify current amounts on gov.uk. Plus remaining tuition after deposit shown on CAS.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Living costs differ—verify current amounts on gov.uk. Plus remaining tuition after deposit shown on CAS."
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for client question: What is the 28-day rule:",
+      "options": [
+        "Funds must remain at or above required amount for 28 consecutive days ending no more than 31 days before application.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds must remain at or above required amount for 28 consecutive days ending no more than 31 days before application."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to client question: Can spouse join on Student visa?",
+      "options": [
+        "Dependants allowed only if course meets specific criteria (e.g., postgraduate level certain duration). Check current rules.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dependants allowed only if course meets specific criteria (e.g., postgraduate level certain duration). Check current rules."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during client question: Is IELTS UKVI mandatory?",
+      "options": [
+        "If SELT required, must be UKVI-approved test from approved centre. Some nationals/courses may be exempt.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "If SELT required, must be UKVI-approved test from approved centre. Some nationals/courses may be exempt."
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for client question: When to apply:",
+      "options": [
+        "Up to 6 months before course start if applying from outside UK. Do not apply without valid CAS.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Up to 6 months before course start if applying from outside UK. Do not apply without valid CAS."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to client question: Can student work?",
+      "options": [
+        "Limited hours during term; rules on gov.uk. Cannot work as professional sportsperson or doctor in training.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Limited hours during term; rules on gov.uk. Cannot work as professional sportsperson or doctor in training."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during client question: What after course completion?",
+      "options": [
+        "Discuss Graduate Route eligibility separately—requires successful completion at eligible institution.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Discuss Graduate Route eligibility separately—requires successful completion at eligible institution."
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for timeline (1–2):",
+      "options": [
+        "Counseling, CAS review, fee agreement",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Counseling, CAS review, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to timeline (2–3)?",
+      "options": [
+        "Funds seasoning, TB test, documents",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: Funds seasoning, TB test, documents"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during timeline (3–4)?",
+      "options": [
+        "IHS payment & UKVI submission",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–4: IHS payment & UKVI submission"
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for timeline (4–5):",
+      "options": [
+        "Biometrics at VAC",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "4–5: Biometrics at VAC"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to timeline (3–8)?",
+      "options": [
+        "UKVI processing",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–8: UKVI processing"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during counselor tip?",
+      "options": [
+        "Verify sponsor licence on register before CAS fee",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify sponsor licence on register before CAS fee"
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for counselor tip:",
+      "options": [
+        "Calculate IHS with gov.uk calculator—save payment receipt",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Calculate IHS with gov.uk calculator—save payment receipt"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to counselor tip?",
+      "options": [
+        "TB test at approved clinic early to avoid delays",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "TB test at approved clinic early to avoid delays"
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to post-approval step?",
+      "options": [
+        "Send visa vignette/BRP collection instructions",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Send visa vignette/BRP collection instructions"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during post-approval step?",
+      "options": [
+        "Remind sponsor reporting and attendance obligations",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind sponsor reporting and attendance obligations"
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for post-approval step:",
+      "options": [
+        "Explain work hour limits during term",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain work hour limits during term"
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during Sample passport bio page (mock)?",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for Sample CAS letter (mock):",
+      "options": [
+        "Confirmation of Acceptance for Studies — UKVI reference.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirmation of Acceptance for Studies — UKVI reference."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to Sample IELTS UKVI TRF (mock)?",
+      "options": [
+        "Secure English language test for Student Route.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Secure English language test for Student Route."
+    },
+    {
+      "level": 2,
+      "question": "For UK – Student Visa (Student Route), what should happen during Sample TB test certificate (mock)?",
+      "options": [
+        "IOM clinic certificate if applicable.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "IOM clinic certificate if applicable."
+    },
+    {
+      "level": 2,
+      "question": "UK – Student Visa (Student Route) workflow — best practice for Sample bank statement / 28-day rule (mock):",
+      "options": [
+        "Funds held 28 consecutive days — explain UKVI rule.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds held 28 consecutive days — explain UKVI rule."
+    },
+    {
+      "level": 2,
+      "question": "In the UK – Student Visa (Student Route) process, what is the correct approach to Sample academic transcripts (mock)?",
+      "options": [
+        "Degree marks and backlogs cover note.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Degree marks and backlogs cover note."
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with 28-day funds rule breach?",
+      "options": [
+        "Maintain required balance 28 days; use dated bank statements",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds not held continuously for 28 days or balance drops below threshold."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with 28-day funds rule breach (detail):",
+      "options": [
+        "Funds not held continuously for 28 days or balance drops below threshold.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Maintain required balance 28 days; use dated bank statements"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to CAS / course mismatch:",
+      "options": [
+        "Align CAS course with academic progression; strong personal statement",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Course level inconsistent with prior study or career plan."
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with CAS / course mismatch (detail)?",
+      "options": [
+        "Course level inconsistent with prior study or career plan.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Align CAS course with academic progression; strong personal statement"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with Wrong IHS payment:",
+      "options": [
+        "Calculate IHS on gov.uk calculator before payment",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incorrect IHS amount or course duration entered."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to Wrong IHS payment (detail):",
+      "options": [
+        "Incorrect IHS amount or course duration entered.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Calculate IHS on gov.uk calculator before payment"
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with TB test issues?",
+      "options": [
+        "Use UKVI-approved clinic; certificate valid 6 months",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Wrong clinic, expired certificate, or missing for India."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with TB test issues (detail):",
+      "options": [
+        "Wrong clinic, expired certificate, or missing for India.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Use UKVI-approved clinic; certificate valid 6 months"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to Prior refusals not addressed:",
+      "options": [
+        "Disclose and explain changed circumstances",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "UK or other refusals hidden in application."
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with Prior refusals not addressed (detail)?",
+      "options": [
+        "UK or other refusals hidden in application.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Disclose and explain changed circumstances"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with Document quality:",
+      "options": [
+        "Certified translations; consistent naming across docs",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Blurry scans, wrong translations, or inconsistent names."
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to Document quality (detail):",
+      "options": [
+        "Blurry scans, wrong translations, or inconsistent names.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Certified translations; consistent naming across docs"
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee Student visa approval",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee Student visa approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with counselor don't:",
+      "options": [
+        "Do not apply without valid unused CAS",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not apply without valid unused CAS"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not use funds that drop below threshold in 28-day window",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not use funds that drop below threshold in 28-day window"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Funds deposited 2 days before application",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Funds deposited 2 days before application"
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with common mistake?",
+      "options": [
+        "Wrong London/outside London living cost amount",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Wrong London/outside London living cost amount"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with common mistake:",
+      "options": [
+        "CAS course start date passed",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: CAS course start date passed"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa approval; use approved-language only in marketing",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa approval; use approved-language only in marketing"
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, UKVI fee, IHS, and third-party costs",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, UKVI fee, IHS, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to refusal handling:",
+      "options": [
+        "After refusal, analyse refusal letter and address specific grounds before reapplication with new CAS if needed.",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "After refusal, analyse refusal letter and address specific grounds before reapplication with new CAS if needed."
+    },
+    {
+      "level": 3,
+      "question": "UK – Student Visa (Student Route): what is the compliance risk with Our rate vs industry?",
+      "options": [
+        "Our target: 89% vs benchmark 76%",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on UK – Student Visa (Student Route) — key issue with Financial compliance:",
+      "options": [
+        "Our target: 86% vs benchmark 70%",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial compliance"
+    },
+    {
+      "level": 3,
+      "question": "For UK – Student Visa (Student Route), counselors must avoid this mistake related to CAS accuracy:",
+      "options": [
+        "Our target: 93% vs benchmark 80%",
+        "Student Route visa for study at a UK institution holding a valid sponsor licence. Requires Confirmation of Acceptance for Studies (CAS) and online UKVI applica…",
+        "Valid CAS · Proof of funds · English at required level · Genuine student intent · TB test if from listed country",
+        "Tuition minus deposit paid + living costs (London vs outside London rates). 28-day funds rule applies."
+      ],
+      "correctIndex": 0,
+      "explanation": "CAS accuracy"
     }
   ],
   "donts": {

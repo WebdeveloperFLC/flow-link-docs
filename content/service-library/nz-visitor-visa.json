@@ -1,7 +1,7 @@
 {
   "displayName": "New Zealand – Visitor Visa",
   "shortDescription": "Immigration NZ · Visitor visa · Tourism, family · Genuine visitor",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -305,6 +305,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -355,7 +361,8 @@
         "Student enrolment only"
       ],
       "correctIndex": 1,
-      "explanation": "Temporary visit purpose."
+      "explanation": "Temporary visit purpose.",
+      "level": 1
     },
     {
       "question": "Top refusal reason:",
@@ -366,7 +373,8 @@
         "Photo"
       ],
       "correctIndex": 1,
-      "explanation": "Ties critical."
+      "explanation": "Ties critical.",
+      "level": 1
     },
     {
       "question": "Visitors can work:",
@@ -377,7 +385,8 @@
         "Unlimited"
       ],
       "correctIndex": 1,
-      "explanation": "Work not permitted."
+      "explanation": "Work not permitted.",
+      "level": 1
     },
     {
       "question": "Funds must be:",
@@ -388,7 +397,8 @@
         "Hidden"
       ],
       "correctIndex": 1,
-      "explanation": "Credible funding required."
+      "explanation": "Credible funding required.",
+      "level": 1
     },
     {
       "question": "Counselors must never:",
@@ -399,7 +409,848 @@
         "Review letter"
       ],
       "correctIndex": 1,
-      "explanation": "No guarantees."
+      "explanation": "No guarantees.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Description is correct?",
+      "options": [
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules.",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ."
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding Eligible applicants?",
+      "options": [
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules.",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about No work permitted:",
+      "options": [
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Immigration New Zealand (INZ)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Key authority is correct?",
+      "options": [
+        "Immigration New Zealand (INZ)",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration New Zealand (INZ)"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding After approval?",
+      "options": [
+        "Respect visa conditions and departure date. Overstay affects future NZ applications.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Respect visa conditions and departure date. Overstay affects future NZ applications."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about Valid passport:",
+      "options": [
+        "Valid passport is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Valid passport"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Clear visit purpose is correct?",
+      "options": [
+        "Clear visit purpose is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Clear visit purpose"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding Proof of funds?",
+      "options": [
+        "Proof of funds is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Proof of funds"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about Strong ties to India:",
+      "options": [
+        "Strong ties to India is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Strong ties to India"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Onward/return travel plans is correct?",
+      "options": [
+        "Onward/return travel plans is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Onward/return travel plans"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding Health/character requirements?",
+      "options": [
+        "Health/character requirements is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Health/character requirements"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about Immigration history disclosed:",
+      "options": [
+        "Immigration history disclosed is a core requirement for this service.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration history disclosed"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Processing time is correct?",
+      "options": [
+        "Processing time: 3–6w — Standard",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Standard"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding Government fee?",
+      "options": [
+        "Government fee: NZD $341 — Online approx",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Online approx"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about Our approval rate:",
+      "options": [
+        "Our approval rate: 73% — ~61% benchmark",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "~61% benchmark"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Required docs is correct?",
+      "options": [
+        "Required docs: 9 — + ties evidence",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ ties evidence"
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding Consultancy fee?",
+      "options": [
+        "Consultancy fee: See fee tab — + govt only",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt only"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining New Zealand – Visitor Visa should state correctly about service summary:",
+      "options": [
+        "Immigration NZ · Visitor visa · Tourism, family · Genuine visitor",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Immigration NZ · Visitor visa · Tourism, family · Genuine visitor"
+    },
+    {
+      "level": 1,
+      "question": "For New Zealand – Visitor Visa, which statement about Genuine visitor intent is correct?",
+      "options": [
+        "INZ must be satisfied applicant will leave NZ after visit. Strong ties to India are essential.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "INZ must be satisfied applicant will leave NZ after visit. Strong ties to India are essential."
+    },
+    {
+      "level": 1,
+      "question": "New Zealand – Visitor Visa: what is true regarding policy update?",
+      "options": [
+        "Confirm current Visitor Visa fee (NZD $341 approx for online) on immigration.govt.nz before quoting.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm current Visitor Visa fee (NZD $341 approx for online) on immigration.govt.nz before quoting."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to client question: Can we guarantee visitor visa?",
+      "options": [
+        "No. INZ decides each case individually.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. INZ decides each case individually."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during client question: How much funds?",
+      "options": [
+        "Enough for trip duration—no fixed amount but must be credible.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Enough for trip duration—no fixed amount but must be credible."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for client question: Can visitor work:",
+      "options": [
+        "No. Work not permitted on visitor visa.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "No. Work not permitted on visitor visa."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to client question: Can switch to student in NZ?",
+      "options": [
+        "Generally must apply from outside NZ—verify current rules.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally must apply from outside NZ—verify current rules."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during client question: Reapply after refusal?",
+      "options": [
+        "Yes when circumstances improve.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes when circumstances improve."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for client question: Invitation letter needed:",
+      "options": [
+        "Recommended for family visits.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Recommended for family visits."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to client question: Processing time?",
+      "options": [
+        "Typically 3–6 weeks standard.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically 3–6 weeks standard."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during client question: Multiple entry?",
+      "options": [
+        "Officer decides visa conditions at approval.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officer decides visa conditions at approval."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for timeline (1):",
+      "options": [
+        "Counseling, fee agreement",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "1: Counseling, fee agreement"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to timeline (1–2)?",
+      "options": [
+        "Documents, cover letter",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "1–2: Documents, cover letter"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during timeline (2–3)?",
+      "options": [
+        "INZ submission",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "2–3: INZ submission"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for timeline (3–6):",
+      "options": [
+        "INZ processing",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "3–6: INZ processing"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to counselor tip?",
+      "options": [
+        "Personalise cover letter",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Personalise cover letter"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during counselor tip?",
+      "options": [
+        "Show employment leave letter",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show employment leave letter"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for counselor tip:",
+      "options": [
+        "For family visits collect host invitation and status",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "For family visits collect host invitation and status"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for post-approval step:",
+      "options": [
+        "Explain visa conditions and departure obligation",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Explain visa conditions and departure obligation"
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to post-approval step?",
+      "options": [
+        "Remind no-work rule",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Remind no-work rule"
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during post-approval step?",
+      "options": [
+        "Advise travel insurance",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Advise travel insurance"
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for Sample passport bio page (mock):",
+      "options": [
+        "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Show clients which pages to scan — MRZ visible, no glare, full spread."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to Sample bank statement (mock)?",
+      "options": [
+        "6-month statement with name, account number, and closing balance — explain seasoning.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "6-month statement with name, account number, and closing balance — explain seasoning."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during Sample invitation / sponsor letter (mock)?",
+      "options": [
+        "Host details, relationship, accommodation, and duration of stay.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host details, relationship, accommodation, and duration of stay."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for Sample travel itinerary (mock):",
+      "options": [
+        "Flights, hotels, and day-wise plan for visitor visa credibility.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Flights, hotels, and day-wise plan for visitor visa credibility."
+    },
+    {
+      "level": 2,
+      "question": "In the New Zealand – Visitor Visa process, what is the correct approach to Sample employment / NOC letter (mock)?",
+      "options": [
+        "Employer letter confirming leave, role, salary, and return to India.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employer letter confirming leave, role, salary, and return to India."
+    },
+    {
+      "level": 2,
+      "question": "For New Zealand – Visitor Visa, what should happen during Sample property / ties document (mock)?",
+      "options": [
+        "Sale deed or tax receipt — explain home-country ties.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sale deed or tax receipt — explain home-country ties."
+    },
+    {
+      "level": 2,
+      "question": "New Zealand – Visitor Visa workflow — best practice for recommended practice:",
+      "options": [
+        "Document strong India ties",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Document strong India ties"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with Weak ties to India?",
+      "options": [
+        "Employment letter, business, property, family proof",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "No employment, assets, or family obligations."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with Weak ties to India (detail):",
+      "options": [
+        "No employment, assets, or family obligations.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment letter, business, property, family proof"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to Insufficient funds:",
+      "options": [
+        "Bank history, ITR, sponsor letter",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cannot credibly fund trip."
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with Insufficient funds (detail)?",
+      "options": [
+        "Cannot credibly fund trip.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Bank history, ITR, sponsor letter"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with Vague purpose:",
+      "options": [
+        "Detailed itinerary; realistic duration",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unclear itinerary or long stay without reason."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to Vague purpose (detail):",
+      "options": [
+        "Unclear itinerary or long stay without reason.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Detailed itinerary; realistic duration"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with Prior refusals hidden?",
+      "options": [
+        "Disclose and explain changes",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "NZ or other refusals not disclosed."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with Prior refusals hidden (detail):",
+      "options": [
+        "NZ or other refusals not disclosed.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Disclose and explain changes"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to Generic cover letter:",
+      "options": [
+        "Personalised statement with dates and ties",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Template not matching profile."
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with Generic cover letter (detail)?",
+      "options": [
+        "Template not matching profile.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Personalised statement with dates and ties"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with Health issues undisclosed:",
+      "options": [
+        "Honest health disclosure per INZ form",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical conditions not declared."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to Health issues undisclosed (detail):",
+      "options": [
+        "Medical conditions not declared.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Honest health disclosure per INZ form"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with counselor don't?",
+      "options": [
+        "Do not guarantee approval",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not guarantee approval"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with counselor don't:",
+      "options": [
+        "Do not advise working in NZ",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not advise working in NZ"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to counselor don't:",
+      "options": [
+        "Do not hide refusals",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not hide refusals"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to common mistake:",
+      "options": [
+        "Unemployed with no ties",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Unemployed with no ties"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with common mistake?",
+      "options": [
+        "Large unexplained deposits",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Large unexplained deposits"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with common mistake:",
+      "options": [
+        "Missing host invitation for family visit",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Avoid: Missing host invitation for family visit"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with compliance rule:",
+      "options": [
+        "Client service agreement and consent must be on file before submission",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Client service agreement and consent must be on file before submission"
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to compliance rule:",
+      "options": [
+        "Never guarantee visa or immigration approval; use approved-language only",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Never guarantee visa or immigration approval; use approved-language only"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with compliance rule?",
+      "options": [
+        "Fee quotes must separate consultancy, government, and third-party costs",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Fee quotes must separate consultancy, government, and third-party costs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with refusal handling:",
+      "options": [
+        "After refusal, strengthen ties evidence before reapplication.",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "After refusal, strengthen ties evidence before reapplication."
+    },
+    {
+      "level": 3,
+      "question": "For New Zealand – Visitor Visa, counselors must avoid this mistake related to Our rate vs industry:",
+      "options": [
+        "Our target: 73% vs benchmark 61%",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Our rate vs industry"
+    },
+    {
+      "level": 3,
+      "question": "New Zealand – Visitor Visa: what is the compliance risk with Ties docs?",
+      "options": [
+        "Our target: 70% vs benchmark 54%",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Ties docs"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on New Zealand – Visitor Visa — key issue with Cover letter:",
+      "options": [
+        "Our target: 75% vs benchmark 57%",
+        "Visitor visa for tourism, visiting family/friends, or short business visits to New Zealand. Applied online via Immigration NZ.",
+        "Temporary visit purpose · Funds for trip · Strong ties to India · Health and character requirements",
+        "Visitors cannot work or study long courses. Short recreational study may be permitted—verify rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cover letter"
     }
   ],
   "donts": {
