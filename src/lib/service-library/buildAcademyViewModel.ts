@@ -73,6 +73,7 @@ export type AcademyViewModel = {
     options: string[];
     correctIndex: number;
     explanation?: string;
+    level?: 1 | 2 | 3;
   }[];
   internalNotes: { author: string; date: string; text: string }[];
   changelog: { version: string; date: string; author: string; summary: string }[];

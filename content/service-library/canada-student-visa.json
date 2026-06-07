@@ -1,7 +1,7 @@
 {
-  "displayName": "Canada – Student Visa (Study Permit)",
+  "displayName": "Canada – Student Visa (Study Permit — Outside Canada)",
   "shortDescription": "IRCC study permit · SDS & Non-SDS pathways · DLI required",
-  "version": "v2.4",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 4 Jun 2026",
@@ -87,7 +87,7 @@
   "about": [
     {
       "label": "Description",
-      "value": "Study permit allowing international students to study at a Designated Learning Institution (DLI) in Canada. Application is typically online via IRCC portal; biometrics and medical may apply."
+      "value": "Study permit allowing international students to study at a Designated Learning Institution (DLI) in Canada. This service is for applicants applying from outside Canada before travel; application is typically online via IRCC portal, and biometrics and medical may apply."
     },
     {
       "label": "Eligible applicants",
@@ -317,6 +317,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Added 75 levelled quiz questions (Level 1–3, 25+ each) and expanded counselor content."
+    },
+    {
       "version": "v2.4",
       "date": "4 Jun 2026",
       "author": "Service Library",
@@ -375,59 +381,904 @@
   ],
   "quiz": [
     {
-      "question": "What must every study permit applicant have from their school?",
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about the basic purpose of a study permit is correct?",
       "options": [
-        "Job offer letter",
-        "Letter of acceptance from a DLI",
-        "Provincial nomination",
-        "LMIA"
+        "A study permit authorizes a foreign national to study at a designated learning institution in Canada.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "A valid LOA from a Designated Learning Institution is mandatory."
+      "correctIndex": 0,
+      "explanation": "The permit is status authorization for studies; it is not the school admission letter itself."
     },
     {
-      "question": "When is SDS typically faster than Non-SDS?",
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about a designated learning institution is correct?",
       "options": [
-        "When client has no language test",
-        "When client meets SDS country, language, GIC, and tuition requirements",
-        "When applying at port of entry only",
-        "When funds are shown for 1 week only"
+        "The school must be a DLI with a valid DLI number for most post-secondary study permit applications.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "SDS has specific eligibility by country of residence."
+      "correctIndex": 0,
+      "explanation": "IRCC normally requires acceptance by a recognized DLI before issuing a study permit."
     },
     {
-      "question": "After a BIL is issued, counselors should urge the client to:",
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about the letter of acceptance is correct?",
       "options": [
-        "Wait until approval",
-        "Book biometrics promptly (often within 30 days)",
-        "Skip biometrics if refused before",
-        "Mail passport without appointment"
+        "A valid LOA from the DLI is core evidence that the applicant has been admitted to a real program.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Late biometrics causes preventable delays."
+      "correctIndex": 0,
+      "explanation": "The LOA anchors the program, start date, school, and study plan reviewed by the officer."
     },
     {
-      "question": "Which is a top red flag for study permit funds?",
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about the study permit processing fee is correct?",
       "options": [
-        "6-month bank history",
-        "Large unexplained recent deposits",
-        "Sponsor ITR with employment letter",
-        "GIC from approved SDS bank"
+        "The standard IRCC study permit application fee is CAD $150, separate from biometrics where required.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Unseasoned deposits weaken credibility."
+      "correctIndex": 0,
+      "explanation": "Fees can change, but CAD $150 is the standard study permit fee and biometrics are charged separately."
     },
     {
-      "question": "Before submission, firm policy requires:",
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about biometrics is correct?",
       "options": [
-        "Guarantee of approval",
-        "Signed checklist and consent where required",
-        "Hiding prior refusals",
-        "Using expired LOA if tuition paid"
+        "Most applicants between 14 and 79 must give biometrics unless an exemption or still-valid biometrics applies.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Compliance: consent, checklist sign-off, honest disclosure."
+      "correctIndex": 0,
+      "explanation": "Biometrics are identity screening evidence and are not the same as a medical exam."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about proof of funds is correct?",
+      "options": [
+        "The applicant must show enough money for tuition, living costs, and travel, using credible documents.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial sufficiency is a central temporary residence requirement for students."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about SDS eligibility is correct?",
+      "options": [
+        "Student Direct Stream is available only to residents of specified countries who meet strict upfront evidence requirements.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS is a faster stream, not a universal right for every study permit applicant."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about non-SDS applications is correct?",
+      "options": [
+        "Non-SDS applications can still be approved if the applicant satisfies the officer on funds, purpose, and admissibility.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Non-SDS is the regular route and does not mean the application is weak by default."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about a port of entry letter is correct?",
+      "options": [
+        "A POE letter of introduction is an approval letter used to obtain the actual study permit when entering Canada.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The POE letter is not itself the permit; the border officer issues the permit document."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about TRV or eTA after approval is correct?",
+      "options": [
+        "If required, IRCC normally issues or facilitates the entry document after approving the study permit.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The study permit approval and entry document work together but serve different purposes."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about Quebec studies is correct?",
+      "options": [
+        "Most students studying in Quebec need a CAQ before IRCC can finalize the study permit.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Quebec has an additional provincial acceptance step for many international students."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about provincial or territorial attestation is correct?",
+      "options": [
+        "Many post-secondary applicants need a PAL or TAL unless an IRCC exemption applies.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The attestation supports allocation under Canada's study permit intake controls."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about passport validity is correct?",
+      "options": [
+        "A study permit cannot normally be issued beyond the passport expiry date.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport validity can shorten the permit even when the program is longer."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about temporary resident intent is correct?",
+      "options": [
+        "The applicant must satisfy IRCC they will leave Canada when authorized stay ends, even if they may later seek PR.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dual intent is allowed, but the temporary plan must still be credible."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about medical exams is correct?",
+      "options": [
+        "A medical exam may be required based on country of residence, program, work in health settings, or IRCC instructions.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical requirements are tied to admissibility and public health screening."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about custodianship for minors is correct?",
+      "options": [
+        "Minor students may need a custodian declaration depending on age, province, and living arrangements.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC assesses whether a minor will have proper care and support in Canada."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about work while studying is correct?",
+      "options": [
+        "Eligible full-time students at participating DLIs may work only within the conditions printed or implied by IRCC rules.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Work authorization is conditional and does not apply to every student or program."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about program credibility is correct?",
+      "options": [
+        "The chosen program should make sense against the applicant's education, employment, and future plans.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers assess whether the study plan appears genuine and logical."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about family members is correct?",
+      "options": [
+        "Spouses or children can apply with the student, but each person must qualify for their own temporary resident document.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accompanying family does not remove the student's burden to prove eligibility."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about misrepresentation is correct?",
+      "options": [
+        "False documents or withheld refusals can cause refusal and a five-year inadmissibility finding.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Accuracy is essential because IRCC cross-checks records and documents."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about language evidence is correct?",
+      "options": [
+        "Language test results may be required by the school or stream, and can also support study readiness.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Language evidence helps show the applicant can realistically complete the program."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about tuition payment is correct?",
+      "options": [
+        "Tuition receipts are useful financial evidence, especially for SDS, but they do not guarantee approval.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Payment supports seriousness and funding, while the officer still reviews all criteria."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about GIC evidence is correct?",
+      "options": [
+        "A Guaranteed Investment Certificate is a common SDS financial requirement for eligible applicants.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The GIC shows available living funds under SDS but does not replace every other eligibility requirement."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about admissibility is correct?",
+      "options": [
+        "Criminality, medical issues, security concerns, or prior immigration breaches can make a student inadmissible.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study permit eligibility includes both program-related and admissibility screening."
+    },
+    {
+      "level": 1,
+      "question": "In a study permit application made from outside Canada, which statement about final permit issuance is correct?",
+      "options": [
+        "The final study permit document is usually printed by CBSA at the port of entry for outside-Canada approvals.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should inspect the printed permit for correct school, work, and expiry conditions."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about creating the online application?",
+      "options": [
+        "The applicant normally submits the study permit package through an IRCC secure account or portal with digital forms and uploads.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Online submission creates the file, document checklist, fee payment, and message channel."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about IMM 1294?",
+      "options": [
+        "IMM 1294 is the main application form for a study permit made outside Canada.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "The form captures identity, education, intended study, background, and family information."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about family information form?",
+      "options": [
+        "IMM 5707 or IMM 5645 may be required depending on the applicant's country-specific checklist.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC uses family details for identity, background, and consistency checks."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about country-specific instructions?",
+      "options": [
+        "The visa office checklist can require extra documents such as police certificates, education records, or civil documents.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "A complete application follows both general IRCC requirements and local instructions."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about biometrics timing?",
+      "options": [
+        "After paying the biometrics fee, IRCC issues a biometrics instruction letter and the applicant books a VAC appointment.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Biometrics are normally given after the instruction letter, not before the application exists."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about upfront medicals?",
+      "options": [
+        "If an upfront medical is used, the applicant uploads the information sheet from a panel physician.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Only IRCC panel physician exams are accepted for immigration medical purposes."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about SDS document sequence?",
+      "options": [
+        "SDS files usually include upfront tuition payment, GIC, language results, and often upfront medical evidence where required.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS depends on complete upfront evidence for streamlined processing."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about proof of tuition?",
+      "options": [
+        "Receipts or school account statements should clearly show amounts paid, program, and student identity.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Unclear payment proof can weaken the funds assessment."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about bank statements?",
+      "options": [
+        "Statements should be recent, traceable, and consistent with the applicant's claimed source of funds.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Large unexplained deposits are often scrutinized for genuineness."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about sponsor documents?",
+      "options": [
+        "A sponsor package should connect the sponsor to the applicant and show income, assets, and willingness to pay.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers need both capacity and credible commitment from a financial sponsor."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about statement of purpose?",
+      "options": [
+        "A study plan should explain why the program, school, Canada, timing, and return plan make sense.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "A strong SOP addresses the officer's core concerns without contradicting the forms."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about education history?",
+      "options": [
+        "Transcripts, diplomas, and resumes should match the program level and career progression claimed.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Consistency between past studies and proposed studies supports genuineness."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about employment evidence?",
+      "options": [
+        "Employment letters, pay slips, or business records can explain career context and ties to the home country.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Work history can show why the Canadian program is a rational next step."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about travel history?",
+      "options": [
+        "Prior lawful travel can help but is not required; undisclosed refusals or overstays are serious problems.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Travel history is weighed with the full temporary resident assessment."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about police certificates?",
+      "options": [
+        "Police certificates are provided when requested by IRCC or the visa office checklist.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "They are part of admissibility screening, not a substitute for biometrics."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about translation requirements?",
+      "options": [
+        "Documents not in English or French generally need certified translations and copies of the original documents.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC must be able to verify and understand every submitted record."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about submission after refusal?",
+      "options": [
+        "A new application should address the refusal reasons with stronger evidence rather than simply resubmitting the same package.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers can see prior refusals and expect material improvements."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about processing times?",
+      "options": [
+        "Published processing times are estimates and do not guarantee a decision before the program start date.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should plan for delays and update IRCC if intake dates change."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about deferred admission?",
+      "options": [
+        "If the start date changes, the applicant should provide a deferral or updated LOA through the proper channel.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "A stale LOA can raise concerns about whether the study plan remains valid."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about passport request?",
+      "options": [
+        "A passport request usually means IRCC needs the passport to place a visa counterfoil where one is required.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "It is a late-stage step but applicants should still follow instructions carefully."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about approval package?",
+      "options": [
+        "The approval package may include a POE letter and, for visa-required nationals, a TRV counterfoil.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "The actual study permit is issued at entry, so the approval documents must be carried."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about entering Canada?",
+      "options": [
+        "At the port of entry, the applicant should carry the POE letter, LOA, funds evidence, and updated school documents.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "CBSA may ask whether the applicant still meets the study permit conditions."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about changing DLIs?",
+      "options": [
+        "Post-secondary students must follow IRCC rules for changing schools and ensure the new school is a DLI.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "School changes can affect compliance reporting and future applications."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about dependant applications?",
+      "options": [
+        "Family member forms and evidence should be submitted consistently with the student's plan and finances.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "A family package is reviewed for each person's purpose, funds, and admissibility."
+    },
+    {
+      "level": 2,
+      "question": "For a study permit application made from outside Canada, what is the correct process point about client information uploads?",
+      "options": [
+        "Optional client information uploads should be organized, labelled, and used to clarify evidence that does not fit elsewhere.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "A clear upload helps the officer review the file efficiently."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with a program that repeats prior education?",
+      "options": [
+        "The officer may doubt purpose if the applicant cannot explain why a similar or lower-level program is necessary now.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study progression should be credible and tied to realistic goals."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with large unexplained deposits?",
+      "options": [
+        "The officer may treat sudden funds as borrowed or temporary unless the source is documented.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds must be available, traceable, and credible for the study period."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with weak home-country ties?",
+      "options": [
+        "The officer may refuse if employment, family, assets, or career prospects do not support departure after studies.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary intent is assessed alongside the applicant's personal circumstances."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with generic statement of purpose?",
+      "options": [
+        "A template SOP can undermine credibility because it fails to connect the program to the applicant's real background.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers look for a coherent, individualized rationale."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with undisclosed visa refusals?",
+      "options": [
+        "Failure to disclose prior refusals can become misrepresentation even if the study plan is otherwise strong.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC asks about prior refusals and can compare records across countries."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with questionable DLI or program choice?",
+      "options": [
+        "A low-detail or inconsistent school choice can make the officer question whether the applicant is a genuine student.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The applicant should show why that DLI and program fit their goals."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with late application close to intake?",
+      "options": [
+        "A rushed application may be refused or become impractical if processing cannot finish before the start date.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Timing is not an eligibility rule by itself, but it affects credibility and logistics."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with family remaining in Canada after refusal?",
+      "options": [
+        "If accompanying family plans are unclear, the officer may worry the study plan is mainly a migration strategy.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Family circumstances must be explained consistently with temporary residence obligations."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with inconsistent employment dates?",
+      "options": [
+        "Conflicting resumes, forms, and letters can damage credibility and invite deeper verification.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Consistency across documents is essential in discretionary temporary resident decisions."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with unverified sponsor income?",
+      "options": [
+        "A sponsor with unclear income may not satisfy the officer that funds are truly available for tuition and living costs.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sponsor evidence should show lawful source, liquidity, and relationship."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with course mismatch with career goals?",
+      "options": [
+        "The officer may ask why the applicant needs a Canadian credential if the program does not advance their stated career.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "A persuasive file links studies to a plausible future benefit."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with poor academic performance?",
+      "options": [
+        "Weak grades are not an automatic refusal, but the applicant should show readiness for the proposed program.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Academic history can affect whether the study plan appears realistic."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with language weakness?",
+      "options": [
+        "If language evidence is weak for the program, the officer may doubt the applicant can complete studies successfully.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Language readiness supports both admission and genuine student assessment."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with using agents and false documents?",
+      "options": [
+        "Documents remain the applicant's responsibility even if an agent prepared the file.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Misrepresentation findings can apply when the applicant signs or submits false information."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with expired passport before program end?",
+      "options": [
+        "The permit may be shortened, creating future extension risk and avoidable administrative problems.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport validity should align with the expected study period where possible."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with missing PAL or TAL?",
+      "options": [
+        "If no exemption applies, missing attestation can make the application incomplete or ineligible for processing.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Attestation requirements are a threshold issue for many post-secondary applicants."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with SDS evidence not meeting SDS rules?",
+      "options": [
+        "A file labelled SDS without required proof may be processed outside SDS or refused if core requirements are missing.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "SDS speed depends on strict upfront compliance."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with dual intent handled poorly?",
+      "options": [
+        "Saying the applicant will never leave Canada can undermine the temporary resident requirement.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dual intent must still include a credible plan to comply if PR is not granted."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with prior overstay or non-compliance?",
+      "options": [
+        "Past breaches can weigh heavily against future compliance unless clearly explained and resolved.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers assess whether the applicant will obey Canadian immigration conditions."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with unrealistic living-cost budget?",
+      "options": [
+        "Funds that barely cover tuition and ignore rent, food, insurance, and travel may fail the sufficiency test.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC expects a realistic financial plan for the whole stay."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with medical inadmissibility concerns?",
+      "options": [
+        "Medical results can delay or affect approval if they raise public health or excessive demand issues.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study permit decisions include admissibility, not only school acceptance."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with changed program after approval?",
+      "options": [
+        "A major change at entry can trigger questions about whether the approval basis still exists.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The applicant should carry updated documents and comply with school-change rules."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with work being the real purpose?",
+      "options": [
+        "If the file emphasizes wages over education, the officer may doubt the applicant is a bona fide student.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Study permits are for study first, with work only as a conditional benefit."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with documents that cannot be verified?",
+      "options": [
+        "Unverifiable employment, bank, or school records can lead to refusal or procedural fairness concerns.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Authenticity is a core officer concern in high-volume temporary resident processing."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a study permit application made from outside Canada: what is the key issue with port of entry inconsistencies?",
+      "options": [
+        "A different story at the airport can cause CBSA to question admissibility or decline to issue the permit.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The approval letter does not remove the need to satisfy entry examination."
     }
   ],
   "sampleDocs": [

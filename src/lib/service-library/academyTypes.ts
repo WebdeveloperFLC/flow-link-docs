@@ -45,6 +45,8 @@ export type ServiceAcademyMetadata = {
     options: string[];
     correctIndex: number;
     explanation?: string;
+    /** 1 = fundamentals, 2 = process & documents, 3 = advanced / compliance */
+    level?: 1 | 2 | 3;
   }[];
   navBucket?: "visa" | "immigration";
   /** Mock / sample documents counselors can show clients (Sample docs tab). */
