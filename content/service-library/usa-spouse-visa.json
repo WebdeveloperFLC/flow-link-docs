@@ -17,58 +17,205 @@
     "body": "K-1 (fiancé, marry in US) vs CR-1/IR-1 (already married, immigrant visa) have different timelines and steps. Counsel correctly before petition filing."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "Multi-stage process", "variant": "warning" },
-    { "label": "12–24 months", "variant": "neutral" },
-    { "label": "USCIS + NVC + Embassy", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Multi-stage process",
+      "variant": "warning"
+    },
+    {
+      "label": "12–24 months",
+      "variant": "neutral"
+    },
+    {
+      "label": "USCIS + NVC + Embassy",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "12–24 months total", "variant": "neutral" },
-    { "label": "I-130 or I-129F", "variant": "neutral" },
-    { "label": "Relationship evidence", "variant": "warning" },
-    { "label": "Embassy interview", "variant": "success" }
+    {
+      "label": "12–24 months total",
+      "variant": "neutral"
+    },
+    {
+      "label": "I-130 or I-129F",
+      "variant": "neutral"
+    },
+    {
+      "label": "Relationship evidence",
+      "variant": "warning"
+    },
+    {
+      "label": "Embassy interview",
+      "variant": "success"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "12–24m", "sub": "USCIS + NVC + embassy", "tone": "primary" },
-    { "label": "Government fee", "value": "USD $1,000+", "sub": "Petition + NVC + medical", "tone": "warning" },
-    { "label": "Our approval rate", "value": "88%", "sub": "~78% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "20", "sub": "+ civil documents", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & medical", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "12–24m",
+      "sub": "USCIS + NVC + embassy",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "USD $1,000+",
+      "sub": "Petition + NVC + medical",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "88%",
+      "sub": "~78% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "20",
+      "sub": "+ civil documents",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & medical",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Family-based immigration for foreign spouse or fiancé of US citizen. CR-1/IR-1 for married couples (immigrant visa); K-1 for fiancés to marry in US within 90 days of entry." },
-    { "label": "Eligible applicants", "value": "US citizen petitioner · Valid marriage or bona fide engagement · Genuine relationship · Medical and police clearances · Affidavit of support" },
-    { "label": "K-1 vs CR-1/IR-1", "value": "K-1: not yet married, faster initial petition but must marry in US and adjust status. CR-1/IR-1: already married, immigrant visa with conditional PR if marriage under 2 years.", "warning": true },
-    { "label": "Key authority", "value": "USCIS · National Visa Center (NVC) · US Embassy New Delhi/Mumbai/Chennai/Hyderabad/Kolkata" },
-    { "label": "After approval", "value": "Enter US as immigrant (CR-1/IR-1) or K-1 then marry and file I-485. Understand conditional green card rules if applicable." }
+    {
+      "label": "Description",
+      "value": "Family-based immigration for foreign spouse or fiancé of US citizen. CR-1/IR-1 for married couples (immigrant visa); K-1 for fiancés to marry in US within 90 days of entry."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "US citizen petitioner · Valid marriage or bona fide engagement · Genuine relationship · Medical and police clearances · Affidavit of support"
+    },
+    {
+      "label": "K-1 vs CR-1/IR-1",
+      "value": "K-1: not yet married, faster initial petition but must marry in US and adjust status. CR-1/IR-1: already married, immigrant visa with conditional PR if marriage under 2 years.",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "USCIS · National Visa Center (NVC) · US Embassy New Delhi/Mumbai/Chennai/Hyderabad/Kolkata"
+    },
+    {
+      "label": "After approval",
+      "value": "Enter US as immigrant (CR-1/IR-1) or K-1 then marry and file I-485. Understand conditional green card rules if applicable."
+    }
   ],
   "eligibility": [
-    { "criterion": "US citizen petitioner (not green card holder for K-1)", "met": true, "note": "LPR sponsors spouse via different family preference—confirm category" },
-    { "criterion": "Legally valid marriage or qualifying engagement", "met": true, "note": "Marriage cert or proof of meeting in person within 2 years for K-1" },
-    { "criterion": "Genuine relationship evidence", "met": true, "note": "Photos, communication, visits, joint plans" },
-    { "criterion": "I-864 affidavit of support", "met": false, "note": "Petitioner income 125% poverty guideline or joint sponsor" },
-    { "criterion": "Civil documents (birth, marriage, police)", "met": false, "note": "NVC document collection phase" },
-    { "criterion": "Medical exam by panel physician", "met": false, "note": "Before embassy interview" },
-    { "criterion": "DS-260 and embassy interview", "met": false, "note": "Final stage before visa issuance" }
+    {
+      "criterion": "US citizen petitioner (not green card holder for K-1)",
+      "met": true,
+      "note": "LPR sponsors spouse via different family preference—confirm category"
+    },
+    {
+      "criterion": "Legally valid marriage or qualifying engagement",
+      "met": true,
+      "note": "Marriage cert or proof of meeting in person within 2 years for K-1"
+    },
+    {
+      "criterion": "Genuine relationship evidence",
+      "met": true,
+      "note": "Photos, communication, visits, joint plans"
+    },
+    {
+      "criterion": "I-864 affidavit of support",
+      "met": false,
+      "note": "Petitioner income 125% poverty guideline or joint sponsor"
+    },
+    {
+      "criterion": "Civil documents (birth, marriage, police)",
+      "met": false,
+      "note": "NVC document collection phase"
+    },
+    {
+      "criterion": "Medical exam by panel physician",
+      "met": false,
+      "note": "Before embassy interview"
+    },
+    {
+      "criterion": "DS-260 and embassy interview",
+      "met": false,
+      "note": "Final stage before visa issuance"
+    }
   ],
   "redFlagsBanner": "If denied at embassy for relationship concerns, do not refile without addressing specific concerns and strengthening evidence.",
   "redFlags": [
-    { "title": "Bona fide relationship not credible", "description": "Minimal contact history, large age gap unexplained, or marriage soon after online-only relationship.", "fix": "Document meeting history, visits, communication logs, joint financial plans", "severity": "Very common" },
-    { "title": "Insufficient I-864 income", "description": "Petitioner income below 125% poverty line without joint sponsor.", "fix": "Joint sponsor with tax returns, or petitioner additional evidence of assets", "severity": "Common" },
-    { "title": "Wrong pathway chosen", "description": "K-1 filed when already married, or CR-1 when not yet married.", "fix": "Reassess marital status and timeline before petition", "severity": "High" },
-    { "title": "Incomplete civil documents", "description": "Missing divorce decrees, name change proof, or police certificates.", "fix": "NVC checklist review; obtain certified translations", "severity": "Common" },
-    { "title": "Prior immigration violations", "description": "Overstay, misrepresentation, or prior visa refusals not disclosed.", "fix": "Full disclosure; consult on waivers if needed", "severity": "High" },
-    { "title": "Public charge or medical inadmissibility", "description": "Medical exam findings or insufficient support without explanation.", "fix": "Complete medical early; secure joint sponsor if income weak", "severity": "Medium" }
+    {
+      "title": "Bona fide relationship not credible",
+      "description": "Minimal contact history, large age gap unexplained, or marriage soon after online-only relationship.",
+      "fix": "Document meeting history, visits, communication logs, joint financial plans",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient I-864 income",
+      "description": "Petitioner income below 125% poverty line without joint sponsor.",
+      "fix": "Joint sponsor with tax returns, or petitioner additional evidence of assets",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong pathway chosen",
+      "description": "K-1 filed when already married, or CR-1 when not yet married.",
+      "fix": "Reassess marital status and timeline before petition",
+      "severity": "High"
+    },
+    {
+      "title": "Incomplete civil documents",
+      "description": "Missing divorce decrees, name change proof, or police certificates.",
+      "fix": "NVC checklist review; obtain certified translations",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior immigration violations",
+      "description": "Overstay, misrepresentation, or prior visa refusals not disclosed.",
+      "fix": "Full disclosure; consult on waivers if needed",
+      "severity": "High"
+    },
+    {
+      "title": "Public charge or medical inadmissibility",
+      "description": "Medical exam findings or insufficient support without explanation.",
+      "fix": "Complete medical early; secure joint sponsor if income weak",
+      "severity": "Medium"
+    }
   ],
   "faqs": [
-    { "q": "K-1 or CR-1—which is better?", "a": "Depends on whether couple is already married and timeline preferences. CR-1/IR-1 grants immigrant visa directly; K-1 requires marriage in US then adjustment. No universal 'better'—assess case." },
-    { "q": "Can we guarantee approval?", "a": "No. USCIS, NVC, and embassy each review. Genuine relationships can still face delays or requests for evidence." },
-    { "q": "How long total process?", "a": "Often 12–24 months depending on pathway, service center, and embassy backlog. Check current processing times on uscis.gov." },
-    { "q": "Can fiancé work on K-1?", "a": "K-1 must marry within 90 days and file for work authorisation through adjustment of status—cannot work immediately on entry." },
-    { "q": "What is conditional green card?", "a": "If marriage under 2 years at entry, CR-1 recipient gets 2-year conditional card; must file I-751 to remove conditions." },
-    { "q": "Is joint sponsor allowed?", "a": "Yes, when petitioner income insufficient for I-864. Joint sponsor must meet income requirements and submit tax returns." },
-    { "q": "What if petitioner was previously married?", "a": "Must provide divorce decrees or death certificates for all prior marriages—both petitioner and beneficiary." },
-    { "q": "Can beneficiary visit on B2 during processing?", "a": "Risky—214(b) applies and immigrant intent can cause B2 refusal. Counsel honestly on risks." }
+    {
+      "q": "K-1 or CR-1—which is better?",
+      "a": "Depends on whether couple is already married and timeline preferences. CR-1/IR-1 grants immigrant visa directly; K-1 requires marriage in US then adjustment. No universal 'better'—assess case."
+    },
+    {
+      "q": "Can we guarantee approval?",
+      "a": "No. USCIS, NVC, and embassy each review. Genuine relationships can still face delays or requests for evidence."
+    },
+    {
+      "q": "How long total process?",
+      "a": "Often 12–24 months depending on pathway, service center, and embassy backlog. Check current processing times on uscis.gov."
+    },
+    {
+      "q": "Can fiancé work on K-1?",
+      "a": "K-1 must marry within 90 days and file for work authorisation through adjustment of status—cannot work immediately on entry."
+    },
+    {
+      "q": "What is conditional green card?",
+      "a": "If marriage under 2 years at entry, CR-1 recipient gets 2-year conditional card; must file I-751 to remove conditions."
+    },
+    {
+      "q": "Is joint sponsor allowed?",
+      "a": "Yes, when petitioner income insufficient for I-864. Joint sponsor must meet income requirements and submit tax returns."
+    },
+    {
+      "q": "What if petitioner was previously married?",
+      "a": "Must provide divorce decrees or death certificates for all prior marriages—both petitioner and beneficiary."
+    },
+    {
+      "q": "Can beneficiary visit on B2 during processing?",
+      "a": "Risky—214(b) applies and immigrant intent can cause B2 refusal. Counsel honestly on risks."
+    }
   ],
   "compliance": [
     "Complex immigration petitions may require licensed US immigration attorney—refer when appropriate",
@@ -93,50 +240,185 @@
     "ourRate": 88,
     "industryRate": 78,
     "stats": [
-      { "label": "Files this year", "value": "34" },
-      { "label": "Approved", "value": "30" },
-      { "label": "Refused", "value": "2" },
-      { "label": "Withdrawn", "value": "2" }
+      {
+        "label": "Files this year",
+        "value": "34"
+      },
+      {
+        "label": "Approved",
+        "value": "30"
+      },
+      {
+        "label": "Refused",
+        "value": "2"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "2"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 88, "benchmark": 78 },
-    { "label": "Relationship evidence", "ours": 85, "benchmark": 70 },
-    { "label": "NVC document completeness", "ours": 91, "benchmark": 75 },
-    { "label": "I-864 compliance", "ours": 89, "benchmark": 72 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 88,
+      "benchmark": 78
+    },
+    {
+      "label": "Relationship evidence",
+      "ours": 85,
+      "benchmark": 70
+    },
+    {
+      "label": "NVC document completeness",
+      "ours": 91,
+      "benchmark": 75
+    },
+    {
+      "label": "I-864 compliance",
+      "ours": 89,
+      "benchmark": 72
+    }
   ],
   "timeline": [
-    { "weeks": "1–2", "title": "Pathway selection, eligibility, fee agreement" },
-    { "weeks": "2–8", "title": "Petition preparation and USCIS filing (I-130/I-129F)" },
-    { "weeks": "6–12m", "title": "USCIS petition approval (varies)" },
-    { "weeks": "12–18m", "title": "NVC document collection and review" },
-    { "weeks": "18–24m", "title": "Medical, interview, visa issuance" }
+    {
+      "weeks": "1–2",
+      "title": "Pathway selection, eligibility, fee agreement"
+    },
+    {
+      "weeks": "2–8",
+      "title": "Petition preparation and USCIS filing (I-130/I-129F)"
+    },
+    {
+      "weeks": "6–12m",
+      "title": "USCIS petition approval (varies)"
+    },
+    {
+      "weeks": "12–18m",
+      "title": "NVC document collection and review"
+    },
+    {
+      "weeks": "18–24m",
+      "title": "Medical, interview, visa issuance"
+    }
   ],
   "relatedServices": [
-    { "label": "USA – Green Card", "libraryId": "" },
-    { "label": "USA – Visitor Visa (B1/B2)", "libraryId": "" },
-    { "label": "USA – Student Visa (F-1)", "libraryId": "" }
+    {
+      "label": "USA – Green Card",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Visitor Visa (B1/B2)",
+      "libraryId": ""
+    },
+    {
+      "label": "USA – Student Visa (F-1)",
+      "libraryId": ""
+    }
   ],
   "changelog": [
-    { "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial spouse/fiancé visa counselor content for US family immigration." }
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial spouse/fiancé visa counselor content for US family immigration."
+    }
   ],
   "staffNotes": [
-    { "author": "Documentation team", "date": "6 Jun 2026", "text": "Always confirm whether couple is legally married before choosing I-130 vs I-129F—errors require refiling." },
-    { "author": "Quality", "date": "6 Jun 2026", "text": "I-864 income check mandatory at intake before petition fee collection." }
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "Always confirm whether couple is legally married before choosing I-130 vs I-129F—errors require refiling."
+    },
+    {
+      "author": "Quality",
+      "date": "6 Jun 2026",
+      "text": "I-864 income check mandatory at intake before petition fee collection."
+    }
   ],
   "resources": [
-    { "title": "USCIS — Family of US citizens", "url": "https://www.uscis.gov/family/family-of-us-citizens", "description": "Official family immigration overview" },
-    { "title": "USCIS — I-130 petition", "url": "https://www.uscis.gov/i-130", "description": "Petition for alien relative" },
-    { "title": "USCIS — I-129F fiancé petition", "url": "https://www.uscis.gov/i-129f", "description": "K-1 fiancé visa petition" },
-    { "title": "US State Dept — Immigrant visas", "url": "https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process.html", "description": "NVC and embassy process" },
-    { "title": "USCIS — Processing times", "url": "https://egov.uscis.gov/processing-times/", "description": "Current USCIS processing estimates" }
+    {
+      "title": "USCIS — Family of US citizens",
+      "url": "https://www.uscis.gov/family/family-of-us-citizens",
+      "description": "Official family immigration overview"
+    },
+    {
+      "title": "USCIS — I-130 petition",
+      "url": "https://www.uscis.gov/i-130",
+      "description": "Petition for alien relative"
+    },
+    {
+      "title": "USCIS — I-129F fiancé petition",
+      "url": "https://www.uscis.gov/i-129f",
+      "description": "K-1 fiancé visa petition"
+    },
+    {
+      "title": "US State Dept — Immigrant visas",
+      "url": "https://travel.state.gov/content/travel/en/us-visas/immigrate/the-immigrant-visa-process.html",
+      "description": "NVC and embassy process"
+    },
+    {
+      "title": "USCIS — Processing times",
+      "url": "https://egov.uscis.gov/processing-times/",
+      "description": "Current USCIS processing estimates"
+    }
   ],
   "quiz": [
-    { "question": "K-1 visa is for:", "options": ["Married couples only", "Fiancés to marry in US within 90 days", "Students", "Workers"], "correctIndex": 1, "explanation": "K-1 is fiancé visa; marriage must occur in US within 90 days." },
-    { "question": "CR-1/IR-1 is for:", "options": ["Engaged couples only", "Already married spouses of US citizens", "Tourists", "Employers"], "correctIndex": 1, "explanation": "Immigrant visa for foreign spouse of US citizen." },
-    { "question": "I-864 affidavit requires petitioner income generally at:", "options": ["50% poverty line", "125% of poverty guideline", "No minimum", "USD $1 million"], "correctIndex": 1, "explanation": "Standard financial sponsorship threshold." },
-    { "question": "Can counselors guarantee spouse visa approval?", "options": ["Yes", "No, never", "Only for K-1", "Only if married 10 years"], "correctIndex": 1, "explanation": "Multi-stage review; no guarantees permitted." },
-    { "question": "After K-1 entry, beneficiary must:", "options": ["Leave immediately", "Marry petitioner within 90 days", "Start work without permit", "Skip medical exam"], "correctIndex": 1, "explanation": "K-1 condition is marriage within 90 days of US entry." }
+    {
+      "question": "K-1 visa is for:",
+      "options": [
+        "Married couples only",
+        "Fiancés to marry in US within 90 days",
+        "Students",
+        "Workers"
+      ],
+      "correctIndex": 1,
+      "explanation": "K-1 is fiancé visa; marriage must occur in US within 90 days."
+    },
+    {
+      "question": "CR-1/IR-1 is for:",
+      "options": [
+        "Engaged couples only",
+        "Already married spouses of US citizens",
+        "Tourists",
+        "Employers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Immigrant visa for foreign spouse of US citizen."
+    },
+    {
+      "question": "I-864 affidavit requires petitioner income generally at:",
+      "options": [
+        "50% poverty line",
+        "125% of poverty guideline",
+        "No minimum",
+        "USD $1 million"
+      ],
+      "correctIndex": 1,
+      "explanation": "Standard financial sponsorship threshold."
+    },
+    {
+      "question": "Can counselors guarantee spouse visa approval?",
+      "options": [
+        "Yes",
+        "No, never",
+        "Only for K-1",
+        "Only if married 10 years"
+      ],
+      "correctIndex": 1,
+      "explanation": "Multi-stage review; no guarantees permitted."
+    },
+    {
+      "question": "After K-1 entry, beneficiary must:",
+      "options": [
+        "Leave immediately",
+        "Marry petitioner within 90 days",
+        "Start work without permit",
+        "Skip medical exam"
+      ],
+      "correctIndex": 1,
+      "explanation": "K-1 condition is marriage within 90 days of US entry."
+    }
   ],
   "donts": {
     "dos": [
@@ -160,5 +442,44 @@
       "Wrong embassy document format at NVC stage",
       "Beneficiary unprepared for interview relationship timeline"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample marriage certificate (mock)",
+      "description": "Registered marriage proof — explain translation and notarization if needed.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample relationship timeline & photos guide (mock)",
+      "description": "Collage layout for chat logs, travel photos, and ceremony pictures.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample sponsor / undertaking letter (mock)",
+      "description": "Sponsor income, accommodation, and maintenance commitment.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample chat / communication evidence (mock)",
+      "description": "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+      "mimeType": "image/jpeg",
+      "docKind": "relationship"
+    }
+  ],
+  "navBucket": "visa"
 }

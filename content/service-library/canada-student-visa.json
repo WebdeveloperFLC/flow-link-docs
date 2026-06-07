@@ -17,23 +17,72 @@
     "body": "Verify whether SDS is available for the client's country of residence before promising timelines. Use Non-SDS when SDS is paused or ineligible."
   },
   "tags": [
-    { "label": "Active service", "variant": "success" },
-    { "label": "SDS check required", "variant": "warning" },
-    { "label": "8–12 weeks", "variant": "neutral" },
-    { "label": "Online – IRCC", "variant": "neutral" }
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "SDS check required",
+      "variant": "warning"
+    },
+    {
+      "label": "8–12 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – IRCC",
+      "variant": "neutral"
+    }
   ],
   "chips": [
-    { "label": "8–12 weeks processing", "variant": "neutral" },
-    { "label": "Biometrics required", "variant": "neutral" },
-    { "label": "DLI letter mandatory", "variant": "success" },
-    { "label": "GIC if SDS", "variant": "warning" }
+    {
+      "label": "8–12 weeks processing",
+      "variant": "neutral"
+    },
+    {
+      "label": "Biometrics required",
+      "variant": "neutral"
+    },
+    {
+      "label": "DLI letter mandatory",
+      "variant": "success"
+    },
+    {
+      "label": "GIC if SDS",
+      "variant": "warning"
+    }
   ],
   "kpis": [
-    { "label": "Processing time", "value": "8–12w", "sub": "Varies by country & stream", "tone": "primary" },
-    { "label": "Government fee", "value": "CAD $150", "sub": "+ biometrics if applicable", "tone": "warning" },
-    { "label": "Our approval rate", "value": "87%", "sub": "~72% industry benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "14", "sub": "+ conditional items", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & third-party", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "8–12w",
+      "sub": "Varies by country & stream",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "CAD $150",
+      "sub": "+ biometrics if applicable",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "87%",
+      "sub": "~72% industry benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "14",
+      "sub": "+ conditional items",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & third-party",
+      "tone": "primary"
+    }
   ],
   "about": [
     {
@@ -59,13 +108,40 @@
     }
   ],
   "eligibility": [
-    { "criterion": "Letter of acceptance (LOA) from DLI", "met": true, "note": "LOA must be valid and program start date realistic" },
-    { "criterion": "Proof of financial support (tuition + living)", "met": true, "note": "SDS: GIC + tuition payment proof where required" },
-    { "criterion": "Language proficiency (SDS)", "met": false, "note": "IELTS/TOEFL/PTE per SDS country list" },
-    { "criterion": "Biometrics completed", "met": false, "note": "Book within 30 days of BIL if required" },
-    { "criterion": "Medical exam (if required)", "met": false, "note": "Based on residence history and IRCC instructions" },
-    { "criterion": "No criminal / immigration misrepresentation", "met": true },
-    { "criterion": "Genuine student / ties to home country", "met": true, "note": "SOP and career plan must align" }
+    {
+      "criterion": "Letter of acceptance (LOA) from DLI",
+      "met": true,
+      "note": "LOA must be valid and program start date realistic"
+    },
+    {
+      "criterion": "Proof of financial support (tuition + living)",
+      "met": true,
+      "note": "SDS: GIC + tuition payment proof where required"
+    },
+    {
+      "criterion": "Language proficiency (SDS)",
+      "met": false,
+      "note": "IELTS/TOEFL/PTE per SDS country list"
+    },
+    {
+      "criterion": "Biometrics completed",
+      "met": false,
+      "note": "Book within 30 days of BIL if required"
+    },
+    {
+      "criterion": "Medical exam (if required)",
+      "met": false,
+      "note": "Based on residence history and IRCC instructions"
+    },
+    {
+      "criterion": "No criminal / immigration misrepresentation",
+      "met": true
+    },
+    {
+      "criterion": "Genuine student / ties to home country",
+      "met": true,
+      "note": "SOP and career plan must align"
+    }
   ],
   "redFlagsBanner": "If refused, do not reapply with the same weak documents. Address the specific refusal reason in writing before a new submission.",
   "redFlags": [
@@ -163,29 +239,81 @@
     "ourRate": 87,
     "industryRate": 72,
     "stats": [
-      { "label": "Files this year", "value": "143" },
-      { "label": "Approved", "value": "124" },
-      { "label": "Refused", "value": "12" },
-      { "label": "Withdrawn", "value": "7" }
+      {
+        "label": "Files this year",
+        "value": "143"
+      },
+      {
+        "label": "Approved",
+        "value": "124"
+      },
+      {
+        "label": "Refused",
+        "value": "12"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "7"
+      }
     ]
   },
   "approvalFactors": [
-    { "label": "Our rate vs industry", "ours": 87, "benchmark": 72 },
-    { "label": "Financial documentation", "ours": 82, "benchmark": 68 },
-    { "label": "SOP quality", "ours": 79, "benchmark": 65 },
-    { "label": "Complete checklist first submit", "ours": 91, "benchmark": 70 }
+    {
+      "label": "Our rate vs industry",
+      "ours": 87,
+      "benchmark": 72
+    },
+    {
+      "label": "Financial documentation",
+      "ours": 82,
+      "benchmark": 68
+    },
+    {
+      "label": "SOP quality",
+      "ours": 79,
+      "benchmark": 65
+    },
+    {
+      "label": "Complete checklist first submit",
+      "ours": 91,
+      "benchmark": 70
+    }
   ],
   "timeline": [
-    { "weeks": "1–2", "title": "Counseling, LOA review, fee agreement" },
-    { "weeks": "2–4", "title": "Document collection, SOP, financials" },
-    { "weeks": "4–5", "title": "Quality review & IRCC submission" },
-    { "weeks": "5–6", "title": "Biometrics / medical (if applicable)" },
-    { "weeks": "8–12", "title": "IRCC processing (stream-dependent)" }
+    {
+      "weeks": "1–2",
+      "title": "Counseling, LOA review, fee agreement"
+    },
+    {
+      "weeks": "2–4",
+      "title": "Document collection, SOP, financials"
+    },
+    {
+      "weeks": "4–5",
+      "title": "Quality review & IRCC submission"
+    },
+    {
+      "weeks": "5–6",
+      "title": "Biometrics / medical (if applicable)"
+    },
+    {
+      "weeks": "8–12",
+      "title": "IRCC processing (stream-dependent)"
+    }
   ],
   "relatedServices": [
-    { "label": "Canada – PGWP", "libraryId": "" },
-    { "label": "Canada – Visitor Visa", "libraryId": "" },
-    { "label": "Canada – Spouse Open Work Permit", "libraryId": "" }
+    {
+      "label": "Canada – PGWP",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "Canada – Spouse Open Work Permit",
+      "libraryId": ""
+    }
   ],
   "changelog": [
     {
@@ -248,7 +376,12 @@
   "quiz": [
     {
       "question": "What must every study permit applicant have from their school?",
-      "options": ["Job offer letter", "Letter of acceptance from a DLI", "Provincial nomination", "LMIA"],
+      "options": [
+        "Job offer letter",
+        "Letter of acceptance from a DLI",
+        "Provincial nomination",
+        "LMIA"
+      ],
       "correctIndex": 1,
       "explanation": "A valid LOA from a Designated Learning Institution is mandatory."
     },
@@ -299,19 +432,52 @@
   ],
   "sampleDocs": [
     {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample LOA / DLI letter (mock)",
+      "description": "Designated Learning Institution acceptance — program and dates.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
       "title": "Sample GIC certificate (mock)",
-      "description": "Use when explaining SDS financial requirement to clients.",
-      "mimeType": "application/pdf"
+      "description": "SDS financial requirement — approved bank GIC.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
     },
     {
-      "title": "Sample LOA letter (mock)",
-      "description": "Example DLI acceptance format — blur client name before sharing in office.",
-      "mimeType": "application/pdf"
+      "title": "Sample IELTS / PTE TRF (mock)",
+      "description": "Language scores for SDS / Non-SDS discussion.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
     },
     {
-      "title": "Sample IELTS TRF (mock)",
-      "description": "Reference layout when discussing language scores with students.",
-      "mimeType": "image/jpeg"
+      "title": "Sample SOP specimen (mock)",
+      "description": "Structure for genuine student intent — course fit and career plan.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample academic transcripts (mock)",
+      "description": "Marksheets with backlogs explanation guidance.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample sponsor affidavit (mock)",
+      "description": "Parent sponsor ITR-linked financial undertaking.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
     }
   ],
   "navBucket": "visa",

@@ -427,5 +427,44 @@
       "Weak relationship photo chronology",
       "Sponsor eligibility not verified"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample marriage certificate (mock)",
+      "description": "Registered marriage proof — explain translation and notarization if needed.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample relationship timeline & photos guide (mock)",
+      "description": "Collage layout for chat logs, travel photos, and ceremony pictures.",
+      "mimeType": "application/pdf",
+      "docKind": "relationship"
+    },
+    {
+      "title": "Sample sponsor / undertaking letter (mock)",
+      "description": "Sponsor income, accommodation, and maintenance commitment.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample chat / communication evidence (mock)",
+      "description": "Redacted WhatsApp or email excerpts — privacy-safe specimen.",
+      "mimeType": "image/jpeg",
+      "docKind": "relationship"
+    }
+  ],
+  "navBucket": "visa"
 }

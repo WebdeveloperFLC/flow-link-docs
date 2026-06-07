@@ -7,78 +7,473 @@
   "updatedLabel": "Updated 6 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 18,
-  "policyAlert": { "active": true, "date": "6 Jun 2026", "summary": "Confirm current Fee Paying Student Visa fee (NZD $485 approx for online) on immigration.govt.nz before quoting." },
-  "alert": { "title": "Genuine student assessment", "body": "Immigration NZ assesses whether applicant is genuine student with credible study plan. Course mismatch with background is a common refusal factor." },
-  "tags": [{ "label": "Active service", "variant": "success" }, { "label": "Offer of Place required", "variant": "warning" }, { "label": "4–8 weeks", "variant": "neutral" }, { "label": "Online – Immigration NZ", "variant": "neutral" }],
-  "chips": [{ "label": "4–8 weeks", "variant": "neutral" }, { "label": "NZD $485 approx", "variant": "neutral" }, { "label": "Offer of Place", "variant": "success" }, { "label": "Funds evidence", "variant": "warning" }],
+  "policyAlert": {
+    "active": true,
+    "date": "6 Jun 2026",
+    "summary": "Confirm current Fee Paying Student Visa fee (NZD $485 approx for online) on immigration.govt.nz before quoting."
+  },
+  "alert": {
+    "title": "Genuine student assessment",
+    "body": "Immigration NZ assesses whether applicant is genuine student with credible study plan. Course mismatch with background is a common refusal factor."
+  },
+  "tags": [
+    {
+      "label": "Active service",
+      "variant": "success"
+    },
+    {
+      "label": "Offer of Place required",
+      "variant": "warning"
+    },
+    {
+      "label": "4–8 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "Online – Immigration NZ",
+      "variant": "neutral"
+    }
+  ],
+  "chips": [
+    {
+      "label": "4–8 weeks",
+      "variant": "neutral"
+    },
+    {
+      "label": "NZD $485 approx",
+      "variant": "neutral"
+    },
+    {
+      "label": "Offer of Place",
+      "variant": "success"
+    },
+    {
+      "label": "Funds evidence",
+      "variant": "warning"
+    }
+  ],
   "kpis": [
-    { "label": "Processing time", "value": "4–8w", "sub": "Standard processing", "tone": "primary" },
-    { "label": "Government fee", "value": "NZD $485", "sub": "Online application approx", "tone": "warning" },
-    { "label": "Our approval rate", "value": "85%", "sub": "~72% benchmark", "tone": "success" },
-    { "label": "Required docs", "value": "12", "sub": "+ funds & medical", "tone": "violet" },
-    { "label": "Consultancy fee", "value": "See fee tab", "sub": "+ govt & medical", "tone": "primary" }
+    {
+      "label": "Processing time",
+      "value": "4–8w",
+      "sub": "Standard processing",
+      "tone": "primary"
+    },
+    {
+      "label": "Government fee",
+      "value": "NZD $485",
+      "sub": "Online application approx",
+      "tone": "warning"
+    },
+    {
+      "label": "Our approval rate",
+      "value": "85%",
+      "sub": "~72% benchmark",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "12",
+      "sub": "+ funds & medical",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See fee tab",
+      "sub": "+ govt & medical",
+      "tone": "primary"
+    }
   ],
   "about": [
-    { "label": "Description", "value": "Fee Paying Student Visa for full-time study at an approved New Zealand education provider. Applied online via Immigration NZ with Offer of Place from institution." },
-    { "label": "Eligible applicants", "value": "Offer of Place from approved provider · Proof of funds · Genuine student intent · Health and character requirements · English proficiency" },
-    { "label": "Financial requirement", "value": "Tuition plus NZD $20,000 per year living costs (approx—verify current amount on immigration.govt.nz).", "warning": true },
-    { "label": "Key authority", "value": "Immigration New Zealand (INZ)" },
-    { "label": "After approval", "value": "Maintain enrolment and visa conditions. Limited work rights during study. Discuss post-study work visa separately." }
+    {
+      "label": "Description",
+      "value": "Fee Paying Student Visa for full-time study at an approved New Zealand education provider. Applied online via Immigration NZ with Offer of Place from institution."
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Offer of Place from approved provider · Proof of funds · Genuine student intent · Health and character requirements · English proficiency"
+    },
+    {
+      "label": "Financial requirement",
+      "value": "Tuition plus NZD $20,000 per year living costs (approx—verify current amount on immigration.govt.nz).",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Immigration New Zealand (INZ)"
+    },
+    {
+      "label": "After approval",
+      "value": "Maintain enrolment and visa conditions. Limited work rights during study. Discuss post-study work visa separately."
+    }
   ],
   "eligibility": [
-    { "criterion": "Offer of Place from approved provider", "met": true },
-    { "criterion": "Proof of funds (tuition + living)", "met": true, "note": "Verify current INZ amounts" },
-    { "criterion": "Genuine student intent", "met": true, "note": "Study plan aligned with background" },
-    { "criterion": "English proficiency", "met": true, "note": "IELTS/PTE per provider requirement" },
-    { "criterion": "Medical certificate (if required)", "met": false, "note": "INZ panel physicians in India" },
-    { "criterion": "Police certificate (if required)", "met": false },
-    { "criterion": "Valid passport", "met": true }
+    {
+      "criterion": "Offer of Place from approved provider",
+      "met": true
+    },
+    {
+      "criterion": "Proof of funds (tuition + living)",
+      "met": true,
+      "note": "Verify current INZ amounts"
+    },
+    {
+      "criterion": "Genuine student intent",
+      "met": true,
+      "note": "Study plan aligned with background"
+    },
+    {
+      "criterion": "English proficiency",
+      "met": true,
+      "note": "IELTS/PTE per provider requirement"
+    },
+    {
+      "criterion": "Medical certificate (if required)",
+      "met": false,
+      "note": "INZ panel physicians in India"
+    },
+    {
+      "criterion": "Police certificate (if required)",
+      "met": false
+    },
+    {
+      "criterion": "Valid passport",
+      "met": true
+    }
   ],
   "redFlagsBanner": "After refusal, review INZ letter and strengthen genuine student evidence before reapplication with new Offer of Place.",
   "redFlags": [
-    { "title": "Weak genuine student case", "description": "Course unrelated to background without explanation.", "fix": "Clear study rationale linking prior education/work to NZ program", "severity": "Very common" },
-    { "title": "Insufficient funds", "description": "Amount below INZ threshold or unseasoned deposits.", "fix": "Meet tuition + living requirement; sponsor ITR; loan evidence", "severity": "Very common" },
-    { "title": "Offer of Place issues", "description": "Non-approved provider or expired offer.", "fix": "Verify provider on NZQA; request updated offer", "severity": "Common" },
-    { "title": "Medical not completed", "description": "INZ requested medical but client delayed.", "fix": "Book INZ panel physician promptly", "severity": "Common" },
-    { "title": "Prior refusals not disclosed", "description": "NZ or other country refusals hidden.", "fix": "Full disclosure with changed circumstances", "severity": "High" },
-    { "title": "English below requirement", "description": "Scores below provider or INZ minimum.", "fix": "Retake and obtain valid scores", "severity": "Medium" }
+    {
+      "title": "Weak genuine student case",
+      "description": "Course unrelated to background without explanation.",
+      "fix": "Clear study rationale linking prior education/work to NZ program",
+      "severity": "Very common"
+    },
+    {
+      "title": "Insufficient funds",
+      "description": "Amount below INZ threshold or unseasoned deposits.",
+      "fix": "Meet tuition + living requirement; sponsor ITR; loan evidence",
+      "severity": "Very common"
+    },
+    {
+      "title": "Offer of Place issues",
+      "description": "Non-approved provider or expired offer.",
+      "fix": "Verify provider on NZQA; request updated offer",
+      "severity": "Common"
+    },
+    {
+      "title": "Medical not completed",
+      "description": "INZ requested medical but client delayed.",
+      "fix": "Book INZ panel physician promptly",
+      "severity": "Common"
+    },
+    {
+      "title": "Prior refusals not disclosed",
+      "description": "NZ or other country refusals hidden.",
+      "fix": "Full disclosure with changed circumstances",
+      "severity": "High"
+    },
+    {
+      "title": "English below requirement",
+      "description": "Scores below provider or INZ minimum.",
+      "fix": "Retake and obtain valid scores",
+      "severity": "Medium"
+    }
   ],
   "faqs": [
-    { "q": "Can we guarantee student visa approval?", "a": "No. INZ assesses each application. Strong documentation improves chances but approval is never guaranteed." },
-    { "q": "How much funds required?", "a": "Remaining tuition plus approx NZD $20,000/year living costs—verify current INZ financial requirements." },
-    { "q": "Can spouse join?", "a": "Partner may apply for partner of student visa if relationship genuine and funds adequate—assess case-by-case." },
-    { "q": "Can student work?", "a": "Limited work hours during study—verify current INZ conditions." },
-    { "q": "When to apply?", "a": "After Offer of Place; allow processing time before course start." },
-    { "q": "Is medical mandatory?", "a": "Depends on course length and INZ requirements—follow instructions if medical requested." },
-    { "q": "What after graduation?", "a": "Discuss Post Study Work Visa eligibility based on qualification level." },
-    { "q": "Online or paper application?", "a": "Most applications online via Immigration NZ portal." }
+    {
+      "q": "Can we guarantee student visa approval?",
+      "a": "No. INZ assesses each application. Strong documentation improves chances but approval is never guaranteed."
+    },
+    {
+      "q": "How much funds required?",
+      "a": "Remaining tuition plus approx NZD $20,000/year living costs—verify current INZ financial requirements."
+    },
+    {
+      "q": "Can spouse join?",
+      "a": "Partner may apply for partner of student visa if relationship genuine and funds adequate—assess case-by-case."
+    },
+    {
+      "q": "Can student work?",
+      "a": "Limited work hours during study—verify current INZ conditions."
+    },
+    {
+      "q": "When to apply?",
+      "a": "After Offer of Place; allow processing time before course start."
+    },
+    {
+      "q": "Is medical mandatory?",
+      "a": "Depends on course length and INZ requirements—follow instructions if medical requested."
+    },
+    {
+      "q": "What after graduation?",
+      "a": "Discuss Post Study Work Visa eligibility based on qualification level."
+    },
+    {
+      "q": "Online or paper application?",
+      "a": "Most applications online via Immigration NZ portal."
+    }
   ],
-  "compliance": ["Client service agreement on file before submission", "Never guarantee visa approval", "Separate consultancy and INZ fees", "Offer of Place must be from approved provider"],
-  "proTips": ["Verify provider on NZQA register", "Draft genuine student statement before apply", "Season funds with 6-month bank history", "Book medical early if INZ requests", "Cross-check offer details against passport"],
-  "postApproval": ["Send visa approval and conditions to client", "Remind enrolment and attendance obligations", "Explain work hour limits", "Discuss post-study work pathway"],
-  "performance": { "ourRate": 85, "industryRate": 72, "stats": [{ "label": "Files this year", "value": "78" }, { "label": "Approved", "value": "66" }, { "label": "Refused", "value": "9" }, { "label": "Withdrawn", "value": "3" }] },
-  "approvalFactors": [{ "label": "Our rate vs industry", "ours": 85, "benchmark": 72 }, { "label": "Genuine student statement", "ours": 83, "benchmark": 67 }, { "label": "Financial docs", "ours": 84, "benchmark": 70 }, { "label": "First-submit completeness", "ours": 90, "benchmark": 73 }],
-  "timeline": [{ "weeks": "1–2", "title": "Counseling, offer review, fee agreement" }, { "weeks": "2–4", "title": "Funds, documents, medical if needed" }, { "weeks": "4–5", "title": "INZ online submission" }, { "weeks": "4–8", "title": "INZ processing" }],
-  "relatedServices": [{ "label": "New Zealand – Post Study Work Visa", "libraryId": "" }, { "label": "New Zealand – Visitor Visa", "libraryId": "" }, { "label": "New Zealand – Skilled Migrant", "libraryId": "" }],
-  "changelog": [{ "version": "v1.0", "date": "6 Jun 2026", "author": "Service Library", "summary": "Initial NZ student visa counselor content." }],
-  "staffNotes": [{ "author": "Documentation team", "date": "6 Jun 2026", "text": "INZ living costs amount updates—always verify on immigration.govt.nz before funds check." }],
+  "compliance": [
+    "Client service agreement on file before submission",
+    "Never guarantee visa approval",
+    "Separate consultancy and INZ fees",
+    "Offer of Place must be from approved provider"
+  ],
+  "proTips": [
+    "Verify provider on NZQA register",
+    "Draft genuine student statement before apply",
+    "Season funds with 6-month bank history",
+    "Book medical early if INZ requests",
+    "Cross-check offer details against passport"
+  ],
+  "postApproval": [
+    "Send visa approval and conditions to client",
+    "Remind enrolment and attendance obligations",
+    "Explain work hour limits",
+    "Discuss post-study work pathway"
+  ],
+  "performance": {
+    "ourRate": 85,
+    "industryRate": 72,
+    "stats": [
+      {
+        "label": "Files this year",
+        "value": "78"
+      },
+      {
+        "label": "Approved",
+        "value": "66"
+      },
+      {
+        "label": "Refused",
+        "value": "9"
+      },
+      {
+        "label": "Withdrawn",
+        "value": "3"
+      }
+    ]
+  },
+  "approvalFactors": [
+    {
+      "label": "Our rate vs industry",
+      "ours": 85,
+      "benchmark": 72
+    },
+    {
+      "label": "Genuine student statement",
+      "ours": 83,
+      "benchmark": 67
+    },
+    {
+      "label": "Financial docs",
+      "ours": 84,
+      "benchmark": 70
+    },
+    {
+      "label": "First-submit completeness",
+      "ours": 90,
+      "benchmark": 73
+    }
+  ],
+  "timeline": [
+    {
+      "weeks": "1–2",
+      "title": "Counseling, offer review, fee agreement"
+    },
+    {
+      "weeks": "2–4",
+      "title": "Funds, documents, medical if needed"
+    },
+    {
+      "weeks": "4–5",
+      "title": "INZ online submission"
+    },
+    {
+      "weeks": "4–8",
+      "title": "INZ processing"
+    }
+  ],
+  "relatedServices": [
+    {
+      "label": "New Zealand – Post Study Work Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Visitor Visa",
+      "libraryId": ""
+    },
+    {
+      "label": "New Zealand – Skilled Migrant",
+      "libraryId": ""
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial NZ student visa counselor content."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "6 Jun 2026",
+      "text": "INZ living costs amount updates—always verify on immigration.govt.nz before funds check."
+    }
+  ],
   "resources": [
-    { "title": "Immigration NZ — Student visa", "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fee-paying-student-visa", "description": "Official student visa requirements" },
-    { "title": "Immigration NZ — Visa fees", "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fees", "description": "Current visa fees" },
-    { "title": "NZQA — Provider register", "url": "https://www.nzqa.govt.nz/providers/", "description": "Verify education provider" },
-    { "title": "Immigration NZ — Processing times", "url": "https://www.immigration.govt.nz/about-us/our-monitoring-and-evaluation/visa-processing-times", "description": "Current processing estimates" },
-    { "title": "Immigration NZ — Financial requirements", "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/tools/financial-requirements", "description": "Funds calculator and requirements" }
+    {
+      "title": "Immigration NZ — Student visa",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fee-paying-student-visa",
+      "description": "Official student visa requirements"
+    },
+    {
+      "title": "Immigration NZ — Visa fees",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/about-visa/fees",
+      "description": "Current visa fees"
+    },
+    {
+      "title": "NZQA — Provider register",
+      "url": "https://www.nzqa.govt.nz/providers/",
+      "description": "Verify education provider"
+    },
+    {
+      "title": "Immigration NZ — Processing times",
+      "url": "https://www.immigration.govt.nz/about-us/our-monitoring-and-evaluation/visa-processing-times",
+      "description": "Current processing estimates"
+    },
+    {
+      "title": "Immigration NZ — Financial requirements",
+      "url": "https://www.immigration.govt.nz/new-zealand-visas/apply-for-a-visa/tools-and-information/tools/financial-requirements",
+      "description": "Funds calculator and requirements"
+    }
   ],
   "quiz": [
-    { "question": "Mandatory document from NZ institution?", "options": ["Job offer", "Offer of Place", "LMIA", "CoS"], "correctIndex": 1, "explanation": "Offer of Place required." },
-    { "question": "Living costs funds approx per year:", "options": ["NZD $1,000", "NZD $20,000", "NZD $100", "None"], "correctIndex": 1, "explanation": "Verify current INZ amount." },
-    { "question": "Top refusal factor often:", "options": ["Passport colour", "Weak genuine student case / funds", "Airline", "Photo"], "correctIndex": 1, "explanation": "Genuine student and funds key." },
-    { "question": "After graduation discuss:", "options": ["Automatic PR", "Post Study Work Visa eligibility", "No options", "Visitor visa only"], "correctIndex": 1, "explanation": "PSWV is common post-study pathway." },
-    { "question": "Counselors must never:", "options": ["Verify provider", "Guarantee approval", "Check funds", "Review offer"], "correctIndex": 1, "explanation": "No guarantees permitted." }
+    {
+      "question": "Mandatory document from NZ institution?",
+      "options": [
+        "Job offer",
+        "Offer of Place",
+        "LMIA",
+        "CoS"
+      ],
+      "correctIndex": 1,
+      "explanation": "Offer of Place required."
+    },
+    {
+      "question": "Living costs funds approx per year:",
+      "options": [
+        "NZD $1,000",
+        "NZD $20,000",
+        "NZD $100",
+        "None"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify current INZ amount."
+    },
+    {
+      "question": "Top refusal factor often:",
+      "options": [
+        "Passport colour",
+        "Weak genuine student case / funds",
+        "Airline",
+        "Photo"
+      ],
+      "correctIndex": 1,
+      "explanation": "Genuine student and funds key."
+    },
+    {
+      "question": "After graduation discuss:",
+      "options": [
+        "Automatic PR",
+        "Post Study Work Visa eligibility",
+        "No options",
+        "Visitor visa only"
+      ],
+      "correctIndex": 1,
+      "explanation": "PSWV is common post-study pathway."
+    },
+    {
+      "question": "Counselors must never:",
+      "options": [
+        "Verify provider",
+        "Guarantee approval",
+        "Check funds",
+        "Review offer"
+      ],
+      "correctIndex": 1,
+      "explanation": "No guarantees permitted."
+    }
   ],
   "donts": {
-    "dos": ["Verify provider on NZQA", "Meet INZ financial requirements", "Write credible genuine student statement", "Complete medical if requested", "Disclose prior refusals"],
-    "donts": ["Do not guarantee approval", "Do not apply with expired offer", "Do not hide refusals", "Do not quote outdated fund amounts", "Do not use unapproved providers"],
-    "mistakes": ["Funds below INZ threshold", "Course unrelated without explanation", "Expired Offer of Place", "Medical delayed after INZ request", "Blurry financial documents"]
-  }
+    "dos": [
+      "Verify provider on NZQA",
+      "Meet INZ financial requirements",
+      "Write credible genuine student statement",
+      "Complete medical if requested",
+      "Disclose prior refusals"
+    ],
+    "donts": [
+      "Do not guarantee approval",
+      "Do not apply with expired offer",
+      "Do not hide refusals",
+      "Do not quote outdated fund amounts",
+      "Do not use unapproved providers"
+    ],
+    "mistakes": [
+      "Funds below INZ threshold",
+      "Course unrelated without explanation",
+      "Expired Offer of Place",
+      "Medical delayed after INZ request",
+      "Blurry financial documents"
+    ]
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample offer of place (mock)",
+      "description": "NZ education provider acceptance letter.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample funds proof (mock)",
+      "description": "Tuition + NZD living costs per INZ calculator.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample IELTS / PTE TRF (mock)",
+      "description": "English requirement for fee-paying student visa.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    },
+    {
+      "title": "Sample medical / chest X-ray certificate (mock)",
+      "description": "INZ-approved panel physician format.",
+      "mimeType": "application/pdf",
+      "docKind": "medical"
+    },
+    {
+      "title": "Sample police certificate guide (mock)",
+      "description": "When PCC is required by residence history.",
+      "mimeType": "application/pdf",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample academic transcripts (mock)",
+      "description": "Prior study evidence for pathway credibility.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    }
+  ],
+  "navBucket": "visa"
 }

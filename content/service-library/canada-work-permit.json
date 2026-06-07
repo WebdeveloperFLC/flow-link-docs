@@ -427,5 +427,38 @@
       "Wrong exemption code claimed",
       "Medical deadline missed"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample job offer / LMIA letter (mock)",
+      "description": "Employer name, role, wage, and LMIA number where required.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample employer support letter (mock)",
+      "description": "Confirms position is genuine and client meets role requirements.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample qualifications proof (mock)",
+      "description": "Degree and experience matching NOC / SOC role.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "immigration"
 }

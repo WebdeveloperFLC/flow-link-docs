@@ -426,5 +426,38 @@
       "Blocked account short",
       "Client expected guaranteed employment"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample degree / vocational certificate (mock)",
+      "description": "Recognized qualification for job seeker or opportunity pathways.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample blocked account / funds proof (mock)",
+      "description": "Financial means for Germany job seeker or opportunity card.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample CV (European format mock)",
+      "description": "Europass-style CV for German labour market orientation.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample language certificate (mock)",
+      "description": "German A1/A2 or English test where required.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    }
+  ],
+  "navBucket": "immigration"
 }

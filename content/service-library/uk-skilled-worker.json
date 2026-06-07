@@ -425,5 +425,50 @@
       "CoS details wrong",
       "Missing TB test"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample language test TRF (mock)",
+      "description": "IELTS / PTE / TOEFL layout — explain CLB or points mapping.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    },
+    {
+      "title": "Sample ECA report (mock)",
+      "description": "WES / IQAS / ICAS credential assessment — degree equivalency page.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample employment reference letter (mock)",
+      "description": "Duties, NOC code, dates, and full-time hours on company letterhead.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample resume / CV (mock)",
+      "description": "Skilled migration format — chronological roles and NOC alignment.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample nomination / job offer letter (mock)",
+      "description": "PNP nomination or employer-backed offer where applicable.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "6-month statement with name, account number, and closing balance — explain seasoning.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    }
+  ],
+  "navBucket": "immigration"
 }

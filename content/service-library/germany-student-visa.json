@@ -429,5 +429,50 @@
       "Wrong health insurance type",
       "Expired admission letter"
     ]
-  }
+  },
+  "sampleDocs": [
+    {
+      "title": "Sample passport bio page (mock)",
+      "description": "Show clients which pages to scan — MRZ visible, no glare, full spread.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample university admission letter (mock)",
+      "description": "German Hochschule Zulassung for national visa.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample APS certificate (mock)",
+      "description": "Academic Evaluation Centre certificate for India.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample blocked account confirmation (mock)",
+      "description": "Sperrkonto €11,904+ — explain to clients.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample IELTS / TestDaF certificate (mock)",
+      "description": "Language proof for degree program.",
+      "mimeType": "image/jpeg",
+      "docKind": "language"
+    },
+    {
+      "title": "Sample CV & motivation letter (mock)",
+      "description": "German embassy standard application packet.",
+      "mimeType": "application/pdf",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample travel health insurance (mock)",
+      "description": "Coverage from arrival until enrollment.",
+      "mimeType": "application/pdf",
+      "docKind": "insurance"
+    }
+  ],
+  "navBucket": "visa"
 }

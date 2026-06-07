@@ -54,6 +54,7 @@ export type ServiceAcademyMetadata = {
     filePath?: string;
     url?: string;
     mimeType?: string;
+    docKind?: string;
   }[];
 };
 
