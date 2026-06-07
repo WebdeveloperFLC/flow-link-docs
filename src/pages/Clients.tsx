@@ -27,6 +27,20 @@ interface Client {
 const PAGE_SIZE = 25;
 type SortKey = "created_at" | "updated_at" | "full_name";
 
+const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function formatAppType(raw: string | null | undefined, names: Record<string, string>): string {
+  const value = (raw ?? "").trim();
+  if (!value) return "—";
+  const [head, tail] = value.split("::");
+  if (UUID_RX.test(head)) {
+    const name = names[head];
+    if (name) return tail ? `${name} — ${tail}` : name;
+    return tail || "—";
+  }
+  return value;
+}
+
 const Clients = () => {
   const { canCreateClient } = useAuth();
   const [params, setParams] = useSearchParams();
