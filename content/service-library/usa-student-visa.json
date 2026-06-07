@@ -214,6 +214,94 @@
     {
       "q": "Is interview mandatory for renewals?",
       "a": "Most Indian applicants attend interview. Check embassy guidance for specific renewal rules."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "F-1 non-immigrant visa for full-time academic study at a US institution certified by SEVP. Requires valid I-20, SEVIS payment, DS-160, and consular interview."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Valid I-20 from SEVP school · Proof of funds · English readiness · Non-immigrant intent · Clean immigration history"
+    },
+    {
+      "q": "What is Interview focus for this service?",
+      "a": "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+    },
+    {
+      "q": "Important note on Interview focus?",
+      "a": "Consular officer assesses genuine student intent, funds, and ties to India. Short, clear answers work better than memorised scripts."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "US Department of State (embassy/consulate) · SEVIS/ICE for I-901"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "F-1 visa foil in passport; enter US no earlier than 30 days before I-20 start. Maintain full-time enrollment and SEVIS compliance."
+    },
+    {
+      "q": "Is Form I-20 from SEVP-certified school required?",
+      "a": "Program and start date must be realistic"
+    },
+    {
+      "q": "Is SEVIS I-901 fee paid required?",
+      "a": "Receipt required for interview"
+    },
+    {
+      "q": "Is DS-160 completed accurately required?",
+      "a": "Must match I-20 and documents"
+    },
+    {
+      "q": "Is Proof of financial support required?",
+      "a": "Covers tuition + living for at least first year"
+    },
+    {
+      "q": "Is English proficiency (as required by school) required?",
+      "a": "TOEFL/IELTS/Duolingo per I-20"
+    },
+    {
+      "q": "Is Non-immigrant intent / ties to India required?",
+      "a": "Critical for 214(b) interview"
+    },
+    {
+      "q": "Is No prior visa fraud or serious inadmissibility required?",
+      "a": "No prior visa fraud or serious inadmissibility is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "2–8w — Post-interview; slot wait extra"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "USD $535 — MRV $185 + SEVIS $350"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "84% — ~70% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "12 — + financial evidence"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & third-party"
+    },
+    {
+      "q": "What if the client has Weak non-immigrant intent (214(b))?",
+      "a": "Course-specific study plan; tie program to India career; practice concise interview answers"
+    },
+    {
+      "q": "Why is Weak non-immigrant intent (214(b)) a problem?",
+      "a": "Vague return plan, course mismatch, or answers suggesting permanent stay intent."
+    },
+    {
+      "q": "What if the client has Insufficient or unseasoned funds?",
+      "a": "4–6 month bank history; sponsor ITR + CA statement; education loan sanction letter"
+    },
+    {
+      "q": "Why is Insufficient or unseasoned funds a problem?",
+      "a": "Large recent deposits, sponsor income not matching funds, or weak loan documentation."
     }
   ],
   "compliance": [
@@ -316,6 +404,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

@@ -233,6 +233,86 @@
     {
       "q": "What if PR is refused while BOWP is valid?",
       "a": "Temporary status must be reassessed immediately. The client may need a new status strategy before the work permit expires."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Bridging Open Work Permit for eligible in-Canada applicants who have submitted certain permanent residence applications and need to keep working while PR is processed."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "In Canada · Valid status or eligible restoration · Submitted eligible PR application · Received AOR or passed completeness check where required"
+    },
+    {
+      "q": "What is Eligible PR classes for this service?",
+      "a": "Commonly Express Entry, Provincial Nominee Program, Agri-Food Pilot, and certain caregiver or Quebec skilled worker pathways. Verify current IRCC program list."
+    },
+    {
+      "q": "Important note on Eligible PR classes?",
+      "a": "Commonly Express Entry, Provincial Nominee Program, Agri-Food Pilot, and certain caregiver or Quebec skilled worker pathways. Verify current IRCC program list."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Client may work in Canada under open work permit conditions while PR continues. Review province restrictions for some nominee cases."
+    },
+    {
+      "q": "Is Client is physically in Canada when applying required?",
+      "a": "Client is physically in Canada when applying is typically required."
+    },
+    {
+      "q": "Is Currently holds valid temporary resident status or is eligible to restore status required?",
+      "a": "Check expiry date before filing"
+    },
+    {
+      "q": "Is Submitted eligible permanent residence application required?",
+      "a": "Submitted eligible permanent residence application is typically required."
+    },
+    {
+      "q": "Is Has AOR or proof PR application passed completeness check as required required?",
+      "a": "Do not use payment receipt alone"
+    },
+    {
+      "q": "Is Current work permit expires within the allowed BOWP window or is already covered by maintained status required?",
+      "a": "Current work permit expires within the allowed BOWP window or is already covered by maintained status is typically required."
+    },
+    {
+      "q": "Is Passport valid for requested work permit period required?",
+      "a": "Passport valid for requested work permit period is typically required."
+    },
+    {
+      "q": "Is Provincial nomination has no employment restriction, if PNP-based required?",
+      "a": "Employer restriction may block open permit"
+    },
+    {
+      "q": "Is No inadmissibility, misrepresentation, or unresolved removal issue required?",
+      "a": "No inadmissibility, misrepresentation, or unresolved removal issue is typically required."
+    },
+    {
+      "q": "Is Correct work permit category and fees selected in IRCC portal required?",
+      "a": "Correct work permit category and fees selected in IRCC portal is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "3–5m — Varies by workload"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $255 — Verify on canada.ca"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "90% — ~82% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "10 — + AOR and PR proof"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
     }
   ],
   "compliance": [
@@ -333,6 +413,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

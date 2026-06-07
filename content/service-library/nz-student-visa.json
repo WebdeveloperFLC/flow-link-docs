@@ -212,6 +212,94 @@
     {
       "q": "Online or paper application?",
       "a": "Most applications online via Immigration NZ portal."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Fee Paying Student Visa for full-time study at an approved New Zealand education provider. Applied online via Immigration NZ with Offer of Place from institution."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Offer of Place from approved provider · Proof of funds · Genuine student intent · Health and character requirements · English proficiency"
+    },
+    {
+      "q": "What is Financial requirement for this service?",
+      "a": "Tuition plus NZD $20,000 per year living costs (approx—verify current amount on immigration.govt.nz)."
+    },
+    {
+      "q": "Important note on Financial requirement?",
+      "a": "Tuition plus NZD $20,000 per year living costs (approx—verify current amount on immigration.govt.nz)."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration New Zealand (INZ)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Maintain enrolment and visa conditions. Limited work rights during study. Discuss post-study work visa separately."
+    },
+    {
+      "q": "Is Offer of Place from approved provider required?",
+      "a": "Offer of Place from approved provider is typically required."
+    },
+    {
+      "q": "Is Proof of funds (tuition + living) required?",
+      "a": "Verify current INZ amounts"
+    },
+    {
+      "q": "Is Genuine student intent required?",
+      "a": "Study plan aligned with background"
+    },
+    {
+      "q": "Is English proficiency required?",
+      "a": "IELTS/PTE per provider requirement"
+    },
+    {
+      "q": "Is Medical certificate (if required) required?",
+      "a": "INZ panel physicians in India"
+    },
+    {
+      "q": "Is Police certificate (if required) required?",
+      "a": "Assess whether Police certificate (if required) is satisfied for this case."
+    },
+    {
+      "q": "Is Valid passport required?",
+      "a": "Valid passport is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "4–8w — Standard processing"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "NZD $485 — Online application approx"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "85% — ~72% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "12 — + funds & medical"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & medical"
+    },
+    {
+      "q": "What if the client has Weak genuine student case?",
+      "a": "Clear study rationale linking prior education/work to NZ program"
+    },
+    {
+      "q": "Why is Weak genuine student case a problem?",
+      "a": "Course unrelated to background without explanation."
+    },
+    {
+      "q": "What if the client has Insufficient funds?",
+      "a": "Meet tuition + living requirement; sponsor ITR; loan evidence"
+    },
+    {
+      "q": "Why is Insufficient funds a problem?",
+      "a": "Amount below INZ threshold or unseasoned deposits."
     }
   ],
   "compliance": [
@@ -310,6 +398,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

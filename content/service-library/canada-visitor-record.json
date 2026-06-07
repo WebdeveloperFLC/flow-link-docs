@@ -231,6 +231,86 @@
     {
       "q": "Does approval guarantee future entry to Canada?",
       "a": "No. Border entry is assessed separately, and a visitor record does not replace travel authorization."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Visitor record application for temporary residents already in Canada who need to extend their stay as visitors or change conditions from another temporary status."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "In Canada · Valid temporary resident status or restoration eligibility · Genuine temporary purpose · Funds for stay · Clear departure or next-status plan"
+    },
+    {
+      "q": "What is Important limitation for this service?",
+      "a": "Visitor record does not authorize work or long-term study and does not guarantee re-entry after travel outside Canada."
+    },
+    {
+      "q": "Important note on Important limitation?",
+      "a": "Visitor record does not authorize work or long-term study and does not guarantee re-entry after travel outside Canada."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Client receives a document with a new status expiry date. Review conditions and calendar the next exit or extension deadline."
+    },
+    {
+      "q": "Is Client is physically in Canada required?",
+      "a": "Client is physically in Canada is typically required."
+    },
+    {
+      "q": "Is Current visitor, student, or worker status is valid or restorable required?",
+      "a": "Check original entry date and permit expiry"
+    },
+    {
+      "q": "Is Clear temporary reason for extended stay required?",
+      "a": "Clear temporary reason for extended stay is typically required."
+    },
+    {
+      "q": "Is Proof of funds for extended visit required?",
+      "a": "Proof of funds for extended visit is typically required."
+    },
+    {
+      "q": "Is Accommodation or host support evidence required?",
+      "a": "Accommodation or host support evidence is typically required."
+    },
+    {
+      "q": "Is No unauthorized work or study planned required?",
+      "a": "No unauthorized work or study planned is typically required."
+    },
+    {
+      "q": "Is Ties outside Canada or credible departure plan required?",
+      "a": "Ties outside Canada or credible departure plan is typically required."
+    },
+    {
+      "q": "Is Passport valid for requested stay period required?",
+      "a": "Passport valid for requested stay period is typically required."
+    },
+    {
+      "q": "Is Prior status history and refusals disclosed required?",
+      "a": "Prior status history and refusals disclosed is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "2–4m — Check IRCC"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $100 — Verify on canada.ca"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "89% — ~80% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "9 — + reason for stay"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
     }
   ],
   "compliance": [
@@ -331,6 +411,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

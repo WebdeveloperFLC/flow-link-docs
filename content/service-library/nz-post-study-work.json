@@ -210,6 +210,94 @@
     {
       "q": "Second post-study work possible?",
       "a": "Generally limited—verify if further study qualifies for new visa."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Work visa for international graduates who completed eligible qualification in New Zealand. Allows open work for employer at any skill level for qualification-based duration."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Completed eligible NZ qualification · Studied in NZ minimum required time · Applied within specified period after study · Good character · Genuine intent to work in NZ"
+    },
+    {
+      "q": "What is Duration rules for this service?",
+      "a": "1–3 years depending on qualification level and study location ( Auckland vs outside). Verify current INZ rules."
+    },
+    {
+      "q": "Important note on Duration rules?",
+      "a": "1–3 years depending on qualification level and study location ( Auckland vs outside). Verify current INZ rules."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration New Zealand (INZ)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Work freely in NZ. Pathway to Skilled Migrant or Green List residence with NZ work experience."
+    },
+    {
+      "q": "Is Completed eligible NZ qualification required?",
+      "a": "Completed eligible NZ qualification is typically required."
+    },
+    {
+      "q": "Is Studied in NZ required duration required?",
+      "a": "Studied in NZ required duration is typically required."
+    },
+    {
+      "q": "Is Applied within allowed timeframe required?",
+      "a": "Verify current application window"
+    },
+    {
+      "q": "Is Valid passport required?",
+      "a": "Valid passport is typically required."
+    },
+    {
+      "q": "Is Good character required?",
+      "a": "Good character is typically required."
+    },
+    {
+      "q": "Is Medical (if required) required?",
+      "a": "Assess whether Medical (if required) is satisfied for this case."
+    },
+    {
+      "q": "Is Previous post-study work visa limits required?",
+      "a": "Generally one per qualification level"
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "4–8w — Standard processing"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "NZD $700 — Verify current fee"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "94% — ~88% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "8 — + completion proof"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
+    },
+    {
+      "q": "What if the client has Qualification not eligible?",
+      "a": "Verify eligibility at enrolment—not graduation"
+    },
+    {
+      "q": "Why is Qualification not eligible a problem?",
+      "a": "Course level or provider not meeting post-study work criteria."
+    },
+    {
+      "q": "What if the client has Insufficient NZ study time?",
+      "a": "Track attendance and study duration requirements"
+    },
+    {
+      "q": "Why is Insufficient NZ study time a problem?",
+      "a": "Did not complete required months physically in NZ."
     }
   ],
   "compliance": [
@@ -307,6 +395,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

@@ -209,6 +209,94 @@
     {
       "q": "Sponsorship obligations?",
       "a": "Sponsor provides assurance of support; explain obligations to client."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Partner visa for spouse or de facto partner of Australian citizen, permanent resident, or eligible NZ citizen. Provisional visa (309/820) then permanent (100/801) after relationship assessment period."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Married or de facto 12+ months · Genuine relationship · Health and character · Sponsor eligibility · Mutual commitment"
+    },
+    {
+      "q": "What is Onshore vs offshore for this service?",
+      "a": "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+    },
+    {
+      "q": "Important note on Onshore vs offshore?",
+      "a": "820/801 if partner in Australia on eligible visa. 309/100 if outside Australia. Bridging visa rules apply onshore."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Department of Home Affairs (Australia)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Stage 1 provisional visa; Stage 2 permanent after waiting period and continued relationship evidence."
+    },
+    {
+      "q": "Is Qualifying relationship (marriage or 12+ months de facto) required?",
+      "a": "Qualifying relationship (marriage or 12+ months de facto) is typically required."
+    },
+    {
+      "q": "Is Sponsor is eligible Australian citizen/PR/eligible NZ citizen required?",
+      "a": "Sponsor is eligible Australian citizen/PR/eligible NZ citizen is typically required."
+    },
+    {
+      "q": "Is Genuine and continuing relationship evidence required?",
+      "a": "Genuine and continuing relationship evidence is typically required."
+    },
+    {
+      "q": "Is Health requirements met required?",
+      "a": "Assess whether Health requirements met is satisfied for this case."
+    },
+    {
+      "q": "Is Character requirements (police certs) required?",
+      "a": "Assess whether Character requirements (police certs) is satisfied for this case."
+    },
+    {
+      "q": "Is Sponsorship obligations understood required?",
+      "a": "Sponsorship obligations understood is typically required."
+    },
+    {
+      "q": "Is Correct onshore/offshore pathway required?",
+      "a": "Assess partner location and visa status"
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "12–24m — Stage 1 provisional"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "AUD ,850+ — Primary applicant approx"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "89% — ~79% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "20 — + relationship evidence"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt & medical"
+    },
+    {
+      "q": "What if the client has Weak relationship evidence?",
+      "a": "Chronological narrative; communication logs; joint finances; visit evidence"
+    },
+    {
+      "q": "Why is Weak relationship evidence a problem?",
+      "a": "Few photos, no cohabitation proof, inconsistent timeline."
+    },
+    {
+      "q": "What if the client has Wrong pathway (onshore/offshore)?",
+      "a": "Verify partner visa and location before lodgement"
+    },
+    {
+      "q": "Why is Wrong pathway (onshore/offshore) a problem?",
+      "a": "Applied onshore without eligible visa status."
     }
   ],
   "compliance": [
@@ -307,6 +395,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

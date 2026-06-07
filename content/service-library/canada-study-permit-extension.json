@@ -231,6 +231,86 @@
     {
       "q": "Will extension approval help PGWP later?",
       "a": "It can support continuous lawful study, but PGWP eligibility depends on DLI, program, full-time status, and completion rules."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Extension for students already in Canada who need more time on their study permit to continue or complete an eligible program at a Designated Learning Institution."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "In Canada · Current study permit · Continuing studies or new DLI/program · Proof of funds · Applying before expiry where possible"
+    },
+    {
+      "q": "What is Maintained status for this service?",
+      "a": "If filed before expiry, the client may remain in Canada while IRCC processes the extension under maintained status. Study and work rights depend on previous permit conditions."
+    },
+    {
+      "q": "Important note on Maintained status?",
+      "a": "If filed before expiry, the client may remain in Canada while IRCC processes the extension under maintained status. Study and work rights depend on previous permit conditions."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Immigration, Refugees and Citizenship Canada (IRCC)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Review new expiry date, study and work conditions, DLI obligations, and passport validity for the next extension or PGWP planning."
+    },
+    {
+      "q": "Is Client is physically in Canada required?",
+      "a": "Client is physically in Canada is typically required."
+    },
+    {
+      "q": "Is Current study permit is valid or client is within restoration period required?",
+      "a": "Expiry date drives urgency"
+    },
+    {
+      "q": "Is Continues at a DLI or has valid new LOA from DLI required?",
+      "a": "Continues at a DLI or has valid new LOA from DLI is typically required."
+    },
+    {
+      "q": "Is Proof of enrolment or transcript shows active study progress required?",
+      "a": "Proof of enrolment or transcript shows active study progress is typically required."
+    },
+    {
+      "q": "Is Proof of funds covers tuition, living costs, and return transport required?",
+      "a": "Proof of funds covers tuition, living costs, and return transport is typically required."
+    },
+    {
+      "q": "Is Passport valid beyond requested extension period required?",
+      "a": "Passport valid beyond requested extension period is typically required."
+    },
+    {
+      "q": "Is No unauthorized work or study history required?",
+      "a": "No unauthorized work or study history is typically required."
+    },
+    {
+      "q": "Is Medical exam completed if IRCC profile requires it required?",
+      "a": "Assess whether Medical exam completed if IRCC profile requires it is satisfied for this case."
+    },
+    {
+      "q": "Is Academic gaps, program changes, or delayed completion explained required?",
+      "a": "Academic gaps, program changes, or delayed completion explained is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "6–12w — Check IRCC weekly"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "CAD $150 — Verify on canada.ca"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "91% — ~84% benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "11 — + enrolment proof"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
     }
   ],
   "compliance": [
@@ -331,6 +411,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "6 Jun 2026",

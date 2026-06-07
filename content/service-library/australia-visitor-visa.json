@@ -210,6 +210,94 @@
     {
       "q": "How long can visitor stay?",
       "a": "Officer grants stay period—often up to 3, 6, or 12 months depending on stream and case."
+    },
+    {
+      "q": "What is Description for this service?",
+      "a": "Subclass 600 visitor visa for tourism, visiting family, or short business visits to Australia. Applied online via ImmiAccount with stream selection."
+    },
+    {
+      "q": "What is Eligible applicants for this service?",
+      "a": "Temporary visit purpose · Funds for stay · Strong ties to India · Genuine intention to depart · Health and character requirements"
+    },
+    {
+      "q": "What is Stream selection for this service?",
+      "a": "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+    },
+    {
+      "q": "Important note on Stream selection?",
+      "a": "Tourist, Sponsored Family, Business Visitor streams have different evidence needs. Choose correctly at application."
+    },
+    {
+      "q": "What is Key authority for this service?",
+      "a": "Department of Home Affairs (Australia)"
+    },
+    {
+      "q": "What is After approval for this service?",
+      "a": "Respect stay period and visa conditions. No work except limited business visitor activities. Overstay affects future visas."
+    },
+    {
+      "q": "Is Valid passport required?",
+      "a": "Valid passport is typically required."
+    },
+    {
+      "q": "Is Clear temporary visit purpose required?",
+      "a": "Clear temporary visit purpose is typically required."
+    },
+    {
+      "q": "Is Proof of funds required?",
+      "a": "Cover trip and stay costs"
+    },
+    {
+      "q": "Is Strong ties to India required?",
+      "a": "Employment, business, family, property"
+    },
+    {
+      "q": "Is Health insurance recommended required?",
+      "a": "Health insurance recommended is typically required."
+    },
+    {
+      "q": "Is Biometrics (if requested) required?",
+      "a": "Assess whether Biometrics (if requested) is satisfied for this case."
+    },
+    {
+      "q": "Is Immigration history disclosed required?",
+      "a": "Immigration history disclosed is typically required."
+    },
+    {
+      "q": "What is the Processing time?",
+      "a": "2–6w — Stream-dependent"
+    },
+    {
+      "q": "What is the Government fee?",
+      "a": "AUD $195 — Tourist stream approx"
+    },
+    {
+      "q": "What is the Our approval rate?",
+      "a": "71% — ~59% industry benchmark"
+    },
+    {
+      "q": "What is the Required docs?",
+      "a": "9 — + invitation if applicable"
+    },
+    {
+      "q": "What is the Consultancy fee?",
+      "a": "See fee tab — + govt only"
+    },
+    {
+      "q": "What if the client has Weak ties to India?",
+      "a": "Employment letter, business proof, property, family dependencies"
+    },
+    {
+      "q": "Why is Weak ties to India a problem?",
+      "a": "No employment, assets, or family obligations documented."
+    },
+    {
+      "q": "What if the client has Insufficient funds?",
+      "a": "Bank history, ITR, sponsor letter with host support"
+    },
+    {
+      "q": "Why is Insufficient funds a problem?",
+      "a": "Cannot credibly fund trip or recent large deposits unexplained."
     }
   ],
   "compliance": [
@@ -308,6 +396,12 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded FAQs to 30 counselor Q&A pairs."
+    },
     {
       "version": "v2.0",
       "date": "7 Jun 2026",

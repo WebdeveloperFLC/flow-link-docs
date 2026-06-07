@@ -167,7 +167,7 @@ export function buildAcademyViewModel(args: {
     done: args.submissionCompletedIds.has(item.id),
   }));
   const completed = submission.filter((s) => s.done).length;
-  const total = submission.length || meta.kpis?.find((k) => k.label.toLowerCase().includes("doc"))?.value ? 14 : 0;
+  const checklistTotal = submission.length;
 
   const consultancy = formatFee(feesScoped, /consult|service|our/i) !== "—"
     ? formatFee(feesScoped, /consult|service|our/i)
@@ -246,7 +246,7 @@ export function buildAcademyViewModel(args: {
     },
     checklist: {
       completed,
-      total: submission.length || total,
+      total: checklistTotal,
       submission,
       documentNotes: htmlToPlain(resolved.checklist_text) || "—",
     },
