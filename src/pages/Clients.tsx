@@ -40,6 +40,7 @@ const Clients = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(q);
+  const [serviceNames, setServiceNames] = useState<Record<string, string>>({});
 
   // Debounce search input → URL
   useEffect(() => {
@@ -73,6 +74,29 @@ const Clients = () => {
     setClients((data ?? []) as Client[]);
     setTotal(count ?? 0);
     setLoading(false);
+
+    // Resolve service_library UUIDs embedded in application_type ("<uuid>::<country>")
+    const UUID_RX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const ids = Array.from(new Set(
+      (data ?? [])
+        .map((r) => String((r as { application_type?: string }).application_type ?? "").split("::")[0])
+        .filter((id) => UUID_RX.test(id) && !(id in serviceNames)),
+    ));
+    if (ids.length) {
+      const { data: svc } = await supabase
+        .from("service_library")
+        .select("id,service,sub_service")
+        .in("id", ids);
+      if (svc) {
+        setServiceNames((prev) => {
+          const next = { ...prev };
+          for (const s of svc as { id: string; service: string; sub_service: string }[]) {
+            next[s.id] = s.service;
+          }
+          return next;
+        });
+      }
+    }
   };
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [q, page, sort, dir]);
@@ -159,7 +183,7 @@ const Clients = () => {
                 <div className="col-span-4 font-medium">{c.full_name}</div>
                 <div className="col-span-2 text-sm font-mono text-primary">{c.application_id}</div>
                 <div className="col-span-2 text-sm flex items-center gap-1.5"><Globe2 className="size-3.5 text-muted-foreground" />{c.country}</div>
-                <div className="col-span-3 text-sm text-muted-foreground">{c.application_type}</div>
+                <div className="col-span-3 text-sm text-muted-foreground truncate">{formatAppType(c.application_type, serviceNames)}</div>
                 <div className="col-span-1 text-right"><ArrowUpRight className="size-4 inline text-muted-foreground" /></div>
               </Link>
             ))}
