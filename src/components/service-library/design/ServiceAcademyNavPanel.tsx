@@ -191,8 +191,10 @@ export function ServiceAcademyNavPanel({
         <StepPills steps={["Country", "Service"]} active={0} />
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-2">
-            <Globe2 className="size-5 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight">Choose a destination</h1>
+            <Globe2 className="size-6 text-sky-500" />
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent">
+              Choose a destination
+            </h1>
           </div>
           <p className="text-sm text-muted-foreground max-w-xl">
             Pick the country your client is applying for, then open counselor training for that visa or
@@ -239,7 +241,7 @@ export function ServiceAcademyNavPanel({
           active={categoryFilter === "visa" ? 1 : 2}
         />
         <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-tight mb-1">
+          <h1 className="text-xl font-bold tracking-tight mb-1 bg-gradient-to-r from-sky-600 to-violet-600 bg-clip-text text-transparent">
             {categoryFilter === "visa" ? `${country} · Visa & Immigration` : sectionLabel}
           </h1>
           <p className="text-sm text-muted-foreground">
