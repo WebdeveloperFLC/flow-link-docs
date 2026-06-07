@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
-  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,7 +36,7 @@ import { ServiceAcademyNavPanel } from "@/components/service-library/design/Serv
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   type Master, type Override,
-  type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem,
+  type FeeItem, type ChecklistFile, type VisaFormFile, type SopTask, type SubmissionItem,
 } from "@/lib/serviceLibrary";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
@@ -763,6 +763,7 @@ function MasterDetail({
           <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
           <TabsTrigger value="countries"><Globe className="h-3.5 w-3.5 mr-1" />Countries</TabsTrigger>
           <TabsTrigger value="checklist"><ClipboardCheck className="h-3.5 w-3.5 mr-1" />Checklist</TabsTrigger>
+          <TabsTrigger value="visaforms"><ScrollText className="h-3.5 w-3.5 mr-1" />Visa forms</TabsTrigger>
           <TabsTrigger value="submission"><ListChecks className="h-3.5 w-3.5 mr-1" />Submission</TabsTrigger>
           <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
           <TabsTrigger value="fees"><Coins className="h-3.5 w-3.5 mr-1" />Fees</TabsTrigger>
@@ -779,6 +780,7 @@ function MasterDetail({
         <TabsContent value="quickguide"><QuickGuideTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="countries"><CountriesTab master={master} /></TabsContent>
         <TabsContent value="checklist"><ChecklistTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="visaforms"><VisaFormsTab master={master} /></TabsContent>
         <TabsContent value="submission"><SubmissionTab master={master} /></TabsContent>
         <TabsContent value="fees"><FeesTab master={master} /></TabsContent>
         <TabsContent value="cost"><CostSummaryTab master={master} onChanged={onChanged} /></TabsContent>
@@ -1083,6 +1085,147 @@ function ChecklistTab({ master, onChanged }: { master: Master; onChanged: () => 
           })}
         </div>
       </div>
+    </div>
+  );
+}
+
+function VisaFormsTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const [formCode, setFormCode] = useState("");
+  const [formTitle, setFormTitle] = useState("");
+  const [formUrl, setFormUrl] = useState("");
+  const [formMime, setFormMime] = useState("application/pdf");
+
+  const forms = useQuery({
+    queryKey: ["sl-vforms", master.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_library_visa_form_files" as "service_library_checklist_files")
+        .select("*")
+        .eq("library_id", master.id)
+        .order("sort_order")
+        .order("version", { ascending: false });
+      return (data ?? []) as unknown as VisaFormFile[];
+    },
+  });
+
+  const current = (forms.data ?? []).filter((f) => f.is_current).sort((a, b) => a.sort_order - b.sort_order);
+
+  const openForm = (f: VisaFormFile) => {
+    if (f.file_path.startsWith("/specimens/") || /^https?:\/\//i.test(f.file_path)) {
+      window.open(f.file_path, "_blank", "noopener");
+      return;
+    }
+    supabase.storage.from("service-library-files").createSignedUrl(f.file_path, 600).then(({ data }) => {
+      if (data?.signedUrl) window.open(data.signedUrl, "_blank", "noopener");
+    });
+  };
+
+  const addForm = async () => {
+    if (!formTitle.trim() || !formUrl.trim()) {
+      return toast({ title: "Title and URL required", variant: "destructive" });
+    }
+    const nextSort = current.length ? Math.max(...current.map((f) => f.sort_order)) + 1 : 1;
+    const { error } = await supabase
+      .from("service_library_visa_form_files" as "service_library_checklist_files")
+      .insert({
+        library_id: master.id,
+        form_code: formCode.trim() || null,
+        file_name: formTitle.trim(),
+        file_path: formUrl.trim(),
+        mime_type: formMime,
+        sort_order: nextSort,
+        version: 1,
+        is_current: true,
+        notes: "Added via Service Library Admin",
+      } as never);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    toast({ title: "Form added" });
+    setAdding(false);
+    setFormCode("");
+    setFormTitle("");
+    setFormUrl("");
+    qc.invalidateQueries({ queryKey: ["sl-vforms", master.id] });
+  };
+
+  const remove = async (f: VisaFormFile) => {
+    if (!confirm(`Remove ${f.form_code ?? f.file_name}?`)) return;
+    await supabase.from("service_library_visa_form_files" as "service_library_checklist_files").delete().eq("id", f.id);
+    qc.invalidateQueries({ queryKey: ["sl-vforms", master.id] });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl border p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="font-medium">Original visa forms</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Official PDFs and online application portals. Run seed SQL once for all 36 services, or add links here.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setAdding(true)}>
+            <Plus className="h-4 w-4 mr-1" /> Add form
+          </Button>
+        </div>
+
+        {forms.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {!forms.isLoading && current.length === 0 && (
+          <div className="text-sm text-muted-foreground">No forms linked yet.</div>
+        )}
+        <div className="space-y-2">
+          {current.map((f) => (
+            <div key={f.id} className="rounded-lg border p-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  {f.form_code && <Badge variant="secondary" className="text-[10px] font-mono">{f.form_code}</Badge>}
+                  <span className="font-medium text-sm truncate">{f.file_name}</span>
+                </div>
+                <div className="text-xs text-muted-foreground truncate mt-0.5">{f.file_path}</div>
+              </div>
+              <div className="flex gap-1 shrink-0">
+                <Button size="sm" variant="ghost" onClick={() => openForm(f)}><Download className="h-4 w-4" /></Button>
+                <Button size="sm" variant="ghost" onClick={() => remove(f)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <Dialog open={adding} onOpenChange={setAdding}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Add official form link</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>Form code (optional)</Label>
+              <Input placeholder="e.g. IMM 1294, DS-160" value={formCode} onChange={(e) => setFormCode(e.target.value)} />
+            </div>
+            <div>
+              <Label>Title</Label>
+              <Input placeholder="Application for Study Permit…" value={formTitle} onChange={(e) => setFormTitle(e.target.value)} />
+            </div>
+            <div>
+              <Label>Official URL</Label>
+              <Input placeholder="https://…" value={formUrl} onChange={(e) => setFormUrl(e.target.value)} />
+            </div>
+            <div>
+              <Label>Type</Label>
+              <Select value={formMime} onValueChange={setFormMime}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="application/pdf">PDF download</SelectItem>
+                  <SelectItem value="text/html">Online portal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdding(false)}>Cancel</Button>
+            <Button onClick={addForm}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

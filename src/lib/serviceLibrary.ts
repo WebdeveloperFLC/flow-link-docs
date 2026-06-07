@@ -75,6 +75,23 @@ export type ChecklistFile = {
   notes: string | null;
 };
 
+export type VisaFormFile = {
+  id: string;
+  library_id: string;
+  country: string | null;
+  form_code: string | null;
+  file_name: string;
+  file_path: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+  sort_order: number;
+  version: number;
+  is_current: boolean;
+  uploaded_by: string | null;
+  uploaded_at: string;
+  notes: string | null;
+};
+
 export type SopTask = {
   id: string;
   library_id: string;
