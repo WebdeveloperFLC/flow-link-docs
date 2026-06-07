@@ -9,6 +9,7 @@ import {
   type CoachingVariant,
   type VisaImmigrationBucket,
 } from "@/lib/service-library/serviceNavClassification";
+import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
 
 export type AcademyCategoryFilter = "visa" | "coaching";
 
@@ -90,6 +91,16 @@ const NON_VISA_SERVICE_FIELDS = new Set([
 
 function isAcademyVisaServiceRow(m: MasterRow): boolean {
   if (isLegacyVisaRow(m)) return false;
+
+  if (
+    isExcludedCatalogueService({
+      subService: m.sub_service,
+      serviceField: m.service,
+      serviceCode: m.id,
+    })
+  ) {
+    return false;
+  }
 
   const meta = metaOf(m);
   if (meta?.displayName) return true;
