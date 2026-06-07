@@ -134,7 +134,26 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     const countries = (r.service_library_countries ?? []).map((c) => c.country);
     const displayLabel =
       (r.academy_metadata as { displayName?: string } | null)?.displayName ?? r.sub_service;
+
+    if (
+      isExcludedCatalogueService({
+        subService: r.sub_service,
+        serviceName: displayLabel,
+        serviceCode: r.id,
+        serviceField: r.service,
+      })
+    ) {
+      continue;
+    }
+
     if (r.service_category === "visa_immigration") {
+      const serviceNorm = r.service.trim().toLowerCase();
+      const isCountryRow =
+        VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm) ||
+        resolveServiceCountries(r.service, countries).some((c) => c.toLowerCase() === serviceNorm);
+      const hasAcademyContent = !!(r.academy_metadata as { displayName?: string } | null)?.displayName;
+      if (!isCountryRow && !hasAcademyContent) continue;
+
       // Emit one row per country so the per-country filter in ServiceTabs works.
       const list = countries.length > 0 ? countries : [null];
       for (const c of list) {
@@ -198,7 +217,15 @@ export async function fetchServiceCatalogue(masterKey?: string): Promise<Service
   if (masterKey) q = q.eq("master_key", masterKey);
   const { data, error } = await q;
   if (error) throw error;
-  return (data ?? []) as unknown as ServiceCatalogueItem[];
+  return ((data ?? []) as unknown as ServiceCatalogueItem[]).filter(
+    (s) =>
+      !isExcludedCatalogueService({
+        subService: s.sub_category,
+        serviceName: s.service_name,
+        serviceCode: s.service_code ?? s.id,
+        serviceField: s.service_name,
+      }),
+  );
 }
 
 export interface Branch {
