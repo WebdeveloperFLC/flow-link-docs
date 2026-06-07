@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -23,11 +23,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import {
+  buildAcademyNav,
+  masterDisplayLabel,
+  type AcademyCategoryFilter,
+  type AcademyNavGroup,
+  type AcademyServiceItem,
+} from "@/lib/service-library/academyNav";
+import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
+import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
+import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   type Master, type Override,
   type FeeItem, type ChecklistFile, type SopTask, type SubmissionItem,
 } from "@/lib/serviceLibrary";
-import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -49,16 +57,49 @@ const DEFAULT_SUBMISSION_ITEMS = [
   { item_key: "submission_approved", item_label: "Submission approved" },
 ];
 
+const ADMIN_CATEGORY_TABS: { key: AdminCategoryTab; label: string; dbKey?: string }[] = [
+  { key: "visa", label: "Visa & Immigration" },
+  { key: "coaching", label: "Coaching" },
+  { key: "allied", label: "Allied", dbKey: "allied_services" },
+  { key: "travel", label: "Travel & Financial", dbKey: "travel_financial" },
+  { key: "admission", label: "Admissions (legacy)", dbKey: "admission_services" },
+];
+
+type AdminCategoryTab = "visa" | "coaching" | "allied" | "travel" | "admission";
+
+function parseAdminCategory(raw: string | null): AdminCategoryTab {
+  if (raw === "coaching" || raw === "allied" || raw === "travel" || raw === "admission") return raw;
+  return "visa";
+}
+
+function parseVisaBucket(raw: string | null): VisaImmigrationBucket | null {
+  return raw === "visa" || raw === "immigration" ? raw : null;
+}
+
+function parseCoachingVariant(raw: string | null): CoachingVariant | null {
+  return raw === "general" || raw === "academic" || raw === "other" ? raw : null;
+}
+
 export default function ServiceLibraryAdmin() {
   const { hasRole, isAdmin } = useAuth();
   const canManage = isAdmin || hasRole(["administrator", "documentation"]);
   const qc = useQueryClient();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("id"));
   const [showNew, setShowNew] = useState(false);
   const [bannerHidden, setBannerHidden] = useState(false);
   const [treeSearch, setTreeSearch] = useState("");
-  const [countryFilter, setCountryFilter] = useState<string>("ALL");
+  const [adminCategory, setAdminCategory] = useState<AdminCategoryTab>(() =>
+    parseAdminCategory(searchParams.get("cat")),
+  );
+  const [countryFilter, setCountryFilter] = useState<string>(() => searchParams.get("country") || "ALL");
+  const [visaBucket, setVisaBucket] = useState<VisaImmigrationBucket | null>(() =>
+    parseVisaBucket(searchParams.get("bucket")),
+  );
+  const [coachingFamily, setCoachingFamily] = useState<string | null>(() => searchParams.get("family"));
+  const [coachingVariant, setCoachingVariant] = useState<CoachingVariant | null>(() =>
+    parseCoachingVariant(searchParams.get("variant")),
+  );
 
   const masters = useQuery({
     queryKey: ["sl-masters"],
@@ -82,97 +123,116 @@ export default function ServiceLibraryAdmin() {
     },
   });
 
-  // Flat categories shown without country grouping (in display order).
-  const FLAT_CATEGORY_ORDER: { key: string; label: string }[] = [
-    { key: "coaching_services", label: "Coaching" },
-    { key: "allied_services", label: "Allied" },
-    { key: "travel_financial", label: "Travel & Financial" },
-  ];
+  useEffect(() => {
+    const p = new URLSearchParams();
+    if (selectedId) p.set("id", selectedId);
+    if (adminCategory !== "visa") p.set("cat", adminCategory);
+    if (adminCategory === "visa" && countryFilter !== "ALL") p.set("country", countryFilter);
+    if (visaBucket) p.set("bucket", visaBucket);
+    if (coachingFamily) p.set("family", coachingFamily);
+    if (coachingVariant) p.set("variant", coachingVariant);
+    setSearchParams(p, { replace: true });
+  }, [selectedId, adminCategory, countryFilter, visaBucket, coachingFamily, coachingVariant, setSearchParams]);
 
-  // Build:
-  //  - flatGroups:      categoryLabel -> service -> Master[]
-  //  - visaByCountry:   country       -> service -> Master[]  (used when no country filter)
-  //  - visaForCountry:  service       -> Master[]             (used when a country is picked)
-  //  - availableCountries: list of countries that have visa services (for the filter dropdown)
-  const { flatGroups, visaByCountry, visaForCountry, availableCountries } = useMemo(() => {
+  const academyCategory: AcademyCategoryFilter =
+    adminCategory === "coaching" ? "coaching" : "visa";
+
+  const { group: navGroup } = useMemo(
+    () =>
+      adminCategory === "visa" || adminCategory === "coaching"
+        ? buildAcademyNav(masters.data ?? [], {
+            categoryFilter: academyCategory,
+            countryFilter: adminCategory === "visa" ? countryFilter : "ALL",
+            visaBucket,
+            coachingFamily,
+            coachingVariant,
+            search: treeSearch,
+            statusFilter: "all",
+            includeInactive: true,
+          })
+        : { group: null, activeCount: 0, reviewCount: 0 },
+    [
+      masters.data,
+      adminCategory,
+      academyCategory,
+      countryFilter,
+      visaBucket,
+      coachingFamily,
+      coachingVariant,
+      treeSearch,
+    ],
+  );
+
+  const flatAdminRows = useMemo(() => {
+    const tab = ADMIN_CATEGORY_TABS.find((t) => t.key === adminCategory);
+    if (!tab?.dbKey) return [];
     const q = treeSearch.trim().toLowerCase();
-    const matches = (m: Master) =>
-      !q || m.service.toLowerCase().includes(q) || m.sub_service.toLowerCase().includes(q);
-
-    const flat: Record<string, Record<string, Master[]>> = {};
-    const visa: Record<string, Record<string, Master[]>> = {};
-    const countrySet = new Set<string>();
-
-    for (const m of masters.data ?? []) {
-      if (m.service_category === "admission_services") continue;
-
-      if (m.service_category === "visa_immigration") {
-        const countries = (m.service_library_countries ?? [])
-          .map((c) => c.country)
-          .filter((c) => ALLOWED_COUNTRY_SET.has(c));
-        countries.forEach((c) => countrySet.add(c));
-        if (!matches(m)) continue;
-        // When a country filter is active, only include rows mapped to it.
-        if (countryFilter !== "ALL" && !countries.includes(countryFilter)) continue;
-        const buckets = countries.length ? countries : ["Unassigned"];
-        for (const country of buckets) {
-          if (countryFilter !== "ALL" && country !== countryFilter) continue;
-          visa[country] ??= {};
-          visa[country][m.service] ??= [];
-          visa[country][m.service].push(m);
-        }
-        continue;
-      }
-
-      if (!matches(m)) continue;
-      const catDef = FLAT_CATEGORY_ORDER.find((c) => c.key === m.service_category);
-      if (!catDef) continue;
-      flat[catDef.label] ??= {};
-      flat[catDef.label][m.service] ??= [];
-      flat[catDef.label][m.service].push(m);
-    }
-
-    // Sort flat: category in fixed order, service asc, sub-service asc.
-    const flatSorted: Record<string, Record<string, Master[]>> = {};
-    for (const { label } of FLAT_CATEGORY_ORDER) {
-      if (!flat[label]) continue;
-      const svcKeys = Object.keys(flat[label]).sort((a, b) => a.localeCompare(b));
-      flatSorted[label] = {};
-      for (const s of svcKeys) {
-        flatSorted[label][s] = [...flat[label][s]].sort((a, b) =>
-          a.sub_service.localeCompare(b.sub_service),
+    return (masters.data ?? [])
+      .filter((m) => m.service_category === tab.dbKey)
+      .filter((m) => {
+        if (!q) return true;
+        const label = masterDisplayLabel(m).toLowerCase();
+        return (
+          label.includes(q) ||
+          m.service.toLowerCase().includes(q) ||
+          m.sub_service.toLowerCase().includes(q)
         );
-      }
-    }
+      })
+      .sort((a, b) => masterDisplayLabel(a).localeCompare(masterDisplayLabel(b)));
+  }, [masters.data, adminCategory, treeSearch]);
 
-    // Sort visa: country asc (Unassigned last), service asc, sub-service asc.
-    const visaSorted: Record<string, Record<string, Master[]>> = {};
-    const countryKeys = Object.keys(visa).sort((a, b) => {
-      if (a === "Unassigned") return 1;
-      if (b === "Unassigned") return -1;
-      return a.localeCompare(b);
-    });
-    for (const c of countryKeys) {
-      const svcKeys = Object.keys(visa[c]).sort((a, b) => a.localeCompare(b));
-      visaSorted[c] = {};
-      for (const s of svcKeys) {
-        visaSorted[c][s] = [...visa[c][s]].sort((a, b) =>
-          a.sub_service.localeCompare(b.sub_service),
-        );
-      }
-    }
+  const handleAdminCategoryChange = (cat: AdminCategoryTab) => {
+    setAdminCategory(cat);
+    setSelectedId(null);
+    setVisaBucket(null);
+    setCoachingFamily(null);
+    setCoachingVariant(null);
+    if (cat === "visa") setCountryFilter("ALL");
+  };
 
-    // Flat per-country view (no nested country level) when a single country is picked.
-    const visaSingle: Record<string, Master[]> =
-      countryFilter !== "ALL" ? visaSorted[countryFilter] ?? {} : {};
+  const handleCountryChange = (c: string) => {
+    setCountryFilter(c);
+    setSelectedId(null);
+    setVisaBucket(null);
+  };
 
-    return {
-      flatGroups: flatSorted,
-      visaByCountry: visaSorted,
-      visaForCountry: visaSingle,
-      availableCountries: Array.from(countrySet).sort((a, b) => a.localeCompare(b)),
-    };
-  }, [masters.data, treeSearch, countryFilter]);
+  const handleVisaBucketChange = (b: VisaImmigrationBucket | null) => {
+    setVisaBucket(b);
+    setSelectedId(null);
+  };
+
+  const handleCoachingFamilyChange = (f: string | null) => {
+    setCoachingFamily(f);
+    setCoachingVariant(null);
+    setSelectedId(null);
+  };
+
+  const handleCoachingVariantChange = (v: CoachingVariant | null) => {
+    setCoachingVariant(v);
+    setSelectedId(null);
+  };
+
+  const resetToCountries = () => {
+    setCountryFilter("ALL");
+    setVisaBucket(null);
+    setSelectedId(null);
+  };
+
+  const resetToVisaBuckets = () => {
+    setVisaBucket(null);
+    setSelectedId(null);
+  };
+
+  const resetToCoachingFamilies = () => {
+    setCoachingFamily(null);
+    setCoachingVariant(null);
+    setSelectedId(null);
+  };
+
+  const resetToCoachingVariants = () => {
+    setCoachingVariant(null);
+    setSelectedId(null);
+  };
 
   const selected = useMemo(
     () => (masters.data ?? []).find((m) => m.id === selectedId) ?? null,
@@ -247,7 +307,8 @@ export default function ServiceLibraryAdmin() {
               </div>
               <h1 className="mt-1 text-2xl font-semibold">Canonical service records</h1>
               <p className="text-sm text-muted-foreground">
-                Coaching, Allied, and Travel &amp; Financial are listed flat. Use the country filter to view Visa &amp; Immigration services for one country at a time.
+                Same country → Visa or Immigration → service flow as the counselor Service Library. Admissions
+                workflow rows are under Admissions (legacy), not mixed into visa lists.
               </p>
             </div>
             <Button onClick={() => setShowNew(true)}>
@@ -259,17 +320,22 @@ export default function ServiceLibraryAdmin() {
         <div className="grid gap-4 lg:grid-cols-12">
           <aside className="lg:col-span-4 rounded-2xl border bg-white p-3 shadow-sm max-h-[80vh] overflow-auto">
             <div className="mb-2 px-1 space-y-2">
-              <Select value={countryFilter} onValueChange={setCountryFilter}>
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Filter by country…" />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  <SelectItem value="ALL">All countries</SelectItem>
-                  {availableCountries.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex flex-col gap-1">
+                {ADMIN_CATEGORY_TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => handleAdminCategoryChange(tab.key)}
+                    className={`w-full rounded-lg px-2.5 py-1.5 text-left text-xs font-medium transition-colors ${
+                      adminCategory === tab.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
               <Input
                 value={treeSearch}
                 onChange={(e) => setTreeSearch(e.target.value)}
@@ -277,69 +343,52 @@ export default function ServiceLibraryAdmin() {
                 className="h-8 text-sm"
               />
             </div>
-            {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {!masters.isLoading &&
-              Object.keys(flatGroups).length === 0 &&
-              Object.keys(visaByCountry).length === 0 &&
-              Object.keys(visaForCountry).length === 0 && (
-                <div className="p-3 text-sm text-muted-foreground">No records yet.</div>
-              )}
-            {Object.entries(flatGroups).map(([catLabel, services]) => (
-              <Tree key={catLabel} label={catLabel}>
-                {Object.entries(services).map(([svc, items]) => (
-                  <Tree key={svc} label={svc}>
-                    {items.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => setSelectedId(m.id)}
-                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
-                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
-                        }`}
-                      >
-                        {m.sub_service}
-                      </button>
-                    ))}
-                  </Tree>
-                ))}
-              </Tree>
-            ))}
-            {countryFilter !== "ALL" && Object.keys(visaForCountry).length > 0 && (
-              <Tree label={`Visa & Immigration — ${countryFilter}`} defaultOpen>
-                {Object.entries(visaForCountry).map(([svc, items]) => (
-                  <Tree key={svc} label={svc}>
-                    {items.map((m) => (
-                      <button
-                        key={m.id}
-                        onClick={() => setSelectedId(m.id)}
-                        className={`block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100 ${
-                          selectedId === m.id ? "bg-primary/10 text-primary font-medium" : ""
-                        }`}
-                      >
-                        {m.sub_service}
-                      </button>
-                    ))}
-                  </Tree>
-                ))}
-              </Tree>
+
+            {masters.isLoading && <Loader2 className="h-4 w-4 animate-spin mx-2" />}
+
+            {!masters.isLoading && (adminCategory === "visa" || adminCategory === "coaching") && navGroup && (
+              <AdminNavTree
+                group={navGroup}
+                adminCategory={adminCategory}
+                countryFilter={countryFilter}
+                visaBucket={visaBucket}
+                coachingFamily={coachingFamily}
+                coachingVariant={coachingVariant}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onCountry={handleCountryChange}
+                onVisaBucket={handleVisaBucketChange}
+                onCoachingFamily={handleCoachingFamilyChange}
+                onCoachingVariant={handleCoachingVariantChange}
+                resetToCountries={resetToCountries}
+                resetToVisaBuckets={resetToVisaBuckets}
+                resetToCoachingFamilies={resetToCoachingFamilies}
+                resetToCoachingVariants={resetToCoachingVariants}
+              />
             )}
-            {countryFilter === "ALL" && Object.keys(visaByCountry).length > 0 && (
-              <Tree label="Visa & Immigration">
-                <div className="px-2 py-1 text-xs text-muted-foreground">
-                  Pick a country above to view services.
-                </div>
-                {Object.entries(visaByCountry).map(([country, services]) => (
-                  <button
-                    key={country}
-                    onClick={() => setCountryFilter(country)}
-                    className="block w-full rounded-md px-2 py-1 text-left text-sm hover:bg-slate-100"
-                  >
-                    {country}
-                    <span className="ml-1 text-xs text-muted-foreground">
-                      ({Object.values(services).reduce((n, arr) => n + arr.length, 0)})
-                    </span>
-                  </button>
+
+            {!masters.isLoading &&
+              (adminCategory === "visa" || adminCategory === "coaching") &&
+              !navGroup && (
+                <div className="p-3 text-sm text-muted-foreground">No records match.</div>
+              )}
+
+            {!masters.isLoading && (adminCategory === "allied" || adminCategory === "travel" || adminCategory === "admission") && (
+              <ul className="space-y-0.5">
+                {flatAdminRows.length === 0 && (
+                  <li className="p-3 text-sm text-muted-foreground">No records in this category.</li>
+                )}
+                {flatAdminRows.map((m) => (
+                  <AdminRecordButton
+                    key={m.id}
+                    id={m.id}
+                    label={masterDisplayLabel(m)}
+                    selected={selectedId === m.id}
+                    inactive={!m.is_active}
+                    onSelect={setSelectedId}
+                  />
                 ))}
-              </Tree>
+              </ul>
             )}
           </aside>
 
@@ -378,20 +427,237 @@ export default function ServiceLibraryAdmin() {
   );
 }
 
-function Tree({ label, defaultOpen, children }: { label: string; defaultOpen?: boolean; children: ReactNode }) {
-  const [open, setOpen] = useState(!!defaultOpen);
+function AdminRecordButton({
+  id,
+  label,
+  selected,
+  inactive,
+  needsReview,
+  onSelect,
+}: {
+  id: string;
+  label: string;
+  selected: boolean;
+  inactive?: boolean;
+  needsReview?: boolean;
+  onSelect: (id: string) => void;
+}) {
   return (
-    <div className="mb-1">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-1 rounded-md px-2 py-1 text-left text-sm font-medium hover:bg-slate-100"
-      >
-        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-        {label}
-      </button>
-      {open && <div className="pl-4 border-l ml-2.5">{children}</div>}
-    </div>
+    <button
+      type="button"
+      onClick={() => onSelect(id)}
+      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+        selected ? "bg-primary/10 text-primary font-medium" : ""
+      } ${inactive ? "opacity-60" : ""}`}
+    >
+      <span className="flex-1 truncate">{label}</span>
+      {inactive && (
+        <Badge variant="outline" className="text-[10px] shrink-0">
+          Inactive
+        </Badge>
+      )}
+      {needsReview && <span className="size-1.5 rounded-full bg-amber-400 shrink-0" title="Needs review" />}
+    </button>
   );
+}
+
+function AdminNavTree({
+  group,
+  adminCategory,
+  countryFilter,
+  visaBucket,
+  coachingFamily,
+  coachingVariant,
+  selectedId,
+  onSelect,
+  onCountry,
+  onVisaBucket,
+  onCoachingFamily,
+  onCoachingVariant,
+  resetToCountries,
+  resetToVisaBuckets,
+  resetToCoachingFamilies,
+  resetToCoachingVariants,
+}: {
+  group: AcademyNavGroup;
+  adminCategory: AdminCategoryTab;
+  countryFilter: string;
+  visaBucket: VisaImmigrationBucket | null;
+  coachingFamily: string | null;
+  coachingVariant: CoachingVariant | null;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onCountry: (c: string) => void;
+  onVisaBucket: (b: VisaImmigrationBucket | null) => void;
+  onCoachingFamily: (f: string | null) => void;
+  onCoachingVariant: (v: CoachingVariant | null) => void;
+  resetToCountries: () => void;
+  resetToVisaBuckets: () => void;
+  resetToCoachingFamilies: () => void;
+  resetToCoachingVariants: () => void;
+}) {
+  const step = group.step;
+
+  const renderItem = (item: AcademyServiceItem) => (
+    <AdminRecordButton
+      key={item.id}
+      id={item.id}
+      label={item.label}
+      selected={selectedId === item.id}
+      inactive={item.inactive}
+      needsReview={item.needsReview}
+      onSelect={onSelect}
+    />
+  );
+
+  if (step === "countries" && group.countryPickers) {
+    return (
+      <div className="space-y-1">
+        <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          Step 1 — Country
+        </p>
+        <ul className="space-y-0.5">
+          {group.countryPickers.map((picker) => (
+            <li key={picker.country}>
+              <button
+                type="button"
+                onClick={() => onCountry(picker.country)}
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+                  countryFilter === picker.country ? "bg-primary/10 text-primary font-medium" : ""
+                }`}
+              >
+                <span className="flex-1 truncate">{picker.country}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{picker.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (step === "visa_buckets" && group.subBuckets) {
+    return (
+      <div className="space-y-1">
+        <button
+          type="button"
+          onClick={resetToCountries}
+          className="mb-1 w-full text-left px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          ← All countries
+        </button>
+        <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          Step 2 — {countryFilter}
+        </p>
+        <ul className="space-y-0.5">
+          {group.subBuckets.map((bucket) => (
+            <li key={bucket.key}>
+              <button
+                type="button"
+                onClick={() => onVisaBucket(bucket.key)}
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+                  visaBucket === bucket.key ? "bg-primary/10 text-primary font-medium" : ""
+                }`}
+              >
+                <span className="flex-1 truncate">{bucket.label}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{bucket.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (step === "coaching_families" && group.coachingFamilies) {
+    return (
+      <div className="space-y-1">
+        <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          Step 1 — Program
+        </p>
+        <ul className="space-y-0.5">
+          {group.coachingFamilies.map((family) => (
+            <li key={family.key}>
+              <button
+                type="button"
+                onClick={() => onCoachingFamily(family.key)}
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+                  coachingFamily === family.key ? "bg-primary/10 text-primary font-medium" : ""
+                }`}
+              >
+                <span className="flex-1 truncate">{family.label}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{family.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (step === "coaching_variants" && group.coachingVariants) {
+    return (
+      <div className="space-y-1">
+        <button
+          type="button"
+          onClick={resetToCoachingFamilies}
+          className="mb-1 w-full text-left px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          ← Programs
+        </button>
+        <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          Step 2 — {coachingFamily}
+        </p>
+        <ul className="space-y-0.5">
+          {group.coachingVariants.map((variant) => (
+            <li key={variant.key}>
+              <button
+                type="button"
+                onClick={() => onCoachingVariant(variant.key)}
+                className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-slate-100 ${
+                  coachingVariant === variant.key ? "bg-primary/10 text-primary font-medium" : ""
+                }`}
+              >
+                <span className="flex-1 truncate">{variant.label}</span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{variant.count}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (step === "services" && group.items) {
+    return (
+      <ul className="space-y-0.5">
+        {adminCategory === "visa" && (
+          <button
+            type="button"
+            onClick={resetToVisaBuckets}
+            className="mb-1 w-full text-left px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            ← {visaBucket === "visa" ? "Visa" : "Immigration"}
+          </button>
+        )}
+        {adminCategory === "coaching" && coachingVariant && (
+          <button
+            type="button"
+            onClick={resetToCoachingVariants}
+            className="mb-1 w-full text-left px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            ← Format
+          </button>
+        )}
+        <p className="px-2 pb-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          Services
+        </p>
+        {group.items.map((item) => renderItem(item))}
+      </ul>
+    );
+  }
+
+  return null;
 }
 
 function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreated: (id: string) => void }) {
@@ -507,7 +773,9 @@ function MasterDetail({
           <div className="text-xs uppercase tracking-wide text-muted-foreground">
             {CATEGORY_OPTIONS.find((c) => c.key === master.service_category)?.label ?? master.service_category}
           </div>
-          <h2 className="text-lg font-semibold">{master.service} · {master.sub_service}</h2>
+          <h2 className="text-lg font-semibold">
+            {masterDisplayLabel(master as Master & { service_library_countries?: { country: string }[] })}
+          </h2>
         </div>
         <Button
           variant="ghost" size="sm"
