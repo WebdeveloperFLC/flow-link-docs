@@ -1,7 +1,7 @@
 {
   "displayName": "Canada – Visitor Visa (TRV)",
   "shortDescription": "IRCC temporary resident visa · Tourism, family, business · Biometrics may apply",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 6 Jun 2026",
@@ -317,6 +317,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.0",
+      "date": "6 Jun 2026",
+      "author": "Service Library",
+      "summary": "Added 75 levelled quiz questions (Level 1–3, 25+ each) and expanded counselor content."
+    },
+    {
       "version": "v1.0",
       "date": "6 Jun 2026",
       "author": "Service Library",
@@ -364,59 +370,904 @@
   ],
   "quiz": [
     {
-      "question": "What is the primary government fee for a Canada visitor visa (2026)?",
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about the meaning of a TRV is correct?",
       "options": [
-        "CAD $150",
-        "CAD $100",
-        "CAD $500",
-        "CAD $85 only"
+        "A TRV is a visa counterfoil that lets a visa-required foreign national travel to a Canadian port of entry.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "IRCC visitor visa application fee is CAD $100; biometrics is separate if required."
+      "correctIndex": 0,
+      "explanation": "It supports travel to Canada but does not itself guarantee admission."
     },
     {
-      "question": "Which is the top refusal reason for Indian TRV applicants?",
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about the visitor visa fee is correct?",
       "options": [
-        "Passport colour",
-        "Weak ties to home country",
-        "Hotel booking brand",
-        "Passport photo background"
+        "The standard temporary resident visa application fee is CAD $100 per person, plus biometrics if required.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Officers must be satisfied the applicant will leave Canada after the visit."
+      "correctIndex": 0,
+      "explanation": "The CAD $100 fee is separate from biometrics and other service charges."
     },
     {
-      "question": "After a BIL is issued, counselors should urge the client to:",
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about visitor status is correct?",
       "options": [
-        "Wait until approval",
-        "Book biometrics promptly (often within 30 days)",
-        "Skip biometrics if refused before",
-        "Mail passport without appointment"
+        "Visitor status allows a temporary stay for tourism, family visits, or other permitted non-work purposes.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Late biometrics causes preventable delays."
+      "correctIndex": 0,
+      "explanation": "A visitor must respect the authorized period and conditions of stay."
     },
     {
-      "question": "Can a TRV holder work in Canada?",
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about ties to home country is correct?",
       "options": [
-        "Yes, any job",
-        "No, work requires a work permit",
-        "Yes, part-time only",
-        "Yes, if invited"
+        "Employment, family, property, studies, and financial obligations can help show the applicant will leave Canada.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "TRV is for temporary visit purposes only."
+      "correctIndex": 0,
+      "explanation": "TRV decisions focus heavily on whether the visit is temporary."
     },
     {
-      "question": "Before submission, firm policy requires:",
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about purpose of visit is correct?",
       "options": [
-        "Guarantee of approval",
-        "Signed checklist and consent where required",
-        "Hiding prior refusals",
-        "Fabricated employment letter"
+        "The purpose should be clear, credible, and supported by itinerary, invitation, or event evidence where relevant.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
       ],
-      "correctIndex": 1,
-      "explanation": "Compliance: consent, checklist sign-off, honest disclosure."
+      "correctIndex": 0,
+      "explanation": "A vague purpose makes it harder for an officer to assess temporary intent."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about financial support is correct?",
+      "options": [
+        "The applicant must show enough money for travel, living costs, and return transportation.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Funds can come from the applicant or a credible host, but evidence must be clear."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about entry versus visa validity is correct?",
+      "options": [
+        "A valid TRV permits travel to seek entry; the border officer decides admission and length of stay.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visa validity is not the same as guaranteed status inside Canada."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about biometrics is correct?",
+      "options": [
+        "Most TRV applicants aged 14 to 79 must give biometrics unless exempt or still valid from a prior application.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Biometrics support identity and security screening."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about medical exam is correct?",
+      "options": [
+        "A medical exam may be required for longer stays, certain countries, or planned work in sensitive settings.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical requirements depend on risk factors and IRCC instructions."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about invitation letters is correct?",
+      "options": [
+        "An invitation letter can support the purpose of visit but does not guarantee approval.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "The visitor still must prove their own eligibility and temporary intent."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about host documents is correct?",
+      "options": [
+        "Host status, address, relationship, and financial documents may help explain the visit and support arrangements.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host evidence is useful when the host is paying or providing accommodation."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about family visits is correct?",
+      "options": [
+        "Visiting family is a valid purpose if the timeline, relationship, and return plan are credible.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Family in Canada can support a visit but may also increase overstay concerns if not explained."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about tourism is correct?",
+      "options": [
+        "Tourism can be a valid purpose when the itinerary, funds, and travel history fit the applicant's circumstances.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers assess whether the trip is realistic and temporary."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about business visitors is correct?",
+      "options": [
+        "Business visitors may attend meetings or conferences but cannot enter the Canadian labour market without authorization.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Permitted business activities are narrower than working in Canada."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about super visa distinction is correct?",
+      "options": [
+        "A super visa is different from a regular TRV and is designed for parents and grandparents of citizens or permanent residents.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Super visa eligibility and insurance requirements are distinct from ordinary visitor visas."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about multiple-entry visas is correct?",
+      "options": [
+        "IRCC often issues multiple-entry TRVs, but each entry is still examined by CBSA.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Multiple-entry validity does not remove the need to comply with visitor conditions."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about passport validity is correct?",
+      "options": [
+        "The visa cannot normally be valid beyond the passport expiry date.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport expiry can limit the visa even when the applicant otherwise qualifies."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about previous refusals is correct?",
+      "options": [
+        "Prior refusals must be disclosed truthfully in the application.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Non-disclosure can create a misrepresentation problem worse than the refusal itself."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about criminality is correct?",
+      "options": [
+        "Criminal convictions or charges can make a visitor inadmissible.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "TRV applicants are screened for admissibility as well as purpose and funds."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about work prohibition is correct?",
+      "options": [
+        "A visitor cannot work in Canada unless specifically authorized under immigration rules.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitor status is not a substitute for a work permit."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about study limits is correct?",
+      "options": [
+        "Visitors can generally study only in short courses of six months or less unless exempt or authorized.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Longer programs usually require a study permit."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about dependants is correct?",
+      "options": [
+        "Each accompanying family member needs their own application and must satisfy the officer.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Approval of one visitor does not automatically approve every family member."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about travel history is correct?",
+      "options": [
+        "Lawful travel history can support credibility, but lack of travel history is not an automatic refusal.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "Travel history is one factor among funds, ties, and purpose."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about authorized stay is correct?",
+      "options": [
+        "If no specific date is stamped or documented, many visitors are authorized for up to six months from entry.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "CBSA can impose a shorter or different period at examination."
+    },
+    {
+      "level": 1,
+      "question": "In a temporary resident visa visitor application, which statement about leaving Canada is correct?",
+      "options": [
+        "The applicant must convince the officer they will leave Canada at the end of the authorized visit.",
+        "It is optional if the applicant writes a detailed cover letter.",
+        "It automatically guarantees entry to Canada once the form is submitted.",
+        "It is only reviewed after the applicant becomes a permanent resident."
+      ],
+      "correctIndex": 0,
+      "explanation": "This is the core temporary resident requirement for visitor visas."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about IMM 5257?",
+      "options": [
+        "IMM 5257 is the main application form for a temporary resident visa made outside Canada.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "It records identity, travel purpose, background, and admissibility information."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about family information?",
+      "options": [
+        "IMM 5707 or IMM 5645 may be required depending on the applicant's country and checklist.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Family information helps IRCC verify identity and relationships."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about document checklist?",
+      "options": [
+        "The applicant should follow both the IRCC portal checklist and any country-specific instructions.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Local visa office requirements can add important documents."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about fee payment?",
+      "options": [
+        "The applicant pays the CAD $100 TRV fee online, and biometrics fees if required.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Payment is part of completing submission and triggering processing steps."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about biometrics instruction letter?",
+      "options": [
+        "After submission and biometrics fee payment, IRCC issues a letter used to book biometrics at a VAC or ASC.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should not assume biometrics are complete until enrolled and reflected in the account."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about purpose evidence?",
+      "options": [
+        "Travel itinerary, invitation letters, event registrations, or hotel bookings should match the stated purpose.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Documents should tell the same story as the application forms."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about employment letters?",
+      "options": [
+        "A strong employment letter confirms role, salary, approved leave, and expected return date.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Employment evidence supports both funds and home-country ties."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about business ownership proof?",
+      "options": [
+        "Business registration, tax records, invoices, and bank statements can support self-employment ties.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Self-employed applicants need documents that explain ongoing obligations at home."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about bank documents?",
+      "options": [
+        "Recent statements should show stable balances, income deposits, and enough funds for the trip.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers often scrutinize sudden unexplained deposits."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about host support?",
+      "options": [
+        "If the host pays expenses, the file should include the host's invitation, status, income, and accommodation evidence.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host support does not eliminate the need for the applicant's own credible plan."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about travel itinerary?",
+      "options": [
+        "An itinerary should be realistic for the length of stay and the applicant's budget.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Overly long or expensive plans can raise concerns if funds are limited."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about passport submission?",
+      "options": [
+        "A passport request is used to place the visa counterfoil for visa-required applicants.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "The passport must usually be valid and have space for the counterfoil."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about processing times?",
+      "options": [
+        "Published TRV times are estimates and vary by country, volume, biometrics, and background checks.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should not book non-refundable travel assuming a specific decision date."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about medical instructions?",
+      "options": [
+        "If IRCC requests a medical exam, the applicant must use a panel physician and follow the deadline.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Medical compliance is part of admissibility processing."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about police or court records?",
+      "options": [
+        "Police certificates or court records may be needed when criminal history is disclosed or requested.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Incomplete criminality evidence can delay or derail a TRV."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about translation?",
+      "options": [
+        "Non-English or non-French documents generally need certified translations with the original document.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers need readable and reliable evidence."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about proof of relationship?",
+      "options": [
+        "Birth certificates, marriage certificates, photos, and communication records can prove the host relationship.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Relationship evidence helps explain why the visit is happening."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about minor applicants?",
+      "options": [
+        "Minors may need consent letters, custody documents, and travel authorization from non-accompanying parents.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC and border officers assess child travel safety and consent."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about reapplying after refusal?",
+      "options": [
+        "A reapplication should respond directly to refusal reasons with better evidence or changed circumstances.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Repeating the same file usually produces the same concerns."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about address history?",
+      "options": [
+        "Address and travel histories should be complete and consistent with passports and employment records.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Inconsistencies can create credibility issues."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about biometrics validity?",
+      "options": [
+        "Visitor biometrics are often valid for 10 years and may be reused if still valid.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should check validity before paying or attending again."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about IRCC webform?",
+      "options": [
+        "A webform can update material changes, but it should not be used as a substitute for a complete initial package.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Important documents belong in the application whenever possible."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about group applications?",
+      "options": [
+        "Family members can be submitted together, but each person's forms, fees, and evidence must be complete.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "TRV eligibility is assessed individually."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about decision documents?",
+      "options": [
+        "Approval leads to passport submission or visa issuance, while refusal letters identify the main concerns.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should read the decision carefully before taking next steps."
+    },
+    {
+      "level": 2,
+      "question": "For a temporary resident visa visitor application, what is the correct process point about arrival examination?",
+      "options": [
+        "At arrival, the visitor should be ready to explain purpose, funds, host, and return plans consistently.",
+        "It should be uploaded only after IRCC has already made the final decision.",
+        "It is replaced by buying a return ticket or submitting a travel itinerary.",
+        "It can be ignored if the applicant has previously held Canadian status."
+      ],
+      "correctIndex": 0,
+      "explanation": "CBSA can ask questions even after a TRV is issued."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with an overlong visit request?",
+      "options": [
+        "A visit that is unusually long for the stated purpose may make the officer doubt the applicant's real intent.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Trip length should match employment leave, funds, and reason for travel."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with weak employment evidence?",
+      "options": [
+        "Generic or unverifiable employment letters may fail to prove a strong reason to return home.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers rely on credible, verifiable ties."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with family all travelling together?",
+      "options": [
+        "If the whole household travels with few remaining ties, the officer may see higher overstay risk.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicants should explain remaining obligations and return plans."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with a host paying everything?",
+      "options": [
+        "Full host sponsorship can help costs but may not overcome weak personal funds or weak home ties.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitor decisions assess the applicant's situation, not only the host's generosity."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with prior overstays?",
+      "options": [
+        "Past non-compliance can strongly undermine confidence that the visitor will leave on time.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "A persuasive explanation and evidence of resolution are needed."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with undisclosed refusals?",
+      "options": [
+        "Not declaring prior refusals can trigger misrepresentation concerns.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "IRCC can compare immigration histories and application records."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with vague tourism plans?",
+      "options": [
+        "A generic sightseeing plan without dates, budget, or destinations may look manufactured.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Credible tourism files usually contain realistic details."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with insufficient funds for itinerary?",
+      "options": [
+        "If the trip costs exceed available funds, the officer may doubt both purpose and ability to leave.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Financial evidence must fit the proposed stay."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with recent job resignation?",
+      "options": [
+        "Leaving employment shortly before applying can weaken ties and raise migration concerns.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The officer evaluates circumstances at the time of decision."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with inconsistent host relationship?",
+      "options": [
+        "Conflicting claims about the host relationship can damage credibility.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Relationship evidence should align with forms, invitation letters, and civil records."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with hidden work plans?",
+      "options": [
+        "Evidence suggesting the visitor will work without authorization can lead to refusal.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitors must not enter the Canadian labour market without proper authorization."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with medical inadmissibility?",
+      "options": [
+        "A required medical exam can reveal inadmissibility concerns or delay the application.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Visitor eligibility includes health screening where required."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with criminal history?",
+      "options": [
+        "Even old offences can require careful admissibility analysis before a TRV is approved.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Criminality is separate from whether the visit purpose is genuine."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with large unexplained deposits?",
+      "options": [
+        "Sudden deposits may be discounted unless the source is documented.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers look for stable, legitimate funds."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with conflicting travel dates?",
+      "options": [
+        "Different dates across forms, invitation letters, and bookings can make the file appear unreliable.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Consistency helps the officer understand the plan."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with previous long stays in Canada?",
+      "options": [
+        "Repeated long stays may make the officer question whether the person is living in Canada as a visitor.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Patterns of use matter even when each entry was lawful."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with lack of return ticket?",
+      "options": [
+        "A missing return ticket is not automatic refusal, but no return plan can contribute to temporary intent concerns.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The officer needs confidence the stay is temporary."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with minor travelling with one parent?",
+      "options": [
+        "Missing consent from the other parent can raise child protection and custody concerns.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Consent and custody documents should be clear."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with purpose changing after submission?",
+      "options": [
+        "A materially changed purpose should be updated with evidence or the original file may become misleading.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Officers decide based on the record before them."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with invitation from a person without status?",
+      "options": [
+        "A host with no valid Canadian status may weaken the invitation and raise credibility questions.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Host circumstances are relevant when they support the visit."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with template refusal response?",
+      "options": [
+        "A reapplication that does not address the specific refusal grounds is unlikely to satisfy the officer.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "The new file should add material evidence or explanation."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with dual intent for visitors?",
+      "options": [
+        "A possible future PR plan is allowed only if the applicant still shows they will leave if required.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dual intent does not cancel the temporary resident test."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with documents with authenticity concerns?",
+      "options": [
+        "Questionable bank, job, or civil documents can lead to refusal or a procedural fairness process.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Authenticity issues are treated seriously."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with weak economic establishment?",
+      "options": [
+        "No employment, assets, studies, or regular income can make it harder to prove return incentives.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "Economic establishment is a common TRV risk factor."
+    },
+    {
+      "level": 3,
+      "question": "Officer perspective in a temporary resident visa visitor application: what is the key issue with airport questioning?",
+      "options": [
+        "Inconsistent answers at the port of entry can lead to refusal of entry despite having a visa.",
+        "It is harmless because officers approve cases when the applicant is polite.",
+        "It can be fixed after refusal by sending documents to the visa office informally.",
+        "It matters only at the airport and not during the paper or online review."
+      ],
+      "correctIndex": 0,
+      "explanation": "A TRV permits travel for examination; CBSA still decides admission."
     }
   ],
   "donts": {
