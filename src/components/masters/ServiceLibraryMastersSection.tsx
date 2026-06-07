@@ -41,10 +41,24 @@ function rowLabel(r: LibraryRow): string {
   return r.sub_service || r.service;
 }
 
+function rowCountries(r: LibraryRow): string[] {
+  const mapped = (r.service_library_countries ?? []).map((c) => c.country);
+  if (mapped.length) return mapped;
+  if (ALLOWED_SERVICE_LIBRARY_COUNTRIES.includes(r.service)) return [r.service];
+  return [];
+}
+
+function rowMatchesCountry(r: LibraryRow, country: string): boolean {
+  if (country === "all") return true;
+  const countries = rowCountries(r);
+  return countries.includes(country) || r.service === country;
+}
+
 export function ServiceLibraryMastersSection() {
   const [rows, setRows] = useState<LibraryRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterKey, setFilterKey] = useState("all");
+  const [countryFilter, setCountryFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<LibraryRow | null>(null);
   const [open, setOpen] = useState(false);
@@ -67,18 +81,28 @@ export function ServiceLibraryMastersSection() {
     load();
   }, []);
 
+  const countryOptions = useMemo(() => {
+    const present = new Set<string>();
+    for (const r of rows) {
+      for (const c of rowCountries(r)) present.add(c);
+    }
+    return ALLOWED_SERVICE_LIBRARY_COUNTRIES.filter((c) => present.has(c));
+  }, [rows]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
       if (filterKey !== "all" && r.service_category !== filterKey) return false;
+      if (!rowMatchesCountry(r, countryFilter)) return false;
       if (!q) return true;
       return (
         rowLabel(r).toLowerCase().includes(q) ||
         r.service.toLowerCase().includes(q) ||
-        r.sub_service.toLowerCase().includes(q)
+        r.sub_service.toLowerCase().includes(q) ||
+        rowCountries(r).some((c) => c.toLowerCase().includes(q))
       );
     });
-  }, [rows, filterKey, search]);
+  }, [rows, filterKey, countryFilter, search]);
 
   const toggleActive = async (r: LibraryRow) => {
     const { error } = await supabase
@@ -135,6 +159,19 @@ export function ServiceLibraryMastersSection() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={countryFilter} onValueChange={setCountryFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All countries</SelectItem>
+            {countryOptions.map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input
@@ -169,7 +206,7 @@ export function ServiceLibraryMastersSection() {
               serviceCode: r.id,
               serviceField: r.service,
             });
-            const countries = (r.service_library_countries ?? []).map((c) => c.country);
+            const countries = rowCountries(r);
             return (
               <div
                 key={r.id}
