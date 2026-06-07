@@ -16,7 +16,7 @@ import {
   flattenNavItemIds,
   type AcademyCategoryFilter,
 } from "@/lib/service-library/academyNav";
-import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
+import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
 import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
@@ -25,10 +25,6 @@ export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
 function parseCategory(raw: string | null): AcademyCategoryFilter {
   return raw === "coaching" ? "coaching" : "visa";
-}
-
-function parseVisaBucket(raw: string | null): VisaImmigrationBucket | null {
-  return raw === "visa" || raw === "immigration" ? raw : null;
 }
 
 function parseCoachingVariant(raw: string | null): CoachingVariant | null {
@@ -45,9 +41,6 @@ export default function ServiceLibrary() {
     parseCategory(params.get("cat")),
   );
   const [countryFilter, setCountryFilter] = useState(params.get("country") || "ALL");
-  const [visaBucket, setVisaBucket] = useState<VisaImmigrationBucket | null>(
-    parseVisaBucket(params.get("bucket")),
-  );
   const [coachingFamily, setCoachingFamily] = useState<string | null>(params.get("family"));
   const [coachingVariant, setCoachingVariant] = useState<CoachingVariant | null>(
     parseCoachingVariant(params.get("variant")),
@@ -79,11 +72,10 @@ export default function ServiceLibrary() {
     if (selectedId) p.set("id", selectedId);
     if (categoryFilter !== "visa") p.set("cat", categoryFilter);
     if (categoryFilter === "visa" && countryFilter) p.set("country", countryFilter);
-    if (visaBucket) p.set("bucket", visaBucket);
     if (coachingFamily) p.set("family", coachingFamily);
     if (coachingVariant) p.set("variant", coachingVariant);
     setParams(p, { replace: true });
-  }, [selectedId, categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, setParams]);
+  }, [selectedId, categoryFilter, countryFilter, coachingFamily, coachingVariant, setParams]);
 
   const masters = useQuery({
     queryKey: ["sl-library-masters"],
@@ -103,13 +95,12 @@ export default function ServiceLibrary() {
       buildAcademyNav(masters.data ?? [], {
         categoryFilter,
         countryFilter: categoryFilter === "visa" ? countryFilter : "ALL",
-        visaBucket,
         coachingFamily,
         coachingVariant,
         search: treeSearch,
         statusFilter,
       }),
-    [masters.data, categoryFilter, countryFilter, visaBucket, coachingFamily, coachingVariant, treeSearch, statusFilter],
+    [masters.data, categoryFilter, countryFilter, coachingFamily, coachingVariant, treeSearch, statusFilter],
   );
 
   const navReadyForSelection = group?.step === "services";
@@ -127,7 +118,6 @@ export default function ServiceLibrary() {
     setCategoryFilter(cat);
     setSelectedId(null);
     setTreeSearch("");
-    setVisaBucket(null);
     setCoachingFamily(null);
     setCoachingVariant(null);
     if (cat === "visa") setCountryFilter("ALL");
@@ -136,13 +126,7 @@ export default function ServiceLibrary() {
   const handleCountryChange = (c: string) => {
     setCountryFilter(c);
     setSelectedId(null);
-    setVisaBucket(null);
     if (c !== "ALL") setDetailCountry(c);
-  };
-
-  const handleVisaBucketChange = (b: VisaImmigrationBucket | null) => {
-    setVisaBucket(b);
-    setSelectedId(null);
   };
 
   const handleCoachingFamilyChange = (f: string | null) => {
@@ -233,8 +217,6 @@ export default function ServiceLibrary() {
         onCategoryChange={handleCategoryChange}
         country={countryFilter}
         onCountry={handleCountryChange}
-        visaBucket={visaBucket}
-        onVisaBucket={handleVisaBucketChange}
         coachingFamily={coachingFamily}
         onCoachingFamily={handleCoachingFamilyChange}
         coachingVariant={coachingVariant}
@@ -258,11 +240,9 @@ export default function ServiceLibrary() {
             group={group}
             categoryFilter={categoryFilter}
             country={countryFilter}
-            visaBucket={visaBucket}
             coachingFamily={coachingFamily}
             coachingVariant={coachingVariant}
             onCountry={handleCountryChange}
-            onVisaBucket={handleVisaBucketChange}
             onCoachingFamily={handleCoachingFamilyChange}
             onCoachingVariant={handleCoachingVariantChange}
             onSelectService={setSelectedId}

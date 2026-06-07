@@ -31,8 +31,6 @@ export default function ServiceLibraryDesignPreview() {
         onCategoryChange={() => {}}
         country="Canada"
         onCountry={() => {}}
-        visaBucket="visa"
-        onVisaBucket={() => {}}
         coachingFamily={null}
         onCoachingFamily={() => {}}
         coachingVariant={null}

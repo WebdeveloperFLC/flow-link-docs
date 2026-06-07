@@ -325,29 +325,6 @@ export function AcademyContentEditor({ master, onChanged }: Props) {
               </SelectContent>
             </Select>
           </div>
-          {countryScoped && (
-            <div>
-              <Label>Nav bucket (Visa vs Immigration)</Label>
-              <Select
-                value={meta.navBucket ?? "__unset"}
-                onValueChange={(v) =>
-                  patch((m) => ({
-                    ...m,
-                    navBucket: v === "__unset" ? undefined : (v as "visa" | "immigration"),
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Auto-classify from title" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__unset">Auto from title</SelectItem>
-                  <SelectItem value="visa">Temporary visa</SelectItem>
-                  <SelectItem value="immigration">Immigration pathway</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
           <Field
             label="Learning level"
             value={meta.learningLevel ?? ""}
