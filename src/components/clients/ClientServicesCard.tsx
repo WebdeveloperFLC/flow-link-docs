@@ -30,6 +30,14 @@ const DISPLAY_GROUPS: DisplayGroup[] = [
   { label: "Allied & Travel", keys: ["allied_services", "travel_services"] },
 ];
 
+const GROUP_LABELS: { key: keyof ServiceSelection; label: string }[] = [
+  { key: "coaching_services", label: "Coaching" },
+  { key: "visa_services", label: "Visa & Immigration" },
+  { key: "admission_services", label: "Admission" },
+  { key: "allied_services", label: "Allied" },
+  { key: "travel_services", label: "Travel" },
+];
+
 async function autoDraftInvoiceForServices(
   clientId: string,
   selection: ServiceSelection,
