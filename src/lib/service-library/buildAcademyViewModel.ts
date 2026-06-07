@@ -4,6 +4,7 @@ import {
   type FeeItem,
   type SubmissionItem,
   type ChecklistFile,
+  type VisaFormFile,
   type Attachment,
   type SopTask,
   resolveForCountry,
@@ -59,6 +60,14 @@ export type AcademyViewModel = {
   dosDonts: { dos: string[]; donts: string[]; mistakes: string[] };
   resources: { title: string; url: string; description?: string }[];
   downloads: { name: string; size: string; fileId: string }[];
+  visaForms: {
+    id: string;
+    code: string;
+    title: string;
+    url: string;
+    isOnline: boolean;
+    notes?: string;
+  }[];
   sampleDocs: {
     title: string;
     description?: string;
@@ -133,6 +142,7 @@ export function buildAcademyViewModel(args: {
   feeItems: FeeItem[];
   submissionItems: SubmissionItem[];
   checklistFiles: ChecklistFile[];
+  visaFormFiles?: VisaFormFile[];
   attachments?: Attachment[];
   sopTasks: SopTask[];
   submissionCompletedIds: Set<string>;
@@ -269,6 +279,17 @@ export function buildAcademyViewModel(args: {
         name: f.file_name,
         size: f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—",
         fileId: f.id,
+      })),
+    visaForms: (args.visaFormFiles ?? [])
+      .filter((f) => f.is_current)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((f) => ({
+        id: f.id,
+        code: f.form_code ?? "",
+        title: f.file_name,
+        url: f.file_path,
+        isOnline: f.mime_type === "text/html" || /^https?:\/\//i.test(f.file_path),
+        notes: f.notes ?? undefined,
       })),
     sampleDocs: [
       ...(meta.sampleDocs ?? []).map((d) => ({

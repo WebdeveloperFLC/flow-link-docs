@@ -8,6 +8,7 @@ import {
   type SubmissionItem,
   type Attachment,
   type ChecklistFile,
+  type VisaFormFile,
   type SopTask,
   scopeByCountry,
 } from "@/lib/serviceLibrary";
@@ -48,13 +49,19 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
         override = (ov ?? null) as Override | null;
       }
 
-      const [feesRes, attachRes, filesRes, sopRes, subRes, completionsRes] = await Promise.all([
+      const [feesRes, attachRes, filesRes, visaFormsRes, sopRes, subRes, completionsRes] = await Promise.all([
         supabase.from("service_library_fee_items").select("*").eq("library_id", m.id).order("display_order"),
         supabase.from("service_library_attachments").select("*").eq("library_id", m.id).order("display_order"),
         supabase
           .from("service_library_checklist_files")
           .select("*")
           .eq("library_id", m.id)
+          .order("version", { ascending: false }),
+        supabase
+          .from("service_library_visa_form_files" as "service_library_checklist_files")
+          .select("*")
+          .eq("library_id", m.id)
+          .order("sort_order")
           .order("version", { ascending: false }),
         supabase
           .from("service_library_sop_tasks")
@@ -79,6 +86,7 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
       const feeItems = scopeByCountry((feesRes.data ?? []) as FeeItem[], detailCountry);
       const attachments = scopeByCountry((attachRes.data ?? []) as Attachment[], detailCountry);
       const checklistFiles = scopeByCountry((filesRes.data ?? []) as ChecklistFile[], detailCountry);
+      const visaFormFiles = scopeByCountry((visaFormsRes.data ?? []) as VisaFormFile[], detailCountry);
       const submissionItems = scopeByCountry((subRes.data ?? []) as SubmissionItem[], detailCountry);
       const completedIds = new Set(
         ((completionsRes.data ?? []) as { item_id: string }[]).map((r) => r.item_id),
@@ -92,6 +100,7 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
         feeItems,
         submissionItems,
         checklistFiles,
+        visaFormFiles,
         attachments,
         sopTasks: scopeByCountry((sopRes.data ?? []) as SopTask[], detailCountry),
         submissionCompletedIds: completedIds,

@@ -31,6 +31,7 @@ const TAB_IDS = [
   "overview",
   "eligibility",
   "checklist",
+  "visaforms",
   "process",
   "dos",
   "redflags",
@@ -88,7 +89,7 @@ export function ServiceLibraryTabs({
       <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-muted/40 p-1 mb-4">
         {TAB_IDS.map((id) => (
           <TabsTrigger key={id} value={id} className="text-xs sm:text-sm capitalize data-[state=active]:bg-card">
-            {id === "dos" ? "Do's & don'ts" : id === "redflags" ? "Red flags" : id === "sampledocs" ? "Sample docs" : id === "changelog" ? "Change log" : id}
+            {id === "dos" ? "Do's & don'ts" : id === "redflags" ? "Red flags" : id === "visaforms" ? "Visa forms" : id === "sampledocs" ? "Sample docs" : id === "changelog" ? "Change log" : id}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -236,6 +237,58 @@ export function ServiceLibraryTabs({
         {checklist.documentNotes && (
           <Card className="p-5 shadow-elev-sm">
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{checklist.documentNotes}</p>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="visaforms" className="mt-0 space-y-4">
+        <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
+          <p className="text-sm text-muted-foreground">
+            Official government application forms and online portals for this service. Always verify the current form
+            version on the issuing authority website before client use.
+          </p>
+        </Card>
+        {view.visaForms.length > 0 ? (
+          <div className="space-y-2">
+            {view.visaForms.map((form) => (
+              <Card key={form.id} className="p-4 flex items-center justify-between shadow-elev-sm gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                    {form.code && (
+                      <Badge variant="secondary" className="text-[10px] font-mono font-normal">
+                        {form.code}
+                      </Badge>
+                    )}
+                    <Badge variant="outline" className="text-[10px] font-normal">
+                      {form.isOnline ? "Online" : "PDF"}
+                    </Badge>
+                  </div>
+                  <div className="font-medium text-sm">{form.title}</div>
+                  {form.notes && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{form.notes}</p>
+                  )}
+                </div>
+                <Button variant="outline" size="sm" className="shrink-0" asChild>
+                  <a href={form.url} target="_blank" rel="noopener noreferrer">
+                    {form.isOnline ? (
+                      <>
+                        <ExternalLink className="size-4 mr-1" />
+                        Open
+                      </>
+                    ) : (
+                      <>
+                        <Download className="size-4 mr-1" />
+                        Open PDF
+                      </>
+                    )}
+                  </a>
+                </Button>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="p-5 text-sm text-muted-foreground">
+            No official forms linked yet. Add them in Service Library Admin → Visa forms tab.
           </Card>
         )}
       </TabsContent>

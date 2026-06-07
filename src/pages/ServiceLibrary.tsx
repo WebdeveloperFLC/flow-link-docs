@@ -52,6 +52,7 @@ export default function ServiceLibrary() {
     | "overview"
     | "eligibility"
     | "checklist"
+    | "visaforms"
     | "process"
     | "dos"
     | "redflags"
