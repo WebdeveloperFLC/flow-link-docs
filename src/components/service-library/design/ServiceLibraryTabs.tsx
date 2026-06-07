@@ -17,6 +17,7 @@ import {
   Brain,
   StickyNote,
   History,
+  ImageIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
@@ -34,6 +35,7 @@ const TAB_IDS = [
   "faqs",
   "compliance",
   "downloads",
+  "sampledocs",
   "quiz",
   "notes",
   "changelog",
@@ -48,6 +50,7 @@ type Props = {
   onToggleChecklistItem?: (id: string) => void;
   onPushChecklist?: () => void;
   onDownloadFile?: (fileId: string, fileName: string) => void;
+  onOpenSampleDoc?: (filePath: string, fileName: string) => void;
 };
 
 export function ServiceLibraryTabs({
@@ -57,6 +60,7 @@ export function ServiceLibraryTabs({
   onToggleChecklistItem,
   onPushChecklist,
   onDownloadFile,
+  onOpenSampleDoc,
 }: Props) {
   const [internalTab, setInternalTab] = useState<TabId>("redflags");
   const activeTab = controlledTab ?? internalTab;
@@ -81,7 +85,7 @@ export function ServiceLibraryTabs({
       <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-muted/40 p-1 mb-4">
         {TAB_IDS.map((id) => (
           <TabsTrigger key={id} value={id} className="text-xs sm:text-sm capitalize data-[state=active]:bg-card">
-            {id === "dos" ? "Do's & don'ts" : id === "redflags" ? "Red flags" : id === "changelog" ? "Change log" : id}
+            {id === "dos" ? "Do's & don'ts" : id === "redflags" ? "Red flags" : id === "sampledocs" ? "Sample docs" : id === "changelog" ? "Change log" : id}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -413,6 +417,63 @@ export function ServiceLibraryTabs({
               Add official links in Admin → Service content (JSON <span className="font-mono">resources</span>
               ), or upload PDFs under Checklist files.
             </p>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="sampledocs" className="mt-0 space-y-4">
+        <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
+          <p className="text-sm text-muted-foreground">
+            Sample mock documents for client conversations. Upload PDF or JPG files in Service Library Admin
+            (attachments labelled &quot;sample&quot;) or add entries in JSON <span className="font-mono">sampleDocs</span>.
+          </p>
+        </Card>
+        {view.sampleDocs.length > 0 ? (
+          view.sampleDocs.map((doc) => (
+            <Card key={doc.title + (doc.filePath ?? doc.url ?? "")} className="p-4 shadow-elev-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3 min-w-0">
+                  {doc.isImage ? (
+                    <ImageIcon className="size-5 text-primary shrink-0 mt-0.5" />
+                  ) : (
+                    <FileText className="size-5 text-primary shrink-0 mt-0.5" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm">{doc.title}</div>
+                    {doc.description && (
+                      <p className="text-xs text-muted-foreground mt-1">{doc.description}</p>
+                    )}
+                    {doc.mimeType && (
+                      <p className="text-[10px] text-muted-foreground mt-1 uppercase">{doc.mimeType}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  {doc.url && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="size-4 mr-1" />
+                        Open
+                      </a>
+                    </Button>
+                  )}
+                  {doc.filePath && onOpenSampleDoc && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onOpenSampleDoc(doc.filePath!, doc.title)}
+                    >
+                      <Download className="size-4 mr-1" />
+                      View
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Card className="p-5 text-sm text-muted-foreground">
+            No sample documents yet for this service. Add mock bank statements, LOA samples, or TRF examples here.
           </Card>
         )}
       </TabsContent>

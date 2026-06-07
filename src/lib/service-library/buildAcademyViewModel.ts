@@ -4,6 +4,7 @@ import {
   type FeeItem,
   type SubmissionItem,
   type ChecklistFile,
+  type Attachment,
   type SopTask,
   resolveForCountry,
   htmlToPlain,
@@ -58,6 +59,14 @@ export type AcademyViewModel = {
   dosDonts: { dos: string[]; donts: string[]; mistakes: string[] };
   resources: { title: string; url: string; description?: string }[];
   downloads: { name: string; size: string; fileId: string }[];
+  sampleDocs: {
+    title: string;
+    description?: string;
+    filePath?: string;
+    url?: string;
+    mimeType?: string;
+    isImage: boolean;
+  }[];
   quiz: {
     question: string;
     options: string[];
@@ -122,6 +131,7 @@ export function buildAcademyViewModel(args: {
   feeItems: FeeItem[];
   submissionItems: SubmissionItem[];
   checklistFiles: ChecklistFile[];
+  attachments?: Attachment[];
   sopTasks: SopTask[];
   submissionCompletedIds: Set<string>;
   relatedMasters?: { id: string; label: string }[];
@@ -258,6 +268,25 @@ export function buildAcademyViewModel(args: {
         size: f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—",
         fileId: f.id,
       })),
+    sampleDocs: [
+      ...(meta.sampleDocs ?? []).map((d) => ({
+        title: d.title,
+        description: d.description,
+        filePath: d.filePath,
+        url: d.url,
+        mimeType: d.mimeType,
+        isImage: !!d.mimeType?.startsWith("image/"),
+      })),
+      ...(args.attachments ?? [])
+        .filter((a) => /sample|mock|example/i.test(a.label ?? a.file_name))
+        .map((a) => ({
+          title: a.label ?? a.file_name,
+          description: "Uploaded sample document",
+          filePath: a.file_path,
+          mimeType: a.mime_type ?? undefined,
+          isImage: !!a.mime_type?.startsWith("image/"),
+        })),
+    ],
     quiz: meta.quiz ?? [],
     internalNotes: (meta.staffNotes ?? []).map((n) => ({
       author: n.author,

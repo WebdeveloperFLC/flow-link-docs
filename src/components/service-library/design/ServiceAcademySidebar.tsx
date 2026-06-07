@@ -1,44 +1,38 @@
 import { Link } from "react-router-dom";
 import flcLogo from "@/assets/flc-logo.png";
-import {
-  Plane,
-  GraduationCap,
-  Briefcase,
-  BookOpen,
-  Trophy,
-  BarChart3,
-  Calculator,
-  Download,
-  ChevronLeft,
-  Search,
-} from "lucide-react";
+import { Plane, GraduationCap, BookOpen, ChevronLeft, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   ACADEMY_CATEGORY_TABS,
+  groupItemCount,
   type AcademyCategoryFilter,
   type AcademyNavGroup,
   type AcademyServiceItem,
 } from "@/lib/service-library/academyNav";
-import { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
+import type { CoachingVariant, VisaImmigrationBucket } from "@/lib/service-library/serviceNavClassification";
 
 const iconMap: Record<AcademyCategoryFilter, typeof Plane> = {
   visa: Plane,
   coaching: GraduationCap,
-  allied_travel: Briefcase,
 };
 
 type Props = {
   group: AcademyNavGroup | null;
   categoryFilter: AcademyCategoryFilter;
   onCategoryChange: (c: AcademyCategoryFilter) => void;
+  country: string;
+  onCountry: (c: string) => void;
+  visaBucket: VisaImmigrationBucket | null;
+  onVisaBucket: (b: VisaImmigrationBucket | null) => void;
+  coachingFamily: string | null;
+  onCoachingFamily: (f: string | null) => void;
+  coachingVariant: CoachingVariant | null;
+  onCoachingVariant: (v: CoachingVariant | null) => void;
   activeCount: number;
   reviewCount: number;
   selectedId: string | null;
   onSelect: (id: string) => void;
-  country: string;
-  onCountry: (c: string) => void;
   statusFilter: "all" | "active" | "review";
   onStatusFilter: (f: "all" | "active" | "review") => void;
   search: string;
@@ -69,30 +63,31 @@ function NavItemButton({
       )}
     >
       <span className="flex-1 truncate">{item.label}</span>
-      {item.needsReview && (
-        <span className="size-1.5 rounded-full bg-amber-400 shrink-0" />
-      )}
+      {item.needsReview && <span className="size-1.5 rounded-full bg-amber-400 shrink-0" />}
     </button>
   );
 }
 
-function groupItemCount(group: AcademyNavGroup | null): number {
-  if (!group) return 0;
-  if (group.items) return group.items.length;
-  if (group.countryPickers) return group.countryPickers.reduce((n, c) => n + c.count, 0);
-  return 0;
+function StepHint({ children }: { children: React.ReactNode }) {
+  return <p className="px-2 pb-1.5 text-[10px] text-slate-500 leading-snug">{children}</p>;
 }
 
 export function ServiceAcademySidebar({
   group,
   categoryFilter,
   onCategoryChange,
+  country,
+  onCountry,
+  visaBucket,
+  onVisaBucket,
+  coachingFamily,
+  onCoachingFamily,
+  coachingVariant,
+  onCoachingVariant,
   activeCount,
   reviewCount,
   selectedId,
   onSelect,
-  country,
-  onCountry,
   statusFilter,
   onStatusFilter,
   search,
@@ -112,6 +107,27 @@ export function ServiceAcademySidebar({
 
   const Icon = iconMap[categoryFilter] ?? BookOpen;
   const count = groupItemCount(group);
+  const step = group?.step;
+
+  const resetToCountries = () => {
+    onCountry("ALL");
+    onVisaBucket(null);
+    onCoachingFamily(null);
+    onCoachingVariant(null);
+  };
+
+  const resetToVisaBuckets = () => {
+    onVisaBucket(null);
+  };
+
+  const resetToCoachingFamilies = () => {
+    onCoachingFamily(null);
+    onCoachingVariant(null);
+  };
+
+  const resetToCoachingVariants = () => {
+    onCoachingVariant(null);
+  };
 
   return (
     <aside className="w-[260px] shrink-0 flex flex-col bg-slate-900 text-slate-100 min-h-screen">
@@ -136,6 +152,17 @@ export function ServiceAcademySidebar({
       </div>
 
       <div className="p-3 space-y-2 border-b border-slate-700/80">
+        <StepHint>Step 1 — All countries</StepHint>
+        {country !== "ALL" && categoryFilter === "visa" && (
+          <button
+            type="button"
+            onClick={resetToCountries}
+            className="w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+          >
+            ← All countries
+          </button>
+        )}
+
         <div className="flex flex-col gap-1">
           {ACADEMY_CATEGORY_TABS.map((tab) => (
             <button
@@ -154,20 +181,18 @@ export function ServiceAcademySidebar({
           ))}
         </div>
 
-        {categoryFilter === "visa" && (
-          <Select value={country} onValueChange={onCountry}>
-            <SelectTrigger className="h-8 bg-slate-800 border-slate-600 text-slate-100 text-xs">
-              <SelectValue placeholder="Country" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All countries</SelectItem>
-              {ALLOWED_SERVICE_LIBRARY_COUNTRIES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {categoryFilter === "visa" && country !== "ALL" && (
+          <div className="rounded-md bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-300">
+            {country}
+            {visaBucket ? ` · ${visaBucket === "visa" ? "Visa" : "Immigration"}` : ""}
+          </div>
+        )}
+
+        {categoryFilter === "coaching" && coachingFamily && (
+          <div className="rounded-md bg-slate-800/80 px-2.5 py-1.5 text-xs text-slate-300">
+            {coachingFamily}
+            {coachingVariant ? ` · ${coachingVariant === "general" ? "General" : coachingVariant === "academic" ? "Academic" : "All"}` : ""}
+          </div>
         )}
 
         <div className="relative">
@@ -217,34 +242,9 @@ export function ServiceAcademySidebar({
               <span className="ml-auto tabular-nums">{count}</span>
             </div>
 
-            {categoryFilter === "visa" && country !== "ALL" && (
-              <button
-                type="button"
-                onClick={() => onCountry("ALL")}
-                className="mb-2 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
-              >
-                ← All countries
-              </button>
-            )}
-
-            {group.items && (
-              <ul className="space-y-0.5">
-                {categoryFilter === "visa" && country !== "ALL" && (
-                  <li className="px-2 pb-1 text-[10px] text-slate-500">Step 2 — Select a visa service</li>
-                )}
-                {group.items.map((item) => (
-                  <li key={item.id}>
-                    <NavItemButton item={item} selectedId={selectedId} onSelect={onSelect} />
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {group.countryPickers && (
+            {step === "countries" && group.countryPickers && (
               <div className="space-y-1">
-                <p className="px-2 pb-1 text-[10px] text-slate-500 leading-snug">
-                  Step 1 — Select a country
-                </p>
+                <StepHint>Step 2 — Select a country, then Visa or Immigration</StepHint>
                 <ul className="space-y-0.5">
                   {group.countryPickers.map((picker) => (
                     <li key={picker.country}>
@@ -268,12 +268,134 @@ export function ServiceAcademySidebar({
               </div>
             )}
 
-            {categoryFilter === "visa" && country !== "ALL" && group.items && group.items.length === 0 && (
-              <p className="px-2 text-xs text-slate-500">No visa services for this country.</p>
+            {step === "visa_buckets" && group.subBuckets && (
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={resetToCountries}
+                  className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+                >
+                  ← {country}
+                </button>
+                <StepHint>Step 3 — Visa or Immigration pathway</StepHint>
+                <ul className="space-y-0.5">
+                  {group.subBuckets.map((bucket) => (
+                    <li key={bucket.key}>
+                      <button
+                        type="button"
+                        onClick={() => onVisaBucket(bucket.key)}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
+                          visaBucket === bucket.key
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-slate-300 hover:bg-slate-800",
+                        )}
+                      >
+                        <span className="flex-1 truncate">{bucket.label}</span>
+                        <span className="text-[10px] tabular-nums opacity-80">{bucket.count}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {step === "coaching_families" && group.coachingFamilies && (
+              <div className="space-y-1">
+                <StepHint>Step 2 — Select coaching program</StepHint>
+                <ul className="space-y-0.5">
+                  {group.coachingFamilies.map((family) => (
+                    <li key={family.key}>
+                      <button
+                        type="button"
+                        onClick={() => onCoachingFamily(family.key)}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
+                          coachingFamily === family.key
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-slate-300 hover:bg-slate-800",
+                        )}
+                      >
+                        <span className="flex-1 truncate">{family.label}</span>
+                        <span className="text-[10px] tabular-nums opacity-80">{family.count}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {step === "coaching_variants" && group.coachingVariants && (
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={resetToCoachingFamilies}
+                  className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+                >
+                  ← {coachingFamily}
+                </button>
+                <StepHint>Step 3 — General or Academic</StepHint>
+                <ul className="space-y-0.5">
+                  {group.coachingVariants.map((variant) => (
+                    <li key={variant.key}>
+                      <button
+                        type="button"
+                        onClick={() => onCoachingVariant(variant.key)}
+                        className={cn(
+                          "w-full flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm text-left transition-colors",
+                          coachingVariant === variant.key
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "text-slate-300 hover:bg-slate-800",
+                        )}
+                      >
+                        <span className="flex-1 truncate">{variant.label}</span>
+                        <span className="text-[10px] tabular-nums opacity-80">{variant.count}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {step === "services" && group.items && (
+              <ul className="space-y-0.5">
+                {categoryFilter === "visa" && (
+                  <button
+                    type="button"
+                    onClick={resetToVisaBuckets}
+                    className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+                  >
+                    ← {visaBucket === "visa" ? "Visa" : "Immigration"}
+                  </button>
+                )}
+                {categoryFilter === "coaching" && coachingVariant && (
+                  <button
+                    type="button"
+                    onClick={resetToCoachingVariants}
+                    className="mb-1 w-full text-left px-2 py-1 text-[11px] text-slate-400 hover:text-slate-200"
+                  >
+                    ← {coachingVariant === "general" ? "General" : coachingVariant === "academic" ? "Academic" : "Formats"}
+                  </button>
+                )}
+                <StepHint>Step 4 — Select a service</StepHint>
+                {group.items.map((item) => (
+                  <li key={item.id}>
+                    <NavItemButton item={item} selectedId={selectedId} onSelect={onSelect} />
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {step === "services" && group.items?.length === 0 && (
+              <p className="px-2 text-xs text-slate-500">No services in this section yet.</p>
             )}
           </div>
         ) : (
-          <p className="text-xs text-slate-500 px-2">No services match filters.</p>
+          <p className="text-xs text-slate-500 px-2">
+            {categoryFilter === "coaching"
+              ? "No coaching academy content yet. Content will appear here once seeded."
+              : "No services match filters."}
+          </p>
         )}
       </nav>
 

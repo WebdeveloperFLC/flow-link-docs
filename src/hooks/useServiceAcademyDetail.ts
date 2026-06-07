@@ -6,6 +6,7 @@ import {
   type Override,
   type FeeItem,
   type SubmissionItem,
+  type Attachment,
   type ChecklistFile,
   type SopTask,
   scopeByCountry,
@@ -47,8 +48,9 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
         override = (ov ?? null) as Override | null;
       }
 
-      const [feesRes, filesRes, sopRes, subRes, completionsRes] = await Promise.all([
+      const [feesRes, attachRes, filesRes, sopRes, subRes, completionsRes] = await Promise.all([
         supabase.from("service_library_fee_items").select("*").eq("library_id", m.id).order("display_order"),
+        supabase.from("service_library_attachments").select("*").eq("library_id", m.id).order("display_order"),
         supabase
           .from("service_library_checklist_files")
           .select("*")
@@ -75,6 +77,7 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
       ]);
 
       const feeItems = scopeByCountry((feesRes.data ?? []) as FeeItem[], detailCountry);
+      const attachments = scopeByCountry((attachRes.data ?? []) as Attachment[], detailCountry);
       const checklistFiles = scopeByCountry((filesRes.data ?? []) as ChecklistFile[], detailCountry);
       const submissionItems = scopeByCountry((subRes.data ?? []) as SubmissionItem[], detailCountry);
       const completedIds = new Set(
@@ -89,6 +92,7 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
         feeItems,
         submissionItems,
         checklistFiles,
+        attachments,
         sopTasks: scopeByCountry((sopRes.data ?? []) as SopTask[], detailCountry),
         submissionCompletedIds: completedIds,
       });

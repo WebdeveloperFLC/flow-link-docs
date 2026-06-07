@@ -46,6 +46,15 @@ export type ServiceAcademyMetadata = {
     correctIndex: number;
     explanation?: string;
   }[];
+  navBucket?: "visa" | "immigration";
+  /** Mock / sample documents counselors can show clients (Sample docs tab). */
+  sampleDocs?: {
+    title: string;
+    description?: string;
+    filePath?: string;
+    url?: string;
+    mimeType?: string;
+  }[];
 };
 
 /** Bulk JSON template for Service Library admin. */
