@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Copy, ExternalLink } from "lucide-react";
+import { Lock, Copy, ExternalLink, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 
 import { CountrySelect } from "@/components/leads/CountrySelect";
@@ -46,6 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
 import { autoAssignPipelineForClient, resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
+import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 
 /**
  * Seed education_history from the legacy scalar columns when the row was
@@ -414,9 +415,19 @@ const ClientNew = () => {
         actions={
           <div className="flex items-center gap-2">
             {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
-            <Button variant="outline" onClick={() => nav("/clients")}>
-              Cancel
-            </Button>
+            {slLibraryId ? (
+              <Button
+                variant="outline"
+                onClick={() => nav(buildServiceLibraryUrl({ libraryId: slLibraryId, country: slCountry }))}
+              >
+                <ChevronLeft className="size-4 mr-1" />
+                Service Library
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => nav("/clients")}>
+                Cancel
+              </Button>
+            )}
             <Button
               onClick={autosave}
               disabled={saving || !(f.first_name ?? "").trim() || !(f.last_name ?? "").trim()}

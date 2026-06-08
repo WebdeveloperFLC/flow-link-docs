@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ export function ServiceEligibilityStartDialog({
   serviceTitle,
   country,
 }: Props) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"existing" | "new">("existing");
   const [q, setQ] = useState("");
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -120,7 +122,7 @@ export function ServiceEligibilityStartDialog({
       }
 
       onOpenChange(false);
-      window.open(`/eligibility/run/${result.sessionId}`, "_blank");
+      navigate(`/eligibility/run/${result.sessionId}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not start assessment");
     } finally {

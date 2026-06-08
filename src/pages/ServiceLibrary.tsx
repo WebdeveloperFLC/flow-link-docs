@@ -24,6 +24,7 @@ import { ServiceEligibilityStartDialog } from "@/components/service-library/Serv
 import {
   defaultAcademyTab,
   resolveAcademyTabs,
+  ACADEMY_TAB_IDS,
   type AcademyTabId,
 } from "@/lib/service-library/academyTabs";
 
@@ -35,6 +36,10 @@ function parseCategory(raw: string | null): AcademyCategoryFilter {
 
 function parseCoachingVariant(raw: string | null): CoachingVariant | null {
   return raw === "general" || raw === "academic" || raw === "other" ? raw : null;
+}
+
+function parseAcademyTab(raw: string | null): AcademyTabId | null {
+  return raw && (ACADEMY_TAB_IDS as readonly string[]).includes(raw) ? (raw as AcademyTabId) : null;
 }
 
 export default function ServiceLibrary() {
@@ -54,7 +59,7 @@ export default function ServiceLibrary() {
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
-  const [activeTab, setActiveTab] = useState<AcademyTabId>("redflags");
+  const [activeTab, setActiveTab] = useState<AcademyTabId>(() => parseAcademyTab(params.get("tab")) ?? "redflags");
   const [policyDismissed] = useState(false);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [clientDialogMode, setClientDialogMode] = useState<"application" | "push">("application");
@@ -67,8 +72,16 @@ export default function ServiceLibrary() {
     if (categoryFilter === "visa" && countryFilter) p.set("country", countryFilter);
     if (coachingFamily) p.set("family", coachingFamily);
     if (coachingVariant) p.set("variant", coachingVariant);
+    if (activeTab !== defaultAcademyTab({ isCoaching: categoryFilter === "coaching" })) {
+      p.set("tab", activeTab);
+    }
     setParams(p, { replace: true });
-  }, [selectedId, categoryFilter, countryFilter, coachingFamily, coachingVariant, setParams]);
+  }, [selectedId, categoryFilter, countryFilter, coachingFamily, coachingVariant, activeTab, setParams]);
+
+  useEffect(() => {
+    const tab = parseAcademyTab(params.get("tab"));
+    if (tab) setActiveTab(tab);
+  }, [params.get("tab")]);
 
   const masters = useQuery({
     queryKey: ["sl-library-masters"],

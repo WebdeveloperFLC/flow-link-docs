@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Lock, ChevronLeft } from "lucide-react";
 
 import { LeadModeToggle, type LeadMode } from "@/components/leads/LeadModeToggle";
 import { RegionCountriesPicker } from "@/components/leads/RegionCountriesPicker";
@@ -31,6 +31,7 @@ import {
 import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
+import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -242,7 +243,19 @@ const LeadNew = () => {
         actions={
           <div className="flex items-center gap-3">
             {saving && <span className="text-xs text-muted-foreground">Saving…</span>}
-            <Button variant="outline" onClick={() => nav(isCold ? "/leads/cold" : "/leads")}>Cancel</Button>
+            {slLibraryId ? (
+              <Button
+                variant="outline"
+                onClick={() => nav(buildServiceLibraryUrl({ libraryId: slLibraryId, country: slCountry }))}
+              >
+                <ChevronLeft className="size-4 mr-1" />
+                Service Library
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => nav(isCold ? "/leads/cold" : "/leads")}>
+                Cancel
+              </Button>
+            )}
             <Button onClick={validateAndSubmit}>Save &amp; View</Button>
           </div>
         }
