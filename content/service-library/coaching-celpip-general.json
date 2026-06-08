@@ -15,8 +15,8 @@
     "summary": "Verify CELPIP-General exam fee and dates on the official booking portal before quoting. Coaching fee is separate. Never guarantee a score."
   },
   "alert": {
-    "title": "Confirm student goal before enrollment",
-    "body": "Verify pathway, target score/level, and timeline before enrolling in CELPIP General."
+    "title": "CELPIP-General for Canada only",
+    "body": "CELPIP-General is accepted by IRCC for Canadian immigration and citizenship — not for USA, UK, or Australia study visas. Confirm pathway before enrollment."
   },
   "tags": [
     {
@@ -121,20 +121,36 @@
   ],
   "faqs": [
     {
-      "q": "Who pays the official exam fee?",
-      "a": "The student pays the test authority directly where applicable. FLC coaching fee is separate."
+      "q": "CELPIP vs IELTS for Canada PR?",
+      "a": "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availability."
     },
     {
-      "q": "Can Future Link guarantee the target score?",
-      "a": "No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."
+      "q": "CELPIP-General vs CELPIP Academic?",
+      "a": "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry."
     },
     {
-      "q": "Are books included?",
-      "a": "Verify program variant — some batches include books, others are materials-light."
+      "q": "How does CELPIP map to CLB?",
+      "a": "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill)."
     },
     {
-      "q": "How many mock tests?",
-      "a": "Minimum per program policy — track mocks before advising exam booking."
+      "q": "Who pays the CELPIP exam fee?",
+      "a": "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate."
+    },
+    {
+      "q": "Can Future Link guarantee CLB 9?",
+      "a": "No. Targets come from diagnostics and mocks — never guarantee scores."
+    },
+    {
+      "q": "Is TOEFL accepted for Canada PR?",
+      "a": "No. IRCC accepts IELTS and CELPIP-General (and CELPIP per program rules) — not TOEFL."
+    },
+    {
+      "q": "How long is CELPIP valid?",
+      "a": "Two years from test date for most IRCC purposes."
+    },
+    {
+      "q": "Where is CELPIP taken?",
+      "a": "At Paragon test centers — verify celpip.ca for India/Canada availability."
     }
   ],
   "compliance": [
@@ -144,10 +160,10 @@
     "Record diagnostic and mock scores on client file"
   ],
   "proTips": [
-    "Set target in writing at enrollment",
-    "Review mock trends weekly",
-    "Confirm correct test/module for student pathway",
-    "Book official exam only when mocks support readiness"
+    "Map every Canada lead to CLB before quoting timeline",
+    "Use CELPIP-General only — not Academic for standard PR",
+    "Track mocks per skill — CELPIP scores each skill separately",
+    "Link results to Express Entry file as soon as scores arrive"
   ],
   "postApproval": [
     "Collect official score report when released",
@@ -234,7 +250,15 @@
       "Visa team not updated when target met"
     ]
   },
-  "sampleDocs": [],
+  "sampleDocs": [
+    {
+      "title": "Enrollment checklist — CELPIP General",
+      "description": "Counselor enrollment and delivery checklist.",
+      "docKind": "enrollment",
+      "url": "/specimens/coaching/celpip-general-checklist.html",
+      "mimeType": "text/html"
+    }
+  ],
   "quiz": [
     {
       "question": "Counselors must never for CELPIP General:",
@@ -285,6 +309,18 @@
       "level": 1
     },
     {
+      "question": "CELPIP-General is primarily used for:",
+      "options": [
+        "Canada immigration & citizenship",
+        "UK Student Route only",
+        "USA F-1 only",
+        "Driving licence"
+      ],
+      "correctIndex": 0,
+      "explanation": "CELPIP-General is accepted by IRCC for Canadian immigration.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for CELPIP General should be signed:",
       "options": [
         "After course ends",
@@ -295,6 +331,216 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for CELPIP General:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in CELPIP General:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for CELPIP General should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "CELPIP level 7 equals approximately:",
+      "options": [
+        "CLB 5",
+        "CLB 7",
+        "CLB 9",
+        "No CLB mapping"
+      ],
+      "correctIndex": 1,
+      "explanation": "CELPIP scores map 1:1 to CLB levels.",
+      "level": 2
+    },
+    {
+      "question": "For Canada Express Entry FSW, CLB 7 typically requires:",
+      "options": [
+        "CELPIP 5 each skill",
+        "CELPIP 7 each skill",
+        "CELPIP 12 each skill",
+        "No English test"
+      ],
+      "correctIndex": 1,
+      "explanation": "CLB 7 = CELPIP 7 in each skill.",
+      "level": 2
+    },
+    {
+      "question": "TOEFL iBT is accepted by IRCC for Canadian PR:",
+      "options": [
+        "Yes",
+        "No",
+        "Only Ontario",
+        "Only with job offer"
+      ],
+      "correctIndex": 1,
+      "explanation": "IRCC does not accept TOEFL for immigration.",
+      "level": 2
+    },
+    {
+      "question": "CELPIP score validity for immigration is generally:",
+      "options": [
+        "6 months",
+        "1 year",
+        "2 years",
+        "Lifetime"
+      ],
+      "correctIndex": 2,
+      "explanation": "Two years from test date for most IRCC uses.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for CELPIP General should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for CELPIP General is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for CELPIP General should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for CELPIP General happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "CELPIP Academic is suitable for most IRCC PR applications:",
+      "options": [
+        "Yes, always",
+        "No — IRCC accepts CELPIP-General for most PR",
+        "Only Quebec",
+        "Only with LMIA"
+      ],
+      "correctIndex": 1,
+      "explanation": "IRCC immigration generally requires CELPIP-General, not Academic.",
+      "level": 3
+    },
+    {
+      "question": "CELPIP is administered by:",
+      "options": [
+        "IDP India",
+        "Paragon Testing / celpip.ca",
+        "British Council only",
+        "Pearson only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Paragon Testing Enterprises administers CELPIP in Canada.",
+      "level": 3
+    },
+    {
+      "question": "A student needing USA F-1 admission should typically consider:",
+      "options": [
+        "CELPIP only",
+        "TOEFL or IELTS Academic per university",
+        "CELPIP Academic for all US unis",
+        "No English test"
+      ],
+      "correctIndex": 1,
+      "explanation": "US admissions rarely use CELPIP — confirm university list.",
+      "level": 3
     }
-  ]
+  ],
+  "compare": {
+    "columns": [
+      "Pathway",
+      "Accepted test",
+      "Minimum (typical)",
+      "Notes"
+    ],
+    "rows": [
+      {
+        "label": "Canada — Express Entry (FSW)",
+        "values": [
+          "CELPIP-General",
+          "CLB 7 = 7 each",
+          "Same as IELTS CLB mapping"
+        ]
+      },
+      {
+        "label": "Canada — Citizenship",
+        "values": [
+          "CELPIP-General",
+          "CLB 4",
+          "Lower threshold"
+        ]
+      },
+      {
+        "label": "Canada — Study permit",
+        "values": [
+          "IELTS/PTE often",
+          "Varies",
+          "CELPIP less common for study"
+        ]
+      },
+      {
+        "label": "NOT for Canada IRCC",
+        "values": [
+          "—",
+          "—",
+          "TOEFL, Duolingo for PR"
+        ]
+      }
+    ]
+  }
 }

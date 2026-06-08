@@ -15,8 +15,8 @@
     "summary": "Spoken English builds fluency — not a substitute for IELTS/PTE for visa. Books included where stated."
   },
   "alert": {
-    "title": "Confirm student goal before enrollment",
-    "body": "Verify pathway, target score/level, and timeline before enrolling in Spoken English (with books)."
+    "title": "Not a visa substitute",
+    "body": "Spoken English builds fluency and interview skills — it does not replace IELTS, PTE, or CELPIP for visa or university English requirements."
   },
   "tags": [
     {
@@ -121,20 +121,16 @@
   ],
   "faqs": [
     {
-      "q": "Who pays the official exam fee?",
-      "a": "The student pays the test authority directly where applicable. FLC coaching fee is separate."
-    },
-    {
-      "q": "Can Future Link guarantee the target score?",
-      "a": "No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."
+      "q": "Does Spoken English replace IELTS?",
+      "a": "No. Formal tests are required for visas and most university offers."
     },
     {
       "q": "Are books included?",
-      "a": "Yes — issue materials at enrollment and log on file."
+      "a": "Yes for Spoken English (with books) — issue and log at enrollment."
     },
     {
-      "q": "How many mock tests?",
-      "a": "Minimum per program policy — track mocks before advising exam booking."
+      "q": "Ideal next step after Spoken English?",
+      "a": "Formal test prep (IELTS/PTE) once foundation is strong enough."
     }
   ],
   "compliance": [
@@ -279,6 +275,18 @@
       "level": 1
     },
     {
+      "question": "Spoken English coaching is:",
+      "options": [
+        "Fluency and confidence building",
+        "IRCC-approved PR test",
+        "Replacement for IELTS on all visas",
+        "German B2 exam"
+      ],
+      "correctIndex": 0,
+      "explanation": "Spoken English is not a visa test substitute.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for Spoken English (with books) should be signed:",
       "options": [
         "After course ends",
@@ -289,6 +297,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for Spoken English (with books):",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in Spoken English (with books):",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for Spoken English (with books) should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "A student needing Canada PR should:",
+      "options": [
+        "Use Spoken English only",
+        "Take IELTS GT or CELPIP-General",
+        "Skip all tests",
+        "Book PTE for IRCC always"
+      ],
+      "correctIndex": 1,
+      "explanation": "PR requires accepted language tests.",
+      "level": 2
+    },
+    {
+      "question": "Interview prep in Spoken English focuses on:",
+      "options": [
+        "Structure, fluency, and feedback",
+        "Memorized visa answers only",
+        "Guaranteed job offer",
+        "Skipping attendance"
+      ],
+      "correctIndex": 0,
+      "explanation": "Interview modules emphasize structured practice.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for Spoken English (with books) should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for Spoken English (with books) is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for Spoken English (with books) should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for Spoken English (with books) happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "Spoken English may pair with:",
+      "options": [
+        "Formal test prep once foundation is ready",
+        "Guaranteed band 8",
+        "No enrollment agreement",
+        "Visa filing without test"
+      ],
+      "correctIndex": 0,
+      "explanation": "Foundation then formal prep is a common path.",
+      "level": 3
     }
   ]
 }

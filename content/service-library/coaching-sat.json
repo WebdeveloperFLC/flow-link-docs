@@ -285,6 +285,18 @@
       "level": 1
     },
     {
+      "question": "SAT is primarily for:",
+      "options": [
+        "Undergraduate (USA) admission",
+        "Canada PR",
+        "German B2",
+        "Spouse visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "SAT is for US undergraduate admissions.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for SAT should be signed:",
       "options": [
         "After course ends",
@@ -295,6 +307,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for SAT:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in SAT:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for SAT should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "Digital SAT is:",
+      "options": [
+        "Computer-adaptive",
+        "Paper-only in all countries",
+        "Oral interview",
+        "Same as GRE"
+      ],
+      "correctIndex": 0,
+      "explanation": "SAT is digital and adaptive.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for SAT should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for SAT is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for SAT should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for SAT happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "SAT coaching targets should match:",
+      "options": [
+        "University middle 50% score ranges",
+        "Random guess",
+        "Guaranteed 1600",
+        "Visa officer preference"
+      ],
+      "correctIndex": 0,
+      "explanation": "Align targets to university ranges.",
+      "level": 3
+    },
+    {
+      "question": "SAT and ACT:",
+      "options": [
+        "Both may be accepted — confirm each university",
+        "Are identical tests",
+        "Replace IELTS for PR",
+        "Are not used in USA"
+      ],
+      "correctIndex": 0,
+      "explanation": "Universities may accept SAT or ACT.",
+      "level": 3
     }
   ]
 }

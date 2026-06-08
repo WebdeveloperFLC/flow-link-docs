@@ -55,6 +55,13 @@ function matchKeysFor(entry) {
     add(entry.displayName, "IELTS");
   }
 
+  if (entry.sub_service === "English Proficiency" || entry.sub_service === "European Languages") {
+    add(entry.family, entry.sub_service);
+    add(entry.family, entry.service);
+    const short = entry.family.split(/\s+/)[0];
+    if (short && short !== entry.family) add(short, entry.sub_service);
+  }
+
   for (const v of entry.matchVariants ?? []) {
     add(v.service, v.sub_service);
   }

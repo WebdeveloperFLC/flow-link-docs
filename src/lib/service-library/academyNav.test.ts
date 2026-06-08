@@ -106,6 +106,56 @@ describe("buildAcademyNav coaching grouping", () => {
     );
   });
 
+  it("lists CELPIP General when CELPIP family is selected (not filtered by format)", () => {
+    const masters = [
+      coachingRow("c1", "CELPIP General", "English Proficiency", {
+        academy_metadata: { displayName: "CELPIP General", reviewStatus: "active" },
+      }),
+    ];
+
+    const { group } = buildAcademyNav(masters, {
+      ...baseOpts,
+      coachingFamily: "CELPIP",
+    });
+
+    expect(group?.step).toBe("services");
+    expect(group?.items).toHaveLength(1);
+    expect(group?.items?.[0].label).toBe("CELPIP General");
+  });
+
+  it("lists PTE Academic when PTE family is selected", () => {
+    const masters = [
+      coachingRow("p1", "PTE Academic", "English Proficiency", {
+        academy_metadata: { displayName: "PTE Academic", reviewStatus: "active" },
+      }),
+    ];
+
+    const { group } = buildAcademyNav(masters, {
+      ...baseOpts,
+      coachingFamily: "PTE",
+    });
+
+    expect(group?.step).toBe("services");
+    expect(group?.items).toHaveLength(1);
+  });
+
+  it("lists French General / Custom without format filtering", () => {
+    const masters = [
+      coachingRow("f1", "French Language (General / Custom)", "French Language"),
+      coachingRow("f2", "French Language A1", "French Language"),
+    ];
+
+    const { group } = buildAcademyNav(masters, {
+      ...baseOpts,
+      coachingFamily: "French Language",
+    });
+
+    expect(group?.step).toBe("services");
+    expect(group?.items?.map((i) => i.label)).toEqual(
+      expect.arrayContaining(["French Language (General / Custom)", "French Language A1"]),
+    );
+  });
+
   it("filters inverted IELTS rows by format", () => {
     const masters = [
       coachingRow("i1", "IELTS Academic Regular (with books)", "IELTS"),
