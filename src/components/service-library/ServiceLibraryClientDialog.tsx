@@ -181,7 +181,7 @@ export function ServiceLibraryClientDialog({
       } else {
         toast.success(`Service added — assign a pipeline on the client page if needed`);
       }
-      navigate(`/clients/${clientId}`);
+      navigate(`/clients/${clientId}?service=${encodeURIComponent(result.serviceCode)}`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not link client to this service";
       toast.error(msg);

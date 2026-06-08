@@ -158,7 +158,11 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
   }, [catalogue]);
 
   const totalCount = useMemo(
-    () => GROUP_LABELS.reduce((n, g) => n + (selection[g.key]?.length ?? 0), 0),
+    () =>
+      DISPLAY_GROUPS.reduce(
+        (n, g) => n + g.keys.reduce((m, k) => m + (selection[k]?.length ?? 0), 0),
+        0,
+      ),
     [selection],
   );
 
@@ -183,13 +187,15 @@ export function ClientServicesCard({ clientId, canEdit }: { clientId: string; ca
       if (error) throw error;
 
       const diffParts: string[] = [];
-      for (const g of GROUP_LABELS) {
-        const before = new Set(selection[g.key] ?? []);
-        const after = new Set(draft[g.key] ?? []);
-        const added = [...after].filter((x) => !before.has(x));
-        const removed = [...before].filter((x) => !after.has(x));
-        if (added.length) diffParts.push(`+${added.length} ${g.label}`);
-        if (removed.length) diffParts.push(`−${removed.length} ${g.label}`);
+      for (const g of DISPLAY_GROUPS) {
+        for (const key of g.keys) {
+          const before = new Set(selection[key] ?? []);
+          const after = new Set(draft[key] ?? []);
+          const added = [...after].filter((x) => !before.has(x));
+          const removed = [...before].filter((x) => !after.has(x));
+          if (added.length) diffParts.push(`+${added.length} ${g.label}`);
+          if (removed.length) diffParts.push(`−${removed.length} ${g.label}`);
+        }
       }
       const summary = diffParts.length ? `Services updated: ${diffParts.join(", ")}` : "Services updated";
       try {

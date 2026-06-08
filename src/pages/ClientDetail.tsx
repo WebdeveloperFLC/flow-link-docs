@@ -76,6 +76,7 @@ import { ClientVoiceNotesCard } from "@/components/clients/ClientVoiceNotesCard"
 import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
+import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 
 interface Client {
   id: string;
@@ -145,6 +146,8 @@ const ClientDetail = () => {
   const [trashedDocs, setTrashedDocs] = useState<Doc[]>([]);
   const [trashUserNames, setTrashUserNames] = useState<Record<string, string>>({});
   const [secondaryLoading, setSecondaryLoading] = useState(true);
+  const [stageRefreshKey, setStageRefreshKey] = useState(0);
+  const onServiceSwitched = useCallback(() => setStageRefreshKey((k) => k + 1), []);
 
   // Critical fetch — only what's needed for the first paint above the fold
   // (client + template + active documents + sections). Runs in parallel.
@@ -1006,7 +1009,16 @@ const ClientDetail = () => {
       <div className="p-8 grid lg:grid-cols-3 gap-6">
         {/* Left: unified case documents (sections + checklist + uploads) */}
         <div className="lg:col-span-2 space-y-6">
-          <ClientStageCard clientId={client.id} clientCountry={client.country} />
+          <ClientServiceSwitcher
+            clientId={client.id}
+            clientCountry={client.country}
+            onSwitched={onServiceSwitched}
+          />
+          <ClientStageCard
+            key={stageRefreshKey}
+            clientId={client.id}
+            clientCountry={client.country}
+          />
           <ClientProfileCard
             clientId={client.id}
             canEdit={canUpload}
