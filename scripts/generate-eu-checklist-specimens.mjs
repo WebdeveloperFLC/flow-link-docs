@@ -2,6 +2,7 @@
 /** Generate HTML checklist specimens for NEW EU visa services only. */
 import fs from "fs";
 import path from "path";
+import { spawnSync } from "child_process";
 import { renderChecklistHtml, countItems } from "./lib/flc-checklist-template.mjs";
 import { buildFromService, slugFromFile } from "./lib/build-checklist-from-service.mjs";
 import { euBaseLibraryIds } from "./lib/eu-visa-service-registry.mjs";
@@ -58,3 +59,10 @@ fs.writeFileSync(
   sql,
 );
 console.log("Wrote checklist link migration");
+
+// Refresh master index listing (includes EU + all existing services)
+const idx = spawnSync(process.execPath, ["scripts/generate-all-service-checklist-specimens.mjs"], {
+  cwd: process.cwd(),
+  stdio: "inherit",
+});
+if (idx.status !== 0) process.exit(idx.status ?? 1);

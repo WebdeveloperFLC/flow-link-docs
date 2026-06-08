@@ -100,6 +100,21 @@ const faqApply = [
   "-- Regenerate: node scripts/generate-eu-artifacts.mjs",
   "",
 ];
+const clApply = [
+  "-- EU visa submission checklist seeds (additive — new services 081–0b4 only)",
+  "-- Regenerate: node scripts/generate-eu-artifacts.mjs",
+  "",
+];
+const faqMigrationParts = [
+  "-- EU visa FAQ seeds (additive — new services 081–0b4 only)",
+  "-- Regenerate: node scripts/generate-eu-artifacts.mjs",
+  "",
+];
+const clMigrationParts = [
+  "-- EU visa submission checklist seeds (additive — new services 081–0b4 only)",
+  "-- Regenerate: node scripts/generate-eu-artifacts.mjs",
+  "",
+];
 
 for (const file of EU_FILES) {
   const fp = path.join(ROOT, file);
@@ -128,6 +143,7 @@ for (const file of EU_FILES) {
   const faqPath = path.join(FAQ_DIR, `${slug(file)}.sql`);
   fs.writeFileSync(faqPath, faqSql);
   faqApply.push(`\\i supabase/migrations/faq-seed/${slug(file)}.sql`);
+  faqMigrationParts.push(faqSql);
   console.log("FAQ", slug(file));
 
   const items = buildChecklistItems(meta);
@@ -151,9 +167,21 @@ for (const file of EU_FILES) {
     `);`,
     "",
   ].join("\n");
-  fs.writeFileSync(path.join(CL_DIR, `${slug(file)}.sql`), clSql);
+  const clPath = path.join(CL_DIR, `${slug(file)}.sql`);
+  fs.writeFileSync(clPath, clSql);
+  clApply.push(`\\i supabase/migrations/checklist-seed/${slug(file)}.sql`);
+  clMigrationParts.push(clSql);
   console.log("CL ", slug(file));
 }
 
 fs.writeFileSync(path.join(FAQ_DIR, "eu-apply-all-faqs.sql"), faqApply.join("\n"));
+fs.writeFileSync(path.join(CL_DIR, "eu-apply-all-checklists.sql"), clApply.join("\n"));
+fs.writeFileSync(
+  path.join(process.cwd(), "supabase/migrations/20260609104000_seed_eu_visa_faqs.sql"),
+  faqMigrationParts.join("\n"),
+);
+fs.writeFileSync(
+  path.join(process.cwd(), "supabase/migrations/20260609105000_seed_eu_submission_checklists.sql"),
+  clMigrationParts.join("\n"),
+);
 console.log("Done EU artifacts.");
