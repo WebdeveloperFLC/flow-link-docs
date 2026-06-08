@@ -1,20 +1,20 @@
 {
   "displayName": "Australia – Work & Holiday Visa (1 year Work & Travel)",
   "shortDescription": "Home Affairs · Subclass 417/462 · 12-month work & travel · Eligible passport required",
-  "version": "v2.0",
+  "version": "v2.1",
   "versionStatus": "Live",
   "reviewStatus": "active",
-  "updatedLabel": "Updated 7 Jun 2026",
+  "updatedLabel": "Updated 8 Jun 2026",
   "learningLevel": "Intermediate",
   "learningMinutes": 18,
   "policyAlert": {
     "active": true,
-    "date": "7 Jun 2026",
-    "summary": "Confirm eligible passport list, age cap, and current WHM visa fee on homeaffairs.gov.au before quoting. India is not on the standard WHM list — verify country eligibility first."
+    "date": "8 Jun 2026",
+    "summary": "Confirm subclass 417 vs 462 for passport country, age cap, and current fees on homeaffairs.gov.au. Indian, Chinese, and Vietnamese passport holders use subclass 462 with a mandatory ballot — not direct lodgement. India joined the WHM program Sept 2024 (462 only)."
   },
   "alert": {
-    "title": "Passport country eligibility",
-    "body": "Working Holiday visas are only for specific passport countries. Confirm subclass 417 vs 462 and that the client has not held a WHM visa before."
+    "title": "Passport country & subclass",
+    "body": "417 vs 462 depends on passport country. India, China, and Vietnam use subclass 462 with a mandatory ballot before application. Confirm first WHM and age limits."
   },
   "tags": [
     {
@@ -94,6 +94,11 @@
       "value": "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying"
     },
     {
+      "label": "India, China & Vietnam (subclass 462)",
+      "value": "Eligible for subclass 462 only — not 417. Must register in the annual Work and Holiday ballot; ~1,000 first visas/year for India. If selected, lodge complete application within 28 days.",
+      "warning": true
+    },
+    {
       "label": "Work conditions",
       "value": "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules.",
       "warning": true
@@ -112,6 +117,11 @@
       "criterion": "Passport from eligible WHM country",
       "met": true,
       "note": "Verify Home Affairs list"
+    },
+    {
+      "criterion": "462 ballot selection if India, China, or Vietnam passport",
+      "met": true,
+      "note": "Mandatory pre-application ballot"
     },
     {
       "criterion": "Age within limit at application",
@@ -146,8 +156,14 @@
   "redFlagsBanner": "If passport country is not eligible or client held WHM before, do not lodge — explore other visa options.",
   "redFlags": [
     {
+      "title": "462 ballot skipped (India/China/Vietnam)",
+      "description": "Client tried to lodge 462 without ballot selection.",
+      "fix": "Register in ballot first; lodge only after selection email",
+      "severity": "Very common"
+    },
+    {
       "title": "Ineligible passport country",
-      "description": "Passport not on 417/462 list.",
+      "description": "Passport not on 417 or 462 partner country list.",
       "fix": "Verify list; do not lodge WHM",
       "severity": "Very common"
     },
@@ -185,7 +201,11 @@
   "faqs": [
     {
       "q": "Can Indian passport holders get WHM?",
-      "a": "India is not on the standard Working Holiday eligible passport list. Always verify the current Home Affairs list for the client passport country before quoting."
+      "a": "Yes — Indian passport holders are eligible for subclass 462 (Work and Holiday), not 417. Since Sept 2024 (AI-ECTA), India uses a pre-application ballot (~1,000 first visas per program year). Register in the ballot via ImmiAccount; if selected, lodge within 28 days. Verify current ballot dates and requirements on homeaffairs.gov.au."
+    },
+    {
+      "q": "How does the India 462 ballot work?",
+      "a": "Register during the ballot window on ImmiAccount (fee applies). Home Affairs runs random selection rounds across the program year. Selected applicants have 28 days to lodge a full subclass 462 application. Cap is approximately 1,000 first visas per year for India."
     },
     {
       "q": "417 vs 462 difference?",
@@ -298,10 +318,6 @@
     {
       "q": "Where to verify WHM eligibility and fees?",
       "a": "immi.homeaffairs.gov.au — eligible passport list, subclass 417/462 pages, and visa pricing estimator."
-    },
-    {
-      "q": "Where to verify WHM eligibility and fees?",
-      "a": "immi.homeaffairs.gov.au — eligible passport list, subclass 417/462 pages, and visa pricing estimator."
     }
   ],
   "compliance": [
@@ -312,6 +328,7 @@
     "Brief client on 6-month employer rule and insurance conditions"
   ],
   "proTips": [
+    "For Indian clients: confirm subclass 462 + ballot pathway — never quote 417",
     "Screen passport country before marketing WHM to client",
     "Confirm age on application date not intake date",
     "Use realistic holiday narrative — not full-time job offer focus",
@@ -397,6 +414,12 @@
   ],
   "changelog": [
     {
+      "version": "v2.1",
+      "date": "8 Jun 2026",
+      "author": "Service Library",
+      "summary": "Corrected India eligibility: subclass 462 + ballot (Sept 2024 AI-ECTA). Updated checklist, FAQs, and quiz."
+    },
+    {
       "version": "v2.0",
       "date": "7 Jun 2026",
       "author": "Service Library",
@@ -423,6 +446,11 @@
     }
   ],
   "resources": [
+    {
+      "title": "Home Affairs — WHM program latest news (ballot dates)",
+      "url": "https://immi.homeaffairs.gov.au/what-we-do/whm-program/latest-news",
+      "description": "India/China/Vietnam ballot registration and program updates"
+    },
     {
       "title": "Home Affairs — Working Holiday visa (417)",
       "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/work-holiday-417",
@@ -511,15 +539,15 @@
       "level": 1
     },
     {
-      "question": "Can Indian passport holders get standard WHM?",
+      "question": "Can Indian passport holders get a Work and Holiday visa?",
       "options": [
-        "Yes always",
-        "No — verify current eligible list",
-        "Only subclass 462",
-        "Only with sponsor"
+        "No — never eligible",
+        "Yes — subclass 462 via ballot only",
+        "Yes — subclass 417 direct",
+        "Only with employer sponsor"
       ],
       "correctIndex": 1,
-      "explanation": "India is not on standard WHM list — always verify.",
+      "explanation": "India joined subclass 462 in Sept 2024. Mandatory ballot; not 417.",
       "level": 1
     },
     {
@@ -789,13 +817,13 @@
     {
       "question": "Subclass 417 applies to:",
       "options": [
-        "Most eligible WHM countries",
+        "Most eligible WHM countries (not India)",
         "India only",
-        "USA green card holders",
-        "All Schengen passports"
+        "USA only",
+        "All countries"
       ],
       "correctIndex": 0,
-      "explanation": "417 is Working Holiday; 462 is Work and Holiday for specific countries.",
+      "explanation": "417 excludes India; India uses 462 with ballot.",
       "level": 2
     },
     {
@@ -860,15 +888,15 @@
     },
     {
       "level": 2,
-      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: Can Indian passport holders get WHM?",
+      "question": "Can Indian passport holders get a Work and Holiday visa?",
       "options": [
-        "India is not on the standard Working Holiday eligible passport list. Always verify the current Home Affairs list for the client passport country before quoting.",
-        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
-        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
-        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+        "No — never eligible",
+        "Yes — subclass 462 via ballot only",
+        "Yes — subclass 417 direct",
+        "Only with employer sponsor"
       ],
-      "correctIndex": 0,
-      "explanation": "India is not on the standard Working Holiday eligible passport list. Always verify the current Home Affairs list for the client passport country before quoting."
+      "correctIndex": 1,
+      "explanation": "India joined subclass 462 in Sept 2024. Mandatory ballot; not 417."
     },
     {
       "level": 2,
@@ -1066,7 +1094,7 @@
       "question": "Ineligible passport country should:",
       "options": [
         "Lodge anyway",
-        "Be screened out before fee collection",
+        "Screen out before fee if not on 417/462 list",
         "Use visitor visa then convert inside",
         "Hide nationality"
       ],
@@ -1175,7 +1203,7 @@
       "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with Ineligible passport country should::",
       "options": [
         "Be screened out before fee collection",
-        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Screen out before fee if not on 417/462 list",
         "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
         "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
       ],
