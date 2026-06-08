@@ -26,6 +26,7 @@ import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
+import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -34,6 +35,7 @@ import {
 
 type Props = {
   view: AcademyViewModel;
+  libraryId?: string;
   activeTab?: AcademyTabId;
   onTabChange?: (tab: AcademyTabId) => void;
   onToggleChecklistItem?: (id: string) => void;
@@ -44,6 +46,7 @@ type Props = {
 
 export function ServiceLibraryTabs({
   view,
+  libraryId,
   activeTab: controlledTab,
   onTabChange,
   onToggleChecklistItem,
@@ -356,6 +359,12 @@ export function ServiceLibraryTabs({
           </Card>
         )}
       </TabsContent>
+
+      {libraryId && (
+        <TabsContent value="binder" className="mt-0 space-y-4">
+          <ServiceBinderTab libraryId={libraryId} country={view.country} />
+        </TabsContent>
+      )}
 
       <TabsContent value="visaforms" className="mt-0 space-y-4">
         <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">

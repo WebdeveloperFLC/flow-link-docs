@@ -29,7 +29,6 @@ import {
   downloadChatAttachment,
   markRead,
   searchProfiles,
-  listClientTeamMembers,
   parseMentions,
   type ChannelType,
   type ChatMessage,
@@ -43,12 +42,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import { ClientChatTeamPanel } from "@/components/chat/ClientChatTeamPanel";
 
 interface Props {
   channelType: ChannelType;
   clientId?: string | null;
+  clientName?: string | null;
   channelId?: string | null;
   title?: string;
   className?: string;
@@ -77,6 +76,7 @@ const REACTIONS = ["👍", "❤️", "✅", "🔥", "🎉", "👀"];
 export function UnifiedChat({
   channelType,
   clientId,
+  clientName,
   channelId,
   title,
   className,
@@ -136,21 +136,6 @@ export function UnifiedChat({
       subRef.current?.unsubscribe();
     };
   }, [channelType, clientId, channelId, user?.id, ckey]);
-
-  useEffect(() => {
-    if (channelType !== "staff_internal" || !clientId) {
-      setTeamMembers([]);
-      setFilterMemberId("all");
-      return;
-    }
-    let alive = true;
-    listClientTeamMembers(clientId).then((rows) => {
-      if (alive) setTeamMembers(rows);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [channelType, clientId]);
 
   // Resolve sender names
   useEffect(() => {
@@ -354,61 +339,14 @@ export function UnifiedChat({
         )}
       </div>
       {channelType === "staff_internal" && clientId && (
-        <div className="px-3 py-2 border-b bg-muted/20 space-y-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide shrink-0">
-              Team on file
-            </span>
-            <Select value={filterMemberId} onValueChange={setFilterMemberId}>
-              <SelectTrigger className="h-7 w-[160px] text-xs">
-                <SelectValue placeholder="All team" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All team messages</SelectItem>
-                {teamMembers.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>
-                    {m.full_name || m.email || m.id.slice(0, 6)}
-                    {m.role !== "Team" ? ` · ${m.role}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          {teamMembers.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground">No team members on this client file yet.</p>
-          ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {teamMembers.map((m) => {
-                const label = m.full_name || m.email || m.id.slice(0, 6);
-                const isMe = m.id === user?.id;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => mentionTeamMember(m)}
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] hover:bg-muted transition-colors",
-                      filterMemberId === m.id && "border-primary bg-primary/5",
-                    )}
-                    title={`Mention ${label} in a note`}
-                  >
-                    <Users className="size-3 text-muted-foreground" />
-                    <span className="font-medium truncate max-w-[120px]">{label}</span>
-                    {m.role !== "Team" && (
-                      <Badge variant="secondary" className="h-4 px-1 text-[9px] font-normal">
-                        {m.role}
-                      </Badge>
-                    )}
-                    {isMe && <span className="text-muted-foreground">(you)</span>}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-          <p className="text-[10px] text-muted-foreground">
-            Shared internal thread — click a member to @mention them, or use the dropdown to filter notes by author.
-          </p>
-        </div>
+        <ClientChatTeamPanel
+          clientId={clientId}
+          clientName={clientName ?? title ?? undefined}
+          filterMemberId={filterMemberId}
+          onFilterMemberIdChange={setFilterMemberId}
+          onMention={mentionTeamMember}
+          onMembersChange={setTeamMembers}
+        />
       )}
       {enableEnhanced && (
         <div className="px-3 py-2 border-b flex items-center gap-2">

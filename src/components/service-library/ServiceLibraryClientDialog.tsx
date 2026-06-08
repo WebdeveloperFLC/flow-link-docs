@@ -9,6 +9,8 @@ import { Loader2, Search, UserPlus, Users, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/serviceLibrary";
+import { buildServiceCode, buildServiceLibraryParams } from "@/lib/service-library/serviceCodes";
+import { enrollClientInServiceLibraryApplication } from "@/lib/service-library/enrollClientInService";
 
 type ClientRow = {
   id: string;
@@ -38,19 +40,11 @@ type Props = {
   libraryId: string;
   serviceTitle: string;
   subService: string;
+  serviceCategory: string;
   country: string | null;
   shareLink: string;
   mode?: "application" | "push";
 };
-
-function buildServiceParams(libraryId: string, country: string | null, subService: string, serviceTitle: string) {
-  const p = new URLSearchParams();
-  p.set("library_id", libraryId);
-  if (country) p.set("country", country);
-  p.set("visa_service", subService);
-  p.set("service_label", serviceTitle);
-  return p;
-}
 
 export function ServiceLibraryClientDialog({
   open,
@@ -58,6 +52,7 @@ export function ServiceLibraryClientDialog({
   libraryId,
   serviceTitle,
   subService,
+  serviceCategory,
   country,
   shareLink,
   mode = "application",
@@ -68,8 +63,23 @@ export function ServiceLibraryClientDialog({
   const [clients, setClients] = useState<ClientRow[]>([]);
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [pickedClient, setPickedClient] = useState<string | null>(null);
   const [pickedLead, setPickedLead] = useState<string | null>(null);
+
+  const serviceCode = useMemo(() => buildServiceCode(libraryId, country), [libraryId, country]);
+
+  const serviceParams = useMemo(
+    () =>
+      buildServiceLibraryParams({
+        libraryId,
+        country,
+        serviceTitle,
+        serviceCode,
+        subService,
+      }),
+    [libraryId, country, serviceTitle, serviceCode, subService],
+  );
 
   useEffect(() => {
     if (!open) {
@@ -134,8 +144,6 @@ export function ServiceLibraryClientDialog({
     return list.slice(0, 50);
   }, [leads, q]);
 
-  const serviceParams = buildServiceParams(libraryId, country, subService, serviceTitle);
-
   const openNewClient = () => {
     onOpenChange(false);
     navigate(`/clients/new?${serviceParams.toString()}`);
@@ -152,9 +160,34 @@ export function ServiceLibraryClientDialog({
       toast[ok ? "success" : "error"](
         ok ? "Service Library link copied — paste in client chat or notes" : "Could not copy link",
       );
+      onOpenChange(false);
+      navigate(`/clients/${clientId}`);
+      return;
     }
-    onOpenChange(false);
-    navigate(`/clients/${clientId}`);
+
+    setBusy(true);
+    try {
+      const result = await enrollClientInServiceLibraryApplication({
+        clientId,
+        libraryId,
+        country,
+        serviceTitle,
+        subService,
+        serviceCategory,
+      });
+      onOpenChange(false);
+      if (result.pipelineAssigned) {
+        toast.success(`Linked to ${serviceTitle}`);
+      } else {
+        toast.success(`Service added — assign a pipeline on the client page if needed`);
+      }
+      navigate(`/clients/${clientId}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Could not link client to this service";
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
   };
 
   const openLead = () => {
@@ -171,7 +204,7 @@ export function ServiceLibraryClientDialog({
       toast.error("Select a lead");
       return;
     }
-    const p = buildServiceParams(libraryId, country, subService, serviceTitle);
+    const p = new URLSearchParams(serviceParams);
     p.set("lead_id", pickedLead);
     onOpenChange(false);
     navigate(`/clients/new?${p.toString()}`);
@@ -276,20 +309,32 @@ export function ServiceLibraryClientDialog({
         </Tabs>
 
         <DialogFooter className="gap-2 flex-col sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={busy}>
             Cancel
           </Button>
           {tab === "client" && (
-            <Button onClick={() => pickedClient && openClient(pickedClient)} disabled={!pickedClient}>
-              {mode === "push" ? "Copy link & open client" : "Open client"}
+            <Button
+              onClick={() => pickedClient && openClient(pickedClient)}
+              disabled={!pickedClient || busy}
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="size-4 mr-1.5 animate-spin" />
+                  Linking…
+                </>
+              ) : mode === "push" ? (
+                "Copy link & open client"
+              ) : (
+                "Link & open client"
+              )}
             </Button>
           )}
           {tab === "lead" && (
             <>
-              <Button variant="outline" onClick={openLead} disabled={!pickedLead}>
+              <Button variant="outline" onClick={openLead} disabled={!pickedLead || busy}>
                 Open lead
               </Button>
-              <Button onClick={registerLeadAsClient} disabled={!pickedLead}>
+              <Button onClick={registerLeadAsClient} disabled={!pickedLead || busy}>
                 Register as client
               </Button>
             </>

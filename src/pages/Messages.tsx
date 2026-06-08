@@ -315,6 +315,7 @@ const Messages = () => {
                   key={`${activeClientId}-internal`}
                   channelType="staff_internal"
                   clientId={activeClientId}
+                  clientName={activeClient?.fullName ?? "Client"}
                   title={activeClient?.fullName ?? "Client"}
                 />
               ) : (
