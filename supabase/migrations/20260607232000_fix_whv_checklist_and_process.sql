@@ -1,6 +1,15 @@
 -- Fix Work & Holiday checklist download + process steps + submission checklist.
 -- Run after 20260607230000 and 20260607231000. Safe to re-run.
 
+-- WHM is Australia-only; remove erroneous multi-country mappings (causes old template country chips)
+DELETE FROM public.service_library_countries
+WHERE library_id = 'b2000001-0001-4000-8000-000000000046'::uuid
+  AND country <> 'Australia';
+
+INSERT INTO public.service_library_countries (library_id, country)
+VALUES ('b2000001-0001-4000-8000-000000000046'::uuid, 'Australia')
+ON CONFLICT DO NOTHING;
+
 -- HTML checklist is primary; PDF reference only (PDF URL often blocked by browser extensions)
 UPDATE public.service_library_checklist_files
 SET is_current = false, updated_at = now()
@@ -86,6 +95,7 @@ SELECT
   (SELECT count(*) FROM service_library_checklist_files cf
      WHERE cf.library_id = sl.id AND cf.is_current AND cf.file_path LIKE '%.html') AS html_checklists,
   (SELECT count(*) FROM service_library_submission_checklist sc
-     WHERE sc.library_id = sl.id AND sc.is_active) AS submission_items
+     WHERE sc.library_id = sl.id AND sc.is_active) AS submission_items,
+  (SELECT count(*) FROM service_library_countries c WHERE c.library_id = sl.id) AS country_mappings
 FROM public.service_library sl
 WHERE sl.id = 'b2000001-0001-4000-8000-000000000046'::uuid;
