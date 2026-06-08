@@ -20,6 +20,8 @@ export function useServiceAcademyDetail(masterId: string | null, country: string
   return useQuery({
     queryKey: ["sl-library-detail", masterId, country, user?.id],
     enabled: !!masterId,
+    staleTime: 60_000,
+    placeholderData: (previous) => previous,
     queryFn: async () => {
       const { data: master, error } = await supabase
         .from("service_library")

@@ -107,12 +107,11 @@ export default function ServiceLibrary() {
   const navReadyForSelection = group?.step === "services";
 
   useEffect(() => {
-    if (!navReadyForSelection) {
-      setSelectedId(null);
-      return;
-    }
+    if (!navReadyForSelection || !group?.items) return;
     const ids = flattenNavItemIds(group);
-    if (selectedId && ids.includes(selectedId)) return;
+    if (selectedId && !ids.includes(selectedId)) {
+      setSelectedId(null);
+    }
   }, [selectedId, group, navReadyForSelection]);
 
   const handleCategoryChange = (cat: AcademyCategoryFilter) => {
@@ -151,9 +150,9 @@ export default function ServiceLibrary() {
   useEffect(() => {
     if (!detail.data) return;
     const { countries, detailCountry: dc } = detail.data;
-    if (dc) setDetailCountry(dc);
-    else if (countries[0]) setDetailCountry(countries[0]);
-  }, [detail.data?.master.id, detail.data?.detailCountry]);
+    const next = dc ?? countries[0] ?? "";
+    if (next && next !== detailCountry) setDetailCountry(next);
+  }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry]);
 
   const showNavPanel = !selectedId || !navReadyForSelection;
 
@@ -252,7 +251,7 @@ export default function ServiceLibrary() {
             onCoachingVariant={handleCoachingVariantChange}
             onSelectService={setSelectedId}
           />
-        ) : detail.isLoading ? (
+        ) : detail.isLoading && !detail.data ? (
           <div className="flex-1 flex items-center justify-center">
             <Loader2 className="size-8 animate-spin text-muted-foreground" />
           </div>

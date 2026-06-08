@@ -104,15 +104,19 @@ export function isAcademyVisaServiceRow(m: MasterRow): boolean {
   const meta = metaOf(m);
   if (meta?.displayName) return true;
 
-  const serviceNorm = m.service.trim().toLowerCase();
-  if (NON_VISA_SERVICE_FIELDS.has(serviceNorm)) return false;
-
-  if (VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm)) return true;
-
   const countries = resolveServiceCountries(
     m.service,
     (m.service_library_countries ?? []).map((c) => c.country),
   );
+
+  const serviceNorm = m.service.trim().toLowerCase();
+  if (NON_VISA_SERVICE_FIELDS.has(serviceNorm)) {
+    // e.g. service = "Other" + Australia mapping → Work & Holiday, WHV, etc.
+    return countries.some((c) => VISA_COUNTRY_PRIORITY.includes(c));
+  }
+
+  if (VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm)) return true;
+
   return countries.some((c) => c.toLowerCase() === serviceNorm);
 }
 
