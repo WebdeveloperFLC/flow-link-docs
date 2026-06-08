@@ -1,0 +1,143 @@
+{
+  "displayName": "IELTS General Regular (with books)",
+  "shortDescription": "IDP India · General Training · 8–10 week batch · Books included",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated June 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 12,
+  "navBucket": "coaching",
+  "policyAlert": {
+    "active": true,
+    "date": "June 2026",
+    "summary": "General Training only — not Academic. Confirm Canada PR / citizenship or other GT pathway before enrollment. Book exam on ieltsidpindia.com. Never guarantee a band score."
+  },
+  "alert": {
+    "title": "General Training module only",
+    "body": "Canada Express Entry, citizenship, and many settlement routes require IELTS GT (or Academic where IRCC states). University study requires Academic — do not enroll GT for study visas."
+  },
+  "tags": [
+    { "label": "Active program", "variant": "success" },
+    { "label": "Books included", "variant": "neutral" },
+    { "label": "8–10 weeks", "variant": "neutral" },
+    { "label": "General Training", "variant": "warning" }
+  ],
+  "chips": [
+    { "label": "Regular batch", "variant": "success" },
+    { "label": "Canada PR / CLB", "variant": "neutral" },
+    { "label": "GT Reading & Writing", "variant": "warning" },
+    { "label": "Exam fee separate", "variant": "neutral" }
+  ],
+  "kpis": [
+    { "label": "Course duration", "value": "8–10w", "sub": "Regular GT batch", "tone": "primary" },
+    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
+    { "label": "Target achievement", "value": "80%", "sub": "Students hitting agreed CLB/band", "tone": "success" },
+    { "label": "Enrollment docs", "value": "6", "sub": "Agreement + pathway note", "tone": "violet" }
+  ],
+  "about": [
+    { "label": "Description", "value": "Structured IELTS General Training preparation — GT Reading & Writing focus, plus Listening and Speaking — with course books, trainer-led classes, and full GT mocks." },
+    { "label": "Ideal for", "value": "Canada PR (Express Entry), citizenship, UK settlement, and other migration pathways requiring IELTS GT — not university admission." },
+    { "label": "Delivery", "value": "Regular pace over 8–10 weeks. Classroom or hybrid. Books issued at enrollment." },
+    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. Student selects General Training at registration." },
+    { "label": "After course", "value": "TRF handoff to visa team, CLB mapping for Canada files, retake plan if below pathway minimum." }
+  ],
+  "eligibility": [
+    { "criterion": "Migration / PR pathway confirmed — GT required (not Academic)", "met": true },
+    { "criterion": "Diagnostic or prior GT score on file", "met": true },
+    { "criterion": "Realistic CLB / band target vs current level", "met": true },
+    { "criterion": "Enrollment agreement signed", "met": true },
+    { "criterion": "Course fee collected", "met": true }
+  ],
+  "redFlagsBanner": "Study-abroad leads needing Academic must not stay in GT batch. Confirm IRCC accepts GT for the specific program before enrollment.",
+  "redFlags": [
+    { "title": "University student in GT batch", "description": "Study visas need Academic.", "fix": "Transfer to Academic Regular", "severity": "High" },
+    { "title": "Wrong CLB target quoted", "description": "FSW needs CLB 7 = 6.0 each.", "fix": "Reconfirm IRCC requirements", "severity": "Common" },
+    { "title": "Academic booked at IDP by mistake", "description": "Module mismatch on TRF.", "fix": "Cancel and rebook GT before test", "severity": "High" },
+    { "title": "Guaranteed score promised", "description": "Compliance breach.", "fix": "Never guarantee bands", "severity": "High" }
+  ],
+  "faqs": [
+    { "q": "GT vs Academic — quick rule?", "a": "Academic for university. GT for most Canada PR/citizenship and many work/settlement routes." },
+    { "q": "CLB 7 for Express Entry equals:", "a": "Approximately IELTS 6.0 in each skill (Listening, Reading, Writing, Speaking)." },
+    { "q": "Are books included?", "a": "Yes for Regular (with books) — issue at enrollment." },
+    { "q": "Who pays exam fee?", "a": "Student pays IDP on ieltsidpindia.com — separate from coaching fee." },
+    { "q": "Is TOEFL accepted for Canada PR?", "a": "No. IRCC accepts IELTS GT/Academic (per program) and CELPIP — not TOEFL." }
+  ],
+  "compliance": [
+    "Never guarantee an IELTS band score",
+    "Confirm GT module and pathway before enrollment",
+    "Separate coaching fee from IDP exam fee",
+    "Record CLB target on Canada files"
+  ],
+  "proTips": [
+    "Map every Canada lead to CLB before quoting timeline",
+    "Use GT letter-writing drills early — Task 1 differs from Academic",
+    "Link TRF to Express Entry file as soon as scores arrive"
+  ],
+  "postApproval": [
+    "Collect TRF with GT confirmation",
+    "Notify visa team with CLB breakdown",
+    "Plan retake if any skill below minimum"
+  ],
+  "performance": {
+    "ourRate": 80,
+    "industryRate": 65,
+    "stats": [
+      { "label": "GT enrollments (year)", "value": "142" },
+      { "label": "Hit CLB / band target", "value": "114" },
+      { "label": "Retake / booster", "value": "28" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "Pathway confirmed GT", "ours": 94, "benchmark": 78 },
+    { "label": "Attendance 80%+", "ours": 86, "benchmark": 72 },
+    { "label": "Mock completion", "ours": 89, "benchmark": 74 }
+  ],
+  "timeline": [
+    { "weeks": "1", "title": "Diagnostic, pathway check, enrollment & books" },
+    { "weeks": "2–7", "title": "GT classes, letter writing, reading drills" },
+    { "weeks": "6–8", "title": "Full GT mocks & readiness review" },
+    { "weeks": "8–10", "title": "IDP GT booking, test day, TRF to visa team" }
+  ],
+  "relatedServices": [
+    { "label": "IELTS — Test reference", "libraryId": "b2000001-0001-4000-8000-000000000071" },
+    { "label": "Canada — Express Entry PR", "libraryId": "b2000001-0001-4000-8000-000000000013" },
+    { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
+    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" }
+  ],
+  "changelog": [
+    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS General Regular coaching specimen." }
+  ],
+  "staffNotes": [
+    { "author": "Coaching team", "date": "June 2026", "text": "Do not place study-visa Academic inquiries in GT Regular — wrong module and wrong prep." }
+  ],
+  "resources": [
+    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Acceptance matrix — GT vs Academic" },
+    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Select General Training at registration" },
+    { "title": "IRCC — Language requirements", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html", "description": "CLB and accepted tests" },
+    { "title": "Enrollment checklist — GT Regular", "url": "/specimens/coaching/ielts-gt-regular-checklist.html", "description": "Counselor GT enrollment checklist" }
+  ],
+  "donts": {
+    "dos": ["Confirm GT pathway before enrollment", "Map CLB for Canada leads", "Issue books Day 1", "Keep exam fee separate"],
+    "donts": ["Enroll university leads in GT", "Guarantee CLB 9", "Book Academic exam for GT student", "Skip pathway documentation"],
+    "mistakes": ["Study visa in GT batch", "CLB 7 quoted as 7.0 overall only", "Visa team not updated when TRF arrives"]
+  },
+  "sampleDocs": [
+    { "title": "CLB mapping sheet (mock)", "description": "IELTS GT score to CLB per skill.", "docKind": "assessment", "mimeType": "application/pdf" },
+    { "title": "GT Writing Task 1 letter sample (mock)", "description": "Formal letter structure for GT.", "docKind": "writing_sample", "mimeType": "application/pdf" }
+  ],
+  "quiz": [
+    { "question": "IELTS General Training is typically required for:", "options": ["University PhD admission", "Canada Express Entry PR", "Medical licensing only", "Internal FLC diagnostic"], "correctIndex": 1, "explanation": "GT is standard for many Canadian immigration pathways.", "level": 1 },
+    { "question": "CLB 7 for Express Entry FSW equals approximately:", "options": ["IELTS 5.0 each", "IELTS 6.0 each", "IELTS 7.5 each", "IELTS 8.0 each"], "correctIndex": 1, "explanation": "CLB 7 maps to 6.0 in each skill.", "level": 2 },
+    { "question": "A student visa applicant should enroll in:", "options": ["IELTS GT Regular", "IELTS Academic Regular", "Spoken English only", "No IELTS needed"], "correctIndex": 1, "explanation": "Universities require Academic module.", "level": 1 },
+    { "question": "GT Writing Task 1 is typically:", "options": ["Graph description", "Letter writing", "Multiple choice", "Listening only"], "correctIndex": 1, "explanation": "GT Task 1 is a letter; Academic Task 1 is a report.", "level": 1 },
+    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link", "IDP IELTS India by student", "IRCC", "Embassy"], "correctIndex": 1, "explanation": "ieltsidpindia.com — separate from coaching.", "level": 1 },
+    { "question": "Counselors must never:", "options": ["Document pathway", "Guarantee band 8", "Track GT mocks", "Map CLB"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
+    { "question": "TOEFL is accepted by IRCC for Canadian PR:", "options": ["Yes", "No", "Only Quebec", "Only with LMIA"], "correctIndex": 1, "explanation": "IRCC does not accept TOEFL for immigration.", "level": 2 },
+    { "question": "At IDP registration, GT student must select:", "options": ["Academic", "General Training", "UKVI only", "Any module"], "correctIndex": 1, "explanation": "Module must match coaching and visa pathway.", "level": 1 },
+    { "question": "Before exam booking, GT Regular recommends:", "options": ["Zero mocks", "Two mocks within 0.5 of target", "Random date", "Guaranteed score"], "correctIndex": 1, "explanation": "Same readiness standard as Academic Regular.", "level": 2 },
+    { "question": "Books in GT Regular (with books) are:", "options": ["Never provided", "Issued at enrollment", "Sold separately always", "IDP provides them"], "correctIndex": 1, "explanation": "Issue and log books on Day 1.", "level": 1 },
+    { "question": "Listening and Speaking in GT vs Academic:", "options": ["Completely different tests", "Same test content", "GT has no Speaking", "Academic has no Listening"], "correctIndex": 1, "explanation": "L/S are the same; R/W differ.", "level": 2 },
+    { "question": "British Council India role for IELTS exam:", "options": ["Books all India tests", "Prep only — IDP books tests", "Issues TRF", "Sets CLB scores"], "correctIndex": 1, "explanation": "IDP is sole booking channel since July 2021.", "level": 2 }
+  ]
+}

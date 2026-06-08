@@ -106,9 +106,9 @@
   ],
   "relatedServices": [
     { "label": "IELTS — Test reference (official test guide)", "libraryId": "b2000001-0001-4000-8000-000000000071" },
-    { "label": "IELTS Academic Crash Course", "libraryId": "" },
-    { "label": "PTE Academic Regular", "libraryId": "" },
-    { "label": "Spoken English — Advanced", "libraryId": "" }
+    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" },
+    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" },
+    { "label": "PTE Academic Regular", "libraryId": "" }
   ],
   "changelog": [
     { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS Academic Regular coaching specimen." }
@@ -135,6 +135,18 @@
   "quiz": [
     { "question": "IELTS Academic is required for:", "options": ["Most university study visas", "Only Canada PR", "Driving licence", "Tourist visa only"], "correctIndex": 0, "explanation": "Universities and most study pathways need Academic.", "level": 1 },
     { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Issue books", "Run diagnostic"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 }
+    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 },
+    { "question": "Minimum full mocks before exam booking (Regular):", "options": ["0", "4", "20", "None required"], "correctIndex": 1, "explanation": "At least four full mocks under exam conditions.", "level": 1 },
+    { "question": "Attendance below this triggers counselor review:", "options": ["50%", "80%", "100%", "Never tracked"], "correctIndex": 1, "explanation": "Review dips below 80% attendance.", "level": 1 },
+    { "question": "A Canada PR lead needing GT should go to:", "options": ["Academic Regular", "General Regular program", "This Academic batch", "No coaching"], "correctIndex": 1, "explanation": "Do not mix GT students into Academic Regular.", "level": 2 },
+    { "question": "Books in Academic Regular (with books) are:", "options": ["Optional extra fee", "Issued at enrollment", "Provided by IDP", "Not used"], "correctIndex": 1, "explanation": "Issue and log books on Day 1.", "level": 1 },
+    { "question": "Mock readiness rule before IDP booking:", "options": ["Any single mock", "Two mocks within 0.5 of target", "No mocks needed", "Trainer guess"], "correctIndex": 1, "explanation": "Two consecutive mocks near target.", "level": 2 },
+    { "question": "Regular batch typical duration:", "options": ["1 week", "8–10 weeks", "12 months", "1 day"], "correctIndex": 1, "explanation": "Regular pace over 8–10 weeks.", "level": 1 },
+    { "question": "IDP India booking URL:", "options": ["britishcouncil.in/exam/ielts", "ieltsidpindia.com", "ielts.org only", "futurelinkconsultants.com"], "correctIndex": 1, "explanation": "Sole India booking channel since July 2021.", "level": 1 },
+    { "question": "Coaching fee and exam fee on invoice should be:", "options": ["Combined as one line", "Shown separately", "Exam fee included in coaching", "Hidden"], "correctIndex": 1, "explanation": "Compliance — separate fees on all quotes.", "level": 1 },
+    { "question": "When target band is met, next step is often:", "options": ["Ignore TRF", "Hand off to admissions / visa team", "Guarantee retake", "Cancel enrollment"], "correctIndex": 1, "explanation": "Update file and notify downstream team.", "level": 2 },
+    { "question": "Unrealistic enrollment example:", "options": ["5.5 → 6.0 in 10 weeks", "5.0 → 7.0 in 4 weeks", "6.0 → 6.5 in 8 weeks", "Retake 6.5 → 7.0 crash"], "correctIndex": 1, "explanation": "Large gap in short time — reset timeline.", "level": 2 },
+    { "question": "British Council India for IELTS exam:", "options": ["Books all tests", "Prep only — IDP books", "Issues TRF", "Sets band scores"], "correctIndex": 1, "explanation": "BC does not deliver IELTS tests in India.", "level": 2 },
+    { "question": "Enrollment agreement should be signed:", "options": ["After batch ends", "Before batch start", "Never", "Only if student asks"], "correctIndex": 1, "explanation": "Signed agreement before classes begin.", "level": 1 }
   ]
 }

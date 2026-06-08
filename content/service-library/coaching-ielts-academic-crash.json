@@ -1,0 +1,137 @@
+{
+  "displayName": "IELTS Academic Crash Course",
+  "shortDescription": "IDP India · Academic module · 4–6 week intensive · Exam deadline focus",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated June 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 10,
+  "navBucket": "coaching",
+  "policyAlert": {
+    "active": true,
+    "date": "June 2026",
+    "summary": "Crash enrollment only when diagnostic gap to target is realistic (typically ≤ 1 band). Book IELTS via ieltsidpindia.com only. Never guarantee a band score."
+  },
+  "alert": {
+    "title": "Intensive pace — not for beginners",
+    "body": "Crash suits retakes, near-target students, or hard deadlines. Diagnostic 5.0 → target 7.0 in 4 weeks is not crash-eligible. Academic module only."
+  },
+  "tags": [
+    { "label": "Active program", "variant": "success" },
+    { "label": "4–6 weeks", "variant": "warning" },
+    { "label": "Intensive", "variant": "neutral" },
+    { "label": "Academic module", "variant": "warning" }
+  ],
+  "chips": [
+    { "label": "Crash batch", "variant": "warning" },
+    { "label": "2+ full mocks", "variant": "neutral" },
+    { "label": "Deadline-driven", "variant": "neutral" },
+    { "label": "Exam fee separate", "variant": "neutral" }
+  ],
+  "kpis": [
+    { "label": "Course duration", "value": "4–6w", "sub": "Intensive batch", "tone": "primary" },
+    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
+    { "label": "Target achievement", "value": "76%", "sub": "Crash-eligible enrollments", "tone": "success" },
+    { "label": "Min attendance", "value": "85%", "sub": "Crash standard", "tone": "violet" }
+  ],
+  "about": [
+    { "label": "Description", "value": "Fast-track IELTS Academic preparation for students with an exam deadline or retake window. Daily classes, heavy homework, focused skill drills, and timed mocks." },
+    { "label": "Ideal for", "value": "Retake students within ~0.5–1.0 band of target, conditional offer deadlines, or post-Regular booster needs — not first-time learners far below target." },
+    { "label": "Delivery", "value": "Intensive classroom or hybrid. Materials per branch policy. Higher attendance expectation than Regular." },
+    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately." },
+    { "label": "After course", "value": "Exam booking support, TRF tracking, booster or Regular recommendation if crash timeline insufficient." }
+  ],
+  "eligibility": [
+    { "criterion": "Diagnostic shows gap ≤ 1.0 band to agreed target (or skill retake)", "met": true },
+    { "criterion": "Exam or university deadline documented", "met": true },
+    { "criterion": "Academic module requirement confirmed", "met": true },
+    { "criterion": "Student accepts intensive schedule (≥ 85% attendance)", "met": true },
+    { "criterion": "Enrollment agreement signed", "met": true }
+  ],
+  "redFlagsBanner": "If mocks stay far below target mid-crash, pause exam booking — offer Regular extension or realistic retake date.",
+  "redFlags": [
+    { "title": "Not crash-eligible", "description": "Large band gap or weak foundation.", "fix": "Offer Academic Regular instead", "severity": "Very common" },
+    { "title": "Missed classes in week 1", "description": "Crash pace cannot be recovered.", "fix": "Pause or switch to Regular", "severity": "Common" },
+    { "title": "GT student in Academic crash", "description": "Wrong module.", "fix": "Move to GT program", "severity": "High" },
+    { "title": "Guaranteed score promised", "description": "Compliance breach.", "fix": "Never guarantee bands", "severity": "High" }
+  ],
+  "faqs": [
+    { "q": "Crash vs Regular — when to choose?", "a": "Regular for 1.0+ band improvement over 8–10 weeks. Crash when diagnostic is near target and deadline is tight." },
+    { "q": "How many mocks in crash?", "a": "Minimum two full mocks; book exam only when latest mock is within 0.5 of target." },
+    { "q": "Who pays exam fee?", "a": "Student pays IDP on ieltsidpindia.com — separate from crash course fee." },
+    { "q": "Can we guarantee band 7 in crash?", "a": "No. Outcomes depend on starting level, attendance, and exam performance." }
+  ],
+  "compliance": [
+    "Never guarantee an IELTS band score",
+    "Document crash eligibility on enrollment form",
+    "Separate coaching fee from IDP exam fee",
+    "Record diagnostic and mock scores"
+  ],
+  "proTips": [
+    "Use crash only after Regular incomplete or retake with clear skill gap",
+    "Book IDP slot only after second mock confirms readiness",
+    "Brief on test day checklist in final week"
+  ],
+  "postApproval": [
+    "Collect TRF when released",
+    "Update admissions / visa file",
+    "Plan retake or OSR if one skill below target"
+  ],
+  "performance": {
+    "ourRate": 76,
+    "industryRate": 62,
+    "stats": [
+      { "label": "Crash enrollments (year)", "value": "98" },
+      { "label": "Hit target", "value": "74" },
+      { "label": "Extended to Regular", "value": "24" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "Attendance 85%+", "ours": 82, "benchmark": 68 },
+    { "label": "Mock on schedule", "ours": 88, "benchmark": 70 },
+    { "label": "Exam booked when ready", "ours": 79, "benchmark": 65 }
+  ],
+  "timeline": [
+    { "weeks": "1", "title": "Diagnostic, eligibility check, enrollment" },
+    { "weeks": "2–4", "title": "Daily classes, drills, weekly speaking mocks" },
+    { "weeks": "3–5", "title": "Full mocks & readiness review" },
+    { "weeks": "4–6", "title": "IDP booking, test day prep, TRF follow-up" }
+  ],
+  "relatedServices": [
+    { "label": "IELTS — Test reference", "libraryId": "b2000001-0001-4000-8000-000000000071" },
+    { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
+    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" }
+  ],
+  "changelog": [
+    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS Academic Crash coaching specimen." }
+  ],
+  "staffNotes": [
+    { "author": "Coaching team", "date": "June 2026", "text": "Decline crash if gap > 1 band unless skill-specific retake with manager approval." }
+  ],
+  "resources": [
+    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Full test guide" },
+    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole booking channel in India" },
+    { "title": "Enrollment checklist — Academic Crash", "url": "/specimens/coaching/ielts-academic-crash-checklist.html", "description": "Counselor crash enrollment checklist" }
+  ],
+  "donts": {
+    "dos": ["Verify crash eligibility before quoting", "Track daily attendance", "Confirm Academic module", "Keep exam fee separate"],
+    "donts": ["Enroll large band-gap students in crash", "Guarantee a band score", "Skip mocks before booking", "Mix GT leads into Academic crash"],
+    "mistakes": ["Diagnostic 5 → target 7 in 4 weeks", "Exam booked in week 1", "No deadline on file"]
+  },
+  "sampleDocs": [
+    { "title": "Crash eligibility form (mock)", "description": "Gap-to-target and deadline sign-off.", "docKind": "assessment", "mimeType": "application/pdf" }
+  ],
+  "quiz": [
+    { "question": "IELTS Academic Crash is best suited when:", "options": ["Student is 2+ bands below target", "Diagnostic gap to target is typically ≤ 1 band", "Student needs GT for Canada PR", "No exam date exists"], "correctIndex": 1, "explanation": "Crash is for near-target or retake students with a deadline.", "level": 1 },
+    { "question": "Minimum attendance standard for crash is approximately:", "options": ["50%", "70%", "85%", "100%"], "correctIndex": 2, "explanation": "Intensive pace requires higher attendance than Regular.", "level": 1 },
+    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com.", "level": 1 },
+    { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Confirm module", "Share test day checklist"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
+    { "question": "Before booking the exam, crash policy recommends:", "options": ["No mocks", "Latest mock within 0.5 of target", "Earliest IDP date always", "Wait until after test"], "correctIndex": 1, "explanation": "Readiness based on mock performance.", "level": 2 },
+    { "question": "A GT student should be enrolled in:", "options": ["Academic Crash", "General Regular or GT crash", "PTE only", "Spoken English"], "correctIndex": 1, "explanation": "Module must match migration or study pathway.", "level": 1 },
+    { "question": "Typical crash duration is:", "options": ["1 week", "4–6 weeks", "6 months", "1 year"], "correctIndex": 1, "explanation": "Intensive 4–6 week batch.", "level": 1 },
+    { "question": "If student misses multiple classes in week 1:", "options": ["Continue crash unchanged", "Pause or switch to Regular", "Guarantee target", "Skip mocks"], "correctIndex": 1, "explanation": "Crash pace cannot be recovered after early absenteeism.", "level": 2 },
+    { "question": "Minimum full mocks in crash course:", "options": ["0", "2", "10", "20"], "correctIndex": 1, "explanation": "At least two full timed mocks.", "level": 1 },
+    { "question": "IDP India became sole IELTS distributor in India in:", "options": ["2010", "July 2021", "2024", "Never"], "correctIndex": 1, "explanation": "Book only on ieltsidpindia.com since July 2021.", "level": 2 }
+  ]
+}

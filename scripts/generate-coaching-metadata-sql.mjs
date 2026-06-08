@@ -30,6 +30,47 @@ const ROWS = [
     display_order: 72,
     json: "coaching-ielts-academic-regular.json",
   },
+  {
+    id: LIBRARY_IDS["coaching-ielts-academic-crash.json"],
+    service: "IELTS",
+    sub_service: "Academic Crash Course",
+    display_order: 73,
+    json: "coaching-ielts-academic-crash.json",
+  },
+  {
+    id: LIBRARY_IDS["coaching-ielts-gt-regular.json"],
+    service: "IELTS",
+    sub_service: "General Regular (with books)",
+    display_order: 74,
+    json: "coaching-ielts-gt-regular.json",
+  },
+];
+
+const CHECKLIST_FILES = [
+  {
+    libraryKey: "coaching-ielts-academic-regular.json",
+    fileName: "IELTS Academic Regular (with books) — Enrollment Checklist.html",
+    filePath: "/specimens/coaching/ielts-academic-regular-checklist.html",
+    notes: "Coaching enrollment & delivery checklist — Academic Regular",
+  },
+  {
+    libraryKey: "coaching-ielts-academic-crash.json",
+    fileName: "IELTS Academic Crash Course — Enrollment Checklist.html",
+    filePath: "/specimens/coaching/ielts-academic-crash-checklist.html",
+    notes: "Coaching enrollment & delivery checklist — Academic Crash",
+  },
+  {
+    libraryKey: "coaching-ielts-gt-regular.json",
+    fileName: "IELTS General Regular (with books) — Enrollment Checklist.html",
+    filePath: "/specimens/coaching/ielts-gt-regular-checklist.html",
+    notes: "Coaching enrollment & delivery checklist — GT Regular",
+  },
+  {
+    libraryKey: "coaching-ielts-test-reference.json",
+    fileName: "IELTS — Test Reference (Service Library specimen).html",
+    filePath: "/specimens/coaching/ielts-test-reference.html",
+    notes: "Full IELTS test guide — acceptance matrix, test day, module samples",
+  },
 ];
 
 function sqlJson(file) {
@@ -41,7 +82,7 @@ function sqlJson(file) {
 
 const parts = [
   "-- IELTS coaching service_library rows + academy metadata",
-  "-- Specimens: public/specimens/coaching/ielts-test-reference.html",
+  "-- Specimens: public/specimens/coaching/",
   "-- Regenerate: node scripts/generate-coaching-metadata-sql.mjs",
   "",
   "INSERT INTO public.service_library (id, service_category, service, sub_service, display_order, is_active)",
@@ -63,45 +104,26 @@ for (const row of ROWS) {
   parts.push("");
 }
 
-const acRegularId = LIBRARY_IDS["coaching-ielts-academic-regular.json"];
-parts.push(`-- Enrollment checklist (HTML primary)`);
-parts.push(`INSERT INTO public.service_library_checklist_files`);
-parts.push(`  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)`);
-parts.push(`SELECT`);
-parts.push(`  '${acRegularId}'::uuid,`);
-parts.push(`  'IELTS Academic Regular (with books) — Enrollment Checklist.html',`);
-parts.push(`  '/specimens/coaching/ielts-academic-regular-checklist.html',`);
-parts.push(`  'text/html',`);
-parts.push(`  0,`);
-parts.push(`  1,`);
-parts.push(`  true,`);
-parts.push(`  'Coaching enrollment & delivery checklist — Future Link branded'`);
-parts.push(`WHERE NOT EXISTS (`);
-parts.push(`  SELECT 1 FROM public.service_library_checklist_files cf`);
-parts.push(`  WHERE cf.library_id = '${acRegularId}'::uuid`);
-parts.push(`    AND cf.file_path = '/specimens/coaching/ielts-academic-regular-checklist.html'`);
-parts.push(`);`);
-parts.push("");
-
-const testRefId = LIBRARY_IDS["coaching-ielts-test-reference.json"];
-parts.push(`-- Test reference specimen as downloadable resource`);
-parts.push(`INSERT INTO public.service_library_checklist_files`);
-parts.push(`  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)`);
-parts.push(`SELECT`);
-parts.push(`  '${testRefId}'::uuid,`);
-parts.push(`  'IELTS — Test Reference (Service Library specimen).html',`);
-parts.push(`  '/specimens/coaching/ielts-test-reference.html',`);
-parts.push(`  'text/html',`);
-parts.push(`  0,`);
-parts.push(`  1,`);
-parts.push(`  true,`);
-parts.push(`  'Full IELTS test guide — acceptance matrix, test day, module samples'`);
-parts.push(`WHERE NOT EXISTS (`);
-parts.push(`  SELECT 1 FROM public.service_library_checklist_files cf`);
-parts.push(`  WHERE cf.library_id = '${testRefId}'::uuid`);
-parts.push(`    AND cf.file_path = '/specimens/coaching/ielts-test-reference.html'`);
-parts.push(`);`);
-parts.push("");
+for (const cf of CHECKLIST_FILES) {
+  const libraryId = LIBRARY_IDS[cf.libraryKey];
+  parts.push(`INSERT INTO public.service_library_checklist_files`);
+  parts.push(`  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)`);
+  parts.push(`SELECT`);
+  parts.push(`  '${libraryId}'::uuid,`);
+  parts.push(`  '${cf.fileName.replace(/'/g, "''")}',`);
+  parts.push(`  '${cf.filePath}',`);
+  parts.push(`  'text/html',`);
+  parts.push(`  0,`);
+  parts.push(`  1,`);
+  parts.push(`  true,`);
+  parts.push(`  '${cf.notes.replace(/'/g, "''")}'`);
+  parts.push(`WHERE NOT EXISTS (`);
+  parts.push(`  SELECT 1 FROM public.service_library_checklist_files cf`);
+  parts.push(`  WHERE cf.library_id = '${libraryId}'::uuid`);
+  parts.push(`    AND cf.file_path = '${cf.filePath}'`);
+  parts.push(`);`);
+  parts.push("");
+}
 
 parts.push(`-- Verify`);
 parts.push(`SELECT`);
@@ -114,8 +136,9 @@ parts.push(`  jsonb_array_length(COALESCE(sl.academy_metadata->'quiz', '[]'::jso
 parts.push(`  (SELECT count(*) FROM service_library_checklist_files cf WHERE cf.library_id = sl.id AND cf.is_current) AS checklist_files`);
 parts.push(`FROM public.service_library sl`);
 parts.push(`WHERE sl.id IN (`);
-parts.push(`  '${LIBRARY_IDS["coaching-ielts-test-reference.json"]}'::uuid,`);
-parts.push(`  '${LIBRARY_IDS["coaching-ielts-academic-regular.json"]}'::uuid`);
+parts.push(
+  ROWS.map((r) => `  '${r.id}'::uuid`).join(",\n"),
+);
 parts.push(`);`);
 
 fs.writeFileSync(OUT, parts.join("\n"));

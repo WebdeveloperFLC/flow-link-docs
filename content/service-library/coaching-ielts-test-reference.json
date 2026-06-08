@@ -159,9 +159,10 @@
   ],
   "relatedServices": [
     { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
+    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" },
+    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" },
     { "label": "Canada — Express Entry PR", "libraryId": "b2000001-0001-4000-8000-000000000013" },
-    { "label": "Canada — Study Permit", "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336" },
-    { "label": "Australia — Skilled Migration", "libraryId": "b2000001-0001-4000-8000-000000000044" }
+    { "label": "Canada — Study Permit", "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336" }
   ],
   "changelog": [
     { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS test reference — acceptance matrix, test day guide, module samples." }
