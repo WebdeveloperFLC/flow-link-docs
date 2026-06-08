@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "calendar_tokens public read" ON public.calendar_tokens;
