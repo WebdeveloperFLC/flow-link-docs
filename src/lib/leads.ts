@@ -1,6 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
-import { resolveServiceCountries } from "@/lib/service-library/serviceNavClassification";
+import {
+  resolveAlliedAdmissionGrouping,
+  resolveCoachingFamilyKey,
+  resolveCoachingVariantLabel,
+} from "@/lib/leads/servicePickerGroups";
+import { coachingFamilyLabel, resolveServiceCountries } from "@/lib/service-library/serviceNavClassification";
 import { VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
 
 export type LeadType = "warm" | "hot" | "cold";
@@ -133,12 +138,12 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
   for (const r of rows) {
     const countries = (r.service_library_countries ?? []).map((c) => c.country);
     const displayLabel =
-      (r.academy_metadata as { displayName?: string } | null)?.displayName ?? r.sub_service;
+      (r.academy_metadata as { displayName?: string } | null)?.displayName ?? null;
 
     if (
       isExcludedCatalogueService({
         subService: r.sub_service,
-        serviceName: displayLabel,
+        serviceName: displayLabel ?? r.sub_service,
         serviceCode: r.id,
         serviceField: r.service,
       })
@@ -147,11 +152,12 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     }
 
     if (r.service_category === "visa_immigration") {
+      const visaDisplayLabel = displayLabel ?? r.sub_service;
       const serviceNorm = r.service.trim().toLowerCase();
       const isCountryRow =
         VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm) ||
         resolveServiceCountries(r.service, countries).some((c) => c.toLowerCase() === serviceNorm);
-      const hasAcademyContent = !!(r.academy_metadata as { displayName?: string } | null)?.displayName;
+      const hasAcademyContent = !!displayLabel;
       if (!isCountryRow && !hasAcademyContent) continue;
 
       // Emit one row per country so the per-country filter in ServiceTabs works.
@@ -160,7 +166,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
         items.push({
           id: c ? `${r.id}::${c}` : r.id,
           master_key: r.service_category,
-          service_name: displayLabel,
+          service_name: visaDisplayLabel,
           sub_category: c ?? r.service,
           service_code: c ? `${r.id}::${c}` : r.id,
           pricing_type: "ON_REQUEST",
@@ -171,18 +177,43 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
         });
       }
     } else {
-      items.push({
-        id: r.id,
-        master_key: r.service_category,
-        service_name: r.service,
-        sub_category: r.sub_service,
-        service_code: r.id,
-        pricing_type: "ON_REQUEST",
-        country_tag: null,
-        is_active: r.is_active,
-        is_bundled: false,
-        display_order: r.display_order ?? 0,
-      });
+      const familyField = r.service;
+
+      if (r.service_category === "coaching_services") {
+        const variantLabel = resolveCoachingVariantLabel(familyField, r.sub_service, displayLabel);
+        const groupKey = resolveCoachingFamilyKey(familyField, r.sub_service);
+        items.push({
+          id: r.id,
+          master_key: r.service_category,
+          service_name: variantLabel,
+          sub_category: null,
+          group_key: groupKey,
+          group_label: coachingFamilyLabel(groupKey),
+          service_code: r.id,
+          pricing_type: "ON_REQUEST",
+          country_tag: null,
+          is_active: r.is_active,
+          is_bundled: false,
+          display_order: r.display_order ?? 0,
+        });
+      } else {
+        const variantLabel = displayLabel ?? r.sub_service;
+        const grouped = resolveAlliedAdmissionGrouping(familyField, r.sub_service, variantLabel);
+        items.push({
+          id: r.id,
+          master_key: r.service_category,
+          service_name: grouped.itemLabel,
+          sub_category: grouped.groupLabel,
+          group_key: grouped.groupKey,
+          group_label: grouped.groupLabel,
+          service_code: r.id,
+          pricing_type: "ON_REQUEST",
+          country_tag: null,
+          is_active: r.is_active,
+          is_bundled: false,
+          display_order: r.display_order ?? 0,
+        });
+      }
     }
   }
   return items;
@@ -192,6 +223,8 @@ export interface ServiceCatalogueItem {
   id: string;
   master_key: string;
   sub_category?: string | null;
+  group_key?: string | null;
+  group_label?: string | null;
   service_name: string;
   service_code?: string | null;
   pricing_type: "FIXED" | "FLEXIBLE" | "FREE" | "ON_REQUEST";
@@ -295,9 +328,14 @@ export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
   const catalogue = await fetchAllServiceCatalogue();
   for (const s of catalogue) {
     const code = s.service_code || s.id;
-    m.set(code, s.service_name);
-    m.set(s.id, s.service_name);
+    const chipLabel =
+      s.master_key === "coaching_services" && s.group_label
+        ? `${s.group_label} — ${s.service_name}`
+        : s.service_name;
+    m.set(code, chipLabel);
+    m.set(s.id, chipLabel);
     if (s.sub_category) m.set(`${code}::label`, s.sub_category);
+    if (s.group_label) m.set(`${code}::group`, s.group_label);
   }
 
   // Legacy fallback for older records that still reference service_catalogue codes.

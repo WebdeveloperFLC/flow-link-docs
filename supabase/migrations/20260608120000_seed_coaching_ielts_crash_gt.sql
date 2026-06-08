@@ -1,11 +1,8 @@
--- IELTS coaching service_library rows + academy metadata
--- Specimens: public/specimens/coaching/
--- Regenerate: node scripts/generate-coaching-metadata-sql.mjs
+-- Add IELTS Academic Crash + General Regular programs; expand Academic Regular quiz to 15.
+-- Run in Supabase SQL Editor after prior IELTS coaching seeds.
 
 INSERT INTO public.service_library (id, service_category, service, sub_service, display_order, is_active)
 VALUES
-  ('b2000001-0001-4000-8000-000000000071', 'coaching_services', 'IELTS', 'Test Reference', 71, true),
-  ('b2000001-0001-4000-8000-000000000072', 'coaching_services', 'IELTS', 'Academic Regular (with books)', 72, true),
   ('b2000001-0001-4000-8000-000000000073', 'coaching_services', 'IELTS', 'Academic Crash Course', 73, true),
   ('b2000001-0001-4000-8000-000000000074', 'coaching_services', 'IELTS', 'General Regular (with books)', 74, true)
 ON CONFLICT (service_category, service, sub_service) DO UPDATE
@@ -78,36 +75,17 @@ WHERE NOT EXISTS (
     AND cf.file_path = '/specimens/coaching/ielts-gt-regular-checklist.html'
 );
 
-INSERT INTO public.service_library_checklist_files
-  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
-SELECT
-  'b2000001-0001-4000-8000-000000000071'::uuid,
-  'IELTS — Test Reference (Service Library specimen).html',
-  '/specimens/coaching/ielts-test-reference.html',
-  'text/html',
-  0,
-  1,
-  true,
-  'Full IELTS test guide — acceptance matrix, test day, module samples'
-WHERE NOT EXISTS (
-  SELECT 1 FROM public.service_library_checklist_files cf
-  WHERE cf.library_id = 'b2000001-0001-4000-8000-000000000071'::uuid
-    AND cf.file_path = '/specimens/coaching/ielts-test-reference.html'
-);
-
 -- Verify
 SELECT
   sl.id,
-  sl.service,
   sl.sub_service,
-  sl.academy_metadata->>'displayName' AS display_name,
-  sl.academy_metadata->>'version' AS version,
   jsonb_array_length(COALESCE(sl.academy_metadata->'quiz', '[]'::jsonb)) AS quiz_count,
-  (SELECT count(*) FROM service_library_checklist_files cf WHERE cf.library_id = sl.id AND cf.is_current) AS checklist_files
+  sl.academy_metadata->>'displayName' AS display_name
 FROM public.service_library sl
 WHERE sl.id IN (
   'b2000001-0001-4000-8000-000000000071'::uuid,
   'b2000001-0001-4000-8000-000000000072'::uuid,
   'b2000001-0001-4000-8000-000000000073'::uuid,
   'b2000001-0001-4000-8000-000000000074'::uuid
-);
+)
+ORDER BY sl.display_order;

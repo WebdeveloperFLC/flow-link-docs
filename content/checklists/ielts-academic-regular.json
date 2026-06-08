@@ -5,10 +5,10 @@
   "subtitle": "Coaching · IELTS Academic · Regular batch with books",
   "streamLabel": "Regular · 8–10 weeks · Classroom / hybrid",
   "updatedLabel": "Updated June 2026",
-  "verifyUrl": "ielts.org",
+  "verifyUrl": "ieltsidpindia.com",
   "website": "futurelinkconsultants.com",
   "footerTagline": "Future Link Consultants | 25+ Years in Study Abroad & Test Prep | IELTS · PTE · GRE · GMAT · German · French · Spoken English",
-  "policyBanner": "Confirm current band vs target band before enrollment. Academic module only (not General Training). Books included in fee — issue on Day 1. Exam fee is separate (paid to British Council / IDP). Never guarantee a band score.",
+  "policyBanner": "Confirm current band vs target band before enrollment. Academic module only (not General Training). Books included in fee — issue on Day 1. Exam fee is separate (paid to IDP IELTS India on ieltsidpindia.com). Never guarantee a band score.",
   "metaFields": [
     { "key": "client_name", "label": "Student name", "placeholder": "Full name" },
     { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
@@ -110,7 +110,7 @@
           "badge": "REQUIRED"
         },
         {
-          "title": "Exam registration guidance provided (BC / IDP — student pays directly)",
+          "title": "Exam registration guidance provided (IDP India on ieltsidpindia.com — student pays directly)",
           "badge": "REQUIRED"
         },
         {

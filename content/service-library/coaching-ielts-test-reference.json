@@ -1,6 +1,6 @@
 {
   "displayName": "IELTS — International English Language Testing System",
-  "shortDescription": "British Council / IDP · Academic & General Training · Band 0–9 · 2-year validity",
+  "shortDescription": "IDP India · Academic & General Training · Band 0–9 · 2-year validity",
   "version": "v1.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
@@ -12,7 +12,7 @@
   "policyAlert": {
     "active": true,
     "date": "June 2026",
-    "summary": "Verify IELTS exam fee and test dates on britishcouncil.in or ieltsidpindia.com before quoting. Academic vs General Training must match client goal. UK visa routes may require IELTS UKVI — confirm before booking. Never guarantee a band score."
+    "summary": "In India, book IELTS only via ieltsidpindia.com (IDP — sole distributor since July 2021). Verify exam fee and dates there before quoting. British Council India offers prep, not exam booking. Never guarantee a band score."
   },
   "alert": {
     "title": "Academic vs General Training",
@@ -27,12 +27,12 @@
   "chips": [
     { "label": "~2h 45m exam", "variant": "neutral" },
     { "label": "2-year validity", "variant": "success" },
-    { "label": "BC / IDP India", "variant": "neutral" },
+    { "label": "IDP India booking", "variant": "neutral" },
     { "label": "Exam fee separate", "variant": "warning" }
   ],
   "kpis": [
     { "label": "Exam duration", "value": "~2h 45m", "sub": "4 modules + speaking slot", "tone": "primary" },
-    { "label": "Exam fee (India)", "value": "Verify BC/IDP", "sub": "Student pays directly", "tone": "warning" },
+    { "label": "Exam fee (India)", "value": "Verify IDP", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
     { "label": "Score validity", "value": "2 years", "sub": "From test date", "tone": "success" },
     { "label": "Results", "value": "3–13 days", "sub": "CD-IELTS faster", "tone": "violet" }
   ],
@@ -40,7 +40,7 @@
     { "label": "Description", "value": "Standardized English proficiency test measuring Listening, Reading, Writing, and Speaking. Jointly owned by British Council, IDP, and Cambridge. Used for study, work, and migration worldwide." },
     { "label": "Modules", "value": "Listening (30 min) · Reading (60 min) · Writing (60 min) · Speaking (11–14 min). L/R/W on same day; Speaking may be same day or within 7 days before/after." },
     { "label": "Academic vs GT", "value": "Academic: university & most study visas. General Training: Canada PR/citizenship, UK settlement, work migration. Same Listening & Speaking; different Reading & Writing.", "warning": true },
-    { "label": "Test authority", "value": "British Council & IDP — register at britishcouncil.in/exam/ielts or ieltsidpindia.com. FLC prepares students; exam fee is never included in coaching fee." },
+    { "label": "Test authority (India)", "value": "IDP IELTS India — book at ieltsidpindia.com only (sole distributor since July 2021). British Council India offers prep courses, not exam registration. FLC coaching fee is separate from exam fee." },
     { "label": "Delivery modes", "value": "Paper-based, Computer-delivered (CD-IELTS), IELTS UKVI (SELT for UK visas), One Skill Retake (OSR) where available." },
     { "label": "India test centers", "value": "Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune, and other cities — verify current list on booking portal." },
     { "label": "After the test", "value": "TRF (Test Report Form) issued; up to 5 free electronic sends to institutions. Hand TRF to admissions or visa team when target met." }
@@ -100,14 +100,14 @@
   "redFlags": [
     { "title": "GT student booked Academic (or reverse)", "description": "Module does not match migration or study pathway.", "fix": "Cancel and rebook correct module before test day", "severity": "High" },
     { "title": "UK visa but standard IELTS booked", "description": "UKVI SELT required for many UK visa routes.", "fix": "Rebook IELTS UKVI at approved center", "severity": "High" },
-    { "title": "Name ≠ passport", "description": "Registration name mismatch.", "fix": "Contact BC/IDP to correct before test day", "severity": "High" },
+    { "title": "Name ≠ passport", "description": "Registration name mismatch.", "fix": "Contact IDP IELTS India to correct before test day", "severity": "High" },
     { "title": "Mocks far below target", "description": "Student not exam-ready.", "fix": "Postpone exam; extra mocks and skill work", "severity": "Common" },
     { "title": "Expired passport at booking", "description": "Cannot test or TRF may be invalid.", "fix": "Renew passport before registering", "severity": "Very common" },
     { "title": "Guaranteed score promised", "description": "Sales or counselor over-commitment.", "fix": "Compliance issue — never guarantee bands", "severity": "High" }
   ],
   "faqs": [
     { "q": "Academic vs General Training — which one?", "a": "Academic for university and most study visas. GT for Canada PR, citizenship, and many work/settlement routes. Confirm with destination country rules." },
-    { "q": "Who pays the IELTS exam fee?", "a": "The student pays British Council or IDP directly when registering. FLC coaching fee is separate." },
+    { "q": "Who pays the IELTS exam fee?", "a": "In India, the student pays IDP IELTS India directly when registering on ieltsidpindia.com. FLC coaching fee is separate." },
     { "q": "CD-IELTS vs paper — any difference?", "a": "Same content and scoring. CD-IELTS usually has faster results (3–5 days). Speaking is still face-to-face with examiner." },
     { "q": "Can Future Link guarantee band 7?", "a": "No. We set targets from diagnostics and mocks. Outcomes depend on student effort, attendance, and exam performance." },
     { "q": "Is TOEFL accepted for Canada PR?", "a": "No. IRCC accepts IELTS (GT or Academic per program) and CELPIP-General — not TOEFL or Duolingo for immigration." },
@@ -120,7 +120,7 @@
   "compliance": [
     "Never guarantee an IELTS band score",
     "Separate coaching fee from exam registration fee on all quotes",
-    "Verify exam fee on official BC/IDP portal before quoting",
+    "Verify exam fee on ieltsidpindia.com before quoting",
     "Confirm Academic vs GT and UKVI before enrollment and booking",
     "Record diagnostic, mock scores, and TRF on client file"
   ],
@@ -159,9 +159,10 @@
   ],
   "relatedServices": [
     { "label": "IELTS Academic Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000072" },
+    { "label": "IELTS Academic Crash Course", "libraryId": "b2000001-0001-4000-8000-000000000073" },
+    { "label": "IELTS General Regular (with books)", "libraryId": "b2000001-0001-4000-8000-000000000074" },
     { "label": "Canada — Express Entry PR", "libraryId": "b2000001-0001-4000-8000-000000000013" },
-    { "label": "Canada — Study Permit", "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336" },
-    { "label": "Australia — Skilled Migration", "libraryId": "b2000001-0001-4000-8000-000000000044" }
+    { "label": "Canada — Study Permit", "libraryId": "c35e6051-f40f-47bf-9cac-0a386c47a336" }
   ],
   "changelog": [
     { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS test reference — acceptance matrix, test day guide, module samples." }
@@ -171,8 +172,8 @@
   ],
   "resources": [
     { "title": "IELTS — Official site", "url": "https://www.ielts.org/", "description": "Format, Academic vs GT, OSR" },
-    { "title": "British Council India — Book IELTS", "url": "https://www.britishcouncil.in/exam/ielts", "description": "Fees, dates, centers" },
-    { "title": "IDP IELTS India", "url": "https://www.ieltsidpindia.com/", "description": "Alternate booking channel" },
+    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole IELTS booking channel in India — fees, dates, centers" },
+    { "title": "British Council India — IELTS prep", "url": "https://www.britishcouncil.in/exam/ielts/faqs", "description": "Prep courses only — BC does not deliver IELTS tests in India" },
     { "title": "IRCC — Language requirements", "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html", "description": "CLB and accepted tests" },
     { "title": "UKVI — Approved SELT tests", "url": "https://www.gov.uk/guidance/prove-your-english-language-abilities-with-a-secure-english-language-test-selt", "description": "UK visa English tests" }
   ],
@@ -186,7 +187,7 @@
     ],
     "donts": [
       "Guarantee a band score",
-      "Quote exam fee without verifying on BC/IDP",
+      "Quote exam fee without verifying on ieltsidpindia.com",
       "Book exam before mocks support target",
       "Send GT student to Academic exam without confirmation",
       "Skip UKVI check for UK visa clients"
@@ -251,7 +252,7 @@
     { "question": "Which item is prohibited in the IELTS test room?", "options": ["Transparent water bottle (if allowed)", "Mobile phone", "Passport", "Confirmation email printout (before check-in)"], "correctIndex": 1, "explanation": "Phones and smartwatches must be stored outside.", "level": 1 },
     { "question": "UK Student Route often requires:", "options": ["Standard IELTS only", "IELTS UKVI Academic", "No English test", "CELPIP-General"], "correctIndex": 1, "explanation": "Many UK visas require UKVI SELT format.", "level": 2 },
     { "question": "Counselors must never:", "options": ["Track mock scores", "Guarantee band 7", "Confirm module type", "Link TRF to visa file"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "IELTS exam fee is paid to:", "options": ["Future Link only", "British Council / IDP by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Exam fee is separate from coaching.", "level": 1 },
+    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 },
     { "question": "Speaking test duration is approximately:", "options": ["5 minutes", "11–14 minutes", "30 minutes", "60 minutes"], "correctIndex": 1, "explanation": "Speaking is 11–14 minutes face-to-face.", "level": 1 },
     { "question": "CD-IELTS results typically arrive in:", "options": ["Same day", "3–5 days", "8 weeks", "6 months"], "correctIndex": 1, "explanation": "Computer-delivered tests usually score faster.", "level": 2 },
     { "question": "General Training is commonly used for:", "options": ["Canada PR and citizenship", "PhD research admission only", "Medical licensing only", "Internal FLC diagnostic"], "correctIndex": 0, "explanation": "GT is standard for many migration pathways.", "level": 2 },

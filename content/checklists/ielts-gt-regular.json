@@ -1,0 +1,71 @@
+{
+  "slug": "ielts-gt-regular",
+  "displayName": "IELTS General Regular (with books)",
+  "title": "Counselor Enrollment & Delivery Checklist",
+  "subtitle": "Coaching · IELTS General Training · Regular batch with books",
+  "streamLabel": "Regular · 8–10 weeks · Classroom / hybrid",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "ieltsidpindia.com",
+  "website": "futurelinkconsultants.com",
+  "footerTagline": "Future Link Consultants | 25+ Years in Study Abroad & Test Prep | IELTS · PTE · GRE · GMAT · German · French · Spoken English",
+  "policyBanner": "General Training module only (not Academic). Confirm migration / PR pathway before enrollment. Books included — issue on Day 1. Exam fee is separate (paid to IDP IELTS India on ieltsidpindia.com). Never guarantee a band score.",
+  "metaFields": [
+    { "key": "client_name", "label": "Student name", "placeholder": "Full name" },
+    { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
+    { "key": "batch_name", "label": "Batch", "placeholder": "e.g. IELTS-GT-Jun-2026" },
+    { "key": "pathway", "label": "Migration pathway", "placeholder": "e.g. Canada PR / citizenship" },
+    { "key": "current_band", "label": "Current band (diagnostic)", "placeholder": "e.g. 5.5" },
+    { "key": "target_band", "label": "Target band / CLB", "placeholder": "e.g. CLB 7 = 6.0 each" }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Intake, diagnostic & pathway",
+      "items": [
+        { "title": "Diagnostic completed (or prior IELTS GT score reviewed)", "note": "Record L/R/W/S. Map target to CLB if Canada.", "badge": "REQUIRED" },
+        { "title": "General Training module confirmed (not Academic)", "note": "Canada PR, citizenship, UK settlement — GT prep differs from Academic.", "badge": "REQUIRED" },
+        { "title": "Destination country / visa pathway documented on file", "badge": "REQUIRED" },
+        { "title": "Target band and timeline agreed in writing", "badge": "REQUIRED" },
+        { "title": "Enrollment agreement signed; course fee collected", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Batch & materials",
+      "items": [
+        { "title": "GT batch assigned — schedule shared", "badge": "REQUIRED" },
+        { "title": "Course books issued and logged", "badge": "REQUIRED" },
+        { "title": "Trainer briefed on CLB / IRCC target if Canada lead", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Delivery & attendance",
+      "items": [
+        { "title": "Attendance ≥ 80% tracked weekly", "badge": "REQUIRED" },
+        { "title": "GT Writing Task 1 (letter) practice marked", "badge": "REQUIRED" },
+        { "title": "GT Reading practice — workplace / everyday texts", "badge": "REQUIRED" },
+        { "title": "Speaking mocks per syllabus", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Mocks & exam readiness",
+      "items": [
+        { "title": "Minimum 4 full GT mocks completed", "badge": "REQUIRED" },
+        { "title": "Two consecutive mocks within 0.5 of target", "badge": "REQUIRED" },
+        { "title": "IDP India booking guidance (ieltsidpindia.com)", "badge": "REQUIRED" },
+        { "title": "Test day checklist shared — GT module on confirmation", "badge": "REQUIRED" }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Post-course & visa handoff",
+      "items": [
+        { "title": "TRF collected; scores uploaded to client file", "badge": "REQUIRED" },
+        { "title": "Visa / immigration team notified when CLB target met", "badge": "IF APPLICABLE" },
+        { "title": "Retake or booster if below pathway minimum", "badge": "IF APPLICABLE" }
+      ]
+    }
+  ]
+}

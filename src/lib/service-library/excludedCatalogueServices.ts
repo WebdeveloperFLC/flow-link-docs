@@ -11,6 +11,7 @@ const EXCLUDED_SERVICE_CODES = new Set([
 ]);
 
 const EXCLUDED_SUB_SERVICE_EXACT = new Set([
+  "test reference",
   "loa / coe / cas / i-20 follow-up",
   "lor guidance (per letter)",
   "offer letter review & advice",
