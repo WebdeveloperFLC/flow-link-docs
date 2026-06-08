@@ -85,7 +85,6 @@ export default function ServiceLibraryAdmin() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(() => searchParams.get("id"));
   const [showNew, setShowNew] = useState(false);
-  const [bannerHidden, setBannerHidden] = useState(false);
   const [treeSearch, setTreeSearch] = useState("");
   const [adminCategory, setAdminCategory] = useState<AdminCategoryTab>(() =>
     parseAdminCategory(searchParams.get("cat")),
@@ -105,16 +104,6 @@ export default function ServiceLibraryAdmin() {
         .order("service_category").order("service").order("sub_service");
       if (error) throw error;
       return (data ?? []) as unknown as (Master & { service_library_countries: { country: string }[] })[];
-    },
-  });
-
-  const log = useQuery({
-    queryKey: ["sl-mig-log"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("service_library_migration_log")
-        .select("*").order("ran_at", { ascending: false }).limit(1).maybeSingle();
-      return data;
     },
   });
 
@@ -263,21 +252,6 @@ export default function ServiceLibraryAdmin() {
       </header>
       <div className="p-4 md:p-6">
       <div className="mx-auto max-w-[1400px] space-y-4">
-        {log.data && !bannerHidden && (
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-            <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4" />
-              Migration summary: merged <b>{log.data.duplicates_merged}</b> duplicate rows →{" "}
-              <b>{log.data.masters_remaining}</b> master records,{" "}
-              <b>{log.data.country_mappings_created}</b> country mappings,{" "}
-              <b>{log.data.overrides_created}</b> overrides created.
-            </div>
-            <Button size="sm" variant="ghost" onClick={() => setBannerHidden(true)}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-
         <div className="rounded-2xl border bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between gap-3">
             <div>
