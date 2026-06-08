@@ -17,6 +17,7 @@ import {
   type AcademyKpiTone,
   type AcademyTagVariant,
 } from "./academyTypes";
+import { coachingProfileFromSubService } from "./academyTabs";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -91,11 +92,18 @@ export type AcademyViewModel = {
   shareLink: string;
   needsReview: boolean;
   learningMinutes: number;
+  isCoaching: boolean;
+  coachingProfile: "test_reference" | "program" | null;
+  testDayGuide: {
+    dos: string[];
+    donts: string[];
+    checklist: string[];
+  } | null;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   visa_immigration: "Visa & Immigration",
-  coaching_services: "Education Services",
+  coaching_services: "Coaching",
   allied_services: "Education Services",
   travel_financial: "Financial",
 };
@@ -207,6 +215,17 @@ export function buildAcademyViewModel(args: {
     meta.policyAlert?.active !== false && meta.policyAlert?.summary
       ? { date: meta.policyAlert.date ?? "", summary: meta.policyAlert.summary }
       : null;
+
+  const isCoaching =
+    master.service_category === "coaching_services" || meta.navBucket === "coaching";
+  const coachingProfile = isCoaching ? coachingProfileFromSubService(master.sub_service) : null;
+  const testDayGuide = meta.testDayGuide
+    ? {
+        dos: meta.testDayGuide.dos ?? [],
+        donts: meta.testDayGuide.donts ?? [],
+        checklist: meta.testDayGuide.checklist ?? [],
+      }
+    : null;
 
   return {
     masterId: master.id,
@@ -348,5 +367,8 @@ export function buildAcademyViewModel(args: {
     })(),
     needsReview: meta.reviewStatus === "needs_review",
     learningMinutes: meta.learningMinutes ?? 0,
+    isCoaching,
+    coachingProfile,
+    testDayGuide,
   };
 }

@@ -20,6 +20,11 @@ import type { CoachingVariant } from "@/lib/service-library/serviceNavClassifica
 import { type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
+import {
+  defaultAcademyTab,
+  resolveAcademyTabs,
+  type AcademyTabId,
+} from "@/lib/service-library/academyTabs";
 
 export { ALLOWED_SERVICE_LIBRARY_COUNTRIES } from "@/lib/serviceLibrary";
 
@@ -48,22 +53,7 @@ export default function ServiceLibrary() {
   const [detailCountry, setDetailCountry] = useState<string>("");
   const [treeSearch, setTreeSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "review">("all");
-  const [activeTab, setActiveTab] = useState<
-    | "overview"
-    | "eligibility"
-    | "checklist"
-    | "visaforms"
-    | "process"
-    | "dos"
-    | "redflags"
-    | "faqs"
-    | "compliance"
-    | "downloads"
-    | "sampledocs"
-    | "quiz"
-    | "notes"
-    | "changelog"
-  >("redflags");
+  const [activeTab, setActiveTab] = useState<AcademyTabId>("redflags");
   const [policyDismissed] = useState(false);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [clientDialogMode, setClientDialogMode] = useState<"application" | "push">("application");
@@ -146,6 +136,14 @@ export default function ServiceLibrary() {
       : null;
 
   const detail = useServiceAcademyDetail(selectedId, detailCountryParam);
+
+  useEffect(() => {
+    if (!detail.data?.view) return;
+    const allowed = resolveAcademyTabs(detail.data.view);
+    if (!allowed.includes(activeTab)) {
+      setActiveTab(defaultAcademyTab(detail.data.view));
+    }
+  }, [detail.data?.view.masterId, detail.data?.view.isCoaching, detail.data?.view.coachingProfile, activeTab]);
 
   useEffect(() => {
     if (!detail.data) return;
