@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { copyToClipboard } from "@/lib/serviceLibrary";
+import { toast } from "sonner";
 
 type Props = {
   view: AcademyViewModel;
@@ -122,7 +123,7 @@ export function ServiceAcademyHero({
             onClick={onNewApplication}
           >
             <Plus className="size-4 mr-1.5" />
-            New application
+            {view.isCoaching ? "New enrollment" : "New application"}
           </Button>
         </div>
       </div>

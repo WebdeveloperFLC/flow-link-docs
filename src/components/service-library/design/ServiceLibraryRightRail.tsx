@@ -17,12 +17,19 @@ export function ServiceLibraryRightRail({
   onDownloadChecklist,
   onNewApplication,
 }: Props) {
-  const sections = [
-    { label: "Overview", done: true },
-    { label: "Red flags", done: view.redFlags.length > 0 },
-    { label: "Checklist", done: view.checklist.completed > 0 },
-    { label: "Process", done: view.process.length > 0 },
-  ];
+  const sections = view.isCoaching
+    ? [
+        { label: "Overview", done: view.about.length > 0 },
+        { label: view.coachingProfile === "test_reference" ? "Test day guide" : "Checklists", done: !!(view.testDayGuide || view.downloads.length) },
+        { label: "Sample practice", done: view.sampleDocs.length > 0 },
+        { label: "Quiz", done: view.quiz.length > 0 },
+      ]
+    : [
+        { label: "Overview", done: true },
+        { label: "Red flags", done: view.redFlags.length > 0 },
+        { label: "Checklist", done: view.checklist.completed > 0 },
+        { label: "Process", done: view.process.length > 0 },
+      ];
   const sectionsRead = sections.filter((s) => s.done).length;
   const sectionsTotal = sections.length;
   const percent = sectionsTotal ? Math.round((sectionsRead / sectionsTotal) * 100) : 0;
@@ -86,7 +93,7 @@ export function ServiceLibraryRightRail({
       {view.approvalFactors.length > 0 && (
         <Card className="p-4 shadow-elev-sm">
           <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-            Approval factors
+            {view.isCoaching ? "Success factors" : "Approval factors"}
           </div>
           <div className="space-y-4">
             {view.approvalFactors.map((f) => (
@@ -139,7 +146,7 @@ export function ServiceLibraryRightRail({
           disabled={!onNewApplication}
         >
           <Plus className="size-4 mr-1.5" />
-          New application
+          {view.isCoaching ? "New enrollment" : "New application"}
         </Button>
         <Button variant="outline" size="sm" className="w-full" onClick={onDownloadChecklist} disabled={!onDownloadChecklist}>
           <Download className="size-4 mr-1.5" />

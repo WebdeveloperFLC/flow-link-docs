@@ -26,30 +26,16 @@ import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
-
-const TAB_IDS = [
-  "overview",
-  "eligibility",
-  "checklist",
-  "visaforms",
-  "process",
-  "dos",
-  "redflags",
-  "faqs",
-  "compliance",
-  "downloads",
-  "sampledocs",
-  "quiz",
-  "notes",
-  "changelog",
-] as const;
-
-type TabId = (typeof TAB_IDS)[number];
+import {
+  resolveAcademyTabs,
+  tabLabel,
+  type AcademyTabId,
+} from "@/lib/service-library/academyTabs";
 
 type Props = {
   view: AcademyViewModel;
-  activeTab?: TabId;
-  onTabChange?: (tab: TabId) => void;
+  activeTab?: AcademyTabId;
+  onTabChange?: (tab: AcademyTabId) => void;
   onToggleChecklistItem?: (id: string) => void;
   onPushChecklist?: () => void;
   onDownloadFile?: (fileId: string, fileName: string) => void;
@@ -65,10 +51,11 @@ export function ServiceLibraryTabs({
   onDownloadFile,
   onOpenSampleDoc,
 }: Props) {
-  const [internalTab, setInternalTab] = useState<TabId>("redflags");
+  const [internalTab, setInternalTab] = useState<AcademyTabId>("overview");
   const [specimenDoc, setSpecimenDoc] = useState<(typeof view.sampleDocs)[number] | null>(null);
   const activeTab = controlledTab ?? internalTab;
-  const setTab = (t: TabId) => {
+  const tabIds = resolveAcademyTabs(view);
+  const setTab = (t: AcademyTabId) => {
     setInternalTab(t);
     onTabChange?.(t);
   };
@@ -85,11 +72,11 @@ export function ServiceLibraryTabs({
   };
 
   return (
-    <Tabs value={activeTab} onValueChange={(v) => setTab(v as TabId)} className="w-full">
+    <Tabs value={activeTab} onValueChange={(v) => setTab(v as AcademyTabId)} className="w-full">
       <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-muted/40 p-1 mb-4">
-        {TAB_IDS.map((id) => (
-          <TabsTrigger key={id} value={id} className="text-xs sm:text-sm capitalize data-[state=active]:bg-card">
-            {id === "dos" ? "Do's & don'ts" : id === "redflags" ? "Red flags" : id === "visaforms" ? "Visa forms" : id === "sampledocs" ? "Sample docs" : id === "changelog" ? "Change log" : id}
+        {tabIds.map((id) => (
+          <TabsTrigger key={id} value={id} className="text-xs sm:text-sm data-[state=active]:bg-card">
+            {tabLabel(id, view)}
           </TabsTrigger>
         ))}
       </TabsList>
@@ -141,7 +128,9 @@ export function ServiceLibraryTabs({
         )}
         {view.performance && (view.performance.ourRate > 0 || view.performance.stats.length > 0) && (
           <Card className="p-5 shadow-elev-sm">
-            <h3 className="font-semibold mb-4">Approval performance</h3>
+            <h3 className="font-semibold mb-4">
+              {view.isCoaching ? "Program outcomes" : "Approval performance"}
+            </h3>
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
                 <span>Our approval rate</span>
@@ -184,18 +173,145 @@ export function ServiceLibraryTabs({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-muted-foreground">No eligibility criteria yet.</p>
+            <p className="text-sm text-muted-foreground">
+              {view.isCoaching
+                ? "No criteria listed yet."
+                : "No eligibility criteria yet."}
+            </p>
           )}
         </Card>
       </TabsContent>
 
+      <TabsContent value="acceptance" className="mt-0 space-y-4">
+        <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
+          <p className="text-sm text-muted-foreground">
+            Countries and visa pathways that accept IELTS — verify minimum scores on official immigration and
+            university sites before quoting clients.
+          </p>
+        </Card>
+        {view.compare?.rows?.length ? (
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/40 border-b">
+                  <th className="text-left p-3 font-medium">
+                    {view.compare.columns[0] ?? "Pathway"}
+                  </th>
+                  {(view.compare.columns.length > 1
+                    ? view.compare.columns.slice(1)
+                    : ["Module", "Minimum", "Notes"]
+                  ).map((col) => (
+                    <th key={col} className="text-left p-3 font-medium">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {view.compare.rows.map((row) => (
+                  <tr key={row.label} className="border-b last:border-0">
+                    <td className="p-3 font-medium align-top">{row.label}</td>
+                    {row.values.map((v, i) => (
+                      <td key={i} className="p-3 text-muted-foreground align-top">
+                        {v}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Card className="p-5 text-sm text-muted-foreground">
+            No acceptance matrix yet. Add a <span className="font-mono">compare</span> block in Service content JSON.
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="testday" className="mt-0 space-y-4">
+        {view.testDayGuide ? (
+          <>
+            <div className="grid md:grid-cols-2 gap-4">
+              <Card className="p-5 shadow-elev-sm">
+                <h3 className="font-semibold mb-3 text-success">Do&apos;s on test day</h3>
+                <ul className="space-y-2 text-sm">
+                  {view.testDayGuide.dos.map((line, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-success shrink-0">✓</span>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+              <Card className="p-5 shadow-elev-sm">
+                <h3 className="font-semibold mb-3 text-warning">Don&apos;ts on test day</h3>
+                <ul className="space-y-2 text-sm">
+                  {view.testDayGuide.donts.map((line, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-warning shrink-0">✗</span>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
+            {view.testDayGuide.checklist.length > 0 && (
+              <Card className="p-5 shadow-elev-sm">
+                <h3 className="font-semibold mb-3">Test day checklist</h3>
+                <ul className="space-y-2 text-sm">
+                  {view.testDayGuide.checklist.map((line, i) => (
+                    <li key={i} className="flex gap-2">
+                      <span className="text-muted-foreground">□</span>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+          </>
+        ) : (
+          <Card className="p-5 text-sm text-muted-foreground">
+            Add <span className="font-mono">testDayGuide</span> in Service content JSON for exam-day briefing.
+          </Card>
+        )}
+      </TabsContent>
+
       <TabsContent value="checklist" className="space-y-4 mt-0">
+        {view.isCoaching && view.downloads.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-3">Downloadable checklists</h3>
+            <div className="space-y-2">
+              {view.downloads.map((d) => (
+                <div
+                  key={d.fileId}
+                  className="flex items-center justify-between gap-3 rounded-lg border p-3"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm truncate">{d.name}</div>
+                    <div className="text-xs text-muted-foreground">{d.size}</div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!onDownloadFile}
+                    onClick={() => onDownloadFile?.(d.fileId, d.name)}
+                  >
+                    <Download className="size-4 mr-1" />
+                    Download
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
         <Card className="p-5 shadow-elev-sm">
           <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
             <div>
-              <h3 className="font-semibold">Submission checklist</h3>
+              <h3 className="font-semibold">
+                {view.isCoaching ? "Enrollment & delivery tracker" : "Submission checklist"}
+              </h3>
               <p className="text-sm text-muted-foreground">
-                {total > 0 ? `${doneCount} of ${total} complete` : "No checklist items yet"}
+                {total > 0 ? `${doneCount} of ${total} complete` : view.isCoaching ? "Use downloadable checklists above" : "No checklist items yet"}
               </p>
             </div>
             <div className="flex gap-2">
@@ -329,7 +445,7 @@ export function ServiceLibraryTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="dos" className="mt-0">
+      <TabsContent value="dos" className="mt-0 space-y-4">
         <div className="grid md:grid-cols-3 gap-4">
           {(
             [
@@ -354,6 +470,19 @@ export function ServiceLibraryTabs({
             </Card>
           ))}
         </div>
+        {view.isCoaching && view.compliance.length > 0 && (
+          <Card className="p-5 shadow-elev-sm">
+            <h3 className="font-semibold mb-3">Compliance</h3>
+            <ul className="space-y-2 text-sm">
+              {view.compliance.map((c, i) => (
+                <li key={i} className="flex gap-2 border-b pb-2 last:border-0">
+                  <span className="text-muted-foreground">•</span>
+                  {c}
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="redflags" className="mt-0 space-y-3">
@@ -419,7 +548,7 @@ export function ServiceLibraryTabs({
         {view.resources.length > 0 && (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-              Official resources
+              {view.isCoaching ? "Official & reference links" : "Official resources"}
             </h3>
             {view.resources.map((r) => (
               <Card key={r.url} className="p-4 flex items-center justify-between shadow-elev-sm gap-3">
@@ -439,7 +568,7 @@ export function ServiceLibraryTabs({
             ))}
           </div>
         )}
-        {view.downloads.length > 0 && (
+        {view.downloads.length > 0 && !view.isCoaching && (
           <div className="space-y-2">
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
               Downloadable files
@@ -480,8 +609,9 @@ export function ServiceLibraryTabs({
       <TabsContent value="sampledocs" className="mt-0 space-y-4">
         <Card className="p-4 shadow-elev-sm bg-muted/20 border-dashed">
           <p className="text-sm text-muted-foreground">
-            Specimen documents for client conversations. Click <strong>View specimen</strong> for mock previews, or
-            upload real redacted PDF/JPG files in Admin to replace with client-ready examples.
+            {view.isCoaching
+              ? "Module specimens and practice materials for counselors and classroom use. Open links in a new tab or view built-in specimens."
+              : "Specimen documents for client conversations. Click View specimen for mock previews, or upload real redacted PDF/JPG files in Admin."}
           </p>
         </Card>
         {view.sampleDocs.length > 0 ? (
