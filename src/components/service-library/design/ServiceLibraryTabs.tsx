@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceLibraryQuiz";
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
 import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
+import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -42,6 +43,7 @@ type Props = {
   onPushChecklist?: () => void;
   onDownloadFile?: (fileId: string, fileName: string) => void;
   onOpenSampleDoc?: (filePath: string, fileName: string) => void;
+  onStartEligibility?: () => void;
 };
 
 export function ServiceLibraryTabs({
@@ -53,6 +55,7 @@ export function ServiceLibraryTabs({
   onPushChecklist,
   onDownloadFile,
   onOpenSampleDoc,
+  onStartEligibility,
 }: Props) {
   const [internalTab, setInternalTab] = useState<AcademyTabId>("overview");
   const [specimenDoc, setSpecimenDoc] = useState<(typeof view.sampleDocs)[number] | null>(null);
@@ -158,31 +161,38 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="eligibility" className="mt-0">
-        <Card className="p-5 shadow-elev-sm">
-          {view.eligibility.length ? (
-            <ul className="space-y-3">
-              {view.eligibility.map((e) => (
-                <li key={e.criterion} className="flex items-start gap-3 text-sm">
-                  {e.met ? (
-                    <CheckCircle2 className="size-5 text-success shrink-0" />
-                  ) : (
-                    <XCircle className="size-5 text-muted-foreground shrink-0" />
-                  )}
-                  <div>
-                    <div className="font-medium">{e.criterion}</div>
-                    {e.note && <p className="text-xs text-muted-foreground mt-0.5">{e.note}</p>}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {view.isCoaching
-                ? "No criteria listed yet."
-                : "No eligibility criteria yet."}
-            </p>
-          )}
-        </Card>
+        {!view.isCoaching && libraryId && onStartEligibility ? (
+          <ServiceEligibilityPanel
+            view={view}
+            libraryId={libraryId}
+            country={view.country}
+            onStartAssessment={onStartEligibility}
+          />
+        ) : (
+          <Card className="p-5 shadow-elev-sm">
+            {view.eligibility.length ? (
+              <ul className="space-y-3">
+                {view.eligibility.map((e) => (
+                  <li key={e.criterion} className="flex items-start gap-3 text-sm">
+                    {e.met ? (
+                      <CheckCircle2 className="size-5 text-success shrink-0" />
+                    ) : (
+                      <XCircle className="size-5 text-muted-foreground shrink-0" />
+                    )}
+                    <div>
+                      <div className="font-medium">{e.criterion}</div>
+                      {e.note && <p className="text-xs text-muted-foreground mt-0.5">{e.note}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {view.isCoaching ? "No criteria listed yet." : "No eligibility criteria yet."}
+              </p>
+            )}
+          </Card>
+        )}
       </TabsContent>
 
       <TabsContent value="acceptance" className="mt-0 space-y-4">

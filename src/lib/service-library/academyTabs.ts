@@ -114,6 +114,8 @@ export function tabLabel(
   }
 
   switch (id) {
+    case "eligibility":
+      return "Eligibility Assessment";
     case "binder":
       return "Document binder";
     case "dos":

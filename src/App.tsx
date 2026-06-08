@@ -76,6 +76,8 @@ import AssessmentLanding from "./pages/assessment/AssessmentLanding";
 import AssessmentInvite from "./pages/assessment/AssessmentInvite";
 import AssessmentVerify from "./pages/assessment/AssessmentVerify";
 import AssessmentRun from "./pages/assessment/AssessmentRun";
+import ServiceEligibilityRun from "./pages/eligibility/ServiceEligibilityRun";
+import EligibilityCheckPublic from "./pages/eligibility/EligibilityCheckPublic";
 import AssessmentGoal from "./pages/assessment/AssessmentGoal";
 import AssessmentCountry from "./pages/assessment/AssessmentCountry";
 import PortalAssessment from "./pages/portal/PortalAssessment";
@@ -208,6 +210,8 @@ const App = () => (
                   <Route path="/assessment/goal" element={<AssessmentGoal />} />
                   <Route path="/assessment/invite/:token" element={<AssessmentInvite />} />
                   <Route path="/assessment/verify/:token" element={<AssessmentVerify />} />
+                  <Route path="/eligibility/check" element={<EligibilityCheckPublic />} />
+                  <Route path="/eligibility/run/:sessionId" element={<ServiceEligibilityRun />} />
                   <Route
                     path="/assessment/run/:sessionId"
                     element={

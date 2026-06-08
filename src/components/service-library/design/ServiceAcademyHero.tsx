@@ -1,4 +1,4 @@
-import { Bell, Share2, Search, BookOpen, Brain, Plus, Link as LinkIcon } from "lucide-react";
+import { Bell, Share2, Search, BookOpen, Brain, Plus, Link as LinkIcon, ClipboardCheck } from "lucide-react";
 import flcLogo from "@/assets/flc-logo.png";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ type Props = {
   onOpenTab?: (tab: string) => void;
   onOpenResources?: () => void;
   onNewApplication?: () => void;
+  onStartEligibility?: () => void;
   policyDismissed?: boolean;
   canManage?: boolean;
 };
@@ -22,6 +23,7 @@ export function ServiceAcademyHero({
   onOpenTab,
   onOpenResources,
   onNewApplication,
+  onStartEligibility,
   policyDismissed,
   canManage,
 }: Props) {
@@ -117,6 +119,12 @@ export function ServiceAcademyHero({
             <Brain className="size-4 mr-1.5" />
             Take quiz
           </Button>
+          {!view.isCoaching && onStartEligibility && (
+            <Button variant="outline" size="sm" onClick={onStartEligibility}>
+              <ClipboardCheck className="size-4 mr-1.5" />
+              Eligibility Assessment
+            </Button>
+          )}
           <Button
             size="sm"
             className="bg-success hover:bg-success/90 text-success-foreground"

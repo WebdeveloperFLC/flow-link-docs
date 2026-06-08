@@ -1,4 +1,4 @@
-import { Plus, Download, ChevronRight, CheckCircle2, Circle } from "lucide-react";
+import { Plus, Download, ChevronRight, CheckCircle2, Circle, ClipboardCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -9,6 +9,7 @@ type Props = {
   onSelectRelated?: (libraryId: string) => void;
   onDownloadChecklist?: () => void;
   onNewApplication?: () => void;
+  onStartEligibility?: () => void;
 };
 
 export function ServiceLibraryRightRail({
@@ -16,6 +17,7 @@ export function ServiceLibraryRightRail({
   onSelectRelated,
   onDownloadChecklist,
   onNewApplication,
+  onStartEligibility,
 }: Props) {
   const sections = view.isCoaching
     ? [
@@ -152,6 +154,12 @@ export function ServiceLibraryRightRail({
           <Download className="size-4 mr-1.5" />
           Download checklist
         </Button>
+        {!view.isCoaching && onStartEligibility && (
+          <Button variant="outline" size="sm" className="w-full" onClick={onStartEligibility}>
+            <ClipboardCheck className="size-4 mr-1.5" />
+            Eligibility Assessment
+          </Button>
+        )}
       </Card>
     </aside>
   );

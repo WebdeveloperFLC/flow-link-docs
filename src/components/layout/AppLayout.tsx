@@ -84,7 +84,11 @@ type NavItem = {
   roles?: string[];
   section?: string;
   acctAdminOnly?: boolean;
+  hidden?: boolean;
 };
+
+/** Hidden until per-service eligibility is fully tested; route remains at /assessment-admin */
+const SHOW_SETTLE_ABROAD_NAV = false;
 
 const dashboardItem: NavItem = { to: "/", icon: LayoutDashboard, label: "Dashboard", end: true };
 
@@ -117,6 +121,7 @@ const crmNav: NavItem[] = [
     icon: ClipboardCheck,
     label: "Settle Abroad",
     roles: ["admin", "counselor", "telecaller", "documentation"],
+    hidden: !SHOW_SETTLE_ABROAD_NAV,
   },
 ];
 
@@ -367,7 +372,12 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             {renderSection(
               "crm",
               "CRM",
-              crmNav.filter((i) => (!i.adminOnly || isAdmin) && (!i.roles || isAdmin || hasRole(i.roles as never))),
+              crmNav.filter(
+                (i) =>
+                  !i.hidden &&
+                  (!i.adminOnly || isAdmin) &&
+                  (!i.roles || isAdmin || hasRole(i.roles as never)),
+              ),
             )}
 
             {renderSection("calendar", "Calendar", calendarNav)}
