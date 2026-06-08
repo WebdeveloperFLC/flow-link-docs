@@ -88,6 +88,8 @@ export const LIBRARY_IDS = {
   "coaching-gre.json": "b2000001-0001-4000-8000-0000000000ca",
   "coaching-gmat.json": "b2000001-0001-4000-8000-0000000000cb",
   "coaching-sat.json": "b2000001-0001-4000-8000-0000000000cc",
+  "coaching-german-language-a1-crash.json": "b2000001-0001-4000-8000-0000000000c6",
+  "coaching-german-language-b2-regular.json": "b2000001-0001-4000-8000-0000000000c7",
 };
 
 export function slugFromJsonFile(file) {

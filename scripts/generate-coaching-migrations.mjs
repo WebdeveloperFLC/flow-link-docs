@@ -23,13 +23,61 @@ function esc(s) {
   return String(s ?? "").replace(/'/g, "''");
 }
 
-/** Match live row by natural key — survives ON CONFLICT when legacy UUID differs from registry id. */
-function whereNaturalKey(entry) {
-  return `service_category = 'coaching_services' AND service = '${esc(entry.service)}' AND sub_service = '${esc(entry.sub_service)}'`;
+/** All (service, sub_service) shapes seen in live DB / catalogue imports. */
+function matchKeysFor(entry) {
+  const seen = new Set();
+  const keys = [];
+
+  const add = (service, sub_service) => {
+    const s = String(service ?? "").trim();
+    const sub = String(sub_service ?? "").trim();
+    if (!s || !sub) return;
+    const sig = `${s}\0${sub}`;
+    if (seen.has(sig)) return;
+    seen.add(sig);
+    keys.push({ service: s, sub_service: sub });
+  };
+
+  add(entry.service, entry.sub_service);
+  add(entry.sub_service, entry.service);
+
+  if (entry.displayName) {
+    add(entry.displayName, entry.sub_service);
+    add(entry.displayName, entry.family);
+    add(entry.service, entry.displayName);
+    add(entry.sub_service, entry.displayName);
+    add(entry.family, entry.displayName);
+  }
+
+  // Catalogue import: sub_category bucket + full service_name on sub_service.
+  if (entry.family === "IELTS" && entry.displayName && entry.sub_service !== "Test Reference") {
+    add("IELTS", entry.displayName);
+    add(entry.displayName, "IELTS");
+  }
+
+  for (const v of entry.matchVariants ?? []) {
+    add(v.service, v.sub_service);
+  }
+
+  return keys;
+}
+
+function whereFlexibleMatch(entry) {
+  const clauses = matchKeysFor(entry).map(
+    (k) =>
+      `(service_category = 'coaching_services' AND service = '${esc(k.service)}' AND sub_service = '${esc(k.sub_service)}')`,
+  );
+  // Last resort: unique service field label (common for inverted language rows).
+  if (entry.displayName) {
+    clauses.push(
+      `(service_category = 'coaching_services' AND service = '${esc(entry.displayName)}')`,
+    );
+  }
+  return `(${clauses.join("\n    OR ")})`;
 }
 
 function libraryIdSubquery(entry) {
-  return `(SELECT id FROM public.service_library WHERE ${whereNaturalKey(entry)} LIMIT 1)`;
+  return `(SELECT id FROM public.service_library WHERE ${whereFlexibleMatch(entry)} LIMIT 1)`;
 }
 
 function buildMigration(name, entries, header) {
@@ -53,7 +101,7 @@ function buildMigration(name, entries, header) {
     parts.push(`-- ${entry.displayName}`);
     parts.push(`UPDATE public.service_library`);
     parts.push(`SET academy_metadata = '${json}'::jsonb, updated_at = now()`);
-    parts.push(`WHERE ${whereNaturalKey(entry)};`);
+    parts.push(`WHERE ${whereFlexibleMatch(entry)};`);
     parts.push("");
   }
 
@@ -141,6 +189,13 @@ buildMigration(
   "20260610103000_seed_coaching_grad_admissions.sql",
   phaseC.filter((e) => ["GRE", "GMAT", "SAT"].includes(e.family)),
   "Graduate admissions coaching — GRE, GMAT, SAT (additive)",
+);
+
+// Consolidated backfill — safe to re-run; matches live DB key variants.
+buildMigration(
+  "20260610110000_seed_coaching_backfill_all.sql",
+  COACHING_REGISTRY,
+  "Coaching backfill — all families, flexible live-key matching (re-run safe)",
 );
 
 // Update service-library-ids.mjs
