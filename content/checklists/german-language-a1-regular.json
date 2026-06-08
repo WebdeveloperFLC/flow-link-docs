@@ -1,0 +1,127 @@
+{
+  "slug": "german-language-a1-regular",
+  "displayName": "German Language A1 Regular",
+  "title": "Counselor Enrollment & Delivery Checklist",
+  "subtitle": "Coaching · German Language · European Languages",
+  "streamLabel": "8–10 weeks",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "futurelinkconsultants.com",
+  "website": "futurelinkconsultants.com",
+  "footerTagline": "Future Link Consultants | 25+ Years in Study Abroad & Test Prep | IELTS · PTE · GRE · GMAT · German · French · Spoken English",
+  "policyBanner": "A1 foundation for Germany study, Opportunity Card prep, or spouse visa German requirement.",
+  "metaFields": [
+    {
+      "key": "client_name",
+      "label": "Student name",
+      "placeholder": "Full name"
+    },
+    {
+      "key": "file_id",
+      "label": "File ID",
+      "placeholder": "FLC-2026-XXXX"
+    },
+    {
+      "key": "batch_name",
+      "label": "Batch",
+      "placeholder": "e.g. German Language-Jun-2026"
+    },
+    {
+      "key": "current_level",
+      "label": "Current level (diagnostic)",
+      "placeholder": "e.g. B1"
+    },
+    {
+      "key": "target_level",
+      "label": "Target level / score",
+      "placeholder": "e.g. 6.5 / B2"
+    },
+    {
+      "key": "enrollment_date",
+      "label": "Enrollment date",
+      "placeholder": "yyyy-mm-dd"
+    }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Intake, diagnostic & goal setting",
+      "items": [
+        {
+          "title": "Diagnostic / level assessment completed",
+          "note": "Record baseline scores or level. Set realistic target and timeline.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Student goal and pathway confirmed",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Enrollment agreement signed",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Course fee collected; receipt issued (separate from exam fee)",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Batch allocation & materials",
+      "items": [
+        {
+          "title": "Batch assigned — schedule shared",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Course materials shared (books per program policy)",
+          "badge": "RECOMMENDED"
+        },
+        {
+          "title": "Trainer and counselor contact shared with student",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Delivery & progress tracking",
+      "items": [
+        {
+          "title": "Attendance tracked weekly",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Homework and mock tests scheduled",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Progress review at mid-course",
+          "badge": "RECOMMENDED"
+        },
+        {
+          "title": "Exam registration guidance provided (if applicable)",
+          "badge": "IF APPLICABLE"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Completion & handoff",
+      "items": [
+        {
+          "title": "Final mock / readiness review completed",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Official score report collected (if tested)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Admissions / visa team notified when target met",
+          "badge": "RECOMMENDED"
+        }
+      ]
+    }
+  ]
+}

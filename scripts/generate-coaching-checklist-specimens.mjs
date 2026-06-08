@@ -5,6 +5,7 @@
  */
 import fs from "fs";
 import path from "path";
+import { COACHING_REGISTRY } from "./lib/coaching-service-registry.mjs";
 
 const CHECKLIST_DIR = path.join(process.cwd(), "content/checklists");
 const OUT_DIR = path.join(process.cwd(), "public/specimens/coaching");
@@ -13,11 +14,17 @@ const LOGO_CANDIDATES = [
   path.join(process.cwd(), "src/assets/flc-logo.png"),
 ];
 
-const SPECS = [
-  "ielts-academic-regular.json",
-  "ielts-academic-crash.json",
-  "ielts-gt-regular.json",
-];
+function registryChecklistJobs() {
+  const jobs = [];
+  for (const entry of COACHING_REGISTRY) {
+    if (!entry.checklistSlug || !entry.checklistHtml) continue;
+    jobs.push({
+      jsonFile: `${entry.checklistSlug}.json`,
+      outFile: path.basename(entry.checklistHtml),
+    });
+  }
+  return jobs;
+}
 
 function logoDataUri() {
   for (const p of LOGO_CANDIDATES) {
@@ -152,7 +159,7 @@ function renderHtml(spec, logoSrc) {
       <div class="hero-meta">
         <span>${esc(spec.updatedLabel)}</span>
         <span>${esc(spec.website)}</span>
-        <span>Verify at ieltsidpindia.com</span>
+        <span>Verify at ${esc(spec.verifyUrl ?? "futurelinkconsultants.com")}</span>
       </div>
     </div>
     <div class="policy">${esc(spec.policyBanner)}</div>
@@ -171,7 +178,7 @@ ${sectionsHtml}
     </div>
     <footer class="footer">
       <strong>Future Link Consultants — Internal Working Document · Not an official government form</strong>
-      Verify exam booking at ieltsidpindia.com · ${esc(spec.updatedLabel)}<br />
+      Verify at ${esc(spec.verifyUrl ?? "futurelinkconsultants.com")} · ${esc(spec.updatedLabel)}<br />
       www.futurelinkconsultants.com<br />
       ${esc(spec.footerTagline)}
     </footer>
@@ -180,15 +187,81 @@ ${sectionsHtml}
 </html>`;
 }
 
+function renderIndex(groups) {
+  const sections = groups
+    .map(
+      ([title, links]) => `  <h2>${esc(title)}</h2>
+  <ul>
+${links.map((l) => `    <li><a href="${esc(l.href)}">${esc(l.label)}</a>${l.desc ? `<span class="desc">${esc(l.desc)}</span>` : ""}</li>`).join("\n")}
+  </ul>`,
+    )
+    .join("\n\n");
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Future Link — Coaching Service Library Specimens</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 40px auto; padding: 0 20px; color: #1e293b; line-height: 1.6; }
+    h1 { color: #0f766e; font-size: 1.5rem; }
+    h2 { color: #134e4a; font-size: 1rem; margin-top: 28px; border-bottom: 2px solid #99f6e4; padding-bottom: 6px; }
+    ul { padding-left: 0; list-style: none; }
+    li { margin: 10px 0; padding: 10px 14px; background: #f0fdfa; border-radius: 8px; border: 1px solid #ccfbf1; }
+    a { color: #0d9488; font-weight: 600; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .desc { display: block; font-size: 13px; color: #64748b; font-weight: 400; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Coaching — Service Library Specimens</h1>
+  <p>Enrollment checklists and IELTS reference specimens for counselor training.</p>
+
+${sections}
+</body>
+</html>`;
+}
+
 function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   const logoSrc = logoDataUri();
-  for (const file of SPECS) {
-    const spec = JSON.parse(fs.readFileSync(path.join(CHECKLIST_DIR, file), "utf8"));
-    const out = path.join(OUT_DIR, `${spec.slug}-checklist.html`);
+  const indexByFamily = new Map();
+
+  for (const job of registryChecklistJobs()) {
+    const jsonPath = path.join(CHECKLIST_DIR, job.jsonFile);
+    if (!fs.existsSync(jsonPath)) {
+      console.warn(`Skip (no JSON): ${job.jsonFile}`);
+      continue;
+    }
+    const spec = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+    const out = path.join(OUT_DIR, job.outFile);
     fs.writeFileSync(out, renderHtml(spec, logoSrc));
     console.log(`✓ ${path.basename(out)} (${countItems(spec)} items)`);
+
+    const family = spec.subtitle?.split("·")[1]?.trim() ?? "Other";
+    const list = indexByFamily.get(family) ?? [];
+    list.push({ href: job.outFile, label: spec.displayName, desc: spec.streamLabel });
+    indexByFamily.set(family, list);
   }
+
+  const staticGroups = [
+    [
+      "IELTS reference & samples",
+      [
+        { href: "ielts-test-reference.html", label: "IELTS — Full test reference", desc: "Acceptance matrix, test day, module samples" },
+        { href: "ielts-test-day-checklist.html", label: "IELTS test day checklist", desc: "Printable for first-time test takers" },
+        { href: "ielts-samples/listening.html", label: "Listening sample", desc: "" },
+        { href: "ielts-samples/reading.html", label: "Reading sample", desc: "" },
+        { href: "ielts-samples/writing.html", label: "Writing sample", desc: "" },
+        { href: "ielts-samples/speaking.html", label: "Speaking sample", desc: "" },
+      ],
+    ],
+    ...[...indexByFamily.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([family, links]) => [`${family} checklists`, links]),
+  ];
+
+  fs.writeFileSync(path.join(OUT_DIR, "index.html"), renderIndex(staticGroups));
+  console.log("✓ index.html");
 }
 
 main();

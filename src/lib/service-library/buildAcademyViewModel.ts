@@ -18,6 +18,11 @@ import {
   type AcademyTagVariant,
 } from "./academyTypes";
 import { coachingProfileFromSubService } from "./academyTabs";
+import {
+  resolveCoachingFamilyKey,
+  resolveCoachingVariantLabel,
+} from "@/lib/leads/servicePickerGroups";
+import { coachingFamilyLabel } from "./serviceNavClassification";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -162,11 +167,17 @@ export function buildAcademyViewModel(args: {
   const meta = mergeAcademyMetadata(baseMeta, patchMeta);
   const resolved = resolveForCountry(master, override ?? null);
 
-  const displayCountry = country ?? countries[0] ?? null;
+  const isCoaching =
+    master.service_category === "coaching_services" || meta.navBucket === "coaching";
+
+  // Coaching rows may carry legacy country mappings — never prefix with a destination country.
+  const displayCountry = isCoaching ? null : country ?? countries[0] ?? null;
   const countryFlag = displayCountry ? "" : "";
   const defaultTitle = displayCountry
     ? `${displayCountry} – ${master.sub_service}`
-    : `${master.service} · ${master.sub_service}`;
+    : isCoaching
+      ? resolveCoachingVariantLabel(master.service, master.sub_service, meta.displayName)
+      : `${master.service} · ${master.sub_service}`;
 
   const dosFromGuide = splitLines(resolved.quick_guide_what_to_do);
   const mistakesFromGuide = splitLines(resolved.quick_guide_common_mistakes);
@@ -216,8 +227,9 @@ export function buildAcademyViewModel(args: {
       ? { date: meta.policyAlert.date ?? "", summary: meta.policyAlert.summary }
       : null;
 
-  const isCoaching =
-    master.service_category === "coaching_services" || meta.navBucket === "coaching";
+  const coachingFamily = isCoaching
+    ? coachingFamilyLabel(resolveCoachingFamilyKey(master.service, master.sub_service))
+    : null;
   const coachingProfile = isCoaching ? coachingProfileFromSubService(master.sub_service) : null;
   const testDayGuide = meta.testDayGuide
     ? {
@@ -231,9 +243,13 @@ export function buildAcademyViewModel(args: {
     masterId: master.id,
     country: displayCountry,
     categoryLabel: CATEGORY_LABELS[master.service_category] ?? master.service_category,
-    breadcrumbTitle: meta.displayName?.split("–")[0]?.trim() ?? defaultTitle.split("–")[0]?.trim() ?? master.sub_service,
+    breadcrumbTitle: isCoaching
+      ? coachingFamily ?? master.service
+      : meta.displayName?.split("–")[0]?.trim() ??
+        defaultTitle.split("–")[0]?.trim() ??
+        master.sub_service,
     title: meta.displayName ?? defaultTitle,
-    subtitle: meta.shortDescription ?? `${master.service}`,
+    subtitle: meta.shortDescription ?? (isCoaching ? coachingFamily ?? master.service : `${master.service}`),
     version: meta.version ?? "v1.0",
     versionStatus: meta.versionStatus ?? (master.is_active ? "Live" : "Draft"),
     updatedLabel: meta.updatedLabel ?? "",
