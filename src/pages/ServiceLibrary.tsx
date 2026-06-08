@@ -286,6 +286,7 @@ export default function ServiceLibrary() {
                 <ServiceAcademyKpiRow kpis={detail.data.view.kpis} />
                 <ServiceLibraryTabs
                   view={detail.data.view}
+                  libraryId={detail.data.master.id}
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   onToggleChecklistItem={toggleSub}
@@ -316,6 +317,7 @@ export default function ServiceLibrary() {
           libraryId={detail.data.master.id}
           serviceTitle={detail.data.view.title}
           subService={detail.data.master.sub_service}
+          serviceCategory={detail.data.master.service_category}
           country={detail.data.view.country}
           shareLink={detail.data.view.shareLink}
         />

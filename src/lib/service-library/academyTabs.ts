@@ -7,6 +7,7 @@ export const ACADEMY_TAB_IDS = [
   "acceptance",
   "testday",
   "checklist",
+  "binder",
   "visaforms",
   "process",
   "dos",
@@ -28,6 +29,7 @@ const VISA_TABS: AcademyTabId[] = [
   "overview",
   "eligibility",
   "checklist",
+  "binder",
   "visaforms",
   "process",
   "dos",
@@ -47,6 +49,7 @@ const COACHING_TEST_TABS: AcademyTabId[] = [
   "acceptance",
   "testday",
   "checklist",
+  "binder",
   "process",
   "dos",
   "redflags",
@@ -62,6 +65,7 @@ const COACHING_PROGRAM_TABS: AcademyTabId[] = [
   "overview",
   "eligibility",
   "checklist",
+  "binder",
   "process",
   "dos",
   "redflags",
@@ -96,6 +100,8 @@ export function tabLabel(
         return "Test day guide";
       case "checklist":
         return "Checklists";
+      case "binder":
+        return "Document binder";
       case "downloads":
         return "Resources";
       case "sampledocs":
@@ -108,6 +114,8 @@ export function tabLabel(
   }
 
   switch (id) {
+    case "binder":
+      return "Document binder";
     case "dos":
       return "Do's & don'ts";
     case "redflags":

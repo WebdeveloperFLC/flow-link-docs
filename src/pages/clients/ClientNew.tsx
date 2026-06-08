@@ -44,7 +44,7 @@ import { GENDERS, MARITAL_STATUSES } from "@/lib/leadSchemas";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
-import { autoAssignPipelineForClient } from "@/lib/stagePipelines";
+import { autoAssignPipelineForClient, resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
 
 /**
@@ -84,6 +84,7 @@ const ClientNew = () => {
   const slVisaService = sp.get("visa_service");
   const slServiceLabel = sp.get("service_label");
   const slLibraryId = sp.get("library_id");
+  const slSubService = sp.get("sub_service");
   const { hasRole, isAdmin } = useAuth();
   const isCounselor = isAdmin || hasRole(["counselor", "admin"]);
 
@@ -289,15 +290,30 @@ const ClientNew = () => {
             /* best-effort */
           }
         }
-        // Best-effort: auto-assign stage pipeline from country + first visa service
-        const firstVisa = services.visa_services?.[0] ?? null;
-        const primaryCountry = interestedCountries?.[0] ?? saved.country ?? null;
-        void autoAssignPipelineForClient({
-          clientId: saved.id,
-          country: primaryCountry,
-          interestedCountries,
-          serviceCategory: firstVisa,
-        });
+        // Best-effort: auto-assign stage pipeline from Service Library context or country + visa service
+        const primaryCountry = interestedCountries?.[0] ?? saved.country ?? slCountry ?? null;
+        if (slServiceLabel && slSubService) {
+          void resolvePipelineForServiceLibrary({
+            country: primaryCountry,
+            interestedCountries,
+            serviceTitle: slServiceLabel,
+            subService: slSubService,
+          }).then(async (match) => {
+            if (!match) return;
+            await supabase
+              .from("clients")
+              .update({ pipeline_id: match.pipelineId, current_stage_id: match.stageId })
+              .eq("id", saved.id);
+          });
+        } else {
+          const firstVisa = services.visa_services?.[0] ?? null;
+          void autoAssignPipelineForClient({
+            clientId: saved.id,
+            country: primaryCountry,
+            interestedCountries,
+            serviceCategory: firstVisa,
+          });
+        }
       }
     } catch (e: any) {
       console.error("[client autosave]", e);

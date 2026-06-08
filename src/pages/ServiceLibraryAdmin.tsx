@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
-  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText, Workflow,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +33,8 @@ import type { CoachingVariant } from "@/lib/service-library/serviceNavClassifica
 import { AcademyContentEditor } from "@/components/service-library/admin/AcademyContentEditor";
 import { ContentSetupSummary } from "@/components/service-library/admin/ContentSetupSummary";
 import { ServiceAcademyNavPanel } from "@/components/service-library/design/ServiceAcademyNavPanel";
+import { WorkflowTemplatePanel } from "@/components/templates/WorkflowTemplatePanel";
+import { buildServiceCode } from "@/lib/service-library/serviceCodes";
 import {
   ALLOWED_SERVICE_LIBRARY_COUNTRIES, ALLOWED_COUNTRY_SET,
   type Master, type Override,
@@ -94,6 +96,8 @@ export default function ServiceLibraryAdmin() {
   const [coachingVariant, setCoachingVariant] = useState<CoachingVariant | null>(() =>
     parseCoachingVariant(searchParams.get("variant")),
   );
+  const adminTab = searchParams.get("tab");
+  const showBinderCatalog = adminTab === "binder-catalog";
 
   const masters = useQuery({
     queryKey: ["sl-masters"],
@@ -114,8 +118,9 @@ export default function ServiceLibraryAdmin() {
     if (adminCategory === "visa" && countryFilter !== "ALL") p.set("country", countryFilter);
     if (coachingFamily) p.set("family", coachingFamily);
     if (coachingVariant) p.set("variant", coachingVariant);
+    if (adminTab === "binder-catalog") p.set("tab", "binder-catalog");
     setSearchParams(p, { replace: true });
-  }, [selectedId, adminCategory, countryFilter, coachingFamily, coachingVariant, setSearchParams]);
+  }, [selectedId, adminCategory, countryFilter, coachingFamily, coachingVariant, adminTab, setSearchParams]);
 
   const academyCategory: AcademyCategoryFilter =
     adminCategory === "coaching" ? "coaching" : "visa";
@@ -267,6 +272,11 @@ export default function ServiceLibraryAdmin() {
             <Button onClick={() => setShowNew(true)}>
               <Plus className="h-4 w-4 mr-1" /> New record
             </Button>
+            <Button variant="outline" asChild>
+              <Link to="/service-library-admin?tab=binder-catalog">
+                <Workflow className="h-4 w-4 mr-1" /> All binders
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -357,7 +367,11 @@ export default function ServiceLibraryAdmin() {
           </aside>
 
           <section className="lg:col-span-8 min-h-[60vh]">
-            {selected ? (
+            {showBinderCatalog ? (
+              <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                <WorkflowTemplatePanel />
+              </div>
+            ) : selected ? (
               <MasterDetail
                 key={selected.id}
                 master={selected}
@@ -735,6 +749,30 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
   );
 }
 
+function BinderTab({
+  master,
+}: {
+  master: Master & { service_library_countries?: { country: string }[] };
+}) {
+  const country =
+    master.service_category === "visa_immigration"
+      ? master.service_library_countries?.[0]?.country ?? master.service
+      : null;
+  const serviceCode = buildServiceCode(master.id, country);
+
+  return (
+    <WorkflowTemplatePanel
+      compact
+      libraryId={master.id}
+      country={country}
+      defaultCountry={country ?? ""}
+      defaultCategory={serviceCode}
+      title="Document binder"
+      description="Client document collection structure for this service. Used when assigning workflow templates to clients."
+    />
+  );
+}
+
 function MasterDetail({
   master, onChanged, onDeleted,
 }: { master: Master & { service_library_countries?: { country: string }[] }; onChanged: () => void; onDeleted: () => void }) {
@@ -768,6 +806,7 @@ function MasterDetail({
           <TabsTrigger value="content"><GraduationCap className="h-3.5 w-3.5 mr-1" />Service content</TabsTrigger>
           <TabsTrigger value="countries"><Globe className="h-3.5 w-3.5 mr-1" />Countries</TabsTrigger>
           <TabsTrigger value="checklist"><ClipboardCheck className="h-3.5 w-3.5 mr-1" />Checklist</TabsTrigger>
+          <TabsTrigger value="binder"><Workflow className="h-3.5 w-3.5 mr-1" />Document binder</TabsTrigger>
           <TabsTrigger value="visaforms"><ScrollText className="h-3.5 w-3.5 mr-1" />Visa forms</TabsTrigger>
           <TabsTrigger value="submission"><ListChecks className="h-3.5 w-3.5 mr-1" />Submission</TabsTrigger>
           <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
@@ -785,6 +824,9 @@ function MasterDetail({
         <TabsContent value="quickguide"><QuickGuideTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="countries"><CountriesTab master={master} /></TabsContent>
         <TabsContent value="checklist"><ChecklistTab master={master} onChanged={onChanged} /></TabsContent>
+        <TabsContent value="binder">
+          <BinderTab master={master} />
+        </TabsContent>
         <TabsContent value="visaforms"><VisaFormsTab master={master} /></TabsContent>
         <TabsContent value="submission"><SubmissionTab master={master} /></TabsContent>
         <TabsContent value="fees"><FeesTab master={master} /></TabsContent>

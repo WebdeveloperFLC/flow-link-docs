@@ -27,8 +27,9 @@ interface SectionInEditor extends TemplateSection {
   collapsed?: boolean;
 }
 
-export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: {
+export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved, defaultCountry, defaultCategory }: {
   open: boolean; onOpenChange: (o: boolean) => void; template: Template | null; onSaved: () => void;
+  defaultCountry?: string; defaultCategory?: string;
 }) => {
   const [name, setName] = useState("");
   const [country, setCountry] = useState<string>("");
@@ -71,8 +72,8 @@ export const TemplateEditorDialog = ({ open, onOpenChange, template, onSaved }: 
     if (!open) return;
     loadSections(true).then(setCaseSections);
     setName(template?.name ?? "");
-    setCountry(template?.country ?? "");
-    setCategory(template?.category ?? "");
+    setCountry(template?.country ?? defaultCountry ?? "");
+    setCategory(template?.category ?? defaultCategory ?? "");
 
     // Build items map and section structure.
     const tplItems = template?.items ?? [];

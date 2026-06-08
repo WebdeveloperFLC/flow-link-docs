@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { notifyUsers, resolveAllClientStakeholderUserIds } from "@/lib/appNotifications";
+import { logActivity } from "@/lib/activity";
 export type ChannelType = "staff_internal" | "staff_client" | "direct" | "team_group";
 
 export interface ChatMessage {
@@ -342,42 +343,171 @@ export interface ClientTeamMember {
   full_name: string | null;
   email: string | null;
   role: string;
+  source: "owner" | "counselor" | "access" | "default_team" | "team";
+  removable: boolean;
+  accessId?: string | null;
 }
 
 export async function listClientTeamMembers(clientId: string): Promise<ClientTeamMember[]> {
-  const userIds = await resolveAllClientStakeholderUserIds(clientId, { context: "client_team_roster" });
-  if (!userIds.length) return [];
-
   const { data: cli } = await supabase
     .from("clients")
     .select("assigned_counselor_id,owner_id,created_by")
     .eq("id", clientId)
     .maybeSingle();
 
-  const { data: profs } = await supabase
-    .from("profiles")
-    .select("id,full_name,email")
-    .in("id", userIds);
-
   const ownerId = cli?.owner_id ?? cli?.created_by ?? null;
-  return (profs ?? [])
-    .map((p) => ({
-      id: p.id,
-      full_name: p.full_name,
-      email: p.email,
-      role:
-        p.id === cli?.assigned_counselor_id
-          ? "Counselor"
-          : p.id === ownerId
-            ? "Owner"
-            : "Team",
-    }))
-    .sort((a, b) => {
-      const order = (r: string) => (r === "Owner" ? 0 : r === "Counselor" ? 1 : 2);
-      const d = order(a.role) - order(b.role);
-      if (d !== 0) return d;
-      return (a.full_name ?? a.email ?? "").localeCompare(b.full_name ?? b.email ?? "");
+  const counselorId = cli?.assigned_counselor_id ?? null;
+
+  const [uaRes, taRes, dtmRes] = await Promise.all([
+    supabase
+      .from("client_access")
+      .select("id,user_id,permission,revoked_at")
+      .eq("client_id", clientId)
+      .not("user_id", "is", null),
+    supabase
+      .from("client_access")
+      .select("id,team_id,permission,revoked_at")
+      .eq("client_id", clientId)
+      .not("team_id", "is", null),
+    ownerId
+      ? supabase
+          .from("default_team_members")
+          .select("member_id,revoked_at")
+          .eq("owner_id", ownerId)
+          .is("revoked_at", null)
+      : Promise.resolve({ data: [] as { member_id: string; revoked_at: string | null }[] }),
+  ]);
+
+  const roster = new Map<string, ClientTeamMember>();
+
+  const upsert = (id: string, row: Omit<ClientTeamMember, "id" | "full_name" | "email">) => {
+    const prev = roster.get(id);
+    if (!prev) {
+      roster.set(id, { id, full_name: null, email: null, ...row });
+      return;
+    }
+    if (row.removable) prev.removable = true;
+    if (row.accessId) prev.accessId = row.accessId;
+  };
+
+  if (ownerId) upsert(ownerId, { role: "Owner", source: "owner", removable: false });
+  if (counselorId && counselorId !== ownerId) {
+    upsert(counselorId, { role: "Counselor", source: "counselor", removable: false });
+  }
+
+  for (const row of uaRes.data ?? []) {
+    if (!row.user_id || row.revoked_at) continue;
+    if (row.user_id === ownerId || row.user_id === counselorId) continue;
+    upsert(row.user_id, {
+      role: "Team",
+      source: "access",
+      removable: true,
+      accessId: row.id,
     });
+  }
+
+  for (const row of dtmRes.data ?? []) {
+    if (!row.member_id || row.member_id === ownerId) continue;
+    upsert(row.member_id, { role: "Default team", source: "default_team", removable: false });
+  }
+
+  const teamIds = (taRes.data ?? []).filter((r) => !r.revoked_at).map((r) => r.team_id);
+  if (teamIds.length) {
+    const { data: teamMembers } = await supabase
+      .from("team_members")
+      .select("user_id")
+      .in("team_id", teamIds);
+    for (const tm of teamMembers ?? []) {
+      if (!tm.user_id || tm.user_id === ownerId || tm.user_id === counselorId) continue;
+      upsert(tm.user_id, { role: "Team", source: "team", removable: false });
+    }
+  }
+
+  const ids = Array.from(roster.keys());
+  if (!ids.length) return [];
+
+  const { data: profs } = await supabase.from("profiles").select("id,full_name,email").in("id", ids);
+  for (const p of profs ?? []) {
+    const row = roster.get(p.id);
+    if (row) {
+      row.full_name = p.full_name;
+      row.email = p.email;
+    }
+  }
+
+  return Array.from(roster.values()).sort((a, b) => {
+    const order = (r: string) =>
+      r === "Owner" ? 0 : r === "Counselor" ? 1 : r === "Default team" ? 2 : 3;
+    const d = order(a.role) - order(b.role);
+    if (d !== 0) return d;
+    return (a.full_name ?? a.email ?? "").localeCompare(b.full_name ?? b.email ?? "");
+  });
+}
+
+export async function addClientChatMember(
+  clientId: string,
+  userId: string,
+  clientName?: string,
+): Promise<void> {
+  const { data: u } = await supabase.auth.getUser();
+  const me = u?.user?.id;
+  if (!me) throw new Error("Not signed in");
+
+  const { data: existing } = await supabase
+    .from("client_access")
+    .select("id,revoked_at")
+    .eq("client_id", clientId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existing?.revoked_at) {
+    const { error } = await supabase
+      .from("client_access")
+      .update({ permission: "view", revoked_at: null, granted_by: me })
+      .eq("id", existing.id);
+    if (error) throw error;
+  } else if (existing) {
+    return;
+  } else {
+    const { error } = await supabase.from("client_access").insert({
+      client_id: clientId,
+      user_id: userId,
+      permission: "view",
+      granted_by: me,
+    });
+    if (error) throw error;
+  }
+
+  await logActivity("client.chat_member_added", "client", clientId, { user_id: userId });
+
+  try {
+    let actorName = "A team member";
+    const { data: p } = await supabase.from("profiles").select("full_name,email").eq("id", me).maybeSingle();
+    actorName = p?.full_name ?? p?.email ?? actorName;
+    await notifyUsers({
+      userIds: [userId],
+      category: "client_access_granted",
+      severity: "info",
+      title: "Added to client internal chat",
+      body: `${actorName} added you to the internal thread${clientName ? ` for ${clientName}` : ""}`,
+      link: `/messages?tab=clients&client=${clientId}&clientChannel=internal`,
+      entityType: "client",
+      entityId: clientId,
+      dedupeKey: `chat-member:${userId}:${clientId}`,
+      metadata: { permission: "view", actor_id: me, actor_name: actorName, client_name: clientName ?? null },
+    });
+  } catch {
+    /* notification failure must not block */
+  }
+}
+
+export async function removeClientChatMember(clientId: string, member: ClientTeamMember): Promise<void> {
+  if (!member.removable || !member.accessId) {
+    throw new Error("This team member cannot be removed from the chat here");
+  }
+  const { error } = await supabase.from("client_access").delete().eq("id", member.accessId);
+  if (error) throw error;
+  await logActivity("client.chat_member_removed", "client", clientId, { user_id: member.id });
 }
 
 export interface ClientChatThreadSummary {

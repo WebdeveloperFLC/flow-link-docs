@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +19,6 @@ import LeadsList from "./pages/leads/LeadsList";
 import ColdPool from "./pages/leads/ColdPool";
 import LeadNew from "./pages/leads/LeadNew";
 import LeadDetail from "./pages/leads/LeadDetail";
-import Templates from "./pages/Templates";
 import LetterTemplates from "./pages/LetterTemplates";
 import Activity from "./pages/Activity";
 import Users from "./pages/Users";
@@ -403,11 +402,7 @@ const App = () => (
                   />
                   <Route
                     path="/templates"
-                    element={
-                      <ProtectedRoute>
-                        <Templates />
-                      </ProtectedRoute>
-                    }
+                    element={<Navigate to="/service-library-admin?tab=binder-catalog" replace />}
                   />
                   <Route
                     path="/letter-templates"

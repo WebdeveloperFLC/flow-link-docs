@@ -3,7 +3,6 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
-  Workflow,
   ScrollText,
   LogOut,
   Shield,
@@ -112,7 +111,6 @@ const crmNav: NavItem[] = [
     roles: ["admin", "administrator", "counselor", "documentation", "telecaller"],
   },
 
-  { to: "/templates", icon: Workflow, label: "Workflows" },
   { to: "/activity", icon: ScrollText, label: "Activity" },
   {
     to: "/assessment-admin",
