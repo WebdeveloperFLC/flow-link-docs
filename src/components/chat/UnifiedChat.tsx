@@ -26,21 +26,25 @@ import {
   togglePin,
   listAttachments,
   uploadChatAttachment,
-  getAttachmentUrl,
+  downloadChatAttachment,
   markRead,
   searchProfiles,
+  listClientTeamMembers,
   parseMentions,
   type ChannelType,
   type ChatMessage,
   type ChatReaction,
   type ChatMessageMeta,
   type ChatAttachment,
+  type ClientTeamMember,
 } from "@/lib/chat";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   channelType: ChannelType;
@@ -97,6 +101,8 @@ export function UnifiedChat({
   >([]);
   const [pendingMentions, setPendingMentions] = useState<{ id: string; label: string }[]>([]);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [teamMembers, setTeamMembers] = useState<ClientTeamMember[]>([]);
+  const [filterMemberId, setFilterMemberId] = useState<string>("all");
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const subRef = useRef<ReturnType<typeof subscribeChat> | null>(null);
@@ -130,6 +136,21 @@ export function UnifiedChat({
       subRef.current?.unsubscribe();
     };
   }, [channelType, clientId, channelId, user?.id, ckey]);
+
+  useEffect(() => {
+    if (channelType !== "staff_internal" || !clientId) {
+      setTeamMembers([]);
+      setFilterMemberId("all");
+      return;
+    }
+    let alive = true;
+    listClientTeamMembers(clientId).then((rows) => {
+      if (alive) setTeamMembers(rows);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [channelType, clientId]);
 
   // Resolve sender names
   useEffect(() => {
@@ -233,10 +254,25 @@ export function UnifiedChat({
     const m = v.match(/@(\w*)$/);
     if (m) {
       setMentionQ(m[1]);
-      searchProfiles(m[1]).then(setMentionResults);
+      const q = m[1].toLowerCase();
+      if (channelType === "staff_internal" && clientId && teamMembers.length) {
+        const filtered = teamMembers.filter((p) => {
+          const label = (p.full_name || p.email || "").toLowerCase();
+          return !q || label.includes(q);
+        });
+        setMentionResults(
+          filtered.map((p) => ({ id: p.id, full_name: p.full_name, email: p.email })),
+        );
+      } else {
+        searchProfiles(m[1]).then(setMentionResults);
+      }
     } else {
       setMentionQ(null);
     }
+  };
+
+  const mentionTeamMember = (member: ClientTeamMember) => {
+    insertMention({ id: member.id, full_name: member.full_name, email: member.email });
   };
 
   const insertMention = (p: { id: string; full_name: string | null; email: string | null }) => {
@@ -281,16 +317,23 @@ export function UnifiedChat({
   }, [attachments]);
 
   const visibleMessages = useMemo(() => {
-    if (!search.trim()) return messages;
+    let rows = messages;
+    if (filterMemberId !== "all") {
+      rows = rows.filter((m) => m.sender_id === filterMemberId);
+    }
+    if (!search.trim()) return rows;
     const q = search.toLowerCase();
-    return messages.filter((m) => m.message.toLowerCase().includes(q));
-  }, [messages, search]);
+    return rows.filter((m) => m.message.toLowerCase().includes(q));
+  }, [messages, search, filterMemberId]);
 
   const pinned = useMemo(() => messages.filter((m) => meta[m.id]?.pinned), [messages, meta]);
 
-  const openAttachment = async (path: string) => {
-    const url = await getAttachmentUrl(path);
-    if (url) window.open(url, "_blank");
+  const openAttachment = async (path: string, fileName: string) => {
+    try {
+      await downloadChatAttachment(path, fileName);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Unable to open this file");
+    }
   };
 
   const Icon = cfg.Icon;
@@ -310,6 +353,63 @@ export function UnifiedChat({
           </span>
         )}
       </div>
+      {channelType === "staff_internal" && clientId && (
+        <div className="px-3 py-2 border-b bg-muted/20 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide shrink-0">
+              Team on file
+            </span>
+            <Select value={filterMemberId} onValueChange={setFilterMemberId}>
+              <SelectTrigger className="h-7 w-[160px] text-xs">
+                <SelectValue placeholder="All team" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All team messages</SelectItem>
+                {teamMembers.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.full_name || m.email || m.id.slice(0, 6)}
+                    {m.role !== "Team" ? ` · ${m.role}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {teamMembers.length === 0 ? (
+            <p className="text-[11px] text-muted-foreground">No team members on this client file yet.</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {teamMembers.map((m) => {
+                const label = m.full_name || m.email || m.id.slice(0, 6);
+                const isMe = m.id === user?.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => mentionTeamMember(m)}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] hover:bg-muted transition-colors",
+                      filterMemberId === m.id && "border-primary bg-primary/5",
+                    )}
+                    title={`Mention ${label} in a note`}
+                  >
+                    <Users className="size-3 text-muted-foreground" />
+                    <span className="font-medium truncate max-w-[120px]">{label}</span>
+                    {m.role !== "Team" && (
+                      <Badge variant="secondary" className="h-4 px-1 text-[9px] font-normal">
+                        {m.role}
+                      </Badge>
+                    )}
+                    {isMe && <span className="text-muted-foreground">(you)</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <p className="text-[10px] text-muted-foreground">
+            Shared internal thread — click a member to @mention them, or use the dropdown to filter notes by author.
+          </p>
+        </div>
+      )}
       {enableEnhanced && (
         <div className="px-3 py-2 border-b flex items-center gap-2">
           <div className="relative flex-1">
@@ -359,7 +459,7 @@ export function UnifiedChat({
                     {atts.map((a) => (
                       <button
                         key={a.id}
-                        onClick={() => openAttachment(a.storage_path)}
+                        onClick={() => openAttachment(a.storage_path, a.file_name)}
                         className={cn(
                           "text-[11px] flex items-center gap-1.5 px-2 py-1 rounded hover:opacity-80",
                           mine ? "bg-primary-foreground/15" : "bg-background",
