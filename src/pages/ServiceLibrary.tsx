@@ -17,7 +17,7 @@ import {
   type AcademyCategoryFilter,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
-import { ALLOWED_COUNTRY_SET, type Master } from "@/lib/serviceLibrary";
+import { type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
 
@@ -282,24 +282,6 @@ export default function ServiceLibrary() {
               </div>
               <div className="px-4 md:px-6 pb-8 space-y-4">
                 <ServiceAcademyKpiRow kpis={detail.data.view.kpis} />
-                {detail.data.countries.length > 1 && detail.data.master.service_category === "visa_immigration" && (
-                  <div className="flex flex-wrap gap-2">
-                    {detail.data.countries
-                      .filter((c) => ALLOWED_COUNTRY_SET.has(c))
-                      .map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => setDetailCountry(c)}
-                          className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                            detailCountry === c ? "bg-primary text-primary-foreground border-primary" : "bg-muted/30"
-                          }`}
-                        >
-                          {c}
-                        </button>
-                      ))}
-                  </div>
-                )}
                 <ServiceLibraryTabs
                   view={detail.data.view}
                   activeTab={activeTab}
