@@ -177,7 +177,7 @@ export default function ServiceLibrary() {
   const downloadFile = async (fileId: string, fileName: string) => {
     const { data: row } = await supabase
       .from("service_library_checklist_files")
-      .select("file_path")
+      .select("file_path,mime_type")
       .eq("id", fileId)
       .maybeSingle();
     if (!row?.file_path) {
@@ -185,7 +185,17 @@ export default function ServiceLibrary() {
       return;
     }
     if (row.file_path.startsWith("/specimens/")) {
-      window.open(row.file_path, "_blank");
+      const url = `${window.location.origin}${row.file_path}`;
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      if (row.mime_type === "text/html" || row.file_path.endsWith(".html")) {
+        link.textContent = fileName;
+      }
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
       return;
     }
     const { data } = await supabase.storage.from("service-library-files").createSignedUrl(row.file_path, 600);

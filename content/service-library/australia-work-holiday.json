@@ -1,7 +1,7 @@
 {
   "displayName": "Australia – Work & Holiday Visa (1 year Work & Travel)",
   "shortDescription": "Home Affairs · Subclass 417/462 · 12-month work & travel · Eligible passport required",
-  "version": "v1.0",
+  "version": "v2.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
   "updatedLabel": "Updated 7 Jun 2026",
@@ -305,10 +305,11 @@
     }
   ],
   "compliance": [
-    "Client service agreement on file before submission",
-    "Never guarantee visa approval",
-    "Separate consultancy and visa fees",
-    "Do not advise working in Australia on visitor visa"
+    "Client service agreement on file before eligibility screen",
+    "Never guarantee WHM approval",
+    "Separate consultancy and government visa fees",
+    "Screen passport country eligibility before fee collection",
+    "Brief client on 6-month employer rule and insurance conditions"
   ],
   "proTips": [
     "Screen passport country before marketing WHM to client",
@@ -395,6 +396,18 @@
     }
   ],
   "changelog": [
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level); aligned with Visitor Visa template."
+    },
+    {
+      "version": "v2.0",
+      "date": "7 Jun 2026",
+      "author": "Service Library",
+      "summary": "Expanded quiz to 75 levelled questions (25 per level)."
+    },
     {
       "version": "v1.0",
       "date": "7 Jun 2026",
@@ -498,6 +511,246 @@
       "level": 1
     },
     {
+      "question": "Can Indian passport holders get standard WHM?",
+      "options": [
+        "Yes always",
+        "No — verify current eligible list",
+        "Only subclass 462",
+        "Only with sponsor"
+      ],
+      "correctIndex": 1,
+      "explanation": "India is not on standard WHM list — always verify.",
+      "level": 1
+    },
+    {
+      "question": "WHM visa subclass numbers include:",
+      "options": [
+        "417 and 462",
+        "500 and 485",
+        "189 only",
+        "600 only"
+      ],
+      "correctIndex": 0,
+      "explanation": "417 Working Holiday and 462 Work and Holiday.",
+      "level": 1
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Description is correct?",
+      "options": [
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (Work and Holiday) depending on passport country."
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding Eligible applicants?",
+      "options": [
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Work conditions:",
+      "options": [
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules. — verify current rules."
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Key authority is correct?",
+      "options": [
+        "Department of Home Affairs (Australia)",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Department of Home Affairs (Australia)"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding After approval?",
+      "options": [
+        "12-month stay from first entry; maintain insurance and visa conditions; TFN for lawful work.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "12-month stay from first entry; maintain insurance and visa conditions; TFN for lawful work."
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Passport from eligible WHM country:",
+      "options": [
+        "Passport from eligible WHM country is a core requirement for this service. Note: Verify Home Affairs list",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify Home Affairs list"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Age within limit at application is correct?",
+      "options": [
+        "Age within limit at application is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Age within limit at application"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding First Working Holiday Maker visa?",
+      "options": [
+        "First Working Holiday Maker visa is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "First Working Holiday Maker visa"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Sufficient funds (~AUD 5,000+):",
+      "options": [
+        "Sufficient funds (~AUD 5,000+) is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Sufficient funds (~AUD 5,000+)"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Adequate health insurance for stay is correct?",
+      "options": [
+        "Adequate health insurance for stay is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Adequate health insurance for stay"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding Health & character requirements?",
+      "options": [
+        "Health & character requirements is often required or assessed for this service. Note: If requested",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "If requested"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Not bringing dependent children:",
+      "options": [
+        "Not bringing dependent children is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Not bringing dependent children"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Genuine intention to holiday/work temporarily is correct?",
+      "options": [
+        "Genuine intention to holiday/work temporarily is a core requirement for this service.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Genuine intention to holiday/work temporarily"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding Processing time?",
+      "options": [
+        "Processing time: 2–8w — Country-dependent",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Country-dependent"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Government fee:",
+      "options": [
+        "Government fee: AUD ~$635 — Verify on homeaffairs.gov.au",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify on homeaffairs.gov.au"
+    },
+    {
+      "level": 1,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), which statement about Our approval rate is correct?",
+      "options": [
+        "Our approval rate: 88% — ~76% industry benchmark",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "~76% industry benchmark"
+    },
+    {
+      "level": 1,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is true regarding Required docs?",
+      "options": [
+        "Required docs: 12 — + health / police if requested",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ health / police if requested"
+    },
+    {
+      "level": 1,
+      "question": "A counselor explaining Australia – Work & Holiday Visa (1 year Work & Travel) should state correctly about Consultancy fee:",
+      "options": [
+        "Consultancy fee: See fee tab — + govt & insurance",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "+ govt & insurance"
+    },
+    {
       "question": "Funds generally expected at application?",
       "options": [
         "AUD 500",
@@ -556,6 +809,246 @@
       "correctIndex": 1,
       "explanation": "Generally only one WHM unless second WHM criteria met.",
       "level": 2
+    },
+    {
+      "question": "Study on WHM is generally limited to:",
+      "options": [
+        "Unlimited study",
+        "Up to 4 months",
+        "No study allowed",
+        "12 months full-time"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify current visa conditions.",
+      "level": 2
+    },
+    {
+      "question": "Biometrics for WHM:",
+      "options": [
+        "Never required",
+        "Often required offshore",
+        "Only for second WHM",
+        "Only inside Australia"
+      ],
+      "correctIndex": 1,
+      "explanation": "Follow ImmiAccount/VFS instructions.",
+      "level": 2
+    },
+    {
+      "question": "Return travel evidence shows:",
+      "options": [
+        "Client can depart Australia when required",
+        "Client will never leave",
+        "Employer guarantee",
+        "University enrollment"
+      ],
+      "correctIndex": 0,
+      "explanation": "Officer must be satisfied applicant can support stay and depart.",
+      "level": 2
+    },
+    {
+      "question": "Genuine temporary entrant for WHM means:",
+      "options": [
+        "Intent to holiday with incidental work",
+        "Intent to settle permanently",
+        "Intent to work full-time only",
+        "Intent to bring family"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary holiday purpose with work to fund travel.",
+      "level": 2
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: Can Indian passport holders get WHM?",
+      "options": [
+        "India is not on the standard Working Holiday eligible passport list. Always verify the current Home Affairs list for the client passport country before quoting.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "India is not on the standard Working Holiday eligible passport list. Always verify the current Home Affairs list for the client passport country before quoting."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), what should happen during client question: 417 vs 462 difference?",
+      "options": [
+        "Subclass 417 is Working Holiday for most eligible countries; 462 Work and Holiday applies to specific passport countries with separate caps and rules.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Subclass 417 is Working Holiday for most eligible countries; 462 Work and Holiday applies to specific passport countries with separate caps and rules."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel) workflow — best practice for client question: How long can they stay:",
+      "options": [
+        "Generally 12 months from first entry. Extensions or second WHM only in limited circumstances — verify current policy.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally 12 months from first entry. Extensions or second WHM only in limited circumstances — verify current policy."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: How much funds needed?",
+      "options": [
+        "Typically around AUD 5,000 plus return travel costs. Must be credible and available to the applicant.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Typically around AUD 5,000 plus return travel costs. Must be credible and available to the applicant."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), what should happen during client question: Can they work full-time?",
+      "options": [
+        "WHM allows work to supplement holiday but primary purpose is holiday. Condition 8547 limits work with same employer to 6 months unless exempt.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "WHM allows work to supplement holiday but primary purpose is holiday. Condition 8547 limits work with same employer to 6 months unless exempt."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel) workflow — best practice for client question: Can they study:",
+      "options": [
+        "Generally up to 4 months study permitted — verify current conditions.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally up to 4 months study permitted — verify current conditions."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: Can partner come?",
+      "options": [
+        "Dependants cannot be included on WHM application.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Dependants cannot be included on WHM application."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), what should happen during client question: Second WHM possible?",
+      "options": [
+        "May be available if specified regional work completed on first WHM — verify current requirements.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "May be available if specified regional work completed on first WHM — verify current requirements."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel) workflow — best practice for client question: Processing time:",
+      "options": [
+        "Often 2–8 weeks but varies by office and season — check global processing times.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Often 2–8 weeks but varies by office and season — check global processing times."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: Government fee?",
+      "options": [
+        "Verify current fee on visa pricing estimator — approximately AUD 635 but subject to change.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current fee on visa pricing estimator — approximately AUD 635 but subject to change."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), what should happen during client question: Health insurance required?",
+      "options": [
+        "Yes — adequate health insurance for entire stay is required.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Yes — adequate health insurance for entire stay is required."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel) workflow — best practice for client question: Police check required:",
+      "options": [
+        "Only if requested by Home Affairs based on profile and countries lived.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Only if requested by Home Affairs based on profile and countries lived."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: Biometrics required?",
+      "options": [
+        "Often yes for offshore applicants — follow ImmiAccount instructions.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Often yes for offshore applicants — follow ImmiAccount instructions."
+    },
+    {
+      "level": 2,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), what should happen during client question: Can apply from inside Australia?",
+      "options": [
+        "Generally WHM is applied offshore — verify if client holds bridging visa.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Generally WHM is applied offshore — verify if client holds bridging visa."
+    },
+    {
+      "level": 2,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel) workflow — best practice for client question: What if refused:",
+      "options": [
+        "Review refusal letter; may reapply only if circumstances change materially.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Review refusal letter; may reapply only if circumstances change materially."
+    },
+    {
+      "level": 2,
+      "question": "In the Australia – Work & Holiday Visa (1 year Work & Travel) process, what is the correct approach to client question: What is Description for this service?",
+      "options": [
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules.",
+        "Department of Home Affairs (Australia)"
+      ],
+      "correctIndex": 0,
+      "explanation": "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (Work and Holiday) depending on passport country."
     },
     {
       "question": "Second WHM may require:",
@@ -618,54 +1111,6 @@
       "level": 3
     },
     {
-      "question": "Can Indian passport holders get standard WHM?",
-      "options": [
-        "Yes always",
-        "No — verify current eligible list",
-        "Only subclass 462",
-        "Only with sponsor"
-      ],
-      "correctIndex": 1,
-      "explanation": "India is not on standard WHM list — always verify.",
-      "level": 1
-    },
-    {
-      "question": "Study on WHM is generally limited to:",
-      "options": [
-        "Unlimited study",
-        "Up to 4 months",
-        "No study allowed",
-        "12 months full-time"
-      ],
-      "correctIndex": 1,
-      "explanation": "Verify current visa conditions.",
-      "level": 2
-    },
-    {
-      "question": "Biometrics for WHM:",
-      "options": [
-        "Never required",
-        "Often required offshore",
-        "Only for second WHM",
-        "Only inside Australia"
-      ],
-      "correctIndex": 1,
-      "explanation": "Follow ImmiAccount/VFS instructions.",
-      "level": 2
-    },
-    {
-      "question": "Return travel evidence shows:",
-      "options": [
-        "Client can depart Australia when required",
-        "Client will never leave",
-        "Employer guarantee",
-        "University enrollment"
-      ],
-      "correctIndex": 0,
-      "explanation": "Officer must be satisfied applicant can support stay and depart.",
-      "level": 2
-    },
-    {
       "question": "TFN guidance is relevant:",
       "options": [
         "Before application lodged",
@@ -702,30 +1147,6 @@
       "level": 3
     },
     {
-      "question": "WHM visa subclass numbers include:",
-      "options": [
-        "417 and 462",
-        "500 and 485",
-        "189 only",
-        "600 only"
-      ],
-      "correctIndex": 0,
-      "explanation": "417 Working Holiday and 462 Work and Holiday.",
-      "level": 1
-    },
-    {
-      "question": "Genuine temporary entrant for WHM means:",
-      "options": [
-        "Intent to holiday with incidental work",
-        "Intent to settle permanently",
-        "Intent to work full-time only",
-        "Intent to bring family"
-      ],
-      "correctIndex": 0,
-      "explanation": "Temporary holiday purpose with work to fund travel.",
-      "level": 2
-    },
-    {
       "question": "Counselors must never:",
       "options": [
         "Verify Home Affairs fees",
@@ -736,6 +1157,198 @@
       "correctIndex": 1,
       "explanation": "No approval guarantees.",
       "level": 3
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with Second WHM may require:?",
+      "options": [
+        "Specified regional work on first WHM",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify current second WHM rules on Home Affairs."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with Ineligible passport country should::",
+      "options": [
+        "Be screened out before fee collection",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Do not lodge if passport not eligible."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), counselors must avoid this mistake related to WHM refused — best next step:",
+      "options": [
+        "Review refusal and assess material change",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Refusal letter guides whether reapplication is viable."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with Employment-focused WHM file risk:?",
+      "options": [
+        "Officer may doubt genuine holiday intent",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Holiday must remain primary purpose."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with Age for WHM is assessed at::",
+      "options": [
+        "Time of application",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Must meet age cap when applying."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), counselors must avoid this mistake related to TFN guidance is relevant::",
+      "options": [
+        "After grant for lawful work",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Post-grant compliance topic for working holidaymakers."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with OVHC stands for:?",
+      "options": [
+        "Overseas Visitor Health Cover",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Common acceptable insurance type for WHM."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with WHM consultancy red flag::",
+      "options": [
+        "Quoting without eligibility screen",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Always screen eligibility before marketing WHM."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), counselors must avoid this mistake related to Counselors must never::",
+      "options": [
+        "Guarantee WHM approval",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "No approval guarantees."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with Ineligible passport country?",
+      "options": [
+        "Verify list; do not lodge WHM",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Passport not on 417/462 list."
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with Ineligible passport country (detail):",
+      "options": [
+        "Passport not on 417/462 list.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Verify list; do not lodge WHM"
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), counselors must avoid this mistake related to Age over limit at lodgement:",
+      "options": [
+        "Confirm age on application date",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Applicant too old for WHM."
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with Age over limit at lodgement (detail)?",
+      "options": [
+        "Applicant too old for WHM.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm age on application date"
+    },
+    {
+      "level": 3,
+      "question": "Officer or QA perspective on Australia – Work & Holiday Visa (1 year Work & Travel) — key issue with Prior WHM visa held:",
+      "options": [
+        "Check visa history; second WHM only if eligible",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Already used first WHM."
+    },
+    {
+      "level": 3,
+      "question": "For Australia – Work & Holiday Visa (1 year Work & Travel), counselors must avoid this mistake related to Prior WHM visa held (detail):",
+      "options": [
+        "Already used first WHM.",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Check visa history; second WHM only if eligible"
+    },
+    {
+      "level": 3,
+      "question": "Australia – Work & Holiday Visa (1 year Work & Travel): what is the compliance risk with Insufficient funds?",
+      "options": [
+        "Bank statements, sponsor letter if allowed",
+        "Temporary visa for young adults from eligible countries to holiday in Australia and work short-term to fund their trip. Subclass 417 (Working Holiday) or 462 (…",
+        "Eligible passport · Age 18–30 (35 for some countries) · First WHM visa · Sufficient funds · Health & character · No dependent children accompanying",
+        "Generally work for any employer up to 6 months; specified work in regional areas may support second WHM — verify current rules."
+      ],
+      "correctIndex": 0,
+      "explanation": "Cannot show ~AUD 5,000 or equivalent."
     }
   ],
   "donts": {
@@ -760,22 +1373,40 @@
   },
   "sampleDocs": [
     {
-      "title": "Bank statement specimen",
-      "description": "Showing funds for WHM stay",
-      "docKind": "financial",
-      "url": ""
+      "title": "Sample passport bio page (mock)",
+      "description": "Valid eligible-country passport — colour scan, MRZ visible, no glare.",
+      "mimeType": "image/jpeg",
+      "docKind": "identity"
     },
     {
-      "title": "Travel / holiday plan sample",
-      "description": "One-page itinerary template",
-      "docKind": "cover_letter",
-      "url": ""
+      "title": "Sample bank statement (mock)",
+      "description": "Showing AUD 5,000+ equivalent — explain recent deposits.",
+      "mimeType": "application/pdf",
+      "docKind": "financial"
     },
     {
-      "title": "OVHC policy summary sample",
-      "description": "Health insurance evidence format",
-      "docKind": "insurance",
-      "url": ""
+      "title": "Sample holiday / travel plan (mock)",
+      "description": "One-page itinerary showing holiday intent and regions.",
+      "mimeType": "application/pdf",
+      "docKind": "cover_letter"
+    },
+    {
+      "title": "Sample OVHC policy summary (mock)",
+      "description": "Health insurance covering full intended stay.",
+      "mimeType": "application/pdf",
+      "docKind": "insurance"
+    },
+    {
+      "title": "Sample return/onward ticket quote (mock)",
+      "description": "Evidence client can depart Australia when required.",
+      "mimeType": "application/pdf",
+      "docKind": "supporting"
+    },
+    {
+      "title": "Sample employment ties letter (mock)",
+      "description": "Leave letter or business proof supporting return to home country.",
+      "mimeType": "application/pdf",
+      "docKind": "employment"
     }
   ],
   "navBucket": "visa"

@@ -31,6 +31,7 @@ const SERVICES = [
   ["au-03-spouse", "australia-spouse-visa.json", "b2000001-0001-4000-8000-000000000043"],
   ["au-04-skilled", "australia-skilled-migration.json", "b2000001-0001-4000-8000-000000000044"],
   ["au-05-subclass-485", "australia-subclass-485.json", "b2000001-0001-4000-8000-000000000045"],
+  ["au-06-work-holiday", "australia-work-holiday.json", "b2000001-0001-4000-8000-000000000046"],
   // Germany
   ["de-01-student", "germany-student-visa.json", "b2000001-0001-4000-8000-000000000051"],
   ["de-02-visitor", "germany-visitor-visa.json", "b2000001-0001-4000-8000-000000000052"],
