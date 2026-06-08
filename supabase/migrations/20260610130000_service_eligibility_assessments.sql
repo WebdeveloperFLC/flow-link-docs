@@ -42,12 +42,15 @@ CREATE INDEX IF NOT EXISTS idx_assessment_sessions_public_token
 
 ALTER TABLE public.service_eligibility_questions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_eligibility_questions_staff_read" ON public.service_eligibility_questions;
 CREATE POLICY "service_eligibility_questions_staff_read"
   ON public.service_eligibility_questions FOR SELECT TO authenticated USING (true);
 
+DROP POLICY IF EXISTS "service_eligibility_questions_public_read" ON public.service_eligibility_questions;
 CREATE POLICY "service_eligibility_questions_public_read"
   ON public.service_eligibility_questions FOR SELECT TO anon USING (is_active = true);
 
+DROP POLICY IF EXISTS "service_eligibility_questions_admin_write" ON public.service_eligibility_questions;
 CREATE POLICY "service_eligibility_questions_admin_write"
   ON public.service_eligibility_questions FOR ALL TO authenticated
   USING (public.has_role(auth.uid(), 'admin'::app_role) OR public.has_role(auth.uid(), 'administrator'::app_role))

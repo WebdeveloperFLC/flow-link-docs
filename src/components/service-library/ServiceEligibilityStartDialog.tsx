@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,9 @@ import { Loader2, Search, UserPlus, Users, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { fetchEligibilityQuestions, prefillEligibilityFromClient } from "@/lib/service-eligibility/questions";
+import { createStaffEligibilitySession } from "@/lib/service-eligibility/sessions";
+import { dialCodeFor } from "@/lib/countryCodes";
+import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
 
 type ClientRow = {
   id: string;
@@ -31,6 +35,7 @@ export function ServiceEligibilityStartDialog({
   serviceTitle,
   country,
 }: Props) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"existing" | "new">("existing");
   const [q, setQ] = useState("");
   const [clients, setClients] = useState<ClientRow[]>([]);
@@ -41,9 +46,15 @@ export function ServiceEligibilityStartDialog({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState(() => {
+    const cc = dialCodeFor(country ?? "Canada");
+    return cc ? `+${cc}` : "+1";
+  });
 
   useEffect(() => {
     if (!open) return;
+    const cc = dialCodeFor(country ?? "Canada");
+    if (cc) setPhoneCountryCode(`+${cc}`);
     setLoading(true);
     supabase
       .from("clients")
@@ -55,7 +66,7 @@ export function ServiceEligibilityStartDialog({
         else setClients((data ?? []) as ClientRow[]);
       })
       .finally(() => setLoading(false));
-  }, [open]);
+  }, [open, country]);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -79,38 +90,39 @@ export function ServiceEligibilityStartDialog({
         prefillAnswers = await prefillEligibilityFromClient(picked, qs);
       }
 
-      const body: Record<string, unknown> = {
-        action: "staff_create",
-        libraryId,
-        prefillAnswers,
-      };
+      let result: { sessionId: string };
       if (tab === "existing") {
         if (!picked) {
           toast.error("Select a client");
           setBusy(false);
           return;
         }
-        body.clientId = picked;
+        result = await createStaffEligibilitySession({
+          libraryId,
+          clientId: picked,
+          prefillAnswers,
+        });
       } else {
         if (!firstName.trim() || !lastName.trim()) {
           toast.error("First and last name required");
           setBusy(false);
           return;
         }
-        body.newClient = {
-          full_name: `${firstName.trim()} ${lastName.trim()}`,
-          email: email.trim() || null,
-          phone: phone.trim() || null,
-          country: country ?? "India",
-        };
+        result = await createStaffEligibilitySession({
+          libraryId,
+          prefillAnswers,
+          newClient: {
+            full_name: `${firstName.trim()} ${lastName.trim()}`,
+            email: email.trim() || null,
+            phone: phone.trim() || null,
+            phone_country_code: phoneCountryCode,
+            country: country ?? "Canada",
+          },
+        });
       }
 
-      const { data, error } = await supabase.functions.invoke("service-eligibility-session", { body });
-      if (error) throw error;
-      const sessionId = data?.sessionId;
-      if (!sessionId) throw new Error("Could not create session");
       onOpenChange(false);
-      window.open(`/eligibility/run/${sessionId}`, "_blank");
+      navigate(`/eligibility/run/${result.sessionId}`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not start assessment");
     } finally {
@@ -182,11 +194,22 @@ export function ServiceEligibilityStartDialog({
             </div>
             <div>
               <Label>Email</Label>
-              <Input value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
-            <div>
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <div className="grid grid-cols-[140px_1fr] gap-2">
+              <div>
+                <Label>Country code</Label>
+                <PhoneCodeSelect value={phoneCountryCode} onChange={setPhoneCountryCode} />
+              </div>
+              <div>
+                <Label>Phone</Label>
+                <Input
+                  inputMode="tel"
+                  placeholder="Mobile number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ""))}
+                />
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -22,6 +22,13 @@ import {
   type PendingItem,
 } from "@/lib/service-eligibility/types";
 import { cn } from "@/lib/utils";
+import { savePublicEligibilitySession } from "@/lib/service-eligibility/sessions";
+import {
+  buildServiceLibraryUrl,
+  buildServiceCode,
+  appendServiceLibraryClientContext,
+} from "@/lib/service-library/serviceCodes";
+import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 
 type SessionRow = {
   id: string;
@@ -196,17 +203,14 @@ export default function ServiceEligibilityRun() {
     try {
       const output = evaluation;
       if (isPublic && session.public_token) {
-        const { error } = await supabase.functions.invoke("service-eligibility-session", {
-          body: {
-            action: submit ? "public_submit" : "public_save",
-            publicToken: session.public_token,
-            answers,
-            prospectNotes: notes,
-            pendingItems,
-            output,
-          },
+        await savePublicEligibilitySession({
+          publicToken: session.public_token,
+          answers,
+          prospectNotes: notes,
+          pendingItems,
+          output,
+          submit,
         });
-        if (error) throw error;
       } else {
         const { error } = await supabase
           .from("assessment_sessions")
@@ -265,6 +269,14 @@ export default function ServiceEligibilityRun() {
 
   const content = (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
+      {!isPublic && session.library_id && (
+        <ServiceLibraryContextActions
+          libraryId={session.library_id}
+          country={session.country}
+          clientId={session.client_id ?? undefined}
+          showEligibility={false}
+        />
+      )}
       <div>
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Eligibility Assessment</p>
         <h1 className="text-2xl font-bold">{serviceTitle}</h1>
@@ -302,10 +314,37 @@ export default function ServiceEligibilityRun() {
               </ul>
             </div>
           )}
-          {!isPublic && session.client_id && (
-            <Button onClick={() => navigate(`/clients/${session.client_id}?service=${session.library_id}`)}>
-              Open client
-            </Button>
+          {!isPublic && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              {session.library_id && (
+                <Button variant="outline" asChild>
+                  <Link
+                    to={buildServiceLibraryUrl({
+                      libraryId: session.library_id,
+                      country: session.country,
+                      tab: "eligibility",
+                    })}
+                  >
+                    <ChevronLeft className="size-4 mr-1" />
+                    Service Library
+                  </Link>
+                </Button>
+              )}
+              {session.client_id && session.library_id && (
+                <Button
+                  onClick={() => {
+                    const p = appendServiceLibraryClientContext(new URLSearchParams(), {
+                      libraryId: session.library_id!,
+                      country: session.country,
+                    });
+                    p.set("service", buildServiceCode(session.library_id!, session.country));
+                    navigate(`/clients/${session.client_id}?${p.toString()}`);
+                  }}
+                >
+                  Open client
+                </Button>
+              )}
+            </div>
           )}
         </Card>
       ) : onNotesStep ? (

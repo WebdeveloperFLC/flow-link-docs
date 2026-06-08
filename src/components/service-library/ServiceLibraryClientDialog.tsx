@@ -9,7 +9,7 @@ import { Loader2, Search, UserPlus, Users, UserRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { copyToClipboard } from "@/lib/serviceLibrary";
-import { buildServiceCode, buildServiceLibraryParams } from "@/lib/service-library/serviceCodes";
+import { buildServiceCode, buildServiceLibraryParams, appendServiceLibraryClientContext } from "@/lib/service-library/serviceCodes";
 import { enrollClientInServiceLibraryApplication } from "@/lib/service-library/enrollClientInService";
 
 type ClientRow = {
@@ -154,6 +154,12 @@ export function ServiceLibraryClientDialog({
     navigate(`/leads/new?${serviceParams.toString()}`);
   };
 
+  const clientDetailUrl = (clientId: string, serviceCode: string) => {
+    const p = appendServiceLibraryClientContext(new URLSearchParams(), { libraryId, country });
+    p.set("service", serviceCode);
+    return `/clients/${clientId}?${p.toString()}`;
+  };
+
   const openClient = async (clientId: string) => {
     if (mode === "push") {
       const ok = await copyToClipboard(shareLink);
@@ -161,7 +167,7 @@ export function ServiceLibraryClientDialog({
         ok ? "Service Library link copied — paste in client chat or notes" : "Could not copy link",
       );
       onOpenChange(false);
-      navigate(`/clients/${clientId}`);
+      navigate(clientDetailUrl(clientId, serviceCode));
       return;
     }
 
@@ -181,7 +187,7 @@ export function ServiceLibraryClientDialog({
       } else {
         toast.success(`Service added — assign a pipeline on the client page if needed`);
       }
-      navigate(`/clients/${clientId}?service=${encodeURIComponent(result.serviceCode)}`);
+      navigate(clientDetailUrl(clientId, result.serviceCode));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Could not link client to this service";
       toast.error(msg);

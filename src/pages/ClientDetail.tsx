@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -77,6 +77,10 @@ import { AiSummaryPanel } from "@/components/clients/AiSummaryPanel";
 import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
+import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import {
+  parseLibraryIdFromServiceCode,
+} from "@/lib/service-library/serviceCodes";
 
 interface Client {
   id: string;
@@ -121,6 +125,11 @@ interface BinderRow {
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromServiceLibrary = searchParams.get("from") === "service-library";
+  const slLibraryId =
+    searchParams.get("library_id") ?? parseLibraryIdFromServiceCode(searchParams.get("service"));
+  const slCountry = searchParams.get("sl_country");
   const { canUpload, isAdmin, canDeleteDocs, user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [template, setTemplate] = useState<Template | null>(null);
@@ -954,7 +963,14 @@ const ClientDetail = () => {
         title={client.full_name}
         description={`${client.application_id} · ${client.country} · ${client.application_type}`}
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            {(fromServiceLibrary || slLibraryId) && slLibraryId && (
+              <ServiceLibraryContextActions
+                libraryId={slLibraryId}
+                country={slCountry}
+                clientId={client.id}
+              />
+            )}
             <Button asChild variant="outline" size="sm">
               <Link to="/clients">
                 <ChevronLeft className="size-4" />

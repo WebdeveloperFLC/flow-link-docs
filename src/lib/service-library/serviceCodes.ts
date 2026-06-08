@@ -4,6 +4,36 @@ export function buildServiceCode(libraryId: string, country: string | null | und
   return c ? `${libraryId}::${c}` : libraryId;
 }
 
+/** Build deep-link back to a service in the academy. */
+export function buildServiceLibraryUrl(opts: {
+  libraryId: string;
+  country?: string | null;
+  tab?: string;
+}) {
+  const p = new URLSearchParams();
+  p.set("id", opts.libraryId);
+  if (opts.country) p.set("country", opts.country);
+  if (opts.tab) p.set("tab", opts.tab);
+  return `/service-library?${p.toString()}`;
+}
+
+/** library id prefix from stored service code (`uuid::Country`). */
+export function parseLibraryIdFromServiceCode(serviceCode: string | null | undefined): string | null {
+  if (!serviceCode) return null;
+  const idx = serviceCode.indexOf("::");
+  return idx > 0 ? serviceCode.slice(0, idx) : serviceCode;
+}
+
+export function appendServiceLibraryClientContext(
+  params: URLSearchParams,
+  opts: { libraryId: string; country?: string | null },
+) {
+  params.set("from", "service-library");
+  params.set("library_id", opts.libraryId);
+  if (opts.country) params.set("sl_country", opts.country);
+  return params;
+}
+
 export function buildServiceLibraryParams(opts: {
   libraryId: string;
   country: string | null;

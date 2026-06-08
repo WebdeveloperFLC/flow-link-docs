@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { fetchEligibilityQuestions } from "@/lib/service-eligibility/questions";
+import { createPublicEligibilitySession } from "@/lib/service-eligibility/sessions";
+import { dialCodeFor } from "@/lib/countryCodes";
+import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
 import { VISA_IMMIGRATION } from "@/lib/service-eligibility/types";
 
 export default function EligibilityCheckPublic() {
@@ -20,6 +23,7 @@ export default function EligibilityCheckPublic() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
 
   useEffect(() => {
     if (!libraryId) {
@@ -44,6 +48,8 @@ export default function EligibilityCheckPublic() {
         toast.error("No eligibility questions configured yet");
       }
       setTitle(`${lib.service} – ${lib.sub_service}`);
+      const cc = dialCodeFor(lib.service);
+      if (cc) setPhoneCountryCode(`+${cc}`);
       setLoading(false);
     });
   }, [libraryId]);
@@ -55,18 +61,13 @@ export default function EligibilityCheckPublic() {
     }
     setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("service-eligibility-session", {
-        body: {
-          action: "public_create",
-          libraryId,
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim() || null,
-        },
+      const { sessionId } = await createPublicEligibilitySession({
+        libraryId,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || null,
+        phone_country_code: phoneCountryCode,
       });
-      if (error) throw error;
-      const sessionId = data?.sessionId;
-      if (!sessionId) throw new Error("Could not start assessment");
       navigate(`/eligibility/run/${sessionId}?public=1`);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not start");
@@ -103,9 +104,19 @@ export default function EligibilityCheckPublic() {
             <Label>Email</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div>
-            <Label>Phone (optional)</Label>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          <div className="grid grid-cols-[140px_1fr] gap-2">
+            <div>
+              <Label>Country code</Label>
+              <PhoneCodeSelect value={phoneCountryCode} onChange={setPhoneCountryCode} />
+            </div>
+            <div>
+              <Label>Phone (optional)</Label>
+              <Input
+                inputMode="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/[^\d\s-]/g, ""))}
+              />
+            </div>
           </div>
         </div>
         <Button className="w-full" onClick={start} disabled={busy}>
