@@ -143,7 +143,7 @@ export function ServiceLibraryRightRail({
         </Button>
         <Button variant="outline" size="sm" className="w-full" onClick={onDownloadChecklist} disabled={!onDownloadChecklist}>
           <Download className="size-4 mr-1.5" />
-          Download checklist PDF
+          Download checklist
         </Button>
       </Card>
     </aside>

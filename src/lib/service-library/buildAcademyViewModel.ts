@@ -168,6 +168,14 @@ export function buildAcademyViewModel(args: {
   ];
 
   const processSteps = parseProcessFlow(resolved.process_flow);
+  const processFromTimeline =
+    processSteps.length === 0 && (meta.timeline?.length ?? 0) > 0
+      ? (meta.timeline ?? []).map((t) => ({
+          title: t.title,
+          duration: t.weeks ? `Week ${t.weeks}` : "",
+          owner: "Counselor",
+        }))
+      : processSteps;
   const feesScoped = args.feeItems;
 
   const submission = args.submissionItems.map((item) => ({
@@ -260,7 +268,7 @@ export function buildAcademyViewModel(args: {
       submission,
       documentNotes: htmlToPlain(resolved.checklist_text) || "—",
     },
-    process: processSteps.map((s, i) => ({
+    process: processFromTimeline.map((s, i) => ({
       step: i + 1,
       title: s.title,
       duration: s.duration ?? "",
@@ -275,6 +283,12 @@ export function buildAcademyViewModel(args: {
     resources: meta.resources ?? [],
     downloads: args.checklistFiles
       .filter((f) => f.is_current)
+      .sort((a, b) => {
+        const aHtml = a.mime_type === "text/html" || a.file_path.endsWith(".html");
+        const bHtml = b.mime_type === "text/html" || b.file_path.endsWith(".html");
+        if (aHtml !== bHtml) return aHtml ? -1 : 1;
+        return b.version - a.version;
+      })
       .map((f) => ({
         name: f.file_name,
         size: f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : "—",
