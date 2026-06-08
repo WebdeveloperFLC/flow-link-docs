@@ -78,6 +78,10 @@ const CATEGORY_META: Record<string, { icon: React.ComponentType<{ className?: st
   document_uploaded: { icon: FileUp, label: "Document", tone: "text-cyan-600 bg-cyan-500/10" },
   portal_invite_sent: { icon: Mail, label: "Portal", tone: "text-blue-600 bg-blue-500/10" },
   portal_message: { icon: MessageSquare, label: "Message", tone: "text-blue-600 bg-blue-500/10" },
+  direct_message: { icon: MessageSquare, label: "Direct message", tone: "text-blue-600 bg-blue-500/10" },
+  team_message: { icon: MessageSquare, label: "Team chat", tone: "text-indigo-600 bg-indigo-500/10" },
+  client_team_message: { icon: MessageSquare, label: "Client team", tone: "text-emerald-600 bg-emerald-500/10" },
+  mention: { icon: MessageSquare, label: "Mention", tone: "text-violet-600 bg-violet-500/10" },
   lead_converted: { icon: UserPlus, label: "Lead", tone: "text-fuchsia-600 bg-fuchsia-500/10" },
   urgent_review_required: { icon: AlertTriangle, label: "Urgent", tone: "text-amber-600 bg-amber-500/10" },
   client_access_granted: { icon: UserPlus, label: "Access", tone: "text-violet-600 bg-violet-500/10" },
@@ -100,6 +104,7 @@ export function NotificationCenter() {
   });
   const [pushOn, setPushOn] = useState<boolean>(() => isPushEnabled());
   const [pushPerm, setPushPerm] = useState<NotificationPermission | "unsupported">(() => getPushPermission());
+  const [mutedCategories, setMutedCategories] = useState<string[]>([]);
   const seenIds = useRef<Set<string>>(new Set());
   const [scrolled, setScrolled] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -170,6 +175,36 @@ export function NotificationCenter() {
     return () => { alive = false; };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("user_notification_prefs")
+      .select("muted_categories,sound_enabled,browser_push_enabled,push_enabled")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const row = data as {
+          muted_categories?: string[] | null;
+          sound_enabled?: boolean | null;
+          browser_push_enabled?: boolean | null;
+          push_enabled?: boolean | null;
+        };
+        setMutedCategories(row.muted_categories ?? []);
+        if (typeof row.sound_enabled === "boolean") {
+          setSoundEnabled(row.sound_enabled);
+          try {
+            localStorage.setItem(SOUND_PREF_KEY, row.sound_enabled ? "1" : "0");
+          } catch {}
+        }
+        const pushPref = row.push_enabled ?? row.browser_push_enabled;
+        if (typeof pushPref === "boolean") {
+          setPushOn(pushPref && Notification.permission === "granted");
+          setPushEnabled(pushPref);
+        }
+      });
+  }, [user]);
+
   // Reliability: refetch on tab visibility / network online so we never miss
   // notifications produced while a realtime channel was disconnected.
   useEffect(() => {
@@ -229,6 +264,11 @@ export function NotificationCenter() {
             category: row.category,
           });
           setItems((prev) => [row, ...prev].slice(0, 100));
+          const categoryMuted = mutedCategories.includes(row.category);
+          if (categoryMuted) {
+            console.info("[notif] alert_skipped", { reason: "category_muted", category: row.category });
+            return;
+          }
           // Toast
           const toastFn =
             row.severity === "critical" || row.severity === "warning"
@@ -297,7 +337,7 @@ export function NotificationCenter() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, soundEnabled]);
+  }, [user, soundEnabled, mutedCategories]);
 
   const togglePush = async () => {
     if (!isPushSupported()) {
@@ -564,20 +604,37 @@ export function NotificationCenter() {
             </ul>
           )}
         </div>
-        {items.length > 0 && (
-          <div className="border-t bg-muted/30 px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {Object.entries(unreadByCategory).slice(0, 3).map(([cat, n]) => (
-                <span key={cat} className="inline-flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-primary" />
-                  {n} {metaFor(cat).label.toLowerCase()}
-                </span>
-              ))}
-              {Object.keys(unreadByCategory).length === 0 && <span>All read</span>}
-            </div>
-            {totalReadRate !== null && <span>{totalReadRate}% read</span>}
+        <div className="border-t bg-muted/30 px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 flex-wrap min-h-[1.25rem]">
+            {items.length > 0 && (
+              <>
+                {Object.entries(unreadByCategory).slice(0, 3).map(([cat, n]) => (
+                  <span key={cat} className="inline-flex items-center gap-1">
+                    <span className="size-1.5 rounded-full bg-primary" />
+                    {n}{" "}
+                    <span className={mutedCategories.includes(cat) ? "line-through opacity-60" : ""}>
+                      {metaFor(cat).label.toLowerCase()}
+                    </span>
+                  </span>
+                ))}
+                {Object.keys(unreadByCategory).length === 0 && <span>All read</span>}
+              </>
+            )}
           </div>
-        )}
+          <div className="flex items-center gap-2 shrink-0">
+            {mutedCategories.length > 0 && (
+              <span title="Muted in settings">{mutedCategories.length} muted</span>
+            )}
+            {items.length > 0 && totalReadRate !== null && <span>{totalReadRate}% read</span>}
+            <Link
+              to="/settings/notifications"
+              onClick={() => setOpen(false)}
+              className="text-primary hover:underline whitespace-nowrap"
+            >
+              Settings
+            </Link>
+          </div>
+        </div>
       </PopoverContent>
     </Popover>
   );

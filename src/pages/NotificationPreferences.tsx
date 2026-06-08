@@ -12,6 +12,11 @@ import { toast } from "sonner";
 import { isPushSupported, isPushEnabled, setPushEnabled, requestPushPermission } from "@/lib/browserPush";
 
 const CATEGORIES: { key: string; label: string }[] = [
+  { key: "direct_message", label: "Direct messages" },
+  { key: "team_message", label: "Team channel messages" },
+  { key: "client_team_message", label: "Client team notes (internal)" },
+  { key: "mention", label: "Chat @mentions" },
+  { key: "portal_message", label: "Portal messages (from client)" },
   { key: "payment_received", label: "Payments received" },
   { key: "payment_verified", label: "Payments verified" },
   { key: "receipt_generated", label: "Receipts generated" },
@@ -19,7 +24,6 @@ const CATEGORIES: { key: string; label: string }[] = [
   { key: "urgent_review_required", label: "Urgent reviews" },
   { key: "client_assigned", label: "Client assignments" },
   { key: "document_uploaded", label: "Document uploads" },
-  { key: "portal_message", label: "Portal messages" },
   { key: "info", label: "Informational / digest" },
 ];
 
@@ -54,13 +58,14 @@ export default function NotificationPreferences() {
     (async () => {
       const { data } = await supabase.from("user_notification_prefs").select("*").eq("user_id", user.id).maybeSingle();
       if (data) {
+        const row = data as Record<string, unknown>;
         setPrefs({
-          muted_categories: (data as any).muted_categories ?? [],
-          push_enabled: !!(data as any).push_enabled,
-          sound_enabled: !!(data as any).sound_enabled,
-          digest_frequency: ((data as any).digest_frequency ?? "off") as Prefs["digest_frequency"],
-          escalation_alerts: !!(data as any).escalation_alerts,
-          timezone: (data as any).timezone ?? DEFAULTS.timezone,
+          muted_categories: (row.muted_categories as string[]) ?? [],
+          push_enabled: !!(row.push_enabled ?? row.browser_push_enabled),
+          sound_enabled: row.sound_enabled !== false,
+          digest_frequency: ((row.digest_frequency as string) ?? "off") as Prefs["digest_frequency"],
+          escalation_alerts: row.escalation_alerts !== false,
+          timezone: (row.timezone as string) ?? DEFAULTS.timezone,
         });
       }
       setLoading(false);
@@ -79,7 +84,13 @@ export default function NotificationPreferences() {
     setSaving(true);
     const { error } = await supabase.from("user_notification_prefs").upsert({
       user_id: user.id,
-      ...prefs,
+      muted_categories: prefs.muted_categories,
+      push_enabled: prefs.push_enabled,
+      browser_push_enabled: prefs.push_enabled,
+      sound_enabled: prefs.sound_enabled,
+      digest_frequency: prefs.digest_frequency,
+      escalation_alerts: prefs.escalation_alerts,
+      timezone: prefs.timezone,
     } as never);
     setSaving(false);
     if (error) return toast.error(error.message);

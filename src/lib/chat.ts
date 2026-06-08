@@ -103,7 +103,7 @@ export async function sendMessage(opts: {
       .insert(opts.mentionUserIds.map((uid) => ({ message_id: data.id, mentioned_user_id: uid })) as never);
   }
   if (opts.attachments?.length) {
-    await supabase.from("chat_message_attachments" as never).insert(
+    const { error: attErr } = await supabase.from("chat_message_attachments" as never).insert(
       opts.attachments.map((a) => ({
         message_id: data.id,
         storage_path: a.storage_path,
@@ -112,6 +112,7 @@ export async function sendMessage(opts: {
         size_bytes: a.size_bytes ?? null,
       })) as never,
     );
+    if (attErr) throw attErr;
   }
 
   // Mirror to client timeline for per-client channels (best-effort)
@@ -125,37 +126,115 @@ export async function sendMessage(opts: {
     });
   }
 
-  // Portal-originated message → notify the assigned counselor & client stakeholders
-  // so they get a NotificationCenter bell + chime. Best-effort, never blocks.
-  // Staff-sent messages in the same channel do NOT trigger this (avoids self-notify
-  // and noise for outgoing messages).
-  if (opts.senderType === "client" && opts.channelType === "staff_client" && opts.clientId) {
-    try {
-      const recipients = await resolveAllClientStakeholderUserIds(opts.clientId, {
-        context: "portal_message",
-        message_id: data.id,
-      });
-      // Exclude the sender just in case a staff user happens to share an auth id
-      const userIds = recipients.filter((uid) => uid !== sender);
-      if (userIds.length) {
-        notifyUsers({
-          userIds,
-          category: "portal_message",
-          severity: "info",
-          title: "New message from client",
-          body: text.slice(0, 140) || "(attachment)",
-          link: `/clients/${opts.clientId}`,
-          entityType: "chat_message",
-          entityId: data.id,
-          dedupeKey: `portal_msg:${data.id}`,
-        });
-      }
-    } catch (e) {
-      console.warn("[chat] portal_message_notify_throw", e);
-    }
-  }
+  // Portal client messages: DB trigger fn_notify_portal_chat_message inserts staff notifications.
+  await notifyChatRecipients({
+    message: data as ChatMessage,
+    text,
+    senderId: sender,
+    mentionUserIds: opts.mentionUserIds,
+    senderType: opts.senderType ?? "staff",
+  });
 
   return data as ChatMessage;
+}
+
+function chatLink(m: ChatMessage): string | null {
+  if (m.client_id && m.channel_type === "staff_internal") {
+    return `/messages?tab=clients&client=${m.client_id}&clientChannel=internal`;
+  }
+  if (m.client_id && m.channel_type === "staff_client") {
+    return `/messages?tab=clients&client=${m.client_id}&clientChannel=portal`;
+  }
+  if (m.channel_id) {
+    return `/messages?tab=${m.channel_type === "team_group" ? "groups" : "direct"}&channel=${m.channel_id}`;
+  }
+  return null;
+}
+
+async function listChannelMemberIds(channelId: string): Promise<string[]> {
+  const { data } = await supabase.from("chat_channel_members").select("user_id").eq("channel_id", channelId);
+  return (data ?? []).map((r) => r.user_id);
+}
+
+async function notifyChatRecipients(opts: {
+  message: ChatMessage;
+  text: string;
+  senderId: string;
+  mentionUserIds?: string[];
+  senderType: "staff" | "client";
+}) {
+  const { message: m, text, senderId, mentionUserIds, senderType } = opts;
+  const excerpt = text.slice(0, 140) || "(attachment)";
+  const link = chatLink(m);
+
+  try {
+    if (mentionUserIds?.length) {
+      const mentionTargets = mentionUserIds.filter((uid) => uid !== senderId);
+      if (mentionTargets.length) {
+        await notifyUsers({
+          userIds: mentionTargets,
+          category: "mention",
+          severity: "info",
+          title: "You were mentioned in chat",
+          body: excerpt,
+          link,
+          entityType: "chat_message",
+          entityId: m.id,
+          dedupeKey: `mention:${m.id}`,
+        });
+      }
+    }
+
+    if (m.channel_type === "direct" && m.channel_id) {
+      const members = await listChannelMemberIds(m.channel_id);
+      await notifyUsers({
+        userIds: members.filter((uid) => uid !== senderId),
+        category: "direct_message",
+        severity: "info",
+        title: "New direct message",
+        body: excerpt,
+        link,
+        entityType: "chat_message",
+        entityId: m.id,
+        dedupeKey: `direct_msg:${m.id}`,
+      });
+    } else if (m.channel_type === "team_group" && m.channel_id) {
+      const members = await listChannelMemberIds(m.channel_id);
+      await notifyUsers({
+        userIds: members.filter((uid) => uid !== senderId),
+        category: "team_message",
+        severity: "info",
+        title: "New team channel message",
+        body: excerpt,
+        link,
+        entityType: "chat_message",
+        entityId: m.id,
+        dedupeKey: `team_msg:${m.id}`,
+      });
+    } else if (
+      m.channel_type === "staff_internal" &&
+      m.client_id &&
+      senderType === "staff"
+    ) {
+      const recipients = await resolveAllClientStakeholderUserIds(m.client_id, {
+        context: "client_team_message",
+        message_id: m.id,
+      });
+      await notifyUsers({
+        userIds: recipients.filter((uid) => uid !== senderId),
+        category: "client_team_message",
+        severity: "info",
+        title: "New client team note",
+        body: excerpt,
+        link,
+        entityType: "chat_message",
+        entityId: m.id,
+        dedupeKey: `client_team_msg:${m.id}`,
+      });
+    }
+  } catch (e) {
+    console.warn("[chat] notify_recipients_throw", e);
+  }
 }
 
 export function channelKey(channelType: ChannelType, clientId?: string | null, channelId?: string | null) {
@@ -231,15 +310,96 @@ export async function listAttachments(messageIds: string[]): Promise<ChatAttachm
   return (data ?? []) as ChatAttachment[];
 }
 
-export async function uploadChatAttachment(clientId: string | null | undefined, file: File) {
+export async function uploadChatAttachment(opts: {
+  clientId?: string | null;
+  channelId?: string | null;
+  file: File;
+}) {
   const { data: u } = await supabase.auth.getUser();
   const me = u?.user?.id;
   if (!me) throw new Error("Not signed in");
-  const safe = file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
-  const path = `${clientId ?? "shared"}/chat/${Date.now()}_${safe}`;
-  const { error } = await supabase.storage.from("client-documents").upload(path, file, { contentType: file.type });
+  const safe = opts.file.name.replace(/[^a-zA-Z0-9._-]+/g, "_");
+  const path = opts.clientId
+    ? `${opts.clientId}/chat/${Date.now()}_${safe}`
+    : opts.channelId
+      ? `channels/${opts.channelId}/chat/${Date.now()}_${safe}`
+      : null;
+  if (!path) throw new Error("Cannot attach files without a conversation context");
+  const { error } = await supabase.storage
+    .from("client-documents")
+    .upload(path, opts.file, { contentType: opts.file.type });
   if (error) throw error;
-  return { storage_path: path, file_name: file.name, mime_type: file.type, size_bytes: file.size };
+  return {
+    storage_path: path,
+    file_name: opts.file.name,
+    mime_type: opts.file.type,
+    size_bytes: opts.file.size,
+  };
+}
+
+export interface ClientChatThreadSummary {
+  clientId: string;
+  fullName: string;
+  lastMessage: string | null;
+  lastAt: string | null;
+  unread: boolean;
+}
+
+export async function listClientChatThreads(limit = 100): Promise<ClientChatThreadSummary[]> {
+  const { data: u } = await supabase.auth.getUser();
+  const me = u?.user?.id;
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("id,full_name")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+  if (!clients?.length) return [];
+
+  const clientIds = clients.map((c) => c.id);
+  const { data: msgs } = await supabase
+    .from("chat_messages")
+    .select("client_id,message,created_at")
+    .eq("channel_type", "staff_internal")
+    .in("client_id", clientIds)
+    .order("created_at", { ascending: false });
+
+  const latestByClient = new Map<string, { message: string; created_at: string }>();
+  for (const row of msgs ?? []) {
+    if (!row.client_id || latestByClient.has(row.client_id)) continue;
+    latestByClient.set(row.client_id, { message: row.message, created_at: row.created_at });
+  }
+
+  const keys = clientIds.map((id) => channelKey("staff_internal", id, null));
+  const { data: receipts } = me
+    ? await supabase
+        .from("chat_read_receipts" as never)
+        .select("channel_key,last_read_at")
+        .eq("user_id", me)
+        .in("channel_key", keys)
+    : { data: [] };
+
+  const readMap = new Map(
+    ((receipts ?? []) as { channel_key: string; last_read_at: string }[]).map((r) => [
+      r.channel_key,
+      r.last_read_at,
+    ]),
+  );
+
+  return clients.map((c) => {
+    const latest = latestByClient.get(c.id);
+    const ck = channelKey("staff_internal", c.id, null);
+    const lastRead = readMap.get(ck);
+    const unread =
+      !!latest &&
+      (!lastRead || new Date(latest.created_at).getTime() > new Date(lastRead).getTime());
+    return {
+      clientId: c.id,
+      fullName: c.full_name || "Unnamed client",
+      lastMessage: latest?.message ?? null,
+      lastAt: latest?.created_at ?? null,
+      unread: !!unread,
+    };
+  });
 }
 
 export async function getAttachmentUrl(path: string): Promise<string | null> {
