@@ -29,6 +29,7 @@ VALUES
   ('b2000001-0001-4000-8000-000000000043', 'visa_immigration', 'Australia', 'Partner Visa (Subclass 820/801)', 42, true),
   ('b2000001-0001-4000-8000-000000000044', 'visa_immigration', 'Australia', 'Skilled Migration (Subclass 189/190/491)', 43, true),
   ('b2000001-0001-4000-8000-000000000045', 'visa_immigration', 'Australia', 'Temporary Graduate Visa (Subclass 485)', 44, true),
+  ('b2000001-0001-4000-8000-000000000046', 'visa_immigration', 'Australia', 'Work & Holiday Visa (Subclass 417/462)', 45, true),
 
   ('b2000001-0001-4000-8000-000000000051', 'visa_immigration', 'Germany', 'Student Visa (National D Visa)', 50, true),
   ('b2000001-0001-4000-8000-000000000052', 'visa_immigration', 'Germany', 'Schengen Visitor Visa (Type C)', 51, true),
@@ -69,6 +70,7 @@ FROM (VALUES
   ('b2000001-0001-4000-8000-000000000043'::uuid, 'Australia'),
   ('b2000001-0001-4000-8000-000000000044'::uuid, 'Australia'),
   ('b2000001-0001-4000-8000-000000000045'::uuid, 'Australia'),
+  ('b2000001-0001-4000-8000-000000000046'::uuid, 'Australia'),
   ('b2000001-0001-4000-8000-000000000051'::uuid, 'Germany'),
   ('b2000001-0001-4000-8000-000000000052'::uuid, 'Germany'),
   ('b2000001-0001-4000-8000-000000000053'::uuid, 'Germany'),

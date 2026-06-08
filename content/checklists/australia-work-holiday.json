@@ -1,0 +1,156 @@
+{
+  "slug": "australia-work-holiday",
+  "displayName": "Australia – Work & Holiday Visa (1 year Work & Travel)",
+  "title": "Document Checklist",
+  "subtitle": "Australia · Working Holiday (Subclass 417 / 462)",
+  "streamLabel": "First Working Holiday · 12-month stay",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "homeaffairs.gov.au",
+  "website": "futurelinkconsultants.com",
+  "policyBanner": "Subclass 417 (most countries) or 462 (specific passport countries). Confirm your client's passport country, age limit (18–30 or 35 for some countries), and that they have not previously held a WHM visa. India is not currently on the eligible passport list — verify latest Home Affairs list before taking the file.",
+  "metaFields": [
+    { "key": "client_name", "label": "Client name", "placeholder": "Full name as on passport" },
+    { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
+    { "key": "passport_country", "label": "Passport country", "placeholder": "Eligible WHM country" },
+    { "key": "subclass", "label": "Subclass", "placeholder": "417 or 462" },
+    { "key": "age_at_lodge", "label": "Age at lodgement", "placeholder": "Must meet age cap" },
+    { "key": "submission_date", "label": "Submission date", "placeholder": "yyyy-mm-dd" }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Passport eligibility & identity",
+      "items": [
+        {
+          "title": "Valid passport from eligible Working Holiday country",
+          "note": "Check Home Affairs eligible passport list at time of application. Passport must be valid for entire intended stay.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Applicant age within limit (generally 18–30; up to 35 for select countries)",
+          "note": "Age is assessed at time of application. Confirm subclass 417 vs 462 rules for passport country.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "First Working Holiday Maker (WHM) visa — no prior WHM held",
+          "note": "Second WHM may be possible only if client completed specified work in regional Australia on first WHM — separate pathway.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Valid passport bio page + previous Australian visa pages (if any)",
+          "note": "Colour scan, all corners visible, no glare.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Digital photo per Home Affairs / ImmiAccount specifications",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Not accompanied by dependent children at any time during stay",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Application & ImmiAccount",
+      "items": [
+        {
+          "title": "ImmiAccount created and online WHM application started",
+          "note": "Subclass 417 or 462 selected correctly for passport country.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "All application questions complete — consistent with supporting documents",
+          "note": "Disclose all prior visas, refusals, and travel history honestly.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Biometrics completed if requested (VFS / ASC)",
+          "badge": "IF REQUESTED"
+        },
+        {
+          "title": "Health examinations completed if Home Affairs requests them",
+          "badge": "IF REQUESTED"
+        },
+        {
+          "title": "Police certificates from countries lived 12+ months since age 16 (if requested)",
+          "badge": "IF REQUESTED"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Financial capacity & genuine visitor",
+      "items": [
+        {
+          "title": "Proof of sufficient funds for initial stay (typically AUD $5,000+ or equivalent)",
+          "note": "Bank statements showing consistent balance; explain large recent deposits.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Return/onward travel evidence or funds to purchase departure ticket",
+          "note": "Officer must be satisfied applicant can support stay and depart Australia.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Brief travel / work plan (holiday intent, regions, timeline)",
+          "note": "WHM is primarily holiday with incidental work — not full-time employment pathway.",
+          "badge": "RECOMMENDED"
+        },
+        {
+          "title": "Employment / study ties to home country documented",
+          "note": "Strengthens genuine temporary entrant assessment.",
+          "badge": "RECOMMENDED"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Health insurance & compliance",
+      "items": [
+        {
+          "title": "Adequate health insurance for entire stay in Australia",
+          "note": "Overseas Visitor Health Cover (OVHC) or equivalent acceptable policy — verify current Home Affairs guidance.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client briefed on WHM work restrictions (6-month employer limit, etc.)",
+          "note": "Condition 8547 — generally cannot work for same employer more than 6 months unless exempt work.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client briefed on study limit (generally up to 4 months study)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Tax File Number (TFN) and superannuation guidance provided after grant",
+          "badge": "POST-GRANT"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Fees, QA & lodgement",
+      "items": [
+        {
+          "title": "Government visa fee paid; official receipt saved on file",
+          "note": "Separate consultancy fee on invoice. Never commingle with government payment.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client reviewed, signed, and dated this checklist",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Quality review / QA sign-off — eligibility, funds, and forms cross-checked",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Application lodged; ImmiAccount confirmation / TRN saved on client file",
+          "badge": "REQUIRED"
+        }
+      ]
+    }
+  ]
+}

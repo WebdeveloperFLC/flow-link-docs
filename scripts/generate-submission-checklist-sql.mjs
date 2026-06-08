@@ -38,6 +38,7 @@ const LIBRARY_IDS = {
   "australia-spouse-visa.json": "b2000001-0001-4000-8000-000000000043",
   "australia-skilled-migration.json": "b2000001-0001-4000-8000-000000000044",
   "australia-subclass-485.json": "b2000001-0001-4000-8000-000000000045",
+  "australia-work-holiday.json": "b2000001-0001-4000-8000-000000000046",
   "germany-student-visa.json": "b2000001-0001-4000-8000-000000000051",
   "germany-visitor-visa.json": "b2000001-0001-4000-8000-000000000052",
   "germany-spouse-visa.json": "b2000001-0001-4000-8000-000000000053",
