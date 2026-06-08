@@ -337,6 +337,49 @@ export async function uploadChatAttachment(opts: {
   };
 }
 
+export interface ClientTeamMember {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  role: string;
+}
+
+export async function listClientTeamMembers(clientId: string): Promise<ClientTeamMember[]> {
+  const userIds = await resolveAllClientStakeholderUserIds(clientId, { context: "client_team_roster" });
+  if (!userIds.length) return [];
+
+  const { data: cli } = await supabase
+    .from("clients")
+    .select("assigned_counselor_id,owner_id,created_by")
+    .eq("id", clientId)
+    .maybeSingle();
+
+  const { data: profs } = await supabase
+    .from("profiles")
+    .select("id,full_name,email")
+    .in("id", userIds);
+
+  const ownerId = cli?.owner_id ?? cli?.created_by ?? null;
+  return (profs ?? [])
+    .map((p) => ({
+      id: p.id,
+      full_name: p.full_name,
+      email: p.email,
+      role:
+        p.id === cli?.assigned_counselor_id
+          ? "Counselor"
+          : p.id === ownerId
+            ? "Owner"
+            : "Team",
+    }))
+    .sort((a, b) => {
+      const order = (r: string) => (r === "Owner" ? 0 : r === "Counselor" ? 1 : 2);
+      const d = order(a.role) - order(b.role);
+      if (d !== 0) return d;
+      return (a.full_name ?? a.email ?? "").localeCompare(b.full_name ?? b.email ?? "");
+    });
+}
+
 export interface ClientChatThreadSummary {
   clientId: string;
   fullName: string;
@@ -402,9 +445,76 @@ export async function listClientChatThreads(limit = 100): Promise<ClientChatThre
   });
 }
 
+async function chatAttachmentFetch(path: string, mode: "download" | "sign" = "download") {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error("Not signed in");
+
+  const base = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+  const apikey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+  if (!base || !apikey) throw new Error("Missing Supabase config");
+
+  const res = await fetch(`${base}/functions/v1/chat-attachment-url`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ storage_path: path, mode }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(String((err as { error?: string }).error || res.statusText || "Unable to open file"));
+  }
+
+  return res;
+}
+
+/** @deprecated Prefer downloadChatAttachment — avoids blocked storage URLs in the browser. */
 export async function getAttachmentUrl(path: string): Promise<string | null> {
-  const { data } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60);
-  return data?.signedUrl ?? null;
+  try {
+    const res = await chatAttachmentFetch(path, "sign");
+    const data = (await res.json()) as { url?: string };
+    return data.url ?? null;
+  } catch {
+    const { data } = await supabase.storage.from("client-documents").createSignedUrl(path, 60 * 60);
+    return data?.signedUrl ?? null;
+  }
+}
+
+export async function downloadChatAttachment(path: string, fileName: string): Promise<void> {
+  const saveBlob = (blob: Blob) => {
+    const blobUrl = URL.createObjectURL(blob);
+    const isPdf =
+      blob.type === "application/pdf" || fileName.toLowerCase().endsWith(".pdf");
+    if (isPdf) {
+      window.open(blobUrl, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 120_000);
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = fileName || "attachment";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+  };
+
+  try {
+    const res = await chatAttachmentFetch(path, "download");
+    saveBlob(await res.blob());
+  } catch (edgeErr) {
+    const url = await getAttachmentUrl(path);
+    if (!url) throw edgeErr;
+    const res = await fetch(url);
+    if (!res.ok) throw edgeErr;
+    saveBlob(await res.blob());
+  }
 }
 
 export async function markRead(channelKey: string) {
