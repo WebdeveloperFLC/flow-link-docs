@@ -42,6 +42,18 @@ async function buildSummary(sb: ReturnType<typeof admin>, userId: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const incoming = req.headers.get("x-cron-secret") ?? "";
+    const auth = req.headers.get("Authorization") ?? "";
+    const serviceRoleOk = auth === `Bearer ${SERVICE_ROLE}`;
+    if (incoming !== cronSecret && !serviceRoleOk) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
   const sb = admin();
   const result = { ok: true, sent_daily: 0, sent_weekly: 0, considered: 0 };
   try {
