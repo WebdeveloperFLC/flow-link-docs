@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing required environment variables')
@@ -52,6 +53,43 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // ── Role gate ─────────────────────────────────────────────────────────
+  // verify_jwt=true only proves the caller has *some* valid JWT — including
+  // portal `client`/`viewer` users. Restrict transactional email sending to
+  // staff roles + service-role calls.
+  const authHeader = req.headers.get('Authorization') ?? ''
+  if (!authHeader.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+  const callerToken = authHeader.slice('Bearer '.length).trim()
+  const isServiceRoleCaller = callerToken === supabaseServiceKey
+  if (!isServiceRoleCaller) {
+    const userClient = createClient(supabaseUrl, supabaseAnonKey ?? '', {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: userData, error: userErr } = await userClient.auth.getUser()
+    if (userErr || !userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    const adminCheck = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: allowedRole } = await adminCheck.rpc('has_any_app_role', {
+      _uid: userData.user.id,
+      _roles: ['admin', 'counselor', 'documentation', 'telecaller', 'commission_admin', 'accounting'],
+    })
+    if (!allowedRole) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
   }
 
   // Parse request body
