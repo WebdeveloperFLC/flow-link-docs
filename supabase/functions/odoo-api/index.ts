@@ -38,9 +38,19 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const path = url.pathname.replace(/^.*\/odoo-api/, "");
 
+    const scopes: string[] = Array.isArray(keyRow.scopes) ? (keyRow.scopes as string[]) : [];
+    const requireScope = (s: string) => scopes.includes(s);
+
+    // Only non-sensitive client fields are exposed via the Odoo integration —
+    // passport, PAN, DOB and similar PII must never leave the database via a
+    // simple read-scoped API key.
+    const CLIENT_SAFE_FIELDS =
+      "id,full_name,email,phone,country,status,application_id,application_type,application_status,created_at,updated_at";
+
     // GET /clients?status=&country=&limit=
     if (req.method === "GET" && (path === "" || path === "/" || path === "/clients")) {
-      let q = supabase.from("clients").select("*").order("created_at", { ascending: false });
+      if (!requireScope("read")) return json({ error: "Insufficient scope" }, 403);
+      let q = supabase.from("clients").select(CLIENT_SAFE_FIELDS).order("created_at", { ascending: false });
       const status = url.searchParams.get("status");
       const country = url.searchParams.get("country");
       const limit = Number(url.searchParams.get("limit") ?? "100");
@@ -54,9 +64,10 @@ Deno.serve(async (req) => {
     // GET /clients/:id
     const matchClient = path.match(/^\/clients\/([0-9a-f-]{36})$/i);
     if (req.method === "GET" && matchClient) {
+      if (!requireScope("read")) return json({ error: "Insufficient scope" }, 403);
       const id = matchClient[1];
       const [{ data: client }, { data: docs }, { data: binders }] = await Promise.all([
-        supabase.from("clients").select("*").eq("id", id).maybeSingle(),
+        supabase.from("clients").select(CLIENT_SAFE_FIELDS).eq("id", id).maybeSingle(),
         supabase.from("client_documents").select("id,document_type,custom_type,file_name,version,uploaded_at,size_bytes").eq("client_id", id),
         supabase.from("binders").select("id,file_name,generated_at,size_bytes").eq("client_id", id),
       ]);
