@@ -20,6 +20,7 @@ import type { CoachingVariant } from "@/lib/service-library/serviceNavClassifica
 import { type Master } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 import { ServiceLibraryClientDialog } from "@/components/service-library/ServiceLibraryClientDialog";
+import { ServiceEligibilityStartDialog } from "@/components/service-library/ServiceEligibilityStartDialog";
 import {
   defaultAcademyTab,
   resolveAcademyTabs,
@@ -57,6 +58,7 @@ export default function ServiceLibrary() {
   const [policyDismissed] = useState(false);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [clientDialogMode, setClientDialogMode] = useState<"application" | "push">("application");
+  const [eligibilityDialogOpen, setEligibilityDialogOpen] = useState(false);
 
   useEffect(() => {
     const p = new URLSearchParams();
@@ -222,6 +224,9 @@ export default function ServiceLibrary() {
     setClientDialogOpen(true);
   };
 
+  const openEligibilityDialog = () => setEligibilityDialogOpen(true);
+  const isVisaService = detail.data?.master.service_category === "visa_immigration";
+
   const userName = user?.email?.split("@")[0] ?? "Counselor";
   const userInitials = userName.slice(0, 2).toUpperCase();
 
@@ -278,6 +283,7 @@ export default function ServiceLibrary() {
                   onOpenTab={setActiveTab as (tab: string) => void}
                   onOpenResources={() => setActiveTab("downloads")}
                   onNewApplication={() => openClientDialog("application")}
+                  onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
                   policyDismissed={policyDismissed}
                   canManage={canManage}
                 />
@@ -293,6 +299,7 @@ export default function ServiceLibrary() {
                   onPushChecklist={() => openClientDialog("push")}
                   onDownloadFile={downloadFile}
                   onOpenSampleDoc={openSampleDoc}
+                  onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
                 />
               </div>
             </div>
@@ -303,6 +310,7 @@ export default function ServiceLibrary() {
                 onSelectRelated={(id) => setSelectedId(id)}
                 onDownloadChecklist={downloadFirstChecklist}
                 onNewApplication={() => openClientDialog("application")}
+                onStartEligibility={isVisaService ? openEligibilityDialog : undefined}
               />
             </div>
           </div>
@@ -310,17 +318,28 @@ export default function ServiceLibrary() {
       </div>
 
       {detail.data && (
-        <ServiceLibraryClientDialog
-          open={clientDialogOpen}
-          onOpenChange={setClientDialogOpen}
-          mode={clientDialogMode}
-          libraryId={detail.data.master.id}
-          serviceTitle={detail.data.view.title}
-          subService={detail.data.master.sub_service}
-          serviceCategory={detail.data.master.service_category}
-          country={detail.data.view.country}
-          shareLink={detail.data.view.shareLink}
-        />
+        <>
+          <ServiceLibraryClientDialog
+            open={clientDialogOpen}
+            onOpenChange={setClientDialogOpen}
+            mode={clientDialogMode}
+            libraryId={detail.data.master.id}
+            serviceTitle={detail.data.view.title}
+            subService={detail.data.master.sub_service}
+            serviceCategory={detail.data.master.service_category}
+            country={detail.data.view.country}
+            shareLink={detail.data.view.shareLink}
+          />
+          {isVisaService && (
+            <ServiceEligibilityStartDialog
+              open={eligibilityDialogOpen}
+              onOpenChange={setEligibilityDialogOpen}
+              libraryId={detail.data.master.id}
+              serviceTitle={detail.data.view.title}
+              country={detail.data.view.country}
+            />
+          )}
+        </>
       )}
     </div>
   );
