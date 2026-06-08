@@ -19,7 +19,7 @@ WHERE library_id = 'b2000001-0001-4000-8000-000000000046'::uuid
 UPDATE public.service_library_checklist_files
 SET
   is_current = true,
-  size_bytes = 111576,
+  size_bytes = 112837,
   file_name = 'Australia – Work & Holiday Visa (1 year Work & Travel) — Document Checklist.html',
   mime_type = 'text/html',
   notes = 'Future Link branded checklist — fields auto-fill when linked to client',
@@ -34,7 +34,7 @@ SELECT
   'Australia – Work & Holiday Visa (1 year Work & Travel) — Document Checklist.html',
   '/specimens/checklists/australia-work-holiday.html',
   'text/html',
-  111576,
+  112837,
   1,
   true,
   'Future Link branded checklist — fields auto-fill when linked to client'
