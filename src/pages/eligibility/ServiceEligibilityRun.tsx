@@ -22,6 +22,7 @@ import {
   type PendingItem,
 } from "@/lib/service-eligibility/types";
 import { cn } from "@/lib/utils";
+import { savePublicEligibilitySession } from "@/lib/service-eligibility/sessions";
 
 type SessionRow = {
   id: string;
@@ -196,17 +197,14 @@ export default function ServiceEligibilityRun() {
     try {
       const output = evaluation;
       if (isPublic && session.public_token) {
-        const { error } = await supabase.functions.invoke("service-eligibility-session", {
-          body: {
-            action: submit ? "public_submit" : "public_save",
-            publicToken: session.public_token,
-            answers,
-            prospectNotes: notes,
-            pendingItems,
-            output,
-          },
+        await savePublicEligibilitySession({
+          publicToken: session.public_token,
+          answers,
+          prospectNotes: notes,
+          pendingItems,
+          output,
+          submit,
         });
-        if (error) throw error;
       } else {
         const { error } = await supabase
           .from("assessment_sessions")
