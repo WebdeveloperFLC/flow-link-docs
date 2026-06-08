@@ -1,6 +1,6 @@
 {
   "displayName": "IELTS Academic Regular (with books)",
-  "shortDescription": "British Council / IDP · Academic module · 8–10 week regular batch · Books included",
+  "shortDescription": "IDP India · Academic module · 8–10 week regular batch · Books included",
   "version": "v1.0",
   "versionStatus": "Live",
   "reviewStatus": "active",
@@ -11,7 +11,7 @@
   "policyAlert": {
     "active": true,
     "date": "June 2026",
-    "summary": "Verify IELTS exam fee and test dates on ielts.org before quoting. Academic vs General Training must match student goal. Never guarantee a band score."
+    "summary": "In India, book IELTS only via ieltsidpindia.com (IDP). Verify exam fee and dates there before quoting. Academic vs General Training must match student goal. Never guarantee a band score."
   },
   "alert": {
     "title": "Academic module only",
@@ -31,7 +31,7 @@
   ],
   "kpis": [
     { "label": "Course duration", "value": "8–10w", "sub": "Regular batch", "tone": "primary" },
-    { "label": "IELTS exam fee", "value": "See BC/IDP", "sub": "Paid by student directly", "tone": "warning" },
+    { "label": "IELTS exam fee", "value": "See IDP India", "sub": "Paid on ieltsidpindia.com", "tone": "warning" },
     { "label": "Target achievement", "value": "82%", "sub": "Students hitting agreed target", "tone": "success" },
     { "label": "Enrollment docs", "value": "6", "sub": "Agreement + diagnostic", "tone": "violet" },
     { "label": "Course fee", "value": "See fee tab", "sub": "Books included", "tone": "primary" }
@@ -40,7 +40,7 @@
     { "label": "Description", "value": "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests." },
     { "label": "Ideal for", "value": "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers." },
     { "label": "Delivery", "value": "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment." },
-    { "label": "Exam authority", "value": "British Council / IDP (ielts.org) — FLC prepares; student registers and pays exam fee separately." },
+    { "label": "Exam authority (India)", "value": "IDP IELTS India (ieltsidpindia.com) — sole test booking channel since July 2021. FLC prepares; student registers and pays exam fee separately." },
     { "label": "After course", "value": "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met." }
   ],
   "eligibility": [
@@ -62,7 +62,7 @@
   "faqs": [
     { "q": "Academic vs General Training?", "a": "Academic is for university and most study visas. GT is for migration/work — different prep and tests." },
     { "q": "Are books included?", "a": "Yes for this Regular (with books) program — issue at enrollment and log on file." },
-    { "q": "Who pays the IELTS exam fee?", "a": "Student pays British Council or IDP directly. FLC course fee is separate." },
+    { "q": "Who pays the IELTS exam fee?", "a": "In India, the student pays IDP IELTS India on ieltsidpindia.com. FLC course fee is separate." },
     { "q": "Can we guarantee band 7?", "a": "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance." },
     { "q": "How many mock tests?", "a": "Minimum four full mocks under exam conditions; more if below target before booking." },
     { "q": "Retake if score is low?", "a": "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy." }
@@ -119,8 +119,8 @@
   "resources": [
     { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Full test guide — acceptance matrix, test day, module samples" },
     { "title": "IELTS — Official site", "url": "https://www.ielts.org/", "description": "Academic vs GT, test format" },
-    { "title": "British Council — Book IELTS", "url": "https://www.britishcouncil.in/exam/ielts", "description": "India test dates and fees" },
-    { "title": "IDP IELTS", "url": "https://www.ieltsidpindia.com/", "description": "Alternate test booking channel" }
+    { "title": "IDP IELTS India — Book test", "url": "https://www.ieltsidpindia.com/", "description": "Sole booking channel in India" },
+    { "title": "British Council India — IELTS prep", "url": "https://www.britishcouncil.in/exam/ielts/faqs", "description": "Prep only — BC does not deliver IELTS tests in India" }
   ],
   "donts": {
     "dos": ["Run diagnostic before quoting timeline", "Track attendance and mocks", "Confirm Academic module", "Keep exam fee separate on invoice"],
@@ -135,6 +135,6 @@
   "quiz": [
     { "question": "IELTS Academic is required for:", "options": ["Most university study visas", "Only Canada PR", "Driving licence", "Tourist visa only"], "correctIndex": 0, "explanation": "Universities and most study pathways need Academic.", "level": 1 },
     { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Issue books", "Run diagnostic"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
-    { "question": "IELTS exam fee is paid to:", "options": ["Future Link only", "British Council / IDP by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Exam fee is separate from coaching fee.", "level": 1 }
+    { "question": "IELTS exam fee in India is paid to:", "options": ["Future Link only", "IDP IELTS India by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Book and pay on ieltsidpindia.com — separate from coaching fee.", "level": 1 }
   ]
 }
