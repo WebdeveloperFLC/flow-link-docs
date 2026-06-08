@@ -37,6 +37,8 @@ export const LIBRARY_IDS = {
   "nz-spouse-visa.json": "b2000001-0001-4000-8000-000000000063",
   "nz-skilled-migrant.json": "b2000001-0001-4000-8000-000000000064",
   "nz-post-study-work.json": "b2000001-0001-4000-8000-000000000065",
+  "coaching-ielts-test-reference.json": "b2000001-0001-4000-8000-000000000071",
+  "coaching-ielts-academic-regular.json": "b2000001-0001-4000-8000-000000000072",
 };
 
 export function slugFromJsonFile(file) {

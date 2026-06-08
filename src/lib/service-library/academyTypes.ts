@@ -48,7 +48,15 @@ export type ServiceAcademyMetadata = {
     /** 1 = fundamentals, 2 = process & documents, 3 = advanced / compliance */
     level?: 1 | 2 | 3;
   }[];
-  navBucket?: "visa" | "immigration";
+  navBucket?: "visa" | "immigration" | "coaching";
+  /** Coaching test family label, e.g. IELTS, PTE */
+  testFamily?: string;
+  /** Exam-day briefing for coaching tests */
+  testDayGuide?: {
+    dos?: string[];
+    donts?: string[];
+    checklist?: string[];
+  };
   /** Mock / sample documents counselors can show clients (Sample docs tab). */
   sampleDocs?: {
     title: string;

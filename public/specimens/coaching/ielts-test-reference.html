@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IELTS Test Reference — Service Library | Future Link Consultants</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Segoe UI",system-ui,sans-serif;background:#ecfdf5;color:#1e293b}
+    :root{
+      --teal:#0d9488;--teal-dark:#0f766e;--emerald:#059669;
+      --amber:#d97706;--sidebar-w:220px;--header-h:48px;
+      --mod-l:#0ea5e9;--mod-r:#059669;--mod-w:#d97706;--mod-s:#7c3aed;
+    }
+    .app{display:flex;min-height:900px;max-width:1280px;margin:20px auto;border:1px solid #99f6e4;border-radius:12px;overflow:hidden;background:#fff;box-shadow:0 8px 32px rgba(13,148,136,.12)}
+    .sidebar{width:var(--sidebar-w);background:linear-gradient(180deg,#134e4a,#0f766e);display:flex;flex-direction:column;flex-shrink:0}
+    .sidebar-logo{padding:14px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .logo-text{color:#99f6e4;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-top:6px}
+    .sidebar-section{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);padding:10px 14px 4px;letter-spacing:.8px;text-transform:uppercase}
+    .nav-item{padding:8px 14px;font-size:12.5px;color:rgba(255,255,255,.65);cursor:pointer;display:flex;align-items:center;gap:8px}
+    .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+    .nav-item.active{background:linear-gradient(90deg,#0d9488,#059669);color:#fff;border-radius:6px;margin:2px 8px;font-weight:500}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:var(--header-h);border-bottom:1px solid #ccfbf1;display:flex;align-items:center;padding:0 20px;gap:10px;background:#f0fdfa}
+    .breadcrumb{font-size:12px;color:#64748b;display:flex;align-items:center;gap:6px}
+    .breadcrumb .cur{color:#0f766e;font-weight:600}
+    .topbar-right{margin-left:auto;display:flex;gap:8px}
+    .btn{font-size:12px;padding:6px 14px;border-radius:6px;border:1px solid #99f6e4;background:#fff;color:#0f766e;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+    .btn.primary{background:linear-gradient(90deg,#0d9488,#059669);color:#fff;border:none}
+    .content{flex:1;overflow-y:auto;padding:20px;background:#fff}
+    .page-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+    .service-icon{width:48px;height:48px;background:#ccfbf1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid #99f6e4}
+    .page-title{font-size:20px;font-weight:600;color:#134e4a;margin-bottom:4px}
+    .page-sub{font-size:12.5px;color:#64748b}
+    .tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+    .tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+    .tag.green{background:#d1fae5;color:#065f46}
+    .tag.teal{background:#ccfbf1;color:#0f766e}
+    .tag.amber{background:#fef3c7;color:#92400e}
+    .tag.gray{background:#f1f5f9;color:#475569}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+    @media(max-width:800px){.stats-row{grid-template-columns:1fr 1fr}}
+    .stat-card{background:#f0fdfa;border:1px solid #ccfbf1;border-radius:8px;padding:12px 14px}
+    .stat-label{font-size:10px;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+    .stat-val{font-size:18px;font-weight:600;color:#134e4a}
+    .stat-note{font-size:11px;color:#64748b;margin-top:2px}
+    .tabs{display:flex;gap:0;border-bottom:1px solid #ccfbf1;margin-bottom:16px;overflow-x:auto;flex-wrap:nowrap}
+    .tab{font-size:12px;padding:8px 12px;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+    .tab.active{color:#0d9488;border-bottom-color:#0d9488;font-weight:600}
+    .tab:hover{color:#134e4a}
+    .tab-panel{display:none}
+    .tab-panel.active{display:block}
+    .section-title{font-size:13px;font-weight:600;color:#134e4a;margin-bottom:10px}
+    .card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    @media(max-width:700px){.card-grid{grid-template-columns:1fr}}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px}
+    .card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    .card-icon{font-size:16px;color:#0d9488}
+    .card-title{font-size:13px;font-weight:600;color:#134e4a}
+    .card-desc{font-size:12px;color:#64748b;line-height:1.5}
+    .item-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+    .item{font-size:11.5px;color:#64748b;display:flex;align-items:flex-start;gap:6px}
+    .item::before{content:"";width:5px;height:5px;background:#0d9488;border-radius:50%;flex-shrink:0;margin-top:6px}
+    .alert-box{background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400e;margin-bottom:12px;display:flex;gap:8px}
+    .score-table{width:100%;font-size:12px;border-collapse:collapse;margin:8px 0}
+    .score-table th{text-align:left;padding:8px;font-weight:600;color:#64748b;border-bottom:1px solid #e2e8f0;font-size:11px;background:#f0fdfa}
+    .score-table td{padding:8px;border-bottom:1px solid #e2e8f0}
+    .sidebar-panel{width:210px;border-left:1px solid #ccfbf1;padding:14px;background:#f0fdfa;overflow-y:auto;flex-shrink:0}
+    .panel-label{font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+    .related-item{font-size:12px;color:#0d9488;padding:5px 0;cursor:pointer;border-bottom:1px solid #ccfbf1;display:block;text-decoration:none}
+    .related-item:hover{text-decoration:underline}
+    .mod-chip{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;margin-right:4px}
+    .mod-l{background:#e0f2fe;color:#0369a1}
+    .mod-r{background:#d1fae5;color:#065f46}
+    .mod-w{background:#fef3c7;color:#92400e}
+    .mod-s{background:#ede9fe;color:#5b21b6}
+    .sample-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    @media(max-width:600px){.sample-grid{grid-template-columns:1fr}}
+    .sample-card{border:1px dashed #99f6e4;border-radius:8px;padding:12px;background:#f0fdfa}
+    .sample-card a{color:#0d9488;font-weight:600;font-size:13px;text-decoration:none}
+    .sample-card a:hover{text-decoration:underline}
+    .dos-cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:600px){.dos-cols{grid-template-columns:1fr}}
+    .do-list,.dont-list{font-size:12px;line-height:1.6}
+    .do-list li{margin:4px 0;color:#065f46}
+    .dont-list li{margin:4px 0;color:#b45309}
+    .hidden{display:none!important}
+  </style>
+</head>
+<body>
+<h1 class="hidden">IELTS test reference for Future Link Consultants counselors</h1>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div style="background:rgba(255,255,255,.1);border-radius:6px;padding:8px;text-align:center">
+        <span style="color:#99f6e4;font-size:9px;font-weight:700;letter-spacing:1px">FUTURE LINK</span>
+      </div>
+      <div class="logo-text">Service Library · Coaching</div>
+    </div>
+    <div class="nav-item" style="opacity:.7"><i class="ti ti-arrow-left"></i> Back to CRM</div>
+    <div class="sidebar-section">Category</div>
+    <div class="nav-item" style="opacity:.6"><i class="ti ti-world"></i> Visa & Immigration</div>
+    <div class="nav-item active"><i class="ti ti-school"></i> Coaching</div>
+    <div class="sidebar-section">Test family</div>
+    <div class="nav-item active"><i class="ti ti-headphones"></i> IELTS</div>
+    <div class="nav-item" style="opacity:.5"><i class="ti ti-microphone"></i> TOEFL (soon)</div>
+    <div class="nav-item" style="opacity:.5"><i class="ti ti-device-laptop"></i> PTE (soon)</div>
+    <div style="margin-top:auto;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:rgba(255,255,255,.5)">
+      Teal theme · Coaching section
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Service Library</span><i class="ti ti-chevron-right" style="font-size:12px"></i>
+        <span>Coaching</span><i class="ti ti-chevron-right" style="font-size:12px"></i>
+        <span class="cur">IELTS</span>
+      </div>
+      <div class="topbar-right">
+        <a class="btn" href="index.html"><i class="ti ti-list"></i> All coaching</a>
+        <a class="btn primary" href="ielts-test-day-checklist.html" target="_blank"><i class="ti ti-download"></i> Test day PDF</a>
+      </div>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden">
+      <div class="content">
+        <div class="page-header">
+          <div class="service-icon">🎧</div>
+          <div>
+            <div class="page-title">IELTS — International English Language Testing System</div>
+            <div class="page-sub">British Council / IDP · Academic & General Training · Band 0–9 · 2-year validity</div>
+            <div class="tags">
+              <span class="tag green">Active test</span>
+              <span class="tag teal">Most accepted globally</span>
+              <span class="tag amber">Academic & GT</span>
+              <span class="tag gray">Updated June 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-box">
+          <i class="ti ti-alert-triangle"></i>
+          <span>Verify exam fee and dates on <strong>britishcouncil.in</strong> or <strong>ieltsidpindia.com</strong> before quoting. UK routes may require <strong>IELTS UKVI</strong>. Never guarantee a band score.</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Exam duration</div><div class="stat-val">~2h 45m</div><div class="stat-note">4 modules + speaking</div></div>
+          <div class="stat-card"><div class="stat-label">Exam fee (India)</div><div class="stat-val" style="font-size:15px">Verify BC/IDP</div><div class="stat-note">Student pays directly</div></div>
+          <div class="stat-card"><div class="stat-label">Validity</div><div class="stat-val">2 years</div><div class="stat-note">From test date</div></div>
+          <div class="stat-card"><div class="stat-label">Results</div><div class="stat-val">3–13 days</div><div class="stat-note">CD-IELTS faster</div></div>
+        </div>
+
+        <div class="tabs" id="tab-bar"></div>
+        <div id="tab-panels"></div>
+      </div>
+
+      <aside class="sidebar-panel">
+        <div style="margin-bottom:16px">
+          <div class="panel-label">Related programs</div>
+          <a class="related-item" href="ielts-academic-regular-checklist.html">IELTS Academic Regular ↗</a>
+          <span class="related-item" style="opacity:.5">IELTS GT (soon)</span>
+          <span class="related-item" style="opacity:.5">IELTS Crash (soon)</span>
+        </div>
+        <div style="margin-bottom:16px">
+          <div class="panel-label">Quick links</div>
+          <a class="related-item" href="ielts-samples/listening.html" target="_blank">Sample Listening ↗</a>
+          <a class="related-item" href="ielts-test-day-checklist.html" target="_blank">Test day checklist ↗</a>
+          <a class="related-item" href="https://www.ielts.org/" target="_blank" rel="noopener">ielts.org ↗</a>
+        </div>
+        <div>
+          <div class="panel-label">Module key</div>
+          <p style="font-size:11px;line-height:1.8">
+            <span class="mod-chip mod-l">L</span> Listening<br/>
+            <span class="mod-chip mod-r">R</span> Reading<br/>
+            <span class="mod-chip mod-w">W</span> Writing<br/>
+            <span class="mod-chip mod-s">S</span> Speaking
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'scores', label: 'Score guide' },
+  { id: 'acceptance', label: 'Acceptance matrix' },
+  { id: 'logistics', label: 'Test logistics' },
+  { id: 'modules', label: 'Modules' },
+  { id: 'testday', label: 'Test day guide' },
+  { id: 'samples', label: 'Sample practice' },
+  { id: 'process', label: 'Process' },
+  { id: 'donts', label: "Do's & Don'ts" },
+  { id: 'redflags', label: 'Red flags' },
+  { id: 'faqs', label: 'FAQs' },
+  { id: 'resources', label: 'Resources' }
+];
+
+const PANELS = {
+  overview: `
+    <div class="section-title">Overview — what counselors need to know</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-head"><i class="ti ti-clipboard-list card-icon"></i><span class="card-title">Test structure</span></div>
+        <div class="card-desc">Four modules: Listening (30 min), Reading (60 min), Writing (60 min), Speaking (11–14 min). L/R/W on same day; Speaking may be ±7 days.</div>
+        <div class="item-list"><div class="item">Academic: complex texts, graphs, essays</div><div class="item">GT: workplace & everyday language</div><div class="item">Same Listening & Speaking for both</div></div></div>
+      <div class="card"><div class="card-head"><i class="ti ti-target card-icon"></i><span class="card-title">Who needs IELTS</span></div>
+        <div class="card-desc">Study abroad, Canada Express Entry, Australia PR, UK Student Route (often UKVI), NZ skilled migration.</div>
+        <div class="item-list"><div class="item">Canada CLB 7+ = 6.0 each (EE)</div><div class="item">Australia Competent = 6.0 each</div><div class="item">UK: check UKVI requirement</div></div></div>
+      <div class="card"><div class="card-head"><i class="ti ti-chart-line card-icon"></i><span class="card-title">CLB mapping (Canada)</span></div>
+        <div class="card-desc">Band scores map to CLB for Express Entry and PNP streams.</div>
+        <div class="item-list"><div class="item">CLB 9 = Band 7.0+ each</div><div class="item">CLB 7 = Band 6.0 each</div><div class="item">CLB 4 = Band 4.0 (citizenship min)</div></div></div>
+      <div class="card"><div class="card-head"><i class="ti ti-book card-icon"></i><span class="card-title">FLC role</span></div>
+        <div class="card-desc">Prepare via coaching; student registers and pays exam separately. Track mocks; hand off TRF to visa/admissions when ready.</div>
+        <div class="item-list"><div class="item">Never guarantee a band</div><div class="item">Separate coaching vs exam fees</div><div class="item">Book exam after mock readiness</div></div></div>
+    </div>`,
+
+  scores: `
+    <div class="section-title">Score guide — bands & CLB</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:12px">Overall band = average of four sections (rounded to nearest 0.5). Each skill scored 0–9 in 0.5 steps.</p>
+    <table class="score-table"><thead><tr><th>IELTS (each skill)</th><th>CLB (Canada)</th><th>Typical use</th></tr></thead><tbody>
+      <tr><td>8.0</td><td>CLB 8</td><td>Strong EE / skilled points</td></tr>
+      <tr><td>7.0</td><td>CLB 7</td><td>Many uni programs</td></tr>
+      <tr><td>6.0</td><td>CLB 7 threshold for EE FSW language min</td><td>Study SDS, skilled baseline</td></tr>
+      <tr><td>5.5</td><td>CLB 5</td><td>Some study visas</td></tr>
+    </tbody></table>
+    <div class="alert-box" style="margin-top:12px"><i class="ti ti-info-circle"></i><span><strong>One Skill Retake (OSR):</strong> Retake one section within 60 days where offered. Confirm on ielts.org before advising.</span></div>`,
+
+  acceptance: `
+    <div class="section-title">Acceptance matrix — country & pathway</div>
+    <table class="score-table"><thead><tr><th>Country / pathway</th><th>Module</th><th>Minimum</th><th>Notes</th></tr></thead><tbody>
+      <tr><td>Canada — Express Entry</td><td>GT or Academic</td><td>CLB 7 (6.0 each)</td><td>TOEFL not IRCC</td></tr>
+      <tr><td>Canada — Study SDS</td><td>Academic</td><td>6.0 each</td><td>Verify IRCC list</td></tr>
+      <tr><td>Canada — Citizenship</td><td>GT or Academic</td><td>CLB 4</td><td>Lower threshold</td></tr>
+      <tr><td>Australia — Student 500</td><td>Academic</td><td>5.5–6.0+</td><td>Course level sets min</td></tr>
+      <tr><td>Australia — Skilled</td><td>Academic</td><td>6.0 each</td><td>PTE also accepted</td></tr>
+      <tr><td>UK — Student Route</td><td>IELTS UKVI Academic</td><td>B2</td><td>Standard IELTS may not suffice</td></tr>
+      <tr><td>USA — F-1</td><td>Academic</td><td>Uni-specific</td><td>TOEFL more common</td></tr>
+      <tr><td>NZ — SMC</td><td>Academic</td><td>6.5 avg</td><td>Verify immigration NZ</td></tr>
+      <tr style="background:#fef3c7"><td>NOT for Canada IRCC</td><td>—</td><td>—</td><td>TOEFL, Duolingo, PTE</td></tr>
+    </tbody></table>`,
+
+  logistics: `
+    <div class="section-title">Test logistics</div>
+    <div class="card-grid">
+      <div class="card"><div class="card-title">Booking</div><div class="card-desc" style="margin-top:8px">britishcouncil.in/exam/ielts · ieltsidpindia.com</div></div>
+      <div class="card"><div class="card-title">India centers (sample)</div><div class="card-desc" style="margin-top:8px">Ahmedabad, Bengaluru, Chandigarh, Chennai, Delhi, Hyderabad, Kolkata, Mumbai, Pune — verify full list on portal.</div></div>
+      <div class="card"><div class="card-title">Delivery</div><div class="card-desc" style="margin-top:8px">Paper · CD-IELTS · UKVI · OSR (where available)</div></div>
+      <div class="card"><div class="card-title">Test day ID</div><div class="card-desc" style="margin-top:8px">Valid passport only — same as registration. Name must match exactly.</div></div>
+    </div>
+    <div class="alert-box"><i class="ti ti-currency-rupee"></i><span>Exam fee changes periodically — <strong>never quote without verifying</strong> on BC/IDP portal (June 2026 policy).</span></div>`,
+
+  modules: `
+    <div class="section-title">Four modules</div>
+    <table class="score-table"><thead><tr><th>Module</th><th>Time</th><th>Academic</th><th>GT</th></tr></thead><tbody>
+      <tr><td><span class="mod-chip mod-l">L</span> Listening</td><td>~30 min</td><td colspan="2">Same — 4 sections, 40 questions</td></tr>
+      <tr><td><span class="mod-chip mod-r">R</span> Reading</td><td>60 min</td><td>3 long academic texts</td><td>Everyday/workplace texts</td></tr>
+      <tr><td><span class="mod-chip mod-w">W</span> Writing</td><td>60 min</td><td>Task 1 graph/diagram + Task 2 essay</td><td>Task 1 letter + Task 2 essay</td></tr>
+      <tr><td><span class="mod-chip mod-s">S</span> Speaking</td><td>11–14 min</td><td colspan="2">Part 1 · Part 2 cue card · Part 3 discussion</td></tr>
+    </tbody></table>
+    <p style="font-size:12px;color:#64748b;margin-top:10px">Order on test day: Listening → Reading → Writing (fixed). Speaking scheduled separately.</p>`,
+
+  testday: `
+    <div class="section-title">Test day — do's & don'ts</div>
+    <div class="dos-cols">
+      <div class="card"><div class="card-title" style="color:#065f46">✓ Do's</div>
+        <ul class="do-list" style="padding-left:18px;margin-top:8px">
+          <li>Arrive 30–45 minutes early</li>
+          <li>Bring same valid passport as registration</li>
+          <li>Confirm Academic / GT / UKVI on confirmation</li>
+          <li>Check headphones before Listening starts</li>
+          <li>Manage Writing time — Task 2 worth more</li>
+          <li>Report audio/tech problems immediately</li>
+        </ul></div>
+      <div class="card"><div class="card-title" style="color:#b45309">✗ Don'ts</div>
+        <ul class="dont-list" style="padding-left:18px;margin-top:8px">
+          <li>No phones or smartwatches in test room</li>
+          <li>No passport photocopies — original only</li>
+          <li>Don't talk to other candidates during test</li>
+          <li>Don't use memorized template essays</li>
+          <li>Don't argue with Speaking examiner about score</li>
+          <li>Don't leave seat without permission</li>
+        </ul></div>
+    </div>
+    <div style="margin-top:12px"><a class="btn primary" href="ielts-test-day-checklist.html" target="_blank"><i class="ti ti-printer"></i> Print test day checklist</a></div>`,
+
+  samples: `
+    <div class="section-title" id="samples">Sample practice — all four modules</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:12px">FLC training specimens for counselors and classroom use. Not official IELTS papers.</p>
+    <div class="sample-grid">
+      <div class="sample-card"><span class="mod-chip mod-l">L</span> <a href="ielts-samples/listening.html" target="_blank">Listening — Section 1 form completion →</a><p style="font-size:11px;color:#64748b;margin-top:6px">5 questions + trainer script</p></div>
+      <div class="sample-card"><span class="mod-chip mod-r">R</span> <a href="ielts-samples/reading.html" target="_blank">Reading — Academic T/F/NG →</a><p style="font-size:11px;color:#64748b;margin-top:6px">Passage + 5 questions</p></div>
+      <div class="sample-card"><span class="mod-chip mod-w">W</span> <a href="ielts-samples/writing.html" target="_blank">Writing — Task 1 & 2 prompts →</a><p style="font-size:11px;color:#64748b;margin-top:6px">Band 6 vs 7 outline</p></div>
+      <div class="sample-card"><span class="mod-chip mod-s">S</span> <a href="ielts-samples/speaking.html" target="_blank">Speaking — Part 2 cue card →</a><p style="font-size:11px;color:#64748b;margin-top:6px">2-minute structure guide</p></div>
+    </div>`,
+
+  process: `
+    <div class="section-title">Process — from diagnostic to TRF</div>
+    <table class="score-table"><thead><tr><th>Phase</th><th>Action</th></tr></thead><tbody>
+      <tr><td>Week 1</td><td>Diagnostic, target band, module confirmation (Academic/GT)</td></tr>
+      <tr><td>Weeks 2–8</td><td>Coaching, homework, skill drills, speaking mocks</td></tr>
+      <tr><td>Weeks 6–8</td><td>Full mocks under exam conditions</td></tr>
+      <tr><td>When ready</td><td>Student registers on BC/IDP (FLC assists, does not pay)</td></tr>
+      <tr><td>Before test</td><td>Test day briefing — use checklist</td></tr>
+      <tr><td>After results</td><td>TRF to CRM · notify visa/admissions · retake/OSR if needed</td></tr>
+    </tbody></table>`,
+
+  donts: `
+    <div class="section-title">Coaching compliance</div>
+    <div class="dos-cols">
+      <div class="card"><div class="card-title">Do</div><ul class="do-list" style="padding-left:18px;margin-top:8px">
+        <li>Run diagnostic before quoting timeline</li><li>Confirm Academic vs GT every lead</li><li>Brief test day rules before exam</li><li>Two mocks within 0.5 of target before booking</li></ul></div>
+      <div class="card"><div class="card-title">Don't</div><ul class="dont-list" style="padding-left:18px;margin-top:8px">
+        <li>Guarantee a band score</li><li>Quote exam fee without BC/IDP check</li><li>Book exam before readiness</li><li>Skip UKVI check for UK clients</li></ul></div>
+    </div>`,
+
+  redflags: `
+    <div class="section-title">Red flags</div>
+    <table class="score-table"><thead><tr><th>Flag</th><th>Fix</th><th>Severity</th></tr></thead><tbody>
+      <tr><td>Wrong module booked</td><td>Cancel & rebook correct module</td><td>High</td></tr>
+      <tr><td>UK visa but standard IELTS</td><td>Rebook UKVI at SELT center</td><td>High</td></tr>
+      <tr><td>Name ≠ passport</td><td>Contact BC/IDP before test day</td><td>High</td></tr>
+      <tr><td>Mocks far below target</td><td>Postpone exam</td><td>Common</td></tr>
+      <tr><td>Guaranteed score sold</td><td>Compliance escalation</td><td>High</td></tr>
+    </tbody></table>`,
+
+  faqs: `
+    <div class="section-title">FAQs</div>
+    <div class="card" style="margin-bottom:8px"><strong style="font-size:13px">Academic vs GT?</strong><p style="font-size:12px;color:#64748b;margin-top:4px">Academic for university/study. GT for Canada PR, citizenship, many work routes.</p></div>
+    <div class="card" style="margin-bottom:8px"><strong style="font-size:13px">Who pays exam fee?</strong><p style="font-size:12px;color:#64748b;margin-top:4px">Student pays BC/IDP directly. FLC coaching fee is separate.</p></div>
+    <div class="card" style="margin-bottom:8px"><strong style="font-size:13px">TOEFL for Canada PR?</strong><p style="font-size:12px;color:#64748b;margin-top:4px">No — IRCC accepts IELTS and CELPIP-General, not TOEFL or Duolingo.</p></div>
+    <div class="card" style="margin-bottom:8px"><strong style="font-size:13px">How long valid?</strong><p style="font-size:12px;color:#64748b;margin-top:4px">Two years from test date for most immigration and university uses.</p></div>`,
+
+  resources: `
+    <div class="section-title">Official resources</div>
+    <div class="item-list">
+      <div class="item"><a href="https://www.ielts.org/" target="_blank" rel="noopener" style="color:#0d9488">ielts.org</a> — format, OSR, Academic vs GT</div>
+      <div class="item"><a href="https://www.britishcouncil.in/exam/ielts" target="_blank" rel="noopener" style="color:#0d9488">British Council India</a> — fees, dates, centers</div>
+      <div class="item"><a href="https://www.ieltsidpindia.com/" target="_blank" rel="noopener" style="color:#0d9488">IDP IELTS India</a> — alternate booking</div>
+      <div class="item"><a href="https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/documents/language-requirements.html" target="_blank" rel="noopener" style="color:#0d9488">IRCC language requirements</a></div>
+    </div>
+    <div style="margin-top:16px"><a class="btn" href="ielts-academic-regular-checklist.html">Enrollment checklist (Academic Regular)</a></div>`
+};
+
+const tabBar = document.getElementById('tab-bar');
+const tabPanels = document.getElementById('tab-panels');
+let activeTab = 'overview';
+
+TABS.forEach(t => {
+  const el = document.createElement('div');
+  el.className = 'tab' + (t.id === activeTab ? ' active' : '');
+  el.textContent = t.label;
+  el.dataset.tab = t.id;
+  el.onclick = () => showTab(t.id);
+  tabBar.appendChild(el);
+
+  const panel = document.createElement('div');
+  panel.className = 'tab-panel' + (t.id === activeTab ? ' active' : '');
+  panel.id = 'panel-' + t.id;
+  panel.innerHTML = PANELS[t.id] || '';
+  tabPanels.appendChild(panel);
+});
+
+function showTab(id) {
+  activeTab = id;
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.tab === id));
+  document.querySelectorAll('.tab-panel').forEach(el => el.classList.toggle('active', el.id === 'panel-' + id));
+  if (location.hash !== '#' + id) history.replaceState(null, '', '#' + id);
+}
+
+if (location.hash) {
+  const h = location.hash.slice(1);
+  if (PANELS[h]) showTab(h);
+}
+</script>
+</body>
+</html>

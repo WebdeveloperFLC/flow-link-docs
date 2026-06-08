@@ -1,0 +1,146 @@
+{
+  "slug": "ielts-academic-regular",
+  "displayName": "IELTS Academic Regular (with books)",
+  "title": "Counselor Enrollment & Delivery Checklist",
+  "subtitle": "Coaching · IELTS Academic · Regular batch with books",
+  "streamLabel": "Regular · 8–10 weeks · Classroom / hybrid",
+  "updatedLabel": "Updated June 2026",
+  "verifyUrl": "ielts.org",
+  "website": "futurelinkconsultants.com",
+  "footerTagline": "Future Link Consultants | 25+ Years in Study Abroad & Test Prep | IELTS · PTE · GRE · GMAT · German · French · Spoken English",
+  "policyBanner": "Confirm current band vs target band before enrollment. Academic module only (not General Training). Books included in fee — issue on Day 1. Exam fee is separate (paid to British Council / IDP). Never guarantee a band score.",
+  "metaFields": [
+    { "key": "client_name", "label": "Student name", "placeholder": "Full name" },
+    { "key": "file_id", "label": "File ID", "placeholder": "FLC-2026-XXXX" },
+    { "key": "batch_name", "label": "Batch", "placeholder": "e.g. IELTS-Ac-Jun-2026" },
+    { "key": "current_band", "label": "Current band (diagnostic)", "placeholder": "e.g. 5.5" },
+    { "key": "target_band", "label": "Target band", "placeholder": "e.g. 6.5 overall" },
+    { "key": "enrollment_date", "label": "Enrollment date", "placeholder": "yyyy-mm-dd" }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "title": "Intake, diagnostic & goal setting",
+      "items": [
+        {
+          "title": "Diagnostic test completed (or prior IELTS score reviewed)",
+          "note": "Record L/R/W/S breakdown. Set realistic target band and timeline with student.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Academic module confirmed (not General Training)",
+          "note": "Student visa / university applications require Academic. GT is a different prep path.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Target band, exam window, and study hours agreed in writing",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Client service agreement / enrollment form signed",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Course fee collected; receipt issued (separate from exam fee)",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "title": "Batch allocation & materials",
+      "items": [
+        {
+          "title": "Batch assigned — schedule shared (days, times, mode)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Course books / materials issued and logged on file",
+          "note": "Regular with books — track book numbers if applicable.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "LMS / portal access created (if applicable)",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Trainer introduced; escalation path explained",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "title": "Delivery & attendance (weekly QA)",
+      "items": [
+        {
+          "title": "Attendance tracked — counselor reviews dips below 80%",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Homework / writing tasks submitted on schedule",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Speaking mock sessions completed per syllabus",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Writing tasks marked with band-style feedback",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Mid-course progress review with student (adjust plan if needed)",
+          "badge": "RECOMMENDED"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "title": "Mock tests & exam readiness",
+      "items": [
+        {
+          "title": "Minimum full mock tests completed (per course standard — e.g. 4)",
+          "note": "Full-length L/R/W/S under timed conditions.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Mock scores within 0.5 band of target on two consecutive mocks",
+          "note": "Do not push exam booking if student is not exam-ready.",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Exam registration guidance provided (BC / IDP — student pays directly)",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Test day checklist shared (ID, timing, location, speaking slot)",
+          "badge": "REQUIRED"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "title": "Post-course & retake pathway",
+      "items": [
+        {
+          "title": "Actual IELTS score collected and filed on client record",
+          "badge": "REQUIRED"
+        },
+        {
+          "title": "Target met — close file or hand off to admissions / visa team",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Retake / booster batch recommended if below target",
+          "note": "Document gap analysis (weakest skill) before re-enrollment.",
+          "badge": "IF APPLICABLE"
+        },
+        {
+          "title": "Student feedback / testimonial requested (if satisfied)",
+          "badge": "RECOMMENDED"
+        }
+      ]
+    }
+  ]
+}
