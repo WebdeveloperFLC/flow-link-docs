@@ -109,11 +109,11 @@ export function isAcademyVisaServiceRow(m: MasterRow): boolean {
     (m.service_library_countries ?? []).map((c) => c.country),
   );
 
+  // Mapped to a priority country → include (Work & Holiday, WHV, custom visa types, etc.)
+  if (countries.some((c) => VISA_COUNTRY_PRIORITY.includes(c))) return true;
+
   const serviceNorm = m.service.trim().toLowerCase();
-  if (NON_VISA_SERVICE_FIELDS.has(serviceNorm)) {
-    // e.g. service = "Other" + Australia mapping → Work & Holiday, WHV, etc.
-    return countries.some((c) => VISA_COUNTRY_PRIORITY.includes(c));
-  }
+  if (NON_VISA_SERVICE_FIELDS.has(serviceNorm)) return false;
 
   if (VISA_COUNTRY_PRIORITY.some((c) => c.toLowerCase() === serviceNorm)) return true;
 

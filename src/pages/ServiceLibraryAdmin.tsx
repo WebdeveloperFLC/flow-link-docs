@@ -609,19 +609,34 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
-    if (!category || !service.trim() || !subService.trim()) {
+    const needsCountry = COUNTRY_BOUND_CATEGORIES.has(category);
+    if (!category || !subService.trim() || (!needsCountry && !service.trim())) {
       toast({ title: "Fill all fields", variant: "destructive" });
       return;
     }
-    const needsCountry = COUNTRY_BOUND_CATEGORIES.has(category);
     if (needsCountry && !country) {
       toast({ title: "Pick a country", variant: "destructive" });
       return;
     }
     setSaving(true);
+    const serviceField =
+      needsCountry && country ? country : service.trim();
+    const subField = subService.trim();
+    const displayName =
+      needsCountry && country ? `${country} – ${subField}` : subField;
     const { data, error } = await supabase
       .from("service_library")
-      .insert({ service_category: category, service: service.trim(), sub_service: subService.trim() })
+      .insert({
+        service_category: category,
+        service: serviceField,
+        sub_service: subField,
+        is_active: true,
+        academy_metadata: {
+          displayName,
+          shortDescription: `${country ? `${country} · ` : ""}${subField}`,
+          reviewStatus: "active",
+        },
+      })
       .select("id")
       .single();
     if (error) {
@@ -684,14 +699,30 @@ function NewMasterDialog({ onClose, onCreated }: { onClose: () => void; onCreate
               </Select>
             </div>
           )}
-          <div>
-            <Label>Service</Label>
-            <Input value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. Student Visa" />
-          </div>
-          <div>
-            <Label>Sub-service</Label>
-            <Input value={subService} onChange={(e) => setSubService(e.target.value)} placeholder="e.g. University application" />
-          </div>
+          {COUNTRY_BOUND_CATEGORIES.has(category) ? (
+            <div>
+              <Label>Visa / service type</Label>
+              <Input
+                value={subService}
+                onChange={(e) => setSubService(e.target.value)}
+                placeholder="e.g. Work & Holiday Visa (Subclass 417)"
+              />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Country ({country || "pick above"}) is saved as the service field — same as canonical records.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <Label>Service</Label>
+                <Input value={service} onChange={(e) => setService(e.target.value)} placeholder="e.g. IELTS" />
+              </div>
+              <div>
+                <Label>Sub-service</Label>
+                <Input value={subService} onChange={(e) => setSubService(e.target.value)} placeholder="e.g. Academic" />
+              </div>
+            </>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>

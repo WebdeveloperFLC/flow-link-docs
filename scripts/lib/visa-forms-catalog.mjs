@@ -323,6 +323,21 @@ export const VISA_FORMS_CATALOG = {
       mime: "application/pdf",
     },
   ],
+  "australia-work-holiday": [
+    {
+      form_code: "Subclass 417/462",
+      title: "Working Holiday visa — Home Affairs",
+      url: "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/work-holiday-417",
+      mime: "text/html",
+    },
+    {
+      form_code: "Form 1150",
+      title: "Application for a Visitor visa — Tourist stream (reference)",
+      url: "https://immi.homeaffairs.gov.au/form-listing/forms/1150.pdf",
+      mime: "application/pdf",
+      notes: "Verify current WHM application process on immi.homeaffairs.gov.au",
+    },
+  ],
   "australia-subclass-485": [
     {
       form_code: "Subclass 485",
