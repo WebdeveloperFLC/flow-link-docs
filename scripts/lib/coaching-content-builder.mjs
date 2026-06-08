@@ -1,5 +1,7 @@
 /** Build academy_metadata + checklist JSON for coaching services from registry entries. */
 
+import { buildQuizFor } from "./coaching-quiz-banks.mjs";
+
 const IELTS_REF_ID = "b2000001-0001-4000-8000-000000000071";
 
 const DEFAULT_SUBMISSION_ITEMS = [
@@ -31,45 +33,118 @@ function slugify(text) {
     .replace(/^-|-$/g, "");
 }
 
-function quizFor(entry) {
-  const name = entry.displayName;
-  return [
-    {
-      question: `Counselors must never for ${name}:`,
-      options: ["Track attendance", "Guarantee exam scores", "Issue materials", "Run diagnostic"],
-      correctIndex: 1,
-      explanation: "Score guarantees are prohibited for all coaching programs.",
-      level: 1,
+const FAMILY_ENRICHMENTS = {
+  CELPIP: {
+    alert: {
+      title: "CELPIP-General for Canada only",
+      body: "CELPIP-General is accepted by IRCC for Canadian immigration and citizenship — not for USA, UK, or Australia study visas. Confirm pathway before enrollment.",
     },
-    {
-      question: `${name} coaching fee and official exam fee should be:`,
-      options: ["Combined on one line", "Shown separately", "Hidden from student", "Included in visa fee"],
-      correctIndex: 1,
-      explanation: "Coaching and exam fees must be quoted separately.",
-      level: 1,
+    compare: {
+      columns: ["Pathway", "Accepted test", "Minimum (typical)", "Notes"],
+      rows: [
+        { label: "Canada — Express Entry (FSW)", values: ["CELPIP-General", "CLB 7 = 7 each", "Same as IELTS CLB mapping"] },
+        { label: "Canada — Citizenship", values: ["CELPIP-General", "CLB 4", "Lower threshold"] },
+        { label: "Canada — Study permit", values: ["IELTS/PTE often", "Varies", "CELPIP less common for study"] },
+        { label: "NOT for Canada IRCC", values: ["—", "—", "TOEFL, Duolingo for PR"] },
+      ],
     },
-    {
-      question: `Before enrollment in ${name}, FLC recommends:`,
-      options: ["Skip diagnostic", "Diagnostic and realistic target set", "Guarantee top score", "No agreement needed"],
-      correctIndex: 1,
-      explanation: "Diagnostic and target alignment are required before batch start.",
-      level: 1,
+    faqs: [
+      { q: "CELPIP vs IELTS for Canada PR?", a: "Both accepted by IRCC when taken in the correct format (CELPIP-General; IELTS GT or Academic per program). Choose based on student strength and seat availability." },
+      { q: "CELPIP-General vs CELPIP Academic?", a: "IRCC immigration uses CELPIP-General. Academic is for select professional designations — not standard Express Entry." },
+      { q: "How does CELPIP map to CLB?", a: "CELPIP levels map directly to CLB (e.g. CELPIP 7 = CLB 7 in each skill)." },
+      { q: "Who pays the CELPIP exam fee?", a: "Student pays Paragon/celpip.ca directly. FLC coaching fee is separate." },
+      { q: "Can Future Link guarantee CLB 9?", a: "No. Targets come from diagnostics and mocks — never guarantee scores." },
+      { q: "Is TOEFL accepted for Canada PR?", a: "No. IRCC accepts IELTS and CELPIP-General (and CELPIP per program rules) — not TOEFL." },
+      { q: "How long is CELPIP valid?", a: "Two years from test date for most IRCC purposes." },
+      { q: "Where is CELPIP taken?", a: "At Paragon test centers — verify celpip.ca for India/Canada availability." },
+    ],
+    proTips: [
+      "Map every Canada lead to CLB before quoting timeline",
+      "Use CELPIP-General only — not Academic for standard PR",
+      "Track mocks per skill — CELPIP scores each skill separately",
+      "Link results to Express Entry file as soon as scores arrive",
+    ],
+    sampleDocs: (entry) =>
+      entry.checklistHtml
+        ? [
+            {
+              title: "Enrollment checklist — CELPIP General",
+              description: "Counselor enrollment and delivery checklist.",
+              docKind: "enrollment",
+              url: entry.checklistHtml,
+              mimeType: "text/html",
+            },
+          ]
+        : [],
+  },
+  PTE: {
+    alert: {
+      title: "Confirm institution acceptance",
+      body: "PTE Academic acceptance varies by country and university. Confirm destination rules before enrollment — not all PR pathways accept PTE.",
     },
-    {
-      question: `Minimum attendance standard for ${name} is typically:`,
-      options: ["50%", "80%", "100%", "Not tracked"],
-      correctIndex: 1,
-      explanation: "Review attendance when it drops below 80%.",
-      level: 1,
+    faqs: [
+      { q: "PTE Academic vs PTE Core?", a: "PTE Academic is for study/work abroad. PTE Core is for Canadian immigration (IRCC) — confirm which test the pathway requires." },
+      { q: "Who pays the PTE exam fee?", a: "Student pays Pearson directly on pearsonpte.com. Coaching fee is separate." },
+      { q: "How fast are PTE results?", a: "Often within 48 hours to 5 days — faster than many paper tests." },
+      { q: "Can FLC guarantee PTE 79?", a: "No. Never guarantee scores." },
+      { q: "PTE for Australia skilled migration?", a: "PTE Academic is accepted for many Australian skilled visas — verify current Home Affairs list." },
+      { q: "Is PTE fully computer-based?", a: "Yes — including speaking into a microphone." },
+    ],
+  },
+  TOEFL: {
+    alert: {
+      title: "USA admissions focus — not Canada PR",
+      body: "TOEFL iBT is widely used for USA F-1 and graduate admission. IRCC does not accept TOEFL for Canadian immigration — redirect PR leads to IELTS or CELPIP.",
     },
-    {
-      question: `Enrollment agreement for ${name} should be signed:`,
-      options: ["After course ends", "Before batch start", "Never", "Only on request"],
-      correctIndex: 1,
-      explanation: "Signed agreement before classes begin.",
-      level: 2,
+    faqs: [
+      { q: "TOEFL for Canada PR?", a: "No. IRCC does not accept TOEFL for immigration." },
+      { q: "TOEFL iBT vs Essentials?", a: "iBT is the standard for most universities. Essentials has limited acceptance — confirm each institution." },
+      { q: "Who pays TOEFL fee?", a: "Student pays ETS directly. Coaching fee is separate." },
+      { q: "MyBest scores?", a: "ETS may combine best section scores from valid tests within 2 years — confirm university policy." },
+      { q: "Can FLC guarantee TOEFL 100?", a: "No. Never guarantee scores." },
+    ],
+  },
+  "Duolingo English Test": {
+    alert: {
+      title: "Institution-specific acceptance",
+      body: "Duolingo English Test is accepted by many universities but not by IRCC for Canadian PR. Confirm the student's institution list before enrollment.",
     },
-  ];
+    faqs: [
+      { q: "DET for Canada PR?", a: "No. IRCC does not accept Duolingo for immigration." },
+      { q: "How is DET taken?", a: "Online proctored from home — verify system requirements on englishtest.duolingo.com." },
+      { q: "How fast are DET results?", a: "Typically within 48 hours." },
+      { q: "Can FLC guarantee DET 130?", a: "No. Never guarantee scores." },
+    ],
+  },
+  "Spoken English": {
+    alert: {
+      title: "Not a visa substitute",
+      body: "Spoken English builds fluency and interview skills — it does not replace IELTS, PTE, or CELPIP for visa or university English requirements.",
+    },
+    faqs: [
+      { q: "Does Spoken English replace IELTS?", a: "No. Formal tests are required for visas and most university offers." },
+      { q: "Are books included?", a: "Yes for Spoken English (with books) — issue and log at enrollment." },
+      { q: "Ideal next step after Spoken English?", a: "Formal test prep (IELTS/PTE) once foundation is strong enough." },
+    ],
+  },
+};
+
+function enrichFromFamily(entry, base) {
+  const key = entry.testFamily ?? entry.family;
+  const pack = FAMILY_ENRICHMENTS[key] ?? FAMILY_ENRICHMENTS[entry.family];
+  if (!pack) return base;
+
+  return {
+    ...base,
+    alert: entry.alert ?? pack.alert ?? base.alert,
+    compare: entry.compare ?? pack.compare ?? base.compare,
+    faqs: entry.faqs ?? pack.faqs ?? base.faqs,
+    proTips: entry.proTips ?? pack.proTips ?? base.proTips,
+    sampleDocs:
+      entry.sampleDocs ??
+      (typeof pack.sampleDocs === "function" ? pack.sampleDocs(entry) : pack.sampleDocs) ??
+      base.sampleDocs,
+  };
 }
 
 export function buildAcademyMetadata(entry) {
@@ -87,7 +162,7 @@ export function buildAcademyMetadata(entry) {
     });
   }
 
-  return {
+  const meta = {
     displayName: entry.displayName,
     shortDescription: entry.shortDescription,
     version: "v1.0",
@@ -237,8 +312,10 @@ export function buildAcademyMetadata(entry) {
       mistakes: ["Unrealistic target timeline", "No mock before exam date", "Visa team not updated when target met"],
     },
     sampleDocs: entry.sampleDocs ?? [],
-    quiz: quizFor(entry),
+    quiz: buildQuizFor(entry),
   };
+
+  return enrichFromFamily(entry, meta);
 }
 
 export function buildChecklistSpec(entry) {

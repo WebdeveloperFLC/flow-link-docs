@@ -279,6 +279,18 @@
       "level": 1
     },
     {
+      "question": "French coaching targets are usually framed as:",
+      "options": [
+        "CEFR levels (A1–C2)",
+        "CLB only",
+        "SAT scores",
+        "GMAT bands"
+      ],
+      "correctIndex": 0,
+      "explanation": "European language programs use CEFR.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for French Language B2 should be signed:",
       "options": [
         "After course ends",
@@ -289,6 +301,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for French Language B2:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in French Language B2:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for French Language B2 should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "DELF/DALF exams are separate from:",
+      "options": [
+        "FLC coaching fee",
+        "Enrollment agreement",
+        "Attendance tracking",
+        "Batch schedule"
+      ],
+      "correctIndex": 0,
+      "explanation": "Exam fees are paid to test authorities separately.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for French Language B2 should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for French Language B2 is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for French Language B2 should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for French Language B2 happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "Canada immigration French may require:",
+      "options": [
+        "TEF/TCF or approved tests — confirm program",
+        "No French ever",
+        "Only DELF A1",
+        "Spoken English"
+      ],
+      "correctIndex": 0,
+      "explanation": "Confirm accepted French tests for the pathway.",
+      "level": 3
+    },
+    {
+      "question": "French A1 crash is appropriate when:",
+      "options": [
+        "Gap to target is realistic and deadline exists",
+        "Complete beginner to C2 in 2 weeks",
+        "No diagnostic done",
+        "Guaranteed DALF pass promised"
+      ],
+      "correctIndex": 0,
+      "explanation": "Crash requires realistic gap and deadline.",
+      "level": 3
     }
   ]
 }

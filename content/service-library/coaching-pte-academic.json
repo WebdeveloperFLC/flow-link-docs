@@ -15,8 +15,8 @@
     "summary": "Verify PTE Academic exam fee and dates on the official booking portal before quoting. Coaching fee is separate. Never guarantee a score."
   },
   "alert": {
-    "title": "Confirm student goal before enrollment",
-    "body": "Verify pathway, target score/level, and timeline before enrolling in PTE Academic."
+    "title": "Confirm institution acceptance",
+    "body": "PTE Academic acceptance varies by country and university. Confirm destination rules before enrollment — not all PR pathways accept PTE."
   },
   "tags": [
     {
@@ -121,20 +121,28 @@
   ],
   "faqs": [
     {
-      "q": "Who pays the official exam fee?",
-      "a": "The student pays the test authority directly where applicable. FLC coaching fee is separate."
+      "q": "PTE Academic vs PTE Core?",
+      "a": "PTE Academic is for study/work abroad. PTE Core is for Canadian immigration (IRCC) — confirm which test the pathway requires."
     },
     {
-      "q": "Can Future Link guarantee the target score?",
-      "a": "No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."
+      "q": "Who pays the PTE exam fee?",
+      "a": "Student pays Pearson directly on pearsonpte.com. Coaching fee is separate."
     },
     {
-      "q": "Are books included?",
-      "a": "Verify program variant — some batches include books, others are materials-light."
+      "q": "How fast are PTE results?",
+      "a": "Often within 48 hours to 5 days — faster than many paper tests."
     },
     {
-      "q": "How many mock tests?",
-      "a": "Minimum per program policy — track mocks before advising exam booking."
+      "q": "Can FLC guarantee PTE 79?",
+      "a": "No. Never guarantee scores."
+    },
+    {
+      "q": "PTE for Australia skilled migration?",
+      "a": "PTE Academic is accepted for many Australian skilled visas — verify current Home Affairs list."
+    },
+    {
+      "q": "Is PTE fully computer-based?",
+      "a": "Yes — including speaking into a microphone."
     }
   ],
   "compliance": [
@@ -285,6 +293,30 @@
       "level": 1
     },
     {
+      "question": "PTE Academic is:",
+      "options": [
+        "Paper-based only",
+        "Computer-based at a test center",
+        "Interview only",
+        "Home handwritten"
+      ],
+      "correctIndex": 1,
+      "explanation": "PTE Academic is computer-delivered.",
+      "level": 1
+    },
+    {
+      "question": "PTE scores are typically valid for:",
+      "options": [
+        "6 months",
+        "2 years",
+        "5 years",
+        "Forever"
+      ],
+      "correctIndex": 1,
+      "explanation": "Two years from test date for most uses.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for PTE Academic should be signed:",
       "options": [
         "After course ends",
@@ -295,6 +327,162 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for PTE Academic:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in PTE Academic:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for PTE Academic should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "PTE Academic is accepted by IRCC for Canadian PR:",
+      "options": [
+        "Yes",
+        "No",
+        "Only Quebec",
+        "Only with PNP"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify current IRCC accepted tests — PTE acceptance has specific rules.",
+      "level": 2
+    },
+    {
+      "question": "PTE coaching should separate:",
+      "options": [
+        "Nothing",
+        "Coaching fee from Pearson exam fee",
+        "Visa fee from tuition",
+        "Passport from TRF"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always quote coaching and exam fees separately.",
+      "level": 2
+    },
+    {
+      "question": "PTE Speaking uses:",
+      "options": [
+        "Face-to-face examiner",
+        "Computer microphone recording",
+        "Phone call",
+        "Written essay only"
+      ],
+      "correctIndex": 1,
+      "explanation": "PTE is fully computer-based including speaking.",
+      "level": 2
+    },
+    {
+      "question": "PTE results are usually available within:",
+      "options": [
+        "6 months",
+        "48 hours to 5 days",
+        "Same day always",
+        "1 year"
+      ],
+      "correctIndex": 1,
+      "explanation": "PTE typically returns scores quickly.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for PTE Academic should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for PTE Academic is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for PTE Academic should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for PTE Academic happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "Before PTE exam booking, FLC tracks:",
+      "options": [
+        "Only attendance",
+        "Mocks and readiness against target score",
+        "Social media",
+        "Visa expiry only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Mock performance drives exam readiness.",
+      "level": 3
+    },
+    {
+      "question": "Unrealistic PTE target (e.g. 90 from diagnostic 40 in 2 weeks) requires:",
+      "options": [
+        "Guarantee",
+        "Timeline reset",
+        "Skip mocks",
+        "Hide diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Reset expectations before enrollment.",
+      "level": 3
     }
   ]
 }

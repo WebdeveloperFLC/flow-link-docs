@@ -279,6 +279,18 @@
       "level": 1
     },
     {
+      "question": "German coaching commonly prepares for:",
+      "options": [
+        "Goethe/telc/ÖSD exams",
+        "IELTS GT only",
+        "CELPIP",
+        "SAT"
+      ],
+      "correctIndex": 0,
+      "explanation": "German programs align to Goethe/telc/ÖSD.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for German A2 Crash (with books) should be signed:",
       "options": [
         "After course ends",
@@ -289,6 +301,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for German A2 Crash (with books):",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in German A2 Crash (with books):",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for German A2 Crash (with books) should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "Germany Opportunity Card may require:",
+      "options": [
+        "German A1 minimum — verify current rules",
+        "No language",
+        "French C2",
+        "CELPIP 9"
+      ],
+      "correctIndex": 0,
+      "explanation": "Check current Chancenkarte language requirements.",
+      "level": 2
+    },
+    {
+      "question": "German B1 is often needed for:",
+      "options": [
+        "Some study and work pathways",
+        "UK Student Route only",
+        "Tourist Schengen only",
+        "No practical use"
+      ],
+      "correctIndex": 0,
+      "explanation": "B1 is a common threshold for study/work.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for German A2 Crash (with books) should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for German A2 Crash (with books) is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for German A2 Crash (with books) should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for German A2 Crash (with books) happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "Goethe/telc pass guarantees from FLC are:",
+      "options": [
+        "Required",
+        "Prohibited — never guarantee exam pass",
+        "Only for managers",
+        "Automatic with fee"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee official exam outcomes.",
+      "level": 3
     }
   ]
 }

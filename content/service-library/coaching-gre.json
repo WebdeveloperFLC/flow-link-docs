@@ -285,6 +285,18 @@
       "level": 1
     },
     {
+      "question": "GRE is used primarily for:",
+      "options": [
+        "Graduate school admission",
+        "Canada PR",
+        "Driving test",
+        "Schengen visa"
+      ],
+      "correctIndex": 0,
+      "explanation": "GRE is for graduate admissions.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for GRE should be signed:",
       "options": [
         "After course ends",
@@ -295,6 +307,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for GRE:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in GRE:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for GRE should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "GRE General includes:",
+      "options": [
+        "Verbal, Quantitative, Analytical Writing",
+        "Listening and Speaking only",
+        "IELTS modules",
+        "CELPIP tasks"
+      ],
+      "correctIndex": 0,
+      "explanation": "GRE General has V, Q, and AW sections.",
+      "level": 2
+    },
+    {
+      "question": "GRE scores are typically valid for:",
+      "options": [
+        "5 years",
+        "2 years",
+        "6 months",
+        "Lifetime"
+      ],
+      "correctIndex": 0,
+      "explanation": "GRE scores are valid about 5 years.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for GRE should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for GRE is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for GRE should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for GRE happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "GRE coaching should document:",
+      "options": [
+        "Diagnostic, target score, mock trends",
+        "Guaranteed 340",
+        "No attendance",
+        "Visa refusal reason"
+      ],
+      "correctIndex": 0,
+      "explanation": "Track diagnostic and mocks on file.",
+      "level": 3
     }
   ]
 }

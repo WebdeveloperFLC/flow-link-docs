@@ -285,6 +285,18 @@
       "level": 1
     },
     {
+      "question": "GMAT Focus Edition is used for:",
+      "options": [
+        "MBA and graduate business programs",
+        "Canada citizenship",
+        "French DELF",
+        "German A1"
+      ],
+      "correctIndex": 0,
+      "explanation": "GMAT is for business graduate programs.",
+      "level": 1
+    },
+    {
       "question": "Enrollment agreement for GMAT should be signed:",
       "options": [
         "After course ends",
@@ -295,6 +307,126 @@
       "correctIndex": 1,
       "explanation": "Signed agreement before classes begin.",
       "level": 2
+    },
+    {
+      "question": "Before advising official exam booking for GMAT:",
+      "options": [
+        "No mocks needed",
+        "Mocks support agreed target",
+        "Guarantee pass first",
+        "Book earliest date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Readiness should be based on mock performance.",
+      "level": 2
+    },
+    {
+      "question": "When attendance drops below 80% in GMAT:",
+      "options": [
+        "Ignore it",
+        "Counselor review and intervention",
+        "Guarantee refund",
+        "Cancel visa file"
+      ],
+      "correctIndex": 1,
+      "explanation": "Attendance issues require counselor follow-up.",
+      "level": 2
+    },
+    {
+      "question": "Official score report for GMAT should be:",
+      "options": [
+        "Discarded",
+        "Logged on client file and shared with visa/admissions team",
+        "Kept secret",
+        "Only verbal update"
+      ],
+      "correctIndex": 1,
+      "explanation": "Score reports must be documented and handed off when relevant.",
+      "level": 2
+    },
+    {
+      "question": "GMAT sections include:",
+      "options": [
+        "Quant, Verbal, Data Insights",
+        "Listening, Reading, Writing, Speaking",
+        "CELPIP tasks",
+        "TEF oral only"
+      ],
+      "correctIndex": 0,
+      "explanation": "Focus Edition has three section scores.",
+      "level": 2
+    },
+    {
+      "question": "GMAT score validity is typically:",
+      "options": [
+        "5 years",
+        "2 years",
+        "1 month",
+        "Forever"
+      ],
+      "correctIndex": 0,
+      "explanation": "GMAT scores valid about 5 years.",
+      "level": 2
+    },
+    {
+      "question": "A student with unrealistic target timeline for GMAT should:",
+      "options": [
+        "Enroll in crash anyway",
+        "Reset timeline or program variant",
+        "Guarantee score",
+        "Skip diagnostic"
+      ],
+      "correctIndex": 1,
+      "explanation": "Unrealistic timelines must be corrected before enrollment.",
+      "level": 3
+    },
+    {
+      "question": "Sales promising a guaranteed band/score for GMAT is:",
+      "options": [
+        "Encouraged",
+        "A compliance violation",
+        "Required for conversion",
+        "Only for managers"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee exam outcomes.",
+      "level": 3
+    },
+    {
+      "question": "Retake planning for GMAT should be based on:",
+      "options": [
+        "Guesswork",
+        "Skill-gap analysis from official results",
+        "Social media tips",
+        "Random date"
+      ],
+      "correctIndex": 1,
+      "explanation": "Retakes need structured gap analysis.",
+      "level": 3
+    },
+    {
+      "question": "Visa/admissions team handoff for GMAT happens when:",
+      "options": [
+        "Never",
+        "Target met and official report available",
+        "Before enrollment",
+        "Only if student asks"
+      ],
+      "correctIndex": 1,
+      "explanation": "Hand off when target is met and documentation is on file.",
+      "level": 3
+    },
+    {
+      "question": "Guaranteeing GMAT 705+ is:",
+      "options": [
+        "Standard practice",
+        "Compliance violation",
+        "Required for MBA leads",
+        "IDP policy"
+      ],
+      "correctIndex": 1,
+      "explanation": "Never guarantee test scores.",
+      "level": 3
     }
   ]
 }

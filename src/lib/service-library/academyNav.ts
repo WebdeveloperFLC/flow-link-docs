@@ -410,7 +410,10 @@ export function buildAcademyNav(
     };
   }
 
-  const variantFilter = opts.coachingVariant ?? (hasGeneralAcademicSplit ? null : "other");
+  // Only IELTS (and similar general/academic splits) use format filtering.
+  // Other families (CELPIP General, PTE Academic, French General / Custom) must not
+  // default to variant "other" — their labels contain "general" or "academic" as test names.
+  const variantFilter = hasGeneralAcademicSplit ? opts.coachingVariant : null;
   const filteredByVariant = variantFilter
     ? familyRows.filter((m) => coachingVariantOf(m) === variantFilter)
     : familyRows;
