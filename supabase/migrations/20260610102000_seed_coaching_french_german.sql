@@ -1,0 +1,559 @@
+-- French & German language coaching — full academy packs (additive)
+-- Regenerate: node scripts/generate-coaching-migrations.mjs
+
+INSERT INTO public.service_library (id, service_category, service, sub_service, display_order, is_active)
+VALUES
+  ('b2000001-0001-4000-8000-0000000000ba', 'coaching_services', 'French Language (General / Custom)', 'French Language', 200, true),
+  ('b2000001-0001-4000-8000-0000000000bb', 'coaching_services', 'French Language A1', 'French Language', 201, true),
+  ('b2000001-0001-4000-8000-0000000000bc', 'coaching_services', 'French Language A2', 'French Language', 202, true),
+  ('b2000001-0001-4000-8000-0000000000bd', 'coaching_services', 'French Language B1', 'French Language', 203, true),
+  ('b2000001-0001-4000-8000-0000000000be', 'coaching_services', 'French Language B2', 'French Language', 204, true),
+  ('b2000001-0001-4000-8000-0000000000bf', 'coaching_services', 'French Language C1', 'French Language', 205, true),
+  ('b2000001-0001-4000-8000-0000000000c0', 'coaching_services', 'French Language C2', 'French Language', 206, true),
+  ('b2000001-0001-4000-8000-0000000000c1', 'coaching_services', 'German Language A1 Regular', 'European Languages', 210, true),
+  ('b2000001-0001-4000-8000-0000000000c2', 'coaching_services', 'German A2 Regular (with books)', 'European Languages', 220, true),
+  ('b2000001-0001-4000-8000-0000000000c3', 'coaching_services', 'German A2 Crash (with books)', 'European Languages', 230, true),
+  ('b2000001-0001-4000-8000-0000000000c4', 'coaching_services', 'German B1 Regular (with books)', 'European Languages', 240, true),
+  ('b2000001-0001-4000-8000-0000000000c5', 'coaching_services', 'German B1 Speaking', 'European Languages', 250, true)
+ON CONFLICT (service_category, service, sub_service) DO UPDATE
+SET display_order = EXCLUDED.display_order, is_active = true, updated_at = now();
+
+-- French Language (General / Custom)
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language (General / Custom)","shortDescription":"Custom pace · Flexible goals · DELF/DALF/TEF prep","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Custom French program — document target level and exam on enrollment form."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language (General / Custom)."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"Flexible","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"Flexible","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language (General / Custom) preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting French Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language (General / Custom) coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language (General / Custom)."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language (General / Custom):","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language (General / Custom) coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language (General / Custom), FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language (General / Custom) is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language (General / Custom) should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language';
+
+-- French Language A1
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language A1","shortDescription":"CEFR A1 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Beginner","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm A1 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language A1."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language A1 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR A1 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language A1 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language A1."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language A1:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language A1 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language A1, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language A1 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language A1 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language';
+
+-- French Language A2
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language A2","shortDescription":"CEFR A2 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Beginner","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm A2 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language A2."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language A2 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR A2 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language A2 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language A2."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language A2:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language A2 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language A2, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language A2 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language A2 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language';
+
+-- French Language B1
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language B1","shortDescription":"CEFR B1 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm B1 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language B1."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language B1 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR B1 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language B1 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language B1."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language B1:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language B1 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language B1, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language B1 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language B1 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language';
+
+-- French Language B2
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language B2","shortDescription":"CEFR B2 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm B2 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language B2."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language B2 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR B2 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language B2 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language B2."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language B2:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language B2 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language B2, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language B2 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language B2 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language';
+
+-- French Language C1
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language C1","shortDescription":"CEFR C1 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Advanced","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm C1 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language C1."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language C1 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR C1 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language C1 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language C1."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language C1:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language C1 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language C1, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language C1 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language C1 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language';
+
+-- French Language C2
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"French Language C2","shortDescription":"CEFR C2 · DELF/DALF pathway · European Languages","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Advanced","learningMinutes":10,"navBucket":"coaching","testFamily":"French Language","policyAlert":{"active":true,"date":"June 2026","summary":"Confirm C2 target and exam goal (DELF/DALF/TEF) before enrollment. Coaching fee separate from exam fee."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in French Language C2."},"tags":[{"label":"Active program","variant":"success"},{"label":"French Language","variant":"neutral"}],"chips":[{"label":"8–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured French Language C2 preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting CEFR C2 for study, work, or Canada/France immigration French requirements."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial French Language C2 coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on French Language C2."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for French Language C2:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"French Language C2 coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in French Language C2, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for French Language C2 is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for French Language C2 should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language';
+
+-- German Language A1 Regular
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"German Language A1 Regular","shortDescription":"CEFR A1 · Goethe/telc pathway · Regular batch","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Beginner","learningMinutes":10,"navBucket":"coaching","testFamily":"German Language","policyAlert":{"active":true,"date":"June 2026","summary":"A1 foundation for Germany study, Opportunity Card prep, or spouse visa German requirement."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in German Language A1 Regular."},"tags":[{"label":"Active program","variant":"success"},{"label":"German Language","variant":"neutral"}],"chips":[{"label":"8–10 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–10 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured German Language A1 Regular preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting German Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial German Language A1 Regular coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on German Language A1 Regular."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for German Language A1 Regular:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"German Language A1 Regular coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in German Language A1 Regular, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for German Language A1 Regular is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for German Language A1 Regular should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages';
+
+-- German A2 Regular (with books)
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"German A2 Regular (with books)","shortDescription":"CEFR A2 · Regular batch · Books included","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"German Language","policyAlert":{"active":true,"date":"June 2026","summary":"A2 for spouse reunion, vocational pathways, and further German study. Books issued at enrollment."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in German A2 Regular (with books)."},"tags":[{"label":"Active program","variant":"success"},{"label":"German Language","variant":"neutral"}],"chips":[{"label":"8–10 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"8–10 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured German A2 Regular (with books) preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting German Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Yes — issue materials at enrollment and log on file."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial German A2 Regular (with books) coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on German A2 Regular (with books)."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for German A2 Regular (with books):","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"German A2 Regular (with books) coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in German A2 Regular (with books), FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for German A2 Regular (with books) is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for German A2 Regular (with books) should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages';
+
+-- German A2 Crash (with books)
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"German A2 Crash (with books)","shortDescription":"CEFR A2 · Intensive 4–6 weeks · Books included","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"German Language","policyAlert":{"active":true,"date":"June 2026","summary":"Crash A2 only when diagnostic gap is realistic. Never guarantee Goethe/telc pass."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in German A2 Crash (with books)."},"tags":[{"label":"Active program","variant":"success"},{"label":"German Language","variant":"neutral"}],"chips":[{"label":"4–6 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"4–6 weeks","sub":"Crash","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured German A2 Crash (with books) preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting German Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Yes — issue materials at enrollment and log on file."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial German A2 Crash (with books) coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on German A2 Crash (with books)."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for German A2 Crash (with books):","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"German A2 Crash (with books) coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in German A2 Crash (with books), FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for German A2 Crash (with books) is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for German A2 Crash (with books) should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages';
+
+-- German B1 Regular (with books)
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"German B1 Regular (with books)","shortDescription":"CEFR B1 · Regular batch · Books included","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"German Language","policyAlert":{"active":true,"date":"June 2026","summary":"B1 for skilled work, nursing recognition, and advanced study prep in Germany."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in German B1 Regular (with books)."},"tags":[{"label":"Active program","variant":"success"},{"label":"German Language","variant":"neutral"}],"chips":[{"label":"10–12 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"10–12 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured German B1 Regular (with books) preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting German Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Yes — issue materials at enrollment and log on file."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial German B1 Regular (with books) coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on German B1 Regular (with books)."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for German B1 Regular (with books):","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"German B1 Regular (with books) coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in German B1 Regular (with books), FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for German B1 Regular (with books) is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for German B1 Regular (with books) should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages';
+
+-- German B1 Speaking
+UPDATE public.service_library
+SET academy_metadata = '{"displayName":"German B1 Speaking","shortDescription":"B1 speaking focus · Interview & fluency drills","version":"v1.0","versionStatus":"Live","reviewStatus":"active","updatedLabel":"Updated June 2026","learningLevel":"Intermediate","learningMinutes":10,"navBucket":"coaching","testFamily":"German Language","policyAlert":{"active":true,"date":"June 2026","summary":"Speaking-intensive B1 module — pair with full B1 program if writing/reading gaps exist."},"alert":{"title":"Confirm student goal before enrollment","body":"Verify pathway, target score/level, and timeline before enrolling in German B1 Speaking."},"tags":[{"label":"Active program","variant":"success"},{"label":"German Language","variant":"neutral"}],"chips":[{"label":"6–8 weeks","variant":"neutral"},{"label":"Exam fee separate","variant":"warning"}],"kpis":[{"label":"Course duration","value":"6–8 weeks","sub":"Regular batch","tone":"primary"},{"label":"Target achievement","value":"—","sub":"Track on client file","tone":"success"},{"label":"Enrollment docs","value":"6+","sub":"Agreement + diagnostic","tone":"violet"}],"about":[{"label":"Description","value":"Structured German B1 Speaking preparation with trainer-led classes, homework, and progress tracking."},{"label":"Ideal for","value":"Students targeting German Language goals with realistic timeline and attendance commitment."},{"label":"Delivery","value":"Classroom or hybrid per branch schedule. Materials per program policy."},{"label":"After course","value":"Exam guidance, score tracking, retake recommendation, and handoff to admissions/visa team when target met."}],"eligibility":[{"criterion":"Diagnostic or prior score on file","met":true},{"criterion":"Realistic target vs current level","met":true},{"criterion":"Batch timing suits student schedule","met":true},{"criterion":"Enrollment agreement signed","met":true},{"criterion":"Course fee collected","met":true}],"redFlagsBanner":"If attendance drops or mocks stay far below target, pause exam booking and reset the study plan.","redFlags":[{"title":"Unrealistic target","description":"Large gap expected in very short timeline.","fix":"Reset timeline or recommend appropriate program","severity":"Very common"},{"title":"Chronic absenteeism","description":"Below 80% attendance.","fix":"Counselor call, batch change, or pause","severity":"Common"},{"title":"Guaranteed score promised","description":"Sales or counselor over-commitment.","fix":"Compliance issue — never guarantee scores","severity":"High"}],"faqs":[{"q":"Who pays the official exam fee?","a":"The student pays the test authority directly where applicable. FLC coaching fee is separate."},{"q":"Can Future Link guarantee the target score?","a":"No. We set targets from diagnostics and track progress — outcomes depend on student effort and attendance."},{"q":"Are books included?","a":"Verify program variant — some batches include books, others are materials-light."},{"q":"How many mock tests?","a":"Minimum per program policy — track mocks before advising exam booking."}],"compliance":["Never guarantee exam scores or bands","Separate coaching fee from exam registration fee","Signed enrollment agreement before batch start","Record diagnostic and mock scores on client file"],"proTips":["Set target in writing at enrollment","Review mock trends weekly","Confirm correct test/module for student pathway","Book official exam only when mocks support readiness"],"postApproval":["Collect official score report when released","Update client record for admissions / visa team","Plan retake or booster if below target"],"performance":{"ourRate":80,"industryRate":65,"stats":[{"label":"Program enrollments","value":"—"}]},"approvalFactors":[{"label":"Attendance 80%+","ours":86,"benchmark":72},{"label":"Mock completion","ours":88,"benchmark":74}],"timeline":[{"weeks":"1","title":"Diagnostic, enrollment, batch allocation"},{"weeks":"2–8","title":"Classes, homework, skill drills"},{"weeks":"6–8","title":"Mocks and readiness review"},{"weeks":"8+","title":"Exam booking, test day prep, score follow-up"}],"relatedServices":[],"changelog":[{"version":"v1.0","date":"June 2026","author":"Service Library","summary":"Initial German B1 Speaking coaching specimen."}],"staffNotes":[{"author":"Coaching team","date":"June 2026","text":"Use this specimen for counselor training on German B1 Speaking."}],"resources":[],"donts":{"dos":["Run diagnostic before quoting timeline","Track attendance and mocks","Keep exam fee separate on quotes"],"donts":["Guarantee scores","Book exam before readiness","Skip enrollment agreement"],"mistakes":["Unrealistic target timeline","No mock before exam date","Visa team not updated when target met"]},"sampleDocs":[],"quiz":[{"question":"Counselors must never for German B1 Speaking:","options":["Track attendance","Guarantee exam scores","Issue materials","Run diagnostic"],"correctIndex":1,"explanation":"Score guarantees are prohibited for all coaching programs.","level":1},{"question":"German B1 Speaking coaching fee and official exam fee should be:","options":["Combined on one line","Shown separately","Hidden from student","Included in visa fee"],"correctIndex":1,"explanation":"Coaching and exam fees must be quoted separately.","level":1},{"question":"Before enrollment in German B1 Speaking, FLC recommends:","options":["Skip diagnostic","Diagnostic and realistic target set","Guarantee top score","No agreement needed"],"correctIndex":1,"explanation":"Diagnostic and target alignment are required before batch start.","level":1},{"question":"Minimum attendance standard for German B1 Speaking is typically:","options":["50%","80%","100%","Not tracked"],"correctIndex":1,"explanation":"Review attendance when it drops below 80%.","level":1},{"question":"Enrollment agreement for German B1 Speaking should be signed:","options":["After course ends","Before batch start","Never","Only on request"],"correctIndex":1,"explanation":"Signed agreement before classes begin.","level":2}]}'::jsonb, updated_at = now()
+WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages';
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1),
+  'French Language (General / Custom) — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-general-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language (General / Custom)'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-general-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1),
+  'French Language A1 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-a1-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language A1'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-a1-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1),
+  'French Language A2 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-a2-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language A2'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-a2-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1),
+  'French Language B1 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-b1-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language B1'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-b1-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1),
+  'French Language B2 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-b2-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language B2'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-b2-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1),
+  'French Language C1 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-c1-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language C1'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-c1-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1),
+  'French Language C2 — Enrollment Checklist.html',
+  '/specimens/coaching/french-language-c2-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — French Language C2'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/french-language-c2-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1),
+  'German Language A1 Regular — Enrollment Checklist.html',
+  '/specimens/coaching/german-language-a1-regular-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — German Language A1 Regular'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/german-language-a1-regular-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1),
+  'German A2 Regular (with books) — Enrollment Checklist.html',
+  '/specimens/coaching/german-a2-regular-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — German A2 Regular (with books)'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/german-a2-regular-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1),
+  'German A2 Crash (with books) — Enrollment Checklist.html',
+  '/specimens/coaching/german-a2-crash-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — German A2 Crash (with books)'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/german-a2-crash-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1),
+  'German B1 Regular (with books) — Enrollment Checklist.html',
+  '/specimens/coaching/german-b1-regular-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — German B1 Regular (with books)'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/german-b1-regular-checklist.html'
+);
+
+INSERT INTO public.service_library_checklist_files
+  (library_id, file_name, file_path, mime_type, size_bytes, version, is_current, notes)
+SELECT
+  (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1),
+  'German B1 Speaking — Enrollment Checklist.html',
+  '/specimens/coaching/german-b1-speaking-checklist.html',
+  'text/html',
+  0,
+  1,
+  true,
+  'Coaching enrollment checklist — German B1 Speaking'
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_checklist_files cf
+  WHERE cf.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1)
+    AND cf.file_path = '/specimens/coaching/german-b1-speaking-checklist.html'
+);
+
+-- Submission checklist — French Language (General / Custom)
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language (General / Custom)' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language A1
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A1' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language A2
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language A2' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language B1
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B1' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language B2
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language B2' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language C1
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C1' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — French Language C2
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'French Language C2' AND sub_service = 'French Language' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — German Language A1 Regular
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German Language A1 Regular' AND sub_service = 'European Languages' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — German A2 Regular (with books)
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — German A2 Crash (with books)
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German A2 Crash (with books)' AND sub_service = 'European Languages' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — German B1 Regular (with books)
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Regular (with books)' AND sub_service = 'European Languages' LIMIT 1) AND c.item_key = x.item_key
+);
+
+-- Submission checklist — German B1 Speaking
+INSERT INTO public.service_library_submission_checklist
+  (library_id, item_key, item_label, is_mandatory, sort_order, is_active)
+SELECT (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1), x.item_key, x.item_label, x.is_mandatory, x.sort_order, true
+FROM (VALUES
+  ('diagnostic_completed', 'Diagnostic / level assessment completed', true, 1),
+  ('enrollment_agreement_signed', 'Enrollment agreement signed', true, 2),
+  ('course_fee_collected', 'Course fee collected; receipt issued', true, 3),
+  ('batch_assigned', 'Batch assigned and schedule shared', true, 4),
+  ('materials_issued', 'Books / materials issued and logged', true, 5),
+  ('attendance_tracking_active', 'Attendance tracking active on file', true, 6),
+  ('mock_tests_scheduled', 'Mock tests scheduled and tracked', true, 7),
+  ('exam_registration_guidance', 'Exam registration guidance provided (if applicable)', false, 8),
+  ('counselor_review_completed', 'Counselor progress review completed', true, 9),
+  ('completion_or_handoff', 'Course completion / handoff documented', true, 10)
+) AS x(item_key, item_label, is_mandatory, sort_order)
+WHERE (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1) IS NOT NULL
+  AND NOT EXISTS (
+  SELECT 1 FROM public.service_library_submission_checklist c
+  WHERE c.library_id = (SELECT id FROM public.service_library WHERE service_category = 'coaching_services' AND service = 'German B1 Speaking' AND sub_service = 'European Languages' LIMIT 1) AND c.item_key = x.item_key
+);

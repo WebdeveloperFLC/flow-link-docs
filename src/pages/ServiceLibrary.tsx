@@ -110,7 +110,11 @@ export default function ServiceLibrary() {
     setTreeSearch("");
     setCoachingFamily(null);
     setCoachingVariant(null);
-    if (cat === "visa") setCountryFilter("ALL");
+    if (cat === "visa") {
+      setCountryFilter("ALL");
+    } else {
+      setDetailCountry("");
+    }
   };
 
   const handleCountryChange = (c: string) => {
@@ -146,11 +150,11 @@ export default function ServiceLibrary() {
   }, [detail.data?.view.masterId, detail.data?.view.isCoaching, detail.data?.view.coachingProfile, activeTab]);
 
   useEffect(() => {
-    if (!detail.data) return;
+    if (!detail.data || categoryFilter !== "visa") return;
     const { countries, detailCountry: dc } = detail.data;
     const next = dc ?? countries[0] ?? "";
     if (next && next !== detailCountry) setDetailCountry(next);
-  }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry]);
+  }, [detail.data?.master.id, detail.data?.detailCountry, detailCountry, categoryFilter]);
 
   const showNavPanel = !selectedId || !navReadyForSelection;
 

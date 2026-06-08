@@ -8,6 +8,10 @@ import {
   type CoachingVariant,
 } from "@/lib/service-library/serviceNavClassification";
 import { isExcludedCatalogueService } from "@/lib/service-library/excludedCatalogueServices";
+import {
+  resolveCoachingFamilyKey,
+  resolveCoachingVariantLabel,
+} from "@/lib/leads/servicePickerGroups";
 
 export type AcademyCategoryFilter = "visa" | "coaching";
 
@@ -141,12 +145,43 @@ function metaOf(m: MasterRow) {
   } | undefined;
 }
 
+function coachingFamilyKey(m: MasterRow): string {
+  return resolveCoachingFamilyKey(m.service, m.sub_service);
+}
+
+function coachingVariantOf(m: MasterRow): CoachingVariant {
+  const label = resolveCoachingVariantLabel(m.service, m.sub_service, metaOf(m)?.displayName);
+  return classifyCoachingVariant(label, metaOf(m)?.displayName);
+}
+
+/** Hide bare family parent when specific variants exist (e.g. French Language vs French Language A1). */
+function dropGenericCoachingParent(rows: MasterRow[], familyKey: string): MasterRow[] {
+  if (rows.length <= 1) return rows;
+
+  const familyNorm = familyKey.trim().toLowerCase();
+  const variantLabel = (m: MasterRow) =>
+    resolveCoachingVariantLabel(m.service, m.sub_service, metaOf(m)?.displayName).trim().toLowerCase();
+
+  const hasSpecificVariant = rows.some((m) => {
+    const label = variantLabel(m);
+    return label !== familyNorm && label.startsWith(familyNorm);
+  });
+
+  if (!hasSpecificVariant) return rows;
+
+  return rows.filter((m) => variantLabel(m) !== familyNorm);
+}
+
 function itemLabel(m: MasterRow, activeCountry?: string): string {
   const meta = metaOf(m);
   if (meta?.displayName) return meta.displayName;
 
   if (activeCountry && activeCountry !== "ALL") {
     return m.sub_service;
+  }
+
+  if (m.service_category === "coaching_services") {
+    return resolveCoachingVariantLabel(m.service, m.sub_service, meta?.displayName);
   }
 
   const countries = resolveServiceCountries(
@@ -163,11 +198,16 @@ function itemLabel(m: MasterRow, activeCountry?: string): string {
 function matchesSearch(m: MasterRow, q: string): boolean {
   if (!q) return true;
   const meta = metaOf(m);
+  const coachingHay =
+    m.service_category === "coaching_services"
+      ? [coachingFamilyKey(m), resolveCoachingVariantLabel(m.service, m.sub_service, meta?.displayName)]
+      : [];
   const hay = [
     m.service,
     m.sub_service,
     meta?.displayName,
     meta?.shortDescription,
+    ...coachingHay,
     ...(m.service_library_countries ?? []).map((c) => c.country),
   ]
     .filter(Boolean)
@@ -320,7 +360,7 @@ export function buildAcademyNav(
   if (!opts.coachingFamily) {
     const byFamily = new Map<string, MasterRow[]>();
     for (const m of coachingRows) {
-      const key = m.service.trim() || "Other";
+      const key = coachingFamilyKey(m);
       byFamily.set(key, [...(byFamily.get(key) ?? []), m]);
     }
     const families = [...byFamily.entries()].sort(([a], [b]) => a.localeCompare(b));
@@ -340,16 +380,12 @@ export function buildAcademyNav(
     };
   }
 
-  const familyRows = coachingRows.filter((m) => m.service === opts.coachingFamily);
+  const familyRows = coachingRows.filter((m) => coachingFamilyKey(m) === opts.coachingFamily);
   if (familyRows.length === 0) {
     return { group: null, activeCount, reviewCount };
   }
 
-  const variantSet = new Set(
-    familyRows.map((m) =>
-      classifyCoachingVariant(m.sub_service, metaOf(m)?.displayName),
-    ),
-  );
+  const variantSet = new Set(familyRows.map((m) => coachingVariantOf(m)));
   const hasGeneralAcademicSplit =
     opts.coachingFamily.toLowerCase() === "ielts" ||
     (variantSet.has("general") && variantSet.has("academic"));
@@ -365,9 +401,7 @@ export function buildAcademyNav(
           .map((key) => ({
             key,
             label: coachingVariantLabel(key),
-            count: familyRows.filter(
-              (m) => classifyCoachingVariant(m.sub_service, metaOf(m)?.displayName) === key,
-            ).length,
+            count: familyRows.filter((m) => coachingVariantOf(m) === key).length,
           }))
           .filter((v) => v.count > 0),
       },
@@ -377,11 +411,10 @@ export function buildAcademyNav(
   }
 
   const variantFilter = opts.coachingVariant ?? (hasGeneralAcademicSplit ? null : "other");
-  const serviceRows = variantFilter
-    ? familyRows.filter(
-        (m) => classifyCoachingVariant(m.sub_service, metaOf(m)?.displayName) === variantFilter,
-      )
+  const filteredByVariant = variantFilter
+    ? familyRows.filter((m) => coachingVariantOf(m) === variantFilter)
     : familyRows;
+  const serviceRows = dropGenericCoachingParent(filteredByVariant, opts.coachingFamily);
 
   return {
     group: {

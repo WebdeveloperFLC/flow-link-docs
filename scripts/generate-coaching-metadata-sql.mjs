@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Generate supabase/migrations/*_seed_coaching_ielts_services.sql
- * from content/service-library/coaching-ielts-*.json
+ * Legacy entry — regenerates original IELTS migration (071–074).
+ * For full coaching registry migrations use: node scripts/generate-coaching-migrations.mjs
  *
  * Usage: node scripts/generate-coaching-metadata-sql.mjs
  */
