@@ -12,6 +12,10 @@ export type NotificationCategory =
   | "lead_converted"
   | "urgent_review_required"
   | "portal_message"
+  | "direct_message"
+  | "team_message"
+  | "client_team_message"
+  | "mention"
   | "handoff_received"
   | "client_access_granted"
   | "offer_published"
@@ -289,6 +293,10 @@ const SOUND_CATEGORIES: ReadonlySet<NotificationCategory> = new Set([
   "new_task_assigned",
   "client_assigned",
   "portal_message",
+  "direct_message",
+  "team_message",
+  "client_team_message",
+  "mention",
   "urgent_review_required",
   "handoff_received",
   "offer_published",

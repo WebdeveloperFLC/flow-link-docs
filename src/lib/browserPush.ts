@@ -11,6 +11,10 @@ const PUSH_CATEGORIES = new Set([
   "urgent_review_required",
   "new_task_assigned",
   "portal_message",
+  "direct_message",
+  "team_message",
+  "client_team_message",
+  "mention",
   "payment_verified",
 ]);
 

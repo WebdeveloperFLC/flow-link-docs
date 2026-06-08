@@ -197,7 +197,7 @@ export function UnifiedChat({
         | { storage_path: string; file_name: string; mime_type: string | null; size_bytes: number | null }[]
         | undefined;
       if (pendingFile) {
-        const a = await uploadChatAttachment(clientId, pendingFile);
+        const a = await uploadChatAttachment({ clientId, channelId, file: pendingFile });
         atts = [a];
       }
       const { mentionUserIds } = parseMentions(input);
