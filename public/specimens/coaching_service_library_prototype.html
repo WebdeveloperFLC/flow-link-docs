@@ -1,0 +1,482 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:transparent}
+:root{--sidebar-w:220px;--header-h:48px}
+.app{display:flex;height:820px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-primary)}
+.sidebar{width:var(--sidebar-w);background:#1a1a2e;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-logo{padding:14px 14px 10px;border-bottom:0.5px solid rgba(255,255,255,0.1)}
+.logo-box{background:#2d2d4a;border-radius:6px;padding:8px;text-align:center}
+.logo-text{color:#a5b4fc;font-size:10px;font-weight:500;letter-spacing:0.5px;margin-top:4px}
+.sidebar-section{font-size:10px;font-weight:500;color:rgba(255,255,255,0.35);padding:10px 14px 4px;letter-spacing:0.8px;text-transform:uppercase}
+.nav-item{padding:7px 14px;font-size:12.5px;color:rgba(255,255,255,0.6);cursor:pointer;display:flex;align-items:center;gap:8px;border-radius:0;transition:background 0.15s}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.9)}
+.nav-item.active{background:#3b3b6b;color:#fff}
+.nav-item.sub{padding-left:24px;font-size:12px}
+.nav-item.active-sub{background:#4f46e5;color:#fff;border-radius:4px;margin:1px 8px}
+.badge{background:rgba(165,180,252,0.2);color:#a5b4fc;font-size:10px;padding:1px 6px;border-radius:10px;margin-left:auto}
+.badge.active{background:#4f46e5;color:#fff}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:var(--header-h);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;padding:0 20px;gap:10px;background:var(--color-background-primary)}
+.breadcrumb{font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
+.breadcrumb .cur{color:var(--color-text-primary);font-weight:500}
+.topbar-right{margin-left:auto;display:flex;gap:8px}
+.btn{font-size:12px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.btn.primary{background:#4f46e5;color:#fff;border-color:#4f46e5}
+.content{flex:1;overflow-y:auto;padding:20px}
+.page-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.service-icon{width:44px;height:44px;background:#eef2ff;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.page-title{font-size:20px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.page-sub{font-size:12.5px;color:var(--color-text-secondary)}
+.tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.tag{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.tag.green{background:#eaf3de;color:#3b6d11}
+.tag.blue{background:#e6f1fb;color:#185fa5}
+.tag.amber{background:#faeeda;color:#854f0b}
+.tag.purple{background:#eeedfe;color:#534ab7}
+.tag.gray{background:#f1efe8;color:#5f5e5a}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px 14px}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-val{font-size:20px;font-weight:500;color:var(--color-text-primary)}
+.stat-note{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-tertiary);margin-bottom:16px;overflow-x:auto}
+.tab{font-size:12.5px;padding:8px 14px;color:var(--color-text-secondary);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;flex-shrink:0}
+.tab.active{color:#4f46e5;border-bottom-color:#4f46e5;font-weight:500}
+.tab:hover{color:var(--color-text-primary)}
+.section-title{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.card-icon{font-size:16px;color:#4f46e5}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.card-desc{font-size:12px;color:var(--color-text-secondary);line-height:1.5}
+.item-list{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.item{font-size:11.5px;color:var(--color-text-secondary);display:flex;align-items:center;gap:6px}
+.item::before{content:"";width:5px;height:5px;background:#4f46e5;border-radius:50%;flex-shrink:0}
+.sidebar-panel{width:200px;border-left:0.5px solid var(--color-border-tertiary);padding:14px;background:var(--color-background-primary);overflow-y:auto;flex-shrink:0}
+.panel-section{margin-bottom:16px}
+.panel-label{font-size:10px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px}
+.progress-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.progress-label{font-size:11.5px;color:var(--color-text-secondary);flex:1}
+.progress-bar{height:4px;background:var(--color-background-secondary);border-radius:2px;width:80px;flex-shrink:0}
+.progress-fill{height:100%;border-radius:2px;background:#4f46e5}
+.progress-pct{font-size:11px;color:#4f46e5;font-weight:500;width:28px;text-align:right}
+.related-item{font-size:12px;color:#4f46e5;padding:5px 0;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center}
+.checklist-item{display:flex;align-items:center;gap:6px;padding:5px 0;font-size:12px;color:var(--color-text-secondary)}
+.check-box{width:14px;height:14px;border:0.5px solid var(--color-border-secondary);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.check-box.done{background:#4f46e5;border-color:#4f46e5;color:#fff;font-size:9px}
+.full-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px}
+.band-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.band-box{background:var(--color-background-secondary);border-radius:6px;padding:10px;text-align:center}
+.band-name{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.band-val{font-size:18px;font-weight:500;color:#4f46e5}
+.band-sub{font-size:10px;color:var(--color-text-secondary)}
+.score-table{width:100%;font-size:12px;border-collapse:collapse}
+.score-table th{text-align:left;padding:6px 8px;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px}
+.score-table td{padding:6px 8px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary)}
+.score-table tr:last-child td{border-bottom:none}
+.nav-btn{font-size:11px;background:none;border:none;color:#4f46e5;cursor:pointer;padding:0}
+.selector-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
+.test-selector{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.15s}
+.test-selector:hover{border-color:#4f46e5}
+.test-selector.selected{background:#eef2ff;border-color:#4f46e5}
+.test-selector .t-icon{font-size:18px;margin-bottom:4px}
+.test-selector .t-name{font-size:11px;font-weight:500;color:var(--color-text-primary)}
+.test-selector .t-type{font-size:10px;color:var(--color-text-secondary);margin-top:1px}
+.alert-box{background:#faeeda;border:0.5px solid #ef9f27;border-radius:var(--border-radius-md);padding:10px 12px;font-size:12px;color:#633806;margin-bottom:12px;display:flex;gap:8px;align-items:flex-start}
+</style>
+
+<h2 class="sr-only">Coaching Service Library prototype for Future Link Consultants — showing IELTS, TOEFL, GMAT, GRE, SAT, CELPIP, Duolingo, French, German, and PTE test coaching pages with overview, scoring guide, eligibility, checklist, and counselor resources.</h2>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-box">
+        <div style="width:100%;height:22px;background:#3b3b6b;border-radius:4px;display:flex;align-items:center;justify-content:center">
+          <span style="color:#a5b4fc;font-size:9px;font-weight:500;letter-spacing:1px">FUTURE LINK</span>
+        </div>
+      </div>
+      <div class="logo-text">SERVICE LIBRARY</div>
+    </div>
+
+    <div style="padding:8px 8px 4px">
+      <div class="nav-item" style="color:rgba(255,255,255,0.5);font-size:11.5px">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i> Back to CRM
+      </div>
+    </div>
+
+    <div class="nav-item active" style="margin:2px 6px;border-radius:4px">
+      <i class="ti ti-world" aria-hidden="true" style="font-size:14px"></i> Visa & Immigration
+      <span class="badge">14</span>
+    </div>
+    <div class="nav-item active" style="margin:2px 6px;border-radius:4px;background:#4f46e5">
+      <i class="ti ti-school" aria-hidden="true" style="font-size:14px"></i> Coaching
+      <span class="badge active">10</span>
+    </div>
+
+    <div class="sidebar-section">Coaching types</div>
+
+    <div id="nav-ielts" class="nav-item sub active-sub" onclick="showPage('ielts')">🎧 IELTS</div>
+    <div id="nav-toefl" class="nav-item sub" onclick="showPage('toefl')" style="color:rgba(255,255,255,0.55)">📝 TOEFL iBT</div>
+    <div id="nav-celpip" class="nav-item sub" onclick="showPage('celpip')" style="color:rgba(255,255,255,0.55)">🍁 CELPIP</div>
+    <div id="nav-duolingo" class="nav-item sub" onclick="showPage('duolingo')" style="color:rgba(255,255,255,0.55)">🦅 Duolingo English</div>
+    <div id="nav-pte" class="nav-item sub" onclick="showPage('pte')" style="color:rgba(255,255,255,0.55)">💻 PTE Academic</div>
+    <div id="nav-french" class="nav-item sub" onclick="showPage('french')" style="color:rgba(255,255,255,0.55)">🇫🇷 French (TEF/TCF)</div>
+    <div id="nav-german" class="nav-item sub" onclick="showPage('german')" style="color:rgba(255,255,255,0.55)">🇩🇪 German (Goethe/TestDaF)</div>
+    <div id="nav-sat" class="nav-item sub" onclick="showPage('sat')" style="color:rgba(255,255,255,0.55)">📐 SAT</div>
+    <div id="nav-gre" class="nav-item sub" onclick="showPage('gre')" style="color:rgba(255,255,255,0.55)">🎓 GRE</div>
+    <div id="nav-gmat" class="nav-item sub" onclick="showPage('gmat')" style="color:rgba(255,255,255,0.55)">📊 GMAT</div>
+
+    <div style="margin-top:auto;padding:10px 14px;border-top:0.5px solid rgba(255,255,255,0.1)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;background:#4f46e5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:500">SA</div>
+        <div>
+          <div style="font-size:11.5px;color:#fff;font-weight:500">santoshramrakhiani</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.45)">Counselor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="breadcrumb">
+        <span>Service Library</span>
+        <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>
+        <span>Coaching</span>
+        <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i>
+        <span id="breadcrumb-cur" class="cur">IELTS</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn"><i class="ti ti-book-2" aria-hidden="true"></i> Resources</button>
+        <button class="btn"><i class="ti ti-help-circle" aria-hidden="true"></i> Take quiz</button>
+        <button class="btn primary"><i class="ti ti-plus" aria-hidden="true"></i> New application</button>
+      </div>
+    </div>
+
+    <div class="content" id="main-content">
+      <!-- IELTS Page rendered by JS -->
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="sidebar-panel">
+    <div class="panel-section">
+      <div class="panel-label">My training progress</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:44px;height:44px;background:#eef2ff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#4f46e5;border:2px solid #4f46e5">75%</div>
+        <div style="font-size:12px;color:var(--color-text-primary);font-weight:500">3 of 4 sections</div>
+      </div>
+      <div class="progress-row"><span class="progress-label">Overview</span><span style="font-size:12px;color:#3b6d11">✓</span></div>
+      <div class="progress-row"><span class="progress-label">Score guide</span><span style="font-size:12px;color:#3b6d11">✓</span></div>
+      <div class="progress-row"><span class="progress-label">Checklist</span><span style="font-size:12px;color:#3b6d11">✓</span></div>
+      <div class="progress-row"><span class="progress-label">Process</span><span style="font-size:12px;color:var(--color-text-secondary)">○</span></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Approval factors</div>
+      <div class="progress-row">
+        <span class="progress-label" style="font-size:11px">Client satisfaction</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
+        <span class="progress-pct">88%</span>
+      </div>
+      <div class="progress-row">
+        <span class="progress-label" style="font-size:11px">Score improvement</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:82%"></div></div>
+        <span class="progress-pct">82%</span>
+      </div>
+      <div class="progress-row">
+        <span class="progress-label" style="font-size:11px">Test pass rate</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:91%"></div></div>
+        <span class="progress-pct">91%</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Related services</div>
+      <div class="related-item">Canada – Express Entry <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i></div>
+      <div class="related-item">Canada – Study Permit <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i></div>
+      <div class="related-item">Australia – PR Skilled <i class="ti ti-chevron-right" style="font-size:12px" aria-hidden="true"></i></div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-label">Quick actions</div>
+      <button class="btn primary" style="width:100%;margin-bottom:6px;font-size:12px">+ New application</button>
+      <button class="btn" style="width:100%;font-size:12px"><i class="ti ti-download" aria-hidden="true"></i> Download checklist</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const pages = {
+ielts: {
+  title: 'IELTS',
+  fullTitle: 'IELTS – International English Language Testing System',
+  icon: '🎧',
+  sub: 'British Council / IDP · Academic & General Training · English Proficiency',
+  tags: [['Active service','green'],['Most accepted','blue'],['Academic & GT','purple'],['Band scored','gray']],
+  stats: [
+    {label:'Test format',val:'Listening + Reading + Writing + Speaking',note:'4 sections'},
+    {label:'Score range',val:'0–9 bands',note:'0.5 increments'},
+    {label:'Result time',val:'3–5 days',note:'Online & paper'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'4 modules: Listening (30 min), Reading (60 min), Writing (60 min), Speaking (11–14 min). Total ~2h 45min.',items:['Academic: complex texts, essays, graphs','General Training: workplace/everyday language','Same Listening & Speaking for both']},
+    {icon:'ti-target',title:'Who needs it',desc:'Required for Canadian Express Entry, Australian PR, UK visa, and most English-speaking country immigration.',items:['Canada: CLB 7+ = IELTS 6.0 overall','Australia: typically 6.0–8.0 per visa type','UK: 4.0–7.0 depending on visa category','Study permits: 6.0+ academic usually required']},
+    {icon:'ti-chart-line',title:'CLB / score mapping',desc:'Critical for Canadian immigration clients. Band scores map directly to CLB levels used in Express Entry.',items:['CLB 9 = Band 7.0+','CLB 8 = Band 6.5','CLB 7 = Band 6.0','CLB 10+ = Band 8.0+']},
+    {icon:'ti-book',title:'Prep resources',desc:'British Council and IDP provide official prep materials. Cambridge IELTS books 1–17 are the gold standard.',items:['Official Cambridge IELTS books (1–17)','BC/IDP practice tests online','E2Language & IELTS.org resources','Mock speaking sessions recommended']}
+  ]
+},
+toefl: {
+  title: 'TOEFL iBT',
+  fullTitle: 'TOEFL iBT – Test of English as a Foreign Language',
+  icon: '📝',
+  sub: 'ETS (Educational Testing Service) · Internet-Based Test · Academic English',
+  tags: [['Active service','green'],['US/Canada focused','blue'],['Academic only','purple'],['Scaled 0–120','gray']],
+  stats: [
+    {label:'Test format',val:'Reading + Listening + Speaking + Writing',note:'4 sections'},
+    {label:'Score range',val:'0–120 total',note:'30 pts per section'},
+    {label:'Result time',val:'4–8 days',note:'Online delivery'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: 'TOEFL is not accepted by IRCC for Canadian immigration. Counsel clients applying for Canada to take IELTS or CELPIP instead.',
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Reading (54–72 min), Listening (41–57 min), Speaking (17 min), Writing (50 min). No paper option.',items:['Integrated tasks combine multiple skills','Speaking recorded via microphone','Writing includes integrated + independent essays','Home edition available']},
+    {icon:'ti-target',title:'Who needs it',desc:'Primarily for US university admissions and some Canadian universities. Not accepted by IRCC for immigration.',items:['US university admissions: 80–100+ typically','UK universities: 88–100+ usually required','Canadian universities accept alongside IELTS','NOT valid for Canadian Express Entry / PR']},
+    {icon:'ti-chart-line',title:'Score conversion',desc:'Many institutions publish TOEFL-to-IELTS equivalency. A score of 90 ≈ IELTS 6.5–7.0.',items:['120 = IELTS 9.0','100 = IELTS 7.0','88 = IELTS 6.5','79 = IELTS 6.0']},
+    {icon:'ti-book',title:'Prep resources',desc:'ETS official prep materials are the most reliable. TOEFL Prep Plus by Kaplan is widely recommended.',items:['ETS TOEFL official practice sets','Magoosh TOEFL online course','Kaplan TOEFL Prep Plus book','Official ETS practice tests (free + paid)']}
+  ]
+},
+celpip: {
+  title: 'CELPIP',
+  fullTitle: 'CELPIP – Canadian English Language Proficiency Index Program',
+  icon: '🍁',
+  sub: 'Paragon Testing Enterprises · Canada-specific · Listening, Reading, Writing, Speaking',
+  tags: [['Active service','green'],['Canada only','blue'],['IRCC approved','purple'],['CLB mapped','amber']],
+  stats: [
+    {label:'Test format',val:'Listening + Reading + Writing + Speaking',note:'Computer-based only'},
+    {label:'Score range',val:'M, 1–12 per section',note:'CLB 1–12 mapped'},
+    {label:'Result time',val:'4–5 days',note:'Computerized scoring'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Fully computer-based. Listening & Reading (47–55 min each), Writing (53 min), Speaking (15–20 min via computer).',items:['100% computer based — no human examiner','Speaking into microphone — less anxiety for some','Immediate scoring environment','Available only in Canada and select cities abroad']},
+    {icon:'ti-target',title:'Who needs it',desc:'Exclusively for Canadian immigration and citizenship. IRCC accepts CELPIP-General alongside IELTS.',items:['Canadian Express Entry: CLB 7+ needed','Canadian citizenship: CLB 4 minimum','Provincial Nominee Programs: varies','NOT suitable for study or non-Canadian applications']},
+    {icon:'ti-chart-line',title:'CELPIP to CLB mapping',desc:'Each CELPIP level corresponds directly to a CLB level — the same as IELTS. Use this to set client targets.',items:['CELPIP 7 = CLB 7','CELPIP 9 = CLB 9','CELPIP 10 = CLB 10','CELPIP 12 = CLB 12 (max)']},
+    {icon:'ti-book',title:'Prep resources',desc:'Paragon provides official free and paid practice tests. The CELPIP Study Guide is the primary resource.',items:['Official CELPIP practice tests (free sample)','CELPIP Study Guide (Paragon)','Collins CELPIP prep book','YouTube CELPIP practice channels']}
+  ]
+},
+duolingo: {
+  title: 'Duolingo English',
+  fullTitle: 'Duolingo English Test (DET)',
+  icon: '🦅',
+  sub: 'Duolingo Inc. · Online proctored · Modern adaptive test',
+  tags: [['Active service','green'],['Online only','blue'],['Fast results','amber'],['Not for immigration','gray']],
+  stats: [
+    {label:'Test format',val:'Adaptive computer-based test',note:'~60 min total'},
+    {label:'Score range',val:'10–160 overall',note:'4 subscores too'},
+    {label:'Result time',val:'2 days',note:'Online proctored'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: 'DET is NOT accepted by IRCC for Canadian immigration or most PR applications. Advise clients accordingly before enrollment.',
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Adaptive test covering Literacy, Comprehension, Conversation, Production. Taken from home with AI proctoring.',items:['Literacy: reading & writing skills','Comprehension: listening & reading','Conversation: speaking & listening','Production: writing & speaking independently']},
+    {icon:'ti-target',title:'Who accepts it',desc:'Over 4,000 universities worldwide accept DET. NOT accepted for immigration by IRCC, UKVI, or Australian Home Affairs.',items:['US & Canadian universities: widely accepted','UK/Australian universities: some accept it','Immigration: NOT accepted anywhere currently','Best for: student visa applications only']},
+    {icon:'ti-chart-line',title:'Score benchmarks',desc:'Scores from 10–160. Most universities require 100–120 for admission.',items:['100 ≈ IELTS 6.0 / TOEFL 79','110 ≈ IELTS 6.5 / TOEFL 88','120 ≈ IELTS 7.0 / TOEFL 100','160 = maximum (rare)']},
+    {icon:'ti-book',title:'Prep resources',desc:'Duolingo provides free official practice test. Third-party resources are limited compared to IELTS/TOEFL.',items:['Official DET free practice test','E2Language DET prep course','DET official YouTube channel','Gregmat DET preparation guides']}
+  ]
+},
+pte: {
+  title: 'PTE Academic',
+  fullTitle: 'PTE Academic – Pearson Test of English',
+  icon: '💻',
+  sub: 'Pearson · Computer-scored · AI-based assessment · Academic English',
+  tags: [['Active service','green'],['AI scored','blue'],['Australia focused','purple'],['0–90 score','gray']],
+  stats: [
+    {label:'Test format',val:'Speaking+Writing · Reading · Listening',note:'3 parts, 2–3 hrs'},
+    {label:'Score range',val:'10–90 per section',note:'AI scored instantly'},
+    {label:'Result time',val:'1–5 days',note:'Usually within 48h'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'3 timed parts. Speaking & Writing (77–93 min), Reading (32–41 min), Listening (45–57 min). Fully AI-scored.',items:['20 task types across 3 parts','AI scoring — no human bias, instant results','Integrated tasks test multiple skills at once','Computer microphone for speaking tasks']},
+    {icon:'ti-target',title:'Who needs it',desc:'Widely accepted for Australian immigration (PR, student). Also accepted by Canada and UK for some visa categories.',items:['Australia PR: typically 65+ per section','Australia student visa: 50–58+ per section','Canada IRCC: does NOT accept PTE yet','UK: some universities accept PTE Academic']},
+    {icon:'ti-chart-line',title:'Score mapping',desc:'PTE 65 = IELTS 7.0. Score conversion published by Pearson.',items:['PTE 50 ≈ IELTS 6.0','PTE 58 ≈ IELTS 6.5','PTE 65 ≈ IELTS 7.0','PTE 79 ≈ IELTS 8.0']},
+    {icon:'ti-book',title:'Prep resources',desc:'Pearson\'s official PTE Preparation app and E2 PTE are the top resources.',items:['Official PTE Preparation app (Pearson)','E2Language PTE video lessons','PTE Study Guide app','PTEPractice.com free mock tests']}
+  ]
+},
+french: {
+  title: 'French (TEF/TCF)',
+  fullTitle: 'French Language Tests – TEF Canada & TCF Canada',
+  icon: '🇫🇷',
+  sub: 'CCIP (TEF) · CIEP/France Éducation (TCF) · French proficiency for immigration',
+  tags: [['Active service','green'],['IRCC approved','blue'],['Canada immigration','purple'],['NCLC mapped','amber']],
+  stats: [
+    {label:'Tests available',val:'TEF Canada & TCF Canada',note:'Both IRCC approved'},
+    {label:'Score range',val:'NCLC 1–12',note:'Mapped like CLB'},
+    {label:'Result time',val:'3–4 weeks',note:'Manual scoring'},
+    {label:'Validity',val:'2 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Both TEF Canada and TCF Canada cover Listening, Reading, Writing, Speaking (oral expression).',items:['TEF Canada: 4 mandatory components','TCF Canada: 4 mandatory components','Results expressed in NCLC levels','Available in major Canadian cities & abroad']},
+    {icon:'ti-target',title:'Who needs it',desc:'French-speaking clients applying for Canadian immigration — especially valuable for higher Express Entry points.',items:['Express Entry: French = significant bonus points','Francophone streams: PNP for French speakers','TCF/TEF both accepted by IRCC','Quebec immigration uses DELF/DALF separately']},
+    {icon:'ti-chart-line',title:'NCLC mapping',desc:'NCLC levels function like CLB but for French. Key thresholds for Express Entry:',items:['NCLC 7 = 50 pts bonus in EE draw','NCLC 9 = qualifies for Francophone stream','NCLC 4 = minimum for most streams','Both TEF & TCF express results in NCLC']},
+    {icon:'ti-book',title:'Prep resources',desc:'Alliance Française and CCIP offer official prep materials. France Éducation provides TCF-specific resources.',items:['Alliance Française prep courses','TEF Canada official practice kit','Frantastique + TV5 Monde online','TCF practice tests on France Éducation site']}
+  ]
+},
+german: {
+  title: 'German (Goethe / TestDaF)',
+  fullTitle: 'German Language Tests – Goethe-Institut & TestDaF',
+  icon: '🇩🇪',
+  sub: 'Goethe-Institut · TestDaF Institute · A1–C2 level certification',
+  tags: [['Active service','green'],['Germany/Austria','blue'],['Study & immigration','purple'],['CEFR levels','gray']],
+  stats: [
+    {label:'Tests available',val:'Goethe A1–C2 & TestDaF (B2–C1)',note:'CEFR aligned'},
+    {label:'Score range',val:'CEFR A1 to C2',note:'6 proficiency levels'},
+    {label:'Result time',val:'4–6 weeks',note:'Manual scoring'},
+    {label:'Validity',val:'Lifetime (Goethe)',note:'TestDaF: 5 years'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test options',desc:'Goethe-Zertifikat covers A1 to C2. TestDaF targets B2–C1 for university admissions in Germany.',items:['Goethe A1: spouse/family reunification visa','Goethe B1: German citizenship requirement','TestDaF: university admission in Germany','telc Deutsch: alternative accepted by authorities']},
+    {icon:'ti-target',title:'Who needs it',desc:'Clients migrating to Germany, Austria, or Switzerland, or applying to German-medium universities.',items:['Germany spouse visa: A1 required pre-entry','Germany settlement permit: B1 required','German university: TestDaF or DSH required','Austria/Switzerland: Goethe widely accepted']},
+    {icon:'ti-chart-line',title:'CEFR levels explained',desc:'All German tests use CEFR (A1–C2) framework. Requirements vary by visa type.',items:['A1: basic communication, visa entry','B1: independent user, citizenship level','B2/C1: university studies, professional roles','C2: mastery, academic/teaching roles']},
+    {icon:'ti-book',title:'Prep resources',desc:'Goethe-Institut offers official course materials and in-person preparation. Online resources are widely available.',items:['Goethe-Institut official preparation books','DW Learn German (Deutsche Welle free)','Nicos Weg — A1–B1 free course','TestDaF Modelltest (official free practice)']}
+  ]
+},
+sat: {
+  title: 'SAT',
+  fullTitle: 'SAT – Scholastic Assessment Test',
+  icon: '📐',
+  sub: 'College Board · Digital SAT · US university admissions standardized test',
+  tags: [['Active service','green'],['US admissions','blue'],['Digital since 2024','purple'],['400–1600 score','gray']],
+  stats: [
+    {label:'Test format',val:'Evidence-Based Reading & Writing + Math',note:'2 sections'},
+    {label:'Score range',val:'400–1600 total',note:'800 per section'},
+    {label:'Result time',val:'2–4 weeks',note:'Digital scoring faster'},
+    {label:'Validity',val:'5 years',note:'Most schools accept'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Digital SAT (2024+): 2 sections — Reading & Writing (64 min, 54 questions) + Math (70 min, 44 questions). Adaptive.',items:['Adaptive: 2 modules per section','Calculator permitted throughout Math','No penalty for wrong answers','Shorter than old paper SAT (~2hrs 14min)']},
+    {icon:'ti-target',title:'Who needs it',desc:'Required for most US university admissions. Some Canadian and international universities also accept SAT.',items:['Ivy League & top US schools: 1400–1580+','State universities: 1000–1200+','SAT subject tests discontinued (2021)','Some schools now test-optional post-COVID']},
+    {icon:'ti-chart-line',title:'Score benchmarks',desc:'College Board publishes percentile rankings. 1200+ = above average (75th percentile).',items:['1600 = perfect score (rare)','1400+ = top 10% nationally','1200 = 75th percentile','1000 = 50th percentile (average)']},
+    {icon:'ti-book',title:'Prep resources',desc:'Khan Academy (official SAT partner) offers free full prep. College Board official practice tests are essential.',items:['Khan Academy SAT prep (free, official)','College Board official practice tests (8 free)','Princeton Review SAT Prep book','Barron\'s SAT 1600 for advanced students']}
+  ]
+},
+gre: {
+  title: 'GRE',
+  fullTitle: 'GRE – Graduate Record Examination',
+  icon: '🎓',
+  sub: 'ETS · Graduate school admissions · Verbal, Quantitative, Analytical Writing',
+  tags: [['Active service','green'],['Grad school','blue'],['Revised format 2023','purple'],['130–170 scaled','gray']],
+  stats: [
+    {label:'Test format',val:'Verbal + Quantitative + Analytical Writing',note:'Revised 2023'},
+    {label:'Score range',val:'130–170 (V & Q)',note:'AW: 0–6'},
+    {label:'Result time',val:'10–15 days',note:'Official scores'},
+    {label:'Validity',val:'5 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'Revised GRE (2023): shorter test. Verbal Reasoning (41 min), Quantitative Reasoning (47 min), Analytical Writing (30 min).',items:['Verbal: text completion, sentence equivalence, reading','Quantitative: arithmetic, algebra, geometry, data','Analytical Writing: analyze an issue essay only','Total ~1 hr 58 min (shorter than old format)']},
+    {icon:'ti-target',title:'Who needs it',desc:'Graduate school admissions — MBA, MS, PhD programs. Some law and medical schools accept GRE now.',items:['MS programs: most US & UK grad schools','MBA programs: many accept GRE or GMAT','Law school: Harvard Law, Columbia accept GRE','PhD programs: typically required']},
+    {icon:'ti-chart-line',title:'Score benchmarks',desc:'Average GRE scores: Verbal ~150, Quantitative ~153. Top programs expect 160+ in relevant section.',items:['160+ Verbal = strong for humanities','160+ Quant = strong for STEM programs','AW 4.5+ = considered good by schools','325+ combined = competitive for top schools']},
+    {icon:'ti-book',title:'Prep resources',desc:'ETS PowerPrep (free, official) and Magoosh are the most popular. Manhattan Prep for advanced quantitative.',items:['ETS PowerPrep II free practice tests','Magoosh GRE online course','Manhattan Prep GRE (5 lb book for quant)','GregMat+ affordable structured GRE prep']}
+  ]
+},
+gmat: {
+  title: 'GMAT',
+  fullTitle: 'GMAT Focus Edition – Graduate Management Admission Test',
+  icon: '📊',
+  sub: 'GMAC · MBA admissions · Quantitative, Verbal, Data Insights · Focus Edition 2023',
+  tags: [['Active service','green'],['MBA focused','blue'],['Focus Edition 2023','purple'],['205–805 score','gray']],
+  stats: [
+    {label:'Test format',val:'Quantitative + Verbal + Data Insights',note:'Focus Edition'},
+    {label:'Score range',val:'205–805 total',note:'New scoring scale'},
+    {label:'Result time',val:'Same day (unofficial)',note:'Official: 7 days'},
+    {label:'Validity',val:'5 years',note:'From test date'}
+  ],
+  alert: null,
+  tabs: ['Overview','Score guide','Eligibility','Checklist','Process','Do\'s & Don\'ts','Red flags','FAQs','Resources','Notes'],
+  activeTab: 'Overview',
+  overview: [
+    {icon:'ti-clipboard-list',title:'Test structure',desc:'GMAT Focus Edition (2023): 3 sections × 45 min each. No Analytical Writing. New Data Insights section.',items:['Quantitative Reasoning: 21 questions, 45 min','Verbal Reasoning: 23 questions, 45 min','Data Insights: 20 questions, 45 min (NEW)','Section order: your choice, 2 breaks']},
+    {icon:'ti-target',title:'Who needs it',desc:'Top MBA and business school admissions worldwide. GMAT is the gold standard for business school applications.',items:['Top 10 MBA programs: 720+ typically','M7 schools (Harvard, Wharton etc): 730–760+','Executive MBA programs accept GMAT/GRE','Financial services firms value high GMAT']},
+    {icon:'ti-chart-line',title:'Score benchmarks',desc:'New scale 205–805. Median at top schools ~725–745. GMAT 675+ is competitive for most programs.',items:['805 = perfect score','740+ = top 10 globally','700 = ~86th percentile','655 = ~72nd percentile (solid)']},
+    {icon:'ti-book',title:'Prep resources',desc:'GMAC Official Guide and TTP (Target Test Prep) are the most recommended. Magoosh for budget option.',items:['GMAT Official Guide 2024 (GMAC)','Target Test Prep (TTP) — top for Quant','Manhattan Prep GMAT Strategy Guides','Magoosh GMAT affordable online course']}
+  ]
+}
+};
+
+function getNavEl(key) { return document.getElementById('nav-'+key); }
+
+function showPage(key) {
+  const p = pages[key];
+  if (!p) return;
+  document.getElementById('breadcrumb-cur').textContent = p.title;
+
+  Object.keys(pages).forEach(k => {
+    const el = getNavEl(k);
+    if (el) {
+      el.style.color = 'rgba(255,255,255,0.55)';
+      el.classList.remove('active-sub');
+    }
+  });
+  const navEl = getNavEl(key);
+  if (navEl) {
+    navEl.style.color = '#fff';
+    navEl.classList.add('active-sub');
+  }
+
+  const content = document.getElementById('main-content');
+  const tags = p.tags.map(([t,c])=>`<span class="tag ${c}">${t}</span>`).join('');
+  const statsHtml = p.stats.map(s=>`<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-val" style="font-size:${s.val.length>10?'13px':'18px'}">${s.val}</div><div class="stat-note">${s.note}</div></div>`).join('');
+  const tabsHtml = p.tabs.map(t=>`<div class="tab${t==='Overview'?' active':''}">${t}</div>`).join('');
+  const alertHtml = p.alert ? `<div class="alert-box"><i class="ti ti-alert-triangle" aria-hidden="true" style="flex-shrink:0;margin-top:1px"></i><span>${p.alert}</span></div>` : '';
+  const overviewCards = p.overview.map(o=>`<div class="card"><div class="card-head"><i class="ti ${o.icon} card-icon" aria-hidden="true"></i><span class="card-title">${o.title}</span></div><div class="card-desc">${o.desc}</div><div class="item-list">${o.items.map(i=>`<div class="item">${i}</div>`).join('')}</div></div>`).join('');
+
+  content.innerHTML = `
+    <div class="page-header">
+      <div class="service-icon">${p.icon}</div>
+      <div>
+        <div class="page-title">${p.fullTitle}</div>
+        <div class="page-sub">${p.sub}</div>
+        <div class="tags">${tags}</div>
+      </div>
+    </div>
+    ${alertHtml}
+    <div class="stats-row">${statsHtml}</div>
+    <div class="tabs">${tabsHtml}</div>
+    <div class="section-title">Overview — what counselors need to know</div>
+    <div class="card-grid">${overviewCards}</div>
+  `;
+}
+
+showPage('ielts');
+</script>

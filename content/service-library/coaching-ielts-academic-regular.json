@@ -1,0 +1,140 @@
+{
+  "displayName": "IELTS Academic Regular (with books)",
+  "shortDescription": "British Council / IDP · Academic module · 8–10 week regular batch · Books included",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated June 2026",
+  "learningLevel": "Intermediate",
+  "learningMinutes": 12,
+  "navBucket": "coaching",
+  "policyAlert": {
+    "active": true,
+    "date": "June 2026",
+    "summary": "Verify IELTS exam fee and test dates on ielts.org before quoting. Academic vs General Training must match student goal. Never guarantee a band score."
+  },
+  "alert": {
+    "title": "Academic module only",
+    "body": "University and student visa pathways require IELTS Academic. Confirm module before enrollment — not General Training."
+  },
+  "tags": [
+    { "label": "Active program", "variant": "success" },
+    { "label": "Books included", "variant": "neutral" },
+    { "label": "8–10 weeks", "variant": "neutral" },
+    { "label": "Academic module", "variant": "warning" }
+  ],
+  "chips": [
+    { "label": "Regular batch", "variant": "success" },
+    { "label": "4+ full mocks", "variant": "neutral" },
+    { "label": "Target band agreed", "variant": "warning" },
+    { "label": "Exam fee separate", "variant": "neutral" }
+  ],
+  "kpis": [
+    { "label": "Course duration", "value": "8–10w", "sub": "Regular batch", "tone": "primary" },
+    { "label": "IELTS exam fee", "value": "See BC/IDP", "sub": "Paid by student directly", "tone": "warning" },
+    { "label": "Target achievement", "value": "82%", "sub": "Students hitting agreed target", "tone": "success" },
+    { "label": "Enrollment docs", "value": "6", "sub": "Agreement + diagnostic", "tone": "violet" },
+    { "label": "Course fee", "value": "See fee tab", "sub": "Books included", "tone": "primary" }
+  ],
+  "about": [
+    { "label": "Description", "value": "Structured IELTS Academic preparation — Listening, Reading, Writing, Speaking — with course books, trainer-led classes, homework, and full mock tests." },
+    { "label": "Ideal for", "value": "Students targeting band 6.0–7.5 for study abroad, PR pathways requiring Academic, or university conditional offers." },
+    { "label": "Delivery", "value": "Regular pace (not crash). Classroom or hybrid per branch schedule. Books issued at enrollment." },
+    { "label": "Exam authority", "value": "British Council / IDP (ielts.org) — FLC prepares; student registers and pays exam fee separately." },
+    { "label": "After course", "value": "Exam booking support, score tracking, retake/booster recommendation if needed, handoff to admissions when target met." }
+  ],
+  "eligibility": [
+    { "criterion": "Diagnostic or prior score on file", "met": true },
+    { "criterion": "Realistic target band vs current level", "met": true },
+    { "criterion": "Academic module requirement confirmed", "met": true },
+    { "criterion": "Batch timing suits student schedule", "met": true },
+    { "criterion": "Enrollment agreement signed", "met": true },
+    { "criterion": "Course fee collected", "met": true }
+  ],
+  "redFlagsBanner": "If attendance drops or mocks stay far below target, pause exam booking and reset the study plan — do not push unprepared students to test.",
+  "redFlags": [
+    { "title": "Unrealistic target band", "description": "Jump of 2+ bands in 4 weeks expected.", "fix": "Reset timeline or recommend crash/booster realistically", "severity": "Very common" },
+    { "title": "Chronic absenteeism", "description": "Below 80% attendance.", "fix": "Counselor call, batch change, or pause", "severity": "Common" },
+    { "title": "Wrong module enrolled", "description": "GT student in Academic batch.", "fix": "Move to correct program before exam", "severity": "High" },
+    { "title": "Exam booked too early", "description": "Mocks not near target.", "fix": "Reschedule exam; extra mocks", "severity": "Common" },
+    { "title": "Guaranteed score promised", "description": "Sales or counselor over-commitment.", "fix": "Compliance issue — never guarantee bands", "severity": "High" }
+  ],
+  "faqs": [
+    { "q": "Academic vs General Training?", "a": "Academic is for university and most study visas. GT is for migration/work — different prep and tests." },
+    { "q": "Are books included?", "a": "Yes for this Regular (with books) program — issue at enrollment and log on file." },
+    { "q": "Who pays the IELTS exam fee?", "a": "Student pays British Council or IDP directly. FLC course fee is separate." },
+    { "q": "Can we guarantee band 7?", "a": "No. We set targets from diagnostic data and track mocks — outcomes depend on student effort and attendance." },
+    { "q": "How many mock tests?", "a": "Minimum four full mocks under exam conditions; more if below target before booking." },
+    { "q": "Retake if score is low?", "a": "Booster or skill-specific sessions based on weakest band; new enrollment as per fee policy." }
+  ],
+  "compliance": [
+    "Never guarantee an IELTS band score",
+    "Separate coaching fee from exam registration fee",
+    "Signed enrollment agreement before batch start",
+    "Record diagnostic and mock scores on client file"
+  ],
+  "proTips": [
+    "Set target band in writing at enrollment",
+    "Review mock trends weekly — not just overall average",
+    "Confirm Academic module for every study-abroad lead",
+    "Book exam only after two mocks within 0.5 of target"
+  ],
+  "postApproval": [
+    "Collect official TRF when released",
+    "Update client record for admissions / visa team",
+    "Celebrate success or plan retake with gap analysis"
+  ],
+  "performance": {
+    "ourRate": 82,
+    "industryRate": 68,
+    "stats": [
+      { "label": "Enrollments this year", "value": "214" },
+      { "label": "Hit target band", "value": "176" },
+      { "label": "Retake / booster", "value": "38" }
+    ]
+  },
+  "approvalFactors": [
+    { "label": "Attendance 80%+", "ours": 88, "benchmark": 72 },
+    { "label": "Mock completion", "ours": 91, "benchmark": 75 },
+    { "label": "Exam-ready booking", "ours": 85, "benchmark": 70 }
+  ],
+  "timeline": [
+    { "weeks": "1", "title": "Diagnostic, enrollment, batch & books" },
+    { "weeks": "2–7", "title": "Classes, homework, skill drills, speaking mocks" },
+    { "weeks": "6–8", "title": "Full mock tests & exam readiness review" },
+    { "weeks": "8–10", "title": "Exam booking, test day prep, score follow-up" }
+  ],
+  "relatedServices": [
+    { "label": "IELTS — Test reference (official test guide)", "libraryId": "b2000001-0001-4000-8000-000000000071" },
+    { "label": "IELTS Academic Crash Course", "libraryId": "" },
+    { "label": "PTE Academic Regular", "libraryId": "" },
+    { "label": "Spoken English — Advanced", "libraryId": "" }
+  ],
+  "changelog": [
+    { "version": "v1.0", "date": "June 2026", "author": "Service Library", "summary": "Initial IELTS Academic Regular coaching specimen." }
+  ],
+  "staffNotes": [
+    { "author": "Coaching team", "date": "June 2026", "text": "Do not move GT inquiries into Academic Regular — offer GT program or refer." }
+  ],
+  "resources": [
+    { "title": "IELTS test reference (FLC specimen)", "url": "/specimens/coaching/ielts-test-reference.html", "description": "Full test guide — acceptance matrix, test day, module samples" },
+    { "title": "IELTS — Official site", "url": "https://www.ielts.org/", "description": "Academic vs GT, test format" },
+    { "title": "British Council — Book IELTS", "url": "https://www.britishcouncil.in/exam/ielts", "description": "India test dates and fees" },
+    { "title": "IDP IELTS", "url": "https://www.ieltsidpindia.com/", "description": "Alternate test booking channel" }
+  ],
+  "donts": {
+    "dos": ["Run diagnostic before quoting timeline", "Track attendance and mocks", "Confirm Academic module", "Keep exam fee separate on invoice"],
+    "donts": ["Guarantee a band score", "Book exam before readiness", "Mix GT and Academic in same batch narrative", "Skip enrollment agreement"],
+    "mistakes": ["Target 7 from diagnostic 5 in 4 weeks", "No mock before exam date", "Books not logged", "Visa team not updated when target met"]
+  },
+  "sampleDocs": [
+    { "title": "Sample diagnostic score sheet (mock)", "description": "L/R/W/S breakdown template for intake.", "docKind": "assessment", "mimeType": "application/pdf" },
+    { "title": "Sample 4-week study plan (mock)", "description": "Skill rotation for Academic Writing Task 2.", "docKind": "study_plan", "mimeType": "application/pdf" },
+    { "title": "Sample mock test feedback form (mock)", "description": "Trainer band-style comments per section.", "docKind": "feedback", "mimeType": "application/pdf" }
+  ],
+  "quiz": [
+    { "question": "IELTS Academic is required for:", "options": ["Most university study visas", "Only Canada PR", "Driving licence", "Tourist visa only"], "correctIndex": 0, "explanation": "Universities and most study pathways need Academic.", "level": 1 },
+    { "question": "Counselors must never:", "options": ["Track mocks", "Guarantee band 7", "Issue books", "Run diagnostic"], "correctIndex": 1, "explanation": "Band guarantees are prohibited.", "level": 1 },
+    { "question": "IELTS exam fee is paid to:", "options": ["Future Link only", "British Council / IDP by student", "University", "Embassy"], "correctIndex": 1, "explanation": "Exam fee is separate from coaching fee.", "level": 1 }
+  ]
+}

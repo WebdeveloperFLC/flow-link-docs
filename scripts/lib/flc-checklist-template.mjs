@@ -332,7 +332,7 @@ export function renderChecklistHtml(spec, logoHref = "./flc-logo.png") {
       <strong>Future Link Consultants — Internal Working Document · Not an official government form</strong>
       Always verify requirements at ${esc(spec.verifyUrl ?? "official sources")} before submission · v2.0 Jun 2026<br />
       www.futurelinkconsultants.com<br />
-      ${esc(FLC_CHECKLIST_FOOTER_TAGLINE)}
+      ${esc(spec.footerTagline ?? FLC_CHECKLIST_FOOTER_TAGLINE)}
     </footer>
   </article>
   <script>
