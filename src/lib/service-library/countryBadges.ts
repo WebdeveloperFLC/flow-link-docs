@@ -14,6 +14,7 @@ const COUNTRY_BADGE: Record<string, string> = {
   Sweden: "SE",
   Switzerland: "CH",
   Austria: "AT",
+  Belgium: "BE",
   Poland: "PL",
   Malta: "MT",
   Cyprus: "CY",
@@ -53,6 +54,17 @@ export const VISA_COUNTRY_PRIORITY = [
   "New Zealand",
   "Ireland",
   "United Arab Emirates",
+  "France",
+  "Netherlands",
+  "Italy",
+  "Spain",
+  "Malta",
+  "Finland",
+  "Sweden",
+  "Austria",
+  "Belgium",
+  "Denmark",
+  "Portugal",
 ];
 
 export function countryBadgeCode(country: string): string {
