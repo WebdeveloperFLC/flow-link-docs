@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Search, UserPlus, Users, ClipboardCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { createStaffAssessmentSession } from "@/lib/service-eligibility/sessions";
+import { assessmentRunPath, usesSettleAbroadAssessment } from "@/lib/service-eligibility/settleAbroadBridge";
 import { fetchEligibilityQuestions, prefillEligibilityFromClient } from "@/lib/service-eligibility/questions";
-import { createStaffEligibilitySession } from "@/lib/service-eligibility/sessions";
 import { dialCodeFor } from "@/lib/countryCodes";
 import { PhoneCodeSelect } from "@/components/leads/PhoneCodeSelect";
 
@@ -84,51 +85,55 @@ export function ServiceEligibilityStartDialog({
   const start = async () => {
     setBusy(true);
     try {
-      const qs = await fetchEligibilityQuestions(libraryId);
-      if (!qs.length) {
-        toast.error("No eligibility questions configured for this service yet");
+      const fullAssessment = usesSettleAbroadAssessment(libraryId);
+      if (!fullAssessment) {
+        const qs = await fetchEligibilityQuestions(libraryId);
+        if (!qs.length) {
+          toast.error("No eligibility questions configured for this service yet");
+          setBusy(false);
+          return;
+        }
+      }
+
+      if (tab === "existing" && !picked) {
+        toast.error("Select a client");
+        setBusy(false);
+        return;
+      }
+      if (tab === "new" && (!firstName.trim() || !lastName.trim())) {
+        toast.error("First and last name required");
         setBusy(false);
         return;
       }
 
       let prefillAnswers: Record<string, unknown> = {};
-      if (tab === "existing" && picked) {
+      if (!fullAssessment && tab === "existing" && picked) {
+        const qs = await fetchEligibilityQuestions(libraryId);
         prefillAnswers = await prefillEligibilityFromClient(picked, qs);
       }
 
-      let result: { sessionId: string };
-      if (tab === "existing") {
-        if (!picked) {
-          toast.error("Select a client");
-          setBusy(false);
-          return;
-        }
-        result = await createStaffEligibilitySession({
-          libraryId,
-          clientId: picked,
-          prefillAnswers,
-        });
-      } else {
-        if (!firstName.trim() || !lastName.trim()) {
-          toast.error("First and last name required");
-          setBusy(false);
-          return;
-        }
-        result = await createStaffEligibilitySession({
-          libraryId,
-          prefillAnswers,
-          newClient: {
-            full_name: `${firstName.trim()} ${lastName.trim()}`,
-            email: email.trim() || null,
-            phone: phone.trim() || null,
-            phone_country_code: phoneCountryCode,
-            country: country ?? "Canada",
-          },
-        });
-      }
+      const result = await createStaffAssessmentSession(
+        tab === "existing"
+          ? { libraryId, clientId: picked!, prefillAnswers }
+          : {
+              libraryId,
+              prefillAnswers,
+              newClient: {
+                full_name: `${firstName.trim()} ${lastName.trim()}`,
+                email: email.trim() || null,
+                phone: phone.trim() || null,
+                phone_country_code: phoneCountryCode,
+                country: country ?? "Canada",
+              },
+            },
+      );
 
       onOpenChange(false);
-      navigate(`/eligibility/run/${result.sessionId}`);
+      const path =
+        result.runner === "settle_abroad"
+          ? assessmentRunPath(result.sessionId, libraryId)
+          : `/eligibility/run/${result.sessionId}`;
+      navigate(path);
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not start assessment");
     } finally {

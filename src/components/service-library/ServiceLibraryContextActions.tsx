@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, ClipboardCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
-import { createStaffEligibilitySession } from "@/lib/service-eligibility/sessions";
+import { createStaffAssessmentSession } from "@/lib/service-eligibility/sessions";
+import { assessmentRunPath } from "@/lib/service-eligibility/settleAbroadBridge";
 import { fetchEligibilityQuestions, prefillEligibilityFromClient } from "@/lib/service-eligibility/questions";
 import { toast } from "sonner";
 
@@ -36,12 +37,16 @@ export function ServiceLibraryContextActions({
     try {
       const qs = await fetchEligibilityQuestions(libraryId);
       const prefillAnswers = await prefillEligibilityFromClient(clientId, qs);
-      const { sessionId } = await createStaffEligibilitySession({
+      const result = await createStaffAssessmentSession({
         libraryId,
         clientId,
         prefillAnswers,
       });
-      navigate(`/eligibility/run/${sessionId}`);
+      navigate(
+        result.runner === "settle_abroad"
+          ? assessmentRunPath(result.sessionId, libraryId)
+          : `/eligibility/run/${result.sessionId}`,
+      );
     } catch (e: unknown) {
       toast.error(e instanceof Error ? e.message : "Could not start assessment");
     } finally {

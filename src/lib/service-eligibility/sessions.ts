@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { joinPhone } from "@/lib/countryCodes";
 import { VISA_IMMIGRATION } from "./types";
+import {
+  resolveSettleAbroadMapping,
+  usesSettleAbroadAssessment,
+} from "./settleAbroadBridge";
 
 export type NewEligibilityClient = {
   full_name: string;
@@ -32,7 +36,89 @@ async function loadVisaService(libraryId: string) {
   return data;
 }
 
-/** Staff flow — uses authenticated RLS (no edge function required). */
+export type StaffAssessmentResult = {
+  sessionId: string;
+  clientId: string;
+  runner: "settle_abroad" | "service_eligibility";
+};
+
+/** Full Settle Abroad questionnaire (CRS / Chancenkarte) linked to a service library item. */
+export async function createStaffSettleAbroadSession(params: {
+  libraryId: string;
+  clientId?: string;
+  newClient?: NewEligibilityClient;
+}): Promise<StaffAssessmentResult> {
+  const mapping = resolveSettleAbroadMapping(params.libraryId);
+  if (!mapping) throw new Error("This service does not use the full Settle Abroad assessment");
+
+  const svc = await loadVisaService(params.libraryId);
+  let clientId = params.clientId ?? null;
+
+  if (!clientId && params.newClient) {
+    const nc = params.newClient;
+    const fullName = nc.full_name.trim();
+    if (!fullName) throw new Error("Client name required");
+    const phone = formatPhone(nc.phone_country_code, nc.phone);
+    const { data: client, error: clientErr } = await supabase.rpc("create_client", {
+      _full_name: fullName,
+      _country: nc.country?.trim() || svc.service || "India",
+      _application_type: `${svc.sub_service} — eligibility assessment`,
+      _email: nc.email?.trim() || null,
+      _phone: phone,
+    });
+    if (clientErr) throw new Error(clientErr.message);
+    clientId = (client as { id: string }).id;
+    const ccDigits = nc.phone_country_code?.replace(/\D/g, "") || null;
+    if (ccDigits) {
+      await supabase
+        .from("clients")
+        .update({ phone_country_code: `+${ccDigits}`, country_code: ccDigits } as never)
+        .eq("id", clientId);
+    }
+  }
+  if (!clientId) throw new Error("Select a client or enter new client details");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: ses, error: sesErr } = await supabase
+    .from("assessment_sessions")
+    .insert({
+      client_id: clientId,
+      library_id: params.libraryId,
+      assessment_kind: "settle_abroad",
+      source: "staff",
+      country: mapping.country,
+      goal: mapping.goal,
+      status: "draft",
+      answers: {},
+      assigned_counselor_id: user.id,
+      created_by: user.id,
+    } as never)
+    .select("id")
+    .single();
+
+  if (sesErr || !ses) throw new Error(sesErr?.message ?? "Could not create session");
+  return { sessionId: ses.id, clientId, runner: "settle_abroad" };
+}
+
+/** Staff flow — Settle Abroad full assessment or short service eligibility checklist. */
+export async function createStaffAssessmentSession(params: {
+  libraryId: string;
+  clientId?: string;
+  newClient?: NewEligibilityClient;
+  prefillAnswers?: Record<string, unknown>;
+}): Promise<StaffAssessmentResult> {
+  if (usesSettleAbroadAssessment(params.libraryId)) {
+    return createStaffSettleAbroadSession(params);
+  }
+  const { sessionId, clientId } = await createStaffEligibilitySession(params);
+  return { sessionId, clientId, runner: "service_eligibility" };
+}
+
+/** Staff flow — short checklist only (service_eligibility_questions). */
 export async function createStaffEligibilitySession(params: {
   libraryId: string;
   clientId?: string;

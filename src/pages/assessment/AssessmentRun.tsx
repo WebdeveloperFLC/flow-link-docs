@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
+import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
 import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save, Download } from "lucide-react";
 import { toast } from "sonner";
 import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
@@ -131,6 +133,8 @@ const GOAL_LABELS: Record<string, string> = {
 export default function AssessmentRun() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const nav = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Q[]>([]);
   const [answers, setAnswers] = useState<Record<string, any>>({});
@@ -145,10 +149,17 @@ export default function AssessmentRun() {
   const isMounted = useRef(true);
   const [downloading, setDownloading] = useState(false);
   const [subject, setSubject] = useState<{ name?: string; email?: string }>({});
+  const [libraryId, setLibraryId] = useState<string | null>(searchParams.get("library_id"));
+  const [clientId, setClientId] = useState<string | null>(null);
+
+  const fromServiceLibrary =
+    searchParams.get("from") === "service-library" || Boolean(libraryId);
 
   const isStaff = Boolean(
-    (typeof window !== "undefined" && document.referrer.includes("/assessment-admin")) ||
-    sessionStorage.getItem("flc_staff_session") === "1",
+    user ||
+      (typeof window !== "undefined" && document.referrer.includes("/assessment-admin")) ||
+      sessionStorage.getItem("flc_staff_session") === "1" ||
+      fromServiceLibrary,
   );
 
   const load = useCallback(async () => {
@@ -159,7 +170,7 @@ export default function AssessmentRun() {
       supabase
         .from("assessment_sessions")
         .select(
-          "answers, status, goal, country, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)",
+          "answers, status, goal, country, library_id, client_id, client:clients(full_name, email), lead:assessment_leads(first_name, last_name, email)",
         )
         .eq("id", sessionId)
         .maybeSingle(),
@@ -177,6 +188,8 @@ export default function AssessmentRun() {
     setStatus(ses.data?.status ?? "draft");
     setGoal(sGoal);
     setCountry(sCountry);
+    setLibraryId((ses.data as { library_id?: string | null })?.library_id ?? searchParams.get("library_id"));
+    setClientId((ses.data as { client_id?: string | null })?.client_id ?? null);
     const c: any = (ses.data as any)?.client;
     const l: any = (ses.data as any)?.lead;
     setSubject({
@@ -184,7 +197,7 @@ export default function AssessmentRun() {
       email: c?.email ?? l?.email ?? undefined,
     });
     setLoading(false);
-  }, [sessionId]);
+  }, [sessionId, searchParams]);
 
   useEffect(() => {
     load();
@@ -502,8 +515,19 @@ export default function AssessmentRun() {
           )}
 
           <div className="text-center">
-            <button onClick={() => nav(isStaff ? "/assessment-admin" : "/assessment")} className="flc-cta mx-auto">
-              {isStaff ? "Back to console" : "Start a new assessment"}
+            <button
+              onClick={() =>
+                nav(
+                  fromServiceLibrary && libraryId
+                    ? `/service-library?id=${libraryId}${country ? `&country=${encodeURIComponent(country)}` : ""}&tab=eligibility`
+                    : isStaff
+                      ? "/assessment-admin"
+                      : "/assessment",
+                )
+              }
+              className="flc-cta mx-auto"
+            >
+              {fromServiceLibrary ? "Back to Service Library" : isStaff ? "Back to console" : "Start a new assessment"}
             </button>
           </div>
         </div>
@@ -513,14 +537,32 @@ export default function AssessmentRun() {
 
   return (
     <div className="flc-shell min-h-screen">
+      {fromServiceLibrary && libraryId && (
+        <div className="max-w-6xl mx-auto px-4 pt-4">
+          <ServiceLibraryContextActions
+            libraryId={libraryId}
+            country={country}
+            clientId={clientId ?? undefined}
+            showEligibility={false}
+          />
+        </div>
+      )}
       <AssessmentHeader
         mode="client"
         right={
           <button
-            onClick={() => nav(isStaff ? "/assessment-admin" : "/assessment")}
+            onClick={() =>
+              nav(
+                fromServiceLibrary && libraryId
+                  ? `/service-library?id=${libraryId}${country ? `&country=${encodeURIComponent(country)}` : ""}&tab=eligibility`
+                  : isStaff
+                    ? "/assessment-admin"
+                    : "/assessment",
+              )
+            }
             className="text-sm text-[hsl(220_14%_28%)] hover:text-[hsl(220_18%_11%)]"
           >
-            {isStaff ? "Back to console" : "Start over"}
+            {fromServiceLibrary ? "Service Library" : isStaff ? "Back to console" : "Start over"}
           </button>
         }
       />
