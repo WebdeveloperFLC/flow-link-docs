@@ -78,6 +78,7 @@ import { PersonWorkspaceCard } from "@/components/clients/PersonWorkspaceCard";
 import { ClientStageCard } from "@/components/clients/ClientStageCard";
 import { ClientServiceSwitcher } from "@/components/clients/ClientServiceSwitcher";
 import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import {
   parseLibraryIdFromServiceCode,
 } from "@/lib/service-library/serviceCodes";
@@ -959,6 +960,12 @@ const ClientDetail = () => {
 
   return (
     <AppLayout>
+      <ContextBackBar
+        libraryId={slLibraryId}
+        country={slCountry}
+        fallbackLabel="All clients"
+        fallbackHref="/clients"
+      />
       <PageHeader
         title={client.full_name}
         description={`${client.application_id} · ${client.country} · ${client.application_type}`}
@@ -969,14 +976,17 @@ const ClientDetail = () => {
                 libraryId={slLibraryId}
                 country={slCountry}
                 clientId={client.id}
+                showServiceLibraryBack={false}
               />
             )}
-            <Button asChild variant="outline" size="sm">
-              <Link to="/clients">
-                <ChevronLeft className="size-4" />
-                All clients
-              </Link>
-            </Button>
+            {!slLibraryId && (
+              <Button asChild variant="outline" size="sm">
+                <Link to="/clients">
+                  <ChevronLeft className="size-4" />
+                  All clients
+                </Link>
+              </Button>
+            )}
             <CallClientButton clientId={client.id} />
             <Button onClick={() => setHandoffOpen(true)} variant="outline" size="sm">
               <ArrowRightLeft className="size-4 mr-1.5" /> Hand off

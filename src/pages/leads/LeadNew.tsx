@@ -32,6 +32,7 @@ import { leadColdSchema, leadWarmHotSchema, GENDERS, MARITAL_STATUSES } from "@/
 import { useMasterItems, useMasterLabels } from "@/lib/masters";
 import { dialCodeFor } from "@/lib/countryCodes";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
+import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 
 const VISA_LOCK_TEMPLATE = (reason: string) =>
   `Visa not pursued at this stage. Reason: ${reason || "(please specify)"}\n\nFollow-up: Re-engage when visa interest is expressed.\n\n`;
@@ -237,6 +238,12 @@ const LeadNew = () => {
 
   return (
     <AppLayout>
+      <ContextBackBar
+        libraryId={slLibraryId}
+        country={slCountry}
+        fallbackLabel="All leads"
+        fallbackHref="/leads"
+      />
       <PageHeader
         title={editId ? "Edit Lead" : "New Lead"}
         description={leadNumber ? `Lead # ${leadNumber}` : "Auto-saves on field blur. Lead number generated on first save."}
