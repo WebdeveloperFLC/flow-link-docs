@@ -8,6 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +51,7 @@ import {
   type WhatsAppMessageTemplate,
 } from "@/lib/whatsapp/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X, Settings2, Clock, AlertTriangle, Pencil } from "lucide-react";
+import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X, Settings2, Clock, AlertTriangle, Pencil, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -234,6 +240,26 @@ const WhatsAppInbox = () => {
     setNewLineMetaId(line.meta_phone_number_id === "CONFIGURE_ME" ? "" : line.meta_phone_number_id);
     setNewLineCounselor(line.assigned_user_id ?? "");
   }, []);
+
+  const openLinesDialog = useCallback(async () => {
+    resetCounselorForm();
+    try {
+      const lines = await listBusinessLines();
+      setBusinessLines(lines);
+      const helpline = lines.find((l) => l.is_default);
+      setHelplineMetaId(
+        helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""),
+      );
+      setLinesOpen(true);
+    } catch (e: any) {
+      toast.error(e.message || "Could not load business lines");
+    }
+  }, [resetCounselorForm]);
+
+  const counselorLines = useMemo(
+    () => businessLines.filter((l) => !l.is_default),
+    [businessLines],
+  );
 
   const counselorNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -571,13 +597,9 @@ const WhatsAppInbox = () => {
         actions={
           <div className="flex flex-wrap gap-2">
             {canManageLines && (
-              <Button variant="outline" size="sm" onClick={() => {
-                const helpline = businessLines.find((l) => l.is_default);
-                setHelplineMetaId(helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""));
-                setLinesOpen(true);
-              }}>
+              <Button variant="outline" size="sm" onClick={() => { void openLinesDialog(); }}>
                 <Settings2 className="size-4 mr-1.5" />
-                Lines
+                Manage lines
               </Button>
             )}
             {canDeleteTests && conversations.length > 0 && (
@@ -934,11 +956,11 @@ const WhatsAppInbox = () => {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>WhatsApp business lines (Phase 2)</DialogTitle>
+            <DialogTitle>Manage WhatsApp lines</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Set the helpline Meta Phone number ID (same as WHATSAPP_PHONE_NUMBER_ID secret). Add legacy counselor lines so inbound routes to their inbox automatically.
+              Set the helpline Meta Phone number ID (same as WHATSAPP_PHONE_NUMBER_ID secret). Counselor lines can be edited or removed from the list below.
             </p>
             <div>
               <Label>Helpline Meta Phone number ID</Label>
@@ -949,54 +971,50 @@ const WhatsAppInbox = () => {
                 className="mt-1"
               />
             </div>
-            {businessLines.length > 0 && (
+            {counselorLines.length > 0 ? (
               <div className="space-y-2">
-                <Label className="text-xs uppercase text-muted-foreground">Configured lines</Label>
-                <ul className="text-xs space-y-2 max-h-40 overflow-y-auto border rounded-md p-2">
-                  {businessLines.map((l) => (
-                    <li key={l.id} className="flex items-start justify-between gap-2">
+                <Label className="text-xs uppercase text-muted-foreground">Counselor lines</Label>
+                <ul className="text-xs space-y-2 max-h-48 overflow-y-auto">
+                  {counselorLines.map((l) => (
+                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
                       <div className="min-w-0 flex-1">
-                        <div className="font-medium truncate">
-                          {l.label}
-                          {l.is_default && (
-                            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1 py-0">Default</Badge>
-                          )}
-                        </div>
-                        <div className="text-muted-foreground truncate">{l.meta_phone_number_id}</div>
-                        {l.line_type === "counselor" && l.assigned_user_id && (
-                          <div className="text-muted-foreground truncate">
+                        <div className="font-medium">{l.label}</div>
+                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
+                        {l.assigned_user_id && (
+                          <div className="text-muted-foreground mt-0.5">
                             Counselor: {counselorNameById.get(l.assigned_user_id) ?? "—"}
                           </div>
                         )}
                       </div>
-                      {!l.is_default && (
-                        <div className="flex shrink-0 gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            title="Edit line"
-                            onClick={() => startEditLine(l)}
-                          >
-                            <Pencil className="size-3.5" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
+                            Actions
+                            <MoreHorizontal className="size-3.5 ml-1" />
                           </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            title="Remove line"
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => startEditLine(l)}>
+                            <Pencil className="size-3.5 mr-2" />
+                            Edit line
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
                             onClick={() => setDeleteLineTarget(l)}
                           >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
-                      )}
+                            <Trash2 className="size-3.5 mr-2" />
+                            Remove line
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </li>
                   ))}
                 </ul>
               </div>
+            ) : (
+              <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
+                No counselor lines yet. Add one below — each line will show an Actions menu with Edit and Remove.
+              </p>
             )}
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-center justify-between gap-2">
