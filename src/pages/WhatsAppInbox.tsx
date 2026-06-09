@@ -34,11 +34,12 @@ import {
   markConversationRead,
   resolveWhatsAppMediaUrl,
   deleteBusinessLine,
+  reactivateBusinessLine,
+  hardDeleteBusinessLine,
   saveBusinessLine,
   sendStaffReply,
   sendStaffTemplate,
   simulateInbound,
-  updateDefaultHelplineMetaId,
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { formatIntakeSummary } from "@/lib/whatsapp/intakeDisplay";
