@@ -41,6 +41,7 @@ import {
   sendStaffTemplate,
   simulateInbound,
 } from "@/lib/whatsapp/api";
+import { DEFAULT_HELPLINE_LINE_ID } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { formatIntakeSummary } from "@/lib/whatsapp/intakeDisplay";
 import {
