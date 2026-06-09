@@ -435,6 +435,17 @@ export async function updateDefaultHelplineMetaId(metaPhoneNumberId: string): Pr
   if (error) throw error;
 }
 
+export async function deleteBusinessLine(id: string): Promise<void> {
+  if (id === DEFAULT_HELPLINE_LINE_ID) {
+    throw new Error("The default helpline cannot be removed.");
+  }
+  const { error } = await supabase
+    .from("whatsapp_business_lines" as any)
+    .update({ active: false, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
 async function removeConversationMedia(conversationId: string): Promise<void> {
   const paths = new Set<string>();
 
