@@ -317,6 +317,15 @@ Deno.serve(async (req) => {
   }
   const businessLineId = businessLine?.id ?? DEFAULT_HELPLINE_LINE_ID;
 
+  if (fromMeta && metaPhoneNumberId) {
+    const registered = businessLine?.meta_phone_number_id === metaPhoneNumberId;
+    if (!registered) {
+      console.warn(
+        `[whatsapp-webhook] phone_number_id ${metaPhoneNumberId} not in whatsapp_business_lines — routed to ${businessLine?.label ?? "default"}. Add line in CRM → Manage lines.`,
+      );
+    }
+  }
+
   // Short-window dedup for mock/simulate paths (no provider_message_id).
   // Prevents double-clicks from doubling inbound rows and AI replies.
   if (!providerMessageId) {
