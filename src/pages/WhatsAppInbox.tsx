@@ -1270,6 +1270,44 @@ const WhatsAppInbox = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog
+        open={!!hardDeleteLineTarget}
+        onOpenChange={(open) => { if (!open) setHardDeleteLineTarget(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently delete WhatsApp line?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {hardDeleteLineTarget
+                ? `"${hardDeleteLineTarget.label}" (Meta ID ${hardDeleteLineTarget.meta_phone_number_id}) will be deleted from the database. This frees the Meta Phone Number ID so it can be re-added. Only allowed when no conversations are attached to this line.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!hardDeleteLineTarget) return;
+                try {
+                  await hardDeleteBusinessLine(hardDeleteLineTarget.id);
+                  if (editingLineId === hardDeleteLineTarget.id) resetLineForm();
+                  const lines = await listBusinessLines();
+                  setBusinessLines(lines);
+                  toast.success("Line permanently deleted");
+                } catch (e: any) {
+                  toast.error(e.message || "Delete failed");
+                } finally {
+                  setHardDeleteLineTarget(null);
+                }
+              }}
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Dialog open={simulateOpen} onOpenChange={setSimulateOpen}>
         <DialogContent>
           <DialogHeader>
