@@ -147,6 +147,49 @@ function formatFee(items: FeeItem[], labelMatch: RegExp): string {
   return `${cur}${row.amount}`.trim();
 }
 
+function formatCurrencyAmount(amount: string, currency: string | null | undefined): string {
+  const cur = (currency ?? "").toUpperCase();
+  const n = Number(String(amount).replace(/,/g, ""));
+  if (!Number.isFinite(n)) return amount;
+  if (cur === "GBP") return `£${n.toLocaleString("en-GB")}`;
+  if (cur === "EUR") return `€${n}`;
+  if (cur === "CAD") return `CAD $${n}`;
+  if (cur === "AUD") return `AUD $${n.toLocaleString("en-AU")}`;
+  if (cur === "USD") return `USD $${n}`;
+  if (cur === "NZD") return `NZD $${n}`;
+  if (cur === "INR") return `₹${n.toLocaleString("en-IN")}`;
+  return `${cur} ${amount}`.trim();
+}
+
+function formatGovernmentKpi(items: FeeItem[]): string {
+  const govtRows = items.filter(
+    (f) => /govt|government|ircc/i.test(f.fee_label) && f.amount,
+  );
+  if (govtRows.length === 0) return "—";
+  if (govtRows.length === 1) {
+    const r = govtRows[0]!;
+    return formatCurrencyAmount(r.amount!, r.currency);
+  }
+  const parsed = govtRows
+    .map((r) => ({
+      amount: Number(String(r.amount).replace(/,/g, "")),
+      currency: (r.currency ?? "GBP").toUpperCase(),
+    }))
+    .filter((x) => Number.isFinite(x.amount));
+  if (parsed.length === 0) return "—";
+  const sameCur = parsed.every((p) => p.currency === parsed[0]!.currency);
+  if (sameCur) {
+    const amounts = parsed.map((p) => p.amount);
+    const min = Math.min(...amounts);
+    const max = Math.max(...amounts);
+    const cur = parsed[0]!.currency;
+    return min === max
+      ? formatCurrencyAmount(String(min), cur)
+      : `${formatCurrencyAmount(String(min), cur)}–${formatCurrencyAmount(String(max), cur)}`;
+  }
+  return govtRows.map((r) => formatCurrencyAmount(r.amount!, r.currency)).join(" / ");
+}
+
 function formatConsultancyKpi(items: FeeItem[]): { value: string; sub?: string } {
   const inr = items.find((f) => /consultancy fee \(inr\)/i.test(f.fee_label));
   const cad = items.find((f) => /consultancy fee \(cad\)/i.test(f.fee_label));
@@ -252,9 +295,11 @@ export function buildAcademyViewModel(args: {
       ? consultancyKpi.value
       : meta.kpis?.find((k) => k.label.toLowerCase().includes("consult"))?.value ?? "—";
 
-  const govt = formatFee(feesScoped, /govt|government|ircc/i) !== "—"
-    ? formatFee(feesScoped, /govt|government|ircc/i)
-    : meta.kpis?.find((k) => k.label.toLowerCase().includes("government"))?.value ?? "See fee items";
+  const govtFromItems = formatGovernmentKpi(feesScoped);
+  const govt =
+    govtFromItems !== "—"
+      ? govtFromItems
+      : meta.kpis?.find((k) => k.label.toLowerCase().includes("government"))?.value ?? "See fee items";
 
   const resolvedKpis = injectFeeKpis(
     (meta.kpis ?? [

@@ -10,7 +10,7 @@
   "policyAlert": {
     "active": true,
     "date": "6 Jun 2026",
-    "summary": "Confirm current Student visa fee (£524) and Immigration Health Surcharge (IHS) rates on gov.uk before quoting."
+    "summary": "Confirm current Student visa fee (£558 standard) and Immigration Health Surcharge (IHS) rates on gov.uk before quoting. Priority +£500; Super Priority +£1,000."
   },
   "alert": {
     "title": "CAS is mandatory",
@@ -40,7 +40,7 @@
       "variant": "neutral"
     },
     {
-      "label": "£524 + IHS",
+      "label": "£558–£1,558 + IHS",
       "variant": "neutral"
     },
     {
@@ -61,8 +61,8 @@
     },
     {
       "label": "Government fee",
-      "value": "£524",
-      "sub": "+ IHS per year of course",
+      "value": "£558–£1,558",
+      "sub": "Standard / Priority / Super Priority + IHS",
       "tone": "warning"
     },
     {
@@ -84,6 +84,23 @@
       "tone": "primary"
     }
   ],
+  "compare": {
+    "columns": ["Service tier", "Government fee", "Processing time", "Notes"],
+    "rows": [
+      {
+        "label": "Standard Student Visa",
+        "values": ["£558", "Usually ~3 weeks", "Outside UK standard processing"]
+      },
+      {
+        "label": "Priority Visa Service",
+        "values": ["£1,058 (£558 + £500)", "Usually within 5 working days", "VAC must offer priority"]
+      },
+      {
+        "label": "Super Priority Visa Service",
+        "values": ["£1,558 (£558 + £1,000)", "Usually by end of next working day after biometrics", "1 working day decision target"]
+      }
+    ]
+  },
   "about": [
     {
       "label": "Description",

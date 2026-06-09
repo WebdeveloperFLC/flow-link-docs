@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { ServiceCatalogueItem } from "@/lib/leads";
 import {
   serviceFeeLabel,
+  governmentFeeDisplay,
   SERVICE_PICKER_GRID,
   type FeeCurrency,
 } from "@/lib/leads/serviceFeeLabel";
@@ -24,7 +25,7 @@ export function ServiceFeeColumnsHeader({ feeCurrency }: { feeCurrency: FeeCurre
       <div />
       <div className="min-w-0">Service</div>
       <div className="text-right">Consultancy ({feeCurrency})</div>
-      <div className="text-right">Government ({feeCurrency})</div>
+      <div className="text-right">Government</div>
     </div>
   );
 }
@@ -54,6 +55,7 @@ export function ServicePickerRow({
     libraryId != null
       ? buildServiceLibraryUrl({ libraryId, country: item.country_tag })
       : null;
+  const govt = governmentFeeDisplay(item, feeCurrency);
 
   return (
     <div
@@ -125,7 +127,12 @@ export function ServicePickerRow({
         )}
       </div>
       <div className={FEE_CELL}>{serviceFeeLabel(item, feeCurrency, "consultancy")}</div>
-      <div className={FEE_CELL}>{serviceFeeLabel(item, feeCurrency, "government")}</div>
+      <div className={cn(FEE_CELL, "flex flex-col items-end leading-tight")}>
+        <span>{govt.primary}</span>
+        {govt.equivalent && (
+          <span className="text-[10px] text-muted-foreground">{govt.equivalent}</span>
+        )}
+      </div>
     </div>
   );
 }

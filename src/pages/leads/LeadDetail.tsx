@@ -84,8 +84,8 @@ const LeadDetail = () => {
               <Pencil className="h-4 w-4 mr-1" /> Edit
             </Button>
             {lead.status !== "converted" ? (
-              <Button onClick={() => nav(`/clients/new?lead_id=${lead.id}`)}>
-                <UserCheck className="h-4 w-4 mr-1" /> Convert to Client
+              <Button onClick={() => nav(`/leads/new?id=${lead.id}&register_client=1`)}>
+                <UserCheck className="h-4 w-4 mr-1" /> Register as Client
               </Button>
             ) : convertedClient ? (
               <Button variant="outline" asChild>
