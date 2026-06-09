@@ -8,7 +8,11 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import type { ServiceCatalogueItem } from "@/lib/leads";
-import { type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
+import {
+  groupFeeSummary,
+  SERVICE_PICKER_GRID,
+  type FeeCurrency,
+} from "@/lib/leads/serviceFeeLabel";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import { ServicePickerRow, ServiceFeeColumnsHeader } from "@/components/leads/ServicePickerRow";
 import {
@@ -85,22 +89,55 @@ function GroupAccordion({
     return (value[key] ?? []).includes(code);
   }).length;
 
+  const consultSummary = groupFeeSummary(group.items, feeCurrency, "consultancy");
+  const govtSummary = groupFeeSummary(group.items, feeCurrency, "government");
+
+  // Single-option groups: show fees inline without an extra accordion level.
+  if (group.items.length === 1) {
+    const item = group.items[0]!;
+    const code = item.service_code || item.id;
+    const selectionKey = getSelectionKey(item);
+    const checked = (value[selectionKey] ?? []).includes(code);
+    return (
+      <div className="border-b last:border-b-0">
+        <ServicePickerRow
+          item={item}
+          checked={checked}
+          disabled={disabled}
+          openNote={openNote}
+          onToggle={() => onToggle(selectionKey, code)}
+          onOpenNote={onOpenNote}
+          feeCurrency={feeCurrency}
+        />
+      </div>
+    );
+  }
+
   return (
     <AccordionItem value={group.key} className="border-b last:border-b-0">
-      <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-muted/30 text-sm">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-medium truncate">{group.label}</span>
-          <span className="text-xs text-muted-foreground shrink-0">
-            {group.items.length} option{group.items.length === 1 ? "" : "s"}
-          </span>
-          {selectedCount > 0 && (
-            <Badge variant="secondary" className="h-5 px-1.5 text-xs shrink-0">
-              {selectedCount}
-            </Badge>
-          )}
+      <AccordionTrigger className="px-3 py-2.5 hover:no-underline hover:bg-muted/30 text-sm gap-2">
+        <div className={cn(SERVICE_PICKER_GRID, "w-full min-w-0 flex-1")}>
+          <div />
+          <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+            <span className="font-medium truncate">{group.label}</span>
+            <span className="text-xs text-muted-foreground shrink-0">
+              {group.items.length} options
+            </span>
+            {selectedCount > 0 && (
+              <Badge variant="secondary" className="h-5 px-1.5 text-xs shrink-0">
+                {selectedCount}
+              </Badge>
+            )}
+          </div>
+          <div className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap">
+            {consultSummary}
+          </div>
+          <div className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap">
+            {govtSummary}
+          </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="pb-0 pt-0">
+      <AccordionContent className="pb-0 pt-0 overflow-visible">
         {group.sections ? (
           <div className="divide-y">
             {group.sections.map((section) => (
@@ -184,28 +221,46 @@ export function GroupedServiceList({
     );
   }
 
+  const multiGroups = groups.filter((g) => g.items.length > 1);
+  const singleGroups = groups.filter((g) => g.items.length === 1);
+
   return (
-    <div className={cn("border rounded-md divide-y", disabled && "opacity-50 pointer-events-none")}>
+    <div className={cn("border rounded-md divide-y min-w-0", disabled && "opacity-50 pointer-events-none")}>
       {showFeeHeader && <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />}
-      <Accordion
-        type="multiple"
-        defaultValue={defaultOpen.length > 0 ? defaultOpen : undefined}
-        className="divide-y"
-      >
-        {groups.map((group) => (
-          <GroupAccordion
-            key={group.key}
-            group={group}
-            getSelectionKey={getSelectionKey}
-            value={value}
-            onToggle={onToggle}
-            disabled={disabled}
-            openNote={openNote}
-            onOpenNote={onOpenNote}
-            feeCurrency={feeCurrency}
-          />
-        ))}
-      </Accordion>
+      {singleGroups.map((group) => (
+        <GroupAccordion
+          key={group.key}
+          group={group}
+          getSelectionKey={getSelectionKey}
+          value={value}
+          onToggle={onToggle}
+          disabled={disabled}
+          openNote={openNote}
+          onOpenNote={onOpenNote}
+          feeCurrency={feeCurrency}
+        />
+      ))}
+      {multiGroups.length > 0 && (
+        <Accordion
+          type="multiple"
+          defaultValue={defaultOpen.filter((k) => multiGroups.some((g) => g.key === k))}
+          className="divide-y"
+        >
+          {multiGroups.map((group) => (
+            <GroupAccordion
+              key={group.key}
+              group={group}
+              getSelectionKey={getSelectionKey}
+              value={value}
+              onToggle={onToggle}
+              disabled={disabled}
+              openNote={openNote}
+              onOpenNote={onOpenNote}
+              feeCurrency={feeCurrency}
+            />
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 }

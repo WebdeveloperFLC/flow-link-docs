@@ -4,18 +4,27 @@ import { Info, X, ExternalLink } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { ServiceCatalogueItem } from "@/lib/leads";
-import { serviceFeeLabel, type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
+import {
+  serviceFeeLabel,
+  SERVICE_PICKER_GRID,
+  type FeeCurrency,
+} from "@/lib/leads/serviceFeeLabel";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 
-const FEE_COL_WIDTH = "w-[5.5rem]";
+const FEE_CELL = "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap";
 
 export function ServiceFeeColumnsHeader({ feeCurrency }: { feeCurrency: FeeCurrency }) {
   return (
-    <div className="flex items-center gap-3 px-3 py-1.5 border-b bg-muted/30 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-      <div className="w-4 shrink-0" />
-      <div className="flex-1 min-w-0">Service</div>
-      <div className={cn(FEE_COL_WIDTH, "text-right shrink-0")}>Consultancy ({feeCurrency})</div>
-      <div className={cn(FEE_COL_WIDTH, "text-right shrink-0")}>Government ({feeCurrency})</div>
+    <div
+      className={cn(
+        SERVICE_PICKER_GRID,
+        "px-3 py-1.5 border-b bg-muted/30 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground",
+      )}
+    >
+      <div />
+      <div className="min-w-0">Service</div>
+      <div className="text-right">Consultancy ({feeCurrency})</div>
+      <div className="text-right">Government ({feeCurrency})</div>
     </div>
   );
 }
@@ -49,7 +58,8 @@ export function ServicePickerRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-3 py-2 border-l-2 transition-colors",
+        SERVICE_PICKER_GRID,
+        "px-3 py-2 border-l-2 transition-colors",
         checked ? "bg-primary/5 border-primary" : "border-transparent hover:bg-muted/30",
         disabled && "opacity-60",
       )}
@@ -60,7 +70,7 @@ export function ServicePickerRow({
         disabled={disabled}
         className="shrink-0"
       />
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 overflow-hidden">
         <div
           className={cn(
             "text-sm flex items-center gap-1.5 min-w-0",
@@ -73,7 +83,7 @@ export function ServicePickerRow({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="truncate text-primary hover:underline inline-flex items-center gap-1 min-w-0"
+              className="truncate text-primary hover:underline inline-flex items-center gap-1 min-w-0 max-w-full"
             >
               <span className="truncate">{item.service_name}</span>
               <ExternalLink className="size-3 shrink-0 opacity-60" />
@@ -114,12 +124,8 @@ export function ServicePickerRow({
           <div className="text-xs text-muted-foreground truncate">{item.sub_category}</div>
         )}
       </div>
-      <div className={cn(FEE_COL_WIDTH, "text-xs text-muted-foreground text-right shrink-0 tabular-nums")}>
-        {serviceFeeLabel(item, feeCurrency, "consultancy")}
-      </div>
-      <div className={cn(FEE_COL_WIDTH, "text-xs text-muted-foreground text-right shrink-0 tabular-nums")}>
-        {serviceFeeLabel(item, feeCurrency, "government")}
-      </div>
+      <div className={FEE_CELL}>{serviceFeeLabel(item, feeCurrency, "consultancy")}</div>
+      <div className={FEE_CELL}>{serviceFeeLabel(item, feeCurrency, "government")}</div>
     </div>
   );
 }
