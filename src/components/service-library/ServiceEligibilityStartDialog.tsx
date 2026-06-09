@@ -84,9 +84,15 @@ export function ServiceEligibilityStartDialog({
   const start = async () => {
     setBusy(true);
     try {
+      const qs = await fetchEligibilityQuestions(libraryId);
+      if (!qs.length) {
+        toast.error("No eligibility questions configured for this service yet");
+        setBusy(false);
+        return;
+      }
+
       let prefillAnswers: Record<string, unknown> = {};
       if (tab === "existing" && picked) {
-        const qs = await fetchEligibilityQuestions(libraryId);
         prefillAnswers = await prefillEligibilityFromClient(picked, qs);
       }
 
