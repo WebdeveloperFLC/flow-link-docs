@@ -28,6 +28,7 @@ import { ServiceLibraryQuiz } from "@/components/service-library/design/ServiceL
 import { SampleDocSpecimenDialog } from "@/components/service-library/design/SampleDocSpecimenDialog";
 import { ServiceBinderTab } from "@/components/service-library/ServiceBinderTab";
 import { ServiceEligibilityPanel } from "@/components/service-library/ServiceEligibilityPanel";
+import { ServiceFeeBreakdownPanel } from "@/components/service-library/design/ServiceFeeBreakdownPanel";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -156,6 +157,18 @@ export function ServiceLibraryTabs({
                 </div>
               ))}
             </div>
+          </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="fees" className="mt-0">
+        {view.feeBreakdown?.govt || view.feeBreakdown?.consultancy ? (
+          <ServiceFeeBreakdownPanel breakdown={view.feeBreakdown} />
+        ) : (
+          <Card className="p-5 shadow-elev-sm">
+            <p className="text-sm text-muted-foreground">
+              Fee breakdown not yet available for this service. Check Government fee KPI or official authority website.
+            </p>
           </Card>
         )}
       </TabsContent>

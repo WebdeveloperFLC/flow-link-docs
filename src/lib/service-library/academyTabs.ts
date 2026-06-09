@@ -3,6 +3,7 @@ import type { AcademyViewModel } from "./buildAcademyViewModel";
 /** All tab ids used across visa + coaching profiles. */
 export const ACADEMY_TAB_IDS = [
   "overview",
+  "fees",
   "eligibility",
   "acceptance",
   "testday",
@@ -27,6 +28,7 @@ export type CoachingProfile = "test_reference" | "program";
 
 const VISA_TABS: AcademyTabId[] = [
   "overview",
+  "fees",
   "eligibility",
   "checklist",
   "binder",
@@ -81,8 +83,13 @@ export function coachingProfileFromSubService(subService: string): CoachingProfi
   return /test reference/i.test(subService) ? "test_reference" : "program";
 }
 
-export function resolveAcademyTabs(view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile">): AcademyTabId[] {
-  if (!view.isCoaching) return VISA_TABS;
+export function resolveAcademyTabs(
+  view: Pick<AcademyViewModel, "isCoaching" | "coachingProfile" | "feeBreakdown">,
+): AcademyTabId[] {
+  if (!view.isCoaching) {
+    const hasFees = view.feeBreakdown?.govt || view.feeBreakdown?.consultancy;
+    return hasFees ? VISA_TABS : VISA_TABS.filter((t) => t !== "fees");
+  }
   return view.coachingProfile === "test_reference" ? COACHING_TEST_TABS : COACHING_PROGRAM_TABS;
 }
 
@@ -114,6 +121,8 @@ export function tabLabel(
   }
 
   switch (id) {
+    case "fees":
+      return "Fees";
     case "eligibility":
       return "Eligibility Assessment";
     case "binder":

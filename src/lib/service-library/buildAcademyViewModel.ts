@@ -23,6 +23,8 @@ import {
   resolveCoachingVariantLabel,
 } from "@/lib/leads/servicePickerGroups";
 import { coachingFamilyLabel } from "./serviceNavClassification";
+import { resolveServiceFeeBreakdown } from "./feeBreakdown";
+import type { ServiceFeeBreakdownView } from "./feeBreakdown/types";
 
 export type AcademyViewModel = {
   masterId: string;
@@ -56,6 +58,7 @@ export type AcademyViewModel = {
   approvalFactors: { label: string; ours: number; benchmark: number }[];
   timeline: { weeks: string; title: string }[];
   fees: { consultancy: string; govt: string; thirdParty: string };
+  feeBreakdown: ServiceFeeBreakdownView | null;
   checklist: {
     completed: number;
     total: number;
@@ -388,6 +391,7 @@ export function buildAcademyViewModel(args: {
       govt,
       thirdParty: "Varies",
     },
+    feeBreakdown: isCoaching ? null : resolveServiceFeeBreakdown(master.id, meta, feesScoped),
     checklist: {
       completed,
       total: checklistTotal,

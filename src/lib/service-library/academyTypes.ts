@@ -57,6 +57,35 @@ export type ServiceAcademyMetadata = {
     donts?: string[];
     checklist?: string[];
   };
+  /** Itemised consultancy packages (Fees tab). Overrides built-in catalogue when set. */
+  consultancyBreakdown?: {
+    lastVerified?: string;
+    disclaimer?: string;
+    packages: {
+      id: string;
+      label: string;
+      amountInr: number;
+      unit?: "per applicant" | "per dependent adult" | "per dependent child" | "per year" | "per family" | "varies";
+      notes?: string;
+    }[];
+  };
+  /** Itemised government / VAC fee breakdown (Fees tab). Overrides built-in catalogue when set. */
+  feeBreakdown?: {
+    title?: string;
+    nativeCurrency: string;
+    lastVerified?: string;
+    sourceUrl?: string;
+    disclaimer?: string;
+    items: {
+      id: string;
+      label: string;
+      applicable: boolean;
+      amount: number | null;
+      currency: string;
+      unit?: "per applicant" | "per dependent adult" | "per dependent child" | "per year" | "per family" | "varies";
+      notes?: string;
+    }[];
+  };
   /** Mock / sample documents counselors can show clients (Sample docs tab). */
   sampleDocs?: {
     title: string;

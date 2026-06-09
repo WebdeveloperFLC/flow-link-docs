@@ -1,0 +1,245 @@
+import { breakdown, fee, na } from "./builders";
+import type { GovtFeeBreakdownSource } from "./types";
+
+const GOVUK = "https://www.gov.uk/government/publications/visa-regulations-revised-table/home-office-immigration-and-nationality-fees-8-april-2026";
+const IHS = "https://www.gov.uk/healthcare-immigration-application/how-much-pay";
+const VFS_UK = "Varies by VAC country (TLS/VFS) — typically £60–£100 equivalent; paid locally";
+
+export const UK_FEE_BREAKDOWNS: GovtFeeBreakdownSource[] = [
+  breakdown(
+    "b2000001-0001-4000-8000-000000000021",
+    "UK – Student Visa (Student Route)",
+    "GBP",
+    GOVUK,
+    "Apr 2026",
+    [
+      fee("visa_application", "Student visa application fee (standard)", {
+        amount: 558,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Outside UK · effective 8 Apr 2026",
+      }),
+      fee("priority_service", "Priority visa service", {
+        amount: 500,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Optional · 5 working days (where available)",
+      }),
+      fee("super_priority", "Super Priority visa service", {
+        amount: 1000,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Optional · next working day (where available)",
+      }),
+      fee("health_surcharge", "Immigration Health Surcharge (IHS)", {
+        amount: 776,
+        currency: "GBP",
+        unit: "per year",
+        notes: "Paid upfront for full visa duration · students & dependants · see gov.uk calculator",
+      }),
+      fee("dependent_adult", "Student dependant visa fee", {
+        amount: 558,
+        currency: "GBP",
+        unit: "per dependent adult",
+        notes: "Plus IHS £776/year per dependant",
+      }),
+      fee("dependent_child", "Student dependant child visa fee", {
+        amount: 558,
+        currency: "GBP",
+        unit: "per dependent child",
+        notes: "Plus IHS £776/year per child",
+      }),
+      na("landing_rprf", "Landing fee", "Not applicable — BRP/digital status issued"),
+      fee("biometrics", "Biometric enrolment (VAC)", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Charged at visa application centre abroad · varies by country",
+      }),
+      fee("vfs_service", "VAC service charge", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: VFS_UK,
+      }),
+      na("sevis", "SEVIS fee", "US only"),
+    ],
+  ),
+  breakdown(
+    "b2000001-0001-4000-8000-000000000022",
+    "UK – Standard Visitor Visa",
+    "GBP",
+    GOVUK,
+    "Apr 2026",
+    [
+      fee("visa_application", "Visitor visa fee (up to 6 months)", {
+        amount: 135,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Standard visitor · effective 8 Apr 2026",
+      }),
+      fee("priority_service", "Priority visa service", {
+        amount: 500,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Optional",
+      }),
+      fee("super_priority", "Super Priority visa service", {
+        amount: 1000,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Optional",
+      }),
+      na("health_surcharge", "Immigration Health Surcharge", "Not required for visits under 6 months from outside UK"),
+      na("dependent_adult", "Dependant fee", "Each traveller applies separately"),
+      na("dependent_child", "Child fee", "Same visitor fee per person"),
+      na("landing_rprf", "Landing fee", "Not applicable"),
+      fee("biometrics", "Biometric enrolment (VAC)", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Paid at application centre",
+      }),
+      fee("vfs_service", "VAC service charge", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: VFS_UK,
+      }),
+      na("sevis", "SEVIS fee", "US only"),
+    ],
+  ),
+  breakdown(
+    "b2000001-0001-4000-8000-000000000023",
+    "UK – Partner / Spouse Visa",
+    "GBP",
+    GOVUK,
+    "Apr 2026",
+    [
+      fee("visa_application", "Family / partner visa (entry clearance)", {
+        amount: 2064,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Outside UK · effective 8 Apr 2026",
+      }),
+      fee("health_surcharge", "Immigration Health Surcharge (IHS)", {
+        amount: 1035,
+        currency: "GBP",
+        unit: "per year",
+        notes: "Adult rate · paid upfront for visa length · use gov.uk calculator",
+      }),
+      fee("dependent_child", "Child dependant visa fee", {
+        amount: 2064,
+        currency: "GBP",
+        unit: "per dependent child",
+        notes: "Plus IHS £776/year for children under 18",
+      }),
+      na("landing_rprf", "Landing fee", "Not applicable"),
+      fee("biometrics", "Biometric enrolment (VAC)", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Paid at application centre",
+      }),
+      fee("vfs_service", "VAC service charge", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: VFS_UK,
+      }),
+      na("sevis", "SEVIS fee", "US only"),
+      na("priority_service", "Priority processing", "Limited availability for family routes"),
+    ],
+  ),
+  breakdown(
+    "b2000001-0001-4000-8000-000000000024",
+    "UK – Skilled Worker Visa",
+    "GBP",
+    GOVUK,
+    "Apr 2026",
+    [
+      fee("visa_application", "Skilled Worker visa (up to 3 years)", {
+        amount: 819,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Outside UK · effective 8 Apr 2026",
+      }),
+      fee("visa_application_long", "Skilled Worker visa (over 3 years)", {
+        amount: 1420,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Longer certificate of sponsorship",
+      }),
+      fee("health_surcharge", "Immigration Health Surcharge (IHS)", {
+        amount: 1035,
+        currency: "GBP",
+        unit: "per year",
+        notes: "Adult rate · paid upfront",
+      }),
+      fee("dependent_adult", "Dependant partner fee", {
+        amount: 819,
+        currency: "GBP",
+        unit: "per dependent adult",
+        notes: "Plus IHS per year",
+      }),
+      fee("dependent_child", "Dependant child fee", {
+        amount: 819,
+        currency: "GBP",
+        unit: "per dependent child",
+        notes: "Plus IHS £776/year for under-18",
+      }),
+      na("landing_rprf", "Landing fee", "Not applicable"),
+      fee("biometrics", "Biometric enrolment (VAC)", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Paid at application centre",
+      }),
+      fee("vfs_service", "VAC service charge", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: VFS_UK,
+      }),
+      na("sevis", "SEVIS fee", "US only"),
+      fee("priority_service", "Priority visa service", {
+        amount: 500,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Optional",
+      }),
+    ],
+  ),
+  breakdown(
+    "b2000001-0001-4000-8000-000000000025",
+    "UK – Graduate Route",
+    "GBP",
+    GOVUK,
+    "Apr 2026",
+    [
+      fee("visa_application", "Graduate Route application fee", {
+        amount: 819,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "In-country application · fee aligned with Skilled Worker up to 3 years",
+      }),
+      fee("health_surcharge", "Immigration Health Surcharge (IHS)", {
+        amount: 1035,
+        currency: "GBP",
+        unit: "per year",
+        notes: "Paid for 2-year (bachelor) or 3-year (PhD) route length",
+      }),
+      na("dependent_adult", "Dependants", "Graduate Route dependants pay own fees + IHS"),
+      na("landing_rprf", "Landing fee", "Not applicable"),
+      fee("biometrics", "Biometric enrolment (UKVCAS)", {
+        amount: null,
+        currency: "GBP",
+        unit: "per applicant",
+        notes: "Standard UKVCAS appointment usually free; premium slots extra",
+      }),
+      na("vfs_service", "VFS service charge", "In-country — UKVCAS"),
+      na("sevis", "SEVIS fee", "US only"),
+      na("priority_service", "Priority processing", "Not standard for Graduate Route"),
+    ],
+  ),
+];
