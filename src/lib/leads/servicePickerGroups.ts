@@ -22,6 +22,7 @@ export interface ServicePickerCatalogueItem {
 
 export type ServicePickerTab =
   | "coaching_services"
+  | "visa_services"
   | "allied_travel"
   | "admission_services";
 
@@ -207,7 +208,7 @@ export function shouldUseGroupedPicker(
   items: ServicePickerCatalogueItem[],
 ): boolean {
   if (items.length <= 1) return false;
-  if (tab === "coaching_services") return true;
+  if (tab === "coaching_services" || tab === "visa_services") return true;
 
   const byGroup = new Map<string, number>();
   for (const item of items) {

@@ -22,10 +22,13 @@ export function ServiceAcademyKpiRow({ kpis }: { kpis: AcademyViewModel["kpis"] 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
       {kpis.map((kpi) => {
-        const Icon = kpi.label.toLowerCase().includes("consult") ? IndianRupee : icons[kpi.tone];
+        const isConsultancy = kpi.label.toLowerCase().includes("consult");
+        const isGovernment = kpi.label.toLowerCase().includes("government");
+        const Icon = isConsultancy ? IndianRupee : isGovernment ? Landmark : icons[kpi.tone];
+        const toneClass = isConsultancy || isGovernment ? tones.warning : tones[kpi.tone];
         return (
           <Card key={kpi.label} className="p-4 shadow-elev-sm border-border/80">
-            <div className={cn("size-8 rounded-lg flex items-center justify-center mb-2", tones[kpi.tone])}>
+            <div className={cn("size-8 rounded-lg flex items-center justify-center mb-2", toneClass)}>
               <Icon className="size-4" />
             </div>
             <div className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide leading-tight">

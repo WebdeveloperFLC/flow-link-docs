@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import type { ServiceCatalogueItem } from "@/lib/leads";
+import { serviceFeeLabel, type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
 import type { ServiceSelection } from "@/components/leads/ServiceTabs";
 import {
   groupCatalogueItems,
@@ -19,13 +20,6 @@ import {
   type ServicePickerTab,
 } from "@/lib/leads/servicePickerGroups";
 
-function serviceFeeLabel(s: ServiceCatalogueItem): string {
-  if (s.fee_inr) return `₹${Number(s.fee_inr).toLocaleString("en-IN")}`;
-  if (s.pricing_type === "FREE") return "Free";
-  if (s.pricing_type === "ON_REQUEST") return "On request";
-  return "—";
-}
-
 function ServicePickerRow({
   item,
   checked,
@@ -33,6 +27,7 @@ function ServicePickerRow({
   openNote,
   onToggle,
   onOpenNote,
+  feeCurrency,
 }: {
   item: ServiceCatalogueItem;
   checked: boolean;
@@ -40,6 +35,7 @@ function ServicePickerRow({
   openNote: string | null;
   onToggle: () => void;
   onOpenNote: (id: string | null) => void;
+  feeCurrency: FeeCurrency;
 }) {
   const hasNote = typeof item.notes === "string" && item.notes.trim().length > 0;
 
@@ -102,7 +98,7 @@ function ServicePickerRow({
           <div className="text-xs text-muted-foreground">{item.sub_category}</div>
         )}
       </div>
-      <div className="text-xs text-muted-foreground whitespace-nowrap">{serviceFeeLabel(item)}</div>
+      <div className="text-xs text-muted-foreground whitespace-nowrap">{serviceFeeLabel(item, feeCurrency)}</div>
     </label>
   );
 }
@@ -115,6 +111,7 @@ function GroupItems({
   disabled,
   openNote,
   onOpenNote,
+  feeCurrency,
 }: {
   items: ServiceCatalogueItem[];
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
@@ -123,6 +120,7 @@ function GroupItems({
   disabled?: boolean;
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
+  feeCurrency: FeeCurrency;
 }) {
   return (
     <div className="divide-y">
@@ -139,6 +137,7 @@ function GroupItems({
             openNote={openNote}
             onToggle={() => onToggle(selectionKey, code)}
             onOpenNote={onOpenNote}
+            feeCurrency={feeCurrency}
           />
         );
       })}
@@ -154,6 +153,7 @@ function GroupAccordion({
   disabled,
   openNote,
   onOpenNote,
+  feeCurrency,
 }: {
   group: ServicePickerGroup;
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
@@ -162,6 +162,7 @@ function GroupAccordion({
   disabled?: boolean;
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
+  feeCurrency: FeeCurrency;
 }) {
   const selectedCount = group.items.filter((item) => {
     const code = item.service_code || item.id;
@@ -200,6 +201,7 @@ function GroupAccordion({
                   disabled={disabled}
                   openNote={openNote}
                   onOpenNote={onOpenNote}
+                  feeCurrency={feeCurrency}
                 />
               </div>
             ))}
@@ -213,6 +215,7 @@ function GroupAccordion({
             disabled={disabled}
             openNote={openNote}
             onOpenNote={onOpenNote}
+            feeCurrency={feeCurrency}
           />
         )}
       </AccordionContent>
@@ -229,6 +232,7 @@ export function GroupedServiceList({
   disabled,
   openNote,
   onOpenNote,
+  feeCurrency = "INR",
 }: {
   items: ServiceCatalogueItem[];
   tab: ServicePickerTab;
@@ -238,6 +242,7 @@ export function GroupedServiceList({
   disabled?: boolean;
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
+  feeCurrency?: FeeCurrency;
 }) {
   const groups = useMemo(() => groupCatalogueItems(items, tab), [items, tab]);
 
@@ -278,6 +283,7 @@ export function GroupedServiceList({
           disabled={disabled}
           openNote={openNote}
           onOpenNote={onOpenNote}
+          feeCurrency={feeCurrency}
         />
       ))}
     </Accordion>

@@ -6,6 +6,7 @@ import { Lock, Info, X } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { fetchAllServiceCatalogue, type ServiceCatalogueItem } from "@/lib/leads";
+import { serviceFeeLabel, type FeeCurrency } from "@/lib/leads/serviceFeeLabel";
 import { GroupedServiceList } from "@/components/leads/GroupedServiceList";
 import {
   shouldUseGroupedPicker,
@@ -43,6 +44,7 @@ const TABS: Tab[] = [
     label: "Visa & Immigration",
     masterKeys: ["visa_immigration"],
     selectionKey: "visa_services",
+    grouped: "visa_services",
   },
   {
     key: "admission_services",
@@ -59,13 +61,6 @@ const TABS: Tab[] = [
   },
 ];
 
-function serviceFeeLabel(s: ServiceCatalogueItem): string {
-  if (s.fee_inr) return `₹${Number(s.fee_inr).toLocaleString("en-IN")}`;
-  if (s.pricing_type === "FREE") return "Free";
-  if (s.pricing_type === "ON_REQUEST") return "On request";
-  return "—";
-}
-
 function FlatServiceList({
   items,
   getSelectionKey,
@@ -74,6 +69,7 @@ function FlatServiceList({
   disabled,
   openNote,
   onOpenNote,
+  feeCurrency,
 }: {
   items: ServiceCatalogueItem[];
   getSelectionKey: (item: ServiceCatalogueItem) => keyof ServiceSelection;
@@ -82,6 +78,7 @@ function FlatServiceList({
   disabled?: boolean;
   openNote: string | null;
   onOpenNote: (id: string | null) => void;
+  feeCurrency: FeeCurrency;
 }) {
   if (items.length === 0) {
     return (
@@ -160,7 +157,7 @@ function FlatServiceList({
                 <div className="text-xs text-muted-foreground">{s.sub_category}</div>
               )}
             </div>
-            <div className="text-xs text-muted-foreground whitespace-nowrap">{serviceFeeLabel(s)}</div>
+            <div className="text-xs text-muted-foreground whitespace-nowrap">{serviceFeeLabel(s, feeCurrency)}</div>
           </label>
         );
       })}
@@ -183,6 +180,7 @@ export const ServiceTabs = ({
 }) => {
   const [catalogue, setCatalogue] = useState<ServiceCatalogueItem[]>([]);
   const [visaCountry, setVisaCountry] = useState<string>("ALL");
+  const [feeCurrency, setFeeCurrency] = useState<FeeCurrency>("INR");
   const [openNote, setOpenNote] = useState<string | null>(null);
 
   useEffect(() => {
@@ -275,6 +273,28 @@ export const ServiceTabs = ({
                 Select countries of interest under Geography to see visa services.
               </div>
             )}
+            {isVisa && !noCountriesPicked && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-muted-foreground">Consultancy fees:</span>
+                <div className="inline-flex rounded-md border p-0.5">
+                  {(["INR", "CAD"] as FeeCurrency[]).map((cur) => (
+                    <button
+                      key={cur}
+                      type="button"
+                      onClick={() => setFeeCurrency(cur)}
+                      className={cn(
+                        "text-xs px-2.5 py-1 rounded-sm",
+                        feeCurrency === cur
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      {cur}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {isVisa && !noCountriesPicked && visaCountries.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 <button
@@ -318,6 +338,7 @@ export const ServiceTabs = ({
                   disabled={locked}
                   openNote={openNote}
                   onOpenNote={setOpenNote}
+                  feeCurrency={isVisa ? feeCurrency : "INR"}
                 />
               </div>
             ) : (
@@ -329,6 +350,7 @@ export const ServiceTabs = ({
                 disabled={locked}
                 openNote={openNote}
                 onOpenNote={setOpenNote}
+                feeCurrency={isVisa ? feeCurrency : "INR"}
               />
             )}
           </TabsContent>

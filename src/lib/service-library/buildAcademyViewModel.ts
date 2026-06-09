@@ -147,6 +147,46 @@ function formatFee(items: FeeItem[], labelMatch: RegExp): string {
   return `${cur}${row.amount}`.trim();
 }
 
+function formatConsultancyKpi(items: FeeItem[]): { value: string; sub?: string } {
+  const inr = items.find((f) => /consultancy fee \(inr\)/i.test(f.fee_label));
+  const cad = items.find((f) => /consultancy fee \(cad\)/i.test(f.fee_label));
+  if (inr?.amount) {
+    const value = `₹${inr.amount}`;
+    const subParts: string[] = [];
+    if (cad?.amount) subParts.push(`CA$${cad.amount}`);
+    if (inr.notes?.trim()) subParts.push(inr.notes.trim());
+    return { value, sub: subParts.length > 0 ? subParts.join(" · ") : undefined };
+  }
+  const legacy = formatFee(items, /consult|service|our/i);
+  if (legacy !== "—") return { value: legacy };
+  return { value: "—" };
+}
+
+type KpiRow = { label: string; value: string; sub?: string; tone?: AcademyKpiTone };
+
+function injectFeeKpis(kpis: KpiRow[], consultancy: { value: string; sub?: string }, govt: string): KpiRow[] {
+  if (!kpis.length) return kpis;
+  const showConsultancy =
+    consultancy.value !== "—" && !/see fee/i.test(consultancy.value);
+  const showGovt = govt !== "—" && !/see fee/i.test(govt);
+
+  return kpis.map((k) => {
+    const label = k.label.toLowerCase();
+    if (label.includes("consultancy") && showConsultancy) {
+      return {
+        ...k,
+        value: consultancy.value,
+        sub: consultancy.sub ?? k.sub,
+        tone: "warning",
+      };
+    }
+    if (label.includes("government") && showGovt) {
+      return { ...k, value: govt };
+    }
+    return k;
+  });
+}
+
 export function buildAcademyViewModel(args: {
   master: Master & { academy_metadata?: unknown };
   override?: (Override & { academy_metadata?: unknown }) | null;
@@ -206,13 +246,23 @@ export function buildAcademyViewModel(args: {
   const completed = submission.filter((s) => s.done).length;
   const checklistTotal = submission.length;
 
-  const consultancy = formatFee(feesScoped, /consult|service|our/i) !== "—"
-    ? formatFee(feesScoped, /consult|service|our/i)
-    : meta.kpis?.find((k) => k.label.toLowerCase().includes("consult"))?.value ?? "—";
+  const consultancyKpi = formatConsultancyKpi(feesScoped);
+  const consultancy =
+    consultancyKpi.value !== "—"
+      ? consultancyKpi.value
+      : meta.kpis?.find((k) => k.label.toLowerCase().includes("consult"))?.value ?? "—";
 
   const govt = formatFee(feesScoped, /govt|government|ircc/i) !== "—"
     ? formatFee(feesScoped, /govt|government|ircc/i)
-    : "See fee items";
+    : meta.kpis?.find((k) => k.label.toLowerCase().includes("government"))?.value ?? "See fee items";
+
+  const resolvedKpis = injectFeeKpis(
+    (meta.kpis ?? [
+      { label: "Required docs", value: String(submission.length || "—"), sub: "From checklist", tone: "violet" },
+    ]) as KpiRow[],
+    consultancyKpi,
+    govt,
+  );
 
   const redFlags = (meta.redFlags ?? []).map((r, i) => ({
     num: i + 1,
@@ -261,11 +311,7 @@ export function buildAcademyViewModel(args: {
     chips: meta.chips ?? [],
     policyAlert: policy,
     alert: meta.alert?.title ? { title: meta.alert.title, body: meta.alert.body ?? "" } : null,
-    kpis:
-      meta.kpis ??
-      [
-        { label: "Required docs", value: String(submission.length || "—"), sub: "From checklist", tone: "violet" },
-      ],
+    kpis: resolvedKpis,
     about:
       meta.about ??
       (resolved.checklist_text
