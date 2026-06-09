@@ -14,6 +14,20 @@ export type BusinessLine = {
   active: boolean;
 };
 
+export async function resolveBusinessLineById(
+  admin: SupabaseClient,
+  businessLineId: string | null | undefined,
+): Promise<BusinessLine | null> {
+  if (!businessLineId) return null;
+  const { data } = await admin
+    .from("whatsapp_business_lines")
+    .select("*")
+    .eq("id", businessLineId)
+    .eq("active", true)
+    .maybeSingle();
+  return (data as BusinessLine) ?? null;
+}
+
 export async function resolveBusinessLine(
   admin: SupabaseClient,
   metaPhoneNumberId: string | null | undefined,

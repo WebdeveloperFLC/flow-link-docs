@@ -26,6 +26,7 @@ import {
   deleteConversation,
   isWhatsAppSessionOpen,
   listAssignmentHistory,
+  listActiveBusinessLines,
   listBusinessLines,
   listConversations,
   listCounselors,
@@ -392,9 +393,7 @@ const WhatsAppInbox = () => {
       .catch((e) => toast.error(String(e.message || e)))
       .finally(() => setLoading(false));
     listCounselors().then(setCounselors).catch(() => {});
-    if (canManageLines) {
-      listBusinessLines().then(setBusinessLines).catch(() => {});
-    }
+    listActiveBusinessLines().then(setBusinessLines).catch(() => {});
     listMessageTemplates().then(setTemplates).catch(() => {});
   }, [refreshConversations, canManageLines]);
 
@@ -608,11 +607,23 @@ const WhatsAppInbox = () => {
 
   const handleSimulate = async () => {
     try {
-      await simulateInbound(simPhone, simText);
-      toast.success("Simulated inbound message");
+      const line = lineFilterId ? lineById.get(lineFilterId) : null;
+      const result = await simulateInbound(simPhone, simText, {
+        businessLineId: lineFilterId,
+        metaPhoneNumberId: line?.meta_phone_number_id,
+      });
+      if (result.deduped) {
+        toast.message("Duplicate simulate ignored", { description: "Same message was sent within a few seconds." });
+      } else {
+        toast.success("Simulated inbound message");
+      }
       setSimulateOpen(false);
       await refreshConversations();
-      if (activeId) await loadMessages(activeId);
+      if (result.conversation_id) {
+        selectConversation(result.conversation_id);
+      } else if (activeId) {
+        await loadMessages(activeId);
+      }
     } catch (e: any) {
       toast.error(e.message || "Simulate failed");
     }
@@ -622,7 +633,7 @@ const WhatsAppInbox = () => {
     if (!active || !clientSimText.trim()) return;
     const phone = active.phone_e164 || active.phone_display || "";
     try {
-      await simulateInbound(phone, clientSimText.trim(), active.id);
+      await simulateInbound(phone, clientSimText.trim(), { conversationId: active.id });
       setClientSimText("");
       await loadMessages(active.id);
       await refreshConversations();
@@ -1332,6 +1343,11 @@ const WhatsAppInbox = () => {
             <DialogTitle>Simulate inbound WhatsApp</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              {lineFilterId
+                ? `Mock message routes to: ${lineById.get(lineFilterId)?.label ?? "selected line"}. Change the line filter above to test another number.`
+                : "Mock message routes to the primary helpline. Pick a line in the filter above to simulate on India/other lines."}
+            </p>
             <div>
               <Label>Phone</Label>
               <Input value={simPhone} onChange={(e) => setSimPhone(e.target.value)} placeholder="9876543210" />

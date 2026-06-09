@@ -2,7 +2,7 @@
 // WhatsApp helpline: mock simulate (Phase 0) + Meta Cloud API webhook (Phase 1).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { normalizePhoneE164, phonesMatch } from "../_shared/whatsapp/phone.ts";
-import { DEFAULT_HELPLINE_LINE_ID, resolveBusinessLine } from "../_shared/whatsapp/businessLines.ts";
+import { DEFAULT_HELPLINE_LINE_ID, resolveBusinessLine, resolveBusinessLineById } from "../_shared/whatsapp/businessLines.ts";
 import {
   applyWhatsAppAutoAssignment,
   autoAssignEnabled,
@@ -279,6 +279,12 @@ Deno.serve(async (req) => {
     metaPhoneNumberId = parsed.metaPhoneNumberId;
   }
 
+  if (mock) {
+    if (payload.meta_phone_number_id) {
+      metaPhoneNumberId = String(payload.meta_phone_number_id);
+    }
+  }
+
   const phoneE164 = normalizePhoneE164(phoneRaw);
   if (!phoneE164) {
     return new Response(JSON.stringify({ error: "phone required" }), {
@@ -299,6 +305,17 @@ Deno.serve(async (req) => {
       });
     }
   }
+
+  const mockBusinessLineId = mock && payload.business_line_id
+    ? String(payload.business_line_id)
+    : null;
+  let businessLine = mockBusinessLineId
+    ? await resolveBusinessLineById(admin, mockBusinessLineId)
+    : null;
+  if (!businessLine) {
+    businessLine = await resolveBusinessLine(admin, metaPhoneNumberId);
+  }
+  const businessLineId = businessLine?.id ?? DEFAULT_HELPLINE_LINE_ID;
 
   // Short-window dedup for mock/simulate paths (no provider_message_id).
   // Prevents double-clicks from doubling inbound rows and AI replies.
@@ -331,9 +348,6 @@ Deno.serve(async (req) => {
   const useFlMenu = intakeFlow === "fl_menu";
   const useGemini = !useFlMenu && isGeminiAiMode(aiMode);
   const deferAssign = counselingBeforeAssignEnabled(aiMode);
-
-  const businessLine = await resolveBusinessLine(admin, metaPhoneNumberId);
-  const businessLineId = businessLine?.id ?? DEFAULT_HELPLINE_LINE_ID;
   const sendPhoneNumberId = businessLine?.meta_phone_number_id
     && businessLine.meta_phone_number_id !== "CONFIGURE_ME"
     ? businessLine.meta_phone_number_id
