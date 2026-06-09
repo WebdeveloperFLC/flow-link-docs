@@ -72,11 +72,12 @@ export default function AccountingClientsPage() {
     let alive = true;
     (async () => {
       const [svc, prof] = await Promise.all([
-        supabase.from("service_catalogue").select("master_key, service_name").eq("is_active", true).order("display_order"),
+        import("@/lib/leads").then(({ fetchAllServiceCatalogue }) => fetchAllServiceCatalogue()),
         supabase.from("profiles").select("id, full_name").order("full_name"),
       ]);
       if (!alive) return;
-      setServices(((svc.data ?? []) as any[]).map(r => ({ master_key: r.master_key, service_name: r.service_name })));
+      const cat = Array.isArray(svc) ? svc : [];
+      setServices(cat.map((r) => ({ master_key: r.master_key, service_name: r.service_name })));
       setCounselors(((prof.data ?? []) as any[]).map(r => ({ id: r.id, name: r.full_name || r.id })));
     })();
     return () => { alive = false; };

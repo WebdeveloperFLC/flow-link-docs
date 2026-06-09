@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Package, Workflow, BookOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, Database, ArrowUp, ArrowDown, Building2, Users2, Workflow, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { refreshMaster, type MasterListKey, type MasterItem } from "@/lib/masters";
@@ -17,7 +17,6 @@ import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
 import { BranchesSection } from "@/components/masters/BranchesSection";
 import { DepartmentsSection } from "@/components/masters/DepartmentsSection";
-import { ServiceCatalogueSection } from "@/components/masters/ServiceCatalogueSection";
 import { ServiceLibraryMastersSection } from "@/components/masters/ServiceLibraryMastersSection";
 import { StagePipelinesSection } from "@/components/masters/StagePipelinesSection";
 
@@ -31,7 +30,6 @@ const SPECIAL_SECTIONS = [
   { key: "__branches", label: "Branches", icon: Building2 },
   { key: "__departments", label: "Departments", icon: Users2 },
   { key: "__service_library", label: "Service Library", icon: BookOpen },
-  { key: "__service_catalogue", label: "Service Catalogue", icon: Package },
   { key: "__stage_pipelines", label: "Stage pipelines", icon: Workflow },
 ] as const;
 
@@ -209,7 +207,6 @@ const Masters = () => {
           {activeKey === "__branches" && <BranchesSection />}
           {activeKey === "__departments" && <DepartmentsSection />}
           {activeKey === "__service_library" && <ServiceLibraryMastersSection />}
-          {activeKey === "__service_catalogue" && <ServiceCatalogueSection />}
           {activeKey === "__stage_pipelines" && <StagePipelinesSection />}
 
           {!isSpecial(activeKey) && activeList && (

@@ -29,6 +29,7 @@ import { uploadPaymentProof, isProofRequired, defaultPaymentStatus } from "@/acc
 import { Checkbox } from "@/components/ui/checkbox";
 import { verifyPayment, rejectPayment, openPaymentProof } from "@/accounting/lib/paymentVerification";
 import { appendTimeline } from "@/lib/timeline";
+import { buildCatalogueLookup, fetchAllServiceCatalogue } from "@/lib/leads";
 import {
   notifyUsers,
   resolveCounselorNotificationUserIds,
@@ -717,24 +718,27 @@ function CreateInvoiceDialog({ clientId, onClose }: { clientId: string; onClose:
 
   useEffect(() => {
     (async () => {
-      const [s, b, f] = await Promise.all([
-        supabase
-          .from("service_catalogue")
-          .select("id,service_name,fee_inr,fee_cad")
-          .eq("is_active", true)
-          .order("service_name")
-          .limit(200),
+      const [cat, b, f] = await Promise.all([
+        fetchAllServiceCatalogue().catch(() => []),
         supabase.from("branches").select("id,name").eq("is_active", true).order("name"),
         supabase.from("firm_profile").select("id,firm_name").order("firm_name"),
       ]);
-      setServices((s.data ?? []) as any);
+      setServices(
+        cat
+          .filter((s) => s.pricing_type !== "FREE" && s.pricing_type !== "ON_REQUEST")
+          .map((s) => ({
+            id: s.id,
+            service_name: s.service_name,
+            fee_inr: s.fee_inr ?? null,
+            fee_cad: s.fee_cad ?? null,
+          })),
+      );
       setBranches((b.data ?? []) as any);
       setEntities((f.data ?? []) as any);
     })();
   }, []);
 
-  // Phase 3: service ids currently on the invoice (service_catalogue.id), used to
-  // filter eligible offers by applicable_services. Sorted+joined so the effect
+  // Service codes on the invoice, used to filter eligible offers by applicable_services.
   // only re-queries when the SET of services changes, not on quantity edits.
   const pickedServiceIds = Object.keys(picked);
   const serviceKey = [...pickedServiceIds].sort().join(",");
@@ -1144,16 +1148,22 @@ function CollectPaymentDialog({ invoice, onClose }: { invoice: Invoice; onClose:
 
       // Resolve service metadata
       const svcIds = Array.from(new Set(lineItems.map((li) => li?.service_id).filter(Boolean))) as string[];
+      const catalogue = await fetchAllServiceCatalogue().catch(() => []);
+      const lookup = buildCatalogueLookup(catalogue);
       const svcMap = new Map<
         string,
         { service_name: string; country_tag: string | null; sub_category: string | null; pricing_type: string | null }
       >();
-      if (svcIds.length) {
-        const { data: scat } = await supabase
-          .from("service_catalogue")
-          .select("id,service_name,country_tag,sub_category,pricing_type")
-          .in("id", svcIds);
-        (scat ?? []).forEach((s: any) => svcMap.set(s.id, s));
+      for (const sid of svcIds) {
+        const s = lookup.get(sid);
+        if (s) {
+          svcMap.set(sid, {
+            service_name: s.service_name,
+            country_tag: s.country_tag ?? null,
+            sub_category: s.sub_category ?? null,
+            pricing_type: s.pricing_type,
+          });
+        }
       }
 
       // Header context (entity / branch / counselor / handler)
@@ -2183,22 +2193,22 @@ function GenerateReceiptDialog({ invoice, onClose }: { invoice: Invoice; onClose
     // Resolve labels + service/installment metadata for allocation snapshot
     const allocInstIds = Array.from(new Set(allocRows.map((a) => a.installment_id).filter(Boolean)));
     const allocSvcIds = Array.from(new Set(allocRows.map((a) => a.service_id).filter(Boolean)));
-    const [instRes, svcRes] = await Promise.all([
+    const [instRes, catalogue] = await Promise.all([
       allocInstIds.length
         ? supabase
             .from("client_invoice_installments")
             .select("id,installment_number,installment_label,installment_due_date,fee_category")
             .in("id", allocInstIds)
         : Promise.resolve({ data: [] } as any),
-      allocSvcIds.length
-        ? supabase
-            .from("service_catalogue")
-            .select("id,service_name,country_tag,sub_category,pricing_type")
-            .in("id", allocSvcIds)
-        : Promise.resolve({ data: [] } as any),
+      fetchAllServiceCatalogue().catch(() => []),
     ]);
     const instMap = new Map<string, any>(((instRes as any).data ?? []).map((r: any) => [r.id, r]));
-    const svcMap = new Map<string, any>(((svcRes as any).data ?? []).map((r: any) => [r.id, r]));
+    const lookup = buildCatalogueLookup(catalogue);
+    const svcMap = new Map<string, any>();
+    for (const sid of allocSvcIds) {
+      const s = lookup.get(sid);
+      if (s) svcMap.set(sid, s);
+    }
     const lineItemsArr: any[] = Array.isArray(invRow.line_items) ? invRow.line_items : [];
     const lineByKey = new Map<string, any>();
     lineItemsArr.forEach((li: any, idx: number) => {
