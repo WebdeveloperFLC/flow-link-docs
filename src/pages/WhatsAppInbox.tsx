@@ -331,6 +331,17 @@ const WhatsAppInbox = () => {
     }
   }, [resetLineForm]);
 
+  const handleReactivateLine = useCallback(async (line: WhatsAppBusinessLine) => {
+    try {
+      await reactivateBusinessLine(line.id);
+      const lines = await listBusinessLines();
+      setBusinessLines(lines);
+      toast.success(`"${line.label}" reactivated`);
+    } catch (e: any) {
+      toast.error(e.message || "Reactivate failed");
+    }
+  }, []);
+
   const defaultHelplineLine = useMemo(
     () => businessLines.find((l) => l.is_default) ?? null,
     [businessLines],
