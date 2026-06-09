@@ -88,12 +88,14 @@ export async function findConversationForContact(opts: {
   return null;
 }
 
-export async function listConversations(): Promise<WhatsAppConversation[]> {
-  const { data, error } = await supabase
+export async function listConversations(opts?: { lineId?: string | null }): Promise<WhatsAppConversation[]> {
+  let q = supabase
     .from("whatsapp_conversations" as any)
     .select("*")
     .neq("status", "closed")
     .order("last_message_at", { ascending: false, nullsFirst: false });
+  if (opts?.lineId) q = q.eq("business_line_id", opts.lineId);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as WhatsAppConversation[];
 }
@@ -388,23 +390,41 @@ export async function listAssignmentHistory(conversationId: string): Promise<Wha
   return (data ?? []) as WhatsAppAssignment[];
 }
 
-export async function listBusinessLines(): Promise<WhatsAppBusinessLine[]> {
-  const { data, error } = await supabase
+export async function listBusinessLines(opts?: { activeOnly?: boolean }): Promise<WhatsAppBusinessLine[]> {
+  let q = supabase
     .from("whatsapp_business_lines" as any)
     .select("*")
-    .eq("active", true)
     .order("is_default", { ascending: false })
+    .order("active", { ascending: false })
     .order("label", { ascending: true });
+  if (opts?.activeOnly) q = q.eq("active", true);
+  const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as WhatsAppBusinessLine[];
+}
+
+export async function listActiveBusinessLines(): Promise<WhatsAppBusinessLine[]> {
+  return listBusinessLines({ activeOnly: true });
 }
 
 export async function saveBusinessLine(
   line: Partial<WhatsAppBusinessLine> & { label: string; meta_phone_number_id: string; line_type: "helpline" | "counselor" },
 ): Promise<void> {
+  const metaId = line.meta_phone_number_id.trim();
+  if (metaId && metaId !== "CONFIGURE_ME") {
+    const { data: clash } = await supabase
+      .from("whatsapp_business_lines" as any)
+      .select("id,label,active")
+      .eq("meta_phone_number_id", metaId)
+      .maybeSingle();
+    if (clash && clash.id !== line.id) {
+      const status = clash.active ? "" : " (inactive — reactivate it instead of re-adding)";
+      throw new Error(`Meta Phone Number ID ${metaId} is already used by "${clash.label}"${status}.`);
+    }
+  }
   const row = {
     label: line.label,
-    meta_phone_number_id: line.meta_phone_number_id,
+    meta_phone_number_id: metaId,
     display_phone: line.display_phone ?? null,
     line_type: line.line_type,
     assigned_user_id: line.assigned_user_id ?? null,
@@ -442,6 +462,38 @@ export async function deleteBusinessLine(id: string): Promise<void> {
   const { error } = await supabase
     .from("whatsapp_business_lines" as any)
     .update({ active: false, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function reactivateBusinessLine(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("whatsapp_business_lines" as any)
+    .update({ active: true, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function countConversationsForLine(id: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("whatsapp_conversations" as any)
+    .select("id", { count: "exact", head: true })
+    .eq("business_line_id", id);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function hardDeleteBusinessLine(id: string): Promise<void> {
+  if (id === DEFAULT_HELPLINE_LINE_ID) {
+    throw new Error("The default helpline cannot be permanently removed.");
+  }
+  const used = await countConversationsForLine(id);
+  if (used > 0) {
+    throw new Error(`Line has ${used} conversation${used === 1 ? "" : "s"} — deactivate it instead of deleting.`);
+  }
+  const { error } = await supabase
+    .from("whatsapp_business_lines" as any)
+    .delete()
     .eq("id", id);
   if (error) throw error;
 }
