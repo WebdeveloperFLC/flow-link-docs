@@ -14885,6 +14885,7 @@ export type Database = {
           label: string
           line_type: string
           meta_phone_number_id: string
+          meta_waba_id: string | null
           updated_at: string
         }
         Insert: {
@@ -14897,6 +14898,7 @@ export type Database = {
           label: string
           line_type?: string
           meta_phone_number_id: string
+          meta_waba_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -14909,6 +14911,7 @@ export type Database = {
           label?: string
           line_type?: string
           meta_phone_number_id?: string
+          meta_waba_id?: string | null
           updated_at?: string
         }
         Relationships: []

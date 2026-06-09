@@ -38,7 +38,7 @@ import {
   sendStaffReply,
   sendStaffTemplate,
   simulateInbound,
-  updateDefaultHelplineMetaId,
+  updateDefaultHelpline,
 } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { formatIntakeSummary } from "@/lib/whatsapp/intakeDisplay";
@@ -191,9 +191,11 @@ const WhatsAppInbox = () => {
   const [assignments, setAssignments] = useState<WhatsAppAssignment[]>([]);
   const [businessLines, setBusinessLines] = useState<WhatsAppBusinessLine[]>([]);
   const [linesOpen, setLinesOpen] = useState(false);
+  const [helplineWabaId, setHelplineWabaId] = useState("");
   const [helplineMetaId, setHelplineMetaId] = useState("");
   const [newLineType, setNewLineType] = useState<"helpline" | "counselor">("helpline");
   const [newLineLabel, setNewLineLabel] = useState("");
+  const [newLineWabaId, setNewLineWabaId] = useState("");
   const [newLineMetaId, setNewLineMetaId] = useState("");
   const [newLineDisplayPhone, setNewLineDisplayPhone] = useState("");
   const [newLineCounselor, setNewLineCounselor] = useState("");
@@ -233,6 +235,7 @@ const WhatsAppInbox = () => {
     setEditingLineId(null);
     setNewLineType("helpline");
     setNewLineLabel("");
+    setNewLineWabaId("");
     setNewLineMetaId("");
     setNewLineDisplayPhone("");
     setNewLineCounselor("");
@@ -242,6 +245,7 @@ const WhatsAppInbox = () => {
     setEditingLineId(line.id);
     setNewLineType(line.line_type);
     setNewLineLabel(line.label);
+    setNewLineWabaId(line.meta_waba_id ?? "");
     setNewLineMetaId(line.meta_phone_number_id === "CONFIGURE_ME" ? "" : line.meta_phone_number_id);
     setNewLineDisplayPhone(line.display_phone ?? "");
     setNewLineCounselor(line.assigned_user_id ?? "");
@@ -253,6 +257,7 @@ const WhatsAppInbox = () => {
       const lines = await listBusinessLines();
       setBusinessLines(lines);
       const helpline = lines.find((l) => l.is_default);
+      setHelplineWabaId(helpline?.meta_waba_id ?? "");
       setHelplineMetaId(
         helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""),
       );
@@ -965,22 +970,34 @@ const WhatsAppInbox = () => {
           if (!open) resetLineForm();
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage WhatsApp lines</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Primary helpline uses the field below (same as WHATSAPP_PHONE_NUMBER_ID secret). Add more shared helplines or counselor direct lines — each uses its own Meta Phone number ID.
+              Each line needs the Meta WhatsApp Business Account ID (WABA) and Phone number ID from API Setup. Primary helpline Phone number ID should match the WHATSAPP_PHONE_NUMBER_ID secret.
             </p>
-            <div>
-              <Label>Primary helpline Meta Phone number ID</Label>
-              <Input
-                value={helplineMetaId}
-                onChange={(e) => setHelplineMetaId(e.target.value)}
-                placeholder="From Meta API Setup"
-                className="mt-1"
-              />
+            <div className="space-y-2 rounded-md border p-3 bg-muted/10">
+              <Label className="text-xs uppercase text-muted-foreground">Primary helpline</Label>
+              <div>
+                <Label className="text-xs">WhatsApp Business Account ID (WABA)</Label>
+                <Input
+                  value={helplineWabaId}
+                  onChange={(e) => setHelplineWabaId(e.target.value)}
+                  placeholder="e.g. 123456789012345"
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Phone number ID</Label>
+                <Input
+                  value={helplineMetaId}
+                  onChange={(e) => setHelplineMetaId(e.target.value)}
+                  placeholder="From Meta API Setup"
+                  className="mt-1"
+                />
+              </div>
             </div>
             {additionalHelplineLines.length > 0 && (
               <div className="space-y-2">
@@ -993,7 +1010,10 @@ const WhatsAppInbox = () => {
                         {l.display_phone && (
                           <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>
                         )}
-                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
+                        {l.meta_waba_id && (
+                          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
+                        )}
+                        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -1029,7 +1049,10 @@ const WhatsAppInbox = () => {
                     <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
                       <div className="min-w-0 flex-1">
                         <div className="font-medium">{l.label}</div>
-                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
+                        {l.meta_waba_id && (
+                          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
+                        )}
+                        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
                         {l.assigned_user_id && (
                           <div className="text-muted-foreground mt-0.5">
                             Counselor: {counselorNameById.get(l.assigned_user_id) ?? "—"}
@@ -1090,9 +1113,14 @@ const WhatsAppInbox = () => {
                 placeholder={newLineType === "helpline" ? "Label e.g. India office helpline" : "Label e.g. Priya — Canada desk"}
               />
               <Input
+                value={newLineWabaId}
+                onChange={(e) => setNewLineWabaId(e.target.value)}
+                placeholder="WhatsApp Business Account ID (WABA)"
+              />
+              <Input
                 value={newLineMetaId}
                 onChange={(e) => setNewLineMetaId(e.target.value)}
-                placeholder="Meta Phone number ID for that line"
+                placeholder="Phone number ID"
               />
               {newLineType === "helpline" && (
                 <Input
@@ -1117,20 +1145,31 @@ const WhatsAppInbox = () => {
             <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
             <Button onClick={async () => {
               try {
-                if (helplineMetaId.trim()) {
-                  await updateDefaultHelplineMetaId(helplineMetaId.trim());
+                const primaryTouched = helplineMetaId.trim() || helplineWabaId.trim();
+                if (primaryTouched) {
+                  if (!helplineMetaId.trim() || !helplineWabaId.trim()) {
+                    toast.error("Primary helpline requires both WABA ID and Phone number ID");
+                    return;
+                  }
+                  await updateDefaultHelpline({
+                    meta_phone_number_id: helplineMetaId.trim(),
+                    meta_waba_id: helplineWabaId.trim(),
+                  });
                 }
-                const canSaveHelpline = newLineType === "helpline"
-                  && newLineLabel.trim()
-                  && newLineMetaId.trim();
-                const canSaveCounselor = newLineType === "counselor"
-                  && newLineLabel.trim()
-                  && newLineMetaId.trim()
-                  && newLineCounselor;
-                if (canSaveHelpline || canSaveCounselor) {
+                const hasLineForm = newLineLabel.trim() || newLineWabaId.trim() || newLineMetaId.trim() || newLineCounselor;
+                if (hasLineForm) {
+                  if (!newLineLabel.trim() || !newLineWabaId.trim() || !newLineMetaId.trim()) {
+                    toast.error("Each line requires label, WABA ID, and Phone number ID");
+                    return;
+                  }
+                  if (newLineType === "counselor" && !newLineCounselor) {
+                    toast.error("Counselor direct lines require an assigned counselor");
+                    return;
+                  }
                   await saveBusinessLine({
                     ...(editingLineId ? { id: editingLineId } : {}),
                     label: newLineLabel.trim(),
+                    meta_waba_id: newLineWabaId.trim(),
                     meta_phone_number_id: newLineMetaId.trim(),
                     display_phone: newLineType === "helpline" ? (newLineDisplayPhone.trim() || null) : null,
                     line_type: newLineType,

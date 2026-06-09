@@ -404,6 +404,7 @@ export async function saveBusinessLine(
 ): Promise<void> {
   const row = {
     label: line.label,
+    meta_waba_id: line.meta_waba_id?.trim() || null,
     meta_phone_number_id: line.meta_phone_number_id,
     display_phone: line.display_phone ?? null,
     line_type: line.line_type,
@@ -424,15 +425,28 @@ export async function saveBusinessLine(
   }
 }
 
-export async function updateDefaultHelplineMetaId(metaPhoneNumberId: string): Promise<void> {
+export async function updateDefaultHelpline(patch: {
+  meta_phone_number_id?: string;
+  meta_waba_id?: string;
+}): Promise<void> {
+  const row: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (patch.meta_phone_number_id?.trim()) {
+    row.meta_phone_number_id = patch.meta_phone_number_id.trim();
+  }
+  if (patch.meta_waba_id !== undefined) {
+    row.meta_waba_id = patch.meta_waba_id.trim() || null;
+  }
+  if (Object.keys(row).length === 1) return;
   const { error } = await supabase
     .from("whatsapp_business_lines" as any)
-    .update({
-      meta_phone_number_id: metaPhoneNumberId,
-      updated_at: new Date().toISOString(),
-    })
+    .update(row)
     .eq("id", DEFAULT_HELPLINE_LINE_ID);
   if (error) throw error;
+}
+
+/** @deprecated Use updateDefaultHelpline */
+export async function updateDefaultHelplineMetaId(metaPhoneNumberId: string): Promise<void> {
+  await updateDefaultHelpline({ meta_phone_number_id: metaPhoneNumberId });
 }
 
 export async function deleteBusinessLine(id: string): Promise<void> {
