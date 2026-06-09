@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle } from "lucide-react";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
 import { buildPublicEligibilityUrl } from "@/lib/service-eligibility/questions";
+import { usesSettleAbroadAssessment } from "@/lib/service-eligibility/settleAbroadBridge";
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function ServiceEligibilityPanel({ view, libraryId, country, onStartAssessment }: Props) {
+  const fullAssessment = usesSettleAbroadAssessment(libraryId);
   const publicUrl = buildPublicEligibilityUrl(libraryId, country);
 
   const copyPublicLink = async () => {
@@ -29,11 +31,12 @@ export function ServiceEligibilityPanel({ view, libraryId, country, onStartAsses
           <div>
             <h3 className="font-semibold flex items-center gap-2">
               <ClipboardCheck className="size-5 text-primary" />
-              Interactive eligibility assessment
+              {fullAssessment ? "Full eligibility assessment" : "Eligibility assessment"}
             </h3>
             <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-              Run a structured Q&amp;A for this visa service. Prefill from client records where possible, capture
-              items still in preparation, and share a public link for prospects.
+              {fullAssessment
+                ? "Comprehensive Settle Abroad questionnaire — personal profile, education, language, work experience, CRS score (Canada) or Chancenkarte points (Germany), pathway matching, and PDF report on submit."
+                : "Short operational checklist for this service. Prefill from client records, capture items in preparation, and share a public link for prospects."}
             </p>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
