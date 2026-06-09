@@ -4,14 +4,22 @@ export function buildServiceCode(libraryId: string, country: string | null | und
   return c ? `${libraryId}::${c}` : libraryId;
 }
 
+export type ServiceLibraryCategory = "visa" | "coaching";
+
 /** Build deep-link back to a service in the academy. */
 export function buildServiceLibraryUrl(opts: {
   libraryId: string;
   country?: string | null;
+  cat?: ServiceLibraryCategory | null;
+  family?: string | null;
+  variant?: "general" | "academic" | "other" | null;
   tab?: string;
 }) {
   const p = new URLSearchParams();
   p.set("id", opts.libraryId);
+  if (opts.cat === "coaching") p.set("cat", "coaching");
+  if (opts.family) p.set("family", opts.family);
+  if (opts.variant) p.set("variant", opts.variant);
   if (opts.country) p.set("country", opts.country);
   if (opts.tab) p.set("tab", opts.tab);
   return `/service-library?${p.toString()}`;

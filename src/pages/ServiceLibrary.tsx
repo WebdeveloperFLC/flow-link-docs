@@ -14,6 +14,7 @@ import { useServiceAcademyDetail } from "@/hooks/useServiceAcademyDetail";
 import {
   buildAcademyNav,
   flattenNavItemIds,
+  resolveAcademyDeepLinkContext,
   type AcademyCategoryFilter,
 } from "@/lib/service-library/academyNav";
 import type { CoachingVariant } from "@/lib/service-library/serviceNavClassification";
@@ -110,6 +111,38 @@ export default function ServiceLibrary() {
   );
 
   const navReadyForSelection = group?.step === "services";
+
+  useEffect(() => {
+    if (!masters.data || !selectedId) return;
+    const ctx = resolveAcademyDeepLinkContext(masters.data, selectedId);
+    if (!ctx) return;
+
+    if (ctx.category === "coaching") {
+      if (categoryFilter !== "coaching") setCategoryFilter("coaching");
+      if (ctx.coachingFamily && coachingFamily !== ctx.coachingFamily) {
+        setCoachingFamily(ctx.coachingFamily);
+      }
+      if (ctx.coachingVariant && coachingVariant !== ctx.coachingVariant) {
+        setCoachingVariant(ctx.coachingVariant);
+      }
+      return;
+    }
+
+    if (ctx.category === "visa") {
+      if (categoryFilter !== "visa") setCategoryFilter("visa");
+      if (ctx.country && countryFilter === "ALL") {
+        setCountryFilter(ctx.country);
+        setDetailCountry(ctx.country);
+      }
+    }
+  }, [
+    masters.data,
+    selectedId,
+    categoryFilter,
+    coachingFamily,
+    coachingVariant,
+    countryFilter,
+  ]);
 
   useEffect(() => {
     if (!navReadyForSelection || !group?.items) return;

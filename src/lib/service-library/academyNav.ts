@@ -440,6 +440,54 @@ export function flattenNavItemIds(group: AcademyNavGroup | null): string[] {
   return group.items.map((i) => i.id);
 }
 
+/** Resolve nav filters so a deep-linked library id opens the service detail, not a picker step. */
+export function resolveAcademyDeepLinkContext(
+  masters: MasterRow[],
+  libraryId: string,
+): {
+  category: AcademyCategoryFilter;
+  country: string | null;
+  coachingFamily: string | null;
+  coachingVariant: CoachingVariant | null;
+} | null {
+  const m = masters.find((row) => row.id === libraryId);
+  if (!m) return null;
+
+  if (m.service_category === "coaching_services") {
+    const family = coachingFamilyKey(m);
+    const variant = coachingVariantOf(m);
+    const familyRows = masters.filter(
+      (row) => row.service_category === "coaching_services" && coachingFamilyKey(row) === family,
+    );
+    const variantSet = new Set(familyRows.map((row) => coachingVariantOf(row)));
+    const hasGeneralAcademicSplit =
+      family.toLowerCase() === "ielts" ||
+      (variantSet.has("general") && variantSet.has("academic"));
+
+    return {
+      category: "coaching",
+      country: null,
+      coachingFamily: family,
+      coachingVariant: hasGeneralAcademicSplit ? variant : null,
+    };
+  }
+
+  if (m.service_category === "visa_immigration" && isAcademyVisaServiceRow(m)) {
+    const countries = resolveServiceCountries(
+      m.service,
+      (m.service_library_countries ?? []).map((c) => c.country),
+    );
+    return {
+      category: "visa",
+      country: countries[0] ?? null,
+      coachingFamily: null,
+      coachingVariant: null,
+    };
+  }
+
+  return null;
+}
+
 export function groupItemCount(group: AcademyNavGroup | null): number {
   if (!group) return 0;
   if (group.items) return group.items.length;

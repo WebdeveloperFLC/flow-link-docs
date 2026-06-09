@@ -11,6 +11,7 @@ import {
   type FeeCurrency,
 } from "@/lib/leads/serviceFeeLabel";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
+import { classifyCoachingVariant } from "@/lib/service-library/serviceNavClassification";
 
 const FEE_CELL =
   "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis";
@@ -52,9 +53,17 @@ export function ServicePickerRow({
 }: Props) {
   const hasNote = typeof item.notes === "string" && item.notes.trim().length > 0;
   const libraryId = item.library_id;
+  const isCoaching = item.master_key === "coaching_services";
+  const isVisa = item.master_key === "visa_immigration";
   const slUrl =
     libraryId != null
-      ? buildServiceLibraryUrl({ libraryId, country: item.country_tag })
+      ? buildServiceLibraryUrl({
+          libraryId,
+          country: isVisa ? item.country_tag : null,
+          cat: isCoaching ? "coaching" : isVisa ? "visa" : null,
+          family: isCoaching ? item.group_key : null,
+          variant: isCoaching ? classifyCoachingVariant(item.service_name) : null,
+        })
       : null;
   const govt = governmentFeeDisplay(item, feeCurrency);
 
