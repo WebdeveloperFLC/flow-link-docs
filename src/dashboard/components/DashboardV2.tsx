@@ -622,7 +622,7 @@ export function DashboardV2() {
                     description="Start managing your educational consulting workflow by adding your first client profile."
                     action={
                       <Button asChild>
-                        <Link to="/clients/new">Create the first one</Link>
+                        <Link to="/leads/new?register_client=1">Create the first one</Link>
                       </Button>
                     }
                   />

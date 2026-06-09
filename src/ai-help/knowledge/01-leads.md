@@ -6,7 +6,7 @@
 
 **Create a lead**: sidebar → **+ New Lead** → fill name, phone (with country code), email, interested countries/services, source.
 
-**Convert a lead to client**: open the lead → "Convert to Client" — creates a client record at `/clients/:id` and preserves the timeline.
+**Register as client**: on the lead form click **Register as Client** (or from lead detail → **Register as Client**) — additional sections unlock for academics, family, and invoice. Saves to `/clients/:id` and marks the lead converted.
 
 **Service tabs**: leads filterable by service (Study, Immigration, Visit visa, etc.) via the top tabs on the leads list.
 

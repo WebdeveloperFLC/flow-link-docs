@@ -1364,11 +1364,15 @@ type PickerVariant = {
   group_label: string;
   fee_inr: number;
   fee_cad: number;
+  govt_amount: number | null;
+  govt_currency: string | null;
   govt_fee_inr: number | null;
   govt_fee_cad: number | null;
   display_order: number;
   is_active: boolean;
 };
+
+const GOVT_CURRENCIES = ["GBP", "EUR", "CAD", "AUD", "USD", "NZD", "INR"];
 
 function PackagesTab({ master }: { master: Master }) {
   const qc = useQueryClient();
@@ -1414,6 +1418,8 @@ function PackagesTab({ master }: { master: Master }) {
       group_label: master.sub_service ?? "Services",
       fee_inr: 0,
       fee_cad: 0,
+      govt_amount: null,
+      govt_currency: null,
       govt_fee_inr: null,
       govt_fee_cad: null,
       display_order: nextOrder,
@@ -1428,7 +1434,7 @@ function PackagesTab({ master }: { master: Master }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Packages shown on lead/client service pickers. Set consultancy and government fees in both INR and CAD.
+          Lead-form packages: consultancy (INR/CAD) + government (native amount/currency; INR/CAD equivalents optional).
         </p>
         <Button size="sm" onClick={add}><Plus className="h-3.5 w-3.5 mr-1" />Add package</Button>
       </div>
@@ -1440,9 +1446,9 @@ function PackagesTab({ master }: { master: Master }) {
       )}
       <div className="space-y-2">
         {(variants.data ?? []).map((v) => (
-          <div key={v.id} className="grid grid-cols-12 gap-2 rounded-lg border p-2 text-sm">
+          <div key={v.id} className="grid grid-cols-12 gap-2 rounded-lg border p-2 text-sm items-center">
             <Input
-              className="col-span-3"
+              className="col-span-2"
               defaultValue={v.picker_label}
               placeholder="Picker label"
               onBlur={(e) => update(v.id, { picker_label: e.target.value })}
@@ -1469,16 +1475,33 @@ function PackagesTab({ master }: { master: Master }) {
               className="col-span-1"
               type="number"
               defaultValue={String(v.fee_inr)}
-              placeholder="₹"
+              placeholder="₹ consult"
               onBlur={(e) => update(v.id, { fee_inr: Number(e.target.value) || 0 })}
             />
             <Input
               className="col-span-1"
               type="number"
               defaultValue={String(v.fee_cad)}
-              placeholder="CA$"
+              placeholder="CA$ consult"
               onBlur={(e) => update(v.id, { fee_cad: Number(e.target.value) || 0 })}
             />
+            <Input
+              className="col-span-1"
+              type="number"
+              defaultValue={v.govt_amount != null ? String(v.govt_amount) : ""}
+              placeholder="Govt amt"
+              onBlur={(e) => update(v.id, { govt_amount: numOrNull(e.target.value) })}
+            />
+            <Select
+              value={v.govt_currency ?? "__none"}
+              onValueChange={(c) => update(v.id, { govt_currency: c === "__none" ? null : c })}
+            >
+              <SelectTrigger className="col-span-1"><SelectValue placeholder="Cur" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">—</SelectItem>
+                {GOVT_CURRENCIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
             <Input
               className="col-span-1"
               type="number"

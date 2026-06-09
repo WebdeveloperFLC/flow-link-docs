@@ -1,6 +1,6 @@
 # Clients & Client Entry
 
-**Create a client**: sidebar → **+ New Client** (`/clients/new`). Enter personal details, contact, interested country/service, branch, assigned counselor.
+**Create a client**: sidebar → **+ New Lead** → capture lead details → click **Register as Client** to unlock full registration (academics, family, invoice). Walk-ins can use `/leads/new?register_client=1` to start with client sections ready.
 
 **Client detail page** (`/clients/:id`) sections:
 - **Overview** — basic info, status, assigned team.

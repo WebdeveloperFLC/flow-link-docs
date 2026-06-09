@@ -10,8 +10,11 @@ import { VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
 import {
   buildLibraryFeeMaps,
   pickFeePair,
+  pickGovtFee,
   type FeeItemRow,
+  type LibraryGovtFee,
 } from "@/lib/leads/serviceFeeItems";
+import { convertGovtFee } from "@/lib/leads/govtFeeFx";
 
 export type LeadType = "warm" | "hot" | "cold";
 export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "unqualified" | "lost";
@@ -126,6 +129,8 @@ type PickerVariantRow = {
   fee_cad: number;
   govt_fee_inr?: number | null;
   govt_fee_cad?: number | null;
+  govt_amount?: number | null;
+  govt_currency?: string | null;
   display_order: number;
 };
 
@@ -133,26 +138,77 @@ function visaVariantGroupKey(groupLabel: string): string {
   return groupLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 
+function resolveVariantGovtOverride(v: PickerVariantRow): {
+  inr?: number | null;
+  cad?: number | null;
+  amount?: number | null;
+  currency?: string | null;
+} | undefined {
+  if (v.govt_amount != null && v.govt_currency) {
+    const amount = Number(v.govt_amount);
+    const currency = String(v.govt_currency).toUpperCase();
+    return {
+      amount,
+      currency,
+      inr:
+        v.govt_fee_inr != null
+          ? Number(v.govt_fee_inr)
+          : convertGovtFee(amount, currency, "INR"),
+      cad:
+        v.govt_fee_cad != null
+          ? Number(v.govt_fee_cad)
+          : convertGovtFee(amount, currency, "CAD"),
+    };
+  }
+  if (v.govt_fee_inr != null || v.govt_fee_cad != null) {
+    return {
+      inr: v.govt_fee_inr != null ? Number(v.govt_fee_inr) : null,
+      cad: v.govt_fee_cad != null ? Number(v.govt_fee_cad) : null,
+    };
+  }
+  return undefined;
+}
+
 function withLibraryFees(
   item: ServiceCatalogueItem,
   libraryId: string,
   consultMap: Map<string, { inr: number | null; cad: number | null }>,
-  govtMap: Map<string, { inr: number | null; cad: number | null }>,
-  variantGovt?: { inr?: number | null; cad?: number | null },
+  govtMap: Map<string, LibraryGovtFee>,
+  variantGovt?: {
+    inr?: number | null;
+    cad?: number | null;
+    amount?: number | null;
+    currency?: string | null;
+  },
 ): ServiceCatalogueItem {
   const consult = pickFeePair(consultMap, libraryId);
-  const govt = pickFeePair(govtMap, libraryId, variantGovt);
+  const govt = pickGovtFee(govtMap, libraryId, variantGovt);
   const feeInr = item.fee_inr ?? consult.inr;
   const feeCad = item.fee_cad ?? consult.cad;
   const pricing =
     item.pricing_type === "ON_REQUEST" && (feeInr != null || feeCad != null) ? "FIXED" : item.pricing_type;
+
+  let govtAmount = variantGovt?.amount ?? govt.native?.amount ?? null;
+  let govtCurrency = variantGovt?.currency ?? govt.native?.currency ?? null;
+  let govtInr = govt.inr;
+  let govtCad = govt.cad;
+
+  if (govtAmount != null && govtCurrency && govtInr == null) {
+    govtInr = convertGovtFee(govtAmount, govtCurrency, "INR");
+  }
+  if (govtAmount != null && govtCurrency && govtCad == null) {
+    govtCad = convertGovtFee(govtAmount, govtCurrency, "CAD");
+  }
+
   return {
     ...item,
     library_id: libraryId,
     fee_inr: feeInr,
     fee_cad: feeCad,
-    govt_fee_inr: govt.inr,
-    govt_fee_cad: govt.cad,
+    govt_amount: govtAmount,
+    govt_currency: govtCurrency,
+    govt_fee_inr: govtInr,
+    govt_fee_cad: govtCad,
     pricing_type: pricing,
   };
 }
@@ -172,6 +228,8 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
   if (error) throw error;
 
   const variantSelectFull =
+    "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, govt_amount, govt_currency, display_order";
+  const variantSelectMid =
     "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, display_order";
   const variantSelectBase =
     "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, display_order";
@@ -181,6 +239,13 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     .select(variantSelectFull)
     .eq("is_active", true)
     .order("display_order", { ascending: true });
+  if (variantRes.error) {
+    variantRes = await supabase
+      .from("service_library_picker_variants")
+      .select(variantSelectMid)
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+  }
   if (variantRes.error) {
     variantRes = await supabase
       .from("service_library_picker_variants")
@@ -276,10 +341,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
                 r.id,
                 consultMap,
                 govtMap,
-                {
-                  inr: v.govt_fee_inr != null ? Number(v.govt_fee_inr) : null,
-                  cad: v.govt_fee_cad != null ? Number(v.govt_fee_cad) : null,
-                },
+                resolveVariantGovtOverride(v),
               ),
             );
           }
@@ -375,6 +437,8 @@ export interface ServiceCatalogueItem {
   pricing_type: "FIXED" | "FLEXIBLE" | "FREE" | "ON_REQUEST";
   fee_inr?: number | null;
   fee_cad?: number | null;
+  govt_amount?: number | null;
+  govt_currency?: string | null;
   govt_fee_inr?: number | null;
   govt_fee_cad?: number | null;
   fee_gbp?: number | null;

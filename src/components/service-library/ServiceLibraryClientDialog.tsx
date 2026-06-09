@@ -148,7 +148,7 @@ export function ServiceLibraryClientDialog({
   const openNewClient = () => {
     rememberServiceLibraryReturn(libraryId, country);
     onOpenChange(false);
-    navigate(`/clients/new?${serviceParams.toString()}`);
+    navigate(`/leads/new?register_client=1&${serviceParams.toString()}`);
   };
 
   const openNewLead = () => {
@@ -220,7 +220,7 @@ export function ServiceLibraryClientDialog({
     const p = new URLSearchParams(serviceParams);
     p.set("lead_id", pickedLead);
     onOpenChange(false);
-    navigate(`/clients/new?${p.toString()}`);
+    navigate(`/leads/new?register_client=1&${p.toString()}`);
   };
 
   const title = mode === "push" ? "Push to client" : "New application";

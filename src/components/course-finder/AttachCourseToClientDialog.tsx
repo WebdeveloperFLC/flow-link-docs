@@ -133,7 +133,7 @@ export function AttachCourseToClientDialog({
           </div>
 
           <Button variant="outline" size="sm" className="w-full gap-2" asChild>
-            <Link to="/clients/new">
+            <Link to="/leads/new?register_client=1">
               <UserPlus className="size-4" />
               Register new client
             </Link>

@@ -97,7 +97,6 @@ const crmNav: NavItem[] = [
   { to: "/leads/cold", icon: Snowflake, label: "Cold Pool" },
   { to: "/leads/new", icon: UserPlus, label: "+ New Lead" },
   { to: "/clients", icon: Users, label: "Clients" },
-  { to: "/clients/new", icon: UserPlus, label: "+ New Client" },
   { to: "/messages", icon: MessageSquare, label: "Messages" },
   {
     to: "/whatsapp",
