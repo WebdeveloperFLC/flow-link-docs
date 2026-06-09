@@ -253,6 +253,7 @@ const WhatsAppInbox = () => {
   const [assignTo, setAssignTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [simulateOpen, setSimulateOpen] = useState(false);
+  const [simTargetLineId, setSimTargetLineId] = useState("");
   const [simPhone, setSimPhone] = useState("9876543210");
   const [simText, setSimText] = useState("Hi, I want to study in Canada");
   const [clientSimText, setClientSimText] = useState("");
@@ -364,6 +365,10 @@ const WhatsAppInbox = () => {
   const activeBusinessLines = useMemo(
     () => businessLines.filter((l) => l.active),
     [businessLines],
+  );
+  const helplineLinesForSim = useMemo(
+    () => activeBusinessLines.filter((l) => l.line_type === "helpline"),
+    [activeBusinessLines],
   );
   const lineById = useMemo(() => {
     const m = new Map<string, WhatsAppBusinessLine>();
@@ -605,24 +610,55 @@ const WhatsAppInbox = () => {
     }
   };
 
+  const openSimulateDialog = useCallback(() => {
+    // Prefer newest additional helpline (e.g. India) over primary when testing multi-line setups.
+    let target = "";
+    if (additionalHelplineLines.length > 0) {
+      target = additionalHelplineLines[additionalHelplineLines.length - 1].id;
+    } else if (lineFilterId) {
+      target = lineFilterId;
+    } else if (defaultHelplineLine) {
+      target = defaultHelplineLine.id;
+    }
+    setSimTargetLineId(target);
+    setSimulateOpen(true);
+  }, [lineFilterId, additionalHelplineLines, defaultHelplineLine]);
+
   const handleSimulate = async () => {
+    const line = simTargetLineId ? lineById.get(simTargetLineId) : null;
+    if (!simTargetLineId || !line) {
+      toast.error("Select which helpline line to simulate");
+      return;
+    }
     try {
-      const line = lineFilterId ? lineById.get(lineFilterId) : null;
       const result = await simulateInbound(simPhone, simText, {
-        businessLineId: lineFilterId,
-        metaPhoneNumberId: line?.meta_phone_number_id,
+        businessLineId: simTargetLineId,
+        metaPhoneNumberId: line.meta_phone_number_id,
       });
       if (result.deduped) {
         toast.message("Duplicate simulate ignored", { description: "Same message was sent within a few seconds." });
       } else {
-        toast.success("Simulated inbound message");
+        toast.success(`Simulated on ${line.label}`);
       }
       setSimulateOpen(false);
-      await refreshConversations();
+
+      if (simTargetLineId !== lineFilterId) {
+        const next = new URLSearchParams(searchParams);
+        next.set("line", simTargetLineId);
+        setSearchParams(next, { replace: true });
+      }
+
+      const rows = await listConversations({ lineId: simTargetLineId });
+      setConversations(rows);
       if (result.conversation_id) {
-        selectConversation(result.conversation_id);
-      } else if (activeId) {
-        await loadMessages(activeId);
+        setActiveId(result.conversation_id);
+        const next = new URLSearchParams(searchParams);
+        next.set("conversation", result.conversation_id);
+        if (simTargetLineId !== lineFilterId) next.set("line", simTargetLineId);
+        setSearchParams(next, { replace: true });
+        await loadMessages(result.conversation_id);
+      } else if (rows.length) {
+        setActiveId(rows[0].id);
       }
     } catch (e: any) {
       toast.error(e.message || "Simulate failed");
@@ -729,7 +765,7 @@ const WhatsAppInbox = () => {
               </Button>
             )}
             {canSimulate ? (
-              <Button variant="outline" size="sm" onClick={() => setSimulateOpen(true)}>
+              <Button variant="outline" size="sm" onClick={openSimulateDialog}>
                 <FlaskConical className="size-4 mr-1.5" />
                 Simulate inbound
               </Button>
@@ -1343,11 +1379,26 @@ const WhatsAppInbox = () => {
             <DialogTitle>Simulate inbound WhatsApp</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">
-              {lineFilterId
-                ? `Mock message routes to: ${lineById.get(lineFilterId)?.label ?? "selected line"}. Change the line filter above to test another number.`
-                : "Mock message routes to the primary helpline. Pick a line in the filter above to simulate on India/other lines."}
-            </p>
+            <div>
+              <Label>Helpline line</Label>
+              <Select value={simTargetLineId} onValueChange={setSimTargetLineId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Select helpline to simulate" />
+                </SelectTrigger>
+                <SelectContent>
+                  {helplineLinesForSim.map((l) => (
+                    <SelectItem key={l.id} value={l.id}>
+                      {l.label}
+                      {l.display_phone ? ` · ${l.display_phone}` : ""}
+                      {l.is_default ? " (primary)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mock inbound is created on this line only — pick your India/new helpline here, not the primary line.
+              </p>
+            </div>
             <div>
               <Label>Phone</Label>
               <Input value={simPhone} onChange={(e) => setSimPhone(e.target.value)} placeholder="9876543210" />
