@@ -644,6 +644,29 @@ const WhatsAppInbox = () => {
           <div className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground border-b">
             Conversations
           </div>
+          <div className="px-3 py-2 border-b">
+            <Select
+              value={lineFilterId ?? "all"}
+              onValueChange={(v) => {
+                const next = new URLSearchParams(searchParams);
+                if (v === "all") next.delete("line");
+                else next.set("line", v);
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All lines" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All lines</SelectItem>
+                {activeBusinessLines.map((l) => (
+                  <SelectItem key={l.id} value={l.id}>
+                    {l.label}{l.display_phone ? ` · ${l.display_phone}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="divide-y overflow-y-auto flex-1">
             {loading && <div className="p-4 text-sm text-muted-foreground">Loading…</div>}
             {!loading && conversations.length === 0 && (
@@ -653,6 +676,7 @@ const WhatsAppInbox = () => {
             )}
             {conversations.map((c) => {
               const sla = whatsAppSlaBadge(c);
+              const line = c.business_line_id ? lineById.get(c.business_line_id) : null;
               return (
               <button
                 key={c.id}
@@ -686,6 +710,14 @@ const WhatsAppInbox = () => {
                 <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                   <MessageCircle className="size-3" />
                   {STATUS_LABELS[c.status]}
+                  {line && (
+                    <Badge
+                      variant={line.line_type === "counselor" ? "outline" : "secondary"}
+                      className="text-[9px] px-1.5 py-0 ml-1"
+                    >
+                      {line.label}
+                    </Badge>
+                  )}
                 </div>
               </button>
             );})}
