@@ -111,18 +111,52 @@ export async function markLeadConverted(id: string): Promise<Lead> {
   return updateLead(id, { status: "converted" as never });
 }
 
+type PickerVariantRow = {
+  library_id: string;
+  country: string;
+  variant_key: string;
+  picker_label: string;
+  group_label: string;
+  fee_inr: number;
+  fee_cad: number;
+  display_order: number;
+};
+
+function visaVariantGroupKey(groupLabel: string): string {
+  return groupLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
+}
+
 export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
   // Source of truth: service_library + service_library_countries.
   // The Lead Form's Services Required panel now reflects the same records
   // managed in Service Library Admin.
-  const { data, error } = await supabase
-    .from("service_library")
-    .select("id, service_category, service, sub_service, display_order, is_active, academy_metadata, service_library_countries(country)")
-    .eq("is_active", true)
-    .order("service_category", { ascending: true })
-    .order("display_order", { ascending: true })
-    .order("service", { ascending: true });
+  const [libRes, variantRes] = await Promise.all([
+    supabase
+      .from("service_library")
+      .select(
+        "id, service_category, service, sub_service, display_order, is_active, academy_metadata, service_library_countries(country)",
+      )
+      .eq("is_active", true)
+      .order("service_category", { ascending: true })
+      .order("display_order", { ascending: true })
+      .order("service", { ascending: true }),
+    supabase
+      .from("service_library_picker_variants")
+      .select("library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true }),
+  ]);
+  const { data, error } = libRes;
   if (error) throw error;
+
+  const variants = variantRes.error
+    ? []
+    : ((variantRes.data ?? []) as unknown as PickerVariantRow[]);
+  const variantsByParent = new Map<string, PickerVariantRow[]>();
+  for (const v of variants) {
+    const key = `${v.library_id}::${v.country}`;
+    variantsByParent.set(key, [...(variantsByParent.get(key) ?? []), v]);
+  }
   type Row = {
     id: string;
     service_category: string;
@@ -163,8 +197,34 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       // Emit one row per country so the per-country filter in ServiceTabs works.
       const list = countries.length > 0 ? countries : [null];
       for (const c of list) {
+        const parentKey = c ? `${r.id}::${c}` : r.id;
+        const parentVariants = c ? variantsByParent.get(`${r.id}::${c}`) : undefined;
+
+        if (parentVariants && parentVariants.length > 0) {
+          for (const v of parentVariants) {
+            const groupKey = visaVariantGroupKey(v.group_label);
+            items.push({
+              id: `${r.id}::${c}::${v.variant_key}`,
+              master_key: r.service_category,
+              service_name: v.picker_label,
+              sub_category: c,
+              group_key: groupKey,
+              group_label: v.group_label,
+              service_code: `${r.id}::${c}::${v.variant_key}`,
+              pricing_type: "FIXED",
+              fee_inr: Number(v.fee_inr),
+              fee_cad: Number(v.fee_cad),
+              country_tag: c,
+              is_active: r.is_active,
+              is_bundled: false,
+              display_order: v.display_order,
+            });
+          }
+          continue;
+        }
+
         items.push({
-          id: c ? `${r.id}::${c}` : r.id,
+          id: parentKey,
           master_key: r.service_category,
           service_name: visaDisplayLabel,
           sub_category: c ?? r.service,
@@ -329,7 +389,8 @@ export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
   for (const s of catalogue) {
     const code = s.service_code || s.id;
     const chipLabel =
-      s.master_key === "coaching_services" && s.group_label
+      s.group_label &&
+      (s.master_key === "coaching_services" || s.master_key === "visa_immigration")
         ? `${s.group_label} — ${s.service_name}`
         : s.service_name;
     m.set(code, chipLabel);
