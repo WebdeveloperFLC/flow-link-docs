@@ -12,6 +12,7 @@ import {
   resolveCoachingFamilyKey,
   resolveCoachingVariantLabel,
 } from "@/lib/leads/servicePickerGroups";
+import { stripCountryPrefix } from "@/lib/service-library/serviceDisplayLabels";
 
 export type AcademyCategoryFilter = "visa" | "coaching";
 
@@ -174,25 +175,30 @@ function dropGenericCoachingParent(rows: MasterRow[], familyKey: string): Master
 
 function itemLabel(m: MasterRow, activeCountry?: string): string {
   const meta = metaOf(m);
-  if (meta?.displayName) return meta.displayName;
+  let label: string;
+
+  if (meta?.displayName) {
+    label = meta.displayName;
+  } else if (activeCountry && activeCountry !== "ALL") {
+    label = m.sub_service;
+  } else if (m.service_category === "coaching_services") {
+    label = resolveCoachingVariantLabel(m.service, m.sub_service, meta?.displayName);
+  } else {
+    const countries = resolveServiceCountries(
+      m.service,
+      (m.service_library_countries ?? []).map((c) => c.country),
+    );
+    const country = countries.length === 1 ? countries[0] : m.service;
+    label =
+      m.service_category === "visa_immigration" && country
+        ? `${country} – ${m.sub_service}`
+        : m.sub_service;
+  }
 
   if (activeCountry && activeCountry !== "ALL") {
-    return m.sub_service;
+    return stripCountryPrefix(label, activeCountry);
   }
-
-  if (m.service_category === "coaching_services") {
-    return resolveCoachingVariantLabel(m.service, m.sub_service, meta?.displayName);
-  }
-
-  const countries = resolveServiceCountries(
-    m.service,
-    (m.service_library_countries ?? []).map((c) => c.country),
-  );
-  const country = countries.length === 1 ? countries[0] : m.service;
-  if (m.service_category === "visa_immigration" && country) {
-    return `${country} – ${m.sub_service}`;
-  }
-  return m.sub_service;
+  return label;
 }
 
 function matchesSearch(m: MasterRow, q: string): boolean {
