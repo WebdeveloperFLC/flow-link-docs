@@ -191,7 +191,8 @@ export default function ServiceEligibilityRun() {
     return [...map.entries()];
   }, [visibleQuestions]);
 
-  const onNotesStep = step >= sections.length;
+  const onNotesStep = sections.length > 0 && step >= sections.length;
+  const noQuestionsConfigured = questions.length === 0;
   const evaluation = useMemo(
     () => evaluateEligibility(questions, answers, notes, pendingItems),
     [questions, answers, notes, pendingItems],
@@ -345,6 +346,27 @@ export default function ServiceEligibilityRun() {
                 </Button>
               )}
             </div>
+          )}
+        </Card>
+      ) : noQuestionsConfigured ? (
+        <Card className="p-6 space-y-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="size-5 text-warning shrink-0 mt-0.5" />
+            <div>
+              <h2 className="font-semibold">No eligibility questions yet</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                This service does not have interactive eligibility questions configured. An administrator can add them
+                in the database, or use the reference criteria on the Service Library eligibility tab.
+              </p>
+            </div>
+          </div>
+          {!isPublic && session.library_id && (
+            <Button variant="outline" asChild>
+              <Link to={buildServiceLibraryUrl({ libraryId: session.library_id, country: session.country, tab: "eligibility" })}>
+                <ChevronLeft className="size-4 mr-1" />
+                Back to Service Library
+              </Link>
+            </Button>
           )}
         </Card>
       ) : onNotesStep ? (
