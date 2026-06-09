@@ -480,7 +480,16 @@ const WhatsAppInbox = () => {
     [active],
   );
 
-  const sessionOpen = isWhatsAppSessionOpen(active?.last_inbound_at);
+  const hasRealMetaInbound = useMemo(
+    () => messages.some((m) => m.direction === "inbound" && !!m.provider_message_id),
+    [messages],
+  );
+  const crmSessionOpen = isWhatsAppSessionOpen(active?.last_inbound_at);
+  // Meta only allows outbound after a real WhatsApp message — simulate does not count.
+  const sessionOpen = IS_META_MODE
+    ? hasRealMetaInbound && crmSessionOpen
+    : crmSessionOpen;
+  const isSimulateOnlyThread = IS_META_MODE && active && messages.length > 0 && !hasRealMetaInbound;
 
   const selectedTemplate = useMemo(
     () => templates.find((t) => t.id === selectedTemplateId) ?? null,
@@ -577,10 +586,22 @@ const WhatsAppInbox = () => {
         };
       }
 
+      if (IS_META_MODE && !hasRealMetaInbound) {
+        toast.error(
+          "This thread is simulate-only. Ask the client to send a real WhatsApp message to your helpline number first — then counselor replies will deliver.",
+        );
+        return;
+      }
       const { meta_sent } = await sendStaffReply(active.id, user.id, text, media);
       setReply("");
       clearPendingFile();
       await loadMessages(active.id);
+      if (IS_META_MODE && !meta_sent) {
+        toast.error(
+          "Not delivered on WhatsApp — check WHATSAPP_ACCESS_TOKEN has access to this line's Phone number ID, or redeploy whatsapp-send.",
+        );
+        return;
+      }
       const label = media
         ? (meta_sent ? "File sent on WhatsApp" : "File saved in CRM (mock mode)")
         : (meta_sent ? "Sent on WhatsApp" : "Saved in CRM (mock mode)");
@@ -960,7 +981,17 @@ const WhatsAppInbox = () => {
                 </div>
               )}
 
-              {IS_META_MODE && active && !sessionOpen && (
+              {isSimulateOnlyThread && (
+                <Alert className="mx-4 mt-3 py-2 rounded-md border-blue-500/40 bg-blue-50 text-blue-950 dark:bg-blue-950/30 dark:text-blue-100">
+                  <AlertTriangle className="size-4" />
+                  <AlertDescription className="text-xs space-y-1">
+                    <p><strong>Simulate-only thread</strong> — messages here are not on WhatsApp yet. Counselor replies will not reach the client&apos;s phone.</p>
+                    <p>To test real delivery: message <strong>{activeLine?.display_phone || activeLine?.label || "your helpline number"}</strong> from a real phone. The thread will update when Meta webhook receives it (Phone ID must match Manage lines).</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {IS_META_MODE && active && hasRealMetaInbound && !sessionOpen && (
                 <Alert variant="destructive" className="mx-4 mt-3 py-2 rounded-md border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
                   <AlertTriangle className="size-4" />
                   <AlertDescription className="text-xs">
@@ -969,7 +1000,7 @@ const WhatsAppInbox = () => {
                 </Alert>
               )}
 
-              {IS_META_MODE && active && !sessionOpen && templates.length > 0 && (
+              {IS_META_MODE && active && hasRealMetaInbound && !sessionOpen && templates.length > 0 && (
                 <div className="mx-4 mt-2 p-3 border rounded-md bg-muted/30 space-y-2">
                   <Label className="text-xs">Approved template (outside 24h)</Label>
                   <Select
