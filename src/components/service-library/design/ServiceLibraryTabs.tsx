@@ -80,19 +80,13 @@ export function ServiceLibraryTabs({
 
   return (
     <Tabs value={activeTab} onValueChange={(v) => setTab(v as AcademyTabId)} className="w-full">
-      <div className="overflow-x-auto -mx-1 px-1 pb-1 mb-3 scrollbar-thin">
-        <TabsList className="inline-flex w-max min-w-full justify-start flex-nowrap h-auto gap-1 bg-muted/40 p-1">
-          {tabIds.map((id) => (
-            <TabsTrigger
-              key={id}
-              value={id}
-              className="text-xs sm:text-sm shrink-0 whitespace-nowrap data-[state=active]:bg-card"
-            >
-              {tabLabel(id, view)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </div>
+      <TabsList className="w-full justify-start flex-wrap h-auto gap-1 bg-muted/40 p-1 mb-4">
+        {tabIds.map((id) => (
+          <TabsTrigger key={id} value={id} className="text-xs sm:text-sm data-[state=active]:bg-card">
+            {tabLabel(id, view)}
+          </TabsTrigger>
+        ))}
+      </TabsList>
 
       <TabsContent value="overview" className="space-y-4 mt-0">
         <Card className="p-5 shadow-elev-sm">

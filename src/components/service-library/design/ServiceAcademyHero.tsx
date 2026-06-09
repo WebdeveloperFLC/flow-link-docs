@@ -77,16 +77,16 @@ export function ServiceAcademyHero({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-        <div className="flex gap-4 min-w-0">
+      <div className="space-y-4">
+        <div className="flex gap-4 items-start">
           <div className="size-14 rounded-xl bg-white flex items-center justify-center shrink-0 border border-border shadow-sm p-2">
             <img src={flcLogo} alt="Future Link Consultants" className="h-full w-full object-contain" />
           </div>
           <div className="min-w-0 flex-1">
             {titleCountry ? (
-              <p className="text-sm font-semibold text-muted-foreground tracking-wide">{titleCountry}</p>
+              <p className="text-sm font-semibold text-muted-foreground tracking-wide mb-0.5">{titleCountry}</p>
             ) : null}
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight text-balance">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight leading-snug">
               {titleName}
             </h1>
             <p className="text-sm text-muted-foreground mt-1.5 leading-snug">{view.subtitle}</p>
@@ -110,7 +110,7 @@ export function ServiceAcademyHero({
             </div>
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
+        <div className="flex flex-wrap gap-2 justify-end pl-[4.5rem]">
           {canManage && (
             <Button variant="outline" size="sm" asChild>
               <a href={`/service-library-admin`} target="_blank" rel="noopener noreferrer">
