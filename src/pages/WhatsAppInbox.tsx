@@ -27,6 +27,7 @@ import {
   listMessages,
   markConversationRead,
   resolveWhatsAppMediaUrl,
+  deleteBusinessLine,
   saveBusinessLine,
   sendStaffReply,
   sendStaffTemplate,
@@ -44,7 +45,7 @@ import {
   type WhatsAppMessageTemplate,
 } from "@/lib/whatsapp/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X, Settings2, Clock, AlertTriangle } from "lucide-react";
+import { MessageCircle, Send, FlaskConical, UserRound, ExternalLink, Trash2, Archive, Paperclip, X, Settings2, Clock, AlertTriangle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -188,6 +189,8 @@ const WhatsAppInbox = () => {
   const [newLineLabel, setNewLineLabel] = useState("");
   const [newLineMetaId, setNewLineMetaId] = useState("");
   const [newLineCounselor, setNewLineCounselor] = useState("");
+  const [editingLineId, setEditingLineId] = useState<string | null>(null);
+  const [deleteLineTarget, setDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
   const [templates, setTemplates] = useState<WhatsAppMessageTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [templateParams, setTemplateParams] = useState<string[]>([]);
@@ -217,6 +220,28 @@ const WhatsAppInbox = () => {
       prev.map((c) => (c.id === conversationId ? { ...c, unread_count_staff: 0 } : c)),
     );
   }, []);
+
+  const resetCounselorForm = useCallback(() => {
+    setEditingLineId(null);
+    setNewLineLabel("");
+    setNewLineMetaId("");
+    setNewLineCounselor("");
+  }, []);
+
+  const startEditLine = useCallback((line: WhatsAppBusinessLine) => {
+    setEditingLineId(line.id);
+    setNewLineLabel(line.label);
+    setNewLineMetaId(line.meta_phone_number_id === "CONFIGURE_ME" ? "" : line.meta_phone_number_id);
+    setNewLineCounselor(line.assigned_user_id ?? "");
+  }, []);
+
+  const counselorNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const c of counselors) {
+      map.set(c.id, c.full_name || c.email || c.id);
+    }
+    return map;
+  }, [counselors]);
 
   useEffect(() => {
     if (!deepLinkConversationId) return;
@@ -900,7 +925,13 @@ const WhatsAppInbox = () => {
         </Card>
       </div>
 
-      <Dialog open={linesOpen} onOpenChange={setLinesOpen}>
+      <Dialog
+        open={linesOpen}
+        onOpenChange={(open) => {
+          setLinesOpen(open);
+          if (!open) resetCounselorForm();
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>WhatsApp business lines (Phase 2)</DialogTitle>
@@ -918,8 +949,66 @@ const WhatsAppInbox = () => {
                 className="mt-1"
               />
             </div>
+            {businessLines.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase text-muted-foreground">Configured lines</Label>
+                <ul className="text-xs space-y-2 max-h-40 overflow-y-auto border rounded-md p-2">
+                  {businessLines.map((l) => (
+                    <li key={l.id} className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">
+                          {l.label}
+                          {l.is_default && (
+                            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1 py-0">Default</Badge>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground truncate">{l.meta_phone_number_id}</div>
+                        {l.line_type === "counselor" && l.assigned_user_id && (
+                          <div className="text-muted-foreground truncate">
+                            Counselor: {counselorNameById.get(l.assigned_user_id) ?? "—"}
+                          </div>
+                        )}
+                      </div>
+                      {!l.is_default && (
+                        <div className="flex shrink-0 gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            title="Edit line"
+                            onClick={() => startEditLine(l)}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:text-destructive"
+                            title="Remove line"
+                            onClick={() => setDeleteLineTarget(l)}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <div className="border-t pt-3 space-y-2">
-              <Label className="text-xs uppercase text-muted-foreground">Add legacy counselor line</Label>
+              <div className="flex items-center justify-between gap-2">
+                <Label className="text-xs uppercase text-muted-foreground">
+                  {editingLineId ? "Edit counselor line" : "Add legacy counselor line"}
+                </Label>
+                {editingLineId && (
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={resetCounselorForm}>
+                    Cancel edit
+                  </Button>
+                )}
+              </div>
               <Input value={newLineLabel} onChange={(e) => setNewLineLabel(e.target.value)} placeholder="Label e.g. Priya — Canada desk" />
               <Input value={newLineMetaId} onChange={(e) => setNewLineMetaId(e.target.value)} placeholder="Meta Phone number ID for that line" />
               <Select value={newLineCounselor} onValueChange={setNewLineCounselor}>
@@ -931,16 +1020,6 @@ const WhatsAppInbox = () => {
                 </SelectContent>
               </Select>
             </div>
-            {businessLines.length > 0 && (
-              <ul className="text-xs space-y-1 max-h-32 overflow-y-auto border rounded-md p-2">
-                {businessLines.map((l) => (
-                  <li key={l.id} className="flex justify-between gap-2">
-                    <span>{l.label} <span className="text-muted-foreground">({l.line_type})</span></span>
-                    <span className="text-muted-foreground truncate">{l.meta_phone_number_id}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
@@ -951,14 +1030,13 @@ const WhatsAppInbox = () => {
                 }
                 if (newLineLabel.trim() && newLineMetaId.trim() && newLineCounselor) {
                   await saveBusinessLine({
+                    ...(editingLineId ? { id: editingLineId } : {}),
                     label: newLineLabel.trim(),
                     meta_phone_number_id: newLineMetaId.trim(),
                     line_type: "counselor",
                     assigned_user_id: newLineCounselor,
                   });
-                  setNewLineLabel("");
-                  setNewLineMetaId("");
-                  setNewLineCounselor("");
+                  resetCounselorForm();
                 }
                 const lines = await listBusinessLines();
                 setBusinessLines(lines);
@@ -973,6 +1051,41 @@ const WhatsAppInbox = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteLineTarget} onOpenChange={(open) => { if (!open) setDeleteLineTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove counselor line?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteLineTarget
+                ? `"${deleteLineTarget.label}" will be removed from routing. Existing conversations on this line are kept; only new inbound messages stop using it.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!deleteLineTarget) return;
+                try {
+                  await deleteBusinessLine(deleteLineTarget.id);
+                  if (editingLineId === deleteLineTarget.id) resetCounselorForm();
+                  const lines = await listBusinessLines();
+                  setBusinessLines(lines);
+                  toast.success("Line removed");
+                } catch (e: any) {
+                  toast.error(e.message || "Remove failed");
+                } finally {
+                  setDeleteLineTarget(null);
+                }
+              }}
+            >
+              Remove line
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={simulateOpen} onOpenChange={setSimulateOpen}>
         <DialogContent>
