@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
+import { splitServiceTitle } from "@/lib/service-library/serviceDisplayLabels";
 import { copyToClipboard } from "@/lib/serviceLibrary";
 import { toast } from "sonner";
 
@@ -28,6 +29,7 @@ export function ServiceAcademyHero({
   canManage,
 }: Props) {
   const showPolicy = !policyDismissed && view.policyAlert;
+  const { country: titleCountry, name: titleName } = splitServiceTitle(view.title, view.country);
 
   return (
     <div className="space-y-4 border-b bg-card pb-4">
@@ -80,9 +82,14 @@ export function ServiceAcademyHero({
           <div className="size-14 rounded-xl bg-white flex items-center justify-center shrink-0 border border-border shadow-sm p-2">
             <img src={flcLogo} alt="Future Link Consultants" className="h-full w-full object-contain" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{view.title}</h1>
-            <p className="text-sm text-muted-foreground mt-1">{view.subtitle}</p>
+          <div className="min-w-0 flex-1">
+            {titleCountry ? (
+              <p className="text-sm font-semibold text-muted-foreground tracking-wide">{titleCountry}</p>
+            ) : null}
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight text-balance">
+              {titleName}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5 leading-snug">{view.subtitle}</p>
             {view.updatedLabel && (
               <p className="text-xs text-muted-foreground mt-0.5">{view.updatedLabel}</p>
             )}

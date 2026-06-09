@@ -41,7 +41,7 @@ type Props = {
 };
 
 const navBtnBase =
-  "w-full flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm text-left transition-all";
+  "w-full flex items-start gap-2 rounded-lg px-3 py-2.5 text-sm text-left transition-all";
 const navBtnIdle = "text-slate-100 hover:bg-slate-800/90 hover:text-white";
 const navBtnActive = "bg-gradient-to-r from-sky-500 to-violet-600 text-white font-semibold shadow-md shadow-violet-900/30";
 
@@ -62,7 +62,7 @@ function NavItemButton({
       onClick={() => onSelect(item.id)}
       className={cn(navBtnBase, selected ? navBtnActive : navBtnIdle)}
     >
-      <span className="flex-1 truncate leading-snug">{item.label}</span>
+      <span className="flex-1 min-w-0 leading-snug line-clamp-2 break-words">{item.label}</span>
       {item.needsReview && (
         <span className="size-2 rounded-full bg-amber-400 shrink-0 ring-2 ring-slate-900" title="Needs review" />
       )}
@@ -134,7 +134,7 @@ export function ServiceAcademySidebar({
   };
 
   return (
-    <aside className="w-[280px] shrink-0 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 min-h-screen border-r border-slate-800">
+    <aside className="w-[300px] shrink-0 flex flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 min-h-screen border-r border-slate-800">
       <div className="p-3 border-b border-slate-700/80">
         <Link
           to="/"
