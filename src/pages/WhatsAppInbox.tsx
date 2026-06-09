@@ -192,7 +192,6 @@ const WhatsAppInbox = () => {
   const [assignments, setAssignments] = useState<WhatsAppAssignment[]>([]);
   const [businessLines, setBusinessLines] = useState<WhatsAppBusinessLine[]>([]);
   const [linesOpen, setLinesOpen] = useState(false);
-  const [helplineMetaId, setHelplineMetaId] = useState("");
   const [newLineType, setNewLineType] = useState<"helpline" | "counselor">("helpline");
   const [newLineLabel, setNewLineLabel] = useState("");
   const [newLineMetaId, setNewLineMetaId] = useState("");
@@ -200,6 +199,8 @@ const WhatsAppInbox = () => {
   const [newLineCounselor, setNewLineCounselor] = useState("");
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [deleteLineTarget, setDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
+  const [hardDeleteLineTarget, setHardDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
+  const lineFilterId = searchParams.get("line");
   const [templates, setTemplates] = useState<WhatsAppMessageTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [templateParams, setTemplateParams] = useState<string[]>([]);
@@ -211,7 +212,7 @@ const WhatsAppInbox = () => {
   }, [setSearchParams]);
 
   const refreshConversations = useCallback(async () => {
-    const rows = await listConversations();
+    const rows = await listConversations({ lineId: lineFilterId });
     setConversations(rows);
     setActiveId((cur) => {
       const preferred = deepLinkConversationId || cur;
@@ -219,7 +220,7 @@ const WhatsAppInbox = () => {
       if (cur && rows.some((r) => r.id === cur)) return cur;
       return rows.length ? rows[0].id : null;
     });
-  }, [deepLinkConversationId]);
+  }, [deepLinkConversationId, lineFilterId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     const rows = await listMessages(conversationId);
@@ -253,25 +254,33 @@ const WhatsAppInbox = () => {
     try {
       const lines = await listBusinessLines();
       setBusinessLines(lines);
-      const helpline = lines.find((l) => l.is_default);
-      setHelplineMetaId(
-        helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""),
-      );
       setLinesOpen(true);
     } catch (e: any) {
       toast.error(e.message || "Could not load business lines");
     }
   }, [resetLineForm]);
 
+  const defaultHelplineLine = useMemo(
+    () => businessLines.find((l) => l.is_default) ?? null,
+    [businessLines],
+  );
   const additionalHelplineLines = useMemo(
     () => businessLines.filter((l) => l.line_type === "helpline" && !l.is_default),
     [businessLines],
   );
-
   const counselorLines = useMemo(
     () => businessLines.filter((l) => l.line_type === "counselor"),
     [businessLines],
   );
+  const activeBusinessLines = useMemo(
+    () => businessLines.filter((l) => l.active),
+    [businessLines],
+  );
+  const lineById = useMemo(() => {
+    const m = new Map<string, WhatsAppBusinessLine>();
+    for (const l of businessLines) m.set(l.id, l);
+    return m;
+  }, [businessLines]);
 
   const counselorNameById = useMemo(() => {
     const map = new Map<string, string>();
