@@ -12,7 +12,8 @@ import {
 } from "@/lib/leads/serviceFeeLabel";
 import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
 
-const FEE_CELL = "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap";
+const FEE_CELL =
+  "text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis";
 
 export function ServiceFeeColumnsHeader({ feeCurrency }: { feeCurrency: FeeCurrency }) {
   return (
@@ -24,8 +25,8 @@ export function ServiceFeeColumnsHeader({ feeCurrency }: { feeCurrency: FeeCurre
     >
       <div />
       <div className="min-w-0">Service</div>
-      <div className="text-right">Consultancy ({feeCurrency})</div>
-      <div className="text-right">Government</div>
+      <div className="text-right min-w-0">Consultancy ({feeCurrency})</div>
+      <div className="text-right min-w-0">Government</div>
     </div>
   );
 }
@@ -126,11 +127,15 @@ export function ServicePickerRow({
           <div className="text-xs text-muted-foreground truncate">{item.sub_category}</div>
         )}
       </div>
-      <div className={FEE_CELL}>{serviceFeeLabel(item, feeCurrency, "consultancy")}</div>
-      <div className={cn(FEE_CELL, "flex flex-col items-end leading-tight")}>
-        <span>{govt.primary}</span>
+      <div className={FEE_CELL} title={serviceFeeLabel(item, feeCurrency, "consultancy")}>
+        {serviceFeeLabel(item, feeCurrency, "consultancy")}
+      </div>
+      <div className={cn(FEE_CELL, "flex flex-col items-end leading-tight")} title={govt.primary}>
+        <span className="max-w-full overflow-hidden text-ellipsis">{govt.primary}</span>
         {govt.equivalent && (
-          <span className="text-[10px] text-muted-foreground">{govt.equivalent}</span>
+          <span className="text-[10px] text-muted-foreground max-w-full overflow-hidden text-ellipsis">
+            {govt.equivalent}
+          </span>
         )}
       </div>
     </div>

@@ -129,10 +129,16 @@ function GroupAccordion({
               </Badge>
             )}
           </div>
-          <div className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap">
+          <div
+            className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
+            title={consultSummary}
+          >
             {consultSummary}
           </div>
-          <div className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap">
+          <div
+            className="text-xs text-foreground/80 text-right tabular-nums whitespace-nowrap min-w-0 overflow-hidden text-ellipsis"
+            title={govtSummary}
+          >
             {govtSummary}
           </div>
         </div>
@@ -225,7 +231,7 @@ export function GroupedServiceList({
   const singleGroups = groups.filter((g) => g.items.length === 1);
 
   return (
-    <div className={cn("border rounded-md divide-y min-w-0", disabled && "opacity-50 pointer-events-none")}>
+    <div className={cn("border rounded-md divide-y min-w-0 overflow-x-auto", disabled && "opacity-50 pointer-events-none")}>
       {showFeeHeader && <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />}
       {singleGroups.map((group) => (
         <GroupAccordion
