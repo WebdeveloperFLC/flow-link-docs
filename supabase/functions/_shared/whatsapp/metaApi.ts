@@ -211,15 +211,18 @@ export function isMetaWebhookPayload(payload: Record<string, unknown>): boolean 
   return Array.isArray(payload.entry);
 }
 
-export async function verifyMetaSignature(
-  rawBody: string,
-  signatureHeader: string | null,
-): Promise<boolean> {
-  const secret = Deno.env.get("WHATSAPP_APP_SECRET")?.trim();
-  if (!secret) return true;
+/** Single secret (WHATSAPP_APP_SECRET) or comma-separated WHATSAPP_APP_SECRETS for multiple Meta apps. */
+export function parseMetaAppSecrets(): string[] {
+  const multi = Deno.env.get("WHATSAPP_APP_SECRETS")?.trim();
+  const single = Deno.env.get("WHATSAPP_APP_SECRET")?.trim();
+  if (multi) {
+    return multi.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  if (single) return [single];
+  return [];
+}
 
-  if (!signatureHeader?.startsWith("sha256=")) return false;
-
+async function metaSignatureHex(secret: string, rawBody: string): Promise<string> {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     "raw",
@@ -229,9 +232,24 @@ export async function verifyMetaSignature(
     ["sign"],
   );
   const sig = await crypto.subtle.sign("HMAC", key, enc.encode(rawBody));
-  const hex = [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export async function verifyMetaSignature(
+  rawBody: string,
+  signatureHeader: string | null,
+): Promise<boolean> {
+  const secrets = parseMetaAppSecrets();
+  if (!secrets.length) return true;
+
+  if (!signatureHeader?.startsWith("sha256=")) return false;
+
   const expected = signatureHeader.slice(7);
-  return hex === expected;
+  for (const secret of secrets) {
+    const hex = await metaSignatureHex(secret, rawBody);
+    if (hex === expected) return true;
+  }
+  return false;
 }
 
 export async function uploadMetaMedia(

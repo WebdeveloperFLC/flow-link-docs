@@ -316,9 +316,12 @@ Optional Gemini intake
 
 ### Phase 2 admin setup (one-time)
 
-1. **CRM → WhatsApp → Lines** — set helpline **Meta Phone number ID** (must match `WHATSAPP_PHONE_NUMBER_ID` secret).
-2. **Legacy counselors** — add a **counselor line** per Meta number; assign the counselor. Inbound on that number auto-assigns and skips AI intake.
-3. Run migration `20260606120000_whatsapp_phase2.sql` (SQL editor or `npx supabase db push`) if not applied.
+1. **CRM → WhatsApp → Manage lines** — set **Primary helpline Meta Phone number ID** (must match `WHATSAPP_PHONE_NUMBER_ID` secret).
+2. **Additional shared helplines** — **Add line → Shared helpline** for each extra helpline number (e.g. second WABA / regional office). Same AI intake and team inbox; replies go out from that number.
+3. **Counselor direct lines** — **Add line → Counselor direct** per legacy counselor Meta number; inbound auto-assigns and skips AI intake.
+4. Run migration `20260606120000_whatsapp_phase2.sql` (SQL editor or `npx supabase db push`) if not applied.
+
+**Second WABA / Meta app:** see [Helpline on Meta — Team setup](/guides/whatsapp-meta-team-setup) § G6 (token, webhook, `WHATSAPP_APP_SECRETS`, templates).
 
 ### 24-hour session rule
 
