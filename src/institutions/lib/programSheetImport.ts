@@ -109,15 +109,42 @@ export function groupProgramSheetRows(rows: Record<string, unknown>[]): ParsedIm
   return Array.from(map.entries()).map(([instituteName, courses]) => ({ instituteName, courses }));
 }
 
+export function normalizeInstitutionName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function normalizeCountry(country: string | null | undefined): string {
+  const c = String(country ?? "")
+    .toLowerCase()
+    .trim();
+  if (c === "uk" || c === "u.k." || c === "great britain" || c === "england") return "united kingdom";
+  if (c === "usa" || c === "u.s.a." || c === "us" || c === "u.s.") return "united states";
+  if (c === "uae") return "united arab emirates";
+  return c;
+}
+
+/** Strict institution match — exact normalized name, optional country disambiguation. */
 export function matchInstitutionId(
   name: string,
-  institutions: { id: string; name: string }[],
+  institutions: { id: string; name: string; country_name?: string | null }[],
+  countryHint?: string | null,
 ): string | null {
-  const norm = name.toLowerCase().trim();
-  const exact = institutions.find((i) => i.name.toLowerCase().trim() === norm);
-  if (exact) return exact.id;
-  const partial = institutions.find(
-    (i) => i.name.toLowerCase().includes(norm) || norm.includes(i.name.toLowerCase()),
-  );
-  return partial?.id ?? null;
+  const norm = normalizeInstitutionName(name);
+  if (!norm) return null;
+
+  const exact = institutions.filter((i) => normalizeInstitutionName(i.name) === norm);
+  if (exact.length === 0) return null;
+
+  if (countryHint) {
+    const country = normalizeCountry(countryHint);
+    const byCountry = exact.filter((i) => normalizeCountry(i.country_name) === country);
+    if (byCountry.length === 1) return byCountry[0].id;
+    return null;
+  }
+
+  if (exact.length === 1) return exact[0].id;
+  return null;
 }

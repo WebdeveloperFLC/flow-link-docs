@@ -27,9 +27,28 @@ describe("mapProgramSheetRow", () => {
 });
 
 describe("matchInstitutionId", () => {
-  const insts = [{ id: "abc", name: "Algonquin College" }];
+  const insts = [
+    { id: "abc", name: "Algonquin College", country_name: "Canada" },
+    { id: "def", name: "Alexander College", country_name: "Canada" },
+    { id: "ghi", name: "De Montfort University", country_name: "United Kingdom" },
+  ];
+
   it("matches exact name", () => {
     expect(matchInstitutionId("Algonquin College", insts)).toBe("abc");
+  });
+
+  it("does not partial-match a different institution", () => {
+    expect(matchInstitutionId("De Montfort University", insts, "Canada")).toBeNull();
+    expect(matchInstitutionId("Alexander College", insts, "United Kingdom")).toBeNull();
+  });
+
+  it("disambiguates duplicate names by country", () => {
+    const dupes = [
+      { id: "1", name: "Alexander College", country_name: "Canada" },
+      { id: "2", name: "Alexander College", country_name: "United States" },
+    ];
+    expect(matchInstitutionId("Alexander College", dupes, "Canada")).toBe("1");
+    expect(matchInstitutionId("Alexander College", dupes, "United States")).toBe("2");
   });
 });
 

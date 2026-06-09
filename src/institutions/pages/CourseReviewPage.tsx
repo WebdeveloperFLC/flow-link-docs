@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { UpiCourseStaging } from "../types/upi";
 import { buildCourseDedupKey, computeCourseDedupHash, resolveCourseDedupLevel } from "../lib/courseDedup";
+import { normalizeInstitutionName } from "../lib/programSheetImport";
 
 const STATUSES = ["pending_review", "approved", "rejected", "published", "needs_update"];
 const MANUAL_STATUSES = ["pending_review", "approved", "rejected", "needs_update"];
@@ -130,36 +131,57 @@ export default function CourseReviewPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [auxError, setAuxError] = useState<string | null>(null);
+  const loadSeq = useRef(0);
 
   const load = async () => {
+    const seq = ++loadSeq.current;
     setLoading(true);
-    let q = supabase.from("upi_courses_staging").select("*").order("extracted_at", { ascending: false }).limit(2000);
+    setLoadError(null);
+
+    let q = supabase
+      .from("upi_courses_staging")
+      .select("*")
+      .order("extracted_at", { ascending: false });
+
     if (statusFilter !== "all") q = q.eq("review_status", statusFilter);
-    if (instFilter !== "all") q = q.eq("institution_id", instFilter);
-    if (levelFilter === "unclassified") q = q.is("program_level_id", null);
-    else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
-    if (countryFilter !== "all") {
+    if (instFilter !== "all") {
+      q = q.eq("institution_id", instFilter);
+    } else if (countryFilter !== "all") {
       const matchingIds =
         countryFilter === "unspecified"
           ? institutions.filter((i) => !i.country_name).map((i) => i.id)
           : institutions.filter((i) => i.country_name === countryFilter).map((i) => i.id);
       if (matchingIds.length === 0) {
+        if (seq !== loadSeq.current) return;
         setRows([]);
         setSelected(new Set());
-        setLoadError(null);
         setLoading(false);
         return;
       }
       q = q.in("institution_id", matchingIds);
     }
+
+    if (levelFilter === "unclassified") q = q.is("program_level_id", null);
+    else if (levelFilter !== "all") q = q.eq("program_level_id", levelFilter);
+
+    // Institution filter is applied server-side; cap only unscoped lists.
+    if (instFilter === "all" && countryFilter === "all") q = q.limit(2000);
+    else q = q.limit(5000);
+
     const { data, error } = await q;
+    if (seq !== loadSeq.current) return;
+
     if (error) {
-      setLoadError(error.message);
-      toast.error(error.message);
+      const msg = error.message?.trim() || error.details || "Could not load courses";
+      setLoadError(msg);
+      toast.error(msg);
       setRows([]);
     } else {
-      setLoadError(null);
-      setRows((data ?? []) as UpiCourseStaging[]);
+      let list = (data ?? []) as UpiCourseStaging[];
+      if (instFilter !== "all") {
+        list = list.filter((r) => r.institution_id === instFilter);
+      }
+      setRows(list);
     }
     setSelected(new Set());
     setLoading(false);
@@ -234,8 +256,19 @@ export default function CourseReviewPage() {
     return (id: string | null) => (id ? (m.get(id) ?? null) : null);
   }, [institutions]);
 
+  const mismatchCount = useMemo(() => {
+    return rows.filter((r) => {
+      const metaName = String((r.metadata as Record<string, unknown> | null)?.institute_name ?? "").trim();
+      if (!metaName) return false;
+      return normalizeInstitutionName(metaName) !== normalizeInstitutionName(instName(r.institution_id));
+    }).length;
+  }, [rows, instName]);
+
   const visibleRows = useMemo(() => {
     let list = rows;
+    if (instFilter !== "all") {
+      list = list.filter((r) => r.institution_id === instFilter);
+    }
     if (campusFilter !== "all") {
       list = list.filter((r) => (r.campus_name ?? "").trim() === campusFilter);
     }
@@ -301,6 +334,7 @@ export default function CourseReviewPage() {
     pgwpFilter,
     confidenceMinFilter,
     sortFilter,
+    instFilter,
   ]);
 
   const setStatus = async (ids: string[], status: string) => {
@@ -387,6 +421,16 @@ export default function CourseReviewPage() {
           </Card>
         )}
         {!canEdit && <ViewOnlyNotice label="Institutions (Course Review)" />}
+        {mismatchCount > 0 && (
+          <Card className="p-4 flex items-start gap-3 border-amber-500/40 bg-amber-500/5">
+            <Info className="size-4 text-amber-600 mt-0.5 shrink-0" />
+            <div className="text-sm">
+              <strong>{mismatchCount}</strong> program{mismatchCount === 1 ? "" : "s"} still have a sheet/source
+              institution name that does not match the assigned institution. Re-import after running the latest DB
+              cleanup migration, or edit rows to fix the institution.
+            </div>
+          </Card>
+        )}
         {statusFilter === "published" && (
           <Card className="p-4 flex items-center gap-3 bg-success/5 border-success/20">
             <Info className="size-4 text-success" />
