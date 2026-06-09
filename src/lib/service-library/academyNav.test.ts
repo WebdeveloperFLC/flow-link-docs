@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAcademyNav } from "@/lib/service-library/academyNav";
+import { buildAcademyNav, resolveAcademyDeepLinkContext } from "@/lib/service-library/academyNav";
 import type { Master } from "@/lib/serviceLibrary";
 
 function coachingRow(
@@ -171,5 +171,50 @@ describe("buildAcademyNav coaching grouping", () => {
     expect(group?.step).toBe("services");
     expect(group?.items).toHaveLength(1);
     expect(group?.items?.[0].label).toContain("Academic");
+  });
+});
+
+describe("resolveAcademyDeepLinkContext", () => {
+  it("returns coaching family and variant for IELTS deep links", () => {
+    const masters = [
+      coachingRow("i1", "IELTS Academic Regular (with books)", "IELTS"),
+      coachingRow("i2", "IELTS General Regular (with books)", "IELTS"),
+    ];
+
+    expect(resolveAcademyDeepLinkContext(masters, "i1")).toEqual({
+      category: "coaching",
+      country: null,
+      coachingFamily: "IELTS",
+      coachingVariant: "academic",
+    });
+  });
+
+  it("returns visa country for immigration service deep links", () => {
+    const masters: Master[] = [
+      {
+        id: "v1",
+        service_category: "visa_immigration",
+        service: "Canada",
+        sub_service: "Visitor Visa",
+        quick_guide_what_to_do: null,
+        quick_guide_common_mistakes: null,
+        quick_guide_escalation_rules: null,
+        quick_guide_important_reminders: null,
+        checklist_text: null,
+        cost_summary_html: null,
+        internal_sop_html: null,
+        process_flow: null,
+        display_order: 1,
+        is_active: true,
+        service_library_countries: [{ country: "Canada" }],
+      } as Master & { service_library_countries: { country: string }[] },
+    ];
+
+    expect(resolveAcademyDeepLinkContext(masters, "v1")).toEqual({
+      category: "visa",
+      country: "Canada",
+      coachingFamily: null,
+      coachingVariant: null,
+    });
   });
 });
