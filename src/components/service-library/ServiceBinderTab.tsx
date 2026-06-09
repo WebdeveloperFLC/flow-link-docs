@@ -35,7 +35,8 @@ export function ServiceBinderTab({ libraryId, country }: Props) {
         <Workflow className="size-8 mx-auto text-muted-foreground mb-2" />
         <p className="text-sm font-medium">No document binder configured</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Ask the documentation team to link a binder template to this service in Service Library Admin.
+          Link a document binder template to this service in Service Library Admin, or ask your admin to seed
+          checklist templates for this country.
         </p>
       </Card>
     );
