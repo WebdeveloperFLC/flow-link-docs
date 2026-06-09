@@ -1013,51 +1013,33 @@ const WhatsAppInbox = () => {
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Primary helpline uses the field below (same as WHATSAPP_PHONE_NUMBER_ID secret). Add more shared helplines or counselor direct lines — each uses its own Meta Phone number ID.
+              Each WhatsApp line uses its own Meta Phone Number ID. Incoming messages route to the line whose ID matches the webhook payload. Counselor lines auto-assign to the chosen user.
             </p>
-            <div>
-              <Label>Primary helpline Meta Phone number ID</Label>
-              <Input
-                value={helplineMetaId}
-                onChange={(e) => setHelplineMetaId(e.target.value)}
-                placeholder="From Meta API Setup"
-                className="mt-1"
-              />
-            </div>
+            {defaultHelplineLine && (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase text-muted-foreground">Primary helpline</Label>
+                {renderLineRow(defaultHelplineLine, {
+                  counselorNameById,
+                  onEdit: startEditLine,
+                  onSoftDelete: null,
+                  onReactivate: null,
+                  onHardDelete: null,
+                })}
+              </div>
+            )}
             {additionalHelplineLines.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-xs uppercase text-muted-foreground">Additional helpline numbers</Label>
                 <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
                   {additionalHelplineLines.map((l) => (
-                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{l.label}</div>
-                        {l.display_phone && (
-                          <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>
-                        )}
-                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
-                            Actions
-                            <MoreHorizontal className="size-3.5 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => startEditLine(l)}>
-                            <Pencil className="size-3.5 mr-2" />
-                            Edit line
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteLineTarget(l)}
-                          >
-                            <Trash2 className="size-3.5 mr-2" />
-                            Remove line
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <li key={l.id}>
+                      {renderLineRow(l, {
+                        counselorNameById,
+                        onEdit: startEditLine,
+                        onSoftDelete: setDeleteLineTarget,
+                        onReactivate: (line) => { void handleReactivateLine(line); },
+                        onHardDelete: setHardDeleteLineTarget,
+                      })}
                     </li>
                   ))}
                 </ul>
@@ -1068,37 +1050,14 @@ const WhatsAppInbox = () => {
                 <Label className="text-xs uppercase text-muted-foreground">Counselor direct lines</Label>
                 <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
                   {counselorLines.map((l) => (
-                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{l.label}</div>
-                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
-                        {l.assigned_user_id && (
-                          <div className="text-muted-foreground mt-0.5">
-                            Counselor: {counselorNameById.get(l.assigned_user_id) ?? "—"}
-                          </div>
-                        )}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
-                            Actions
-                            <MoreHorizontal className="size-3.5 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => startEditLine(l)}>
-                            <Pencil className="size-3.5 mr-2" />
-                            Edit line
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteLineTarget(l)}
-                          >
-                            <Trash2 className="size-3.5 mr-2" />
-                            Remove line
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <li key={l.id}>
+                      {renderLineRow(l, {
+                        counselorNameById,
+                        onEdit: startEditLine,
+                        onSoftDelete: setDeleteLineTarget,
+                        onReactivate: (line) => { void handleReactivateLine(line); },
+                        onHardDelete: setHardDeleteLineTarget,
+                      })}
                     </li>
                   ))}
                 </ul>
