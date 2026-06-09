@@ -82,6 +82,76 @@ function outboundMessageType(mime: string): "image" | "document" | null {
   return null;
 }
 
+type LineRowActions = {
+  counselorNameById: Map<string, string>;
+  onEdit: (line: WhatsAppBusinessLine) => void;
+  onSoftDelete: ((line: WhatsAppBusinessLine) => void) | null;
+  onReactivate: ((line: WhatsAppBusinessLine) => void) | null;
+  onHardDelete: ((line: WhatsAppBusinessLine) => void) | null;
+};
+
+function renderLineRow(l: WhatsAppBusinessLine, a: LineRowActions) {
+  return (
+    <div
+      className={cn(
+        "flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20",
+        !l.active && "opacity-60",
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-medium">{l.label}</span>
+          {l.is_default && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Primary</Badge>}
+          <Badge variant={l.line_type === "counselor" ? "outline" : "secondary"} className="text-[9px] px-1.5 py-0">
+            {l.line_type === "counselor" ? "Counselor" : "Helpline"}
+          </Badge>
+          {!l.active && <Badge variant="outline" className="text-[9px] px-1.5 py-0">Inactive</Badge>}
+        </div>
+        {l.display_phone && <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>}
+        <div className="text-muted-foreground break-all mt-0.5">Meta ID: {l.meta_phone_number_id}</div>
+        {l.line_type === "counselor" && l.assigned_user_id && (
+          <div className="text-muted-foreground mt-0.5">
+            Counselor: {a.counselorNameById.get(l.assigned_user_id) ?? "—"}
+          </div>
+        )}
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
+            Actions <MoreHorizontal className="size-3.5 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => a.onEdit(l)}>
+            <Pencil className="size-3.5 mr-2" /> Edit line
+          </DropdownMenuItem>
+          {a.onReactivate && !l.active && (
+            <DropdownMenuItem onClick={() => a.onReactivate!(l)}>
+              Reactivate
+            </DropdownMenuItem>
+          )}
+          {a.onSoftDelete && l.active && (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => a.onSoftDelete!(l)}
+            >
+              <Trash2 className="size-3.5 mr-2" /> Deactivate
+            </DropdownMenuItem>
+          )}
+          {a.onHardDelete && (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => a.onHardDelete!(l)}
+            >
+              <Trash2 className="size-3.5 mr-2" /> Delete permanently
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 const MEDIA_ERROR_HINTS: Record<string, string> = {
   meta_auth_failed: "Update WHATSAPP_ACCESS_TOKEN in Lovable secrets (Meta → WhatsApp → API Setup).",
   meta_media_expired: "Resend the photo from WhatsApp — Meta no longer hosts this file.",
