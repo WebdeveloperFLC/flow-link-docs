@@ -18,7 +18,7 @@ import {
 } from "../lib/programSheetImport";
 import { fetchInstitutionLogos } from "../lib/fetchInstitutionLogo";
 
-type Inst = { id: string; name: string; logo_url?: string | null; website_url?: string | null };
+type Inst = { id: string; name: string; country_name?: string | null; logo_url?: string | null; website_url?: string | null };
 
 export function ImportProgramSheetButton({
   institutions,
@@ -56,7 +56,7 @@ export function ImportProgramSheetButton({
       batches.map((b) => ({
         instituteName: b.instituteName,
         count: b.courses.length,
-        matched: !!matchInstitutionId(b.instituteName, institutions),
+        matched: !!matchInstitutionId(b.instituteName, institutions, b.courses[0]?.country_name),
       })),
     );
     setOpen(true);
@@ -78,7 +78,8 @@ export function ImportProgramSheetButton({
       const importedInstitutionIds = new Set<string>();
 
       for (const batch of batches) {
-        const institutionId = matchInstitutionId(batch.instituteName, institutions);
+        const countryHint = batch.courses.find((c) => c.country_name)?.country_name ?? null;
+        const institutionId = matchInstitutionId(batch.instituteName, institutions, countryHint);
         if (!institutionId) {
           unmatched.push(batch.instituteName);
           rejected += batch.courses.length;

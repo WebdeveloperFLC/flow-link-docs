@@ -66,6 +66,14 @@ async function sha256Hex(s: string): Promise<string> {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+function normalizeCountry(country: string): string {
+  const c = String(country || "").toLowerCase().trim();
+  if (c === "uk" || c === "u.k." || c === "great britain" || c === "england") return "united kingdom";
+  if (c === "usa" || c === "u.s.a." || c === "us" || c === "u.s.") return "united states";
+  if (c === "uae") return "united arab emirates";
+  return c;
+}
+
 // Canonicalize a printed program title for dedup. Strips AI-added suffixes
 // such as "(Master)" or "@ Oshawa", collapses whitespace, and lowercases.
 function canonicalTitle(title: string, level?: string): string {
@@ -85,11 +93,20 @@ Deno.serve(async (req) => {
   try {
     const { courses, job_id, institution_id, source_id } = await req.json();
     if (!Array.isArray(courses)) throw new Error("courses array required");
+    if (!institution_id) throw new Error("institution_id required");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+
+    const { data: institution, error: instErr } = await supabase
+      .from("upi_institutions")
+      .select("id,country_name,name")
+      .eq("id", institution_id)
+      .maybeSingle();
+    if (instErr) throw instErr;
+    if (!institution) throw new Error("institution not found");
 
     const { data: levelRows } = await supabase
       .from("upi_program_levels").select("id,name");
@@ -104,6 +121,21 @@ Deno.serve(async (req) => {
           if (KNOWN.has(k)) known[k] = v; else metadata[k] = v;
         }
         if (!known.course_title) { rejected++; continue; }
+
+        const rowCountry = String(known.country_name ?? "").trim();
+        const instCountry = String(institution.country_name ?? "").trim();
+        if (rowCountry && instCountry && normalizeCountry(rowCountry) !== normalizeCountry(instCountry)) {
+          rejected++;
+          if (job_id) {
+            await supabase.from("upi_sync_logs").insert({
+              job_id,
+              level: "warn",
+              message: `Skipped ${known.course_title}: country ${rowCountry} does not match institution ${institution.name} (${instCountry})`,
+            });
+          }
+          continue;
+        }
+        if (!rowCountry && instCountry) known.country_name = instCountry;
         // Resolve free-text program_level (kept in metadata) to FK so the
         // Course Review level filter can find these rows.
         if (!known.program_level_id) {
