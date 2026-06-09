@@ -44,14 +44,19 @@ export const NewClientDialog = ({ open, onOpenChange, onCreated }: { open: boole
   useEffect(() => {
     if (!open) return;
     supabase.from("workflow_templates").select("id,name,country,category").then(({ data }) => setTemplates(data ?? []));
-    supabase
-      .from("service_catalogue")
-      .select("service_code, service_name, country_tag, display_order")
-      .eq("master_key", "visa_immigration")
-      .eq("is_active", true)
-      .order("country_tag", { ascending: true })
-      .order("display_order", { ascending: true })
-      .then(({ data }) => setVisaServices((data ?? []) as VisaService[]));
+    import("@/lib/leads")
+      .then(({ fetchServiceCatalogue }) => fetchServiceCatalogue("visa_immigration"))
+      .then((items) =>
+        setVisaServices(
+          items.map((s) => ({
+            service_code: s.service_code ?? s.id,
+            service_name: s.service_name,
+            country_tag: s.country_tag ?? null,
+            display_order: s.display_order,
+          })),
+        ),
+      )
+      .catch(() => setVisaServices([]));
   }, [open]);
 
   const matchingTemplates = templates.filter((t) => (!country || t.country === country));

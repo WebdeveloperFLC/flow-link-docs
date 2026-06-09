@@ -7,6 +7,11 @@ import {
 } from "@/lib/leads/servicePickerGroups";
 import { coachingFamilyLabel, resolveServiceCountries } from "@/lib/service-library/serviceNavClassification";
 import { VISA_COUNTRY_PRIORITY } from "@/lib/service-library/countryBadges";
+import {
+  buildLibraryFeeMaps,
+  pickFeePair,
+  type FeeItemRow,
+} from "@/lib/leads/serviceFeeItems";
 
 export type LeadType = "warm" | "hot" | "cold";
 export type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "unqualified" | "lost";
@@ -119,6 +124,8 @@ type PickerVariantRow = {
   group_label: string;
   fee_inr: number;
   fee_cad: number;
+  govt_fee_inr?: number | null;
+  govt_fee_cad?: number | null;
   display_order: number;
 };
 
@@ -126,10 +133,32 @@ function visaVariantGroupKey(groupLabel: string): string {
   return groupLabel.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 
+function withLibraryFees(
+  item: ServiceCatalogueItem,
+  libraryId: string,
+  consultMap: Map<string, { inr: number | null; cad: number | null }>,
+  govtMap: Map<string, { inr: number | null; cad: number | null }>,
+  variantGovt?: { inr?: number | null; cad?: number | null },
+): ServiceCatalogueItem {
+  const consult = pickFeePair(consultMap, libraryId);
+  const govt = pickFeePair(govtMap, libraryId, variantGovt);
+  const feeInr = item.fee_inr ?? consult.inr;
+  const feeCad = item.fee_cad ?? consult.cad;
+  const pricing =
+    item.pricing_type === "ON_REQUEST" && (feeInr != null || feeCad != null) ? "FIXED" : item.pricing_type;
+  return {
+    ...item,
+    library_id: libraryId,
+    fee_inr: feeInr,
+    fee_cad: feeCad,
+    govt_fee_inr: govt.inr,
+    govt_fee_cad: govt.cad,
+    pricing_type: pricing,
+  };
+}
+
 export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
-  // Source of truth: service_library + service_library_countries.
-  // The Lead Form's Services Required panel now reflects the same records
-  // managed in Service Library Admin.
+  // Source of truth: service_library + picker_variants + fee_items.
   const [libRes, variantRes] = await Promise.all([
     supabase
       .from("service_library")
@@ -142,7 +171,9 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       .order("service", { ascending: true }),
     supabase
       .from("service_library_picker_variants")
-      .select("library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, display_order")
+      .select(
+        "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, display_order",
+      )
       .eq("is_active", true)
       .order("display_order", { ascending: true }),
   ]);
@@ -168,6 +199,18 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
     service_library_countries: { country: string }[] | null;
   };
   const rows = (data ?? []) as unknown as Row[];
+  const libraryIds = rows.map((r) => r.id);
+  const feeRes =
+    libraryIds.length > 0
+      ? await supabase
+          .from("service_library_fee_items")
+          .select("library_id, fee_label, amount, currency, country")
+          .in("library_id", libraryIds)
+      : { data: [] as FeeItemRow[], error: null };
+  const { consultancy: consultMap, government: govtMap } = buildLibraryFeeMaps(
+    (feeRes.data ?? []) as unknown as FeeItemRow[],
+  );
+
   const items: ServiceCatalogueItem[] = [];
   for (const r of rows) {
     const countries = (r.service_library_countries ?? []).map((c) => c.country);
@@ -203,38 +246,56 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
         if (parentVariants && parentVariants.length > 0) {
           for (const v of parentVariants) {
             const groupKey = visaVariantGroupKey(v.group_label);
-            items.push({
-              id: `${r.id}::${c}::${v.variant_key}`,
-              master_key: r.service_category,
-              service_name: v.picker_label,
-              sub_category: c,
-              group_key: groupKey,
-              group_label: v.group_label,
-              service_code: `${r.id}::${c}::${v.variant_key}`,
-              pricing_type: "FIXED",
-              fee_inr: Number(v.fee_inr),
-              fee_cad: Number(v.fee_cad),
-              country_tag: c,
-              is_active: r.is_active,
-              is_bundled: false,
-              display_order: v.display_order,
-            });
+            items.push(
+              withLibraryFees(
+                {
+                  id: `${r.id}::${c}::${v.variant_key}`,
+                  master_key: r.service_category,
+                  service_name: v.picker_label,
+                  sub_category: c,
+                  group_key: groupKey,
+                  group_label: v.group_label,
+                  service_code: `${r.id}::${c}::${v.variant_key}`,
+                  pricing_type: "FIXED",
+                  fee_inr: Number(v.fee_inr),
+                  fee_cad: Number(v.fee_cad),
+                  country_tag: c,
+                  is_active: r.is_active,
+                  is_bundled: false,
+                  display_order: v.display_order,
+                },
+                r.id,
+                consultMap,
+                govtMap,
+                {
+                  inr: v.govt_fee_inr != null ? Number(v.govt_fee_inr) : null,
+                  cad: v.govt_fee_cad != null ? Number(v.govt_fee_cad) : null,
+                },
+              ),
+            );
           }
           continue;
         }
 
-        items.push({
-          id: parentKey,
-          master_key: r.service_category,
-          service_name: visaDisplayLabel,
-          sub_category: c ?? r.service,
-          service_code: c ? `${r.id}::${c}` : r.id,
-          pricing_type: "ON_REQUEST",
-          country_tag: c,
-          is_active: r.is_active,
-          is_bundled: false,
-          display_order: r.display_order ?? 0,
-        });
+        items.push(
+          withLibraryFees(
+            {
+              id: parentKey,
+              master_key: r.service_category,
+              service_name: visaDisplayLabel,
+              sub_category: c ?? r.service,
+              service_code: c ? `${r.id}::${c}` : r.id,
+              pricing_type: "ON_REQUEST",
+              country_tag: c,
+              is_active: r.is_active,
+              is_bundled: false,
+              display_order: r.display_order ?? 0,
+            },
+            r.id,
+            consultMap,
+            govtMap,
+          ),
+        );
       }
     } else {
       const familyField = r.service;
@@ -242,37 +303,51 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
       if (r.service_category === "coaching_services") {
         const variantLabel = resolveCoachingVariantLabel(familyField, r.sub_service, displayLabel);
         const groupKey = resolveCoachingFamilyKey(familyField, r.sub_service);
-        items.push({
-          id: r.id,
-          master_key: r.service_category,
-          service_name: variantLabel,
-          sub_category: null,
-          group_key: groupKey,
-          group_label: coachingFamilyLabel(groupKey),
-          service_code: r.id,
-          pricing_type: "ON_REQUEST",
-          country_tag: null,
-          is_active: r.is_active,
-          is_bundled: false,
-          display_order: r.display_order ?? 0,
-        });
+        items.push(
+          withLibraryFees(
+            {
+              id: r.id,
+              master_key: r.service_category,
+              service_name: variantLabel,
+              sub_category: null,
+              group_key: groupKey,
+              group_label: coachingFamilyLabel(groupKey),
+              service_code: r.id,
+              pricing_type: "ON_REQUEST",
+              country_tag: null,
+              is_active: r.is_active,
+              is_bundled: false,
+              display_order: r.display_order ?? 0,
+            },
+            r.id,
+            consultMap,
+            govtMap,
+          ),
+        );
       } else {
         const variantLabel = displayLabel ?? r.sub_service;
         const grouped = resolveAlliedAdmissionGrouping(familyField, r.sub_service, variantLabel);
-        items.push({
-          id: r.id,
-          master_key: r.service_category,
-          service_name: grouped.itemLabel,
-          sub_category: grouped.groupLabel,
-          group_key: grouped.groupKey,
-          group_label: grouped.groupLabel,
-          service_code: r.id,
-          pricing_type: "ON_REQUEST",
-          country_tag: null,
-          is_active: r.is_active,
-          is_bundled: false,
-          display_order: r.display_order ?? 0,
-        });
+        items.push(
+          withLibraryFees(
+            {
+              id: r.id,
+              master_key: r.service_category,
+              service_name: grouped.itemLabel,
+              sub_category: grouped.groupLabel,
+              group_key: grouped.groupKey,
+              group_label: grouped.groupLabel,
+              service_code: r.id,
+              pricing_type: "ON_REQUEST",
+              country_tag: null,
+              is_active: r.is_active,
+              is_bundled: false,
+              display_order: r.display_order ?? 0,
+            },
+            r.id,
+            consultMap,
+            govtMap,
+          ),
+        );
       }
     }
   }
@@ -281,6 +356,7 @@ export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]
 
 export interface ServiceCatalogueItem {
   id: string;
+  library_id?: string;
   master_key: string;
   sub_category?: string | null;
   group_key?: string | null;
@@ -290,6 +366,8 @@ export interface ServiceCatalogueItem {
   pricing_type: "FIXED" | "FLEXIBLE" | "FREE" | "ON_REQUEST";
   fee_inr?: number | null;
   fee_cad?: number | null;
+  govt_fee_inr?: number | null;
+  govt_fee_cad?: number | null;
   fee_gbp?: number | null;
   fee_aud?: number | null;
   max_fee_inr?: number | null;
@@ -301,24 +379,20 @@ export interface ServiceCatalogueItem {
   notes?: string | null;
 }
 
+/** Lookup by virtual catalogue id or composite service_code. */
+export function buildCatalogueLookup(items: ServiceCatalogueItem[]): Map<string, ServiceCatalogueItem> {
+  const m = new Map<string, ServiceCatalogueItem>();
+  for (const s of items) {
+    m.set(s.id, s);
+    if (s.service_code) m.set(s.service_code, s);
+  }
+  return m;
+}
+
 export async function fetchServiceCatalogue(masterKey?: string): Promise<ServiceCatalogueItem[]> {
-  let q = supabase
-    .from("service_catalogue")
-    .select("*")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true });
-  if (masterKey) q = q.eq("master_key", masterKey);
-  const { data, error } = await q;
-  if (error) throw error;
-  return ((data ?? []) as unknown as ServiceCatalogueItem[]).filter(
-    (s) =>
-      !isExcludedCatalogueService({
-        subService: s.sub_category,
-        serviceName: s.service_name,
-        serviceCode: s.service_code ?? s.id,
-        serviceField: s.service_name,
-      }),
-  );
+  const all = await fetchAllServiceCatalogue();
+  if (!masterKey) return all;
+  return all.filter((s) => s.master_key === masterKey);
 }
 
 export interface Branch {
@@ -397,16 +471,6 @@ export async function fetchServiceCodeMap(): Promise<Map<string, string>> {
     m.set(s.id, chipLabel);
     if (s.sub_category) m.set(`${code}::label`, s.sub_category);
     if (s.group_label) m.set(`${code}::group`, s.group_label);
-  }
-
-  // Legacy fallback for older records that still reference service_catalogue codes.
-  const { data, error } = await supabase
-    .from("service_catalogue")
-    .select("service_code, service_name");
-  if (!error) {
-    (data ?? []).forEach((r: { service_code: string; service_name: string }) => {
-      if (r.service_code && !m.has(r.service_code)) m.set(r.service_code, r.service_name);
-    });
   }
 
   _serviceMapCache = m;

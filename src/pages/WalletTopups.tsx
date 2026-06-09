@@ -114,15 +114,21 @@ export default function WalletTopups() {
         )
         .eq("period_key", period)
         .order("created_at", { ascending: false }),
-      supabase
-        .from("service_catalogue")
-        .select("master_key, sub_category, service_name, service_code, country_tag")
-        .eq("is_active", true),
+      import("@/lib/leads").then(({ fetchAllServiceCatalogue }) => fetchAllServiceCatalogue()),
       (supabase as any).from("wallet_settings").select("grace_unit, grace_days").eq("id", 1).maybeSingle(),
     ]);
     setProfiles(((pr.data ?? []) as any[]).map((p) => ({ id: p.id, name: p.full_name ?? p.email ?? p.id })));
     setWallets((w.data ?? []) as WalletRow[]);
-    setServices((sc.data ?? []) as ServiceRow[]);
+    const cat = Array.isArray(sc) ? sc : [];
+    setServices(
+      cat.map((s) => ({
+        master_key: s.master_key,
+        sub_category: s.sub_category ?? null,
+        service_name: s.service_name,
+        service_code: s.service_code ?? s.id,
+        country_tag: s.country_tag ?? null,
+      })) as ServiceRow[],
+    );
     if (ws.data) {
       setGraceUnit((ws.data as any).grace_unit);
       setGraceDays(String((ws.data as any).grace_days));
@@ -135,7 +141,7 @@ export default function WalletTopups() {
 
   const nameOf = (id: string) => profiles.find((p) => p.id === id)?.name ?? id;
 
-  // cascading scope options derived from service_catalogue
+  // cascading scope options derived from service library catalogue
   const countries = useMemo(
     () => Array.from(new Set(services.map((s) => s.country_tag).filter(Boolean))) as string[],
     [services],

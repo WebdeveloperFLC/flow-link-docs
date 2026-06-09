@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import {
   Plus, Pencil, Trash2, Loader2, Upload, Download, X, ShieldAlert,
   ListChecks, ChevronRight, ChevronDown, ChevronLeft, Globe, FileText, FileUp, Settings2,
-  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText, Workflow,
+  ClipboardCheck, BookOpen, Coins, Sparkles, History, GraduationCap, ScrollText, Workflow, LayoutList,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -811,6 +811,7 @@ function MasterDetail({
           <TabsTrigger value="submission"><ListChecks className="h-3.5 w-3.5 mr-1" />Submission</TabsTrigger>
           <TabsTrigger value="quickguide"><Sparkles className="h-3.5 w-3.5 mr-1" />Quick Guide</TabsTrigger>
           <TabsTrigger value="fees"><Coins className="h-3.5 w-3.5 mr-1" />Fees</TabsTrigger>
+          <TabsTrigger value="packages"><LayoutList className="h-3.5 w-3.5 mr-1" />Lead form packages</TabsTrigger>
           <TabsTrigger value="cost"><FileText className="h-3.5 w-3.5 mr-1" />Cost Summary</TabsTrigger>
           <TabsTrigger value="process"><ChevronRight className="h-3.5 w-3.5 mr-1" />Process Flow</TabsTrigger>
           <TabsTrigger value="sop"><BookOpen className="h-3.5 w-3.5 mr-1" />Internal SOP</TabsTrigger>
@@ -830,6 +831,7 @@ function MasterDetail({
         <TabsContent value="visaforms"><VisaFormsTab master={master} /></TabsContent>
         <TabsContent value="submission"><SubmissionTab master={master} /></TabsContent>
         <TabsContent value="fees"><FeesTab master={master} /></TabsContent>
+        <TabsContent value="packages"><PackagesTab master={master} /></TabsContent>
         <TabsContent value="cost"><CostSummaryTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="process"><ProcessFlowTab master={master} onChanged={onChanged} /></TabsContent>
         <TabsContent value="sop"><InternalSopTab master={master} onChanged={onChanged} /></TabsContent>
@@ -1346,6 +1348,154 @@ function SubmissionTab({ master }: { master: Master }) {
               Active
             </label>
             <Button size="sm" variant="ghost" onClick={() => remove(it.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+type PickerVariant = {
+  id: string;
+  library_id: string;
+  country: string;
+  variant_key: string;
+  picker_label: string;
+  group_label: string;
+  fee_inr: number;
+  fee_cad: number;
+  govt_fee_inr: number | null;
+  govt_fee_cad: number | null;
+  display_order: number;
+  is_active: boolean;
+};
+
+function PackagesTab({ master }: { master: Master }) {
+  const qc = useQueryClient();
+  const variants = useQuery({
+    queryKey: ["sl-packages", master.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_library_picker_variants")
+        .select("*")
+        .eq("library_id", master.id)
+        .order("display_order");
+      if (error) throw error;
+      return (data ?? []) as unknown as PickerVariant[];
+    },
+  });
+  const assigned = useQuery({
+    queryKey: ["sl-countries", master.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("service_library_countries").select("country").eq("library_id", master.id);
+      return ((data ?? []) as { country: string }[]).map((r) => r.country);
+    },
+  });
+
+  const update = async (id: string, patch: Partial<PickerVariant>) => {
+    const { error } = await supabase.from("service_library_picker_variants").update(patch).eq("id", id);
+    if (error) return toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    qc.invalidateQueries({ queryKey: ["sl-packages", master.id] });
+  };
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("service_library_picker_variants").delete().eq("id", id);
+    if (error) return toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    qc.invalidateQueries({ queryKey: ["sl-packages", master.id] });
+  };
+  const add = async () => {
+    const countries = assigned.data ?? [];
+    const country = countries[0] ?? "Canada";
+    const nextOrder = ((variants.data ?? []).reduce((m, x) => Math.max(m, x.display_order), 0) || 0) + 1;
+    const { error } = await supabase.from("service_library_picker_variants").insert({
+      library_id: master.id,
+      country,
+      variant_key: `pkg_${nextOrder}`,
+      picker_label: "New package",
+      group_label: master.sub_service ?? "Services",
+      fee_inr: 0,
+      fee_cad: 0,
+      govt_fee_inr: null,
+      govt_fee_cad: null,
+      display_order: nextOrder,
+    });
+    if (error) return toast({ title: "Add failed", description: error.message, variant: "destructive" });
+    qc.invalidateQueries({ queryKey: ["sl-packages", master.id] });
+  };
+
+  const numOrNull = (v: string) => (v.trim() === "" ? null : Number(v));
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          Packages shown on lead/client service pickers. Set consultancy and government fees in both INR and CAD.
+        </p>
+        <Button size="sm" onClick={add}><Plus className="h-3.5 w-3.5 mr-1" />Add package</Button>
+      </div>
+      {variants.isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {!variants.isLoading && (variants.data ?? []).length === 0 && (
+        <div className="text-sm text-muted-foreground rounded-lg border p-4">
+          No lead-form packages yet. Add variants to group options (e.g. Visitor Visa 1/2/3 persons) with fees.
+        </div>
+      )}
+      <div className="space-y-2">
+        {(variants.data ?? []).map((v) => (
+          <div key={v.id} className="grid grid-cols-12 gap-2 rounded-lg border p-2 text-sm">
+            <Input
+              className="col-span-3"
+              defaultValue={v.picker_label}
+              placeholder="Picker label"
+              onBlur={(e) => update(v.id, { picker_label: e.target.value })}
+            />
+            <Input
+              className="col-span-2"
+              defaultValue={v.group_label}
+              placeholder="Group"
+              onBlur={(e) => update(v.id, { group_label: e.target.value })}
+            />
+            <Select value={v.country} onValueChange={(c) => update(v.id, { country: c })}>
+              <SelectTrigger className="col-span-1"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(assigned.data ?? ["Canada"]).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Input
+              className="col-span-1"
+              defaultValue={v.variant_key}
+              placeholder="Key"
+              onBlur={(e) => update(v.id, { variant_key: e.target.value })}
+            />
+            <Input
+              className="col-span-1"
+              type="number"
+              defaultValue={String(v.fee_inr)}
+              placeholder="₹"
+              onBlur={(e) => update(v.id, { fee_inr: Number(e.target.value) || 0 })}
+            />
+            <Input
+              className="col-span-1"
+              type="number"
+              defaultValue={String(v.fee_cad)}
+              placeholder="CA$"
+              onBlur={(e) => update(v.id, { fee_cad: Number(e.target.value) || 0 })}
+            />
+            <Input
+              className="col-span-1"
+              type="number"
+              defaultValue={v.govt_fee_inr != null ? String(v.govt_fee_inr) : ""}
+              placeholder="Govt ₹"
+              onBlur={(e) => update(v.id, { govt_fee_inr: numOrNull(e.target.value) })}
+            />
+            <Input
+              className="col-span-1"
+              type="number"
+              defaultValue={v.govt_fee_cad != null ? String(v.govt_fee_cad) : ""}
+              placeholder="Govt CA$"
+              onBlur={(e) => update(v.id, { govt_fee_cad: numOrNull(e.target.value) })}
+            />
+            <Button size="sm" variant="ghost" className="col-span-1" onClick={() => remove(v.id)}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
           </div>
         ))}
       </div>

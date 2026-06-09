@@ -345,12 +345,6 @@ export async function createDraftInvoice(args: {
 }): Promise<CreateInvoiceResult> {
   const today = new Date().toISOString().slice(0, 10);
   const dueDate = invoiceDueDate(args.payment_terms);
-  const serviceCodes = Array.from(new Set(args.lines.map((l) => l.service_code).filter(Boolean))) as string[];
-  const { data: services } = serviceCodes.length
-    ? await supabase.from("service_catalogue").select("id,service_code").in("service_code", serviceCodes)
-    : { data: [] as Array<{ id: string; service_code: string }> };
-  const serviceIdByCode = new Map((services ?? []).map((s) => [s.service_code, s.id]));
-
   let grandTotal = 0;
   const computed = args.lines.map((l) => {
     const base = l.is_complimentary ? 0 : Math.max(0, l.unit_price * l.quantity - l.discount_amount);
@@ -358,7 +352,7 @@ export async function createDraftInvoice(args: {
     const total = base + gst;
     grandTotal += total;
     return {
-      service_id: l.service_code ? serviceIdByCode.get(l.service_code) ?? null : null,
+      service_id: l.service_code ?? null,
       service_code: l.service_code,
       service_name: l.service_name,
       description: l.service_name,

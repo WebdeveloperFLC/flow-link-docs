@@ -67,14 +67,13 @@ export function useServiceCatalogueOptions() {
   return useQuery({
     queryKey: ["dsh_service_catalogue_options"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("service_catalogue" as any)
-        .select("master_key, sub_category, service_name")
-        .eq("is_active", true)
-        .order("master_key")
-        .order("display_order");
-      if (error) throw error;
-      return (data ?? []) as unknown as { master_key: string; sub_category: string | null; service_name: string }[];
+      const { fetchAllServiceCatalogue } = await import("@/lib/leads");
+      const items = await fetchAllServiceCatalogue();
+      return items.map((s) => ({
+        master_key: s.master_key,
+        sub_category: s.sub_category ?? null,
+        service_name: s.service_name,
+      }));
     },
   });
 }

@@ -189,7 +189,7 @@ function OfferDialog({
   const [selGroups, setSelGroups] = useState<Set<string>>(new Set());
   const [selClients, setSelClients] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
-  // Phase 3: country + service targeting (country = master labels; service = service_catalogue.id)
+  // Phase 3: country + service targeting (service = library composite code)
   const countryOptions = useMasterLabels("countries");
   const [serviceOptions, setServiceOptions] = useState<{ id: string; service_name: string }[]>([]);
   const [selCountries, setSelCountries] = useState<Set<string>>(new Set());
@@ -203,12 +203,17 @@ function OfferDialog({
       .select("*")
       .order("name")
       .then(({ data }) => setGroups((data ?? []) as Group[]));
-    supabase
-      .from("service_catalogue")
-      .select("id, service_name")
-      .eq("is_active", true)
-      .order("service_name")
-      .then(({ data }) => setServiceOptions((data ?? []) as { id: string; service_name: string }[]));
+    import("@/lib/leads")
+      .then(({ fetchAllServiceCatalogue }) => fetchAllServiceCatalogue())
+      .then((items) =>
+        setServiceOptions(
+          items.map((s) => ({
+            id: s.service_code ?? s.id,
+            service_name: s.service_name,
+          })),
+        ),
+      )
+      .catch(() => setServiceOptions([]));
     // Phase 3: seed country/service selections from the offer being edited
     setSelCountries(new Set(offer?.target_countries ?? []));
     setSelServices(new Set(offer?.applicable_services ?? []));
