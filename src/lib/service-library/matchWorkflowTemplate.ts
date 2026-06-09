@@ -20,5 +20,19 @@ export async function fetchWorkflowTemplatesForService(
     .in("category", codes)
     .order("name");
   if (error) throw error;
-  return (data ?? []) as unknown as Template[];
+  if (data?.length) return (data ?? []) as unknown as Template[];
+
+  // Legacy binders created before Service Library merge may use bare library_id as category.
+  if (country?.trim()) {
+    const { data: legacy, error: legacyErr } = await supabase
+      .from("workflow_templates")
+      .select("*")
+      .eq("category", libraryId)
+      .eq("country", country.trim())
+      .order("name");
+    if (legacyErr) throw legacyErr;
+    if (legacy?.length) return legacy as unknown as Template[];
+  }
+
+  return [];
 }
