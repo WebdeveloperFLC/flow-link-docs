@@ -192,8 +192,10 @@ const WhatsAppInbox = () => {
   const [businessLines, setBusinessLines] = useState<WhatsAppBusinessLine[]>([]);
   const [linesOpen, setLinesOpen] = useState(false);
   const [helplineMetaId, setHelplineMetaId] = useState("");
+  const [newLineType, setNewLineType] = useState<"helpline" | "counselor">("helpline");
   const [newLineLabel, setNewLineLabel] = useState("");
   const [newLineMetaId, setNewLineMetaId] = useState("");
+  const [newLineDisplayPhone, setNewLineDisplayPhone] = useState("");
   const [newLineCounselor, setNewLineCounselor] = useState("");
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [deleteLineTarget, setDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
@@ -227,22 +229,26 @@ const WhatsAppInbox = () => {
     );
   }, []);
 
-  const resetCounselorForm = useCallback(() => {
+  const resetLineForm = useCallback(() => {
     setEditingLineId(null);
+    setNewLineType("helpline");
     setNewLineLabel("");
     setNewLineMetaId("");
+    setNewLineDisplayPhone("");
     setNewLineCounselor("");
   }, []);
 
   const startEditLine = useCallback((line: WhatsAppBusinessLine) => {
     setEditingLineId(line.id);
+    setNewLineType(line.line_type);
     setNewLineLabel(line.label);
     setNewLineMetaId(line.meta_phone_number_id === "CONFIGURE_ME" ? "" : line.meta_phone_number_id);
+    setNewLineDisplayPhone(line.display_phone ?? "");
     setNewLineCounselor(line.assigned_user_id ?? "");
   }, []);
 
   const openLinesDialog = useCallback(async () => {
-    resetCounselorForm();
+    resetLineForm();
     try {
       const lines = await listBusinessLines();
       setBusinessLines(lines);
@@ -254,10 +260,15 @@ const WhatsAppInbox = () => {
     } catch (e: any) {
       toast.error(e.message || "Could not load business lines");
     }
-  }, [resetCounselorForm]);
+  }, [resetLineForm]);
+
+  const additionalHelplineLines = useMemo(
+    () => businessLines.filter((l) => l.line_type === "helpline" && !l.is_default),
+    [businessLines],
+  );
 
   const counselorLines = useMemo(
-    () => businessLines.filter((l) => !l.is_default),
+    () => businessLines.filter((l) => l.line_type === "counselor"),
     [businessLines],
   );
 
@@ -951,7 +962,7 @@ const WhatsAppInbox = () => {
         open={linesOpen}
         onOpenChange={(open) => {
           setLinesOpen(open);
-          if (!open) resetCounselorForm();
+          if (!open) resetLineForm();
         }}
       >
         <DialogContent className="max-w-lg">
@@ -960,10 +971,10 @@ const WhatsAppInbox = () => {
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Set the helpline Meta Phone number ID (same as WHATSAPP_PHONE_NUMBER_ID secret). Counselor lines can be edited or removed from the list below.
+              Primary helpline uses the field below (same as WHATSAPP_PHONE_NUMBER_ID secret). Add more shared helplines or counselor direct lines — each uses its own Meta Phone number ID.
             </p>
             <div>
-              <Label>Helpline Meta Phone number ID</Label>
+              <Label>Primary helpline Meta Phone number ID</Label>
               <Input
                 value={helplineMetaId}
                 onChange={(e) => setHelplineMetaId(e.target.value)}
@@ -971,10 +982,49 @@ const WhatsAppInbox = () => {
                 className="mt-1"
               />
             </div>
-            {counselorLines.length > 0 ? (
+            {additionalHelplineLines.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-xs uppercase text-muted-foreground">Counselor lines</Label>
-                <ul className="text-xs space-y-2 max-h-48 overflow-y-auto">
+                <Label className="text-xs uppercase text-muted-foreground">Additional helpline numbers</Label>
+                <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
+                  {additionalHelplineLines.map((l) => (
+                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium">{l.label}</div>
+                        {l.display_phone && (
+                          <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>
+                        )}
+                        <div className="text-muted-foreground break-all mt-0.5">{l.meta_phone_number_id}</div>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
+                            Actions
+                            <MoreHorizontal className="size-3.5 ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => startEditLine(l)}>
+                            <Pencil className="size-3.5 mr-2" />
+                            Edit line
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setDeleteLineTarget(l)}
+                          >
+                            <Trash2 className="size-3.5 mr-2" />
+                            Remove line
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {counselorLines.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase text-muted-foreground">Counselor direct lines</Label>
+                <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
                   {counselorLines.map((l) => (
                     <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
                       <div className="min-w-0 flex-1">
@@ -1011,32 +1061,56 @@ const WhatsAppInbox = () => {
                   ))}
                 </ul>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
-                No counselor lines yet. Add one below — each line will show an Actions menu with Edit and Remove.
-              </p>
             )}
             <div className="border-t pt-3 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Label className="text-xs uppercase text-muted-foreground">
-                  {editingLineId ? "Edit counselor line" : "Add legacy counselor line"}
+                  {editingLineId
+                    ? `Edit ${newLineType === "helpline" ? "helpline" : "counselor"} line`
+                    : "Add line"}
                 </Label>
                 {editingLineId && (
-                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={resetCounselorForm}>
+                  <Button type="button" variant="ghost" size="sm" className="h-7 text-xs" onClick={resetLineForm}>
                     Cancel edit
                   </Button>
                 )}
               </div>
-              <Input value={newLineLabel} onChange={(e) => setNewLineLabel(e.target.value)} placeholder="Label e.g. Priya — Canada desk" />
-              <Input value={newLineMetaId} onChange={(e) => setNewLineMetaId(e.target.value)} placeholder="Meta Phone number ID for that line" />
-              <Select value={newLineCounselor} onValueChange={setNewLineCounselor}>
-                <SelectTrigger><SelectValue placeholder="Assigned counselor" /></SelectTrigger>
-                <SelectContent>
-                  {counselors.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {!editingLineId && (
+                <Select value={newLineType} onValueChange={(v) => setNewLineType(v as "helpline" | "counselor")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="helpline">Shared helpline (AI intake, team inbox)</SelectItem>
+                    <SelectItem value="counselor">Counselor direct (auto-assign, skip intake)</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              <Input
+                value={newLineLabel}
+                onChange={(e) => setNewLineLabel(e.target.value)}
+                placeholder={newLineType === "helpline" ? "Label e.g. India office helpline" : "Label e.g. Priya — Canada desk"}
+              />
+              <Input
+                value={newLineMetaId}
+                onChange={(e) => setNewLineMetaId(e.target.value)}
+                placeholder="Meta Phone number ID for that line"
+              />
+              {newLineType === "helpline" && (
+                <Input
+                  value={newLineDisplayPhone}
+                  onChange={(e) => setNewLineDisplayPhone(e.target.value)}
+                  placeholder="Display number optional e.g. +91XXXXXXXXXX"
+                />
+              )}
+              {newLineType === "counselor" && (
+                <Select value={newLineCounselor} onValueChange={setNewLineCounselor}>
+                  <SelectTrigger><SelectValue placeholder="Assigned counselor" /></SelectTrigger>
+                  <SelectContent>
+                    {counselors.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.full_name || c.email}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -1046,15 +1120,23 @@ const WhatsAppInbox = () => {
                 if (helplineMetaId.trim()) {
                   await updateDefaultHelplineMetaId(helplineMetaId.trim());
                 }
-                if (newLineLabel.trim() && newLineMetaId.trim() && newLineCounselor) {
+                const canSaveHelpline = newLineType === "helpline"
+                  && newLineLabel.trim()
+                  && newLineMetaId.trim();
+                const canSaveCounselor = newLineType === "counselor"
+                  && newLineLabel.trim()
+                  && newLineMetaId.trim()
+                  && newLineCounselor;
+                if (canSaveHelpline || canSaveCounselor) {
                   await saveBusinessLine({
                     ...(editingLineId ? { id: editingLineId } : {}),
                     label: newLineLabel.trim(),
                     meta_phone_number_id: newLineMetaId.trim(),
-                    line_type: "counselor",
-                    assigned_user_id: newLineCounselor,
+                    display_phone: newLineType === "helpline" ? (newLineDisplayPhone.trim() || null) : null,
+                    line_type: newLineType,
+                    assigned_user_id: newLineType === "counselor" ? newLineCounselor : null,
                   });
-                  resetCounselorForm();
+                  resetLineForm();
                 }
                 const lines = await listBusinessLines();
                 setBusinessLines(lines);
@@ -1073,7 +1155,7 @@ const WhatsAppInbox = () => {
       <AlertDialog open={!!deleteLineTarget} onOpenChange={(open) => { if (!open) setDeleteLineTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove counselor line?</AlertDialogTitle>
+            <AlertDialogTitle>Remove WhatsApp line?</AlertDialogTitle>
             <AlertDialogDescription>
               {deleteLineTarget
                 ? `"${deleteLineTarget.label}" will be removed from routing. Existing conversations on this line are kept; only new inbound messages stop using it.`
@@ -1088,7 +1170,7 @@ const WhatsAppInbox = () => {
                 if (!deleteLineTarget) return;
                 try {
                   await deleteBusinessLine(deleteLineTarget.id);
-                  if (editingLineId === deleteLineTarget.id) resetCounselorForm();
+                  if (editingLineId === deleteLineTarget.id) resetLineForm();
                   const lines = await listBusinessLines();
                   setBusinessLines(lines);
                   toast.success("Line removed");

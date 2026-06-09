@@ -18,4 +18,10 @@ export const WHATSAPP_META_TEAM_SETUP_KEYWORDS = [
   "publish",
   "go-live",
   "test recipient",
+  "second helpline",
+  "second waba",
+  "multiple numbers",
+  "app secrets",
+  "WHATSAPP_APP_SECRETS",
+  "additional helpline",
 ];

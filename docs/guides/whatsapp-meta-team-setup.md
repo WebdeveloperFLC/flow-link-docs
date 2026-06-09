@@ -131,6 +131,7 @@ Set in **Supabase Dashboard → Edge Functions → Secrets** (project `auofttkyo
 | `WHATSAPP_PHONE_NUMBER_ID` | From API Setup |
 | `WHATSAPP_VERIFY_TOKEN` | Same as Part D verify token |
 | `WHATSAPP_APP_SECRET` | App → Settings → Basic → App secret |
+| `WHATSAPP_APP_SECRETS` | Optional — comma-separated app secrets when multiple Meta Developer apps send webhooks to CRM |
 | `WHATSAPP_AI_MODE` | `rules` (default) or `gemini_dev` for smarter intake |
 | `WHATSAPP_AUTO_ASSIGN` | `true` (default) — auto-assign counselor after intake YES |
 | `GEMINI_API_KEY` | Optional — direct Gemini for `gemini_dev` (else uses `LOVABLE_API_KEY`) |
@@ -204,7 +205,64 @@ When the **real** line is live, API Setup may show a **new Phone number ID**. Up
 
 Clients message **only the helpline**. Staff replies always come from that same number.
 
-### G6 — Message templates (Phase 2b, outside 24h)
+### G6 — Second shared helpline (different WABA or Meta app)
+
+Use this when you have **another helpline number** (e.g. India office) on a **different WhatsApp Business Account** or Meta Developer app, but still want the same CRM inbox and AI intake flow.
+
+#### G6.1 — System user token (both WABAs)
+
+1. **Business Settings → System users** → open the user that owns `WHATSAPP_ACCESS_TOKEN`.
+2. **Add assets** → assign the **second WABA** with `whatsapp_business_messaging`.
+3. Confirm the same token can read the second Phone number ID (Graph API Explorer: `GET /{second_phone_number_id}`).
+
+Do **not** add a second token in Supabase — CRM uses one `WHATSAPP_ACCESS_TOKEN`.
+
+#### G6.2 — Webhook on the second Meta app
+
+On the **second** Developer app → **WhatsApp → Configuration**:
+
+| Field | Value |
+|--------|--------|
+| Callback URL | `https://auofttkyosgjhxcbhscw.supabase.co/functions/v1/whatsapp-webhook` |
+| Verify token | Same as `WHATSAPP_VERIFY_TOKEN` |
+| Subscribe | **messages** |
+
+#### G6.3 — App secret (different Meta apps only)
+
+If both numbers share **one** Meta Developer app → keep single `WHATSAPP_APP_SECRET`.
+
+If they use **different** Meta Developer apps → set comma-separated secrets in Supabase:
+
+```text
+WHATSAPP_APP_SECRETS=first_app_secret,second_app_secret
+```
+
+(You can remove `WHATSAPP_APP_SECRET` when using `WHATSAPP_APP_SECRETS`.)
+
+#### G6.4 — Register line in CRM
+
+**CRM → WhatsApp → Manage lines → Add line → Shared helpline**
+
+- Label (e.g. `India office helpline`)
+- Meta Phone number ID (from second number’s API Setup)
+- Optional display number
+
+Keep **Primary helpline Meta Phone number ID** as your main line (matches `WHATSAPP_PHONE_NUMBER_ID` secret).
+
+#### G6.5 — Templates on second WABA
+
+Templates are per WABA. Create and approve **`fl_helpline_followup`** on the **second** WhatsApp Manager account too (see G7 below).
+
+#### G6.6 — Test
+
+1. Redeploy: `./scripts/deploy-whatsapp.sh`
+2. Message the **second** number from a test phone.
+3. **CRM → WhatsApp** — thread appears with the second line’s label badge.
+4. Staff reply — client receives from the **second** number.
+
+---
+
+### G7 — Message templates (Phase 2b, outside 24h)
 
 When the client has not messaged in 24 hours, counselors must use **Meta-approved templates** (not free text).
 
@@ -244,7 +302,7 @@ Guide | /guides/whatsapp-meta-team-setup | This guide
 |---------|--------|
 | Webhook verify fails | Verify token match; function deployed |
 | No CRM thread | `messages` subscribed; function logs |
-| Signature 401 | `WHATSAPP_APP_SECRET` |
+| Signature 401 | `WHATSAPP_APP_SECRET` or `WHATSAPP_APP_SECRETS` (comma-separated for multiple Meta apps) |
 | No reply on phone | `WHATSAPP_PROVIDER=meta`; token; correct Phone number ID |
 | Counselor sees nothing | Thread **assigned**; use CRM not personal WA |
 
@@ -257,4 +315,6 @@ Guide | /guides/whatsapp-meta-team-setup | This guide
 - [ ] Real helpline in WhatsApp Manager
 - [ ] Permanent token + correct Phone number ID
 - [ ] Staff briefed: CRM inbox for helpline
+- [ ] (If second helpline) Second WABA on system user token; webhook on second app; line added in **Manage lines**
+- [ ] (If second WABA) `fl_helpline_followup` approved on second WABA
 - [ ] [WhatsApp Helpline guide](/guides/whatsapp-helpline) published in app
