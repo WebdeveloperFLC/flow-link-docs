@@ -1118,9 +1118,6 @@ const WhatsAppInbox = () => {
             <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
             <Button onClick={async () => {
               try {
-                if (helplineMetaId.trim()) {
-                  await updateDefaultHelplineMetaId(helplineMetaId.trim());
-                }
                 const canSaveHelpline = newLineType === "helpline"
                   && newLineLabel.trim()
                   && newLineMetaId.trim();
@@ -1136,13 +1133,16 @@ const WhatsAppInbox = () => {
                     display_phone: newLineType === "helpline" ? (newLineDisplayPhone.trim() || null) : null,
                     line_type: newLineType,
                     assigned_user_id: newLineType === "counselor" ? newLineCounselor : null,
+                    ...(editingLineId === DEFAULT_HELPLINE_LINE_ID ? { is_default: true, active: true } : {}),
                   });
                   resetLineForm();
+                } else if (!editingLineId) {
+                  toast.info("Nothing to save — fill the form below or close.");
+                  return;
                 }
                 const lines = await listBusinessLines();
                 setBusinessLines(lines);
                 toast.success("Lines saved");
-                setLinesOpen(false);
               } catch (e: any) {
                 toast.error(e.message || "Save failed");
               }
