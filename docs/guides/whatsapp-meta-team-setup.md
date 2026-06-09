@@ -244,7 +244,8 @@ WHATSAPP_APP_SECRETS=first_app_secret,second_app_secret
 **CRM → WhatsApp → Manage lines → Add line → Shared helpline**
 
 - Label (e.g. `India office helpline`)
-- Meta Phone number ID (from second number’s API Setup)
+- **WhatsApp Business Account ID (WABA)** — from API Setup (WhatsApp Business Account ID)
+- **Phone number ID** — from API Setup for that number
 - Optional display number
 
 Keep **Primary helpline Meta Phone number ID** as your main line (matches `WHATSAPP_PHONE_NUMBER_ID` secret).

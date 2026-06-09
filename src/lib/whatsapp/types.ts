@@ -10,6 +10,7 @@ export type WhatsAppConversationStatus =
 export interface WhatsAppBusinessLine {
   id: string;
   label: string;
+  meta_waba_id: string | null;
   meta_phone_number_id: string;
   display_phone: string | null;
   line_type: "helpline" | "counselor";

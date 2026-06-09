@@ -106,6 +106,45 @@ function setListFilter(
   );
 }
 
+type InstitutionOption = {
+  id: string;
+  name: string;
+  country_name: string | null;
+  logo_url?: string | null;
+};
+
+function filterInstitutionsByCountry(institutions: InstitutionOption[], countryFilter: string) {
+  if (countryFilter === "all") return institutions;
+  if (countryFilter === "unspecified") return institutions.filter((i) => !i.country_name?.trim());
+  return institutions.filter((i) => i.country_name === countryFilter);
+}
+
+function setCountryFilter(
+  setSearchParams: ReturnType<typeof useSearchParams>[1],
+  institutions: InstitutionOption[],
+  country: string,
+) {
+  setSearchParams(
+    (prev) => {
+      const next = new URLSearchParams(prev);
+      if (country === FILTER_DEFAULTS.country) next.delete("country");
+      else next.set("country", country);
+
+      const instId = prev.get("institutionId") ?? FILTER_DEFAULTS.institutionId;
+      if (instId !== FILTER_DEFAULTS.institutionId && country !== "all") {
+        const inst = institutions.find((i) => i.id === instId);
+        const valid =
+          country === "unspecified"
+            ? !inst?.country_name?.trim()
+            : inst?.country_name === country;
+        if (!valid) next.delete("institutionId");
+      }
+      return next;
+    },
+    { replace: true },
+  );
+}
+
 export default function CourseReviewPage() {
   const { canEdit } = useModulePermission("institutions");
   const [searchParams, setSearchParams] = useSearchParams();
@@ -120,9 +159,7 @@ export default function CourseReviewPage() {
   const [viewMode, setViewMode] = useState<"table" | "cards">(loadViewMode);
   const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(loadVisibleColumns);
   const [rows, setRows] = useState<UpiCourseStaging[]>([]);
-  const [institutions, setInstitutions] = useState<
-    { id: string; name: string; country_name: string | null; logo_url: string | null }[]
-  >([]);
+  const [institutions, setInstitutions] = useState<InstitutionOption[]>([]);
   const [levels, setLevels] = useState<{ id: string; name: string }[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [searchText, setSearchText] = useState("");
@@ -147,10 +184,7 @@ export default function CourseReviewPage() {
     if (instFilter !== "all") {
       q = q.eq("institution_id", instFilter);
     } else if (countryFilter !== "all") {
-      const matchingIds =
-        countryFilter === "unspecified"
-          ? institutions.filter((i) => !i.country_name).map((i) => i.id)
-          : institutions.filter((i) => i.country_name === countryFilter).map((i) => i.id);
+      const matchingIds = filterInstitutionsByCountry(institutions, countryFilter).map((i) => i.id);
       if (matchingIds.length === 0) {
         if (seq !== loadSeq.current) return;
         setRows([]);
@@ -201,7 +235,7 @@ export default function CourseReviewPage() {
       return;
     }
     setAuxError(null);
-    const insts = (i.data ?? []) as { id: string; name: string; country_name: string | null; logo_url: string | null }[];
+    const insts = (i.data ?? []) as InstitutionOption[];
     setInstitutions(insts);
     setLevels((l.data ?? []) as any);
     const uniq = Array.from(new Set(insts.map((r) => r.country_name).filter(Boolean) as string[])).sort();
@@ -213,6 +247,21 @@ export default function CourseReviewPage() {
   useEffect(() => {
     load();
   }, [statusFilter, instFilter, levelFilter, countryFilter, institutions]);
+
+  const institutionsForCountry = useMemo(
+    () => filterInstitutionsByCountry(institutions, countryFilter),
+    [institutions, countryFilter],
+  );
+
+  useEffect(() => {
+    if (instFilter === "all" || countryFilter === "all" || institutions.length === 0) return;
+    const inst = institutions.find((i) => i.id === instFilter);
+    const valid =
+      countryFilter === "unspecified"
+        ? !inst?.country_name?.trim()
+        : inst?.country_name === countryFilter;
+    if (!valid) setListFilter(setSearchParams, "institutionId", "all");
+  }, [instFilter, countryFilter, institutions, setSearchParams]);
 
   const campuses = useMemo(() => {
     const set = new Set<string>();
@@ -480,8 +529,12 @@ export default function CourseReviewPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All institutions</SelectItem>
-                {institutions.map((i) => (
+                <SelectItem value="all">
+                  {countryFilter === "all"
+                    ? "All institutions"
+                    : `All institutions (${countryFilter})`}
+                </SelectItem>
+                {institutionsForCountry.map((i) => (
                   <SelectItem key={i.id} value={i.id}>
                     {i.name}
                   </SelectItem>
@@ -508,7 +561,7 @@ export default function CourseReviewPage() {
           </div>
           <div className="space-y-1">
             <Label className="text-xs">Country</Label>
-            <Select value={countryFilter} onValueChange={(v) => setListFilter(setSearchParams, "country", v)}>
+            <Select value={countryFilter} onValueChange={(v) => setCountryFilter(setSearchParams, institutions, v)}>
               <SelectTrigger className="w-48">
                 <SelectValue />
               </SelectTrigger>

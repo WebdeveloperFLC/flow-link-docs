@@ -5,6 +5,7 @@ export const DEFAULT_HELPLINE_LINE_ID = "a0000000-0000-4000-8000-000000000001";
 export type BusinessLine = {
   id: string;
   label: string;
+  meta_waba_id: string | null;
   meta_phone_number_id: string;
   display_phone: string | null;
   line_type: "helpline" | "counselor";

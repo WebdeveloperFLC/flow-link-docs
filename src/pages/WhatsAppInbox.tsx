@@ -108,7 +108,10 @@ function renderLineRow(l: WhatsAppBusinessLine, a: LineRowActions) {
           {!l.active && <Badge variant="outline" className="text-[9px] px-1.5 py-0">Inactive</Badge>}
         </div>
         {l.display_phone && <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>}
-        <div className="text-muted-foreground break-all mt-0.5">Meta ID: {l.meta_phone_number_id}</div>
+        {l.meta_waba_id && (
+          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
+        )}
+        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
         {l.line_type === "counselor" && l.assigned_user_id && (
           <div className="text-muted-foreground mt-0.5">
             Counselor: {a.counselorNameById.get(l.assigned_user_id) ?? "—"}
@@ -265,6 +268,7 @@ const WhatsAppInbox = () => {
   const [linesOpen, setLinesOpen] = useState(false);
   const [newLineType, setNewLineType] = useState<"helpline" | "counselor">("helpline");
   const [newLineLabel, setNewLineLabel] = useState("");
+  const [newLineWabaId, setNewLineWabaId] = useState("");
   const [newLineMetaId, setNewLineMetaId] = useState("");
   const [newLineDisplayPhone, setNewLineDisplayPhone] = useState("");
   const [newLineCounselor, setNewLineCounselor] = useState("");
@@ -306,6 +310,7 @@ const WhatsAppInbox = () => {
     setEditingLineId(null);
     setNewLineType("helpline");
     setNewLineLabel("");
+    setNewLineWabaId("");
     setNewLineMetaId("");
     setNewLineDisplayPhone("");
     setNewLineCounselor("");
@@ -315,6 +320,7 @@ const WhatsAppInbox = () => {
     setEditingLineId(line.id);
     setNewLineType(line.line_type);
     setNewLineLabel(line.label);
+    setNewLineWabaId(line.meta_waba_id ?? "");
     setNewLineMetaId(line.meta_phone_number_id === "CONFIGURE_ME" ? "" : line.meta_phone_number_id);
     setNewLineDisplayPhone(line.display_phone ?? "");
     setNewLineCounselor(line.assigned_user_id ?? "");
@@ -1089,13 +1095,13 @@ const WhatsAppInbox = () => {
           if (!open) resetLineForm();
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Manage WhatsApp lines</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Each WhatsApp line uses its own Meta Phone Number ID. Incoming messages route to the line whose ID matches the webhook payload. Counselor lines auto-assign to the chosen user.
+              Each line needs WABA ID and Phone number ID from Meta API Setup. Inbound routes by Phone number ID. Primary helpline Phone number ID should match the WHATSAPP_PHONE_NUMBER_ID secret. Use Edit on a line to update it.
             </p>
             {defaultHelplineLine && (
               <div className="space-y-2">
@@ -1173,9 +1179,14 @@ const WhatsAppInbox = () => {
                 placeholder={newLineType === "helpline" ? "Label e.g. India office helpline" : "Label e.g. Priya — Canada desk"}
               />
               <Input
+                value={newLineWabaId}
+                onChange={(e) => setNewLineWabaId(e.target.value)}
+                placeholder="WhatsApp Business Account ID (WABA)"
+              />
+              <Input
                 value={newLineMetaId}
                 onChange={(e) => setNewLineMetaId(e.target.value)}
-                placeholder="Meta Phone number ID for that line"
+                placeholder="Phone number ID"
               />
               {newLineType === "helpline" && (
                 <Input
@@ -1200,17 +1211,24 @@ const WhatsAppInbox = () => {
             <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
             <Button onClick={async () => {
               try {
-                const canSaveHelpline = newLineType === "helpline"
-                  && newLineLabel.trim()
-                  && newLineMetaId.trim();
-                const canSaveCounselor = newLineType === "counselor"
-                  && newLineLabel.trim()
-                  && newLineMetaId.trim()
-                  && newLineCounselor;
-                if (canSaveHelpline || canSaveCounselor) {
+                const hasLineForm = editingLineId
+                  || newLineLabel.trim()
+                  || newLineWabaId.trim()
+                  || newLineMetaId.trim()
+                  || newLineCounselor;
+                if (hasLineForm) {
+                  if (!newLineLabel.trim() || !newLineWabaId.trim() || !newLineMetaId.trim()) {
+                    toast.error("Each line requires label, WABA ID, and Phone number ID");
+                    return;
+                  }
+                  if (newLineType === "counselor" && !newLineCounselor) {
+                    toast.error("Counselor direct lines require an assigned counselor");
+                    return;
+                  }
                   await saveBusinessLine({
                     ...(editingLineId ? { id: editingLineId } : {}),
                     label: newLineLabel.trim(),
+                    meta_waba_id: newLineWabaId.trim(),
                     meta_phone_number_id: newLineMetaId.trim(),
                     display_phone: newLineType === "helpline" ? (newLineDisplayPhone.trim() || null) : null,
                     line_type: newLineType,

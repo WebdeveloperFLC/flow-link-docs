@@ -316,7 +316,7 @@ Optional Gemini intake
 
 ### Phase 2 admin setup (one-time)
 
-1. **CRM → WhatsApp → Manage lines** — set **Primary helpline Meta Phone number ID** (must match `WHATSAPP_PHONE_NUMBER_ID` secret).
+1. **CRM → WhatsApp → Manage lines** — set **Primary helpline** WABA ID and Phone number ID (Phone number ID must match `WHATSAPP_PHONE_NUMBER_ID` secret).
 2. **Additional shared helplines** — **Add line → Shared helpline** for each extra helpline number (e.g. second WABA / regional office). Same AI intake and team inbox; replies go out from that number.
 3. **Counselor direct lines** — **Add line → Counselor direct** per legacy counselor Meta number; inbound auto-assigns and skips AI intake.
 4. Run migration `20260606120000_whatsapp_phase2.sql` (SQL editor or `npx supabase db push`) if not applied.
