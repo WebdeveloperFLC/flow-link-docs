@@ -589,14 +589,24 @@ export async function clearAllTestConversations(
 export async function simulateInbound(
   phone: string,
   text: string,
-  conversationId?: string,
-): Promise<void> {
-  await postEdgeFunction("whatsapp-webhook", {
+  opts?: {
+    conversationId?: string;
+    businessLineId?: string | null;
+    metaPhoneNumberId?: string | null;
+  },
+): Promise<{ conversation_id?: string; deduped?: boolean }> {
+  const data = await postEdgeFunction("whatsapp-webhook", {
     phone,
     text,
     mock: true,
-    ...(conversationId ? { conversation_id: conversationId } : {}),
+    ...(opts?.conversationId ? { conversation_id: opts.conversationId } : {}),
+    ...(opts?.businessLineId ? { business_line_id: opts.businessLineId } : {}),
+    ...(opts?.metaPhoneNumberId ? { meta_phone_number_id: opts.metaPhoneNumberId } : {}),
   });
+  return {
+    conversation_id: data.conversation_id as string | undefined,
+    deduped: data.deduped === true,
+  };
 }
 
 export async function listCounselors(): Promise<{ id: string; full_name: string | null; email: string | null }[]> {
