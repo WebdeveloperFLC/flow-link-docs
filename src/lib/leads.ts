@@ -159,26 +159,35 @@ function withLibraryFees(
 
 export async function fetchAllServiceCatalogue(): Promise<ServiceCatalogueItem[]> {
   // Source of truth: service_library + picker_variants + fee_items.
-  const [libRes, variantRes] = await Promise.all([
-    supabase
-      .from("service_library")
-      .select(
-        "id, service_category, service, sub_service, display_order, is_active, academy_metadata, service_library_countries(country)",
-      )
-      .eq("is_active", true)
-      .order("service_category", { ascending: true })
-      .order("display_order", { ascending: true })
-      .order("service", { ascending: true }),
-    supabase
-      .from("service_library_picker_variants")
-      .select(
-        "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, display_order",
-      )
-      .eq("is_active", true)
-      .order("display_order", { ascending: true }),
-  ]);
+  const libRes = await supabase
+    .from("service_library")
+    .select(
+      "id, service_category, service, sub_service, display_order, is_active, academy_metadata, service_library_countries(country)",
+    )
+    .eq("is_active", true)
+    .order("service_category", { ascending: true })
+    .order("display_order", { ascending: true })
+    .order("service", { ascending: true });
   const { data, error } = libRes;
   if (error) throw error;
+
+  const variantSelectFull =
+    "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, govt_fee_inr, govt_fee_cad, display_order";
+  const variantSelectBase =
+    "library_id, country, variant_key, picker_label, group_label, fee_inr, fee_cad, display_order";
+
+  let variantRes = await supabase
+    .from("service_library_picker_variants")
+    .select(variantSelectFull)
+    .eq("is_active", true)
+    .order("display_order", { ascending: true });
+  if (variantRes.error) {
+    variantRes = await supabase
+      .from("service_library_picker_variants")
+      .select(variantSelectBase)
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+  }
 
   const variants = variantRes.error
     ? []
