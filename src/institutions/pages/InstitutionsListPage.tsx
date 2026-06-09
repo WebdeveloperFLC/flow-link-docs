@@ -15,6 +15,38 @@ import type { UpiInstitution } from "../types/upi";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { InstitutionLogo } from "../components/InstitutionLogo";
 
+const LIST_COLUMNS =
+  "id,name,country_name,institution_type,is_partner,is_active,website_url,logo_url" as const;
+
+function supabaseErrMsg(error: { message?: string; details?: string; code?: string } | null): string {
+  if (!error) return "Request failed";
+  return error.message?.trim() || error.details?.trim() || error.code || "Request failed";
+}
+
+async function fetchCourseReviewStats(): Promise<{ courses: number; pending: number }> {
+  const { data, error } = await supabase.rpc("upi_course_review_counts");
+  if (!error && data && typeof data === "object") {
+    const row = data as { published?: number; pending_review?: number };
+    return { courses: row.published ?? 0, pending: row.pending_review ?? 0 };
+  }
+
+  const [publishedRes, pendingRes] = await Promise.all([
+    supabase
+      .from("upi_courses_staging")
+      .select("id", { count: "exact", head: true })
+      .eq("review_status", "published"),
+    supabase
+      .from("upi_courses_staging")
+      .select("id", { count: "exact", head: true })
+      .eq("review_status", "pending_review"),
+  ]);
+
+  return {
+    courses: publishedRes.error ? 0 : (publishedRes.count ?? 0),
+    pending: pendingRes.error ? 0 : (pendingRes.count ?? 0),
+  };
+}
+
 export default function InstitutionsListPage() {
   const navigate = useNavigate();
   const { canEdit } = useModulePermission("institutions");
@@ -35,23 +67,29 @@ export default function InstitutionsListPage() {
   const load = async () => {
     setLoading(true);
     setListError(null);
-    const { data, error } = await supabase.from("upi_institutions").select("*").order("name");
-    if (error) {
-      setListError(error.message);
-      toast.error(error.message);
-      setItems([]);
-    } else {
-      setItems((data ?? []) as UpiInstitution[]);
-    }
-    const [t, p, c, pr] = await Promise.all([
-      supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("upi_institutions").select("*", { count: "exact", head: true }).eq("is_partner", true),
-      supabase.from("upi_courses_staging").select("*", { count: "exact", head: true }).eq("review_status", "published"),
-      supabase.from("upi_courses_staging").select("*", { count: "exact", head: true }).eq("review_status", "pending_review"),
+
+    const [{ data, error }, courseStats] = await Promise.all([
+      supabase.from("upi_institutions").select(LIST_COLUMNS).order("name"),
+      fetchCourseReviewStats(),
     ]);
-    const statsError = [t, p, c, pr].find((r) => r.error)?.error;
-    if (statsError) toast.error(statsError.message);
-    else setStats({ total: t.count ?? 0, partners: p.count ?? 0, courses: c.count ?? 0, pending: pr.count ?? 0 });
+
+    if (error) {
+      const msg = supabaseErrMsg(error);
+      setListError(msg);
+      toast.error(msg);
+      setItems([]);
+      setStats({ total: 0, partners: 0, courses: 0, pending: 0 });
+    } else {
+      const list = (data ?? []) as UpiInstitution[];
+      setItems(list);
+      setStats({
+        total: list.length,
+        partners: list.filter((i) => i.is_partner).length,
+        courses: courseStats.courses,
+        pending: courseStats.pending,
+      });
+    }
+
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
