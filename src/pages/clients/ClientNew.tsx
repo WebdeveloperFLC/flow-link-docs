@@ -46,7 +46,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ensureFreshSession, AuthExpiredError, PermissionDeniedError } from "@/lib/supabaseSafeInsert";
 import { autoAssignPipelineForClient, resolvePipelineForServiceLibrary } from "@/lib/stagePipelines";
 import { notifyUsers, resolveCounselorNotificationUserIds } from "@/lib/appNotifications";
-import { buildServiceLibraryUrl } from "@/lib/service-library/serviceCodes";
+import { buildServiceLibraryUrl, buildClientDetailUrlFromServiceLibrary } from "@/lib/service-library/serviceCodes";
+import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 
 /**
  * Seed education_history from the legacy scalar columns when the row was
@@ -381,7 +382,18 @@ const ClientNew = () => {
         }
       }
       toast.success(`Client ${regNumber ?? clientId} created. Draft invoice ${res.invoice_number} ready.`);
-      nav(`/clients/${clientId}`);
+      if (slLibraryId) {
+        nav(
+          buildClientDetailUrlFromServiceLibrary({
+            clientId,
+            libraryId: slLibraryId,
+            country: slCountry,
+            serviceCode: slVisaService,
+          }),
+        );
+      } else {
+        nav(`/clients/${clientId}`);
+      }
     } catch (e) {
       console.error("[create invoice]", e);
       if (e instanceof AuthExpiredError) {
@@ -409,6 +421,12 @@ const ClientNew = () => {
 
   return (
     <AppLayout>
+      <ContextBackBar
+        libraryId={slLibraryId}
+        country={slCountry}
+        fallbackLabel="All clients"
+        fallbackHref="/clients"
+      />
       <PageHeader
         title={editId ? "Edit Client" : "New Client"}
         description={regNumber ? `Client # ${regNumber}` : "Auto-saves on blur once name is entered."}
@@ -929,8 +947,17 @@ const ClientNew = () => {
           {/* Sticky bottom save bar — keeps Save reachable when scrolled */}
           <div className="sticky bottom-0 z-10 -mx-3 sm:-mx-6 px-3 sm:px-6 py-3 bg-background/90 backdrop-blur border-t flex items-center justify-end gap-2">
             {saving && <span className="text-xs text-muted-foreground mr-auto">Saving…</span>}
-            <Button variant="outline" onClick={() => nav("/clients")}>
-              Cancel
+            <Button
+              variant="outline"
+              onClick={() =>
+                nav(
+                  slLibraryId
+                    ? buildServiceLibraryUrl({ libraryId: slLibraryId, country: slCountry })
+                    : "/clients",
+                )
+              }
+            >
+              {slLibraryId ? "Service Library" : "Cancel"}
             </Button>
             <Button
               onClick={autosave}

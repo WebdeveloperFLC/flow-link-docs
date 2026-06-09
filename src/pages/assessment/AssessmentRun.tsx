@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AssessmentHeader } from "@/components/assessment/AssessmentHeader";
-import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 import { Loader2, Send, CheckCircle2, ArrowLeft, ArrowRight, Save, Download } from "lucide-react";
 import { toast } from "sonner";
 import { downloadAssessmentPdf } from "@/lib/assessmentPdf";
@@ -538,14 +538,7 @@ export default function AssessmentRun() {
   return (
     <div className="flc-shell min-h-screen">
       {fromServiceLibrary && libraryId && (
-        <div className="max-w-6xl mx-auto px-4 pt-4">
-          <ServiceLibraryContextActions
-            libraryId={libraryId}
-            country={country}
-            clientId={clientId ?? undefined}
-            showEligibility={false}
-          />
-        </div>
+        <ContextBackBar libraryId={libraryId} country={country} className="max-w-6xl mx-auto px-4 pt-4" />
       )}
       <AssessmentHeader
         mode="client"

@@ -42,10 +42,28 @@ export function buildServiceLibraryParams(opts: {
   subService?: string;
 }) {
   const p = new URLSearchParams();
+  p.set("from", "service-library");
   p.set("library_id", opts.libraryId);
-  if (opts.country) p.set("country", opts.country);
+  if (opts.country) {
+    p.set("country", opts.country);
+    p.set("sl_country", opts.country);
+  }
   p.set("visa_service", opts.serviceCode);
   p.set("service_label", opts.serviceTitle);
   if (opts.subService) p.set("sub_service", opts.subService);
   return p;
+}
+
+export function buildClientDetailUrlFromServiceLibrary(opts: {
+  clientId: string;
+  libraryId: string;
+  country?: string | null;
+  serviceCode?: string | null;
+}) {
+  const p = appendServiceLibraryClientContext(new URLSearchParams(), {
+    libraryId: opts.libraryId,
+    country: opts.country,
+  });
+  if (opts.serviceCode) p.set("service", opts.serviceCode);
+  return `/clients/${opts.clientId}?${p.toString()}`;
 }

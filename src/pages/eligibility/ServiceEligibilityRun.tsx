@@ -28,7 +28,7 @@ import {
   buildServiceCode,
   appendServiceLibraryClientContext,
 } from "@/lib/service-library/serviceCodes";
-import { ServiceLibraryContextActions } from "@/components/service-library/ServiceLibraryContextActions";
+import { ContextBackBar } from "@/components/navigation/ContextBackBar";
 
 type SessionRow = {
   id: string;
@@ -270,14 +270,6 @@ export default function ServiceEligibilityRun() {
 
   const content = (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      {!isPublic && session.library_id && (
-        <ServiceLibraryContextActions
-          libraryId={session.library_id}
-          country={session.country}
-          clientId={session.client_id ?? undefined}
-          showEligibility={false}
-        />
-      )}
       <div>
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Eligibility Assessment</p>
         <h1 className="text-2xl font-bold">{serviceTitle}</h1>
@@ -457,5 +449,16 @@ export default function ServiceEligibilityRun() {
   );
 
   if (isPublic) return <div className="min-h-screen bg-background">{content}</div>;
-  return <AppLayout>{content}</AppLayout>;
+
+  return (
+    <AppLayout>
+      <ContextBackBar
+        libraryId={session.library_id}
+        country={session.country}
+        fallbackLabel="Clients"
+        fallbackHref="/clients"
+      />
+      {content}
+    </AppLayout>
+  );
 }

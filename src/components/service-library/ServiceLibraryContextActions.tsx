@@ -14,6 +14,8 @@ type Props = {
   clientId?: string;
   /** Show Eligibility Assessment action (default true when clientId set). */
   showEligibility?: boolean;
+  /** Show Service Library link (default true). */
+  showServiceLibraryBack?: boolean;
   size?: "sm" | "default";
 };
 
@@ -22,6 +24,7 @@ export function ServiceLibraryContextActions({
   country,
   clientId,
   showEligibility,
+  showServiceLibraryBack = true,
   size = "sm",
 }: Props) {
   const navigate = useNavigate();
@@ -56,12 +59,14 @@ export function ServiceLibraryContextActions({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size={size} asChild>
-        <Link to={buildServiceLibraryUrl({ libraryId, country })}>
-          <ChevronLeft className="size-4 mr-1" />
-          Service Library
-        </Link>
-      </Button>
+      {showServiceLibraryBack && (
+        <Button variant="outline" size={size} asChild>
+          <Link to={buildServiceLibraryUrl({ libraryId, country })}>
+            <ChevronLeft className="size-4 mr-1" />
+            Service Library
+          </Link>
+        </Button>
+      )}
       {showAssessment && (
         <Button variant="outline" size={size} onClick={startEligibility} disabled={busy}>
           {busy ? (
