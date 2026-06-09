@@ -83,6 +83,16 @@ Deno.serve(async (req) => {
     if (!u?.user) return json({ error: "Not authenticated" }, 401);
 
     const admin = createClient(url, service);
+    // ── Role gate ──────────────────────────────────────────────────────────
+    // Only staff roles may dispatch transactional notifications. Without this,
+    // any portal `client`/`viewer` JWT could trigger receipt/payment emails to
+    // any client in the system.
+    const { data: allowedRole } = await admin.rpc("has_any_app_role", {
+      _uid: u.user.id,
+      _roles: ["admin", "counselor", "documentation", "telecaller", "commission_admin", "accounting"],
+    });
+    if (!allowedRole) return json({ error: "Forbidden" }, 403);
+
     const body = await req.json().catch(() => ({}));
     const eventType: string = String(body?.event_type ?? "");
     const payload: any = body?.payload ?? {};
@@ -151,11 +161,25 @@ Deno.serve(async (req) => {
     let subject = "Notification";
     let bodyHtml = "";
     let title = "Notification";
-    let logoUrl: string | null = payload?.firm?.logo_url ?? null;
-    let firmName: string | null = payload?.firm?.name ?? null;
-    let firmAddress: string | null = payload?.firm?.address ?? null;
-    let firmEmail: string | null = payload?.firm?.email ?? null;
-    let firmPhone: string | null = payload?.firm?.phone ?? null;
+    // Load firm branding strictly from the server-side firm_profile row so
+    // caller-supplied payload.firm.* can never spoof firm identity in emails.
+    const { data: firmRow } = await admin
+      .from("firm_profile")
+      .select("firm_name,firm_address,firm_phone,firm_email,logo_path")
+      .limit(1)
+      .maybeSingle();
+    let logoUrl: string | null = null;
+    if (firmRow?.logo_path) {
+      const { data: signed } = await admin.storage
+        .from("firm-assets")
+        .createSignedUrl(firmRow.logo_path, 60 * 60 * 24)
+        .catch(() => ({ data: null } as any));
+      logoUrl = signed?.signedUrl ?? null;
+    }
+    const firmName: string | null = firmRow?.firm_name ?? null;
+    const firmAddress: string | null = firmRow?.firm_address ?? null;
+    const firmEmail: string | null = firmRow?.firm_email ?? null;
+    const firmPhone: string | null = firmRow?.firm_phone ?? null;
 
     const clientName = esc(clientRow?.full_name ?? payload?.client?.name ?? "");
 

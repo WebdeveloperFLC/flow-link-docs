@@ -2141,13 +2141,6 @@ export type Database = {
             referencedRelation: "service_offers"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ar_invoice_line_items_service_code_fkey"
-            columns: ["service_code"]
-            isOneToOne: false
-            referencedRelation: "service_catalogue"
-            referencedColumns: ["service_code"]
-          },
         ]
       }
       assessment_email_verifications: {
@@ -2497,6 +2490,7 @@ export type Database = {
       assessment_sessions: {
         Row: {
           answers: Json
+          assessment_kind: string
           assigned_counselor_id: string | null
           client_id: string | null
           country: string
@@ -2506,8 +2500,16 @@ export type Database = {
           id: string
           last_emailed_at: string | null
           lead_id: string | null
+          library_id: string | null
           output: Json
           pdf_path: string | null
+          pending_items: Json
+          prospect_email: string | null
+          prospect_name: string | null
+          prospect_notes: string | null
+          prospect_phone: string | null
+          public_token: string | null
+          source: string
           status: Database["public"]["Enums"]["assessment_session_status"]
           submitted_at: string | null
           temperature: string | null
@@ -2515,6 +2517,7 @@ export type Database = {
         }
         Insert: {
           answers?: Json
+          assessment_kind?: string
           assigned_counselor_id?: string | null
           client_id?: string | null
           country?: string
@@ -2524,8 +2527,16 @@ export type Database = {
           id?: string
           last_emailed_at?: string | null
           lead_id?: string | null
+          library_id?: string | null
           output?: Json
           pdf_path?: string | null
+          pending_items?: Json
+          prospect_email?: string | null
+          prospect_name?: string | null
+          prospect_notes?: string | null
+          prospect_phone?: string | null
+          public_token?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["assessment_session_status"]
           submitted_at?: string | null
           temperature?: string | null
@@ -2533,6 +2544,7 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          assessment_kind?: string
           assigned_counselor_id?: string | null
           client_id?: string | null
           country?: string
@@ -2542,8 +2554,16 @@ export type Database = {
           id?: string
           last_emailed_at?: string | null
           lead_id?: string | null
+          library_id?: string | null
           output?: Json
           pdf_path?: string | null
+          pending_items?: Json
+          prospect_email?: string | null
+          prospect_name?: string | null
+          prospect_notes?: string | null
+          prospect_phone?: string | null
+          public_token?: string | null
+          source?: string
           status?: Database["public"]["Enums"]["assessment_session_status"]
           submitted_at?: string | null
           temperature?: string | null
@@ -2576,6 +2596,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "assessment_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_sessions_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
         ]
@@ -10975,83 +11002,70 @@ export type Database = {
         }
         Relationships: []
       }
-      service_catalogue: {
+      service_eligibility_questions: {
         Row: {
-          bundle_note: string | null
-          country_tag: string | null
-          created_at: string | null
-          display_order: number | null
-          fee_aud: number | null
-          fee_cad: number | null
-          fee_gbp: number | null
-          fee_inr: number | null
-          gst_applicable: boolean | null
-          gst_rate: number | null
+          allows_pending_note: boolean
+          code: string
+          conditional_on: Json | null
+          created_at: string
+          help_text: string | null
           id: string
-          is_active: boolean | null
-          is_bundled: boolean | null
-          master_key: string
-          max_fee_inr: number | null
-          min_fee_inr: number | null
-          notes: string | null
-          pricing_type: string
-          service_code: string | null
-          service_name: string
-          sub_category: string | null
-          suggested_fee_inr: number | null
-          updated_at: string | null
+          is_active: boolean
+          label: string
+          library_id: string
+          options: Json | null
+          prefill_field: string | null
+          q_type: string
+          rule: Json
+          section: string
+          sort_order: number
+          updated_at: string
         }
         Insert: {
-          bundle_note?: string | null
-          country_tag?: string | null
-          created_at?: string | null
-          display_order?: number | null
-          fee_aud?: number | null
-          fee_cad?: number | null
-          fee_gbp?: number | null
-          fee_inr?: number | null
-          gst_applicable?: boolean | null
-          gst_rate?: number | null
+          allows_pending_note?: boolean
+          code: string
+          conditional_on?: Json | null
+          created_at?: string
+          help_text?: string | null
           id?: string
-          is_active?: boolean | null
-          is_bundled?: boolean | null
-          master_key: string
-          max_fee_inr?: number | null
-          min_fee_inr?: number | null
-          notes?: string | null
-          pricing_type?: string
-          service_code?: string | null
-          service_name: string
-          sub_category?: string | null
-          suggested_fee_inr?: number | null
-          updated_at?: string | null
+          is_active?: boolean
+          label: string
+          library_id: string
+          options?: Json | null
+          prefill_field?: string | null
+          q_type?: string
+          rule?: Json
+          section?: string
+          sort_order?: number
+          updated_at?: string
         }
         Update: {
-          bundle_note?: string | null
-          country_tag?: string | null
-          created_at?: string | null
-          display_order?: number | null
-          fee_aud?: number | null
-          fee_cad?: number | null
-          fee_gbp?: number | null
-          fee_inr?: number | null
-          gst_applicable?: boolean | null
-          gst_rate?: number | null
+          allows_pending_note?: boolean
+          code?: string
+          conditional_on?: Json | null
+          created_at?: string
+          help_text?: string | null
           id?: string
-          is_active?: boolean | null
-          is_bundled?: boolean | null
-          master_key?: string
-          max_fee_inr?: number | null
-          min_fee_inr?: number | null
-          notes?: string | null
-          pricing_type?: string
-          service_code?: string | null
-          service_name?: string
-          sub_category?: string | null
-          suggested_fee_inr?: number | null
-          updated_at?: string | null
+          is_active?: boolean
+          label?: string
+          library_id?: string
+          options?: Json | null
+          prefill_field?: string | null
+          q_type?: string
+          rule?: Json
+          section?: string
+          sort_order?: number
+          updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "service_eligibility_questions_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_library: {
         Row: {
@@ -11387,6 +11401,71 @@ export type Database = {
           },
         ]
       }
+      service_library_picker_variants: {
+        Row: {
+          country: string
+          created_at: string
+          display_order: number
+          fee_cad: number
+          fee_inr: number
+          govt_amount: number | null
+          govt_currency: string | null
+          govt_fee_cad: number | null
+          govt_fee_inr: number | null
+          group_label: string
+          id: string
+          is_active: boolean
+          library_id: string
+          picker_label: string
+          updated_at: string
+          variant_key: string
+        }
+        Insert: {
+          country?: string
+          created_at?: string
+          display_order?: number
+          fee_cad: number
+          fee_inr: number
+          govt_amount?: number | null
+          govt_currency?: string | null
+          govt_fee_cad?: number | null
+          govt_fee_inr?: number | null
+          group_label: string
+          id?: string
+          is_active?: boolean
+          library_id: string
+          picker_label: string
+          updated_at?: string
+          variant_key: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          display_order?: number
+          fee_cad?: number
+          fee_inr?: number
+          govt_amount?: number | null
+          govt_currency?: string | null
+          govt_fee_cad?: number | null
+          govt_fee_inr?: number | null
+          group_label?: string
+          id?: string
+          is_active?: boolean
+          library_id?: string
+          picker_label?: string
+          updated_at?: string
+          variant_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_picker_variants_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_library_sop_completions: {
         Row: {
           client_id: string | null
@@ -11547,6 +11626,71 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "service_library_submission_checklist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_library_visa_form_files: {
+        Row: {
+          country: string | null
+          created_at: string
+          file_name: string
+          file_path: string
+          form_code: string | null
+          id: string
+          is_current: boolean
+          library_id: string
+          mime_type: string | null
+          notes: string | null
+          size_bytes: number | null
+          sort_order: number
+          updated_at: string
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          file_name: string
+          file_path: string
+          form_code?: string | null
+          id?: string
+          is_current?: boolean
+          library_id: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          sort_order?: number
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          form_code?: string | null
+          id?: string
+          is_current?: boolean
+          library_id?: string
+          mime_type?: string | null
+          notes?: string | null
+          size_bytes?: number | null
+          sort_order?: number
+          updated_at?: string
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_library_visa_form_files_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "service_library"
             referencedColumns: ["id"]
           },
         ]
@@ -14329,19 +14473,37 @@ export type Database = {
       user_notification_prefs: {
         Row: {
           browser_push_enabled: boolean
+          created_at: string
+          digest_frequency: string
+          escalation_alerts: boolean
+          muted_categories: string[]
+          push_enabled: boolean
           sound_enabled: boolean
+          timezone: string
           updated_at: string
           user_id: string
         }
         Insert: {
           browser_push_enabled?: boolean
+          created_at?: string
+          digest_frequency?: string
+          escalation_alerts?: boolean
+          muted_categories?: string[]
+          push_enabled?: boolean
           sound_enabled?: boolean
+          timezone?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           browser_push_enabled?: boolean
+          created_at?: string
+          digest_frequency?: string
+          escalation_alerts?: boolean
+          muted_categories?: string[]
+          push_enabled?: boolean
           sound_enabled?: boolean
+          timezone?: string
           updated_at?: string
           user_id?: string
         }
@@ -15682,6 +15844,10 @@ export type Database = {
       }
       can_manage_upi_catalog: { Args: { _uid: string }; Returns: boolean }
       can_manage_upi_confidential: { Args: { _uid: string }; Returns: boolean }
+      can_read_chat_storage_path: {
+        Args: { _path: string; _uid: string }
+        Returns: boolean
+      }
       can_upload_client: {
         Args: { _cid: string; _uid: string }
         Returns: boolean
@@ -15870,7 +16036,7 @@ export type Database = {
           p_due_date?: string
           p_firm_entity_id?: string
           p_installments?: Json
-          p_service_ids: string[]
+          p_service_codes: string[]
         }
         Returns: string
       }
@@ -16181,6 +16347,10 @@ export type Database = {
         Returns: number
       }
       recover_stale_calling_items: { Args: never; Returns: number }
+      resolve_client_stakeholder_user_ids: {
+        Args: { _client_id: string }
+        Returns: string[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       upi_canonical_course_title: {
@@ -16211,6 +16381,12 @@ export type Database = {
         Args: { _metadata: Json; _program_level_id: string }
         Returns: string
       }
+      upi_course_review_counts: { Args: never; Returns: Json }
+      upi_normalize_country: { Args: { country: string }; Returns: string }
+      upi_normalize_institution_name: {
+        Args: { name: string }
+        Returns: string
+      }
       upi_staging_row_dedup_hash: {
         Args: {
           _campus_name: string
@@ -16221,6 +16397,7 @@ export type Database = {
         }
         Returns: string
       }
+      upi_url_host: { Args: { url: string }; Returns: string }
       user_can_see_offer: {
         Args: { _offer_id: string; _uid: string }
         Returns: boolean

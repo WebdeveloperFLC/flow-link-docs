@@ -34,12 +34,14 @@ import {
   markConversationRead,
   resolveWhatsAppMediaUrl,
   deleteBusinessLine,
+  reactivateBusinessLine,
+  hardDeleteBusinessLine,
   saveBusinessLine,
   sendStaffReply,
   sendStaffTemplate,
   simulateInbound,
-  updateDefaultHelpline,
 } from "@/lib/whatsapp/api";
+import { DEFAULT_HELPLINE_LINE_ID } from "@/lib/whatsapp/api";
 import { formatPhoneDisplay } from "@/lib/whatsapp/phone";
 import { formatIntakeSummary } from "@/lib/whatsapp/intakeDisplay";
 import {
@@ -78,6 +80,79 @@ function outboundMessageType(mime: string): "image" | "document" | null {
   if (mime.startsWith("image/")) return "image";
   if (mime === "application/pdf") return "document";
   return null;
+}
+
+type LineRowActions = {
+  counselorNameById: Map<string, string>;
+  onEdit: (line: WhatsAppBusinessLine) => void;
+  onSoftDelete: ((line: WhatsAppBusinessLine) => void) | null;
+  onReactivate: ((line: WhatsAppBusinessLine) => void) | null;
+  onHardDelete: ((line: WhatsAppBusinessLine) => void) | null;
+};
+
+function renderLineRow(l: WhatsAppBusinessLine, a: LineRowActions) {
+  return (
+    <div
+      className={cn(
+        "flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20",
+        !l.active && "opacity-60",
+      )}
+    >
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-medium">{l.label}</span>
+          {l.is_default && <Badge variant="secondary" className="text-[9px] px-1.5 py-0">Primary</Badge>}
+          <Badge variant={l.line_type === "counselor" ? "outline" : "secondary"} className="text-[9px] px-1.5 py-0">
+            {l.line_type === "counselor" ? "Counselor" : "Helpline"}
+          </Badge>
+          {!l.active && <Badge variant="outline" className="text-[9px] px-1.5 py-0">Inactive</Badge>}
+        </div>
+        {l.display_phone && <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>}
+        {l.meta_waba_id && (
+          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
+        )}
+        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
+        {l.line_type === "counselor" && l.assigned_user_id && (
+          <div className="text-muted-foreground mt-0.5">
+            Counselor: {a.counselorNameById.get(l.assigned_user_id) ?? "—"}
+          </div>
+        )}
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
+            Actions <MoreHorizontal className="size-3.5 ml-1" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => a.onEdit(l)}>
+            <Pencil className="size-3.5 mr-2" /> Edit line
+          </DropdownMenuItem>
+          {a.onReactivate && !l.active && (
+            <DropdownMenuItem onClick={() => a.onReactivate!(l)}>
+              Reactivate
+            </DropdownMenuItem>
+          )}
+          {a.onSoftDelete && l.active && (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => a.onSoftDelete!(l)}
+            >
+              <Trash2 className="size-3.5 mr-2" /> Deactivate
+            </DropdownMenuItem>
+          )}
+          {a.onHardDelete && (
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => a.onHardDelete!(l)}
+            >
+              <Trash2 className="size-3.5 mr-2" /> Delete permanently
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 }
 
 const MEDIA_ERROR_HINTS: Record<string, string> = {
@@ -191,8 +266,6 @@ const WhatsAppInbox = () => {
   const [assignments, setAssignments] = useState<WhatsAppAssignment[]>([]);
   const [businessLines, setBusinessLines] = useState<WhatsAppBusinessLine[]>([]);
   const [linesOpen, setLinesOpen] = useState(false);
-  const [helplineWabaId, setHelplineWabaId] = useState("");
-  const [helplineMetaId, setHelplineMetaId] = useState("");
   const [newLineType, setNewLineType] = useState<"helpline" | "counselor">("helpline");
   const [newLineLabel, setNewLineLabel] = useState("");
   const [newLineWabaId, setNewLineWabaId] = useState("");
@@ -201,6 +274,8 @@ const WhatsAppInbox = () => {
   const [newLineCounselor, setNewLineCounselor] = useState("");
   const [editingLineId, setEditingLineId] = useState<string | null>(null);
   const [deleteLineTarget, setDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
+  const [hardDeleteLineTarget, setHardDeleteLineTarget] = useState<WhatsAppBusinessLine | null>(null);
+  const lineFilterId = searchParams.get("line");
   const [templates, setTemplates] = useState<WhatsAppMessageTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [templateParams, setTemplateParams] = useState<string[]>([]);
@@ -212,7 +287,7 @@ const WhatsAppInbox = () => {
   }, [setSearchParams]);
 
   const refreshConversations = useCallback(async () => {
-    const rows = await listConversations();
+    const rows = await listConversations({ lineId: lineFilterId });
     setConversations(rows);
     setActiveId((cur) => {
       const preferred = deepLinkConversationId || cur;
@@ -220,7 +295,7 @@ const WhatsAppInbox = () => {
       if (cur && rows.some((r) => r.id === cur)) return cur;
       return rows.length ? rows[0].id : null;
     });
-  }, [deepLinkConversationId]);
+  }, [deepLinkConversationId, lineFilterId]);
 
   const loadMessages = useCallback(async (conversationId: string) => {
     const rows = await listMessages(conversationId);
@@ -256,26 +331,44 @@ const WhatsAppInbox = () => {
     try {
       const lines = await listBusinessLines();
       setBusinessLines(lines);
-      const helpline = lines.find((l) => l.is_default);
-      setHelplineWabaId(helpline?.meta_waba_id ?? "");
-      setHelplineMetaId(
-        helpline?.meta_phone_number_id === "CONFIGURE_ME" ? "" : (helpline?.meta_phone_number_id || ""),
-      );
       setLinesOpen(true);
     } catch (e: any) {
       toast.error(e.message || "Could not load business lines");
     }
   }, [resetLineForm]);
 
+  const handleReactivateLine = useCallback(async (line: WhatsAppBusinessLine) => {
+    try {
+      await reactivateBusinessLine(line.id);
+      const lines = await listBusinessLines();
+      setBusinessLines(lines);
+      toast.success(`"${line.label}" reactivated`);
+    } catch (e: any) {
+      toast.error(e.message || "Reactivate failed");
+    }
+  }, []);
+
+  const defaultHelplineLine = useMemo(
+    () => businessLines.find((l) => l.is_default) ?? null,
+    [businessLines],
+  );
   const additionalHelplineLines = useMemo(
     () => businessLines.filter((l) => l.line_type === "helpline" && !l.is_default),
     [businessLines],
   );
-
   const counselorLines = useMemo(
     () => businessLines.filter((l) => l.line_type === "counselor"),
     [businessLines],
   );
+  const activeBusinessLines = useMemo(
+    () => businessLines.filter((l) => l.active),
+    [businessLines],
+  );
+  const lineById = useMemo(() => {
+    const m = new Map<string, WhatsAppBusinessLine>();
+    for (const l of businessLines) m.set(l.id, l);
+    return m;
+  }, [businessLines]);
 
   const counselorNameById = useMemo(() => {
     const map = new Map<string, string>();
@@ -639,6 +732,29 @@ const WhatsAppInbox = () => {
           <div className="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground border-b">
             Conversations
           </div>
+          <div className="px-3 py-2 border-b">
+            <Select
+              value={lineFilterId ?? "all"}
+              onValueChange={(v) => {
+                const next = new URLSearchParams(searchParams);
+                if (v === "all") next.delete("line");
+                else next.set("line", v);
+                setSearchParams(next, { replace: true });
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue placeholder="All lines" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All lines</SelectItem>
+                {activeBusinessLines.map((l) => (
+                  <SelectItem key={l.id} value={l.id}>
+                    {l.label}{l.display_phone ? ` · ${l.display_phone}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="divide-y overflow-y-auto flex-1">
             {loading && <div className="p-4 text-sm text-muted-foreground">Loading…</div>}
             {!loading && conversations.length === 0 && (
@@ -648,6 +764,7 @@ const WhatsAppInbox = () => {
             )}
             {conversations.map((c) => {
               const sla = whatsAppSlaBadge(c);
+              const line = c.business_line_id ? lineById.get(c.business_line_id) : null;
               return (
               <button
                 key={c.id}
@@ -681,6 +798,14 @@ const WhatsAppInbox = () => {
                 <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                   <MessageCircle className="size-3" />
                   {STATUS_LABELS[c.status]}
+                  {line && (
+                    <Badge
+                      variant={line.line_type === "counselor" ? "outline" : "secondary"}
+                      className="text-[9px] px-1.5 py-0 ml-1"
+                    >
+                      {line.label}
+                    </Badge>
+                  )}
                 </div>
               </button>
             );})}
@@ -976,66 +1101,33 @@ const WhatsAppInbox = () => {
           </DialogHeader>
           <div className="space-y-4 text-sm">
             <p className="text-muted-foreground text-xs">
-              Each line needs the Meta WhatsApp Business Account ID (WABA) and Phone number ID from API Setup. Primary helpline Phone number ID should match the WHATSAPP_PHONE_NUMBER_ID secret.
+              Each line needs WABA ID and Phone number ID from Meta API Setup. Inbound routes by Phone number ID. Primary helpline Phone number ID should match the WHATSAPP_PHONE_NUMBER_ID secret. Use Edit on a line to update it.
             </p>
-            <div className="space-y-2 rounded-md border p-3 bg-muted/10">
-              <Label className="text-xs uppercase text-muted-foreground">Primary helpline</Label>
-              <div>
-                <Label className="text-xs">WhatsApp Business Account ID (WABA)</Label>
-                <Input
-                  value={helplineWabaId}
-                  onChange={(e) => setHelplineWabaId(e.target.value)}
-                  placeholder="e.g. 123456789012345"
-                  className="mt-1"
-                />
+            {defaultHelplineLine && (
+              <div className="space-y-2">
+                <Label className="text-xs uppercase text-muted-foreground">Primary helpline</Label>
+                {renderLineRow(defaultHelplineLine, {
+                  counselorNameById,
+                  onEdit: startEditLine,
+                  onSoftDelete: null,
+                  onReactivate: null,
+                  onHardDelete: null,
+                })}
               </div>
-              <div>
-                <Label className="text-xs">Phone number ID</Label>
-                <Input
-                  value={helplineMetaId}
-                  onChange={(e) => setHelplineMetaId(e.target.value)}
-                  placeholder="From Meta API Setup"
-                  className="mt-1"
-                />
-              </div>
-            </div>
+            )}
             {additionalHelplineLines.length > 0 && (
               <div className="space-y-2">
                 <Label className="text-xs uppercase text-muted-foreground">Additional helpline numbers</Label>
                 <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
                   {additionalHelplineLines.map((l) => (
-                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{l.label}</div>
-                        {l.display_phone && (
-                          <div className="text-muted-foreground mt-0.5">{l.display_phone}</div>
-                        )}
-                        {l.meta_waba_id && (
-                          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
-                        )}
-                        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
-                            Actions
-                            <MoreHorizontal className="size-3.5 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => startEditLine(l)}>
-                            <Pencil className="size-3.5 mr-2" />
-                            Edit line
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteLineTarget(l)}
-                          >
-                            <Trash2 className="size-3.5 mr-2" />
-                            Remove line
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <li key={l.id}>
+                      {renderLineRow(l, {
+                        counselorNameById,
+                        onEdit: startEditLine,
+                        onSoftDelete: setDeleteLineTarget,
+                        onReactivate: (line) => { void handleReactivateLine(line); },
+                        onHardDelete: setHardDeleteLineTarget,
+                      })}
                     </li>
                   ))}
                 </ul>
@@ -1046,40 +1138,14 @@ const WhatsAppInbox = () => {
                 <Label className="text-xs uppercase text-muted-foreground">Counselor direct lines</Label>
                 <ul className="text-xs space-y-2 max-h-40 overflow-y-auto">
                   {counselorLines.map((l) => (
-                    <li key={l.id} className="flex items-start justify-between gap-3 rounded-md border p-3 bg-muted/20">
-                      <div className="min-w-0 flex-1">
-                        <div className="font-medium">{l.label}</div>
-                        {l.meta_waba_id && (
-                          <div className="text-muted-foreground break-all mt-0.5">WABA: {l.meta_waba_id}</div>
-                        )}
-                        <div className="text-muted-foreground break-all mt-0.5">Phone ID: {l.meta_phone_number_id}</div>
-                        {l.assigned_user_id && (
-                          <div className="text-muted-foreground mt-0.5">
-                            Counselor: {counselorNameById.get(l.assigned_user_id) ?? "—"}
-                          </div>
-                        )}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button type="button" variant="outline" size="sm" className="h-8 shrink-0">
-                            Actions
-                            <MoreHorizontal className="size-3.5 ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => startEditLine(l)}>
-                            <Pencil className="size-3.5 mr-2" />
-                            Edit line
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteLineTarget(l)}
-                          >
-                            <Trash2 className="size-3.5 mr-2" />
-                            Remove line
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                    <li key={l.id}>
+                      {renderLineRow(l, {
+                        counselorNameById,
+                        onEdit: startEditLine,
+                        onSoftDelete: setDeleteLineTarget,
+                        onReactivate: (line) => { void handleReactivateLine(line); },
+                        onHardDelete: setHardDeleteLineTarget,
+                      })}
                     </li>
                   ))}
                 </ul>
@@ -1145,18 +1211,11 @@ const WhatsAppInbox = () => {
             <Button variant="outline" onClick={() => setLinesOpen(false)}>Close</Button>
             <Button onClick={async () => {
               try {
-                const primaryTouched = helplineMetaId.trim() || helplineWabaId.trim();
-                if (primaryTouched) {
-                  if (!helplineMetaId.trim() || !helplineWabaId.trim()) {
-                    toast.error("Primary helpline requires both WABA ID and Phone number ID");
-                    return;
-                  }
-                  await updateDefaultHelpline({
-                    meta_phone_number_id: helplineMetaId.trim(),
-                    meta_waba_id: helplineWabaId.trim(),
-                  });
-                }
-                const hasLineForm = newLineLabel.trim() || newLineWabaId.trim() || newLineMetaId.trim() || newLineCounselor;
+                const hasLineForm = editingLineId
+                  || newLineLabel.trim()
+                  || newLineWabaId.trim()
+                  || newLineMetaId.trim()
+                  || newLineCounselor;
                 if (hasLineForm) {
                   if (!newLineLabel.trim() || !newLineWabaId.trim() || !newLineMetaId.trim()) {
                     toast.error("Each line requires label, WABA ID, and Phone number ID");
@@ -1174,13 +1233,16 @@ const WhatsAppInbox = () => {
                     display_phone: newLineType === "helpline" ? (newLineDisplayPhone.trim() || null) : null,
                     line_type: newLineType,
                     assigned_user_id: newLineType === "counselor" ? newLineCounselor : null,
+                    ...(editingLineId === DEFAULT_HELPLINE_LINE_ID ? { is_default: true, active: true } : {}),
                   });
                   resetLineForm();
+                } else if (!editingLineId) {
+                  toast.info("Nothing to save — fill the form below or close.");
+                  return;
                 }
                 const lines = await listBusinessLines();
                 setBusinessLines(lines);
                 toast.success("Lines saved");
-                setLinesOpen(false);
               } catch (e: any) {
                 toast.error(e.message || "Save failed");
               }
@@ -1221,6 +1283,44 @@ const WhatsAppInbox = () => {
               }}
             >
               Remove line
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={!!hardDeleteLineTarget}
+        onOpenChange={(open) => { if (!open) setHardDeleteLineTarget(null); }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Permanently delete WhatsApp line?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {hardDeleteLineTarget
+                ? `"${hardDeleteLineTarget.label}" (Meta ID ${hardDeleteLineTarget.meta_phone_number_id}) will be deleted from the database. This frees the Meta Phone Number ID so it can be re-added. Only allowed when no conversations are attached to this line.`
+                : null}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={async () => {
+                if (!hardDeleteLineTarget) return;
+                try {
+                  await hardDeleteBusinessLine(hardDeleteLineTarget.id);
+                  if (editingLineId === hardDeleteLineTarget.id) resetLineForm();
+                  const lines = await listBusinessLines();
+                  setBusinessLines(lines);
+                  toast.success("Line permanently deleted");
+                } catch (e: any) {
+                  toast.error(e.message || "Delete failed");
+                } finally {
+                  setHardDeleteLineTarget(null);
+                }
+              }}
+            >
+              Delete permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

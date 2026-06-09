@@ -238,6 +238,21 @@ async function processPortalMessages(sb: ReturnType<typeof admin>) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  // Shared-secret gate. pg_cron passes `x-cron-secret`. Service-role JWT
+  // (or absence of CRON_SECRET in older deployments) is also accepted so
+  // existing rollout flows keep working.
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret) {
+    const incoming = req.headers.get("x-cron-secret") ?? "";
+    const auth = req.headers.get("Authorization") ?? "";
+    const serviceRoleOk = auth === `Bearer ${SERVICE_ROLE}`;
+    if (incoming !== cronSecret && !serviceRoleOk) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
   const sb = admin();
   const started = Date.now();
   const result: Record<string, unknown> = { ok: true };
