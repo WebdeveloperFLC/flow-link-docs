@@ -88,7 +88,7 @@ function FlatServiceList({
   }
 
   return (
-    <div className={cn("border rounded-md divide-y", disabled && "opacity-50 pointer-events-none")}>
+    <div className={cn("border rounded-md divide-y overflow-x-auto min-w-0", disabled && "opacity-50 pointer-events-none")}>
       <ServiceFeeColumnsHeader feeCurrency={feeCurrency} />
       {items.map((s) => {
         const code = s.service_code || s.id;

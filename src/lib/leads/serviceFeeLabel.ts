@@ -6,7 +6,7 @@ export type FeeKind = "consultancy" | "government";
 
 /** Shared grid for service picker header, group rows, and item rows. */
 export const SERVICE_PICKER_GRID =
-  "grid grid-cols-[1.25rem_minmax(0,1fr)_5.5rem_6.5rem] gap-x-3 items-center";
+  "grid grid-cols-[1.25rem_minmax(0,1fr)_12rem_10rem] gap-x-4 items-center w-full min-w-[28rem]";
 
 const CURRENCY_SYMBOL: Record<string, string> = {
   GBP: "£",
