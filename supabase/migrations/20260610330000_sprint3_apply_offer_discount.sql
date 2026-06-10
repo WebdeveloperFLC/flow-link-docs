@@ -31,7 +31,8 @@ BEGIN
       SELECT COALESCE(SUM(a.amount), 0) INTO v_spent
         FROM public.wallet_allocations a
        WHERE a.wallet_id = NEW.wallet_id
-         AND a.status = 'applied';
+         AND a.status = 'applied'
+         AND a.id IS DISTINCT FROM NEW.id;
 
       v_remaining := COALESCE(w.unlocked_amount, 0) - v_spent;
       IF NEW.amount > 0 AND NEW.amount > v_remaining THEN
