@@ -41,25 +41,49 @@ export function ServiceMbbsPracticePanel({ pathways, institutionName }: Props) {
             )}
           </section>
 
-          <section>
-            <h4 className="text-sm font-semibold mb-2">United States & Canada</h4>
-            <p className="text-sm mb-2">{pathways.usCanada.summary}</p>
-            <ul className="text-sm space-y-1.5 list-disc pl-4">
-              {pathways.usCanada.details.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-            {pathways.usCanada.sourceUrl && (
-              <a
-                href={pathways.usCanada.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-primary mt-2 hover:underline"
-              >
-                Graduate success — SUSOM <ExternalLink className="size-3" />
-              </a>
-            )}
-          </section>
+          {pathways.hostCountry?.summary ? (
+            <section>
+              <h4 className="text-sm font-semibold mb-2">Host country practice</h4>
+              <p className="text-sm mb-2">{pathways.hostCountry.summary}</p>
+              <ul className="text-sm space-y-1.5 list-disc pl-4">
+                {pathways.hostCountry.details.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
+              {pathways.hostCountry.sourceUrl && (
+                <a
+                  href={pathways.hostCountry.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary mt-2 hover:underline"
+                >
+                  Official university source <ExternalLink className="size-3" />
+                </a>
+              )}
+            </section>
+          ) : null}
+
+          {pathways.usCanada?.summary ? (
+            <section>
+              <h4 className="text-sm font-semibold mb-2">United States & Canada</h4>
+              <p className="text-sm mb-2">{pathways.usCanada.summary}</p>
+              <ul className="text-sm space-y-1.5 list-disc pl-4">
+                {pathways.usCanada.details.map((d) => (
+                  <li key={d}>{d}</li>
+                ))}
+              </ul>
+              {pathways.usCanada.sourceUrl && (
+                <a
+                  href={pathways.usCanada.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-primary mt-2 hover:underline"
+                >
+                  Graduate / licensing pathway <ExternalLink className="size-3" />
+                </a>
+              )}
+            </section>
+          ) : null}
 
           <section>
             <h4 className="text-sm font-semibold mb-2">Degree recognition</h4>

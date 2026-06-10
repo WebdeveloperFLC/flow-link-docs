@@ -1,0 +1,806 @@
+{
+  "displayName": "Synergy University — Russia",
+  "shortDescription": "6-year General Medicine (Medical Doctor) · Moscow · English & Russian tracks",
+  "version": "v1.0",
+  "versionStatus": "Live",
+  "reviewStatus": "active",
+  "updatedLabel": "Updated 10 Jun 2026",
+  "learningLevel": "Advanced",
+  "learningMinutes": 30,
+  "navBucket": "mbbs",
+  "policyAlert": {
+    "active": true,
+    "date": "10 Jun 2026",
+    "summary": "Verify current tuition, intake dates, and admission requirements on synergy.ru/ before quoting clients. Indian students: confirm NEET eligibility and NMC guidance separately."
+  },
+  "alert": {
+    "title": "Foreign medical degree pathway",
+    "body": "Verify NMC recognition and FMGE/NExT requirements before quoting Synergy University to Indian clients."
+  },
+  "tags": [
+    {
+      "label": "Active institution",
+      "variant": "success"
+    },
+    {
+      "label": "Russia",
+      "variant": "neutral"
+    },
+    {
+      "label": "September · February",
+      "variant": "neutral"
+    },
+    {
+      "label": "Verify tuition on synergy.ru",
+      "variant": "warning"
+    }
+  ],
+  "chips": [
+    {
+      "label": "6 years (specialist / специалитет — General Medicine)",
+      "variant": "neutral"
+    },
+    {
+      "label": "Russian and English programmes",
+      "variant": "success"
+    },
+    {
+      "label": "Moscow",
+      "variant": "neutral"
+    },
+    {
+      "label": "Verify official fees",
+      "variant": "warning"
+    }
+  ],
+  "kpis": [
+    {
+      "label": "Program duration",
+      "value": "6 years",
+      "sub": "Medical Doctor (General Medicine specialist programme)",
+      "tone": "primary"
+    },
+    {
+      "label": "Tuition",
+      "value": "See Fees tab",
+      "sub": "Official synergy.ru rates",
+      "tone": "warning"
+    },
+    {
+      "label": "Medium",
+      "value": "English",
+      "sub": "Also Russian tracks",
+      "tone": "success"
+    },
+    {
+      "label": "Required docs",
+      "value": "18+",
+      "sub": "Admission + visa",
+      "tone": "violet"
+    },
+    {
+      "label": "Consultancy fee",
+      "value": "See Fees tab",
+      "sub": "Future Link package",
+      "tone": "primary"
+    }
+  ],
+  "about": [
+    {
+      "label": "Description",
+      "value": "Synergy University (Synergy) offers Medical Doctor (General Medicine specialist programme). Clinical practice integrated from early years at partner clinics and hospitals in Moscow and Russia — verify current affiliations on synergy.ru.",
+      "link": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor"
+    },
+    {
+      "label": "Eligible applicants",
+      "value": "Meet Synergy admission requirements · English proficiency where required · Indian applicants: verify NEET eligibility with current NMC rules"
+    },
+    {
+      "label": "Accreditation highlight",
+      "value": "State licence and accreditation of Synergy University (Russia)",
+      "warning": true
+    },
+    {
+      "label": "Key authority",
+      "value": "Synergy University (admissions) · Russia immigration authorities for study permit / visa"
+    },
+    {
+      "label": "After graduation",
+      "value": "FMGE/NExT for India · Host-country licensing exams · Verify WDOMS and NMC list status"
+    }
+  ],
+  "mbbs": {
+    "isDefaultLanding": false,
+    "institutionName": "Synergy University",
+    "shortName": "Synergy",
+    "city": "Moscow",
+    "country": "Russia",
+    "regionLabel": "Russia (Moscow)",
+    "website": "https://synergy.ru/",
+    "established": "1995",
+    "accreditation": [
+      "State licence and accreditation of Synergy University (Russia)",
+      "Medical faculty programmes listed on official university site — verify current status",
+      "Verify NMC foreign medical institutions list before Indian client enrollment"
+    ],
+    "mediumOfInstruction": "Russian and English programmes — verify track with admissions",
+    "programDuration": "6 years (specialist / специалитет — General Medicine)",
+    "clinicalTrainingNotes": "Clinical practice integrated from early years at partner clinics and hospitals in Moscow and Russia — verify current affiliations on synergy.ru.",
+    "campusNotes": "Main medical faculty campuses in Moscow (Leningradsky Prospekt and related sites). Dormitory options for international students — confirm with admissions.",
+    "intakes": [
+      "September",
+      "February"
+    ],
+    "relatedPrograms": [
+      {
+        "name": "Medical Doctor (General Medicine)",
+        "degree": "Specialist / MD track",
+        "duration": "6 years",
+        "medium": "English or Russian (verify intake)",
+        "intakes": [
+          "September",
+          "February"
+        ],
+        "summary": "Primary programme for international medical applicants. Verify language of instruction and accreditation documents before contract.",
+        "sourceUrl": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor"
+      },
+      {
+        "name": "Dentistry (Stomatology)",
+        "degree": "Specialist",
+        "duration": "5 years",
+        "summary": "Separate faculty programme — do not conflate with General Medicine counselling.",
+        "sourceUrl": "https://synergy.ru/abiturientam/faculties/medicine"
+      },
+      {
+        "name": "Pharmacy (Pharmaceutical)",
+        "degree": "Specialist",
+        "duration": "5 years",
+        "summary": "Pharmacy track on medical faculty — separate admission and licensing pathway.",
+        "sourceUrl": "https://synergy.ru/abiturientam/faculties/medicine"
+      }
+    ],
+    "familyOptions": {
+      "spouseCanAccompany": "Possible subject to Russia dependant visa rules — verify current immigration policy before client commitment.",
+      "spouseWorkRights": "Spouse work authorization varies by Russia rules — do not promise employment without visa approval.",
+      "childrenCanAccompany": "Case-by-case — verify dependant visa rules and schooling availability.",
+      "childrenNotes": "Plan schooling and childcare before family relocation.",
+      "additionalFundsRequired": "Additional living funds and health insurance for each dependant — verify with admissions.",
+      "visaRoute": "Student visa/residence for principal applicant; dependants require separate permits per Russia rules.",
+      "restrictions": [
+        "Do not promise spouse work without visa approval",
+        "Verify all family immigration with official sources",
+        "Clinical years may require separate visa strategy (if applicable)"
+      ],
+      "sourceUrl": "https://synergy.ru/abiturientam/priemnaya_komissiya",
+      "lastVerified": "Jun 2026"
+    },
+    "practicePathways": {
+      "summary": "Graduates of Synergy University must verify licensing pathways in India (FMGE/NExT), host country, and any international targets on official sources.",
+      "india": {
+        "fmgeNext": "Indian citizens with foreign medical degrees must qualify FMGE (transitioning to NExT) and meet NMC requirements before registration in India.",
+        "details": [
+          "Verify institution status on NMC foreign medical institutions list before enrollment.",
+          "Degree pathway: Medical Doctor (General Medicine specialist programme) — set client expectations early vs Indian 5.5-year MBBS.",
+          "Internship/clinical hours must meet NMC criteria — verify with current NMC notifications.",
+          "Never guarantee FMGE/NExT pass or India registration."
+        ],
+        "sourceUrl": "https://www.nmc.org.in/"
+      },
+      "hostCountry": {
+        "summary": "Graduates may pursue medical licensing in Russia after completing state exams and internship requirements — verify current Federal Service for Supervision of Healthcare rules.",
+        "details": [
+          "6-year specialist (специалитет) General Medicine programme.",
+          "Clinical training at partner hospitals in Moscow and Russia.",
+          "Russian language proficiency may be required for clinical years on Russian-medium tracks — verify with admissions.",
+          "Migration registration required after arrival — maintain valid student residence."
+        ],
+        "sourceUrl": "https://synergy.ru/"
+      },
+      "usCanada": {
+        "summary": "Russia pathway graduates typically pursue licensing in Russia, CIS countries, or return to India via FMGE/NExT — US residency is not the default pathway.",
+        "details": [
+          "Verify whether degree is listed in WDOMS and recognised in target practice countries.",
+          "Do not promise US residency without verified individual eligibility."
+        ],
+        "sourceUrl": "https://www.wdoms.org/"
+      },
+      "recognition": {
+        "who": "Verify World Directory of Medical Schools (WDOMS) listing and WFME recognition chain.",
+        "nmc": "Counselors must verify current NMC eligible colleges list — status can change; check before each intake.",
+        "sourceUrls": [
+          "https://synergy.ru/",
+          "https://www.nmc.org.in/",
+          "https://www.wdoms.org/"
+        ]
+      },
+      "restrictions": [
+        "Never guarantee licensure, residency match, or India registration",
+        "Verify NMC list at time of admission"
+      ],
+      "lastVerified": "Jun 2026"
+    },
+    "documentChecklistSections": [
+      {
+        "id": "admission",
+        "label": "Admission documents",
+        "items": [
+          "Completed online application (Synergy portal)",
+          "Official transcripts (10th, 12th, bachelor's / pre-med as required)",
+          "NEET scorecard (Indian applicants — if required under current NMC rules)",
+          "English proficiency evidence (if requested)",
+          "Personal statement / motivation letter",
+          "Letters of recommendation (per university requirements)",
+          "CV / resume",
+          "Passport copy — valid 6+ months beyond program",
+          "Application fee payment proof (if applicable)"
+        ]
+      },
+      {
+        "id": "visa",
+        "label": "Visa & immigration (Russia — student visa)",
+        "items": [
+          "University admission / enrollment letter",
+          "Invitation letter for Russian student visa (if applicable)",
+          "Proof of tuition payment or financial guarantee",
+          "Bank statements / sponsor affidavit (seasoned funds)",
+          "Medical insurance / health certificate",
+          "HIV test certificate (if required by consulate)",
+          "Police clearance (if required)",
+          "Passport valid 6+ months beyond stay",
+          "Visa application per Russian consulate guidance",
+          "Migration registration within 7 days of arrival in Russia"
+        ]
+      },
+      {
+        "id": "family",
+        "label": "Family dependants (if applicable)",
+        "items": [
+          "Marriage certificate (spouse)",
+          "Birth certificates (children)",
+          "Additional funds proof for dependants",
+          "Dependant visa applications per jurisdiction",
+          "Health insurance for dependants"
+        ]
+      }
+    ]
+  },
+  "workingRights": {
+    "applicant": {
+      "summary": "During study in Russia, students must maintain valid student immigration status. Paid employment rules vary — verify local regulations before advising clients to work.",
+      "details": [
+        "Unauthorized work may violate visa/residence conditions.",
+        "University may offer limited on-campus roles — verify with student services.",
+        "Maintain migration registration and valid residence permit in Russia."
+      ],
+      "restrictions": [
+        "Never advise clients to work illegally to fund tuition"
+      ],
+      "sourceUrl": "https://synergy.ru/abiturientam/priemnaya_komissiya",
+      "lastVerified": "Jun 2026"
+    },
+    "spouse": {
+      "summary": "Spouse/partner work rights depend on Russia dependant visa conditions — verify before promising employment.",
+      "details": [
+        "Plan finances assuming limited spouse income unless visa explicitly permits work."
+      ],
+      "restrictions": [
+        "Do not promise spouse employment without visa approval"
+      ],
+      "sourceUrl": "https://synergy.ru/abiturientam/priemnaya_komissiya",
+      "lastVerified": "Jun 2026"
+    }
+  },
+  "fullCostBreakdown": {
+    "title": "Full cost breakdown — Synergy University",
+    "currency": "RUB",
+    "lastVerified": "Jun 2026",
+    "disclaimer": "Indicative structure for counselor discussions. Tuition changes each academic year — always quote from https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor before client commitment.",
+    "sourceUrl": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor",
+    "sections": [
+      {
+        "id": "fees",
+        "label": "University & administrative fees",
+        "items": [
+          {
+            "label": "Tuition (annual / per semester)",
+            "range": "See official tuition page",
+            "notes": "Verify on synergy.ru",
+            "currency": "RUB"
+          },
+          {
+            "label": "Application fee",
+            "range": "See official site",
+            "currency": "RUB"
+          },
+          {
+            "label": "Student services / admin fees",
+            "range": "Per catalog",
+            "currency": "RUB"
+          },
+          {
+            "label": "Visa & immigration fees",
+            "range": "Varies",
+            "notes": "Consulate + permits"
+          }
+        ]
+      },
+      {
+        "id": "tuition",
+        "label": "Program costs",
+        "items": [
+          {
+            "label": "Total program tuition",
+            "range": "Sum of all years/semesters",
+            "notes": "Official fee schedule only",
+            "currency": "RUB"
+          },
+          {
+            "label": "Books & equipment",
+            "range": "Varies",
+            "unit": "per year",
+            "currency": "RUB"
+          }
+        ]
+      },
+      {
+        "id": "living",
+        "label": "Living costs",
+        "items": [
+          {
+            "label": "Housing (Moscow)",
+            "range": "See university / local market",
+            "unit": "per month",
+            "currency": "RUB"
+          },
+          {
+            "label": "Food & personal",
+            "range": "Varies by city",
+            "unit": "per month",
+            "currency": "RUB"
+          },
+          {
+            "label": "Health insurance",
+            "range": "Mandatory",
+            "notes": "Verify university requirements",
+            "currency": "RUB"
+          }
+        ]
+      },
+      {
+        "id": "misc",
+        "label": "Miscellaneous",
+        "items": [
+          {
+            "label": "Future Link consultancy fee",
+            "range": "See Fees tab"
+          },
+          {
+            "label": "Flights India ↔ destination",
+            "range": "₹50,000–2,00,000+"
+          },
+          {
+            "label": "Medical exam & police clearance",
+            "range": "₹5,000–15,000"
+          },
+          {
+            "label": "Forex / wire transfer charges",
+            "range": "Bank dependent"
+          }
+        ]
+      }
+    ],
+    "totals": [
+      {
+        "label": "Indicative total program budget",
+        "value": "Calculate from official tuition + full program living costs",
+        "notes": "Use synergy.ru tuition page; add 15% buffer for currency and fee increases."
+      }
+    ]
+  },
+  "eligibility": [
+    {
+      "criterion": "Meet university academic entry requirements",
+      "met": true
+    },
+    {
+      "criterion": "English proficiency (if required)",
+      "met": true
+    },
+    {
+      "criterion": "NEET qualified (Indian applicants — verify current NMC rule)",
+      "met": false,
+      "note": "Check NMC notification at admission year"
+    },
+    {
+      "criterion": "Financial capacity for full program",
+      "met": true
+    },
+    {
+      "criterion": "Age and health requirements met",
+      "met": true
+    }
+  ],
+  "redFlagsBanner": "If client expects guaranteed licensure or residency without exams, reset expectations before taking fees.",
+  "redFlags": [
+    {
+      "title": "NMC list not verified",
+      "description": "Enrollment without checking current NMC foreign medical institutions list.",
+      "fix": "Verify on nmc.org.in before contract",
+      "severity": "Very common"
+    },
+    {
+      "title": "Outdated tuition quotes",
+      "description": "Quoting from agent brochures instead of official site.",
+      "fix": "Open https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor during counseling call",
+      "severity": "Common"
+    },
+    {
+      "title": "Guaranteed licensure promise",
+      "description": "Agents promising FMGE pass or residency match.",
+      "fix": "No guarantees — cite official stats only",
+      "severity": "High"
+    },
+    {
+      "title": "Family relocation without visa plan",
+      "description": "Spouse/children without dependant visa strategy.",
+      "fix": "Immigration counsel before promising family join",
+      "severity": "Common"
+    },
+    {
+      "title": "Wrong degree naming",
+      "description": "Misrepresenting MD vs MBBS equivalency for India.",
+      "fix": "Explain FMGE/NExT pathway clearly",
+      "severity": "High"
+    }
+  ],
+  "faqs": [
+    {
+      "q": "Program duration?",
+      "a": "6 years (specialist / специалитет — General Medicine)"
+    },
+    {
+      "q": "Intakes?",
+      "a": "September, February"
+    },
+    {
+      "q": "English medium?",
+      "a": "Russian and English programmes — verify track with admissions"
+    },
+    {
+      "q": "Is it MBBS or MD?",
+      "a": "Medical Doctor (General Medicine specialist programme)"
+    },
+    {
+      "q": "FMGE/NExT required for India?",
+      "a": "Yes for Indian licensure — verify current NMC process."
+    },
+    {
+      "q": "NEET required for Indian students?",
+      "a": "Verify current NMC rules for foreign medical study."
+    },
+    {
+      "q": "Tuition amount?",
+      "a": "Always verify on official site: https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor"
+    },
+    {
+      "q": "How to apply?",
+      "a": "https://synergy.ru/abiturientam/priemnaya_komissiya"
+    },
+    {
+      "q": "Admission requirements?",
+      "a": "https://synergy.ru/abiturientam/faculties/medicine"
+    },
+    {
+      "q": "Can we guarantee approval?",
+      "a": "No — never guarantee admission, visa, licensing, or residency."
+    },
+    {
+      "q": "NMC recognition?",
+      "a": "Verify institution on NMC list at time of enrollment."
+    },
+    {
+      "q": "WHO listing?",
+      "a": "Check World Directory of Medical Schools (WDOMS)."
+    },
+    {
+      "q": "Part-time work?",
+      "a": "Maintain full-time student status — verify local work restrictions."
+    },
+    {
+      "q": "Spouse can accompany?",
+      "a": "Case-by-case — verify dependant visa rules before promising."
+    },
+    {
+      "q": "Where to practice after graduation?",
+      "a": "See Practice tab — India FMGE/NExT plus host-country options."
+    },
+    {
+      "q": "Document checklist?",
+      "a": "See Checklist tab — admission, visa, and clinical sections."
+    },
+    {
+      "q": "Official website?",
+      "a": "synergy.ru/"
+    },
+    {
+      "q": "City / campus?",
+      "a": "Moscow, Russia (Moscow)"
+    },
+    {
+      "q": "Accreditation?",
+      "a": "Verify on official university site before quoting clients."
+    },
+    {
+      "q": "Consultancy fee?",
+      "a": "See Fees tab — separate from university tuition."
+    },
+    {
+      "q": "Total budget estimate?",
+      "a": "Use Full cost breakdown tab + official tuition page."
+    },
+    {
+      "q": "Scholarships?",
+      "a": "Check official admissions page for current offerings."
+    },
+    {
+      "q": "Housing?",
+      "a": "Confirm with university student services / housing office."
+    },
+    {
+      "q": "Clinical training location?",
+      "a": "Clinical practice integrated from early years at partner clinics and hospitals in Moscow and Russia — verify current affiliations on synergy.ru."
+    },
+    {
+      "q": "Related programmes?",
+      "a": "See Programs tab for additional medical tracks."
+    },
+    {
+      "q": "Who is the authority?",
+      "a": "Synergy admissions + Russia immigration authorities."
+    },
+    {
+      "q": "Can spouse work?",
+      "a": "Verify local immigration rules — do not promise employment."
+    },
+    {
+      "q": "Health insurance?",
+      "a": "Mandatory for most international students — verify requirements."
+    },
+    {
+      "q": "Police clearance?",
+      "a": "Obtain if required by university or consulate checklist."
+    },
+    {
+      "q": "Age limit?",
+      "a": "Verify with admissions — typically 17+ for medical programmes."
+    },
+    {
+      "q": "Recognition in India?",
+      "a": "Foreign degree + FMGE/NExT + NMC process — verify current rules."
+    }
+  ],
+  "compliance": [
+    "Client agreement and consent before submission",
+    "Never guarantee admission, visa, licensure, or residency match",
+    "Quote tuition only from official synergy.ru fee page",
+    "Verify NMC foreign medical institutions list each intake season"
+  ],
+  "proTips": [
+    "Open https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor during every counseling call",
+    "Explain FMGE/NExT for India practice early",
+    "Download accreditation page for client file",
+    "Separate consultancy fee from university payments on invoices"
+  ],
+  "postApproval": [
+    "Confirm enrollment letter and visa timeline",
+    "Explain campus location and living cost expectations",
+    "Set FMGE/NExT expectations for India-return pathway",
+    "Schedule pre-departure document review"
+  ],
+  "timeline": [
+    {
+      "weeks": "1–4",
+      "title": "Application & document collection via Synergy admissions"
+    },
+    {
+      "weeks": "4–8",
+      "title": "Admission confirmation & tuition payment"
+    },
+    {
+      "weeks": "8–12",
+      "title": "Russian student visa (single-entry → registration in Russia)"
+    },
+    {
+      "weeks": "Semester 1",
+      "title": "Arrival, migration registration & orientation"
+    },
+    {
+      "weeks": "Year 2+",
+      "title": "Clinical rotations at partner hospitals in Moscow region"
+    }
+  ],
+  "resources": [
+    {
+      "title": "Synergy — Home",
+      "url": "https://synergy.ru/",
+      "description": "Official website"
+    },
+    {
+      "title": "How to apply",
+      "url": "https://synergy.ru/abiturientam/priemnaya_komissiya",
+      "description": "Admissions portal"
+    },
+    {
+      "title": "Admission requirements",
+      "url": "https://synergy.ru/abiturientam/faculties/medicine",
+      "description": "Entry criteria"
+    },
+    {
+      "title": "Tuition and fees",
+      "url": "https://synergy.ru/abiturientam/programmyi_obucheniya/medical_doctor",
+      "description": "Official fee schedule"
+    },
+    {
+      "title": "NMC India",
+      "url": "https://www.nmc.org.in/",
+      "description": "Foreign medical graduates"
+    },
+    {
+      "title": "World Directory of Medical Schools",
+      "url": "https://www.wdoms.org/",
+      "description": "WHO directory"
+    }
+  ],
+  "donts": {
+    "dos": [
+      "Verify tuition on synergy.ru",
+      "Explain FMGE/NExT for India practice",
+      "Use official accreditation links"
+    ],
+    "donts": [
+      "Do not guarantee licensure or residency",
+      "Do not promise spouse work without visa approval",
+      "Do not mislabel degree equivalency"
+    ],
+    "mistakes": [
+      "Outdated tuition quotes",
+      "Skipping NMC list check",
+      "Ignoring clinical-year living costs"
+    ]
+  },
+  "quiz": [
+    {
+      "level": 1,
+      "question": "Synergy is located in which country?",
+      "options": [
+        "India",
+        "Russia",
+        "Canada",
+        "UK"
+      ],
+      "correctIndex": 1,
+      "explanation": "Russia (Moscow)."
+    },
+    {
+      "level": 1,
+      "question": "Indian licensure after foreign medical degree requires?",
+      "options": [
+        "Nothing",
+        "FMGE/NExT + NMC process",
+        "Only university letter",
+        "Agent certificate"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify current NMC rules."
+    },
+    {
+      "level": 1,
+      "question": "Official tuition source?",
+      "options": [
+        "Agent brochure",
+        "Official university website",
+        "Social media",
+        "Guess"
+      ],
+      "correctIndex": 1,
+      "explanation": "Always official fee page."
+    },
+    {
+      "level": 2,
+      "question": "Primary campus city?",
+      "options": [
+        "Moscow",
+        "Mumbai",
+        "London",
+        "Toronto"
+      ],
+      "correctIndex": 0,
+      "explanation": "Moscow, Russia."
+    },
+    {
+      "level": 2,
+      "question": "Can counselors guarantee admission?",
+      "options": [
+        "Yes always",
+        "Never",
+        "If paid extra",
+        "For top students only"
+      ],
+      "correctIndex": 1,
+      "explanation": "Compliance — no guarantees."
+    },
+    {
+      "level": 2,
+      "question": "Program duration?",
+      "options": [
+        "2 years",
+        "6 years",
+        "10 years",
+        "1 year"
+      ],
+      "correctIndex": 1,
+      "explanation": "6 years (specialist / специалитет — General Medicine)"
+    },
+    {
+      "level": 3,
+      "question": "Before enrollment, NMC list should be?",
+      "options": [
+        "Ignored",
+        "Verified on nmc.org.in",
+        "Assumed valid",
+        "Checked after graduation"
+      ],
+      "correctIndex": 1,
+      "explanation": "Verify at admission year."
+    },
+    {
+      "level": 3,
+      "question": "Consultancy fee vs tuition?",
+      "options": [
+        "Same payment",
+        "Separate — never commingle",
+        "Optional bribe",
+        "Included in tuition"
+      ],
+      "correctIndex": 1,
+      "explanation": "Compliance — separate invoices."
+    }
+  ],
+  "changelog": [
+    {
+      "version": "v1.0",
+      "date": "10 Jun 2026",
+      "author": "Service Library",
+      "summary": "Initial Synergy MBBS section from official sources."
+    }
+  ],
+  "staffNotes": [
+    {
+      "author": "Documentation team",
+      "date": "10 Jun 2026",
+      "text": "Re-verify tuition and NMC list each intake season."
+    }
+  ],
+  "sampleDocs": [
+    {
+      "title": "Sample NEET scorecard (mock)",
+      "description": "Indian applicant — verify current NMC NEET requirement.",
+      "docKind": "academic"
+    },
+    {
+      "title": "Sample passport bio page",
+      "description": "Full validity for visa processing.",
+      "docKind": "identity"
+    },
+    {
+      "title": "Sample bank statement (mock)",
+      "description": "Seasoned funds for tuition + living.",
+      "docKind": "financial"
+    },
+    {
+      "title": "Sample transcript",
+      "description": "Official academic records for admission.",
+      "docKind": "academic"
+    }
+  ]
+}

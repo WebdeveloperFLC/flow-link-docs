@@ -151,6 +151,30 @@ export const CONSULTANCY_FEE_BREAKDOWNS: ConsultancyFeeBreakdownSource[] = [
     pkg("md-gateway", "SUSOM Gateway + MD pathway", 95000, "Gateway prep + MD admission support"),
     pkg("family-dependants", "Family dependant visa add-on", 35000, "Per dependant strategy — case assessment"),
   ]),
+  consult("b2000001-0001-4000-8000-0000000000d2", [
+    pkg("russia-admission", "Synergy General Medicine — admission file (India)", 65000, "Application · docs · Russian visa guidance"),
+    pkg("family-dependants", "Family dependant visa add-on", 30000, "Per dependant — case assessment"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d3", [
+    pkg("md-admission", "MUA MD — admission & visa file (India)", 85000, "Application · Nevis visa · US clinical planning"),
+    pkg("family-dependants", "Family dependant visa add-on", 35000, "Per dependant strategy"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d4", [
+    pkg("md-admission", "SMUSOM MD — admission & visa file (India)", 85000, "Application · Cayman visa · US clinical planning"),
+    pkg("family-dependants", "Family dependant visa add-on", 35000, "Per dependant strategy"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d5", [
+    pkg("georgia-admission", "SEU MD — admission & visa file (India)", 55000, "Application · Georgia D5 visa · enrollment"),
+    pkg("family-dependants", "Family dependant visa add-on", 28000, "Per dependant strategy"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d6", [
+    pkg("georgia-admission", "IBSU MD — admission & visa file (India)", 55000, "Application · Georgia D5 visa · enrollment"),
+    pkg("family-dependants", "Family dependant visa add-on", 28000, "Per dependant strategy"),
+  ]),
+  consult("b2000001-0001-4000-8000-0000000000d7", [
+    pkg("georgia-admission", "ABMU MD — admission & visa file (India)", 55000, "Application · Georgia D5 visa · enrollment"),
+    pkg("family-dependants", "Family dependant visa add-on", 28000, "Per dependant strategy"),
+  ]),
 ];
 
 export const CONSULTANCY_BY_LIBRARY_ID = new Map(
