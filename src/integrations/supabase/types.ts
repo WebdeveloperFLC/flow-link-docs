@@ -7464,10 +7464,62 @@ export type Database = {
         }
         Relationships: []
       }
+      counselor_performance_scores: {
+        Row: {
+          client_satisfaction: number
+          collections_received: number
+          conversion_rate: number
+          counselor_id: string
+          created_at: string
+          id: string
+          period_key: string
+          revenue_achievement: number
+          total_score: number
+          updated_at: string
+          wallet_impact_revenue: number
+          wallet_roi: number
+          wallet_used: number
+        }
+        Insert: {
+          client_satisfaction?: number
+          collections_received?: number
+          conversion_rate?: number
+          counselor_id: string
+          created_at?: string
+          id?: string
+          period_key: string
+          revenue_achievement?: number
+          total_score?: number
+          updated_at?: string
+          wallet_impact_revenue?: number
+          wallet_roi?: number
+          wallet_used?: number
+        }
+        Update: {
+          client_satisfaction?: number
+          collections_received?: number
+          conversion_rate?: number
+          counselor_id?: string
+          created_at?: string
+          id?: string
+          period_key?: string
+          revenue_achievement?: number
+          total_score?: number
+          updated_at?: string
+          wallet_impact_revenue?: number
+          wallet_roi?: number
+          wallet_used?: number
+        }
+        Relationships: []
+      }
       discount_wallets: {
         Row: {
+          achievement_pct: number | null
+          achieved_revenue: number
           allow_negative: boolean
+          assigned_target: number | null
           balance: number
+          base_wallet: number
           branch_id: string | null
           budget_kind: Database["public"]["Enums"]["wallet_budget_kind"]
           carried_to_wallet: string | null
@@ -7481,20 +7533,27 @@ export type Database = {
           max_amount_per_client: number | null
           max_percent_per_client: number
           name: string | null
+          performance_multiplier: number
           period_key: string
+          potential_wallet: number
           rollover_cap: number | null
           rollover_policy: Database["public"]["Enums"]["wallet_rollover_policy"]
           scope_country_tag: string | null
           scope_master_key: string | null
           scope_service_code: string | null
           scope_sub_category: string | null
+          unlocked_amount: number
           updated_at: string
           valid_from: string | null
           valid_to: string | null
         }
         Insert: {
+          achievement_pct?: number | null
+          achieved_revenue?: number
           allow_negative?: boolean
+          assigned_target?: number | null
           balance?: number
+          base_wallet?: number
           branch_id?: string | null
           budget_kind?: Database["public"]["Enums"]["wallet_budget_kind"]
           carried_to_wallet?: string | null
@@ -7508,20 +7567,27 @@ export type Database = {
           max_amount_per_client?: number | null
           max_percent_per_client?: number
           name?: string | null
+          performance_multiplier?: number
           period_key: string
+          potential_wallet?: number
           rollover_cap?: number | null
           rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
           scope_country_tag?: string | null
           scope_master_key?: string | null
           scope_service_code?: string | null
           scope_sub_category?: string | null
+          unlocked_amount?: number
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
         }
         Update: {
+          achievement_pct?: number | null
+          achieved_revenue?: number
           allow_negative?: boolean
+          assigned_target?: number | null
           balance?: number
+          base_wallet?: number
           branch_id?: string | null
           budget_kind?: Database["public"]["Enums"]["wallet_budget_kind"]
           carried_to_wallet?: string | null
@@ -7535,13 +7601,16 @@ export type Database = {
           max_amount_per_client?: number | null
           max_percent_per_client?: number
           name?: string | null
+          performance_multiplier?: number
           period_key?: string
+          potential_wallet?: number
           rollover_cap?: number | null
           rollover_policy?: Database["public"]["Enums"]["wallet_rollover_policy"]
           scope_country_tag?: string | null
           scope_master_key?: string | null
           scope_service_code?: string | null
           scope_sub_category?: string | null
+          unlocked_amount?: number
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
@@ -10154,80 +10223,193 @@ export type Database = {
           },
         ]
       }
+      offer_status_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["offer_status"] | null
+          id: string
+          note: string | null
+          offer_id: string
+          to_status: Database["public"]["Enums"]["offer_status"]
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["offer_status"] | null
+          id?: string
+          note?: string | null
+          offer_id: string
+          to_status: Database["public"]["Enums"]["offer_status"]
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["offer_status"] | null
+          id?: string
+          note?: string | null
+          offer_id?: string
+          to_status?: Database["public"]["Enums"]["offer_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_status_history_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      offer_versions: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          offer_id: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          offer_id: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          offer_id?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offer_versions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           applicable_services: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          archived_at: string | null
           audience: string
+          branch_id: string | null
           created_at: string
           created_by: string | null
           currency: string
           description: string | null
           discount_type: string
           discount_value: number
+          fl_contribution_pct: number | null
+          funding_source: Database["public"]["Enums"]["offer_funding_source"]
           id: string
           is_active: boolean
           max_discount_amount: number | null
           max_redemptions: number | null
+          offer_category: string | null
           per_client_limit: number
           promo_code: string | null
           redemption_count: number
+          requires_approval: boolean
+          status: Database["public"]["Enums"]["offer_status"]
           target_countries: string[]
           template_id: string | null
           terms_conditions: string | null
           title: string
+          university_contribution_pct: number | null
           updated_at: string
           valid_from: string | null
           valid_to: string | null
+          version: number
         }
         Insert: {
           applicable_services?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
           audience?: string
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           description?: string | null
           discount_type: string
           discount_value?: number
+          fl_contribution_pct?: number | null
+          funding_source?: Database["public"]["Enums"]["offer_funding_source"]
           id?: string
           is_active?: boolean
           max_discount_amount?: number | null
           max_redemptions?: number | null
+          offer_category?: string | null
           per_client_limit?: number
           promo_code?: string | null
           redemption_count?: number
+          requires_approval?: boolean
+          status?: Database["public"]["Enums"]["offer_status"]
           target_countries?: string[]
           template_id?: string | null
           terms_conditions?: string | null
           title: string
+          university_contribution_pct?: number | null
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
+          version?: number
         }
         Update: {
           applicable_services?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          archived_at?: string | null
           audience?: string
+          branch_id?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
           description?: string | null
           discount_type?: string
           discount_value?: number
+          fl_contribution_pct?: number | null
+          funding_source?: Database["public"]["Enums"]["offer_funding_source"]
           id?: string
           is_active?: boolean
           max_discount_amount?: number | null
           max_redemptions?: number | null
+          offer_category?: string | null
           per_client_limit?: number
           promo_code?: string | null
           redemption_count?: number
+          requires_approval?: boolean
+          status?: Database["public"]["Enums"]["offer_status"]
           target_countries?: string[]
           template_id?: string | null
           terms_conditions?: string | null
           title?: string
+          university_contribution_pct?: number | null
           updated_at?: string
           valid_from?: string | null
           valid_to?: string | null
+          version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "offers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "offers_template_id_fkey"
             columns: ["template_id"]
@@ -10429,6 +10611,39 @@ export type Database = {
           requires_job_offer?: boolean
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      performance_score_weights: {
+        Row: {
+          default_satisfaction_score: number
+          id: number
+          updated_at: string
+          weight_collections: number
+          weight_conversion_rate: number
+          weight_revenue_achievement: number
+          weight_satisfaction: number
+          weight_wallet_roi: number
+        }
+        Insert: {
+          default_satisfaction_score?: number
+          id?: number
+          updated_at?: string
+          weight_collections?: number
+          weight_conversion_rate?: number
+          weight_revenue_achievement?: number
+          weight_satisfaction?: number
+          weight_wallet_roi?: number
+        }
+        Update: {
+          default_satisfaction_score?: number
+          id?: number
+          updated_at?: string
+          weight_collections?: number
+          weight_conversion_rate?: number
+          weight_revenue_achievement?: number
+          weight_satisfaction?: number
+          weight_wallet_roi?: number
         }
         Relationships: []
       }
@@ -14908,23 +15123,59 @@ export type Database = {
           },
         ]
       }
+      wallet_multiplier_bands: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          max_achievement_pct: number | null
+          min_achievement_pct: number
+          multiplier: number
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          multiplier?: number
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_achievement_pct?: number | null
+          min_achievement_pct?: number
+          multiplier?: number
+          sort_order?: number
+        }
+        Relationships: []
+      }
       wallet_settings: {
         Row: {
           grace_days: number
           grace_unit: string
           id: number
+          target_base_pct: number
+          unlock_threshold_pct: number
           updated_at: string
         }
         Insert: {
           grace_days?: number
           grace_unit?: string
           id?: number
+          target_base_pct?: number
+          unlock_threshold_pct?: number
           updated_at?: string
         }
         Update: {
           grace_days?: number
           grace_unit?: string
           id?: number
+          target_base_pct?: number
+          unlock_threshold_pct?: number
           updated_at?: string
         }
         Relationships: []
@@ -16107,6 +16358,33 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      fn_auto_fund_wallet: { Args: { _wallet_id: string }; Returns: Json }
+      fn_auto_fund_wallets_for_period: { Args: { _period_key: string }; Returns: Json }
+      fn_apply_offer_discount: {
+        Args: {
+          _amount?: number
+          _client_id?: string
+          _lead_id?: string
+          _offer_id?: string
+          _percent?: number
+        }
+        Returns: Json
+      }
+      fn_clone_offer: { Args: { _offer_id: string }; Returns: string }
+      fn_compute_performance_score: {
+        Args: { _counselor_id: string; _period_key: string }
+        Returns: Database["public"]["Tables"]["counselor_performance_scores"]["Row"]
+      }
+      fn_counselor_period_achievement: {
+        Args: { _period_key: string }
+        Returns: {
+          achievement_pct: number | null
+          achieved_revenue: number
+          counselor_id: string
+          revenue_source: string
+          target_value: number
+        }[]
+      }
       fn_close_due_wallets: { Args: never; Returns: number }
       fn_close_wallet: { Args: { _wallet_id: string }; Returns: string }
       fn_convert: {
@@ -16137,11 +16415,35 @@ export type Database = {
         Args: { _period_key: string; _valid_to: string }
         Returns: string
       }
+      fn_offer_set_status: {
+        Args: {
+          _note?: string
+          _offer_id: string
+          _to_status: Database["public"]["Enums"]["offer_status"]
+        }
+        Returns: Database["public"]["Tables"]["offers"]["Row"]
+      }
+      fn_performance_leaderboard: {
+        Args: { _limit?: number; _period_key: string }
+        Returns: {
+          counselor_id: string
+          full_name: string
+          rank: number
+          revenue_achievement: number
+          total_score: number
+          wallet_impact_revenue: number
+        }[]
+      }
+      fn_period_close_and_reseed: { Args: { _period_key: string }; Returns: Json }
       fn_reinstate_wallet: {
         Args: { _to_period?: string; _wallet_id: string }
         Returns: string
       }
       fn_release_expired_reservations: { Args: never; Returns: number }
+      fn_size_wallet: { Args: { _wallet_id: string }; Returns: Database["public"]["Tables"]["discount_wallets"]["Row"] }
+      fn_size_wallets_for_period: { Args: { _period_key: string }; Returns: number }
+      fn_sync_wallet_metrics: { Args: { _wallet_id: string }; Returns: Database["public"]["Tables"]["discount_wallets"]["Row"] }
+      fn_sync_performance_scores_for_period: { Args: { _period_key: string }; Returns: number }
       fn_suggest_meeting_slug: {
         Args: { _base: string; _user: string }
         Returns: string
@@ -16515,6 +16817,16 @@ export type Database = {
       dsh_status: "active" | "archived"
       dsh_upload_source: "upload" | "onedrive" | "google_drive" | "external_url"
       incentive_period_type: "monthly" | "quarterly" | "half_yearly" | "yearly"
+      offer_funding_source: "future_link" | "university" | "joint"
+      offer_status:
+        | "draft"
+        | "pending_review"
+        | "approved"
+        | "scheduled"
+        | "active"
+        | "expiring_soon"
+        | "expired"
+        | "archived"
       incentive_rate_type: "flat" | "per_unit" | "percent" | "slab"
       incentive_run_status:
         | "draft"
@@ -16776,6 +17088,17 @@ export const Constants = {
       dsh_status: ["active", "archived"],
       dsh_upload_source: ["upload", "onedrive", "google_drive", "external_url"],
       incentive_period_type: ["monthly", "quarterly", "half_yearly", "yearly"],
+      offer_funding_source: ["future_link", "university", "joint"],
+      offer_status: [
+        "draft",
+        "pending_review",
+        "approved",
+        "scheduled",
+        "active",
+        "expiring_soon",
+        "expired",
+        "archived",
+      ],
       incentive_rate_type: ["flat", "per_unit", "percent", "slab"],
       incentive_run_status: [
         "draft",

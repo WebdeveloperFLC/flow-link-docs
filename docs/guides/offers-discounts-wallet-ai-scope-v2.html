@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>offers-discounts-wallet-ai-scope-v2</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.5; color: #111; }
+    h1 { font-size: 1.75rem; border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+    h2 { font-size: 1.35rem; margin-top: 2rem; border-bottom: 1px solid #ccc; }
+    h3 { font-size: 1.1rem; margin-top: 1.5rem; }
+    table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+    th, td { border: 1px solid #ccc; padding: 0.4rem 0.6rem; text-align: left; }
+    th { background: #f5f5f5; }
+    code, pre.code { background: #f4f4f4; font-size: 0.85rem; }
+    pre.code { padding: 1rem; overflow-x: auto; white-space: pre-wrap; }
+    hr { margin: 2rem 0; border: none; border-top: 1px solid #ddd; }
+    li { margin: 0.25rem 0 0.25rem 1.5rem; }
+    .print-hint { background: #e8f4fd; border: 1px solid #b3d9f2; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; }
+    @media print { .print-hint { display: none; } body { margin: 0; max-width: none; } }
+  </style>
+</head>
+<body>
+  <div class="print-hint">
+    <strong>Print to PDF:</strong> Press <kbd>Cmd + P</kbd> → choose <strong>Save as PDF</strong> (bottom-left on Mac).
+  </div>
+  <h1>Future Link Consultants — Offers &amp; Discounts Module</h1>
+<br>
+<p><strong>Advanced Scope &amp; Specification (Merged v2)</strong></p>
+<br>
+<table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td><strong>Version</strong></td><td>2.0</td></tr>
+<tr><td><strong>Date</strong></td><td>9 June 2026</td></tr>
+<tr><td><strong>Status</strong></td><td>Canonical scope — supersedes v1 (<code>offers-discounts-wallet-ai-scope.md</code>)</td></tr>
+<tr><td><strong>Sources</strong></td><td>Codebase audit + stakeholder review + <a href="./FutureLink_Offers_Discounts_Module_Claude.pdf">FutureLink_Offers_Discounts_Module_Claude.pdf</a></td></tr>
+<tr><td><strong>Classification</strong></td><td>Confidential — Internal</td></tr>
+</table>
+<br>
+<p><strong>Status legend:</strong> ✅ BUILT · 🟡 PARTIAL · 🔲 PLANNED</p>
+<br>
+<hr>
+<br>
+<h2>Table of contents</h2>
+<br>
+<p>1. <a href="#1-executive-summary">Executive summary</a></p>
+<p>2. <a href="#2-current-implementation-status">Current implementation status</a></p>
+<p>3. <a href="#3-business-goals--success-metrics">Business goals &amp; success metrics</a></p>
+<p>4. <a href="#4-module-architecture--navigation">Module architecture &amp; navigation</a></p>
+<p>5. <a href="#5-offer-types-catalogue">Offer types catalogue</a></p>
+<p>6. <a href="#6-offer-lifecycle-management">Offer lifecycle management</a></p>
+<p>7. <a href="#7-promotion-request-workflow">Promotion request workflow</a></p>
+<p>8. <a href="#8-targeting-segments--audiences">Targeting, segments &amp; audiences</a></p>
+<p>9. <a href="#9-omni-channel-distribution">Omni-channel distribution</a></p>
+<p>10. <a href="#10-university-funded-promotions">University-funded promotions</a></p>
+<p>11. <a href="#11-corporate-promotions-calendar">Corporate promotions calendar</a></p>
+<p>12. <a href="#12-coupon--code-management">Coupon &amp; code management</a></p>
+<p>13. <a href="#13-business-rules-approvals--guardrails">Business rules, approvals &amp; guardrails</a></p>
+<p>14. <a href="#14-offer-analytics--attribution">Offer analytics &amp; attribution</a></p>
+<p>15. <a href="#15-automation-journeys">Automation journeys</a></p>
+<p>16. <a href="#16-performance-linked-counsellor-offer-wallet">Performance-linked counsellor offer wallet</a></p>
+<p>17. <a href="#17-ai-powered-offer-intelligence">AI-powered offer intelligence</a></p>
+<p>18. <a href="#18-implementation-roadmap">Implementation roadmap</a></p>
+<p>19. <a href="#19-roles--permissions-matrix">Roles &amp; permissions matrix</a></p>
+<p>20. <a href="#20-risks--mitigations">Risks &amp; mitigations</a></p>
+<p>21. <a href="#21-sign-off">Sign-off</a></p>
+<p>22. <a href="#22-technical-appendix--built-inventory">Technical appendix — built inventory</a></p>
+<br>
+<hr>
+<br>
+<h2>1. Executive summary</h2>
+<br>
+<p>This document defines the scope of an advanced <strong>Offers &amp; Discounts module</strong> embedded in the Future Link Consultants CRM. The module transforms a simple discount list into a full <strong>promotions engine</strong> that creates, targets, distributes, tracks, and optimises offers across all service lines and customer touchpoints.</p>
+<br>
+<p>Future Link operates <strong>multiple branches</strong> with <strong>multiple counsellors</strong> per branch, serving leads and existing clients across:</p>
+<br>
+<li>Study abroad (admission)</li>
+<li>Foreign exam coaching (IELTS, PTE, GRE, GMAT, SAT, etc.)</li>
+<li>Foreign language training (German, French, Spanish, etc.)</li>
+<li>Visa &amp; immigration services</li>
+<br>
+<h3>Core objective</h3>
+<br>
+<p>&gt; Increase enrolment conversion and repeat business by giving the <strong>right offer to the right person at the right moment, through the right channel</strong> — while keeping every discount auditable, approval-controlled, and measurable against revenue.</p>
+<br>
+<h3>What this module delivers</h3>
+<br>
+<li>A <strong>central offer library</strong> — create once, reuse everywhere</li>
+<li><strong>Smart targeting</strong> — leads, clients, family, Gen-Z, lapsed enquiries</li>
+<li><strong>Automation</strong> — behaviour and date-triggered auto-offers</li>
+<li><strong>Omni-channel distribution</strong> — WhatsApp, SMS, email, calls, social, portal</li>
+<li><strong>Approval workflows &amp; guardrails</strong> — margin protection</li>
+<li><strong>Analytics</strong> — redemptions, revenue, branch/counsellor performance</li>
+<li><strong>Performance-linked counsellor wallets</strong> — earn-to-give discount budgets</li>
+<li><strong>AI (restricted)</strong> — Admin/MarCom creates offers; counsellors get suggestions &amp; drafts only</li>
+<br>
+<h3>Strategic decisions (v2)</h3>
+<br>
+<table>
+<tr><th>Decision</th><th>Choice</th></tr>
+<tr><td>Build approach</td><td><strong>Extend existing CRM</strong> — mostly wiring, not rebuild (see §2)</td></tr>
+<tr><td>Wallet sizing</td><td>Base wallet × <strong>Performance Multiplier</strong> (not flat % only)</td></tr>
+<tr><td>Wallet unlock</td><td><strong>Proportional to current-month achievement</strong> (configurable threshold)</td></tr>
+<tr><td>Counsellor offers</td><td><strong>Restricted builder</strong> — pre-approved types only; waivers need approval</td></tr>
+<tr><td>AI offer <strong>creation</strong></td><td><strong>Admin + MarCom / Digital Marketing only</strong> (<code>offers_ai</code> permission)</td></tr>
+<tr><td>AI for counsellors</td><td><strong>Suggest + draft only</strong> from approved catalogue (L0/L1)</td></tr>
+<tr><td>Funding awareness</td><td>University/Joint offers do <strong>not</strong> deduct counsellor wallet</td></tr>
+<tr><td>Phase priority</td><td>Channels + auto-offers early; wallet Phase 4; predictive AI Phase 7</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>2. Current implementation status</h2>
+<br>
+<p>Verified against live schema, frontend pages, and RPCs (June 2026).</p>
+<br>
+<h3>2.1 Already built — reuse ✅</h3>
+<br>
+<table>
+<tr><th>Area</th><th>What exists</th></tr>
+<tr><td><strong>Offer engine</strong></td><td><code>offers</code>, <code>offer_templates</code>, <code>offer_groups</code>, <code>offer_group_members</code>, <code>offer_audience_targets</code>, <code>offer_events</code>, <code>offer_tracking_codes</code>, <code>client_offers</code>, <code>service_offers</code></td></tr>
+<tr><td><strong>Offers admin UI</strong></td><td><code>/offers-admin</code> — CRUD, %, flat, audience, active flag</td></tr>
+<tr><td><strong>Offer analytics</strong></td><td><code>/offers-analytics</code> — <code>offer_roi_stats</code>, <code>counselor_offer_stats</code></td></tr>
+<tr><td><strong>Counsellor wallet</strong></td><td><code>discount_wallets</code> — balance, caps, budget kind, scope tags, rollover</td></tr>
+<tr><td><strong>Give discount</strong></td><td><code>/incentives/give-discount</code> — <code>wallet_allocations</code>; DB trigger enforces cap &amp; balance</td></tr>
+<tr><td><strong>Wallet ledger</strong></td><td><code>wallet_ledger</code> — movements with <code>balance_after</code></td></tr>
+<tr><td><strong>Wallet top-ups</strong></td><td><code>/incentives/wallet-topups</code> — manual create/top-up; <code>wallet_topup_rules</code> schema</td></tr>
+<tr><td><strong>Incentive engine</strong></td><td><code>incentive_plans</code>, <code>incentive_targets</code>, <code>incentive_runs</code>, <code>incentive_payouts</code>, slabs</td></tr>
+<tr><td><strong>Period close</strong></td><td><code>/incentives/period-close</code> — <code>fn_close_due_wallets</code>, <code>fn_reinstate_wallet</code>, achievement %</td></tr>
+<tr><td><strong>Eligibility &amp; analytics RPCs</strong></td><td><code>offers_eligible_for_client</code>, <code>user_can_see_offer</code>, <code>log_offer_event</code></td></tr>
+<tr><td><strong>Family &amp; referrals</strong></td><td><code>client_family_members</code>, <code>referrals</code>, portal refer</td></tr>
+<tr><td><strong>University promos (partial)</strong></td><td><code>upi_promotions</code>, <code>upi_marketing_campaigns</code></td></tr>
+<tr><td><strong>Portal offers</strong></td><td><code>/portal/offers</code> — claim, promo codes</td></tr>
+<tr><td><strong>Invoice redemption</strong></td><td><code>fn_redeem_offer_on_invoice</code> trigger</td></tr>
+<tr><td><strong>Birthday cron</strong></td><td><code>offers-lifecycle-tick</code> edge function 🟡</td></tr>
+</table>
+<br>
+<h3>2.2 Partially built — needs connecting 🟡</h3>
+<br>
+<table>
+<tr><th>Capability</th><th>Exists</th><th>Missing</th></tr>
+<tr><td>Achievement-linked wallet sizing</td><td>Achievement % at Period Close; <code>wallet_topup_rules</code></td><td>Auto-size/top-up from rules; manual only today</td></tr>
+<tr><td>Proportional unlock</td><td>Balance, caps, allocations</td><td><code>unlocked_balance</code> gating not enforced</td></tr>
+<tr><td>Base × multiplier</td><td>Incentive slabs, <code>bonus_trigger_pct</code></td><td>Not applied to discount wallet</td></tr>
+<tr><td>Strategic wallets</td><td><code>scope_country_tag</code>, <code>scoped</code> budget kind</td><td>Ring-fence enforcement at allocation</td></tr>
+<tr><td>Performance Score</td><td>Targets, runs, conversion data</td><td>Weighted score for multiplier</td></tr>
+<tr><td>Offer lifecycle</td><td><code>is_active</code> flag</td><td>Draft → Approved → Active workflow</td></tr>
+<tr><td>Wallet ↔ offer link</td><td>FK on <code>wallet_allocations</code></td><td>Full UI + funding-aware deduction</td></tr>
+<tr><td>Analytics</td><td>ROI &amp; counsellor stats</td><td>Offer Influence Revenue, Wallet Impact Revenue</td></tr>
+</table>
+<br>
+<h3>2.3 Not yet built 🔲</h3>
+<br>
+<li>Funding source on offers (Future Link / University / Joint)</li>
+<li>Promotion Request workflow</li>
+<li>Corporate Promotions Calendar</li>
+<li>Restricted offer-builder enforcement</li>
+<li>AI Offer Studio (<code>/offers-ai-studio</code>)</li>
+<li>On-screen offer suggestions for counsellors</li>
+<li>Offer Influence Revenue attribution</li>
+<li>Campaign builder, segment library UI</li>
+<li>Unify <code>service_offers</code> + <code>offers</code></li>
+<br>
+<h3>2.4 How it connects internally (TO WIRE)</h3>
+<br>
+<pre class="code"><code>
+TARGETS &amp; ACHIEVEMENT          WALLET                    OFFERS
+─────────────────────          ──────                    ──────
+incentive_targets ──┐          discount_wallets          offers
+incentive_runs ─────┤          (balance, caps,           applied →
+(achievement %) ────┘──TO WIRE scope tags)              client_offers
+         │                         ▲                           │
+wallet_topup_rules ───────────────┘                           │
+         │                         │ allocate                  │
+         └─────────────────────────┼─────────────────────────┘
+                                   ▼
+                          wallet_allocations
+                                   │ writes
+                                   ▼
+                          wallet_ledger
+                                   │ month end
+                                   ▼
+                          fn_close_due_wallets → next period
+</code></pre>
+<br>
+<p><strong>Headline for developers:</strong> Wallet, ledger, allocations, caps, targets/runs, and achievement calculation <strong>already work</strong>. Performance-linked behaviour is largely <strong>wiring</strong>: connect <code>wallet_topup_rules</code> + Period Close achievement to sizing/unlocking, enforce scope tags, add lifecycle + funding + analytics.</p>
+<br>
+<h3>2.5 Naming — do not confuse ⚠️</h3>
+<br>
+<table>
+<tr><th>Name</th><th>What it is</th></tr>
+<tr><td><code>credit_wallet</code></td><td><strong>Client</strong> loyalty points — NOT this module</td></tr>
+<tr><td><code>discount_wallets</code></td><td><strong>Counsellor</strong> discount budget — this document</td></tr>
+<tr><td><code>incentive_*</code></td><td>Staff <strong>cash</strong> incentives — related but distinct</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>3. Business goals &amp; success metrics</h2>
+<br>
+<table>
+<tr><th>Business goal</th><th>Module helps</th><th>Primary KPI</th></tr>
+<tr><td>Convert more leads</td><td>Urgency, first-enrolment offers</td><td>Lead → enrolment %</td></tr>
+<tr><td>Repeat business</td><td>Existing-client, cross-sell offers</td><td>Repeat enrolment rate</td></tr>
+<tr><td>Grow referrals</td><td>Family &amp; referral offers</td><td>Referrals per client</td></tr>
+<tr><td>Lift ticket value</td><td>Bundle offers</td><td>Avg revenue per client</td></tr>
+<tr><td>Reduce manual effort</td><td>Auto-offers, campaigns</td><td>Auto vs manual sends</td></tr>
+<tr><td>Protect margin</td><td>Approvals, caps, floor price</td><td>Avg discount % vs cap</td></tr>
+<tr><td>Channel ROI</td><td>Per-channel attribution</td><td>Redemptions &amp; revenue per channel</td></tr>
+<tr><td>Wallet efficiency</td><td>ROI-based scoring</td><td>Revenue per ₹1 wallet spent</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>4. Module architecture &amp; navigation</h2>
+<br>
+<p>Expands current <strong>Offers &amp; Discounts</strong> menu:</p>
+<br>
+<table>
+<tr><th>Sub-section</th><th>Purpose</th><th>Status</th></tr>
+<tr><td>Dashboard</td><td>Active offers, redemptions, expiring, pending approvals</td><td>🔲</td></tr>
+<tr><td>Offer Library</td><td>Master list — create, clone, archive</td><td>✅ <code>/offers-admin</code></td></tr>
+<tr><td>Create Offer</td><td>Step-by-step wizard</td><td>🔲</td></tr>
+<tr><td>Offer Lifecycle</td><td>Status workflow, version history</td><td>🔲</td></tr>
+<tr><td><strong>AI Offer Studio</strong></td><td>MarCom/Admin AI generation</td><td>🔲 <code>/offers-ai-studio</code></td></tr>
+<tr><td>Promotion Requests</td><td>Field → MarCom queue</td><td>🔲</td></tr>
+<tr><td>Auto-Offer Rules</td><td>Behaviour triggers</td><td>🟡 birthday cron</td></tr>
+<tr><td>Campaigns &amp; Calendar</td><td>Bundles + annual calendar</td><td>🔲</td></tr>
+<tr><td>Segments &amp; Audiences</td><td>Gen-Z, family, lapsed, etc.</td><td>🔲</td></tr>
+<tr><td>Funding &amp; Partners</td><td>FL / University / Joint</td><td>🔲</td></tr>
+<tr><td>Coupon &amp; Code Manager</td><td>Bulk/unique codes, QR</td><td>🟡 tracking codes</td></tr>
+<tr><td>Approvals</td><td>Manager queue</td><td>🔲</td></tr>
+<tr><td>Channels &amp; Templates</td><td>WA, SMS, email, social</td><td>🟡 DSH copy exists</td></tr>
+<tr><td>Offer Analytics</td><td>Full reporting</td><td>✅ <code>/offers-analytics</code></td></tr>
+<tr><td>Settings &amp; Permissions</td><td>Caps, roles, branch rules</td><td>🔲</td></tr>
+</table>
+<br>
+<p><strong>Design principle:</strong> *Create once, use everywhere.*</p>
+<br>
+<hr>
+<br>
+<h2>5. Offer types catalogue</h2>
+<br>
+<h3>5.1 Standard offers</h3>
+<br>
+<table>
+<tr><th>Type</th><th>Example</th></tr>
+<tr><td>Percentage discount</td><td>15% off IELTS coaching</td></tr>
+<tr><td>Flat amount</td><td>₹5,000 off Germany package</td></tr>
+<tr><td>Free add-on</td><td>Free visa filing with study package</td></tr>
+<tr><td>Bundle / combo</td><td>IELTS + German A1</td></tr>
+<tr><td>Tiered discount</td><td>₹3k off above ₹50k; ₹8k above ₹1L</td></tr>
+<tr><td>BOGO</td><td>2nd language course at 50%</td></tr>
+<tr><td>Instalment offer</td><td>3-instalment fee plan</td></tr>
+<tr><td>Scholarship waiver</td><td>Top scorer 25% off</td></tr>
+</table>
+<br>
+<h3>5.2 Auto-offers (behaviour-triggered) 🔲</h3>
+<br>
+<p><strong>WHEN</strong> trigger · <strong>IF</strong> conditions · <strong>THEN</strong> send offer</p>
+<br>
+<table>
+<tr><th>Trigger</th><th>Auto-offer</th></tr>
+<tr><td>New lead, no enrolment</td><td>Welcome / first-consultation</td></tr>
+<tr><td>Inactive 7 days</td><td>Win-back discount</td></tr>
+<tr><td>Inactive 30 days</td><td>Deep discount + counsellor task</td></tr>
+<tr><td>Demo attended, not paid</td><td>48-hour incentive</td></tr>
+<tr><td>Course completing</td><td>Cross-sell next service</td></tr>
+<tr><td>Exam approaching</td><td>Crash / retake offer</td></tr>
+<tr><td>Birthday</td><td>Personalised discount 🟡</td></tr>
+<tr><td>Enrolment anniversary</td><td>Loyalty reward</td></tr>
+<tr><td>Abandoned application</td><td>Assistance + nudge</td></tr>
+</table>
+<br>
+<h3>5.3 Festival &amp; seasonal 🔲</h3>
+<br>
+<p>Diwali, New Year, intake seasons (Fall/Spring), exam results, back-to-school, year-end — auto-activate on calendar dates.</p>
+<br>
+<h3>5.4 Existing-client 🔲</h3>
+<br>
+<p>Loyalty, cross-sell (IELTS → study abroad), upsell, renewal, milestone rewards (visa approved, admission secured).</p>
+<br>
+<h3>5.5 Family 🔲</h3>
+<br>
+<p>Sibling enrolment, family referral, dependent visa bundle, household language package — uses <code>client_family_members</code>.</p>
+<br>
+<h3>5.6 Gen-Z 🔲</h3>
+<br>
+<p>Student-ID discount, squad/group enrol, flash drops, referral gamification, ambassador program — primarily WhatsApp/social.</p>
+<br>
+<h3>5.7 Additional types 🔲</h3>
+<br>
+<p>Early-bird, last-minute urgency, win-back, corporate/institutional bulk, geo/branch-specific, limited slots, pay-in-full discount.</p>
+<br>
+<hr>
+<br>
+<h2>6. Offer lifecycle management</h2>
+<br>
+<h3>6.1 Statuses 🔲</h3>
+<br>
+<table>
+<tr><th>Status</th><th>Meaning</th></tr>
+<tr><td>Draft</td><td>Being created</td></tr>
+<tr><td>Pending Review</td><td>Awaiting MarCom/admin</td></tr>
+<tr><td>Approved</td><td>Cleared, not live</td></tr>
+<tr><td>Scheduled</td><td>Future start date</td></tr>
+<tr><td>Active</td><td>Live</td></tr>
+<tr><td>Expiring Soon</td><td>Within warning window</td></tr>
+<tr><td>Expired</td><td>Past end date</td></tr>
+<tr><td>Archived</td><td>Retired, kept for records</td></tr>
+</table>
+<br>
+<h3>6.2 Features 🔲</h3>
+<br>
+<p>Auto status updates · approval history · version history · change log · clone · restore · expiry reminders.</p>
+<br>
+<h3>6.3 Dashboard widgets 🔲</h3>
+<br>
+<p>Active · Expiring · Draft · Archived offer counts.</p>
+<br>
+<hr>
+<br>
+<h2>7. Promotion request workflow</h2>
+<br>
+<p>Counsellors and branch managers <strong>request</strong> — MarCom <strong>builds</strong>. No unrestricted field creation.</p>
+<br>
+<p><strong>Flow:</strong> Request → MarCom Review → Approval → Offer Creation → Campaign Launch</p>
+<br>
+<p><strong>Request fields:</strong> reason, target audience, country, service, estimated volume, competitor info, expected impact.</p>
+<br>
+<hr>
+<br>
+<h2>8. Targeting, segments &amp; audiences</h2>
+<br>
+<h3>8.1 Building blocks 🔲</h3>
+<br>
+<p>Lifecycle stage · service interest · demographics (Gen-Z) · behaviour · commercial · geography/branch.</p>
+<br>
+<h3>8.2 Pre-built audiences 🔲</h3>
+<br>
+<p>Hot leads · Cold leads · Gen-Z students · Existing clients · Family groups · Cross-sell ready · High-value · At-risk · Exam-soon · Intake-deadline-soon.</p>
+<br>
+<p><strong>Today:</strong> ✅ <code>offers_eligible_for_client()</code> handles country, service, audience, caps.</p>
+<br>
+<hr>
+<br>
+<h2>9. Omni-channel distribution</h2>
+<br>
+<table>
+<tr><th>Channel</th><th>Capability</th><th>Status</th></tr>
+<tr><td>WhatsApp</td><td>Broadcasts, click-to-claim</td><td>🔲 inbox exists</td></tr>
+<tr><td>SMS</td><td>Personalised codes, short links</td><td>🔲</td></tr>
+<tr><td>Email</td><td>Templates, drip, A/B</td><td>🔲 SMTP exists</td></tr>
+<tr><td>Counsellor calls</td><td>Scripts + one-tap send</td><td>🔲</td></tr>
+<tr><td>Social</td><td>UTM links, scheduled posts</td><td>🔲 DSH partial</td></tr>
+<tr><td>Portal</td><td>Banner offers</td><td>✅ <code>/portal/offers</code></td></tr>
+<tr><td>Landing pages</td><td>Auto-generated capture pages</td><td>🔲</td></tr>
+</table>
+<br>
+<p>Personalisation tokens: name, course, counsellor, expiry, code.</p>
+<br>
+<hr>
+<br>
+<h2>10. University-funded promotions</h2>
+<br>
+<table>
+<tr><th>Funding model</th><th>Who pays</th><th>Wallet impact</th></tr>
+<tr><td>Future Link funded</td><td>Future Link</td><td>Deducts counsellor/company wallet</td></tr>
+<tr><td>University funded</td><td>Partner university</td><td><strong>No wallet deduction</strong></td></tr>
+<tr><td>Joint funded</td><td>Shared</td><td>Only FL share deducts</td></tr>
+</table>
+<br>
+<p><strong>Track:</strong> funding source, university contribution, FL contribution, revenue, ROI, university-wise reporting.</p>
+<br>
+<p><strong>Starting point:</strong> ✅ <code>upi_promotions</code> for institution data.</p>
+<br>
+<hr>
+<br>
+<h2>11. Corporate promotions calendar 🔲</h2>
+<br>
+<p>Single annual view: festivals, intakes, country campaigns, branch campaigns, university promos, open houses, fairs, webinars, social campaigns — with owner, budget, status (planned → live → completed).</p>
+<br>
+<hr>
+<br>
+<h2>12. Coupon &amp; code management</h2>
+<br>
+<table>
+<tr><th>Feature</th><th>Status</th></tr>
+<tr><td>Unique per-person codes</td><td>🔲</td></tr>
+<tr><td>Bulk/generic codes (DIWALI15)</td><td>✅ promo_code on offers</td></tr>
+<tr><td>QR codes</td><td>🔲</td></tr>
+<tr><td>Usage limits &amp; validity</td><td>🟡 partial caps</td></tr>
+<tr><td>Counselor tracking codes</td><td>✅ <code>offer_tracking_codes</code></td></tr>
+<tr><td>Fraud guards</td><td>🔲</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>13. Business rules, approvals &amp; guardrails</h2>
+<br>
+<h3>13.1 Guardrails</h3>
+<br>
+<li>Max discount caps by service line and role</li>
+<li>Stacking rules + max total discount per transaction</li>
+<li>Floor price protection</li>
+<li>Expiry enforcement</li>
+<br>
+<h3>13.2 Approval workflow</h3>
+<br>
+<p>Within cap + approved template → instant apply. Exceeds cap or custom offer → branch manager/admin queue with margin impact view.</p>
+<br>
+<h3>13.3 Discount depth matrix</h3>
+<br>
+<table>
+<tr><th>Depth</th><th>Approver</th></tr>
+<tr><td>≤ 10% or ≤ ₹5,000</td><td>Counsellor (within wallet)</td></tr>
+<tr><td>11–20%</td><td>Branch manager</td></tr>
+<tr><td>&gt; 20% or below floor</td><td>Admin / director</td></tr>
+<tr><td>Scholarship / full waiver</td><td>Admin only</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>14. Offer analytics &amp; attribution</h2>
+<br>
+<h3>14.1 Core metrics ✅ (partial)</h3>
+<br>
+<p>Offers sent · claims · redemptions · conversion · discount cost · ROI · channel · branch/counsellor leaderboard — via <code>/offers-analytics</code>.</p>
+<br>
+<h3>14.2 Offer Influence Revenue 🔲</h3>
+<br>
+<table>
+<tr><th>Type</th><th>Counts</th></tr>
+<tr><td>Direct</td><td>Revenue on service offer applied to</td></tr>
+<tr><td>Assisted</td><td>Later purchases influenced</td></tr>
+<tr><td>Multi-service</td><td>Additional service lines from same lead</td></tr>
+</table>
+<br>
+<p>*Example:* Germany offer → study abroad + German course + visa — all attributed.</p>
+<br>
+<h3>14.3 Wallet Impact Revenue 🔲</h3>
+<br>
+<p>Revenue through wallet offers specifically — prevents sizing wallet on total revenue when counsellor never used the system.</p>
+<br>
+<h3>14.4 Optimisation 🔲</h3>
+<br>
+<p>A/B testing · best-offer suggestions (rule-based → ML) · best-time-to-send · margin-vs-volume view.</p>
+<br>
+<hr>
+<br>
+<h2>15. Automation journeys</h2>
+<br>
+<h3>15.1 Cold-lead win-back</h3>
+<p>Day 2 WhatsApp → Day 7 email → Day 15 SMS → Day 30 counsellor task + manager-approved final offer.</p>
+<br>
+<h3>15.2 Cross-sell after coaching</h3>
+<p>Completion message → +2 days study-abroad loyalty offer → +7 days family referral.</p>
+<br>
+<h3>15.3 Festival family campaign</h3>
+<p>Auto-activate from calendar → target clients + family groups → multi-channel send → family discount at checkout.</p>
+<br>
+<hr>
+<br>
+<h2>16. Performance-linked counsellor offer wallet</h2>
+<br>
+<h3>16.1 Concept</h3>
+<br>
+<p>Monthly <strong>Offer Wallet</strong> = discount <strong>authority</strong> (not cash). Counsellors spend it on <strong>pre-approved offer types</strong> within guardrails. Strong performers earn larger wallets next period.</p>
+<br>
+<h3>16.2 Wallet allocation — Base × Performance Multiplier</h3>
+<br>
+<pre class="code"><code>
+Wallet = Base Wallet × Performance Multiplier
+</code></pre>
+<br>
+<p><strong>Example:</strong> Target ₹3,00,000 · Base ₹10,000 · Last period 120% achievement → 150% multiplier → <strong>₹15,000 wallet</strong>.</p>
+<br>
+<table>
+<tr><th>Last-period achievement</th><th>Multiplier</th><th>Wallet on ₹10k base</th></tr>
+<tr><td>Below 70%</td><td>50%</td><td>₹5,000</td></tr>
+<tr><td>70–90%</td><td>100%</td><td>₹10,000</td></tr>
+<tr><td>100%</td><td>120%</td><td>₹12,000</td></tr>
+<tr><td>120%</td><td>150%</td><td>₹15,000</td></tr>
+<tr><td>150%+</td><td>200%</td><td>₹20,000</td></tr>
+</table>
+<br>
+<p>*Bands configurable per service line / role.*</p>
+<br>
+<h3>16.3 Performance Score (drives multiplier) 🔲</h3>
+<br>
+<table>
+<tr><th>Metric</th><th>Weight</th></tr>
+<tr><td>Revenue achievement</td><td>40%</td></tr>
+<tr><td>Conversion rate</td><td>20%</td></tr>
+<tr><td>Wallet ROI</td><td>20%</td></tr>
+<tr><td>Collections received</td><td>10%</td></tr>
+<tr><td>Client satisfaction</td><td>10%</td></tr>
+</table>
+<br>
+<p><strong>Guard:</strong> Bigger discounts alone must <strong>not</strong> earn a bigger wallet — ROI and conversion matter.</p>
+<br>
+<h3>16.4 Proportional unlock</h3>
+<br>
+<p>Wallet size ≠ spendable on day 1. <strong>Unlocked % = achievement %</strong> (linear default; stepped optional).</p>
+<br>
+<table>
+<tr><th>Revenue achieved</th><th>% target</th><th>Wallet ₹15k</th><th>Spendable</th></tr>
+<tr><td>₹0</td><td>0%</td><td>₹0</td></tr>
+<tr><td>₹1,00,000</td><td>33%</td><td>≈ ₹5,000</td></tr>
+<tr><td>₹1,50,000</td><td>50%</td><td>≈ ₹7,500</td></tr>
+<tr><td>₹3,00,000</td><td>100%</td><td>₹15,000</td></tr>
+</table>
+<br>
+<p><strong>Configurable:</strong> unlock threshold floor (e.g. nothing until 20%) · stepped bands · "close to threshold" tolerance · per-client % cap (✅ exists) · no-full-burn rule.</p>
+<br>
+<h3>16.5 Strategic wallet allocation 🔲</h3>
+<br>
+<p>Ring-fenced bonus wallets — Germany-only, Italy campaign, language push — using existing <code>scope_country_tag</code>, <code>scope_service_code</code>, <code>scope_master_key</code>, <code>scoped</code> budget kind. <strong>Half-built in schema; needs allocation enforcement.</strong></p>
+<br>
+<h3>16.6 Branch wallets &amp; competition 🔲</h3>
+<br>
+<p>Branch pooled budget · counsellor leaderboard · branch leaderboard · gamification · manager reserve for key deals.</p>
+<br>
+<h3>16.7 Restricted offer builder</h3>
+<br>
+<table>
+<tr><th>Allowed without approval</th><th>Requires approval</th></tr>
+<tr><td>Flat discount (within wallet)</td><td>Custom scholarship</td></tr>
+<tr><td>% discount (within max % per client)</td><td>Full fee waiver</td></tr>
+<tr><td>Free SOP / doc support</td><td>Premium service free</td></tr>
+<tr><td>Free consultation</td><td>Unlimited discount</td></tr>
+<tr><td>Free language assessment</td><td>Exceeds wallet or cap</td></tr>
+</table>
+<br>
+<p>Counsellors <strong>pick from pre-approved types</strong> — they do <strong>not</strong> use AI to invent offers.</p>
+<br>
+<h3>16.8 Mapping to existing screens</h3>
+<br>
+<table>
+<tr><th>Screen</th><th>Today</th><th>Enhancement</th></tr>
+<tr><td>Give Discount</td><td>Apply discount</td><td>Show unlocked vs potential; block beyond unlock; funding-aware</td></tr>
+<tr><td>Wallet Top-ups</td><td>Manual create</td><td>Base wallet + multiplier bands; auto-fund</td></tr>
+<tr><td>Period Close</td><td>Close + rollover</td><td>Performance Score → next wallet</td></tr>
+<tr><td>My Incentives</td><td>Targets view</td><td>Achievement %, unlock, projection</td></tr>
+<tr><td>Incentive Plans</td><td>Payout structure</td><td>Hold multiplier bands, score weights</td></tr>
+</table>
+<br>
+<h3>16.9 Counsellor wallet dashboard 🔲</h3>
+<br>
+<p>Target · achievement % · Performance Score · potential/unlocked/spent/remaining · Wallet Impact Revenue · ROI vs team · next unlock threshold · strategic wallet balances · leaderboard rank.</p>
+<br>
+<hr>
+<br>
+<h2>17. AI-powered offer intelligence</h2>
+<br>
+<h3>17.1 Principle — central creates, field chooses</h3>
+<br>
+<table>
+<tr><th>Role</th><th>AI capability</th></tr>
+<tr><td><strong>Admin / MarCom / Digital Marketing</strong></td><td>Full AI offer creation, campaigns, copy, variants</td></tr>
+<tr><td><strong>Branch manager</strong></td><td>Run approved offers; <strong>request</strong> custom from centre</td></tr>
+<tr><td><strong>Counsellor</strong></td><td><strong>Suggest + draft only</strong> — never author new offer types</td></tr>
+<tr><td><strong>Telecaller</strong></td><td>Read MarCom scripts; no AI creation</td></tr>
+</table>
+<br>
+<h3>17.2 Access control (implementation)</h3>
+<br>
+<p>Grant AI Offer Studio if <strong>any</strong> of:</p>
+<br>
+<p>1. Role = <code>admin</code></p>
+<p>2. Module permission <code>offers_ai</code> = edit (add to <code>CRM_MODULES</code>)</p>
+<p>3. User <code>department</code> ∈ {Marketing, MarCom, Digital} (configurable)</p>
+<br>
+<p>Route: <code>/offers-ai-studio</code> · Edge function: <code>offer-ai-studio</code> · All AI calls server-side gated.</p>
+<br>
+<h3>17.3 Three AI capabilities</h3>
+<br>
+<table>
+<tr><th>Capability</th><th>Who</th><th>Where</th></tr>
+<tr><td><strong>Offer suggestion</strong></td><td>Counsellor (from approved catalogue)</td><td>Lead/client record, Give Discount</td></tr>
+<tr><td><strong>Message drafting</strong></td><td>Counsellor + MarCom</td><td>Channel composer</td></tr>
+<tr><td><strong>Offer creation</strong></td><td><strong>Admin/MarCom only</strong></td><td>AI Offer Studio</td></tr>
+</table>
+<br>
+<h3>17.4 AI Offer Studio (MarCom/Admin) 🔲</h3>
+<br>
+<p>Generate offer packs scoped by: branch · country · visa category · coaching type · language · intake · segment.</p>
+<br>
+<p><strong>Output:</strong> title, terms, eligibility JSON, promo code, WhatsApp/email/social copy, counselor talking points, optional wallet allocation suggestion.</p>
+<br>
+<p><strong>Workflow:</strong> AI draft → human review → publish to Offer Library.</p>
+<br>
+<h3>17.5 On-screen suggestions for counsellors (build sooner) 🔲</h3>
+<br>
+<pre class="code"><code>
+Suggested offer for this lead
+Recommended: 48-hour enrolment incentive (10% off)
+Why: Counselling 5 days ago, study-abroad interest, no payment
+Wallet: ₹12,000 unlocked available
+[ Accept &amp; send ]  [ Adjust ]  [ Dismiss ]
+</code></pre>
+<br>
+<p>Uses: lifecycle, services, behaviour, eligibility, wallet fit — <strong>only approved offers</strong>.</p>
+<br>
+<h3>17.6 Auto-send levels (phased)</h3>
+<br>
+<table>
+<tr><th>Level</th><th>Behaviour</th><th>When</th></tr>
+<tr><td>L0 Suggest only</td><td>Human sends everything</td><td>Launch</td></tr>
+<tr><td>L1 Auto-draft</td><td>AI writes; human clicks send</td><td>Early</td></tr>
+<tr><td>L2 Auto-send safe</td><td>Birthday, festival, abandoned form</td><td>After L1 trusted</td></tr>
+<tr><td>L3 Auto-send broad</td><td>AI picks offer + channel</td><td>Data mature</td></tr>
+<tr><td>L4 Self-optimising</td><td>Tunes depth + timing</td><td>Mature only</td></tr>
+</table>
+<br>
+<h3>17.7 Build sooner vs defer</h3>
+<br>
+<table>
+<tr><th>Build sooner</th><th>Defer</th></tr>
+<tr><td>On-screen suggestions + reasons</td><td>Predictive propensity scoring</td></tr>
+<tr><td>AI-drafted messages</td><td>AI optimal discount depth</td></tr>
+<tr><td>Auto-send safe triggers</td><td>Fully autonomous send</td></tr>
+<tr><td>Wallet-aware suggestions</td><td>Self-optimising experiments</td></tr>
+</table>
+<br>
+<h3>17.8 AI guardrails</h3>
+<br>
+<p>Wallet-bounded · creation-restricted · cap-respecting · approval-aware · explainable · auditable · human override · privacy-respecting · <strong>no guaranteed visa language</strong>.</p>
+<br>
+<hr>
+<br>
+<h2>18. Implementation roadmap</h2>
+<br>
+<table>
+<tr><th>Phase</th><th>Scope</th><th>Outcome</th><th>Status</th></tr>
+<tr><td><strong>1 Foundation</strong></td><td>Offer library, types, codes, roles, caps</td><td>Create &amp; apply offers</td><td>✅ mostly done</td></tr>
+<tr><td><strong>2 Channels</strong></td><td>WA, SMS, email, segments, approvals</td><td>Reach customers</td><td>🔲</td></tr>
+<tr><td><strong>3 Automation</strong></td><td>Auto-rules, festival calendar, journeys, family/Gen-Z</td><td>Hands-free promos</td><td>🟡 birthday</td></tr>
+<tr><td><strong>4 Wallet</strong></td><td>Performance wallet, unlock, leaderboards, restricted builder</td><td>Earn-to-give</td><td>🟡 schema</td></tr>
+<tr><td><strong>5 Intelligence</strong></td><td>Influence revenue, A/B, attribution, social</td><td>Data-driven ROI</td><td>🔲</td></tr>
+<tr><td><strong>6 AI assistive</strong></td><td>Suggestions, drafts, safe auto-send, AI Studio</td><td>MarCom + counsellor assist</td><td>🔲</td></tr>
+<tr><td><strong>7 AI autonomous</strong></td><td>Predictive scoring, optimal depth, self-tuning</td><td>Mature AI</td><td>🔲</td></tr>
+</table>
+<br>
+<p><strong>Developer priority (immediate):</strong> Wire <code>wallet_topup_rules</code> + achievement % → wallet size/unlock (§2.4).</p>
+<br>
+<hr>
+<br>
+<h2>19. Roles &amp; permissions matrix</h2>
+<br>
+<table>
+<tr><th>Capability</th><th>Admin</th><th>MarCom</th><th>Branch Mgr</th><th>Counsellor</th><th>Telecaller</th><th>Client</th></tr>
+<tr><td>View offer library</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>Own</td></tr>
+<tr><td>Create / edit offers</td><td>✅</td><td>✅</td><td>🔲 branch</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td><strong>AI Offer Studio</strong></td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Promotion requests</td><td>✅</td><td>✅ review</td><td>✅ submit</td><td>✅ submit</td><td>❌</td><td>❌</td></tr>
+<tr><td>Campaigns</td><td>✅</td><td>✅</td><td>🔲 branch</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Wallet admin / schemes</td><td>✅</td><td>❌</td><td>🔲</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Give discount</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+<tr><td>Restricted offer types</td><td>✅</td><td>❌</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td></tr>
+<tr><td>AI suggest/draft on lead</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>🔲</td><td>❌</td></tr>
+<tr><td>Analytics</td><td>✅</td><td>✅</td><td>✅ branch</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Period close</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+<tr><td>Portal claim</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>✅</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>20. Risks &amp; mitigations</h2>
+<br>
+<table>
+<tr><th>Risk</th><th>Mitigation</th></tr>
+<tr><td>Over-discounting</td><td>ROI in Performance Score; floor price; restricted builder</td></tr>
+<tr><td>Counselors use AI to create offers</td><td>AI creation Admin/MarCom only</td></tr>
+<tr><td>Empty wallets</td><td>Auto-funding from rules (Phase 4)</td></tr>
+<tr><td>University offer hits counsellor wallet</td><td>Funding source field + deduction logic</td></tr>
+<tr><td>Confuse client vs counsellor wallet</td><td>Clear UI labels (§2.5)</td></tr>
+<tr><td>Two offer systems</td><td>Converge <code>offers</code> + <code>service_offers</code></td></tr>
+<tr><td>Slow approval queue</td><td>SLA + notifications to approvers</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>21. Sign-off</h2>
+<br>
+<table>
+<tr><th>Role</th><th>Name</th><th>Date</th><th>Approved</th></tr>
+<tr><td>Business owner</td><td>☐</td></tr>
+<tr><td>MarCom / Marketing head</td><td>☐</td></tr>
+<tr><td>Operations / Branch heads</td><td>☐</td></tr>
+<tr><td>Finance / Accounting</td><td>☐</td></tr>
+<tr><td>Product / CRM admin</td><td>☐</td></tr>
+<tr><td>Technical lead</td><td>☐</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<h2>22. Technical appendix — built inventory</h2>
+<br>
+<p>*Codebase audit — 9 June 2026*</p>
+<br>
+<h3>UI routes</h3>
+<br>
+<table>
+<tr><th>Route</th><th>Component</th><th>Status</th></tr>
+<tr><td><code>/offers-admin</code></td><td>OffersAdmin.tsx</td><td>✅</td></tr>
+<tr><td><code>/offers-analytics</code></td><td>OffersAnalytics.tsx</td><td>✅</td></tr>
+<tr><td><code>/portal/offers</code></td><td>PortalOffers.tsx</td><td>✅</td></tr>
+<tr><td><code>/incentives/give-discount</code></td><td>GiveDiscount.tsx</td><td>✅</td></tr>
+<tr><td><code>/incentives/wallet-topups</code></td><td>WalletTopups.tsx</td><td>✅</td></tr>
+<tr><td><code>/incentives/period-close</code></td><td>PeriodClose.tsx</td><td>✅</td></tr>
+<tr><td><code>/incentives</code></td><td>MyIncentives.tsx</td><td>✅</td></tr>
+<tr><td>Client → Offers tab</td><td>ClientOffersPanel.tsx</td><td>✅</td></tr>
+<tr><td>Invoice offer apply</td><td>ClientInvoicesPanel.tsx</td><td>✅</td></tr>
+<tr><td><code>/offers-ai-studio</code></td><td>—</td><td>🔲</td></tr>
+</table>
+<br>
+<h3>Edge functions</h3>
+<br>
+<table>
+<tr><th>Function</th><th>Purpose</th><th>Status</th></tr>
+<tr><td><code>offers-lifecycle-tick</code></td><td>Birthday auto-offers</td><td>🟡</td></tr>
+<tr><td><code>incentive-calculate-run</code></td><td>Incentive runs (net after discount)</td><td>✅</td></tr>
+<tr><td><code>ai-summarize</code></td><td>Client summary (auth pattern)</td><td>✅</td></tr>
+<tr><td><code>dsh-ai-generate-copy</code></td><td>Marketing copy pack</td><td>✅</td></tr>
+<tr><td><code>offer-ai-studio</code></td><td>MarCom offer generation</td><td>🔲</td></tr>
+</table>
+<br>
+<h3>Key RPCs &amp; triggers</h3>
+<br>
+<table>
+<tr><th>Name</th><th>Status</th></tr>
+<tr><td><code>offers_eligible_for_client()</code></td><td>✅</td></tr>
+<tr><td><code>offer_roi_stats()</code></td><td>✅</td></tr>
+<tr><td><code>counselor_offer_stats()</code></td><td>✅</td></tr>
+<tr><td><code>log_offer_event()</code></td><td>✅</td></tr>
+<tr><td><code>fn_close_due_wallets()</code></td><td>✅</td></tr>
+<tr><td><code>fn_reinstate_wallet()</code></td><td>✅</td></tr>
+<tr><td><code>fn_redeem_offer_on_invoice</code></td><td>✅</td></tr>
+</table>
+<br>
+<h3>Related documents</h3>
+<br>
+<table>
+<tr><th>Document</th><th>Purpose</th></tr>
+<tr><td><a href="./offers-discounts-wallet-ai-scope.md">offers-discounts-wallet-ai-scope.md</a></td><td>v1 scope (superseded)</td></tr>
+<tr><td><a href="./FutureLink_Offers_Discounts_Module_Claude.pdf">FutureLink_Offers_Discounts_Module_Claude.pdf</a></td><td>Stakeholder narrative source</td></tr>
+<tr><td><a href="./offers-discounts-wallet-ai-scope-v2.html">offers-discounts-wallet-ai-scope-v2.html</a></td><td>Print-friendly HTML</td></tr>
+</table>
+<br>
+<h3>Export to PDF</h3>
+<br>
+<pre class="code"><code>
+node scripts/md-to-print-html.mjs docs/guides/offers-discounts-wallet-ai-scope-v2.md
+# Open the .html in browser → Cmd+P → Save as PDF
+</code></pre>
+<br>
+<hr>
+<br>
+<h2>Document history</h2>
+<br>
+<table>
+<tr><th>Version</th><th>Date</th><th>Changes</th></tr>
+<tr><td>1.0</td><td>9 Jun 2026</td><td>Initial scope (Cursor)</td></tr>
+<tr><td>2.0</td><td>9 Jun 2026</td><td>Merged with Claude PDF; canonical spec</td></tr>
+</table>
+<br>
+<hr>
+<br>
+<p>*Future Link Consultants — Confidential. Internal product &amp; engineering scope.*</p>
+<br>
+</body>
+</html>

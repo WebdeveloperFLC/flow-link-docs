@@ -5,13 +5,39 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Wallet, Plus } from "lucide-react";
+import { Wallet, Plus, Calculator, Zap } from "lucide-react";
+import type { Database } from "@/integrations/supabase/types";
 
-type RolloverPolicy = "expire" | "partial" | "full";
+type WalletRow = Pick<
+  Database["public"]["Tables"]["discount_wallets"]["Row"],
+  | "id"
+  | "name"
+  | "counselor_id"
+  | "period_key"
+  | "currency"
+  | "balance"
+  | "max_percent_per_client"
+  | "max_amount_per_client"
+  | "rollover_policy"
+  | "budget_kind"
+  | "valid_from"
+  | "valid_to"
+  | "scope_country_tag"
+  | "scope_master_key"
+  | "scope_sub_category"
+  | "scope_service_code"
+  | "assigned_target"
+  | "base_wallet"
+  | "performance_multiplier"
+  | "potential_wallet"
+  | "achieved_revenue"
+  | "achievement_pct"
+  | "unlocked_amount"
+>;
+
+type RolloverPolicy = Database["public"]["Enums"]["wallet_rollover_policy"];
 type TopupType = "base" | "performance" | "scheme" | "manual";
-type BudgetKind = "month_to_month" | "festive" | "scoped";
-
-const CURRENCIES = ["INR", "CAD", "USD", "GBP", "AUD"];
+type BudgetKind = Database["public"]["Enums"]["wallet_budget_kind"];
 const ROLLOVER: RolloverPolicy[] = ["expire", "partial", "full"];
 const TOPUP_TYPES: TopupType[] = ["base", "performance", "scheme", "manual"];
 
@@ -39,27 +65,16 @@ function startOfMonthISO() {
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
 }
 const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
+const CURRENCIES = ["INR", "CAD", "USD", "GBP", "AUD"];
+
+const WALLET_SIZING_SELECT =
+  "id, name, counselor_id, period_key, currency, balance, max_percent_per_client, max_amount_per_client, rollover_policy, budget_kind, valid_from, valid_to, scope_country_tag, scope_master_key, scope_sub_category, scope_service_code, assigned_target, base_wallet, performance_multiplier, potential_wallet, achieved_revenue, achievement_pct, unlocked_amount";
+
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
 
-interface WalletRow {
-  id: string;
-  name: string | null;
-  counselor_id: string;
-  period_key: string;
-  currency: string;
-  balance: number;
-  max_percent_per_client: number;
-  max_amount_per_client: number | null;
-  rollover_policy: RolloverPolicy;
-  budget_kind: BudgetKind;
-  valid_from: string | null;
-  valid_to: string | null;
-  scope_country_tag: string | null;
-  scope_master_key: string | null;
-  scope_sub_category: string | null;
-  scope_service_code: string | null;
-}
+const pct = (n: number | null | undefined) => (n == null ? "—" : `${n}%`);
+
 interface ServiceRow {
   master_key: string;
   sub_category: string | null;
@@ -107,15 +122,13 @@ export default function WalletTopups() {
     setLoading(true);
     const [pr, w, sc, ws] = await Promise.all([
       supabase.from("profiles").select("id, full_name, email").order("full_name"),
-      (supabase as any)
+      supabase
         .from("discount_wallets")
-        .select(
-          "id, name, counselor_id, period_key, currency, balance, max_percent_per_client, max_amount_per_client, rollover_policy, budget_kind, valid_from, valid_to, scope_country_tag, scope_master_key, scope_sub_category, scope_service_code",
-        )
+        .select(WALLET_SIZING_SELECT)
         .eq("period_key", period)
         .order("created_at", { ascending: false }),
       import("@/lib/leads").then(({ fetchAllServiceCatalogue }) => fetchAllServiceCatalogue()),
-      (supabase as any).from("wallet_settings").select("grace_unit, grace_days").eq("id", 1).maybeSingle(),
+      supabase.from("wallet_settings").select("grace_unit, grace_days, target_base_pct, unlock_threshold_pct").eq("id", 1).maybeSingle(),
     ]);
     setProfiles(((pr.data ?? []) as any[]).map((p) => ({ id: p.id, name: p.full_name ?? p.email ?? p.id })));
     setWallets((w.data ?? []) as WalletRow[]);
@@ -161,7 +174,7 @@ export default function WalletTopups() {
   }, [services, cw.scope_category, cw.scope_country, cw.scope_sub]);
 
   async function saveGrace() {
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("wallet_settings")
       .update({ grace_unit: graceUnit, grace_days: Number(graceDays) || 30, updated_at: new Date().toISOString() })
       .eq("id", 1);
@@ -204,7 +217,7 @@ export default function WalletTopups() {
         scope_sub_category: cw.budget_kind === "scoped" ? cw.scope_sub || null : null,
         scope_service_code: cw.budget_kind === "scoped" ? cw.scope_service || null : null,
       };
-      const { error } = await (supabase as any).from("discount_wallets").insert([payload]);
+      const { error } = await supabase.from("discount_wallets").insert([payload]);
       if (error) throw error;
       toast({ title: "Wallet created", description: `${nameOf(cw.counselor_id)} · ${period}` });
       setCw({
@@ -259,6 +272,56 @@ export default function WalletTopups() {
     }
   }
 
+  async function recalculateSizing() {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_size_wallets_for_period", { _period_key: period });
+      if (error) throw error;
+      toast({ title: "Sizing recalculated", description: `${data ?? 0} wallet(s) updated for ${period}.` });
+      await loadAll();
+    } catch (e: any) {
+      toast({ title: "Error", description: String(e?.message ?? e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function autoFundAll() {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_auto_fund_wallets_for_period", { _period_key: period });
+      if (error) throw error;
+      const res = data as { wallets_processed?: number; wallets_funded?: number } | null;
+      toast({
+        title: "Auto-fund complete",
+        description: `${res?.wallets_funded ?? 0} of ${res?.wallets_processed ?? 0} wallet(s) topped up to base.`,
+      });
+      await loadAll();
+    } catch (e: any) {
+      toast({ title: "Error", description: String(e?.message ?? e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function autoFundOne(walletId: string) {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_auto_fund_wallet", { _wallet_id: walletId });
+      if (error) throw error;
+      const res = data as { funded?: boolean; delta?: number } | null;
+      toast({
+        title: res?.funded ? "Wallet funded" : "Already at base",
+        description: res?.funded ? `Added ${fmt(Number(res?.delta ?? 0), "INR")} to base.` : "No top-up needed.",
+      });
+      await loadAll();
+    } catch (e: any) {
+      toast({ title: "Error", description: String(e?.message ?? e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const isMtm = cw.budget_kind === "month_to_month";
 
   return (
@@ -300,6 +363,32 @@ export default function WalletTopups() {
             <Button variant="outline" onClick={saveGrace}>
               Save policy
             </Button>
+          </div>
+        </Card>
+
+        {/* Performance-linked sizing */}
+        <Card className="p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Calculator className="size-5 text-primary" />
+                Performance-linked sizing
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Base wallet from prior-month achievement + rules; potential = base × multiplier. Requires{" "}
+                <code className="text-xs">incentive_targets</code> for the period.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={recalculateSizing} disabled={busy}>
+                <Calculator className="size-4 mr-1" />
+                Recalculate all
+              </Button>
+              <Button onClick={autoFundAll} disabled={busy}>
+                <Zap className="size-4 mr-1" />
+                Auto-fund all (→ base)
+              </Button>
+            </div>
           </div>
         </Card>
 
@@ -582,43 +671,44 @@ export default function WalletTopups() {
               <table className="w-full text-sm">
                 <thead className="text-left text-muted-foreground border-b">
                   <tr>
-                    <th className="py-2 pr-4">Counselor</th>
-                    <th className="py-2 pr-4">Name</th>
-                    <th className="py-2 pr-4">Kind</th>
-                    <th className="py-2 pr-4">Scope</th>
-                    <th className="py-2 pr-4 text-right">Balance</th>
-                    <th className="py-2 pr-4 text-right">Max %/client</th>
-                    <th className="py-2 pr-4 text-right">Max amount/client</th>
-                    <th className="py-2 pr-4">Valid to</th>
-                    <th className="py-2 pr-4">Rollover</th>
+                    <th className="py-2 pr-3">Counselor</th>
+                    <th className="py-2 pr-3 text-right">Target</th>
+                    <th className="py-2 pr-3 text-right">Achv%</th>
+                    <th className="py-2 pr-3 text-right">Base</th>
+                    <th className="py-2 pr-3 text-right">×Mult</th>
+                    <th className="py-2 pr-3 text-right">Potential</th>
+                    <th className="py-2 pr-3 text-right">Unlocked</th>
+                    <th className="py-2 pr-3 text-right">Balance</th>
+                    <th className="py-2 pr-3">Kind</th>
+                    <th className="py-2 pr-3"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {wallets.map((w) => {
-                    const scope = [
-                      w.scope_country_tag,
-                      catLabel(w.scope_master_key),
-                      w.scope_sub_category,
-                      w.scope_service_code,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ");
-                    return (
+                  {wallets.map((w) => (
                       <tr key={w.id} className="border-b last:border-0">
-                        <td className="py-2 pr-4">{nameOf(w.counselor_id)}</td>
-                        <td className="py-2 pr-4">{w.name ?? "—"}</td>
-                        <td className="py-2 pr-4 capitalize">{w.budget_kind.replace(/_/g, "-")}</td>
-                        <td className="py-2 pr-4 text-muted-foreground">{scope || "—"}</td>
-                        <td className="py-2 pr-4 text-right">{fmt(w.balance, w.currency)}</td>
-                        <td className="py-2 pr-4 text-right">{w.max_percent_per_client}%</td>
-                        <td className="py-2 pr-4 text-right">
-                          {w.max_amount_per_client != null ? fmt(w.max_amount_per_client, w.currency) : "—"}
+                        <td className="py-2 pr-3">
+                          <div className="font-medium">{nameOf(w.counselor_id)}</div>
+                          <div className="text-xs text-muted-foreground">{w.name ?? w.budget_kind.replace(/_/g, "-")}</div>
                         </td>
-                        <td className="py-2 pr-4">{w.valid_to ?? "—"}</td>
-                        <td className="py-2 pr-4 capitalize">{w.rollover_policy}</td>
+                        <td className="py-2 pr-3 text-right text-xs">
+                          {w.assigned_target != null ? fmt(w.assigned_target, w.currency) : "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-right">{pct(w.achievement_pct)}</td>
+                        <td className="py-2 pr-3 text-right">{fmt(w.base_wallet, w.currency)}</td>
+                        <td className="py-2 pr-3 text-right">{Number(w.performance_multiplier ?? 1).toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-right">{fmt(w.potential_wallet, w.currency)}</td>
+                        <td className="py-2 pr-3 text-right">{fmt(w.unlocked_amount, w.currency)}</td>
+                        <td className="py-2 pr-3 text-right font-medium">{fmt(w.balance, w.currency)}</td>
+                        <td className="py-2 pr-3 capitalize text-xs">{w.budget_kind.replace(/_/g, "-")}</td>
+                        <td className="py-2 pr-3 text-right">
+                          {w.budget_kind === "month_to_month" && (
+                            <Button variant="ghost" size="sm" className="h-7 text-xs" disabled={busy} onClick={() => autoFundOne(w.id)}>
+                              Fund
+                            </Button>
+                          )}
+                        </td>
                       </tr>
-                    );
-                  })}
+                  ))}
                 </tbody>
               </table>
             </div>

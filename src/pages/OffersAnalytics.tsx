@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2, TrendingUp, Tag, Users, Percent } from "lucide-react";
+import { useModulePermission } from "@/hooks/useModulePermission";
 import {
   ResponsiveContainer,
   BarChart,
@@ -53,7 +54,9 @@ function fmtMoney(n: number): string {
 }
 
 export default function OffersAnalytics() {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, hasRole, loading } = useAuth();
+  const { canView, loading: permLoading } = useModulePermission("offers_analytics");
+  const allowed = isAdmin || hasRole(["manager", "administrator"]) || canView;
   const [range, setRange] = useState<RangeKey>("90d");
   const [roi, setRoi] = useState<RoiRow[]>([]);
   const [counselors, setCounselors] = useState<CounselorRow[]>([]);
@@ -95,11 +98,11 @@ export default function OffersAnalytics() {
   }, [range]);
 
   useEffect(() => {
-    if (isAdmin) load();
-  }, [isAdmin, load]);
+    if (allowed) load();
+  }, [allowed, load]);
 
-  if (loading) return null;
-  if (!isAdmin) return <Navigate to="/" replace />;
+  if (loading || permLoading) return null;
+  if (!allowed) return <Navigate to="/" replace />;
 
   const totalViews = roi.reduce((s, r) => s + r.views, 0);
   const totalClaims = roi.reduce((s, r) => s + r.claims, 0);

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarClock, Play, RotateCcw } from "lucide-react";
+import { CalendarClock, Play, RotateCcw, RefreshCw, ArrowRightCircle } from "lucide-react";
 
 type RolloverPolicy = "expire" | "partial" | "full";
 
@@ -13,16 +13,42 @@ function currentPeriodKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
-const sel = "w-full mt-1 border rounded-md h-9 px-2 bg-background text-sm";
 const fmt = (n: number, ccy: string) =>
   `${ccy === "INR" ? "₹" : ""}${Number(n ?? 0).toLocaleString()} ${ccy !== "INR" ? ccy : ""}`.trim();
 
 interface WalletRow {
-  id: string; name: string | null; counselor_id: string; period_key: string;
-  currency: string; balance: number; budget_kind: string;
-  rollover_policy: RolloverPolicy; rollover_cap: number | null;
-  valid_to: string | null; closed_at: string | null; close_outcome: string | null;
+  id: string;
+  name: string | null;
+  counselor_id: string;
+  period_key: string;
+  currency: string;
+  balance: number;
+  budget_kind: string;
+  rollover_policy: RolloverPolicy;
+  rollover_cap: number | null;
+  valid_to: string | null;
+  closed_at: string | null;
+  close_outcome: string | null;
   carry_to_period: string | null;
+  potential_wallet: number;
+  unlocked_amount: number;
+  achievement_pct: number | null;
+}
+
+interface ScoreRow {
+  counselor_id: string;
+  total_score: number;
+  revenue_achievement: number;
+  wallet_impact_revenue: number;
+}
+
+interface PeriodCloseResult {
+  period_key?: string;
+  next_period_key?: string;
+  scores_computed?: number;
+  wallets_closed?: number;
+  next_wallets_seeded?: number;
+  next_wallets_funded?: number;
 }
 
 export default function PeriodClose() {
@@ -31,81 +57,158 @@ export default function PeriodClose() {
   const [wallets, setWallets] = useState<WalletRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [achievement, setAchievement] = useState<Record<string, number | null>>({});
+  const [scores, setScores] = useState<Record<string, ScoreRow>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   async function loadAll() {
     setLoading(true);
-    const [w, pr, targets, runs] = await Promise.all([
-      (supabase as any).from("discount_wallets")
-        .select("id, name, counselor_id, period_key, currency, balance, budget_kind, rollover_policy, rollover_cap, valid_to, closed_at, close_outcome, carry_to_period")
-        .eq("period_key", period).order("created_at", { ascending: false }),
+    const [w, pr, achRes, scoreRes] = await Promise.all([
+      supabase
+        .from("discount_wallets")
+        .select(
+          "id, name, counselor_id, period_key, currency, balance, budget_kind, rollover_policy, rollover_cap, valid_to, closed_at, close_outcome, carry_to_period, potential_wallet, unlocked_amount, achievement_pct",
+        )
+        .eq("period_key", period)
+        .order("created_at", { ascending: false }),
       supabase.from("profiles").select("id, full_name, email"),
-      (supabase as any).from("incentive_targets").select("counselor_id, target_value").eq("period_key", period),
-      (supabase as any).from("incentive_runs").select("counselor_id, grand_total").eq("period_key", period),
+      supabase.rpc("fn_counselor_period_achievement", { _period_key: period }),
+      supabase.from("counselor_performance_scores").select("*").eq("period_key", period),
     ]);
 
     const pmap: Record<string, string> = {};
-    for (const p of ((pr.data ?? []) as any[])) pmap[p.id] = p.full_name ?? p.email ?? p.id;
+    for (const p of (pr.data ?? []) as { id: string; full_name?: string; email?: string }[]) {
+      pmap[p.id] = p.full_name ?? p.email ?? p.id;
+    }
 
-    // achievement % = run total / target * 100 (per counselor), null if either missing
-    const tmap: Record<string, number> = {};
-    for (const t of ((targets?.data ?? []) as any[])) if (t.target_value) tmap[t.counselor_id] = Number(t.target_value);
-    const rmap: Record<string, number> = {};
-    for (const r of ((runs?.data ?? []) as any[])) rmap[r.counselor_id] = Number(r.grand_total ?? 0);
     const ach: Record<string, number | null> = {};
-    for (const cid of new Set([...Object.keys(tmap), ...Object.keys(rmap)])) {
-      ach[cid] = tmap[cid] ? Math.round(((rmap[cid] ?? 0) / tmap[cid]) * 100) : null;
+    if (!achRes.error) {
+      for (const row of (achRes.data ?? []) as { counselor_id: string; achievement_pct?: number | null }[]) {
+        if (row.counselor_id != null) {
+          ach[row.counselor_id] = row.achievement_pct != null ? Number(row.achievement_pct) : null;
+        }
+      }
+    }
+
+    const smap: Record<string, ScoreRow> = {};
+    for (const row of (scoreRes.data ?? []) as ScoreRow[]) {
+      smap[row.counselor_id] = row;
     }
 
     setWallets((w.data ?? []) as WalletRow[]);
     setProfiles(pmap);
     setAchievement(ach);
+    setScores(smap);
     setLoading(false);
   }
-  useEffect(() => { loadAll(); /* eslint-disable-next-line */ }, [period]);
+  useEffect(() => {
+    loadAll();
+    /* eslint-disable-next-line */
+  }, [period]);
 
   const nameOf = (id: string) => profiles[id] ?? id;
   const open = useMemo(() => wallets.filter((w) => !w.closed_at), [wallets]);
   const closed = useMemo(() => wallets.filter((w) => w.closed_at), [wallets]);
   const dueCount = useMemo(
     () => open.filter((w) => w.valid_to && w.valid_to < new Date().toISOString().slice(0, 10)).length,
-    [open]);
+    [open],
+  );
 
-  // change a wallet's rollover policy BEFORE close (pre-close override)
   async function setPolicy(id: string, policy: RolloverPolicy) {
-    const { error } = await (supabase as any).from("discount_wallets").update({ rollover_policy: policy }).eq("id", id);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); return; }
+    const { error } = await supabase.from("discount_wallets").update({ rollover_policy: policy }).eq("id", id);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
     setWallets((ws) => ws.map((w) => (w.id === id ? { ...w, rollover_policy: policy } : w)));
   }
 
   async function runClose() {
     setBusy(true);
     try {
-      const { data, error } = await (supabase as any).rpc("fn_close_due_wallets");
+      const { data, error } = await supabase.rpc("fn_close_due_wallets");
       if (error) throw error;
       toast({ title: "Period close run", description: `${data ?? 0} wallet(s) processed.` });
       await loadAll();
-    } catch (e: any) {
-      toast({ title: "Error", description: String(e?.message ?? e), variant: "destructive" });
-    } finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function syncScores() {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_sync_performance_scores_for_period", {
+        _period_key: period,
+      });
+      if (error) throw error;
+      toast({ title: "Scores updated", description: `${data ?? 0} counsellor score(s) computed.` });
+      await loadAll();
+    } catch (e: unknown) {
+      toast({
+        title: "Error",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function closeAndReseed() {
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.rpc("fn_period_close_and_reseed", { _period_key: period });
+      if (error) throw error;
+      const res = data as PeriodCloseResult;
+      toast({
+        title: "Period closed & next month seeded",
+        description: `${res?.wallets_closed ?? 0} closed · ${res?.next_wallets_funded ?? 0} funded for ${res?.next_period_key ?? "next period"}.`,
+      });
+      await loadAll();
+    } catch (e: unknown) {
+      toast({
+        title: "Could not close period",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function reinstate(id: string) {
     setBusy(true);
     try {
-      const { data, error } = await (supabase as any).rpc("fn_reinstate_wallet", { _wallet_id: id, _to_period: null });
+      const { data, error } = await supabase.rpc("fn_reinstate_wallet", { _wallet_id: id, _to_period: null });
       if (error) throw error;
       toast({ title: "Reinstated", description: String(data ?? "Carried forward.") });
       await loadAll();
-    } catch (e: any) {
-      toast({ title: "Could not reinstate", description: String(e?.message ?? e), variant: "destructive" });
-    } finally { setBusy(false); }
+    } catch (e: unknown) {
+      toast({
+        title: "Could not reinstate",
+        description: e instanceof Error ? e.message : String(e),
+        variant: "destructive",
+      });
+    } finally {
+      setBusy(false);
+    }
   }
 
   const achLabel = (cid: string) => {
     const a = achievement[cid];
     return a == null ? "—" : `${a}%`;
+  };
+
+  const scoreLabel = (cid: string) => {
+    const s = scores[cid];
+    return s ? `${s.total_score}` : "—";
   };
 
   return (
@@ -118,26 +221,51 @@ export default function PeriodClose() {
           </div>
           <div>
             <label className="text-xs text-muted-foreground mr-2">Period</label>
-            <Input className="inline-block w-32" value={period} onChange={(e) => setPeriod(e.target.value)} placeholder="2026-05" />
+            <Input
+              className="inline-block w-32"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value)}
+              placeholder="2026-05"
+            />
           </div>
         </div>
 
-        {/* Run close */}
-        <Card className="p-5">
+        <Card className="p-5 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h2 className="text-lg font-semibold">Run close for due wallets</h2>
+              <h2 className="text-lg font-semibold">Close &amp; reseed loop</h2>
               <p className="text-sm text-muted-foreground">
-                {dueCount > 0
-                  ? `${dueCount} wallet(s) are past their end date and ready to close. Set carry-forward below first if you want to reward anyone.`
-                  : "No wallets are past their end date right now. Closing will process any that are due across all periods."}
+                Compute performance scores, close all open month-to-month wallets for {period}, then create and
+                auto-fund next-period wallets sized from this month&apos;s achievement.
               </p>
             </div>
-            <Button onClick={runClose} disabled={busy}><Play className="size-4 mr-1" /> Run close</Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={syncScores} disabled={busy}>
+                <RefreshCw className="size-4 mr-1" /> Refresh scores
+              </Button>
+              <Button onClick={closeAndReseed} disabled={busy}>
+                <ArrowRightCircle className="size-4 mr-1" /> Close period &amp; reseed
+              </Button>
+            </div>
           </div>
         </Card>
 
-        {/* Open wallets — pre-close overrides */}
+        <Card className="p-5">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">Run close for due wallets only</h2>
+              <p className="text-sm text-muted-foreground">
+                {dueCount > 0
+                  ? `${dueCount} wallet(s) are past their end date. Set carry-forward below first if needed.`
+                  : "Processes wallets past valid_to across all periods."}
+              </p>
+            </div>
+            <Button onClick={runClose} disabled={busy}>
+              <Play className="size-4 mr-1" /> Run close
+            </Button>
+          </div>
+        </Card>
+
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Open wallets — {period}</h2>
           {loading ? (
@@ -152,9 +280,12 @@ export default function PeriodClose() {
                     <th className="py-2 pr-4">Counselor</th>
                     <th className="py-2 pr-4">Budget</th>
                     <th className="py-2 pr-4 text-right">Balance</th>
-                    <th className="py-2 pr-4 text-right">Achievement</th>
+                    <th className="py-2 pr-4 text-right">Potential</th>
+                    <th className="py-2 pr-4 text-right">Unlocked</th>
+                    <th className="py-2 pr-4 text-right">Achv%</th>
+                    <th className="py-2 pr-4 text-right">Score</th>
                     <th className="py-2 pr-4">Valid to</th>
-                    <th className="py-2 pr-4">Rollover (editable)</th>
+                    <th className="py-2 pr-4">Rollover</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -163,11 +294,17 @@ export default function PeriodClose() {
                       <td className="py-2 pr-4">{nameOf(w.counselor_id)}</td>
                       <td className="py-2 pr-4">{w.name ?? w.budget_kind.replace(/_/g, "-")}</td>
                       <td className="py-2 pr-4 text-right">{fmt(w.balance, w.currency)}</td>
+                      <td className="py-2 pr-4 text-right">{fmt(w.potential_wallet ?? 0, w.currency)}</td>
+                      <td className="py-2 pr-4 text-right">{fmt(w.unlocked_amount ?? 0, w.currency)}</td>
                       <td className="py-2 pr-4 text-right">{achLabel(w.counselor_id)}</td>
+                      <td className="py-2 pr-4 text-right font-medium">{scoreLabel(w.counselor_id)}</td>
                       <td className="py-2 pr-4">{w.valid_to ?? "—"}</td>
                       <td className="py-2 pr-4">
-                        <select className="border rounded-md h-8 px-2 bg-background text-sm"
-                          value={w.rollover_policy} onChange={(e) => setPolicy(w.id, e.target.value as RolloverPolicy)}>
+                        <select
+                          className="border rounded-md h-8 px-2 bg-background text-sm"
+                          value={w.rollover_policy}
+                          onChange={(e) => setPolicy(w.id, e.target.value as RolloverPolicy)}
+                        >
                           <option value="expire">expire</option>
                           <option value="partial">partial</option>
                           <option value="full">full</option>
@@ -181,7 +318,6 @@ export default function PeriodClose() {
           )}
         </Card>
 
-        {/* Closed wallets — reinstate */}
         <Card className="p-5">
           <h2 className="text-lg font-semibold mb-4">Closed this period</h2>
           {loading ? (
@@ -195,6 +331,7 @@ export default function PeriodClose() {
                   <tr>
                     <th className="py-2 pr-4">Counselor</th>
                     <th className="py-2 pr-4">Budget</th>
+                    <th className="py-2 pr-4 text-right">Score</th>
                     <th className="py-2 pr-4">Outcome</th>
                     <th className="py-2 pr-4">Closed</th>
                     <th className="py-2 pr-4"></th>
@@ -205,6 +342,7 @@ export default function PeriodClose() {
                     <tr key={w.id} className="border-b last:border-0">
                       <td className="py-2 pr-4">{nameOf(w.counselor_id)}</td>
                       <td className="py-2 pr-4">{w.name ?? w.budget_kind.replace(/_/g, "-")}</td>
+                      <td className="py-2 pr-4 text-right">{scoreLabel(w.counselor_id)}</td>
                       <td className="py-2 pr-4 capitalize">{(w.close_outcome ?? "").replace(/_/g, " ")}</td>
                       <td className="py-2 pr-4">{w.closed_at ? new Date(w.closed_at).toLocaleDateString() : "—"}</td>
                       <td className="py-2 pr-4 text-right">
@@ -221,7 +359,7 @@ export default function PeriodClose() {
             </div>
           )}
           <p className="text-xs text-muted-foreground mt-3">
-            Reinstating carries an expired balance forward to the next period, allowed within the grace window set on Wallet Top-ups.
+            Reinstating carries an expired balance forward within the grace window set on Wallet Top-ups.
           </p>
         </Card>
       </div>
