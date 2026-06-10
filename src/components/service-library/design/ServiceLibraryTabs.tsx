@@ -19,6 +19,7 @@ import {
   History,
   Eye,
   ImageIcon,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AcademyViewModel } from "@/lib/service-library/buildAcademyViewModel";
@@ -34,6 +35,8 @@ import { ServiceMbbsInstitutionPanel } from "@/components/service-library/design
 import { ServiceMbbsProgramsPanel } from "@/components/service-library/design/ServiceMbbsProgramsPanel";
 import { ServiceMbbsPracticePanel } from "@/components/service-library/design/ServiceMbbsPracticePanel";
 import { ServiceMbbsFamilyPanel } from "@/components/service-library/design/ServiceMbbsFamilyPanel";
+import { ServiceMbbsEligibilityPanel } from "@/components/service-library/design/ServiceMbbsEligibilityPanel";
+import { ServiceFullCostBreakdownCard } from "@/components/service-library/design/ServiceFullCostBreakdownCard";
 import {
   resolveAcademyTabs,
   tabLabel,
@@ -94,6 +97,23 @@ export function ServiceLibraryTabs({
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4 mt-0">
+        {view.isMbbs && (
+          <Card
+            className="p-4 shadow-elev-sm border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors"
+            onClick={() => setTab("eligibility")}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === "Enter" && setTab("eligibility")}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <ClipboardCheck className="size-4 text-primary shrink-0" />
+                Eligibility check — review criteria before quoting fees
+              </div>
+              <span className="text-xs text-primary shrink-0">Open →</span>
+            </div>
+          </Card>
+        )}
         <Card className="p-5 shadow-elev-sm">
           <h3 className="font-semibold mb-4">About this service</h3>
           {view.about.length ? (
@@ -178,16 +198,28 @@ export function ServiceLibraryTabs({
         )}
       </TabsContent>
 
-      <TabsContent value="fees" className="mt-0">
+      <TabsContent value="fees" className="mt-0 space-y-4">
         {view.feeBreakdown?.govt || view.feeBreakdown?.consultancy ? (
           <ServiceFeeBreakdownPanel breakdown={view.feeBreakdown} />
-        ) : (
+        ) : view.isMbbs ? null : (
           <Card className="p-5 shadow-elev-sm">
             <p className="text-sm text-muted-foreground">
               Fee breakdown not yet available for this service. Check Government fee KPI or official authority website.
             </p>
           </Card>
         )}
+        {view.countryInsights?.fullCostBreakdown?.sections?.length ? (
+          <ServiceFullCostBreakdownCard
+            breakdown={view.countryInsights.fullCostBreakdown}
+            emphasizeTuition={view.isMbbs}
+          />
+        ) : view.isMbbs && !(view.feeBreakdown?.govt || view.feeBreakdown?.consultancy) ? (
+          <Card className="p-5 shadow-elev-sm">
+            <p className="text-sm text-muted-foreground">
+              Tuition structure not configured yet. Add full cost breakdown in Service Library Admin → Service content.
+            </p>
+          </Card>
+        ) : null}
       </TabsContent>
 
       <TabsContent value="institution" className="mt-0">
@@ -244,7 +276,9 @@ export function ServiceLibraryTabs({
       </TabsContent>
 
       <TabsContent value="eligibility" className="mt-0">
-        {!view.isCoaching && libraryId && onStartEligibility ? (
+        {view.isMbbs ? (
+          <ServiceMbbsEligibilityPanel view={view} onOpenFees={() => setTab("fees")} />
+        ) : !view.isCoaching && libraryId && onStartEligibility ? (
           <ServiceEligibilityPanel
             view={view}
             libraryId={libraryId}

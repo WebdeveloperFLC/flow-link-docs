@@ -30,7 +30,11 @@ export function formatFeeBreakdownRow(item: GovtFeeBreakdownItem): {
     return { nativeDisplay: "Not applicable", inrDisplay: null };
   }
   if (item.amount == null) {
-    return { nativeDisplay: "Varies — see notes", inrDisplay: null };
+    const hint = item.notes?.trim();
+    return {
+      nativeDisplay: hint && hint.length <= 48 ? hint : "Verify on official source",
+      inrDisplay: null,
+    };
   }
   const nativeDisplay = formatNative(item.amount, item.currency);
   const inr =

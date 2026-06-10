@@ -149,10 +149,10 @@ export function ServiceAcademyHero({
             <Brain className="size-4 mr-1.5" />
             Take quiz
           </Button>
-          {!view.isCoaching && !view.isMbbs && onStartEligibility && (
+          {!view.isCoaching && onStartEligibility && (
             <Button variant="outline" size="sm" onClick={onStartEligibility}>
               <ClipboardCheck className="size-4 mr-1.5" />
-              Eligibility Assessment
+              {view.isMbbs ? "Eligibility check" : "Eligibility Assessment"}
             </Button>
           )}
           <Button

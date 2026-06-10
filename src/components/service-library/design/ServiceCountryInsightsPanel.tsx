@@ -1,7 +1,8 @@
-import { ExternalLink, Info, Briefcase, Heart, Globe2, Wallet } from "lucide-react";
+import { ExternalLink, Info, Briefcase, Globe2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { CountryInsightsView, WorkingRightsBlock } from "@/lib/service-library/countryInsights/types";
+import { ServiceFullCostBreakdownCard } from "./ServiceFullCostBreakdownCard";
 
 type Props = {
   insights: CountryInsightsView;
@@ -153,80 +154,7 @@ export function ServiceCountryInsightsPanel({ insights }: Props) {
       )}
 
       {fullCostBreakdown && fullCostBreakdown.sections.length > 0 && (
-        <Card className="p-5 shadow-elev-sm border-primary/15">
-          <div className="flex flex-wrap items-start justify-between gap-2 mb-4">
-            <div>
-              <h3 className="font-semibold text-base flex items-center gap-2">
-                <Heart className="size-4 text-primary" />
-                {fullCostBreakdown.title ?? "Full cost breakdown — fees, tuition, living & miscellaneous"}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Indicative totals for counseling conversations — verify official fees before quoting.
-              </p>
-            </div>
-            <Badge variant="outline">Updated {fullCostBreakdown.lastVerified}</Badge>
-          </div>
-
-          {fullCostBreakdown.sections.map((section) => (
-            <div key={section.id} className="mb-5 last:mb-0">
-              <h4 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
-                {section.label}
-              </h4>
-              <div className="overflow-x-auto -mx-1">
-                <table className="w-full text-sm border-collapse min-w-[480px]">
-                  <tbody>
-                    {section.items.map((item) => (
-                      <tr
-                        key={item.label}
-                        className={`border-b border-border/60 ${item.applicable === false ? "opacity-50" : ""}`}
-                      >
-                        <td className="py-2.5 px-2 align-top font-medium w-[40%]">{item.label}</td>
-                        <td className="py-2.5 px-2 text-right tabular-nums align-top whitespace-nowrap">
-                          {formatAmount({ ...item, currency: item.currency ?? fullCostBreakdown.currency })}
-                        </td>
-                        <td className="py-2.5 px-2 align-top text-xs text-muted-foreground max-w-sm">
-                          {item.notes ?? (item.applicable === false ? "Not applicable for this visa" : "—")}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
-
-          {fullCostBreakdown.totals && fullCostBreakdown.totals.length > 0 && (
-            <div className="rounded-lg bg-muted/40 p-4 mt-4 space-y-2">
-              {fullCostBreakdown.totals.map((t) => (
-                <div key={t.label} className="flex flex-wrap justify-between gap-2 text-sm">
-                  <span className="font-medium">{t.label}</span>
-                  <span className="tabular-nums font-semibold text-primary">{t.value}</span>
-                  {t.notes && <span className="text-xs text-muted-foreground w-full">{t.notes}</span>}
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex gap-2 text-xs text-muted-foreground bg-muted/30 rounded-lg p-3 mt-4">
-            <Info className="size-4 shrink-0 mt-0.5" />
-            <p>
-              {fullCostBreakdown.disclaimer}
-              {fullCostBreakdown.sourceUrl && (
-                <>
-                  {" "}
-                  <a
-                    href={fullCostBreakdown.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline inline-flex items-center gap-0.5"
-                  >
-                    Source <ExternalLink className="size-3" />
-                  </a>
-                </>
-              )}
-            </p>
-          </div>
-        </Card>
+        <ServiceFullCostBreakdownCard breakdown={fullCostBreakdown} />
       )}
     </div>
   );
