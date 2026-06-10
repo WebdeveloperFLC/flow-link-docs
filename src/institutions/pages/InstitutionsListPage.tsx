@@ -14,6 +14,11 @@ import { toast } from "sonner";
 import type { UpiInstitution } from "../types/upi";
 import { useModulePermission } from "@/hooks/useModulePermission";
 import { InstitutionLogo } from "../components/InstitutionLogo";
+import {
+  PartnershipChannelBadges,
+  type InstitutionRouteBadge,
+} from "../components/PartnershipChannelBadges";
+import { findDuplicateInstitution } from "../lib/institutionDedup";
 
 const LIST_COLUMNS =
   "id,name,country_name,institution_type,is_partner,is_active,website_url,logo_url" as const;
@@ -61,6 +66,7 @@ export default function InstitutionsListPage() {
   const [country, setCountry] = useState("");
   const [website, setWebsite] = useState("");
   const [fetchingLogos, setFetchingLogos] = useState(false);
+  const [routesByInst, setRoutesByInst] = useState<Map<string, InstitutionRouteBadge[]>>(new Map());
 
   const missingLogoCount = items.filter((i) => !i.logo_url && i.website_url?.trim()).length;
 
@@ -68,9 +74,13 @@ export default function InstitutionsListPage() {
     setLoading(true);
     setListError(null);
 
-    const [{ data, error }, courseStats] = await Promise.all([
+    const [{ data, error }, courseStats, routesRes] = await Promise.all([
       supabase.from("upi_institutions").select(LIST_COLUMNS).order("name"),
       fetchCourseReviewStats(),
+      supabase
+        .from("upi_partnership_routes")
+        .select("id, institution_id, channel_type, status, upi_aggregators(name, short_code)")
+        .in("status", ["active", "draft"]),
     ]);
 
     if (error) {
@@ -78,10 +88,22 @@ export default function InstitutionsListPage() {
       setListError(msg);
       toast.error(msg);
       setItems([]);
+      setRoutesByInst(new Map());
       setStats({ total: 0, partners: 0, courses: 0, pending: 0 });
     } else {
       const list = (data ?? []) as UpiInstitution[];
+      const routeMap = new Map<string, InstitutionRouteBadge[]>();
+      for (const row of routesRes.data ?? []) {
+        const r = row as Record<string, unknown>;
+        const instId = String(r.institution_id);
+        const agg = r.upi_aggregators as InstitutionRouteBadge["aggregator"] | null;
+        const { upi_aggregators: _, ...rest } = r;
+        const route = { ...rest, aggregator: agg ?? null } as InstitutionRouteBadge;
+        if (!routeMap.has(instId)) routeMap.set(instId, []);
+        routeMap.get(instId)!.push(route);
+      }
       setItems(list);
+      setRoutesByInst(routeMap);
       setStats({
         total: list.length,
         partners: list.filter((i) => i.is_partner).length,
@@ -125,10 +147,22 @@ export default function InstitutionsListPage() {
 
   const create = async () => {
     if (!name.trim()) return toast.error("Name required");
+    if (!country.trim()) return toast.error("Country is required — same institution name can exist in different countries");
+    const dup = findDuplicateInstitution(items, name.trim(), country.trim());
+    if (dup) {
+      toast.error(`Institution already exists: ${dup.name}`);
+      navigate(`/institutions/${dup.id}`);
+      return;
+    }
     const { error } = await supabase.from("upi_institutions").insert({
       name: name.trim(), country_name: country.trim() || null, website_url: website.trim() || null,
     });
-    if (error) return toast.error(error.message);
+    if (error) {
+      if (error.code === "23505") {
+        return toast.error("An institution with this name and country already exists");
+      }
+      return toast.error(error.message);
+    }
     toast.success("Institution created");
     setName(""); setCountry(""); setWebsite(""); setOpen(false); load();
   };
@@ -191,7 +225,7 @@ export default function InstitutionsListPage() {
               <DialogHeader><DialogTitle>Add institution</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <Input placeholder="Name *" value={name} onChange={(e) => setName(e.target.value)} />
-                <Input placeholder="Country" value={country} onChange={(e) => setCountry(e.target.value)} />
+                <Input placeholder="Country (required for same-name institutions)" value={country} onChange={(e) => setCountry(e.target.value)} />
                 <Input placeholder="Website URL" value={website} onChange={(e) => setWebsite(e.target.value)} />
               </div>
               <DialogFooter><Button onClick={create}>Create</Button></DialogFooter>
@@ -208,8 +242,11 @@ export default function InstitutionsListPage() {
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold truncate">{i.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{i.country_name ?? "—"} · {i.institution_type ?? "—"}</div>
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {i.is_partner && <Badge variant="default" className="text-[10px]">Direct partner</Badge>}
+                    <PartnershipChannelBadges
+                      routes={routesByInst.get(i.id) ?? []}
+                      legacyDirectPartner={i.is_partner}
+                    />
+                    <div className="flex gap-1 mt-1 flex-wrap">
                       {!i.is_active && <Badge variant="secondary" className="text-[10px]">Inactive</Badge>}
                       {i.website_url && <Badge variant="outline" className="text-[10px] gap-1"><Globe className="size-3" /> Web</Badge>}
                     </div>

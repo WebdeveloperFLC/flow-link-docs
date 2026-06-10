@@ -1,4 +1,8 @@
 import * as XLSX from "xlsx";
+import {
+  normalizeInstitutionDedupCountry,
+  normalizeInstitutionDedupName,
+} from "./institutionDedup";
 
 function num(v: unknown): number | null {
   if (v === "" || v == null) return null;
@@ -110,20 +114,11 @@ export function groupProgramSheetRows(rows: Record<string, unknown>[]): ParsedIm
 }
 
 export function normalizeInstitutionName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+  return normalizeInstitutionDedupName(name);
 }
 
 function normalizeCountry(country: string | null | undefined): string {
-  const c = String(country ?? "")
-    .toLowerCase()
-    .trim();
-  if (c === "uk" || c === "u.k." || c === "great britain" || c === "england") return "united kingdom";
-  if (c === "usa" || c === "u.s.a." || c === "us" || c === "u.s.") return "united states";
-  if (c === "uae") return "united arab emirates";
-  return c;
+  return normalizeInstitutionDedupCountry(country);
 }
 
 /** Strict institution match — exact normalized name, optional country disambiguation. */
